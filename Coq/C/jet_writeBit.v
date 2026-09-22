@@ -530,3 +530,66 @@ Proof.
   - cbn; split; [discriminate | reflexivity].
   - simpl; reflexivity.
 Qed.
+
+Lemma eval_writeBit_zero_call : forall (m m1 m2 : mem) (bf bw : block),
+  Mem.load Mptr m bf 0 = Some (Vptr bw Ptrofs.zero) ->
+  Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 9)) ->
+  Mem.store Mint64 m bf 8 (Vlong (Int64.repr 8)) = Some m1 ->
+  Mem.load Mptr m1 bf 0 = Some (Vptr bw Ptrofs.zero) ->
+  Mem.load Mint64 m1 bf 8 = Some (Vlong (Int64.repr 8)) ->
+  Mem.load Mint64 m1 bw 0 = Some (Vlong Int64.zero) ->
+  Mem.store Mint64 m1 bw 0 (Vlong Int64.zero) = Some m2 ->
+  ClightBigstep.Clight2.eval_funcall ge0 m
+    (Internal f_writeBit)
+    (Vptr bf Ptrofs.zero :: Vint Int.zero :: nil)
+    E0 m2 (Vint Int.zero).
+Proof.
+  intros m m1 m2 bf bw Hedge Hoffset Hstore_offset Hedge1 Hoffset1
+    Hword Hstore_word.
+  eapply ClightBigstep.eval_funcall_internal
+    with (e := empty_env) (le1 := le_writeBit0 bf) (m1 := m)
+         (le2 := le_writeBit_t1 bf bw) (m2 := m2)
+         (out := Out_return (Some (Vint Int.zero, tbool)))
+         (vres := Vint Int.zero).
+  - apply entry_writeBit0.
+  - eapply eval_writeBit_zero.
+    + exact Hedge.
+    + exact Hoffset.
+    + exact Hstore_offset.
+    + exact Hedge1.
+    + exact Hoffset1.
+    + exact Hword.
+    + exact Hstore_word.
+    + apply symbol_LSBclear.
+    + apply funct_LSBclear.
+    + apply eval_LSBclear9_zero.
+  - cbn; split; [discriminate | reflexivity].
+  - simpl; reflexivity.
+Qed.
+
+Lemma eval_writeBit_one_call : forall (m m1 m2 : mem) (bf bw : block),
+  Mem.load Mptr m bf 0 = Some (Vptr bw Ptrofs.zero) ->
+  Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 9)) ->
+  Mem.store Mint64 m bf 8 (Vlong (Int64.repr 8)) = Some m1 ->
+  Mem.load Mptr m1 bf 0 = Some (Vptr bw Ptrofs.zero) ->
+  Mem.load Mint64 m1 bf 8 = Some (Vlong (Int64.repr 8)) ->
+  Mem.load Mint64 m1 bw 0 = Some (Vlong Int64.zero) ->
+  Mem.store Mint64 m1 bw 0 (Vlong (Int64.repr 256)) = Some m2 ->
+  ClightBigstep.Clight2.eval_funcall ge0 m
+    (Internal f_writeBit)
+    (Vptr bf Ptrofs.zero :: Vint Int.one :: nil)
+    E0 m2 (Vint Int.one).
+Proof.
+  intros m m1 m2 bf bw Hedge Hoffset Hstore_offset Hedge1 Hoffset1
+    Hword Hstore_word.
+  eapply ClightBigstep.eval_funcall_internal
+    with (e := empty_env) (le1 := le_writeBit1 bf) (m1 := m)
+         (le2 := le_writeBit1_t5 bf bw) (m2 := m2)
+         (out := Out_return (Some (Vint Int.one, tbool)))
+         (vres := Vint Int.one).
+  - apply entry_writeBit1.
+  - apply eval_writeBit_one with (m1 := m1) (m2 := m2)
+      (bf := bf) (bw := bw); assumption.
+  - cbn; split; [discriminate | reflexivity].
+  - simpl; reflexivity.
+Qed.
