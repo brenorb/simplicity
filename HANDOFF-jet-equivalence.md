@@ -29,7 +29,7 @@ Increment and add also have complete crossing-output equivalence theorems
 for cursors 65..72: all eight ways their nine output bits span two words.
 The carry-at-the-boundary case (cursor 65) is included.
 The newest theorems also cover two-word input alignment: read cursors 0..120
-for increment and 0..112 for add, with crossing outputs 65..72. This includes
+for increment and 0..112 for add, with independent output cursors 9..72. This includes
 crossing reads, either operand crossing, and exact-boundary reads. Their input
 frame edge is offset 16, with high/low words at offsets 8/0.
 All preserve the already-written prefix. The crossing theorem consumes
@@ -41,6 +41,8 @@ and must not be overwritten or included in proof commits.
 
 The new public results are:
 
+- `Coq/C/jet_increment8_frames.v:eval_increment8_frames_matches_spec`
+- `Coq/C/jet_add8_frames.v:eval_add8_frames_matches_spec`
 - `Coq/C/jet_add8_spec.v:eval_add8_cursors_matches_spec`
 - `Coq/C/jet_add8_crossing.v:eval_add8_crossing_matches_spec`
 - `Coq/C/jet_add8_two_words.v:eval_add8_two_words_matches_spec`
@@ -74,8 +76,9 @@ The older input contracts use a **single-word layout**, with arbitrary unused
 bits and independent read/write cursors. The newer `two_word_input` contract
 supports a sequence of bytes within two initialized words; the reader proves
 all three paths (high word, crossing, low word). The newest complete jet
-theorems currently pair this reader with crossing outputs. Combining it with
-non-crossing outputs remains to do. General frame/base offsets remain unproved.
+theorems pair this reader with a shared `output9` contract for output cursors
+9..72, covering non-crossing and crossing outputs. General frame/base offsets,
+arbitrary backing-word indices, and output cursors beyond 72 remain unproved.
 For a nonzero final cursor, preserve the already-written prefix, not the
 unused low bits: the real C writer clears those low bits.
 
@@ -158,13 +161,19 @@ After integrating two-word inputs, the targeted build and assumption audit
 passed again. Independent
 `coqchk -silent C.jet_increment8_two_words C.jet_add8_two_words` passed
 (exit status 0). The crossing-read value bridge is closed under the global context.
+After unifying both output paths, the full targeted build and assumption audit
+passed again. Independent
+`coqchk -silent C.jet_increment8_frames C.jet_add8_frames` passed (exit status 0).
+The new frame theorems inherit the same assumptions as the preceding executions;
+the carry/byte bit-slice lemmas introduce no axioms.
 
 ## Remaining work beyond the concrete-layout results
 
-1. Connect the total two-word reader to non-crossing increment/add outputs.
-   Then generalize physical frame/backing-word base offsets and arbitrary
+1. Generalize physical frame/backing-word base offsets and arbitrary
    backing-word indices. Crossing input/output paths are individually proved
-   and composed in the newest two-word jet theorems.
+   and composed with non-crossing paths in the newest unified frame theorems.
+   The source/destination frame structs still start at block offset 0; input
+   edge is 16, output edge is 0. Removing these fixed bases is the next milestone.
 2. Extend to larger widths, reusing the generalized frame infrastructure.
    `add_8` now uses `Word.adder` as its canonical primitive specification,
    with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.
@@ -228,6 +237,14 @@ preserving other-block loads, permissions, and valid blocks.
 `jet_two_word_input.v` represents a byte sequence and supplies single/pair
 elimination lemmas. The newest increment/add proofs use that contract directly;
 they do not assume read executions or intermediate-store success.
+
+Unified output notes: `jet_carry_byte_position.v` constructs non-crossing
+carry/byte calls for arbitrary payloads. `jet_output9.v` combines it with
+the crossing writer under `write_frame`, and defines `output9` and
+`output9_prefix` independently of which output path executes.
+Its preservation lemmas let the public frame theorems transport these contracts
+across source preparation and local-frame freeing without repeating each path.
+The older crossing-only and single-word theorems remain checked regressions.
 
 Known check times: a production AST change triggers the older `jet_exec.v`
 (about four minutes) and `jet_write8.v` (about three minutes). The new symbolic

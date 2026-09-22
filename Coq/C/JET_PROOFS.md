@@ -2,6 +2,16 @@
 
 ## Public results and exact scope
 
+The strongest unified results are
+`jet_increment8_frames.v:eval_increment8_frames_matches_spec` and
+`jet_add8_frames.v:eval_add8_frames_matches_spec`. They support every input
+alignment within two backing words (read cursors 0..120 and 0..112 respectively)
+and independent output cursors 9..72. Their initial output contract is
+`write_frame`; the final `output9` contract decodes either the non-crossing
+or crossing nine-bit result and equals the canonical Simplicity specification.
+`output9_prefix` preserves the already-written prefix of the touched word.
+All helper executions, allocations, frame copies, stores, and freeing are proved.
+
 `jet_add8_spec.v:eval_add8_cursors_matches_spec` proves complete execution of
 the generated `f_simplicity_add_8` against the canonical primitive
 `Word.adder` (`false &&& iden >>> full_add word8`). It covers every pair of
@@ -88,8 +98,8 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   generated guard; it does not assume assertions succeed. Static assertions
   remain enabled and checked by clightgen.
 
-Two-word inputs combined with non-crossing outputs, general frame/backing-word
-base offsets and backing-word indices,
+General frame/backing-word base offsets and backing-word indices,
+output cursors beyond 72,
 other target ABIs, fully debug-enabled execution (without `PRODUCTION`),
 and larger-width arithmetic jets are not established by these public theorems.
 No binary-level linking or native ARM execution
@@ -126,6 +136,10 @@ not separate universal determinism/small-step theorems.
 - `jet_writeBit_high.v`, `jet_crossing_frame.v`, `jet_write8_split.v`,
   `jet_carry_byte_crossing.v`: second-word carry writes, frame construction,
   exact-boundary byte writes, and composition across all eight nine-bit splits.
+- `jet_carry_byte_position.v`, `jet_output9.v`: non-crossing composition and
+  a shared writable-frame/output-value/prefix contract for output cursors 9..72.
+  Frame/output preservation lemmas connect this contract to source preparation
+  and local-frame freeing.
 - `jet_read8_position.v`, `jet_writeBit_position.v`: actual helper execution
   at all in-word read and carry-bit cursors.
 - `jet_read8_crossing.v`, `jet_read8_crossing_word.v`: actual two-word
@@ -164,6 +178,8 @@ not separate universal determinism/small-step theorems.
   for crossing outputs, with actual reads, frame copies, allocation and freeing.
 - `jet_increment8_two_words.v`, `jet_add8_two_words.v`: full jet equivalence
   combining arbitrary two-word input alignment with crossing output alignment.
+- `jet_increment8_frames.v`, `jet_add8_frames.v`: unified full jet equivalence
+  combining the same inputs with both output paths, without assumed helper executions.
 
 The increment value bridge exhausts the eight binary sum constructors (256
 inputs) using kernel-checked `vm_compute; reflexivity`. It does not enumerate
