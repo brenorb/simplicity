@@ -2,7 +2,7 @@
 
 ## Public results and exact scope
 
-`jet_increment8_general.v:eval_increment8_frame_matches_spec` constructs a complete
+`jet_increment8_cursors.v:eval_increment8_cursors_matches_spec` constructs a complete
 `ClightBigstep.Clight2.eval_funcall` of the generated
 `f_simplicity_increment_8`, returning true with an empty trace. For every
 `x : Word8`, its nine decoded output bits equal the functional evaluation of
@@ -15,11 +15,17 @@ integer addition specification.
 `jet_one8_position.v:eval_one8_position_matches_spec` does the same for
 `f_simplicity_one_8` and `true >>> left_pad_low word1 word8`, at any output
 cursor from 8 through 64. It decodes the byte at bits `[cursor-8, cursor)`.
+`jet_one8_crossing.v:eval_one8_crossing_matches_spec` additionally covers all
+seven byte-crossing splits: output cursors 65 through 71, with backing words
+at offsets 8 and 0. Its initial contract is the reusable `write_frame`
+predicate, not a list of assumed successful stores. `crossing_byte` decodes
+the high word's low `k` bits followed by the low word's high `8-k` bits.
+
 The previous fixed-cursor and zero-initialized theorems remain checked
 corollaries/regression tests.
 
-Both results prove the final output cursor (zero for increment, `cursor-8`
-for one) and preserve loads in
+These results prove the final output cursor (`cursor-9` for increment,
+`cursor-8` for one) and preserve loads in
 initially valid blocks other than the destination frame and output word.
 Their premises contain **only initial memory facts and write permissions**.
 Allocation, by-value source-frame copy, helper executions, stores, return
@@ -30,34 +36,41 @@ These are **concrete-layout results**, not all-layout jet equivalence:
 
 - The target is x86-64, little-endian, LP64, using glibc integer typedefs.
 - A frame is 16 bytes: pointer at offset 0, cursor at offset 8.
-- Increment's source frame points one word past its input and has cursor 56.
-  Only its low eight bits must encode the input `Word8`; the other 56 bits
-  are arbitrary.
+- Increment's source frame points one word past its input and has any cursor
+  from 0 through 56. The eight bits beginning at that cursor encode the input
+  `Word8`; every other input bit is arbitrary. Input and output cursors vary
+  independently. The generalized reader includes cursor 48, needed before
+  the second read at cursor 56 in a two-operand byte jet.
 - The output frame points to an initialized but otherwise arbitrary word
-  and has cursor 9 for increment, or any cursor in `[8,64]` for one.
+  and has any cursor in `[9,64]` for increment, or `[8,64]` for the single-word
+  one theorem. The crossing one theorem uses two initialized words and a
+  cursor in `[65,71]`.
   The output word and output frame are distinct blocks and writable in the
-  stated locations. Increment preserves the other 55 bits; one preserves
-  all bits at or above its initial cursor (the already-written prefix).
+  stated locations. Both preserve all bits at or above the initial cursor
+  (the already-written prefix), including the high word's prefix on crossings.
   C's writer may clear unused bits below the output slice; their preservation
   is intentionally not required.
 - One's unused source frame must still be readable for its 16-byte C copy.
 - The caller's environment argument is `Vundef`; neither jet uses it.
-- Runtime assertions are disabled (`NDEBUG` and the library-required
-  `RECKLESS` flag). Static assertions remain enabled and checked by clightgen.
+- The generated artifact uses the library-recommended `PRODUCTION` mode:
+  ordinary assertions remain enabled (`NDEBUG` and `RECKLESS` are not set),
+  while debug assertions have a false guard. The writeBit proof executes that
+  generated guard; it does not assume assertions succeed. Static assertions
+  remain enabled and checked by clightgen.
 
-Cross-word writes, general input/output cursor positions for increment,
-nonzero frame/backing-word base offsets, other target ABIs, assertion-enabled
-builds, and `add_8` are not established by these public theorems. No binary-level linking or native ARM execution
+Increment's crossing paths, nonzero frame/backing-word base offsets,
+other target ABIs, fully debug-enabled execution (without `PRODUCTION`),
+and `add_8` are not established by these public theorems. No binary-level linking or native ARM execution
 claim is made. The results are constructive terminating Clight executions,
 not separate universal determinism/small-step theorems.
 
 ## Proof organization
 
 - `jet_frame_spec.v`: reusable bit/cursor/address predicates and the concrete
-  single-word input/output contracts used by the public theorems. The more
-  general predicates are representation infrastructure, not yet all-layout
-  execution contracts; future execution results must establish address bounds
-  and permissions for each accessed cell.
+  single-word input/output contracts used by the public theorems.
+  `jet_input_position.v` adds arbitrary in-word input slices. `write_frame`
+  is consumed directly by the two-word one theorem; it is not yet an
+  all-layout execution contract for either jet.
 - `jet_word_bits.v`, `jet_word_decode.v`, `jet_word_position.v`: symbolic
   bit-slice replacement, decoding, and prefix preservation (no enumeration of
   old output contents or input padding).
@@ -68,8 +81,20 @@ not separate universal determinism/small-step theorems.
   premises; the outer jet theorem also constructs the stores from permissions.
 - `jet_frame_copy.v`: copying raw `memval` bytes preserves frame pointer and
   cursor loads, including pointer fragments.
+- `jet_frame_access.v`, `jet_LSBkeep_width.v`: offset-aware accesses and
+  variable-width calls to the actual generated mask helper.
+- `jet_crossing_arith.v`, `jet_write8_crossing.v`, `jet_crossing_word.v`:
+  actual crossing execution for byte value one and its two-word interpretation.
+  The seven-way split only computes bounded scalar layout/shift facts; memories
+  and prior word contents remain symbolic.
+- `jet_read8_position.v`, `jet_writeBit_position.v`: actual helper execution
+  at all in-word read and carry-bit cursors.
+- `jet_increment8_position_*.v`, `jet_increment8_cursors.v`: composition,
+  memory construction, and public equivalence with independent cursors.
 - `jet_exec.v`, `jet_one8.v`, `jet_read8.v`, `jet_write8.v`, `jet_writeBit.v`:
   actual generated helper bodies, memory accesses, calls, and function entry.
+  Helper blocks are now resolved with `jet_symbol_block`, with kernel-checked
+  symbol/function lookup lemmas; no proof assumes numeric global-list positions.
 - `jet_increment8.v`: exact arithmetic expressions, casts, and statement tree.
 - `jet_increment8_exec.v`: threads the actual three helper calls and derives
   their intervening loads from CompCert store-preservation lemmas.
@@ -81,9 +106,9 @@ not separate universal determinism/small-step theorems.
   updates, composition, and the bridge allowing arbitrary input padding and
   output contents.
 - `jet_spec.v`: canonical primitive Simplicity terms and parametricity.
-- `jet_increment8_general.v`, `jet_one8_position.v`: strongest public
-  C-to-Simplicity results. `jet_increment8_spec.v`, `jet_one8_general.v`, and
-  `jet_one8_call.v` retain the earlier special cases.
+- `jet_increment8_cursors.v`, `jet_one8_position.v`, `jet_one8_crossing.v`:
+  strongest public C-to-Simplicity results. Earlier modules retain the
+  fixed-layout special cases.
 
 The increment value bridge exhausts the eight binary sum constructors (256
 inputs) using kernel-checked `vm_compute; reflexivity`. It does not enumerate
@@ -120,9 +145,11 @@ external-function/inline-assembly semantics appearing in the Clight relation.
 No new axioms or assumed helper contracts are introduced. The value bridge and
 monadic interpretation bridge are closed under the global context.
 
-The strengthened public modules `C.jet_one8_position` and
-`C.jet_increment8_general` also passed `coqchk -silent` with the same dependency
-load paths on 2026-09-22 (exit status 0). This independently rechecks their
+The strengthened public modules `C.jet_one8_position`, `C.jet_one8_crossing`,
+and `C.jet_increment8_cursors` also passed `coqchk -silent` against the current
+production AST with the same dependency load paths on 2026-09-22 (exit status 0).
+The full targeted build and its final assumption audit passed after regenerating
+that AST. This independently rechecks their
 compiled proof objects; it does not remove the documented inherited assumptions.
 
 ## Reproduce the generated AST
@@ -141,12 +168,18 @@ The tested sysroot is Debian's `libc6-dev_2.36-9+deb12u14_amd64.deb`:
 
 ```sh
 COMPCERT=/path/to/compcert JET_SYSROOT=/path/to/extracted/sysroot \
-  bash Coq/C/regenerate-jets.sh /tmp/jets-check.v
-cmp Coq/C/jets.v /tmp/jets-check.v
+  bash Coq/C/check-jets-generation.sh
 ```
 
-Omit the output argument to regenerate the committed artifact. The script
-retains its generated configuration for inspection. Paths used in the ini
+`check-jets-generation.sh` writes only to a fresh temporary directory and
+compares byte-for-byte without modifying the committed artifact. To regenerate
+it deliberately, run `regenerate-jets.sh` without an output argument. Both use
+`JET_ASSERTIONS=production` by default. Alternative `debug` and `reckless`
+modes require an explicit output path and are not proof-coverage claims.
+The debug artifact has been generated and compiled as Coq, but its executions
+have not been proved. Invalid mode values and implicit alternate-mode
+overwrites are rejected. The scripts retain generated files/configuration for
+inspection. Paths used in the ini
 must not contain whitespace or sed replacement metacharacters. Linux target
 headers are selected explicitly, so Apple SDK headers cannot leak into the
 translation. GCC/Clang feature-identification macros are suppressed for the

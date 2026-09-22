@@ -15,12 +15,15 @@ paths, cover the intended assertion configuration, and extend to `add_8` and
 larger widths. Improve symbolic word lemmas and reusable memory contracts as
 needed; never replace actual helper execution with assumed behavior.
 
-The first milestone is complete: unrestricted initialized output words at the
-original single-word cursors, arbitrary unused input bits for increment, and
-preservation outside the output slice. One_8 additionally supports every
-non-crossing in-word output cursor from 8 through 64, preserving the written
-prefix. The app's existing goal record cannot be edited or
-resumed through the available goal API; this file records the revised work plan.
+The app goal is active again. Its old objective cannot be edited through the
+available API; this file records the revised plan and supersedes the obsolete
+instruction in that record to consult Astra Medium.
+
+Completed: unrestricted initialized output words, arbitrary unused input bits,
+independent in-word input/output cursors for increment (read 0..56, write 9..64),
+and one at output cursors 8..64 plus all seven two-word splits (65..71).
+All preserve the already-written prefix. The crossing theorem consumes
+`write_frame` directly and constructs all stores from its permissions.
 The user's `jet-proof-review.patch` is an existing untracked review artifact
 and must not be overwritten or included in proof commits.
 
@@ -28,12 +31,16 @@ and must not be overwritten or included in proof commits.
 
 The new public results are:
 
-- `Coq/C/jet_increment8_general.v:eval_increment8_frame_matches_spec`
+- `Coq/C/jet_increment8_cursors.v:eval_increment8_cursors_matches_spec`
 - `Coq/C/jet_one8_position.v:eval_one8_position_matches_spec`
+- `Coq/C/jet_one8_crossing.v:eval_one8_crossing_matches_spec`
 
 The original fixed-cursor/zero-output results remain compiled as regression
 tests. The generalized byte writer also covers arbitrary payload bytes at
 every non-crossing cursor (`jet_write8_position.v:eval_write8_position`).
+`jet_read8_position.v:eval_read8_position` covers read cursors 0..56, including
+the 48/56 pair needed for `add_8`. `jet_LSBkeep_width.v` and
+`jet_LSBclear_width.v` prove actual mask-helper calls for widths 1..64.
 
 They construct complete executions of the actual generated Clight jet bodies
 from initial loads and write permissions. They do not assume helper execution,
@@ -48,11 +55,10 @@ and preservation of loads outside the two destination blocks. The regenerated
 AST and all jet proof dependencies compiled successfully; the targeted build
 finished with exit status 0 through `C/check_jet_assumptions.vo`.
 
-These are still **single-word-layout** theorems: arbitrary initialized
-destination, initial output cursor 9 (increment) or any value from 8 through
-64 (one), and input cursor 56 (increment) with arbitrary high input bits.
-They do not establish general frame/base offsets, crossing branches, general
-increment cursor positions, assertion-enabled execution, or `add_8`.
+The increment theorem still uses a **single-word layout**, now with arbitrary
+initialized destination and independent read/write cursors. One also covers
+two-word crossings at the first boundary. They do not establish general
+frame/base offsets, increment's crossing branches, or `add_8`.
 For a nonzero final cursor, preserve the already-written prefix, not the
 unused low bits: the real C writer clears those low bits.
 
@@ -67,9 +73,22 @@ been regenerated from `Coq/C/jet_translation_unit.c`, which includes the real
 The real `UINT8_MAX` constant has type `int`, not `unsigned int`.
 The increment expression proof now follows that exact type.
 
-This is explicitly an x86-64 Linux, little-endian, LP64, assertion-disabled
-build (`NDEBUG` plus Simplicity's required `RECKLESS`). C11 static assertions
-are still checked. No generated function body was edited manually.
+The current generated artifact is x86-64 Linux, little-endian, LP64, in the
+library-recommended `PRODUCTION` mode. Ordinary assertions and C11 static
+assertions are enabled; `NDEBUG` and `RECKLESS` are absent. Debug assertions
+are behind the actual generated false guard, which the writeBit proof executes.
+No generated function body was edited manually. The older commits retain the
+previous NDEBUG/RECKLESS proofs; do not confuse their configuration with HEAD.
+
+Global helper blocks now come from `jet_symbol_block` plus checked lookup
+lemmas, not hardcoded 71/72/75/83/87 positions. Production added assertion
+strings/globals and moved these blocks, so this refactor is essential.
+
+`regenerate-jets.sh` defaults to production and supports explicit-output
+`JET_ASSERTIONS=debug` / `reckless`. Fully debug-enabled generation and Coq
+AST compilation were tested in `/tmp/simplicity-assertion-audit.QlmC95`, but
+debug-mode jet execution remains unproved. `check-jets-generation.sh` compares
+regenerated output without changing the committed AST.
 
 The regeneration script was run twice and its output compared byte-for-byte
 with the committed artifact. The pinned Debian package and checksum are in
@@ -103,19 +122,26 @@ regenerated `C.jets`; `Print Assumptions` reports only the inherited assumptions
 listed below. The regeneration script's output matches `Coq/C/jets.v` exactly.
 The proof sources contain no admits, new axioms, aborted proofs, or unchecked
 cast escapes. No failing or uncompiled proof experiment remains in the tree.
-After the cursor extension, the targeted build and assumption audit passed
-again. A separate `coqchk -silent C.jet_one8_position C.jet_increment8_general`
+After the production migration, the complete targeted build and assumption
+audit passed again (exit status 0). A separate
+`coqchk -silent C.jet_increment8_cursors C.jet_one8_crossing C.jet_one8_position`
 run with the same load paths also completed successfully (exit status 0).
+AST regeneration checked byte-for-byte, script syntax checks passed, and invalid
+assertion modes/implicit alternate-mode overwrites were rejected as intended.
 
 ## Remaining work beyond the concrete-layout results
 
-1. Generalize `writeBit` from cursor 9 to a symbolic cursor; reuse the checked
-   `eval_clear_width` and `eval_write8_position` proofs to extend increment's
-   output cursor. Generalize `read8` and base offsets, then crossing paths.
-2. Connect generalized read/write predicates to execution contracts with all
-   bounds/permissions; extend `read8` to offset 48 for two-input `add_8`.
+1. Extend the crossing writer from byte value one to arbitrary bytes, then
+   support increment's carry-bit write into the high word and crossing reads.
+   Generalize physical frame/backing-word base offsets as a separate step.
+2. Implement `add_8` using `eval_read8_position` at 48 and 56. The generated
+   body is at `jets.v:f_simplicity_add_8`; use `Word.adder` as the canonical
+   primitive specification, with `Word.adder_correct` and `toZ` injectivity
+   for a symbolic value bridge instead of 65,536-case enumeration.
 3. Preserve the public initial-memory-only theorem interface; do not reintroduce
    assumed helper contracts or successful-store premises as final results.
+   Fully debug-enabled execution would also require proving the live writeBit
+   assertion path, not reusing the production false-guard lemma.
 4. If claiming uniqueness or a small-step theorem, prove the corresponding
    determinism/soundness result explicitly.
 5. Keep all work local. Scope searches to this repository and known dependency
@@ -133,3 +159,22 @@ and real-number decisions plus the external-semantics parameters in the Clight
 relation. No new axioms, admits, or aborted proofs were introduced. The
 increment output-denotation and monadic interpretation bridges are closed
 under the global context.
+
+Recent local proof commits: `ae8f263` (carry cursors), `612d7fc` (increment
+output cursors), `e0be9cf` (crossing execution), `3639174` (crossing one theorem),
+`f10be65` (independent increment cursors), and `c46668f` (production assertions,
+checked dynamic symbol blocks, and reproducible AST checking).
+
+Next implementation notes: the generated add jet reads twice, binds `_x` and
+`_y`, writes carry `255U - y < x`, then the truncated sum. Its local-frame
+copy/allocation/free pattern matches increment. Reuse the initial-memory-only
+construction, extending it with the second local cursor store. Arithmetic
+promotion still makes the comparison unsigned even though real glibc's
+`UINT8_MAX` literal has type `int`. For Word8, `Word.adder` unfolds to the
+same `false &&& iden >>> full_add` composition as Haskell's `add word8`.
+
+Known check times: a production AST change triggers the older `jet_exec.v`
+(about four minutes) and `jet_write8.v` (about three minutes). The new symbolic
+cursor/crossing modules compile in under a second each. Avoid modifying sources
+under a running compiler or launching duplicate builds; no proof experiment
+is currently left failing.
