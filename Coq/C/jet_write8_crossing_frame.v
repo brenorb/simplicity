@@ -20,7 +20,8 @@ Theorem eval_write8_crossing_frame m bd bw k x :
     (forall old, Mem.load Mint64 m bw 8 = Some (Vlong old) ->
       word_outside_eq 0 k high old) /\
     Mem.load Mint64 mf bd 8 = Some (Vlong (Int64.repr (56 + k))) /\
-    loads_outside_blocks m mf bd bw.
+    loads_outside_blocks m mf bd bw /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p).
 Proof.
   intros HK HFrame.
   destruct (crossing_frame_words m bd bw k HK HFrame)
@@ -56,9 +57,11 @@ Proof.
            apply crossing_high_prefix; exact HK.
         -- split.
            ++ exact (Mem.load_store_same _ _ _ _ _ _ SF).
-           ++ intros chunk b ofs HV Hbd Hbw.
-              erewrite Mem.load_store_other; [|exact SF|auto].
-              erewrite Mem.load_store_other; [|exact SW|auto].
-              erewrite Mem.load_store_other; [|exact SO|auto].
-              eapply Mem.load_store_other; [exact SH|auto].
+           ++ split.
+              ** intros chunk b ofs HV Hbd Hbw.
+                 erewrite Mem.load_store_other; [|exact SF|auto].
+                 erewrite Mem.load_store_other; [|exact SW|auto].
+                 erewrite Mem.load_store_other; [|exact SO|auto].
+                 eapply Mem.load_store_other; [exact SH|auto].
+              ** intros b ofs kind p HP. eauto 8 using Mem.perm_store_1.
 Qed.
