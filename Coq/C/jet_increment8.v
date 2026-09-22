@@ -59,6 +59,41 @@ Proof.
   - simpl [le_increment8]. reflexivity.
 Qed.
 
+Lemma exec_increment8_copy : forall (m m' : mem) (bl bd bs : block)
+    (ofs : ptrofs) (bytes : list memval),
+    (access_mode (Tstruct _frameItem noattr) = By_copy) ->
+    (sizeof prog.(prog_comp_env) (Tstruct _frameItem noattr) > 0 ->
+      (alignof_blockcopy prog.(prog_comp_env) (Tstruct _frameItem noattr) |
+        Ptrofs.unsigned ofs)) ->
+    (sizeof prog.(prog_comp_env) (Tstruct _frameItem noattr) > 0 ->
+      (alignof_blockcopy prog.(prog_comp_env) (Tstruct _frameItem noattr) |
+        Ptrofs.unsigned Ptrofs.zero)) ->
+    bl <> bs \/
+      Ptrofs.unsigned ofs = Ptrofs.unsigned Ptrofs.zero \/
+      Ptrofs.unsigned ofs + sizeof prog.(prog_comp_env)
+        (Tstruct _frameItem noattr) <= Ptrofs.unsigned Ptrofs.zero \/
+      Ptrofs.unsigned Ptrofs.zero + sizeof prog.(prog_comp_env)
+        (Tstruct _frameItem noattr) <= Ptrofs.unsigned ofs ->
+    Mem.loadbytes m bs (Ptrofs.unsigned ofs)
+      (sizeof prog.(prog_comp_env) (Tstruct _frameItem noattr)) = Some bytes ->
+    Mem.storebytes m bl 0 bytes = Some m' ->
+    ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl)
+      (le_increment8 bd bs ofs) m
+      (Sassign (Evar _src (Tstruct _frameItem noattr))
+        (Etempvar _src (Tstruct _frameItem noattr)))
+      E0 (le_increment8 bd bs ofs) m' Out_normal.
+Proof.
+  intros m m' bl bd bs ofs bytes Hmode Hsrc_align Hdst_align Hdisjoint
+    Hload Hstore.
+  eapply exec_Sassign_copy.
+  - eapply eval_Evar_local.
+    simpl [e_increment8]. reflexivity.
+  - eapply eval_Etempvar.
+    simpl [le_increment8]. reflexivity.
+  - cbn; reflexivity.
+  - eapply assign_frameItem_copy; eauto.
+Qed.
+
 Definition le_increment8_read (bd bs : block) (ofs : ptrofs) (r : int) :
     temp_env :=
   PTree.set _t'1 (Vint r) (le_increment8 bd bs ofs).
