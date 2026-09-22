@@ -11,6 +11,9 @@ Require Import C.jet_write8_crossing_frame C.jet_crossing_byte.
 Require Import C.jet_writeBit_high.
 Require Import C.jet_carry_byte_crossing.
 Require Import C.jet_increment8_crossing C.jet_add8_crossing C.jet_increment8_crossing_word.
+Require Import C.jet_read8_crossing C.jet_read8_crossing_word.
+Print Assumptions eval_read8_crossing.
+Print Assumptions read8_crossing_denotes_slice.
 Print Assumptions eval_increment8_crossing_matches_spec.
 Print Assumptions eval_add8_crossing_matches_spec.
 Print Assumptions increment8_carry_byte_spec.
