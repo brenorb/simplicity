@@ -13,6 +13,8 @@ Require Import C.jet_carry_byte_crossing.
 Require Import C.jet_increment8_crossing C.jet_add8_crossing C.jet_increment8_crossing_word.
 Require Import C.jet_read8_crossing C.jet_read8_crossing_word.
 Require Import C.jet_read8_two_words.
+Require Import C.jet_read8_layout_total.
+Print Assumptions eval_read8_layout.
 Require Import C.jet_output9 C.jet_carry_byte_position.
 Require Import C.jet_increment8_frames C.jet_add8_frames.
 Print Assumptions eval_increment8_frames_matches_spec.

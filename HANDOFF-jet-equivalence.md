@@ -174,6 +174,11 @@ the carry/byte bit-slice lemmas introduce no axioms.
    and composed with non-crossing paths in the newest unified frame theorems.
    The source/destination frame structs still start at block offset 0; input
    edge is 16, output edge is 0. Removing these fixed bases is the next milestone.
+   The generalized reader is now checked: `eval_read8_layout` covers arbitrary
+   frame structure offsets, edge addresses, cursor word indices, and crossings.
+   Its premises are initial memory facts; it constructs both cursor stores
+   where needed and preserves all loads outside the cursor field. Composing it
+   into the complete jets and generalizing the writers remain to be done.
 2. Extend to larger widths, reusing the generalized frame infrastructure.
    `add_8` now uses `Word.adder` as its canonical primitive specification,
    with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.
@@ -245,6 +250,16 @@ the crossing writer under `write_frame`, and defines `output9` and
 Its preservation lemmas let the public frame theorems transport these contracts
 across source preparation and local-frame freeing without repeating each path.
 The older crossing-only and single-word theorems remain checked regressions.
+
+Arbitrary-address reader notes: `jet_frame_layout.v` proves field accesses for
+nonzero structure offsets; `jet_read8_layout.v` executes both generated branches
+at arbitrary word indices, with explicit non-wrapping address bounds.
+`jet_read8_layout_total.v:eval_read8_layout` constructs the stores and preserves
+loads outside the eight-byte cursor field, including in the same memory block.
+`jet_frame_copy_layout.v` preserves pointer fragments and cursor loads when
+copying a source frame at a nonzero offset to the jet's fresh local frame.
+The reader's full targeted build/assumption audit and independent
+`coqchk -silent C.jet_read8_layout_total` passed (exit status 0).
 
 Known check times: a production AST change triggers the older `jet_exec.v`
 (about four minutes) and `jet_write8.v` (about three minutes). The new symbolic

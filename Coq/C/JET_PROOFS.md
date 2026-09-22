@@ -108,6 +108,12 @@ not separate universal determinism/small-step theorems.
 
 ## Proof organization
 
+- `jet_frame_layout.v`, `jet_read8_layout.v`, `jet_read8_layout_total.v`:
+  frame-field accesses at arbitrary non-wrapping structure addresses and a
+  total byte reader for arbitrary backing-word indices, including crossings.
+  The reader constructs stores from initial permissions and preserves loads
+  outside the cursor field, including other locations in the same block.
+  These generalized helpers are not yet composed into the public jet theorems.
 - `jet_frame_spec.v`: reusable bit/cursor/address predicates and the concrete
   single-word input/output contracts used by the public theorems.
   `jet_input_position.v` adds arbitrary in-word input slices. `write_frame`
