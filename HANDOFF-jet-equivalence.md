@@ -28,10 +28,14 @@ initialized output contents. Its value bridge is symbolic, not exhaustive.
 Increment and add also have complete crossing-output equivalence theorems
 for cursors 65..72: all eight ways their nine output bits span two words.
 The carry-at-the-boundary case (cursor 65) is included.
-The newest theorems also cover two-word input alignment: read cursors 0..120
+The preceding frame theorems also cover two-word input alignment: read cursors 0..120
 for increment and 0..112 for add, with independent output cursors 9..72. This includes
 crossing reads, either operand crossing, and exact-boundary reads. Their input
 frame edge is offset 16, with high/low words at offsets 8/0.
+The newest input-layout theorems remove those input restrictions: source-frame
+offsets, input edge addresses, and backing-word indices are arbitrary, subject
+to explicit non-wrapping bounds and readable byte slices. Outputs still use
+fixed bases and independent cursors 9..72.
 All preserve the already-written prefix. The crossing theorem consumes
 `write_frame` directly and constructs all stores from its permissions.
 The user's `jet-proof-review.patch` is an existing untracked review artifact
@@ -41,6 +45,8 @@ and must not be overwritten or included in proof commits.
 
 The new public results are:
 
+- `Coq/C/jet_increment8_input_layout.v:eval_increment8_input_layout_matches_spec`
+- `Coq/C/jet_add8_input_layout.v:eval_add8_input_layout_matches_spec`
 - `Coq/C/jet_increment8_frames.v:eval_increment8_frames_matches_spec`
 - `Coq/C/jet_add8_frames.v:eval_add8_frames_matches_spec`
 - `Coq/C/jet_add8_spec.v:eval_add8_cursors_matches_spec`
@@ -76,9 +82,10 @@ The older input contracts use a **single-word layout**, with arbitrary unused
 bits and independent read/write cursors. The newer `two_word_input` contract
 supports a sequence of bytes within two initialized words; the reader proves
 all three paths (high word, crossing, low word). The newest complete jet
-theorems pair this reader with a shared `output9` contract for output cursors
-9..72, covering non-crossing and crossing outputs. General frame/base offsets,
-arbitrary backing-word indices, and output cursors beyond 72 remain unproved.
+theorems use `byte_input_at` to generalize input bases and word indices, with
+a shared `output9` contract for output cursors 9..72, covering non-crossing and
+crossing outputs. General output frame/base offsets, arbitrary output
+backing-word indices, and output cursors beyond 72 remain unproved.
 For a nonzero final cursor, preserve the already-written prefix, not the
 unused low bits: the real C writer clears those low bits.
 
@@ -166,19 +173,27 @@ passed again. Independent
 `coqchk -silent C.jet_increment8_frames C.jet_add8_frames` passed (exit status 0).
 The new frame theorems inherit the same assumptions as the preceding executions;
 the carry/byte bit-slice lemmas introduce no axioms.
+After generalizing input addresses in both full jet theorems, the targeted
+build and assumption audit passed again. Independent
+`coqchk -silent C.jet_increment8_input_layout C.jet_add8_input_layout` passed
+(exit status 0), with the same inherited execution assumptions.
 
 ## Remaining work beyond the concrete-layout results
 
 1. Generalize physical frame/backing-word base offsets and arbitrary
    backing-word indices. Crossing input/output paths are individually proved
    and composed with non-crossing paths in the newest unified frame theorems.
-   The source/destination frame structs still start at block offset 0; input
-   edge is 16, output edge is 0. Removing these fixed bases is the next milestone.
+   The destination frame struct still starts at block offset 0, with output
+   edge 0. Removing these output restrictions is the next milestone. The newest
+   public `eval_increment8_input_layout_matches_spec` and
+   `eval_add8_input_layout_matches_spec` remove the input restrictions: arbitrary
+   source-frame offsets, input edge addresses and word indices are supported.
    The generalized reader is now checked: `eval_read8_layout` covers arbitrary
    frame structure offsets, edge addresses, cursor word indices, and crossings.
    Its premises are initial memory facts; it constructs both cursor stores
-   where needed and preserves all loads outside the cursor field. Composing it
-   into the complete jets and generalizing the writers remain to be done.
+   where needed and preserves all loads outside the cursor field. It is now
+   composed into both complete jets through `byte_input_at` / `eval_read8_byte_at`.
+   Generalizing the writers remains to be done.
 2. Extend to larger widths, reusing the generalized frame infrastructure.
    `add_8` now uses `Word.adder` as its canonical primitive specification,
    with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.

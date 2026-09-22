@@ -2,7 +2,17 @@
 
 ## Public results and exact scope
 
-The strongest unified results are
+The strongest results are
+`jet_increment8_input_layout.v:eval_increment8_input_layout_matches_spec` and
+`jet_add8_input_layout.v:eval_add8_input_layout_matches_spec`. Their
+`byte_input_at` contract permits arbitrary non-wrapping source-frame and input
+edge addresses, arbitrary input word indices, and every input alignment,
+including crossings. Only the represented byte slices are constrained.
+They retain output cursors 9..72 with the output frame at block offset 0 and
+output edge 0. These are full calls of the generated C jets, including the
+by-value source-frame copy, allocation, stores, return and freeing.
+
+The preceding unified results are
 `jet_increment8_frames.v:eval_increment8_frames_matches_spec` and
 `jet_add8_frames.v:eval_add8_frames_matches_spec`. They support every input
 alignment within two backing words (read cursors 0..120 and 0..112 respectively)
@@ -69,6 +79,8 @@ These are **concrete-layout results**, not all-layout jet equivalence:
 
 - The target is x86-64, little-endian, LP64, using glibc integer typedefs.
 - A frame is 16 bytes: pointer at offset 0, cursor at offset 8.
+  The newest input-layout theorems permit the source frame to begin at any
+  valid aligned byte offset, with these field offsets relative to its base.
 - Increment's source frame points one word past its input and has any cursor
   from 0 through 56. The eight bits beginning at that cursor encode the input
   `Word8`; every other input bit is arbitrary. Input and output cursors vary
@@ -79,6 +91,9 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   The newer two-word source contracts instead use edge offset 16 and backing
   words at offsets 8 and 0. Only the represented bytes are constrained;
   all other bits are arbitrary.
+  The newest `byte_input_at` contract removes the two-word/fixed-edge restriction;
+  each read's word address is `edge - 8 * (1 + cursor / 64)` and a crossing
+  reads the preceding word as well. Bounds rule out pointer and cursor wrapping.
 - The output frame points to an initialized but otherwise arbitrary word
   and has any cursor in `[9,64]` for increment/add, or `[8,64]` for the single-word
   one theorem. The crossing one theorem uses two initialized words and a
@@ -98,7 +113,7 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   generated guard; it does not assume assertions succeed. Static assertions
   remain enabled and checked by clightgen.
 
-General frame/backing-word base offsets and backing-word indices,
+General **output** frame/backing-word base offsets and backing-word indices,
 output cursors beyond 72,
 other target ABIs, fully debug-enabled execution (without `PRODUCTION`),
 and larger-width arithmetic jets are not established by these public theorems.
@@ -113,7 +128,10 @@ not separate universal determinism/small-step theorems.
   total byte reader for arbitrary backing-word indices, including crossings.
   The reader constructs stores from initial permissions and preserves loads
   outside the cursor field, including other locations in the same block.
-  These generalized helpers are not yet composed into the public jet theorems.
+  `jet_input_layout.v` exposes byte-sequence input contracts and connects each
+  actual read to a represented Simplicity `Word8`. `jet_frame_copy_layout.v`
+  proves copying a source frame at a nonzero offset preserves its fields.
+  Both are composed into the newest public input-layout jet theorems.
 - `jet_frame_spec.v`: reusable bit/cursor/address predicates and the concrete
   single-word input/output contracts used by the public theorems.
   `jet_input_position.v` adds arbitrary in-word input slices. `write_frame`
@@ -186,6 +204,9 @@ not separate universal determinism/small-step theorems.
   combining arbitrary two-word input alignment with crossing output alignment.
 - `jet_increment8_frames.v`, `jet_add8_frames.v`: unified full jet equivalence
   combining the same inputs with both output paths, without assumed helper executions.
+- `jet_increment8_input_layout.v`, `jet_add8_input_layout.v`: full equivalence
+  with arbitrary input structure/edge addresses and word indices, retaining
+  output cursors 9..72 and fixed output bases.
 
 The increment value bridge exhausts the eight binary sum constructors (256
 inputs) using kernel-checked `vm_compute; reflexivity`. It does not enumerate
