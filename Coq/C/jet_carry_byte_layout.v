@@ -13,6 +13,16 @@ Definition carry_byte_output_at (m : mem) (bw : block) (edge cursor : Z)
     (if Int64.testbit w ((cursor - 1) mod 64) then inr tt else inl tt) = fst value) /\
   byte_output_at m bw edge (cursor - 1) (snd value).
 
+Lemma carry_byte_output_at_preserved m mf bw edge cursor value :
+  (forall ofs w, Mem.load Mint64 m bw ofs = Some (Vlong w) ->
+    Mem.load Mint64 mf bw ofs = Some (Vlong w)) ->
+  carry_byte_output_at m bw edge cursor value -> carry_byte_output_at mf bw edge cursor value.
+Proof.
+  intros HP [[w [HW HV]] Hbyte]. split.
+  - exists w; auto.
+  - eapply byte_output_at_preserved; eauto.
+Qed.
+
 Theorem eval_carry_byte_layout m bf base bw edge cursor (carry : bool) x :
   write_frame_at m bf base bw edge cursor 9 ->
   exists mb mf,

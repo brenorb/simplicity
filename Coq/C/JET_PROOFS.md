@@ -11,7 +11,18 @@ The result equals the canonical primitive `one8_spec`, the final frame cursor
 is `cursor-8`, and the already-written prefix is preserved. Loads outside the
 modified cursor/word ranges are preserved even within the destination blocks.
 
-The strongest results are
+`jet_increment8_layout.v:eval_increment8_layout_matches_spec` and
+`jet_add8_layout.v:eval_add8_layout_matches_spec` now prove the complete
+increment/add calls with arbitrary non-wrapping input **and output** frame
+addresses, edge addresses, word indices, and independent cursor positions.
+The initial contracts are `byte_input_at` and `write_frame_at`; there are no
+assumed intermediate stores or helper executions. `carry_byte_output_at`
+relates the actual carry and byte locations to the canonical primitive
+Simplicity result. The final destination frame advances by nine bits, the
+written prefix is preserved, and loads outside the modified ranges are
+preserved even inside the destination blocks.
+
+The preceding input-layout results are
 `jet_increment8_input_layout.v:eval_increment8_input_layout_matches_spec` and
 `jet_add8_input_layout.v:eval_add8_input_layout_matches_spec`. Their
 `byte_input_at` contract permits arbitrary non-wrapping source-frame and input
@@ -84,13 +95,14 @@ Allocation, by-value source-frame copy, helper executions, stores, return
 conversion, and deallocation are all proved. In particular, no successful
 execution or successful intermediate store is assumed.
 
-These are **concrete-layout results**, not all-layout jet equivalence:
+The general-layout results retain these explicit representation/target conditions;
+the older specializations have additional restrictions described below:
 
 - The target is x86-64, little-endian, LP64, using glibc integer typedefs.
 - A frame is 16 bytes: pointer at offset 0, cursor at offset 8.
-  The newest input-layout theorems permit the source frame to begin at any
-  valid aligned byte offset, with these field offsets relative to its base.
-- Increment's source frame points one word past its input and has any cursor
+  The newest layout theorems permit both frame structures to begin at arbitrary
+  aligned non-wrapping byte offsets, with these field offsets relative to the base.
+- In the earlier single-word results, increment's source frame points one word past its input and has any cursor
   from 0 through 56. The eight bits beginning at that cursor encode the input
   `Word8`; every other input bit is arbitrary. Input and output cursors vary
   independently. The generalized reader includes cursor 48, needed before
@@ -103,12 +115,16 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   The newest `byte_input_at` contract removes the two-word/fixed-edge restriction;
   each read's word address is `edge - 8 * (1 + cursor / 64)` and a crossing
   reads the preceding word as well. Bounds rule out pointer and cursor wrapping.
-- The output frame points to an initialized but otherwise arbitrary word
+- In the earlier specialized results, the output frame points to an initialized but otherwise arbitrary word
   and has any cursor in `[9,64]` for increment/add, or `[8,64]` for the single-word
   one theorem. The crossing one theorem uses two initialized words and a
   cursor in `[65,71]`.
   The crossing increment/add theorems use two initialized words at offsets
   8 and 0 and a cursor in `[65,72]`, preserving the high word's written prefix.
+  The newest `write_frame_at` theorems remove fixed output bases and word indices
+  and the cursor-72 ceiling. They require enough remaining cells (8 for one,
+  9 for increment/add), a representable cursor, nonnegative edge, non-wrapping
+  accessed addresses, initialized words and the stated write permissions.
   The output word and output frame are distinct blocks and writable in the
   stated locations. Both preserve all bits at or above the initial cursor
   (the already-written prefix), including the high word's prefix on crossings.
@@ -122,12 +138,10 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   generated guard; it does not assume assertions succeed. Static assertions
   remain enabled and checked by clightgen.
 
-For **increment/add**, general output frame/backing-word base offsets and
-backing-word indices and output cursors beyond 72 remain unproved.
-The newest **one** theorem removes those output restrictions.
-For all these theorems,
-other target ABIs, fully debug-enabled execution (without `PRODUCTION`),
-and larger-width arithmetic jets are not established by these public theorems.
+The output frame and backing words must still be in distinct CompCert blocks;
+same-block disjoint frame/backing regions are not covered. Other target ABIs,
+fully debug-enabled execution (without `PRODUCTION`), and larger-width
+arithmetic jets are not established by these public theorems.
 No binary-level linking or native ARM execution
 claim is made. The results are constructive terminating Clight executions,
 not separate universal determinism/small-step theorems.
@@ -148,8 +162,12 @@ not separate universal determinism/small-step theorems.
   advancement, and carry/byte helper composition. `carry_byte_output_at` observes
   the carry bit and following byte at their actual frame positions. The proof
   covers the carry-at-boundary case, preserves the prefix and precise memory
-  ranges, and derives all stores from initial permissions. Composing this
-  result into the full increment/add calls remains to be done.
+  ranges, and derives all stores from initial permissions.
+- `jet_arith8_layout_exec.v`: shared function entry, source-frame copy and
+  writer-call rules, plus scalar expression evaluation independent of frame
+  addresses. `jet_increment8_layout_exec.v` and `jet_add8_layout_exec.v` compose
+  the actual generated calls; `jet_increment8_layout.v` and `jet_add8_layout.v`
+  discharge their memory/execution premises and prove the canonical specifications.
 - `jet_frame_layout.v`, `jet_read8_layout.v`, `jet_read8_layout_total.v`:
   frame-field accesses at arbitrary non-wrapping structure addresses and a
   total byte reader for arbitrary backing-word indices, including crossings.

@@ -38,8 +38,11 @@ crossing reads, either operand crossing, and exact-boundary reads. Their input
 frame edge is offset 16, with high/low words at offsets 8/0.
 The newest input-layout theorems remove those input restrictions: source-frame
 offsets, input edge addresses, and backing-word indices are arbitrary, subject
-to explicit non-wrapping bounds and readable byte slices. Outputs still use
-fixed bases and independent cursors 9..72.
+to explicit non-wrapping bounds and readable byte slices. The newest complete
+layout theorems also remove fixed output bases, word indices and the cursor-72
+ceiling. All three byte jets now support arbitrary non-wrapping frame/edge
+addresses and cursors under the explicit input/output contracts. The destination
+frame and backing words are still required to occupy distinct memory blocks.
 All preserve the already-written prefix. The crossing theorem consumes
 `write_frame` directly and constructs all stores from its permissions.
 The user's `jet-proof-review.patch` is an existing untracked review artifact
@@ -49,6 +52,8 @@ and must not be overwritten or included in proof commits.
 
 The new public results are:
 
+- `Coq/C/jet_increment8_layout.v:eval_increment8_layout_matches_spec`
+- `Coq/C/jet_add8_layout.v:eval_add8_layout_matches_spec`
 - `Coq/C/jet_one8_layout.v:eval_one8_layout_matches_spec`
 - `Coq/C/jet_increment8_input_layout.v:eval_increment8_input_layout_matches_spec`
 - `Coq/C/jet_add8_input_layout.v:eval_add8_input_layout_matches_spec`
@@ -87,11 +92,12 @@ The older input contracts use a **single-word layout**, with arbitrary unused
 bits and independent read/write cursors. The newer `two_word_input` contract
 supports a sequence of bytes within two initialized words; the reader proves
 all three paths (high word, crossing, low word). The newest complete jet
-theorems use `byte_input_at` to generalize input bases and word indices, with
-a shared `output9` contract for output cursors 9..72, covering non-crossing and
-crossing outputs. General output frame/base offsets, arbitrary output
-backing-word indices, and output cursors beyond 72 remain unproved for
-increment/add. `one_8` now supports those general output layouts.
+theorems use `byte_input_at` and `write_frame_at` to generalize both input and
+output addresses and word indices. `carry_byte_output_at` observes increment/add
+results at the actual bit/byte locations, including both kinds of crossings.
+There is no fixed cursor ceiling beyond the representability/non-wrapping
+conditions in the contracts. The precise modified-range postcondition preserves
+unrelated locations within destination blocks as well as other valid blocks.
 For a nonzero final cursor, preserve the already-written prefix, not the
 unused low bits: the real C writer clears those low bits.
 
@@ -190,42 +196,23 @@ The total bit writer and carry/byte composition then passed the targeted build
 and assumption audit, and independent `coqchk -silent C.jet_carry_byte_layout`
 passed (exit status 0). The bit-value and prefix lemmas are closed under the
 global context; execution inherits the same CompCert assumptions as before.
+The full arbitrary-layout increment/add proofs passed the targeted build and
+assumption audit. Independent
+`coqchk -silent C.jet_increment8_layout C.jet_add8_layout` passed (exit status 0).
 
 ## Remaining work beyond the concrete-layout results
 
-1. Generalize physical frame/backing-word base offsets and arbitrary
-   backing-word indices. Crossing input/output paths are individually proved
-   and composed with non-crossing paths in the newest unified frame theorems.
-   The destination frame struct still starts at block offset 0, with output
-   edge 0. Removing these output restrictions is the next milestone. The newest
-   public `eval_increment8_input_layout_matches_spec` and
-   `eval_add8_input_layout_matches_spec` remove the input restrictions: arbitrary
-   source-frame offsets, input edge addresses and word indices are supported.
-   The generalized reader is now checked: `eval_read8_layout` covers arbitrary
-   frame structure offsets, edge addresses, cursor word indices, and crossings.
-   Its premises are initial memory facts; it constructs both cursor stores
-   where needed and preserves all loads outside the cursor field. It is now
-   composed into both complete jets through `byte_input_at` / `eval_read8_byte_at`.
-   The total byte writer and full one jet now support general output layouts;
-   composing the general writers into increment/add remains to be done.
-   Checked raw writer execution now exists in `jet_writeBit_layout.v` and
-   `jet_write8_layout.v`: both bit values and both byte paths allow arbitrary
-   output structure offsets, edge addresses and word indices. The shared
-   `jet_write_layout.v` proves address/cursor arithmetic. These raw lemmas still
-   take successful stores. `eval_write8_layout` now constructs those stores
-   from `write_frame_at`, proves `byte_output_at` and `write_prefix_at`, and
-   preserves loads outside the modified cursor/word ranges. `eval_writeBit_layout`
-   now does the same for a bit. `eval_carry_byte_layout` constructs both actual
-   helper calls from a nine-bit `write_frame_at` and proves `carry_byte_output_at`,
-   written-prefix preservation, final cursor, precise load preservation,
-   and permission/valid-block preservation. The full one jet
-   uses it via `eval_one8_layout_composes`, including nonzero destination and
-   source offsets. Integration of the carry/byte result into the full
-   increment/add function boundaries remains pending: their entry/body proofs
-   still fix the destination pointer at block offset 0. Generalize that pointer
-   while reusing their actual scalar arithmetic and canonical value bridges.
-   The raw writers' targeted build/assumption audit and independent
-   `coqchk -silent C.jet_writeBit_layout C.jet_write8_layout` passed.
+1. Completed for the three byte jets under the documented separation and
+   non-wrapping contracts: general physical frame/backing-word addresses,
+   arbitrary word indices, independent cursors, and both crossing paths.
+   The strongest public results are `eval_one8_layout_matches_spec`,
+   `eval_increment8_layout_matches_spec`, and `eval_add8_layout_matches_spec`.
+   `entry_frame_jet`, `exec_frame_jet_copy` and `call_frame_writer` share
+   the function-entry/copy/call reasoning. Scalar expression lemmas now depend
+   only on the relevant temporary values, not on fixed frame addresses.
+   The output contracts still require the destination frame and backing words
+   to occupy distinct CompCert blocks. Same-block disjoint regions and
+   other ABIs are not claimed.
 2. Extend to larger widths, reusing the generalized frame infrastructure.
    `add_8` now uses `Word.adder` as its canonical primitive specification,
    with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.
@@ -316,6 +303,16 @@ writer's prefix/range postconditions to preserve the carry and original prefix,
 without enumerating cursor values. `carry_byte_output_at` observes the carry
 at `(cursor-1) mod 64` and the following byte via `byte_output_at` at `cursor-1`.
 All current modules compile; no unfinished proof is left in the tree.
+
+Function-boundary notes: `jet_arith8_layout_exec.v` defines the actual parameter
+binding order (env/src/dst outside the undefined temporaries), reusable entry,
+copy and writer-call lemmas, and scalar evaluation under arbitrary environments.
+`jet_increment8_layout_exec.v` / `jet_add8_layout_exec.v` compose the real
+generated bodies with nonzero destination pointers. The public layout files
+construct all their memories and helper executions, then reuse the existing
+canonical arithmetic bridges. Keep identifier-disjointness computation scoped
+to identifier hypotheses: `vm_compute in *` also unfolds large execution
+hypotheses and the entire generated environment, causing avoidable blowups.
 
 Known check times: a production AST change triggers the older `jet_exec.v`
 (about four minutes) and `jet_write8.v` (about three minutes). The new symbolic
