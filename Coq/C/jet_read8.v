@@ -174,7 +174,9 @@ Qed.
 
 Definition read8_result (w : int64) : int :=
   Int.zero_ext 8
-    (Int.repr (Int64.unsigned (Int64.and w (Int64.repr 255)))).
+    (Int.or Int.zero
+      (Int.zero_ext 8
+        (Int.repr (Int64.unsigned (Int64.and w (Int64.repr 255)))))).
 
 Definition read8_result_expr : expr :=
   Ecast
@@ -347,6 +349,83 @@ Proof.
                 le_read8_word le_read8_n le_read8_shift le_read8_t9
                 le_read8_ptr le_read8_offset le_read8_edge le_read8_result
                 le_read8]. reflexivity.
+Qed.
+
+Lemma eval_read8_result : forall (m : mem) (bf bs : block) (w : int64),
+  eval_expr ge0 empty_env
+    (le_read8_keep bf bs w (Int64.and w (Int64.repr 255))) m
+    read8_result_expr (Vint (read8_result w)).
+Proof.
+  intros m bf bs w.
+  eapply eval_Ecast.
+  - eapply eval_Ebinop with
+      (v1 := Vint Int.zero)
+      (v2 := Vint
+        (Int.zero_ext 8
+          (Int.repr
+            (Int64.unsigned (Int64.and w (Int64.repr 255)))))).
+    + eapply eval_Etempvar.
+      simpl [le_read8_keep le_read8_word le_read8_n le_read8_shift
+        le_read8_t9 le_read8_ptr le_read8_offset le_read8_edge
+        le_read8_result le_read8]. reflexivity.
+    + eapply eval_Ecast.
+      * eapply eval_Etempvar.
+        simpl [le_read8_keep le_read8_word le_read8_n le_read8_shift
+          le_read8_t9 le_read8_ptr le_read8_offset le_read8_edge
+          le_read8_result le_read8]. reflexivity.
+      * cbn; reflexivity.
+    + cbn; reflexivity.
+  - cbn; reflexivity.
+Qed.
+
+Lemma eval_read8_body_fixed : forall (m m' : mem) (bf bs : block) (w : int64),
+  Mem.load Mptr m bf 0 = Some (Vptr bs (Ptrofs.repr 8)) ->
+  Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 56)) ->
+  Mem.load Mint64 m bs 0 = Some (Vlong w) ->
+  Mem.store Mint64 m bf 8 (Vlong (Int64.repr 64)) = Some m' ->
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+    Some (Internal f_LSBkeep) ->
+  ClightBigstep.Clight2.exec_stmt ge0 empty_env (le_read8 bf) m
+    (fn_body f_simplicity_read8) E0
+    (le_read8_t3 bf bs w (Int64.and w (Int64.repr 255))
+      (read8_result w)) m'
+    (Out_return (Some (Vint (read8_result w), tuchar))).
+Proof.
+  intros m m' bf bs w Hedge Hoffset Hword Hstore Hsym Hfun.
+  eapply eval_read8_body; eauto.
+  apply eval_read8_result.
+Qed.
+
+Lemma eval_read8 : forall (m m' : mem) (bf bs : block) (w : int64),
+  Mem.load Mptr m bf 0 = Some (Vptr bs (Ptrofs.repr 8)) ->
+  Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 56)) ->
+  Mem.load Mint64 m bs 0 = Some (Vlong w) ->
+  Mem.store Mint64 m bf 8 (Vlong (Int64.repr 64)) = Some m' ->
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+    Some (Internal f_LSBkeep) ->
+  ClightBigstep.Clight2.eval_funcall ge0 m
+    (Internal f_simplicity_read8)
+    (Vptr bf Ptrofs.zero :: nil) E0 m'
+    (Vint (read8_result w)).
+Proof.
+  intros m m' bf bs w Hedge Hoffset Hword Hstore Hsym Hfun.
+  eapply ClightBigstep.eval_funcall_internal
+    with (e := empty_env) (le1 := le_read8 bf) (m1 := m)
+         (le2 := le_read8_t3 bf bs w (Int64.and w (Int64.repr 255))
+           (read8_result w)) (m2 := m')
+         (out := Out_return (Some (Vint (read8_result w), tuchar)))
+         (vres := Vint (read8_result w)).
+  - apply entry_read8.
+  - apply eval_read8_body_fixed; assumption.
+  - cbn; split; [discriminate |].
+    change (Some (Vint (Int.zero_ext 8 (read8_result w))) =
+      Some (Vint (read8_result w))).
+    unfold read8_result.
+    rewrite Int.zero_ext_idem by lia.
+    reflexivity.
+  - simpl; reflexivity.
 Qed.
 
 Lemma eval_frame_edge_ofs : forall (m : mem) (le : temp_env)
