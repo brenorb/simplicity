@@ -13,6 +13,9 @@ Require Import C.jet_carry_byte_crossing.
 Require Import C.jet_increment8_crossing C.jet_add8_crossing C.jet_increment8_crossing_word.
 Require Import C.jet_read8_crossing C.jet_read8_crossing_word.
 Require Import C.jet_read8_two_words.
+Require Import C.jet_output9 C.jet_carry_byte_position.
+Print Assumptions eval_carry_byte_output9.
+Print Assumptions carry_byte_at_decode.
 Require Import C.jet_increment8_two_words C.jet_add8_two_words.
 Print Assumptions eval_increment8_two_words_matches_spec.
 Print Assumptions eval_add8_two_words_matches_spec.
