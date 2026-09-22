@@ -39,3 +39,81 @@ Proof.
   - apply ClightBigstep.exec_Sbreak.
   - constructor.
 Qed.
+
+Definition le_LSBclear9 (w : int64) : temp_env :=
+  PTree.set _n (Vlong (Int64.repr 9))
+    (PTree.set _x (Vlong w) (PTree.empty val)).
+
+Lemma entry_LSBclear9_value : forall (m : mem) (w : int64),
+  function_entry2 ge0 f_LSBclear
+    (Vlong w :: Vlong (Int64.repr 9) :: nil) m
+    empty_env (le_LSBclear9 w) m.
+Proof.
+  intros m w.
+  constructor.
+  - constructor.
+  - constructor.
+    + simpl; intro H; destruct H as [H | H].
+      * vm_compute in H; congruence.
+      * contradiction.
+    + constructor.
+      * simpl; intro H; contradiction.
+      * constructor.
+  - intros id1 id2 H1 H2 Heq; simpl in H1, H2; tauto.
+  - constructor.
+  - reflexivity.
+Qed.
+
+Lemma eval_LSBclear9_n_minus_one : forall (m : mem) (w : int64),
+  eval_expr ge0 empty_env (le_LSBclear9 w) m
+    (Ebinop Osub (Etempvar _n tulong)
+      (Econst_int (Int.repr 1) tint) tulong)
+    (Vlong (Int64.repr 8)).
+Proof.
+  intros m w.
+  eapply eval_Ebinop.
+  - eapply eval_Etempvar.
+    simpl [le_LSBclear9]. reflexivity.
+  - apply eval_Econst_int.
+  - cbn; vm_compute; reflexivity.
+Qed.
+
+Ltac eval_LSBclear9_value :=
+  first [ eapply eval_Ecast; [ eval_LSBclear9_value | cbn; reflexivity ]
+        | eapply eval_Ebinop;
+            [ eval_LSBclear9_value | eval_LSBclear9_value | cbn; reflexivity ]
+        | eapply eval_Etempvar; simpl [le_LSBclear9]; reflexivity
+        | (cbn; vm_compute; reflexivity) ].
+
+Lemma eval_LSBclear9_zero : forall (m : mem),
+  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBclear)
+    (Vlong Int64.zero :: Vlong (Int64.repr 9) :: nil) E0 m
+    (Vlong Int64.zero).
+Proof.
+  intros m.
+  eapply ClightBigstep.eval_funcall_internal
+    with (e := empty_env) (le1 := le_LSBclear9 Int64.zero) (m1 := m)
+         (le2 := le_LSBclear9 Int64.zero) (m2 := m).
+  - apply entry_LSBclear9_value.
+  - simpl [f_LSBclear].
+    apply ClightBigstep.exec_Sreturn_some.
+    pose proof (eval_LSBclear9_n_minus_one m Int64.zero) as Hn.
+    eapply eval_Ecast.
+    + eapply eval_Ebinop.
+      * eapply eval_Ebinop.
+        -- eapply eval_Ebinop.
+           ++ eapply eval_Ebinop.
+              --- eapply eval_Etempvar.
+                  simpl [le_LSBclear9]. reflexivity.
+              --- apply eval_Econst_int.
+              --- cbn; reflexivity.
+           ++ exact Hn.
+           ++ cbn; reflexivity.
+      -- apply eval_Econst_int.
+      -- cbn; reflexivity.
+      * exact Hn.
+      * cbn; reflexivity.
+    + cbn; reflexivity.
+  - cbn; split; [discriminate | reflexivity].
+  - simpl; reflexivity.
+Qed.
