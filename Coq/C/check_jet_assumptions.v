@@ -8,6 +8,9 @@ Require Import C.jet_increment8_cursors.
 Require Import C.jet_add8_call.
 Require Import C.jet_add8_spec C.jet_add8_word.
 Require Import C.jet_write8_crossing_frame C.jet_crossing_byte.
+Require Import C.jet_writeBit_high.
+Print Assumptions eval_writeBit_false_high.
+Print Assumptions eval_writeBit_true_high.
 Print Assumptions eval_write8_crossing_frame.
 Print Assumptions crossing_byte_projection.
 Print Assumptions eval_add8_cursors_matches_spec.
