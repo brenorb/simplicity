@@ -2,6 +2,15 @@
 
 ## Public results and exact scope
 
+`jet_one8_layout.v:eval_one8_layout_matches_spec` proves the complete `one_8`
+call for arbitrary non-wrapping source-frame and output-frame addresses, output
+edge addresses, and output cursors/word indices. Its `write_frame_at` contract
+constructs all stores from initial permissions; both byte paths are covered.
+The unused source frame only needs an aligned readable 16-byte copy region.
+The result equals the canonical primitive `one8_spec`, the final frame cursor
+is `cursor-8`, and the already-written prefix is preserved. Loads outside the
+modified cursor/word ranges are preserved even within the destination blocks.
+
 The strongest results are
 `jet_increment8_input_layout.v:eval_increment8_input_layout_matches_spec` and
 `jet_add8_input_layout.v:eval_add8_input_layout_matches_spec`. Their
@@ -113,8 +122,10 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   generated guard; it does not assume assertions succeed. Static assertions
   remain enabled and checked by clightgen.
 
-General **output** frame/backing-word base offsets and backing-word indices,
-output cursors beyond 72,
+For **increment/add**, general output frame/backing-word base offsets and
+backing-word indices and output cursors beyond 72 remain unproved.
+The newest **one** theorem removes those output restrictions.
+For all these theorems,
 other target ABIs, fully debug-enabled execution (without `PRODUCTION`),
 and larger-width arithmetic jets are not established by these public theorems.
 No binary-level linking or native ARM execution
@@ -127,6 +138,11 @@ not separate universal determinism/small-step theorems.
   generated writer executions at arbitrary output structure/edge addresses
   and word indices, including crossings. These raw execution lemmas still
   take successful stores; they are not yet generalized public jet theorems.
+- `jet_output_layout.v`, `jet_write8_layout_total.v`: writable-frame contracts
+  and a total byte-writer theorem for arbitrary addresses and word indices.
+  The theorem constructs stores, decodes the byte, and proves precise memory
+  preservation. `jet_one8_layout_exec.v` and `jet_one8_layout.v` compose it into
+  the complete generated one jet, including source copy, allocation and freeing.
 - `jet_frame_layout.v`, `jet_read8_layout.v`, `jet_read8_layout_total.v`:
   frame-field accesses at arbitrary non-wrapping structure addresses and a
   total byte reader for arbitrary backing-word indices, including crossings.

@@ -25,6 +25,10 @@ and one at output cursors 8..64 plus all seven two-word splits (65..71).
 Also completed: all-input `add_8` equivalence at independent non-crossing
 read cursors 0..48 and write cursors 9..64, with arbitrary input padding and
 initialized output contents. Its value bridge is symbolic, not exhaustive.
+The newest `one_8` theorem supports arbitrary non-wrapping source/output
+structure addresses, output edge addresses, and output cursors/word indices,
+including crossings. It consumes `write_frame_at` and a readable aligned
+16-byte source copy region, and proves the canonical primitive result.
 Increment and add also have complete crossing-output equivalence theorems
 for cursors 65..72: all eight ways their nine output bits span two words.
 The carry-at-the-boundary case (cursor 65) is included.
@@ -45,6 +49,7 @@ and must not be overwritten or included in proof commits.
 
 The new public results are:
 
+- `Coq/C/jet_one8_layout.v:eval_one8_layout_matches_spec`
 - `Coq/C/jet_increment8_input_layout.v:eval_increment8_input_layout_matches_spec`
 - `Coq/C/jet_add8_input_layout.v:eval_add8_input_layout_matches_spec`
 - `Coq/C/jet_increment8_frames.v:eval_increment8_frames_matches_spec`
@@ -85,7 +90,8 @@ all three paths (high word, crossing, low word). The newest complete jet
 theorems use `byte_input_at` to generalize input bases and word indices, with
 a shared `output9` contract for output cursors 9..72, covering non-crossing and
 crossing outputs. General output frame/base offsets, arbitrary output
-backing-word indices, and output cursors beyond 72 remain unproved.
+backing-word indices, and output cursors beyond 72 remain unproved for
+increment/add. `one_8` now supports those general output layouts.
 For a nonzero final cursor, preserve the already-written prefix, not the
 unused low bits: the real C writer clears those low bits.
 
@@ -177,6 +183,9 @@ After generalizing input addresses in both full jet theorems, the targeted
 build and assumption audit passed again. Independent
 `coqchk -silent C.jet_increment8_input_layout C.jet_add8_input_layout` passed
 (exit status 0), with the same inherited execution assumptions.
+After adding the total arbitrary-address byte writer and complete general-layout
+one jet, the targeted build and assumption audit passed again. Independent
+`coqchk -silent C.jet_write8_layout_total C.jet_one8_layout` passed (exit status 0).
 
 ## Remaining work beyond the concrete-layout results
 
@@ -193,13 +202,18 @@ build and assumption audit passed again. Independent
    Its premises are initial memory facts; it constructs both cursor stores
    where needed and preserves all loads outside the cursor field. It is now
    composed into both complete jets through `byte_input_at` / `eval_read8_byte_at`.
-   Generalizing the writers remains to be done.
+   The total byte writer and full one jet now support general output layouts;
+   composing the general writers into increment/add remains to be done.
    Checked raw writer execution now exists in `jet_writeBit_layout.v` and
    `jet_write8_layout.v`: both bit values and both byte paths allow arbitrary
    output structure offsets, edge addresses and word indices. The shared
    `jet_write_layout.v` proves address/cursor arithmetic. These raw lemmas still
-   take successful stores; total initial-memory contracts and full-jet
-   integration remain pending. The targeted build/assumption audit and independent
+   take successful stores. `eval_write8_layout` now constructs those stores
+   from `write_frame_at`, proves `byte_output_at` and `write_prefix_at`, and
+   preserves loads outside the modified cursor/word ranges. The full one jet
+   uses it via `eval_one8_layout_composes`, including nonzero destination and
+   source offsets. Carry/byte composition for increment/add remains pending.
+   The raw writers' targeted build/assumption audit and independent
    `coqchk -silent C.jet_writeBit_layout C.jet_write8_layout` passed.
 2. Extend to larger widths, reusing the generalized frame infrastructure.
    `add_8` now uses `Word.adder` as its canonical primitive specification,
