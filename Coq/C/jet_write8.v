@@ -389,7 +389,17 @@ Proof.
                      +++ simpl [le_w8_x_9 le_w8_x_8 le_w8_x_7 le_w8_x_6
                            le_w8_x_5 le_w8_x_4 le_w8_x_3 le_w8_x_2
                            le_w8_x_1 le_w8_x_0 le_write8_x]; reflexivity.
-                     +++ rewrite <- Hq; exact H_store_word.
+                     +++ match goal with
+                         | |- Mem.store Mint64 ?mm ?bb ?ofs
+                               (Vlong (Int64.or c
+                                 (Int64.shl k
+                                   (Int64.sub ?shift ?n)))) = Some ?mm' =>
+                             assert (Hs : shift = Int64.repr 8) by
+                               (timeout 10 (vm_compute; reflexivity));
+                             assert (Hn : n = Int64.repr 8) by
+                               (timeout 10 (vm_compute; reflexivity));
+                             rewrite Hs, Hn, <- Hq; exact H_store_word
+                         end.
            ++ eapply exec_Sseq_1 with (t1 := E0) (t2 := E0).
               ** apply exec_set.
                  eapply eval_frame_offset.
