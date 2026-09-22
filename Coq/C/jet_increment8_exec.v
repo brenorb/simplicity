@@ -4,7 +4,7 @@ From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps.
 From compcert Require Import ClightBigstep Memory Events Globalenvs.
 Require Import C.jet_exec C.jet_one8 C.jet_read8 C.jet_write8.
-Require Import C.jet_writeBit C.jet_increment8 jets.
+Require Import C.jet_writeBit C.jet_increment8 C.jets.
 Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 

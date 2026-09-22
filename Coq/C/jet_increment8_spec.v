@@ -4,7 +4,7 @@ From Coq Require Import ZArith List.
 From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events.
 Require Import Simplicity.Word Simplicity.Bit Simplicity.Util.Monad.
 Require Import C.jet_exec C.jet_read8 C.jet_increment8_exec.
-Require Import C.jet_increment8_call C.jet_spec jets.
+Require Import C.jet_increment8_call C.jet_spec C.jets.
 Import Values Mem ListNotations.
 Local Open Scope Z_scope.
 
@@ -49,11 +49,14 @@ Theorem eval_increment8_matches_spec m bd bs bi bw (x : Ty.tySem Word8) :
       E0 mf (Vint Int.one) /\
     Mem.load Mint64 mf bw 0 = Some (Vlong output) /\
     decode_increment8 output = @increment8_spec Alg.CoreFunSem x /\
-    Mem.load Mint64 mf bd 8 = Some (Vlong Int64.zero).
+    Mem.load Mint64 mf bd 8 = Some (Vlong Int64.zero) /\
+    (forall chunk b ofs, Mem.valid_block m b -> b <> bd -> b <> bw ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros HSE HSO HI HDE HDO HW PD PW Hneq.
   destruct (eval_increment8_concrete m bd bs bi bw (encode_word8 x)
-    HSE HSO HI HDE HDO HW PD PW Hneq) as [mf [HC [HO HF]]].
+    HSE HSO HI HDE HDO HW PD PW Hneq) as [mf [HC [HO [HF HP]]]].
   exists mf, (increment8_written_word (read8_result (encode_word8 x))).
-  repeat split; try assumption. apply increment8_output_denotes_spec.
+  split; [exact HC |]. split; [exact HO |].
+  split; [apply increment8_output_denotes_spec |]. split; assumption.
 Qed.

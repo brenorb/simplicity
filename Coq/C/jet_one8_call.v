@@ -2,7 +2,7 @@
     source-frame copy even though the Simplicity input is Unit. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events.
-Require Import C.jet_exec C.jet_one8 C.jet_increment8_call C.jet_spec jets.
+Require Import C.jet_exec C.jet_one8 C.jet_frame_copy C.jet_spec C.jets.
 Import Values Mem ListNotations.
 Local Open Scope Z_scope.
 
@@ -21,7 +21,9 @@ Theorem eval_one8_initial_matches_spec m bd bs bw bytes :
       E0 mf (Vint Int.one) /\
     Mem.load Mint64 mf bw 0 = Some (Vlong output) /\
     decode_word8 output = @one8_spec Alg.CoreFunSem tt /\
-    Mem.load Mint64 mf bd 8 = Some (Vlong Int64.zero).
+    Mem.load Mint64 mf bd 8 = Some (Vlong Int64.zero) /\
+    (forall chunk b ofs, Mem.valid_block m b -> b <> bd -> b <> bw ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros HB HE HO HW PD PW HDw.
   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
@@ -91,5 +93,13 @@ Proof.
   destruct Hrun as [Hout [Hoff HC]].
   exists mf, Int64.one.
   split; [exact HC |]. split; [exact Hout |].
-  split; [apply decode_word8_one | exact Hoff].
+  split; [apply decode_word8_one |]. split; [exact Hoff |].
+  intros chunk b ofs HV Hbd Hbw.
+  assert (Hbl : b <> bl).
+  { intro Heq; subst b. exact (Mem.fresh_block_alloc _ _ _ _ _ HA HV). }
+  erewrite Mem.load_free; [|exact HF|auto].
+  erewrite Mem.load_store_other; [|exact SE|auto].
+  erewrite Mem.load_store_other; [|exact SW|auto].
+  erewrite Mem.load_storebytes_other; [|exact SC|auto].
+  eapply Mem.load_alloc_unchanged; eauto.
 Qed.

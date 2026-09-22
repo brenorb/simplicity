@@ -4,20 +4,9 @@ From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps.
 From compcert Require Import ClightBigstep Memory Events Globalenvs.
 Require Import C.jet_exec C.jet_one8 C.jet_read8 C.jet_increment8.
-Require Import C.jet_increment8_exec C.jet_frame_copy jets.
+Require Import C.jet_increment8_exec C.jet_frame_copy C.jets.
 Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Local Open Scope Z_scope.
-
-Lemma fresh_frame_not_loaded m ma bl b chunk ofs v :
-  Mem.alloc m 0 16 = (ma, bl) ->
-  Mem.load chunk m b ofs = Some v -> bl <> b.
-Proof.
-  intros HA HL Heq. subst b.
-  apply (Mem.fresh_block_alloc _ _ _ _ _ HA).
-  eapply Mem.valid_access_valid_block.
-  eapply Mem.valid_access_implies with (p1 := Readable); [|constructor].
-  eapply Mem.load_valid_access; exact HL.
-Qed.
 
 Theorem eval_increment8_concrete m bd bs bi bw w :
   Mem.load Mptr m bs 0 = Some (Vptr bi (Ptrofs.repr 8)) ->
@@ -36,7 +25,9 @@ Theorem eval_increment8_concrete m bd bs bi bw w :
       E0 mf (Vint Int.one) /\
     Mem.load Mint64 mf bw 0 =
       Some (Vlong (increment8_written_word (read8_result w))) /\
-    Mem.load Mint64 mf bd 8 = Some (Vlong Int64.zero).
+    Mem.load Mint64 mf bd 8 = Some (Vlong Int64.zero) /\
+    (forall chunk b ofs, Mem.valid_block m b -> b <> bd -> b <> bw ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros HSE HSO HI HDE HDO HW PD PW HDw.
   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
@@ -133,6 +124,18 @@ Proof.
     + erewrite Mem.load_free; [|exact HF|left; congruence].
       eapply load_store64_other_block; [exact SE | congruence |].
       eapply load_store64_same; exact SW.
-    + erewrite Mem.load_free; [|exact HF|left; congruence].
-      eapply load_store64_same; exact SE.
+    + split.
+      * erewrite Mem.load_free; [|exact HF|left; congruence].
+        eapply load_store64_same; exact SE.
+      * intros chunk b ofs HV Hbd Hbw.
+        assert (Hbl : b <> bl).
+        { intro Heq; subst b. exact (Mem.fresh_block_alloc _ _ _ _ _ HA HV). }
+        erewrite Mem.load_free; [|exact HF|auto].
+        erewrite Mem.load_store_other; [|exact SE|auto].
+        erewrite Mem.load_store_other; [|exact SW|auto].
+        erewrite Mem.load_store_other; [|exact SB|auto].
+        erewrite Mem.load_store_other; [|exact SO|auto].
+        erewrite Mem.load_store_other; [|exact SR|auto].
+        erewrite Mem.load_storebytes_other; [|exact SC|auto].
+        eapply Mem.load_alloc_unchanged; eauto.
 Qed.

@@ -7,7 +7,7 @@ From compcert Require Import ClightBigstep Memory Events Globalenvs.
 
 Require Import C.jet_exec.
 Require Import C.jet_write8.
-Require Import jets.
+Require Import C.jets.
 
 Import Clightdefs Clightdefs.ClightNotations.
 Import Values Mem Ctypes.

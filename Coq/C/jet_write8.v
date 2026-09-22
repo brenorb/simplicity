@@ -9,7 +9,7 @@ From compcert Require Import Coqlib Integers Floats AST Ctypes Cop Clight Maps.
 From compcert Require Import ClightBigstep Memory Events Globalenvs.
 
 Require Import C.jet_exec.
-Require Import jets.
+Require Import C.jets.
 
 Import Clightdefs Clightdefs.ClightNotations.
 Import Values Mem Ctypes.

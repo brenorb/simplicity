@@ -12,7 +12,7 @@ From compcert Require Import ClightBigstep Memory Events Globalenvs.
 Require Import C.jet_exec.
 Require Import C.jet_one8.
 Require Import C.jet_write8.
-Require Import jets.
+Require Import C.jets.
 
 Import Clightdefs Clightdefs.ClightNotations.
 Import Values Mem Ctypes.
@@ -160,7 +160,7 @@ Definition increment8_carry_expr : expr :=
   Ebinop Olt
     (Ebinop Osub
       (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-        (Econst_int (Int.repr 255) tuint) tuint)
+        (Econst_int (Int.repr 255) tint) tuint)
       (Econst_int (Int.repr 1) tint) tuint)
     (Etempvar _x tuchar) tint.
 

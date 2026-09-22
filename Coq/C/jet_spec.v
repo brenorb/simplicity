@@ -8,7 +8,7 @@ Require Import Coq.Lists.List.
 Require Import ZArith.
 Require Import C.jet_one8.
 Require Import C.jet_exec.
-Require Import jets.
+Require Import C.jets.
 
 Import Clightdefs Clightdefs.ClightNotations.
 Import Values Mem Ctypes.

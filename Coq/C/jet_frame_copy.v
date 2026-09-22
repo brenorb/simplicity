@@ -4,6 +4,17 @@ From compcert Require Import Coqlib Integers AST Memory.
 Import Values Mem ListNotations.
 Local Open Scope Z_scope.
 
+Lemma fresh_frame_not_loaded m ma bl b chunk ofs v :
+  Mem.alloc m 0 16 = (ma, bl) ->
+  Mem.load chunk m b ofs = Some v -> bl <> b.
+Proof.
+  intros HA HL Heq. subst b.
+  apply (Mem.fresh_block_alloc _ _ _ _ _ HA).
+  eapply Mem.valid_access_valid_block.
+  eapply Mem.valid_access_implies with (p1 := Readable); [|constructor].
+  eapply Mem.load_valid_access; exact HL.
+Qed.
+
 Lemma equal_length_app_parts {A : Type} (a b c d : list A) :
   length a = length c -> a ++ b = c ++ d -> a = c /\ b = d.
 Proof.

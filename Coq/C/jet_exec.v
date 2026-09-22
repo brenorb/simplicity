@@ -12,7 +12,7 @@ From compcert Require Import ClightBigstep Memory Events Globalenvs.
 
 (* The generated file is compiled as the top-level [jets] library by the
    direct, standalone command documented in the handoff. *)
-Require Import jets.
+Require Import C.jets.
 
 Import Clightdefs Clightdefs.ClightNotations.
 Import Values Mem Ctypes.
