@@ -29,7 +29,8 @@ Music folder.
 
 The current working copy contains the generated `Coq/C/jets.v` artifact,
 `Coq/C/jet_exec.v`, `Coq/C/jet_one8.v`, `Coq/C/jet_write8.v`,
-`Coq/C/jet_read8.v`, `Coq/C/jet_increment8.v`, and `Coq/C/jet_spec.v`. The
+`Coq/C/jet_read8.v`, `Coq/C/jet_writeBit.v`, `Coq/C/jet_increment8.v`, and
+`Coq/C/jet_spec.v`. The
 execution files contain
 checked complete-call theorems for the actual generated
 `f_simplicity_write8` and `f_simplicity_one_8` functions, plus generalized
@@ -76,6 +77,12 @@ CompCert 3.14 and Coq 8.17.1:
   actual `LSBkeep` call, load and store facts, and final `tuchar` return cast.
   The layout is the one-past-word edge with source offset 56; the crossing
   branch is discharged by the concrete `8 < 8` test.
+* `Coq/C/jet_writeBit.v` proves complete fixed-layout executions for both
+  boolean branches of the generated `writeBit` helper. The backing word is
+  initially zero and the frame offset is 9; the false branch uses the actual
+  generated `LSBclear(0, 9)` call and stores zero, while the true branch stores
+  256. This is supporting execution infrastructure, not a standalone
+  Simplicity-specification equivalence theorem.
 * `Coq/C/jet_increment8.v` proves the actual `function_entry2` setup for
   `f_simplicity_increment_8`, composes its generated copy/read/writeBit/write8
   statement tree under explicit helper-execution premises, and records the
@@ -105,12 +112,12 @@ Lemma eval_write8 : forall (m : mem) (bf bw : block)
 ```
 
 This is a helper theorem used by the completed one8 bridge. The increment8
-composition theorem is intentionally conditional: it does not yet prove
-`read8` or `writeBit` from a concrete memory layout, and therefore is not yet
-the final public C-to-Simplicity equivalence theorem. The remaining extension
-is to prove those helper executions and thread the concrete source and
-destination frame memories through the call, then connect the decoded output
-to `increment8_spec`. The analogous actual-call theorem for
+composition theorem is intentionally conditional: it does not yet thread the
+local source-frame copy and the concrete source/destination memory states
+through all helper calls, and therefore is not yet the final public
+C-to-Simplicity equivalence theorem. The remaining extension is to use the
+checked `read8`, `writeBit`, and `write8` executions to discharge those calls,
+then connect the decoded output to `increment8_spec`. The analogous actual-call theorem for
 `f_simplicity_add_8` remains future work.
 
 ## Simplicity-side target
