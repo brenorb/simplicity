@@ -58,3 +58,108 @@ Proof.
     + constructor.
   - simpl [le_increment8]. reflexivity.
 Qed.
+
+Definition le_increment8_read (bd bs : block) (ofs : ptrofs) (r : int) :
+    temp_env :=
+  PTree.set _t'1 (Vint r) (le_increment8 bd bs ofs).
+
+Definition le_increment8_x (bd bs : block) (ofs : ptrofs) (r : int) :
+    temp_env :=
+  PTree.set _x (Vint (Int.zero_ext 8 r))
+    (le_increment8_read bd bs ofs r).
+
+Definition increment8_read_stmt : statement :=
+  Scall (Some _t'1)
+    (Evar _simplicity_read8
+      (Tfunction (Tcons (tptr (Tstruct _frameItem noattr)) Tnil)
+        tuchar cc_default))
+    ((Eaddrof (Evar _src (Tstruct _frameItem noattr))
+      (tptr (Tstruct _frameItem noattr))) :: nil).
+
+Definition increment8_setx_stmt : statement :=
+  Sset _x (Ecast (Etempvar _t'1 tuchar) tuchar).
+
+Definition increment8_carry_expr : expr :=
+  Ebinop Olt
+    (Ebinop Osub
+      (Ebinop Omul (Econst_int (Int.repr 1) tuint)
+        (Econst_int (Int.repr 255) tuint) tuint)
+      (Econst_int (Int.repr 1) tint) tuint)
+    (Etempvar _x tuchar) tint.
+
+Definition increment8_bit_stmt : statement :=
+  Scall None
+    (Evar _writeBit
+      (Tfunction
+        (Tcons (tptr (Tstruct _frameItem noattr))
+          (Tcons tbool Tnil)) tbool cc_default))
+    ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
+     increment8_carry_expr :: nil).
+
+Definition increment8_sum_expr : expr :=
+  Ecast
+    (Ebinop Oadd
+      (Ebinop Omul (Econst_int (Int.repr 1) tuint)
+        (Etempvar _x tuchar) tuint)
+      (Econst_int (Int.repr 1) tint) tuint)
+    tuchar.
+
+Definition increment8_write_stmt : statement :=
+  Scall None
+    (Evar _simplicity_write8
+      (Tfunction
+        (Tcons (tptr (Tstruct _frameItem noattr))
+          (Tcons tuchar Tnil)) tvoid cc_default))
+    ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
+     increment8_sum_expr :: nil).
+
+Lemma eval_increment8_setx : forall (m : mem) (bl bd bs : block)
+    (ofs : ptrofs) (r : int),
+  eval_expr ge0 (e_increment8 bl) (le_increment8_read bd bs ofs r) m
+    (Ecast (Etempvar _t'1 tuchar) tuchar)
+    (Vint (Int.zero_ext 8 r)).
+Proof.
+  intros m bl bd bs ofs r.
+  eapply eval_Ecast.
+  - eapply eval_Etempvar.
+    simpl [le_increment8_read le_increment8]. reflexivity.
+  - cbn; reflexivity.
+Qed.
+
+Lemma increment8_body_composes : forall
+    (m m1 m2 m3 m4 : mem) (bl bd bs : block) (ofs : ptrofs) (r : int),
+  ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl)
+    (le_increment8 bd bs ofs) m
+    (Sassign (Evar _src (Tstruct _frameItem noattr))
+      (Etempvar _src (Tstruct _frameItem noattr)))
+    E0 (le_increment8 bd bs ofs) m1 Out_normal ->
+  ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl)
+    (le_increment8 bd bs ofs) m1 increment8_read_stmt
+    E0 (le_increment8_read bd bs ofs r) m2 Out_normal ->
+  ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl)
+    (le_increment8_x bd bs ofs r) m2 increment8_bit_stmt
+    E0 (le_increment8_x bd bs ofs r) m3 Out_normal ->
+  ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl)
+    (le_increment8_x bd bs ofs r) m3 increment8_write_stmt
+    E0 (le_increment8_x bd bs ofs r) m4 Out_normal ->
+  ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl)
+    (le_increment8 bd bs ofs) m (fn_body f_simplicity_increment_8)
+    E0 (le_increment8_x bd bs ofs r) m4
+    (Out_return (Some (Vint (Int.repr 1), tint))).
+Proof.
+  intros m m1 m2 m3 m4 bl bd bs ofs r Hcopy Hread Hbit Hwrite.
+  unfold f_simplicity_increment_8; cbn.
+  eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+  - exact Hcopy.
+  - eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+    + eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+      * exact Hread.
+      * apply exec_set.
+        apply eval_increment8_setx.
+    + eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+      * exact Hbit.
+      * eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+        -- exact Hwrite.
+        -- apply ClightBigstep.exec_Sreturn_some.
+           apply eval_Econst_int.
+Qed.
