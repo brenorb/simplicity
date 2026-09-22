@@ -25,6 +25,10 @@ and one at output cursors 8..64 plus all seven two-word splits (65..71).
 Also completed: all-input `add_8` equivalence at independent non-crossing
 read cursors 0..48 and write cursors 9..64, with arbitrary input padding and
 initialized output contents. Its value bridge is symbolic, not exhaustive.
+Increment and add also have complete crossing-output equivalence theorems
+for cursors 65..72: all eight ways their nine output bits span two words.
+The carry-at-the-boundary case (cursor 65) is included. Input reads remain
+within a single backing word.
 All preserve the already-written prefix. The crossing theorem consumes
 `write_frame` directly and constructs all stores from its permissions.
 The user's `jet-proof-review.patch` is an existing untracked review artifact
@@ -35,7 +39,9 @@ and must not be overwritten or included in proof commits.
 The new public results are:
 
 - `Coq/C/jet_add8_spec.v:eval_add8_cursors_matches_spec`
+- `Coq/C/jet_add8_crossing.v:eval_add8_crossing_matches_spec`
 - `Coq/C/jet_increment8_cursors.v:eval_increment8_cursors_matches_spec`
+- `Coq/C/jet_increment8_crossing.v:eval_increment8_crossing_matches_spec`
 - `Coq/C/jet_one8_position.v:eval_one8_position_matches_spec`
 - `Coq/C/jet_one8_crossing.v:eval_one8_crossing_matches_spec`
 
@@ -59,10 +65,10 @@ and preservation of loads outside the two destination blocks. The regenerated
 AST and all jet proof dependencies compiled successfully; the targeted build
 finished with exit status 0 through `C/check_jet_assumptions.vo`.
 
-The increment theorem still uses a **single-word layout**, now with arbitrary
-initialized destination and independent read/write cursors. One also covers
-two-word crossings at the first boundary. They do not establish general
-frame/base offsets or increment/add's crossing branches.
+All input reads still use a **single-word layout**, with arbitrary unused bits
+and independent read/write cursors. One, increment, and add cover two-word
+output crossings at the first boundary. They do not establish general
+frame/base offsets or input-crossing branches.
 For a nonzero final cursor, preserve the already-written prefix, not the
 unused low bits: the real C writer clears those low bits.
 
@@ -136,13 +142,18 @@ After adding `add_8`, the full targeted build and assumption audit passed
 again, as did `coqchk -silent C.jet_add8_spec` (all exit status 0).
 The symbolic add value bridge and its monadic interpretation are closed
 under the global context.
+After adding general crossing writes and both crossing jet theorems, the
+targeted build and assumption audit passed again. Independent
+`coqchk -silent C.jet_increment8_crossing C.jet_add8_crossing` also passed
+(exit status 0). The crossing-byte interpretation and increment's split-value
+bridge are closed under the global context.
 
 ## Remaining work beyond the concrete-layout results
 
-1. Extend the crossing writer from byte value one to arbitrary bytes, then
-   support increment's carry-bit write into the high word and crossing reads.
+1. Prove the crossing read8 path and integrate it into increment/add.
    Generalize physical frame/backing-word base offsets as a separate step.
-2. Extend increment/add beyond single-word reads/writes, then to larger widths.
+   Arbitrary-byte crossing writes and second-word carry writes are now proved.
+2. Extend increment/add beyond single-word reads, then to larger widths.
    `add_8` now uses `Word.adder` as its canonical primitive specification,
    with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.
    Reuse those arithmetic lemmas rather than enumerating byte pairs.
@@ -172,6 +183,9 @@ Recent local proof commits: `ae8f263` (carry cursors), `612d7fc` (increment
 output cursors), `e0be9cf` (crossing execution), `3639174` (crossing one theorem),
 `f10be65` (independent increment cursors), and `c46668f` (production assertions,
 checked dynamic symbol blocks, and reproducible AST checking).
+Subsequent commits: `b9f3a23`/`938eaee` (add execution/specification),
+`3fc25f9` (arbitrary-byte crossings), `4128275` (second-word carry writes),
+and `0689840` (all eight carry/byte splits).
 
 Completed add implementation notes: the generated add jet reads twice, binds `_x` and
 `_y`, writes carry `255U - y < x`, then the truncated sum. Its local-frame
@@ -181,6 +195,15 @@ the symbolic bridge; `jet_add8_spec.v` exposes the initial-memory-only theorem. 
 promotion still makes the comparison unsigned even though real glibc's
 `UINT8_MAX` literal has type `int`. For Word8, `Word.adder` unfolds to the
 same `false &&& iden >>> full_add` composition as Haskell's `add word8`.
+
+Crossing implementation notes: `jet_write8_crossing_general.v` proves the
+actual writer for arbitrary payloads, keeping the C signed-shift/cast sequence
+in `crossing_high`. `jet_crossing_byte.v` interprets it symbolically using
+testbit lemmas; no payload enumeration is used. `jet_writeBit_high.v` covers
+cursors 65..128. `jet_write8_split.v` handles byte cursors 64..71, including
+the exact boundary. `jet_carry_byte_crossing.v` composes both actual calls
+for all eight nine-bit splits and proves permission preservation, which the
+outer jet proofs use to free their local source-frame copies.
 
 Known check times: a production AST change triggers the older `jet_exec.v`
 (about four minutes) and `jet_write8.v` (about three minutes). The new symbolic

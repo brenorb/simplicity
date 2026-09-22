@@ -9,6 +9,9 @@ byte inputs, including carry, at read cursors 0..48 and independent output
 cursors 9..64. Both reads fit in one word; unrelated input bits and the initial
 output word are arbitrary. The arithmetic bridge uses `Word.adder_correct`
 and injectivity of the word encoding, with no input-pair enumeration.
+`jet_add8_crossing.v:eval_add8_crossing_matches_spec` additionally covers
+all eight nine-bit output crossings (cursors 65..72). Its initial output
+contract is `write_frame`, and the two-word decoder is `decode_carry_crossing`.
 
 `jet_increment8_cursors.v:eval_increment8_cursors_matches_spec` constructs a complete
 `ClightBigstep.Clight2.eval_funcall` of the generated
@@ -19,6 +22,10 @@ the canonical Simplicity increment term. The term is the composition
 input carry with the input word and a zero word before `full_add`.
 This follows `Haskell/Core/Simplicity/Programs/Arith.hs`, not a replacement
 integer addition specification.
+`jet_increment8_crossing.v:eval_increment8_crossing_matches_spec` extends
+this to output cursors 65..72 with the same initial `write_frame` contract.
+Both increment/add crossing proofs include cursor 65, where only the carry
+goes in the high word and the byte begins exactly at the next-word boundary.
 
 `jet_one8_position.v:eval_one8_position_matches_spec` does the same for
 `f_simplicity_one_8` and `true >>> left_pad_low word1 word8`, at any output
@@ -55,6 +62,8 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   and has any cursor in `[9,64]` for increment/add, or `[8,64]` for the single-word
   one theorem. The crossing one theorem uses two initialized words and a
   cursor in `[65,71]`.
+  The crossing increment/add theorems use two initialized words at offsets
+  8 and 0 and a cursor in `[65,72]`, preserving the high word's written prefix.
   The output word and output frame are distinct blocks and writable in the
   stated locations. Both preserve all bits at or above the initial cursor
   (the already-written prefix), including the high word's prefix on crossings.
@@ -68,7 +77,7 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   generated guard; it does not assume assertions succeed. Static assertions
   remain enabled and checked by clightgen.
 
-Increment/add's crossing paths, nonzero frame/backing-word base offsets,
+Input-crossing paths, nonzero frame/backing-word base offsets,
 other target ABIs, fully debug-enabled execution (without `PRODUCTION`),
 and larger-width arithmetic jets are not established by these public theorems.
 No binary-level linking or native ARM execution
@@ -98,6 +107,13 @@ not separate universal determinism/small-step theorems.
   actual crossing execution for byte value one and its two-word interpretation.
   The seven-way split only computes bounded scalar layout/shift facts; memories
   and prior word contents remain symbolic.
+- `jet_write8_crossing_general.v`, `jet_crossing_byte.v`,
+  `jet_write8_crossing_frame.v`: arbitrary-byte crossing execution,
+  symbolic two-word decoding/prefix preservation, and a writable-frame
+  contract that constructs all stores and preserves permissions.
+- `jet_writeBit_high.v`, `jet_crossing_frame.v`, `jet_write8_split.v`,
+  `jet_carry_byte_crossing.v`: second-word carry writes, frame construction,
+  exact-boundary byte writes, and composition across all eight nine-bit splits.
 - `jet_read8_position.v`, `jet_writeBit_position.v`: actual helper execution
   at all in-word read and carry-bit cursors.
 - `jet_increment8_position_*.v`, `jet_increment8_cursors.v`: composition,
@@ -126,6 +142,8 @@ not separate universal determinism/small-step theorems.
 - `jet_increment8_cursors.v`, `jet_one8_position.v`, `jet_one8_crossing.v`:
   strongest public C-to-Simplicity results. Earlier modules retain the
   fixed-layout special cases.
+- `jet_increment8_crossing.v`, `jet_add8_crossing.v`: full jet equivalence
+  for crossing outputs, with actual reads, frame copies, allocation and freeing.
 
 The increment value bridge exhausts the eight binary sum constructors (256
 inputs) using kernel-checked `vm_compute; reflexivity`. It does not enumerate
@@ -171,6 +189,10 @@ compiled proof objects; it does not remove the documented inherited assumptions.
 The subsequent `add_8` milestone passed the targeted build, assumption audit,
 and an independent `coqchk -silent C.jet_add8_spec` check on the same date.
 Its symbolic value and monadic bridges are closed under the global context.
+The output-crossing increment/add milestones subsequently passed the targeted
+build, assumption audit, and
+`coqchk -silent C.jet_increment8_crossing C.jet_add8_crossing` on the same date.
+Crossing-byte interpretation is symbolic and closed under the global context.
 
 ## Reproduce the generated AST
 
