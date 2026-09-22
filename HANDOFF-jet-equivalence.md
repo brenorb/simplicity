@@ -15,9 +15,11 @@ paths, cover the intended assertion configuration, and extend to `add_8` and
 larger widths. Improve symbolic word lemmas and reusable memory contracts as
 needed; never replace actual helper execution with assumed behavior.
 
-The immediate milestone is unrestricted initialized output words at the
-currently proved single-word cursor positions, with preservation of the bits
-outside the output slice. The app's existing goal record cannot be edited or
+The first milestone is complete: unrestricted initialized output words at the
+original single-word cursors, arbitrary unused input bits for increment, and
+preservation outside the output slice. One_8 additionally supports every
+non-crossing in-word output cursor from 8 through 64, preserving the written
+prefix. The app's existing goal record cannot be edited or
 resumed through the available goal API; this file records the revised work plan.
 The user's `jet-proof-review.patch` is an existing untracked review artifact
 and must not be overwritten or included in proof commits.
@@ -26,8 +28,12 @@ and must not be overwritten or included in proof commits.
 
 The new public results are:
 
-- `Coq/C/jet_increment8_spec.v:eval_increment8_matches_spec`
-- `Coq/C/jet_one8_call.v:eval_one8_initial_matches_spec`
+- `Coq/C/jet_increment8_general.v:eval_increment8_frame_matches_spec`
+- `Coq/C/jet_one8_position.v:eval_one8_position_matches_spec`
+
+The original fixed-cursor/zero-output results remain compiled as regression
+tests. The generalized byte writer also covers arbitrary payload bytes at
+every non-crossing cursor (`jet_write8_position.v:eval_write8_position`).
 
 They construct complete executions of the actual generated Clight jet bodies
 from initial loads and write permissions. They do not assume helper execution,
@@ -42,10 +48,13 @@ and preservation of loads outside the two destination blocks. The regenerated
 AST and all jet proof dependencies compiled successfully; the targeted build
 finished with exit status 0 through `C/check_jet_assumptions.vo`.
 
-These are **concrete-layout** theorems: one 64-bit word, zero-initialized
-destination, initial output offset 9 (increment) or 8 (one), and input offset
-56 (increment). They do not establish arbitrary frame positions, crossing
-branches, arbitrary output initialization, or `add_8`.
+These are still **single-word-layout** theorems: arbitrary initialized
+destination, initial output cursor 9 (increment) or any value from 8 through
+64 (one), and input cursor 56 (increment) with arbitrary high input bits.
+They do not establish general frame/base offsets, crossing branches, general
+increment cursor positions, assertion-enabled execution, or `add_8`.
+For a nonzero final cursor, preserve the already-written prefix, not the
+unused low bits: the real C writer clears those low bits.
 
 See [the proof documentation](Coq/C/JET_PROOFS.md) for exact contracts,
 dependency structure, assumptions, build instructions, and remaining scope.
@@ -94,17 +103,30 @@ regenerated `C.jets`; `Print Assumptions` reports only the inherited assumptions
 listed below. The regeneration script's output matches `Coq/C/jets.v` exactly.
 The proof sources contain no admits, new axioms, aborted proofs, or unchecked
 cast escapes. No failing or uncompiled proof experiment remains in the tree.
+After the cursor extension, the targeted build and assumption audit passed
+again. A separate `coqchk -silent C.jet_one8_position C.jet_increment8_general`
+run with the same load paths also completed successfully (exit status 0).
 
 ## Remaining work beyond the concrete-layout results
 
-1. Generalize output initialization and cursor positions, then crossing paths.
-2. Extend `read8` to offset 48 and compose two calls for `add_8`.
+1. Generalize `writeBit` from cursor 9 to a symbolic cursor; reuse the checked
+   `eval_clear_width` and `eval_write8_position` proofs to extend increment's
+   output cursor. Generalize `read8` and base offsets, then crossing paths.
+2. Connect generalized read/write predicates to execution contracts with all
+   bounds/permissions; extend `read8` to offset 48 for two-input `add_8`.
 3. Preserve the public initial-memory-only theorem interface; do not reintroduce
    assumed helper contracts or successful-store premises as final results.
 4. If claiming uniqueness or a small-step theorem, prove the corresponding
    determinism/soundness result explicitly.
 5. Keep all work local. Scope searches to this repository and known dependency
    paths; do not search unrelated personal folders.
+
+Proof-engineering notes for this continuation: `Archi.ptr64` is globally opaque
+in CompCert, so `jet_write8_position.v` makes it locally transparent rather than
+computing symbolic memory goals. Closed `UWORD_BIT` evaluation is isolated in
+`eval_generated_uword_bits`. Casted integer constants must be normalized before
+rewriting symbolic shift bounds. New cursor proofs compile in under a second;
+do not replay the older multi-minute helper proofs for local tactic debugging.
 
 The inherited execution assumptions are CompCert's classical/extensionality
 and real-number decisions plus the external-semantics parameters in the Clight
