@@ -92,6 +92,202 @@ Definition le_writeBit_t3 (bf bw : block) : temp_env :=
 Definition le_writeBit_t1 (bf bw : block) : temp_env :=
   PTree.set _t'1 (Vlong Int64.zero) (le_writeBit_t3 bf bw).
 
+Ltac eval_writeBit_closed :=
+  first [ eapply eval_Ecast;
+          [ eval_writeBit_closed | cbn; vm_compute; reflexivity ]
+        | eapply eval_Eunop;
+          [ eval_writeBit_closed | cbn; vm_compute; reflexivity ]
+        | eapply eval_Ebinop;
+          [ eval_writeBit_closed | eval_writeBit_closed |
+            cbn; vm_compute; reflexivity ]
+        | eapply eval_Etempvar;
+          simpl [le_writeBit_t3 le_writeBit_t2 le_writeBit_ptr
+            le_writeBit_t7 le_writeBit_edge le_writeBit_offset le_writeBit0];
+          reflexivity
+        | apply eval_Econst_int
+        | (cbn; vm_compute; reflexivity) ].
+
+Lemma eval_dst_word_lvalue : forall (m : mem) (le : temp_env) (bw : block),
+  le!_dst_ptr = Some (Vptr bw Ptrofs.zero) ->
+  eval_lvalue ge0 empty_env le m
+    (Ederef (Etempvar _dst_ptr (tptr tulong)) tulong)
+    bw Ptrofs.zero Full.
+Proof.
+  intros m le bw Hle.
+  eapply eval_Ederef.
+  eapply eval_Etempvar; exact Hle.
+Qed.
+
+Lemma eval_dst_word : forall (m : mem) (le : temp_env) (bw : block)
+    (v : int64),
+  le!_dst_ptr = Some (Vptr bw Ptrofs.zero) ->
+  Mem.load Mint64 m bw 0 = Some (Vlong v) ->
+  eval_expr ge0 empty_env le m
+    (Ederef (Etempvar _dst_ptr (tptr tulong)) tulong)
+    (Vlong v).
+Proof.
+  intros m le bw v Hle Hload.
+  eapply eval_Elvalue.
+  - eapply eval_Ederef; eapply eval_Etempvar; exact Hle.
+  - apply deref_loc_value with (chunk := Mint64).
+    + reflexivity.
+    + simpl [Mem.loadv]; exact Hload.
+Qed.
+
+Lemma assign_dst_word : forall (m m' : mem) (le : temp_env) (bw : block)
+    (v : int64),
+  le!_dst_ptr = Some (Vptr bw Ptrofs.zero) ->
+  Mem.store Mint64 m bw 0 (Vlong v) = Some m' ->
+  assign_loc (prog_comp_env prog) tulong m bw Ptrofs.zero Full
+    (Vlong v) m'.
+Proof.
+  intros m m' le bw v Hle Hstore.
+  apply assign_loc_value with (chunk := Mint64).
+  - reflexivity.
+  - simpl [Mem.storev]; exact Hstore.
+Qed.
+
+Lemma eval_writeBit_zero : forall (m m1 m2 : mem) (bf bw : block),
+  Mem.load Mptr m bf 0 = Some (Vptr bw Ptrofs.zero) ->
+  Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 9)) ->
+  Mem.store Mint64 m bf 8 (Vlong (Int64.repr 8)) = Some m1 ->
+  Mem.load Mptr m1 bf 0 = Some (Vptr bw Ptrofs.zero) ->
+  Mem.load Mint64 m1 bf 8 = Some (Vlong (Int64.repr 8)) ->
+  Mem.load Mint64 m1 bw 0 = Some (Vlong Int64.zero) ->
+  Mem.store Mint64 m1 bw 0 (Vlong Int64.zero) = Some m2 ->
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some 71%positive ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr 71%positive Ptrofs.zero) =
+    Some (Internal f_LSBclear) ->
+  ClightBigstep.Clight2.eval_funcall ge0 m1 (Internal f_LSBclear)
+    (Vlong Int64.zero :: Vlong (Int64.repr 9) :: nil) E0 m1
+    (Vlong Int64.zero) ->
+  ClightBigstep.Clight2.exec_stmt ge0 empty_env (le_writeBit0 bf) m
+    (fn_body f_writeBit) E0 (le_writeBit_t1 bf bw) m2
+    (Out_return (Some (Vint Int.zero, tbool))).
+Proof.
+  intros m m1 m2 bf bw Hedge Hoffset Hstore_offset Hedge1 Hoffset1
+    Hword Hstore_word Hsym Hfun Hclear.
+  unfold f_writeBit; cbn.
+  eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+  - apply exec_writeBit_debug_loop.
+  - eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+    + eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+      * apply exec_set.
+        eapply eval_frame_offset.
+        { simpl [le_writeBit0]; reflexivity. }
+        { exact Hoffset. }
+      * eapply exec_Sassign_value.
+        -- apply eval_frame_offset_lvalue.
+           simpl [le_writeBit_offset le_writeBit0]; reflexivity.
+        -- eapply eval_Ebinop.
+           ++ eapply eval_Etempvar.
+              simpl [le_writeBit_offset le_writeBit0]; reflexivity.
+           ++ apply eval_Econst_int.
+           ++ cbn; reflexivity.
+        -- cbn; reflexivity.
+        -- apply assign_frame_offset with
+             (le := le_writeBit_offset bf).
+           ++ simpl [le_writeBit_offset le_writeBit0]; reflexivity.
+           ++ exact Hstore_offset.
+    + eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+      * eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+        -- apply exec_set.
+           eapply eval_frame_edge.
+           ++ simpl [le_writeBit_offset le_writeBit0]; reflexivity.
+           ++ exact Hedge1.
+        -- eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+           ++ apply exec_set.
+              eapply eval_frame_offset.
+              { simpl [le_writeBit_edge le_writeBit_offset le_writeBit0].
+                reflexivity. }
+              { exact Hoffset1. }
+           ++ apply exec_set.
+              eapply eval_Ebinop.
+              ** eapply eval_Etempvar.
+                 simpl [le_writeBit_edge le_writeBit_offset le_writeBit0].
+                 reflexivity.
+              ** eapply eval_Ebinop.
+                 --- eapply eval_Etempvar.
+                     simpl [le_writeBit_t7 le_writeBit_edge
+                       le_writeBit_offset le_writeBit0]. reflexivity.
+                 --- eval_writeBit_closed.
+                 --- cbn; vm_compute; reflexivity.
+              ** cbn; vm_compute; reflexivity.
+      * eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+        -- eapply ClightBigstep.exec_Sifthenelse
+             with (v1 := Vint Int.zero) (b := false).
+           ++ eapply eval_Etempvar.
+              simpl [le_writeBit0]; reflexivity.
+           ++ reflexivity.
+           ++ eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+              ** eapply ClightBigstep.exec_Sseq_1 with (t1 := E0) (t2 := E0).
+                 --- apply exec_set.
+                     eapply eval_dst_word.
+                     +++ simpl [le_writeBit_ptr le_writeBit_t7
+                           le_writeBit_edge le_writeBit_offset le_writeBit0].
+                         reflexivity.
+                     +++ exact Hword.
+                 --- eapply ClightBigstep.exec_Sseq_1
+                       with (t1 := E0) (t2 := E0).
+                     +++ apply exec_set.
+                         eapply eval_frame_offset.
+                         { simpl [le_writeBit_t2 le_writeBit_ptr
+                             le_writeBit_t7 le_writeBit_edge
+                             le_writeBit_offset le_writeBit0]. reflexivity. }
+                         { exact Hoffset1. }
+                     +++ eapply ClightBigstep.exec_Scall
+                           with (vf := Vptr 71%positive Ptrofs.zero)
+                                (vargs := Vlong Int64.zero ::
+                                  Vlong (Int64.repr 9) :: nil)
+                                (f := Internal f_LSBclear)
+                                (vres := Vlong Int64.zero).
+                         ---- vm_compute; reflexivity.
+                         ---- eapply eval_Elvalue.
+                              { eapply eval_Evar_global.
+                                - simpl; reflexivity.
+                                - exact Hsym. }
+                              { apply deref_loc_reference.
+                                change (access_mode
+                                  (Tfunction
+                                    (Tcons tulong (Tcons tulong Tnil))
+                                    tulong cc_default) = By_reference).
+                                reflexivity. }
+                         ---- eapply eval_Econs.
+                              { eapply eval_Etempvar.
+                                simpl [le_writeBit_t2 le_writeBit_ptr
+                                  le_writeBit_t7 le_writeBit_edge
+                                  le_writeBit_offset le_writeBit0].
+                                reflexivity. }
+                              { reflexivity. }
+                              { eapply eval_Econs.
+                                - eval_writeBit_closed.
+                                - reflexivity.
+                                - apply eval_Enil. }
+                         ---- exact Hfun.
+                         ---- vm_compute; reflexivity.
+                         ---- exact Hclear.
+              ** eapply exec_Sassign_value.
+                   { apply eval_dst_word_lvalue.
+                     simpl [le_writeBit_ptr le_writeBit_t7 le_writeBit_edge
+                       le_writeBit_offset le_writeBit0]. reflexivity. }
+                   { eapply eval_Etempvar.
+                     simpl [le_writeBit_t1 le_writeBit_t3 le_writeBit_t2
+                       le_writeBit_ptr le_writeBit_t7 le_writeBit_edge
+                       le_writeBit_offset le_writeBit0]. reflexivity. }
+                   { cbn; reflexivity. }
+                   { apply assign_dst_word with
+                       (le := le_writeBit_t1 bf bw).
+                     - simpl [le_writeBit_t1 le_writeBit_t3 le_writeBit_t2
+                         le_writeBit_ptr le_writeBit_t7 le_writeBit_edge
+                         le_writeBit_offset le_writeBit0]. reflexivity.
+                     - exact Hstore_word. }
+    -- apply ClightBigstep.exec_Sreturn_some.
+    eapply eval_Etempvar.
+    simpl [le_writeBit_t1 le_writeBit_t3 le_writeBit_t2 le_writeBit_ptr
+      le_writeBit_t7 le_writeBit_edge le_writeBit_offset le_writeBit0].
+    reflexivity.
+Qed.
+
 Definition le_LSBclear9 (w : int64) : temp_env :=
   PTree.set _n (Vlong (Int64.repr 9))
     (PTree.set _x (Vlong w) (PTree.empty val)).
