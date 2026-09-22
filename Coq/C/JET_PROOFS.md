@@ -27,6 +27,14 @@ this to output cursors 65..72 with the same initial `write_frame` contract.
 Both increment/add crossing proofs include cursor 65, where only the carry
 goes in the high word and the byte begins exactly at the next-word boundary.
 
+`jet_increment8_two_words.v:eval_increment8_two_words_matches_spec` and
+`jet_add8_two_words.v:eval_add8_two_words_matches_spec` additionally support
+all input alignments within two initialized backing words. Increment permits
+read cursors 0..120; add permits 0..112, covering either operand crossing and
+exact-boundary reads. These theorems currently use output cursors 65..72.
+Their shared `two_word_input` predicate describes a sequence of byte values
+through bit slices; it assumes no execution or successful intermediate store.
+
 `jet_one8_position.v:eval_one8_position_matches_spec` does the same for
 `f_simplicity_one_8` and `true >>> left_pad_low word1 word8`, at any output
 cursor from 8 through 64. It decodes the byte at bits `[cursor-8, cursor)`.
@@ -58,6 +66,9 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   the second read at cursor 56 in a two-operand byte jet.
   Add's source frame has the same base layout and cursor 0..48; its two
   consecutive byte slices encode the input pair.
+  The newer two-word source contracts instead use edge offset 16 and backing
+  words at offsets 8 and 0. Only the represented bytes are constrained;
+  all other bits are arbitrary.
 - The output frame points to an initialized but otherwise arbitrary word
   and has any cursor in `[9,64]` for increment/add, or `[8,64]` for the single-word
   one theorem. The crossing one theorem uses two initialized words and a
@@ -77,7 +88,8 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   generated guard; it does not assume assertions succeed. Static assertions
   remain enabled and checked by clightgen.
 
-Input-crossing paths, nonzero frame/backing-word base offsets,
+Two-word inputs combined with non-crossing outputs, general frame/backing-word
+base offsets and backing-word indices,
 other target ABIs, fully debug-enabled execution (without `PRODUCTION`),
 and larger-width arithmetic jets are not established by these public theorems.
 No binary-level linking or native ARM execution
@@ -116,6 +128,12 @@ not separate universal determinism/small-step theorems.
   exact-boundary byte writes, and composition across all eight nine-bit splits.
 - `jet_read8_position.v`, `jet_writeBit_position.v`: actual helper execution
   at all in-word read and carry-bit cursors.
+- `jet_read8_crossing.v`, `jet_read8_crossing_word.v`: actual two-word
+  crossing reads and a symbolic proof that their result is the specified byte slice.
+- `jet_read8_two_positions.v`, `jet_read8_two_words.v`, `jet_two_word_input.v`:
+  high/low-word read paths, a total byte reader for all positions 0..120, and
+  byte-sequence input contracts. The total reader constructs all stores and
+  preserves permissions, valid blocks, and other-block loads.
 - `jet_increment8_position_*.v`, `jet_increment8_cursors.v`: composition,
   memory construction, and public equivalence with independent cursors.
 - `jet_add8.v`, `jet_add8_update.v`, `jet_add8_exec.v`, `jet_add8_call.v`:
@@ -144,6 +162,8 @@ not separate universal determinism/small-step theorems.
   fixed-layout special cases.
 - `jet_increment8_crossing.v`, `jet_add8_crossing.v`: full jet equivalence
   for crossing outputs, with actual reads, frame copies, allocation and freeing.
+- `jet_increment8_two_words.v`, `jet_add8_two_words.v`: full jet equivalence
+  combining arbitrary two-word input alignment with crossing output alignment.
 
 The increment value bridge exhausts the eight binary sum constructors (256
 inputs) using kernel-checked `vm_compute; reflexivity`. It does not enumerate
@@ -193,6 +213,10 @@ The output-crossing increment/add milestones subsequently passed the targeted
 build, assumption audit, and
 `coqchk -silent C.jet_increment8_crossing C.jet_add8_crossing` on the same date.
 Crossing-byte interpretation is symbolic and closed under the global context.
+The two-word-input increment/add milestones also passed the targeted build,
+assumption audit, and
+`coqchk -silent C.jet_increment8_two_words C.jet_add8_two_words` on the same date.
+The crossing-read interpretation is closed under the global context.
 
 ## Reproduce the generated AST
 
