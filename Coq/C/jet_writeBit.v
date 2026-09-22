@@ -6,6 +6,7 @@ From compcert Require Import ClightBigstep Memory Events Globalenvs.
 
 Require Import C.jet_exec.
 Require Import C.jets.
+Require Import C.jet_word_bits.
 
 Import Clightdefs Clightdefs.ClightNotations.
 Import Values Mem Ctypes.
@@ -83,14 +84,14 @@ Definition le_writeBit_t7 (bf bw : block) : temp_env :=
 Definition le_writeBit_ptr (bf bw : block) : temp_env :=
   PTree.set _dst_ptr (Vptr bw Ptrofs.zero) (le_writeBit_t7 bf bw).
 
-Definition le_writeBit_t2 (bf bw : block) : temp_env :=
-  PTree.set _t'2 (Vlong Int64.zero) (le_writeBit_ptr bf bw).
+Definition le_writeBit_t2 (w : int64) (bf bw : block) : temp_env :=
+  PTree.set _t'2 (Vlong w) (le_writeBit_ptr bf bw).
 
-Definition le_writeBit_t3 (bf bw : block) : temp_env :=
-  PTree.set _t'3 (Vlong (Int64.repr 8)) (le_writeBit_t2 bf bw).
+Definition le_writeBit_t3 (w : int64) (bf bw : block) : temp_env :=
+  PTree.set _t'3 (Vlong (Int64.repr 8)) (le_writeBit_t2 w bf bw).
 
-Definition le_writeBit_t1 (bf bw : block) : temp_env :=
-  PTree.set _t'1 (Vlong Int64.zero) (le_writeBit_t3 bf bw).
+Definition le_writeBit_t1 (w c : int64) (bf bw : block) : temp_env :=
+  PTree.set _t'1 (Vlong c) (le_writeBit_t3 w bf bw).
 
 Ltac eval_writeBit_closed :=
   first [ eapply eval_Ecast;
@@ -147,22 +148,25 @@ Proof.
   - simpl [Mem.storev]; exact Hstore.
 Qed.
 
+Section ClearBitWord.
+Variable w c : int64.
+
 Lemma eval_writeBit_zero : forall (m m1 m2 : mem) (bf bw : block),
   Mem.load Mptr m bf 0 = Some (Vptr bw Ptrofs.zero) ->
   Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 9)) ->
   Mem.store Mint64 m bf 8 (Vlong (Int64.repr 8)) = Some m1 ->
   Mem.load Mptr m1 bf 0 = Some (Vptr bw Ptrofs.zero) ->
   Mem.load Mint64 m1 bf 8 = Some (Vlong (Int64.repr 8)) ->
-  Mem.load Mint64 m1 bw 0 = Some (Vlong Int64.zero) ->
-  Mem.store Mint64 m1 bw 0 (Vlong Int64.zero) = Some m2 ->
+  Mem.load Mint64 m1 bw 0 = Some (Vlong w) ->
+  Mem.store Mint64 m1 bw 0 (Vlong c) = Some m2 ->
   Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some 71%positive ->
   Genv.find_funct (Clight.genv_genv ge0) (Vptr 71%positive Ptrofs.zero) =
     Some (Internal f_LSBclear) ->
   ClightBigstep.Clight2.eval_funcall ge0 m1 (Internal f_LSBclear)
-    (Vlong Int64.zero :: Vlong (Int64.repr 9) :: nil) E0 m1
-    (Vlong Int64.zero) ->
+    (Vlong w :: Vlong (Int64.repr 9) :: nil) E0 m1
+    (Vlong c) ->
   ClightBigstep.Clight2.exec_stmt ge0 empty_env (le_writeBit0 bf) m
-    (fn_body f_writeBit) E0 (le_writeBit_t1 bf bw) m2
+    (fn_body f_writeBit) E0 (le_writeBit_t1 w c bf bw) m2
     (Out_return (Some (Vint Int.zero, tbool))).
 Proof.
   intros m m1 m2 bf bw Hedge Hoffset Hstore_offset Hedge1 Hoffset1
@@ -237,10 +241,10 @@ Proof.
                          { exact Hoffset1. }
                      +++ eapply ClightBigstep.exec_Scall
                            with (vf := Vptr 71%positive Ptrofs.zero)
-                                (vargs := Vlong Int64.zero ::
+                                (vargs := Vlong w ::
                                   Vlong (Int64.repr 9) :: nil)
                                 (f := Internal f_LSBclear)
-                                (vres := Vlong Int64.zero).
+                                (vres := Vlong c).
                          ---- vm_compute; reflexivity.
                          ---- eapply eval_Elvalue.
                               { eapply eval_Evar_global.
@@ -276,7 +280,7 @@ Proof.
                        le_writeBit_offset le_writeBit0]. reflexivity. }
                    { cbn; reflexivity. }
                    { apply assign_dst_word with
-                       (le := le_writeBit_t1 bf bw).
+                       (le := le_writeBit_t1 w c bf bw).
                      - simpl [le_writeBit_t1 le_writeBit_t3 le_writeBit_t2
                          le_writeBit_ptr le_writeBit_t7 le_writeBit_edge
                          le_writeBit_offset le_writeBit0]. reflexivity.
@@ -287,6 +291,8 @@ Proof.
       le_writeBit_t7 le_writeBit_edge le_writeBit_offset le_writeBit0].
     reflexivity.
 Qed.
+
+End ClearBitWord.
 
 Definition le_writeBit1 (bf : block) : temp_env :=
   PTree.set _bit (Vint Int.one) (le_writeBit0 bf).
@@ -329,8 +335,11 @@ Definition le_writeBit1_t7 (bf bw : block) : temp_env :=
 Definition le_writeBit1_ptr (bf bw : block) : temp_env :=
   PTree.set _dst_ptr (Vptr bw Ptrofs.zero) (le_writeBit1_t7 bf bw).
 
+Section SetBitWord.
+Variable w : int64.
+
 Definition le_writeBit1_t4 (bf bw : block) : temp_env :=
-  PTree.set _t'4 (Vlong Int64.zero) (le_writeBit1_ptr bf bw).
+  PTree.set _t'4 (Vlong w) (le_writeBit1_ptr bf bw).
 
 Definition le_writeBit1_t5 (bf bw : block) : temp_env :=
   PTree.set _t'5 (Vlong (Int64.repr 8)) (le_writeBit1_t4 bf bw).
@@ -341,8 +350,8 @@ Lemma eval_writeBit_one : forall (m m1 m2 : mem) (bf bw : block),
   Mem.store Mint64 m bf 8 (Vlong (Int64.repr 8)) = Some m1 ->
   Mem.load Mptr m1 bf 0 = Some (Vptr bw Ptrofs.zero) ->
   Mem.load Mint64 m1 bf 8 = Some (Vlong (Int64.repr 8)) ->
-  Mem.load Mint64 m1 bw 0 = Some (Vlong Int64.zero) ->
-  Mem.store Mint64 m1 bw 0 (Vlong (Int64.repr 256)) = Some m2 ->
+  Mem.load Mint64 m1 bw 0 = Some (Vlong w) ->
+  Mem.store Mint64 m1 bw 0 (Vlong (Int64.or w (Int64.repr 256))) = Some m2 ->
   ClightBigstep.Clight2.exec_stmt ge0 empty_env (le_writeBit1 bf) m
     (fn_body f_writeBit) E0 (le_writeBit1_t5 bf bw) m2
     (Out_return (Some (Vint Int.one, tbool))).
@@ -453,6 +462,8 @@ Proof.
       le_writeBit1_edge le_writeBit1_offset le_writeBit1]. reflexivity.
 Qed.
 
+End SetBitWord.
+
 Definition le_LSBclear9 (w : int64) : temp_env :=
   PTree.set _n (Vlong (Int64.repr 9))
     (PTree.set _x (Vlong w) (PTree.empty val)).
@@ -498,19 +509,19 @@ Ltac eval_LSBclear9_value :=
         | eapply eval_Etempvar; simpl [le_LSBclear9]; reflexivity
         | (cbn; vm_compute; reflexivity) ].
 
-Lemma eval_LSBclear9_zero : forall (m : mem),
+Lemma eval_LSBclear9_word : forall (m : mem) (w : int64),
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBclear)
-    (Vlong Int64.zero :: Vlong (Int64.repr 9) :: nil) E0 m
-    (Vlong Int64.zero).
+    (Vlong w :: Vlong (Int64.repr 9) :: nil) E0 m
+    (Vlong (clear_low 9 w)).
 Proof.
-  intros m.
+  intros m w.
   eapply ClightBigstep.eval_funcall_internal
-    with (e := empty_env) (le1 := le_LSBclear9 Int64.zero) (m1 := m)
-         (le2 := le_LSBclear9 Int64.zero) (m2 := m).
+    with (e := empty_env) (le1 := le_LSBclear9 w) (m1 := m)
+         (le2 := le_LSBclear9 w) (m2 := m).
   - apply entry_LSBclear9_value.
   - simpl [f_LSBclear].
     apply ClightBigstep.exec_Sreturn_some.
-    pose proof (eval_LSBclear9_n_minus_one m Int64.zero) as Hn.
+    pose proof (eval_LSBclear9_n_minus_one m w) as Hn.
     eapply eval_Ecast.
     + eapply eval_Ebinop.
       * eapply eval_Ebinop.
@@ -531,6 +542,12 @@ Proof.
   - simpl; reflexivity.
 Qed.
 
+Lemma eval_LSBclear9_zero : forall (m : mem),
+  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBclear)
+    (Vlong Int64.zero :: Vlong (Int64.repr 9) :: nil) E0 m
+    (Vlong Int64.zero).
+Proof. intros m. exact (eval_LSBclear9_word m Int64.zero). Qed.
+
 Lemma eval_writeBit_zero_call : forall (m m1 m2 : mem) (bf bw : block),
   Mem.load Mptr m bf 0 = Some (Vptr bw Ptrofs.zero) ->
   Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 9)) ->
@@ -548,7 +565,7 @@ Proof.
     Hword Hstore_word.
   eapply ClightBigstep.eval_funcall_internal
     with (e := empty_env) (le1 := le_writeBit0 bf) (m1 := m)
-         (le2 := le_writeBit_t1 bf bw) (m2 := m2)
+         (le2 := le_writeBit_t1 Int64.zero Int64.zero bf bw) (m2 := m2)
          (out := Out_return (Some (Vint Int.zero, tbool)))
          (vres := Vint Int.zero).
   - apply entry_writeBit0.
@@ -584,11 +601,11 @@ Proof.
     Hword Hstore_word.
   eapply ClightBigstep.eval_funcall_internal
     with (e := empty_env) (le1 := le_writeBit1 bf) (m1 := m)
-         (le2 := le_writeBit1_t5 bf bw) (m2 := m2)
+         (le2 := le_writeBit1_t5 Int64.zero bf bw) (m2 := m2)
          (out := Out_return (Some (Vint Int.one, tbool)))
          (vres := Vint Int.one).
   - apply entry_writeBit1.
-  - apply eval_writeBit_one with (m1 := m1) (m2 := m2)
+  - apply eval_writeBit_one with (w := Int64.zero) (m1 := m1) (m2 := m2)
       (bf := bf) (bw := bw); assumption.
   - cbn; split; [discriminate | reflexivity].
   - simpl; reflexivity.
