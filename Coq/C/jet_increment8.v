@@ -111,6 +111,48 @@ Definition increment8_read_stmt : statement :=
     ((Eaddrof (Evar _src (Tstruct _frameItem noattr))
       (tptr (Tstruct _frameItem noattr))) :: nil).
 
+Lemma call_increment8_read : forall (le : temp_env) (m m' : mem)
+    (bl : block) (r : int) (b : block),
+  Genv.find_symbol (Clight.genv_genv ge0) _simplicity_read8 = Some b ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr b Ptrofs.zero) =
+    Some (Internal f_simplicity_read8) ->
+  ClightBigstep.Clight2.eval_funcall ge0 m
+    (Internal f_simplicity_read8)
+    (Vptr bl Ptrofs.zero :: nil) E0 m' (Vint r) ->
+  ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl) le m
+    increment8_read_stmt E0 (PTree.set _t'1 (Vint r) le) m'
+    Out_normal.
+Proof.
+  intros le m m' bl r b Hsym Hfun Hread.
+  change (ClightBigstep.exec_stmt function_entry2 ge0 (e_increment8 bl) le m
+    increment8_read_stmt E0 (set_opttemp (Some _t'1) (Vint r) le) m'
+    Out_normal).
+  eapply ClightBigstep.exec_Scall
+    with (vf := Vptr b Ptrofs.zero)
+         (vargs := Vptr bl Ptrofs.zero :: nil)
+         (f := Internal f_simplicity_read8) (vres := Vint r).
+  - vm_compute; reflexivity.
+  - eapply eval_Elvalue.
+    + eapply eval_Evar_global.
+      * simpl; reflexivity.
+      * exact Hsym.
+    + apply deref_loc_reference.
+      change (access_mode
+        (Tfunction
+          (Tcons (tptr (Tstruct _frameItem noattr)) Tnil)
+          tuchar cc_default) = By_reference).
+      reflexivity.
+  - eapply eval_Econs.
+    + eapply eval_Eaddrof.
+      eapply eval_Evar_local.
+      simpl [e_increment8]. reflexivity.
+    + reflexivity.
+    + apply eval_Enil.
+  - exact Hfun.
+  - vm_compute; reflexivity.
+  - exact Hread.
+Qed.
+
 Definition increment8_setx_stmt : statement :=
   Sset _x (Ecast (Etempvar _t'1 tuchar) tuchar).
 
