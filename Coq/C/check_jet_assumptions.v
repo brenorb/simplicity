@@ -18,6 +18,10 @@ Require Import C.jet_writeBit_layout C.jet_write8_layout.
 Require Import C.jet_write8_layout_total C.jet_one8_layout.
 Require Import C.jet_writeBit_layout_total C.jet_carry_byte_layout.
 Require Import C.jet_increment8_layout C.jet_add8_layout.
+Require Import C.jet_write_wide_layout_total.
+Print Assumptions jet_word_slice.put_slice_projection.
+Print Assumptions jet_word_slice.crossing_slice_projection.
+Print Assumptions eval_write_wide_layout.
 Print Assumptions eval_increment8_layout_matches_spec.
 Print Assumptions eval_add8_layout_matches_spec.
 Print Assumptions eval_writeBit_layout.

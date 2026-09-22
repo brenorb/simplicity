@@ -59,6 +59,9 @@ Ltac writelayout_scalar :=
     Ptrofs.add Ptrofs.sub Ptrofs.mul Ptrofs.of_int64];
   change (Int.signed (Int.repr 1)) with 1;
   change (Int.signed (Int.repr 8)) with 8;
+  change (Int.signed (Int.repr 16)) with 16;
+  change (Int.signed (Int.repr 32)) with 32;
+  change (Int.signed (Int.repr 64)) with 64;
   change (Int64.repr (Int.signed Int.zero)) with Int64.zero;
   change (Int64.repr (Int.unsigned Int.one)) with Int64.one;
   change (Ptrofs.mul (Ptrofs.repr 8) (Ptrofs.of_ints (Int.repr 1))) with (Ptrofs.repr 8);
