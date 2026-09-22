@@ -29,11 +29,13 @@ Music folder.
 
 The current working copy contains the generated `Coq/C/jets.v` artifact,
 `Coq/C/jet_exec.v`, `Coq/C/jet_one8.v`, `Coq/C/jet_write8.v`,
-`Coq/C/jet_increment8.v`, and `Coq/C/jet_spec.v`. The execution files contain
+`Coq/C/jet_read8.v`, `Coq/C/jet_increment8.v`, and `Coq/C/jet_spec.v`. The
+execution files contain
 checked complete-call theorems for the actual generated
 `f_simplicity_write8` and `f_simplicity_one_8` functions, plus generalized
-`f_simplicity_write8` execution and conditional `f_simplicity_increment_8`
-body composition. The spec file gives
+`f_simplicity_write8` execution, a fixed-layout complete call for
+`f_simplicity_read8`, and conditional `f_simplicity_increment_8` body
+composition. The spec file gives
 the primitive Simplicity term, its parametricity proof, the decoded output
 predicate, and the combined C-to-spec theorem. No desired jet behavior is
 assumed as an axiom.
@@ -69,6 +71,11 @@ CompCert 3.14 and Coq 8.17.1:
   `eval_write8_x` for an arbitrary C byte argument, under explicit memory and
   actual `LSBclear`/`LSBkeep` execution hypotheses. Its closed-width
   normalization uses bounded scalar reduction only.
+* `Coq/C/jet_read8.v` proves `eval_read8`: the generated read8 function's
+  complete `Clight2.eval_funcall` at the fixed one-word layout, including the
+  actual `LSBkeep` call, load and store facts, and final `tuchar` return cast.
+  The layout is the one-past-word edge with source offset 56; the crossing
+  branch is discharged by the concrete `8 < 8` test.
 * `Coq/C/jet_increment8.v` proves the actual `function_entry2` setup for
   `f_simplicity_increment_8`, composes its generated copy/read/writeBit/write8
   statement tree under explicit helper-execution premises, and records the
