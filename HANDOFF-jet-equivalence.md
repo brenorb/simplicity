@@ -1,7 +1,8 @@
 # Handoff: prove C jet equivalence to Simplicity
 
-Status: one8 C-to-Simplicity bridge implemented and verified locally,
-updated 2026-09-22. The work is local; nothing has been pushed.
+Status: one8 C-to-Simplicity bridge implemented and verified locally;
+increment8 specification and conditional Clight composition infrastructure are
+also checked. Updated 2026-09-22. The work is local; nothing has been pushed.
 
 ## Objective and constraints
 
@@ -27,9 +28,12 @@ dependency directories: the user objected to an earlier search reaching their
 Music folder.
 
 The current working copy contains the generated `Coq/C/jets.v` artifact,
-`Coq/C/jet_exec.v`, `Coq/C/jet_one8.v`, and `Coq/C/jet_spec.v`. The execution
-files contain checked complete-call theorems for the actual generated
-`f_simplicity_write8` and `f_simplicity_one_8` functions. The spec file gives
+`Coq/C/jet_exec.v`, `Coq/C/jet_one8.v`, `Coq/C/jet_write8.v`,
+`Coq/C/jet_increment8.v`, and `Coq/C/jet_spec.v`. The execution files contain
+checked complete-call theorems for the actual generated
+`f_simplicity_write8` and `f_simplicity_one_8` functions, plus generalized
+`f_simplicity_write8` execution and conditional `f_simplicity_increment_8`
+body composition. The spec file gives
 the primitive Simplicity term, its parametricity proof, the decoded output
 predicate, and the combined C-to-spec theorem. No desired jet behavior is
 assumed as an axiom.
@@ -61,6 +65,15 @@ CompCert 3.14 and Coq 8.17.1:
 * `Coq/C/jet_spec.v` defines the canonical primitive one8 term, proves its
   parametricity and functional value, and proves `eval_one8_matches_spec`,
   combining the C execution theorem with the decoded Simplicity postcondition.
+* `Coq/C/jet_write8.v` proves the complete actual call theorem
+  `eval_write8_x` for an arbitrary C byte argument, under explicit memory and
+  actual `LSBclear`/`LSBkeep` execution hypotheses. Its closed-width
+  normalization uses bounded scalar reduction only.
+* `Coq/C/jet_increment8.v` proves the actual `function_entry2` setup for
+  `f_simplicity_increment_8`, composes its generated copy/read/writeBit/write8
+  statement tree under explicit helper-execution premises, and records the
+  casted-byte environment. `jet_spec.v` defines and proves parametricity of
+  `increment8_spec := adder (n := 3) (input, one8)`.
 
 The checked `eval_write8` contract is:
 
@@ -84,9 +97,14 @@ Lemma eval_write8 : forall (m : mem) (bf bw : block)
     E0 m2 Vundef.
 ```
 
-This is a helper theorem used by the completed one8 bridge. The remaining
-extension is the analogous actual-call theorem for `f_simplicity_add_8`, with
-its postcondition stated in terms of the `adder (n := 3)` Simplicity term.
+This is a helper theorem used by the completed one8 bridge. The increment8
+composition theorem is intentionally conditional: it does not yet prove
+`read8` or `writeBit` from a concrete memory layout, and therefore is not yet
+the final public C-to-Simplicity equivalence theorem. The remaining extension
+is to prove those helper executions and thread the concrete source and
+destination frame memories through the call, then connect the decoded output
+to `increment8_spec`. The analogous actual-call theorem for
+`f_simplicity_add_8` remains future work.
 
 ## Simplicity-side target
 
