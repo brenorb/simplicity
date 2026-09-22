@@ -186,6 +186,10 @@ build and assumption audit passed again. Independent
 After adding the total arbitrary-address byte writer and complete general-layout
 one jet, the targeted build and assumption audit passed again. Independent
 `coqchk -silent C.jet_write8_layout_total C.jet_one8_layout` passed (exit status 0).
+The total bit writer and carry/byte composition then passed the targeted build
+and assumption audit, and independent `coqchk -silent C.jet_carry_byte_layout`
+passed (exit status 0). The bit-value and prefix lemmas are closed under the
+global context; execution inherits the same CompCert assumptions as before.
 
 ## Remaining work beyond the concrete-layout results
 
@@ -210,9 +214,16 @@ one jet, the targeted build and assumption audit passed again. Independent
    `jet_write_layout.v` proves address/cursor arithmetic. These raw lemmas still
    take successful stores. `eval_write8_layout` now constructs those stores
    from `write_frame_at`, proves `byte_output_at` and `write_prefix_at`, and
-   preserves loads outside the modified cursor/word ranges. The full one jet
+   preserves loads outside the modified cursor/word ranges. `eval_writeBit_layout`
+   now does the same for a bit. `eval_carry_byte_layout` constructs both actual
+   helper calls from a nine-bit `write_frame_at` and proves `carry_byte_output_at`,
+   written-prefix preservation, final cursor, precise load preservation,
+   and permission/valid-block preservation. The full one jet
    uses it via `eval_one8_layout_composes`, including nonzero destination and
-   source offsets. Carry/byte composition for increment/add remains pending.
+   source offsets. Integration of the carry/byte result into the full
+   increment/add function boundaries remains pending: their entry/body proofs
+   still fix the destination pointer at block offset 0. Generalize that pointer
+   while reusing their actual scalar arithmetic and canonical value bridges.
    The raw writers' targeted build/assumption audit and independent
    `coqchk -silent C.jet_writeBit_layout C.jet_write8_layout` passed.
 2. Extend to larger widths, reusing the generalized frame infrastructure.
@@ -276,7 +287,7 @@ handles non-crossing reads in either word. `jet_read8_two_words.v` constructs
 all cursor stores and exposes a total read contract for cursors 0..120,
 preserving other-block loads, permissions, and valid blocks.
 `jet_two_word_input.v` represents a byte sequence and supplies single/pair
-elimination lemmas. The newest increment/add proofs use that contract directly;
+elimination lemmas. The two-word increment/add proofs use that contract directly;
 they do not assume read executions or intermediate-store success.
 
 Unified output notes: `jet_carry_byte_position.v` constructs non-crossing
@@ -296,6 +307,15 @@ loads outside the eight-byte cursor field, including in the same memory block.
 copying a source frame at a nonzero offset to the jet's fresh local frame.
 The reader's full targeted build/assumption audit and independent
 `coqchk -silent C.jet_read8_layout_total` passed (exit status 0).
+
+Arbitrary-output composition notes: `write_frame_at_after_bit` transports the
+remaining writable cells after a bit store, including initialized-word loads.
+`write_layout_previous_inside` / `write_layout_previous_boundary` identify the
+next byte's word and in-word position. `eval_carry_byte_layout` uses the byte
+writer's prefix/range postconditions to preserve the carry and original prefix,
+without enumerating cursor values. `carry_byte_output_at` observes the carry
+at `(cursor-1) mod 64` and the following byte via `byte_output_at` at `cursor-1`.
+All current modules compile; no unfinished proof is left in the tree.
 
 Known check times: a production AST change triggers the older `jet_exec.v`
 (about four minutes) and `jet_write8.v` (about three minutes). The new symbolic

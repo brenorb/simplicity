@@ -16,6 +16,11 @@ Require Import C.jet_read8_two_words.
 Require Import C.jet_read8_layout_total.
 Require Import C.jet_writeBit_layout C.jet_write8_layout.
 Require Import C.jet_write8_layout_total C.jet_one8_layout.
+Require Import C.jet_writeBit_layout_total C.jet_carry_byte_layout.
+Print Assumptions eval_writeBit_layout.
+Print Assumptions write_bit_value_correct.
+Print Assumptions write_bit_value_prefix.
+Print Assumptions eval_carry_byte_layout.
 Print Assumptions eval_write8_layout.
 Print Assumptions eval_one8_layout_matches_spec.
 Print Assumptions eval_writeBit_layout_raw.

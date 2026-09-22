@@ -143,6 +143,13 @@ not separate universal determinism/small-step theorems.
   The theorem constructs stores, decodes the byte, and proves precise memory
   preservation. `jet_one8_layout_exec.v` and `jet_one8_layout.v` compose it into
   the complete generated one jet, including source copy, allocation and freeing.
+- `jet_writeBit_layout_total.v`, `jet_output_layout_step.v`,
+  `jet_carry_byte_layout.v`: total arbitrary-address bit writes, writable-frame
+  advancement, and carry/byte helper composition. `carry_byte_output_at` observes
+  the carry bit and following byte at their actual frame positions. The proof
+  covers the carry-at-boundary case, preserves the prefix and precise memory
+  ranges, and derives all stores from initial permissions. Composing this
+  result into the full increment/add calls remains to be done.
 - `jet_frame_layout.v`, `jet_read8_layout.v`, `jet_read8_layout_total.v`:
   frame-field accesses at arbitrary non-wrapping structure addresses and a
   total byte reader for arbitrary backing-word indices, including crossings.
@@ -216,7 +223,7 @@ not separate universal determinism/small-step theorems.
   output contents.
 - `jet_spec.v`: canonical primitive Simplicity terms and parametricity.
 - `jet_increment8_cursors.v`, `jet_one8_position.v`, `jet_one8_crossing.v`:
-  strongest public C-to-Simplicity results. Earlier modules retain the
+  earlier position-specific C-to-Simplicity results. Earlier modules retain the
   fixed-layout special cases.
 - `jet_increment8_crossing.v`, `jet_add8_crossing.v`: full jet equivalence
   for crossing outputs, with actual reads, frame copies, allocation and freeing.
