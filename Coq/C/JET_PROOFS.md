@@ -123,6 +123,10 @@ not separate universal determinism/small-step theorems.
 
 ## Proof organization
 
+- `jet_write_layout.v`, `jet_writeBit_layout.v`, `jet_write8_layout.v`:
+  generated writer executions at arbitrary output structure/edge addresses
+  and word indices, including crossings. These raw execution lemmas still
+  take successful stores; they are not yet generalized public jet theorems.
 - `jet_frame_layout.v`, `jet_read8_layout.v`, `jet_read8_layout_total.v`:
   frame-field accesses at arbitrary non-wrapping structure addresses and a
   total byte reader for arbitrary backing-word indices, including crossings.

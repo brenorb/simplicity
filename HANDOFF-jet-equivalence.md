@@ -194,6 +194,13 @@ build and assumption audit passed again. Independent
    where needed and preserves all loads outside the cursor field. It is now
    composed into both complete jets through `byte_input_at` / `eval_read8_byte_at`.
    Generalizing the writers remains to be done.
+   Checked raw writer execution now exists in `jet_writeBit_layout.v` and
+   `jet_write8_layout.v`: both bit values and both byte paths allow arbitrary
+   output structure offsets, edge addresses and word indices. The shared
+   `jet_write_layout.v` proves address/cursor arithmetic. These raw lemmas still
+   take successful stores; total initial-memory contracts and full-jet
+   integration remain pending. The targeted build/assumption audit and independent
+   `coqchk -silent C.jet_writeBit_layout C.jet_write8_layout` passed.
 2. Extend to larger widths, reusing the generalized frame infrastructure.
    `add_8` now uses `Word.adder` as its canonical primitive specification,
    with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.

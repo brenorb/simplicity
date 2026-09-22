@@ -14,6 +14,10 @@ Require Import C.jet_increment8_crossing C.jet_add8_crossing C.jet_increment8_cr
 Require Import C.jet_read8_crossing C.jet_read8_crossing_word.
 Require Import C.jet_read8_two_words.
 Require Import C.jet_read8_layout_total.
+Require Import C.jet_writeBit_layout C.jet_write8_layout.
+Print Assumptions eval_writeBit_layout_raw.
+Print Assumptions eval_write8_layout_non_crossing_raw.
+Print Assumptions eval_write8_layout_crossing_raw.
 Print Assumptions eval_read8_layout.
 Require Import C.jet_output9 C.jet_carry_byte_position.
 Require Import C.jet_increment8_frames C.jet_add8_frames.
