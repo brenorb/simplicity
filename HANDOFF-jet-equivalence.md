@@ -22,6 +22,9 @@ instruction in that record to consult Astra Medium.
 Completed: unrestricted initialized output words, arbitrary unused input bits,
 independent in-word input/output cursors for increment (read 0..56, write 9..64),
 and one at output cursors 8..64 plus all seven two-word splits (65..71).
+Also completed: all-input `add_8` equivalence at independent non-crossing
+read cursors 0..48 and write cursors 9..64, with arbitrary input padding and
+initialized output contents. Its value bridge is symbolic, not exhaustive.
 All preserve the already-written prefix. The crossing theorem consumes
 `write_frame` directly and constructs all stores from its permissions.
 The user's `jet-proof-review.patch` is an existing untracked review artifact
@@ -31,6 +34,7 @@ and must not be overwritten or included in proof commits.
 
 The new public results are:
 
+- `Coq/C/jet_add8_spec.v:eval_add8_cursors_matches_spec`
 - `Coq/C/jet_increment8_cursors.v:eval_increment8_cursors_matches_spec`
 - `Coq/C/jet_one8_position.v:eval_one8_position_matches_spec`
 - `Coq/C/jet_one8_crossing.v:eval_one8_crossing_matches_spec`
@@ -50,7 +54,7 @@ Simplicity increment term (carry-in one plus input plus a zero word).
 The earlier adder-with-one definition has been replaced with that canonical
 composition. One uses `true >>> left_pad_low word1 word8`.
 
-Both prove the decoded output, true return, destination cursor advancement,
+All prove the decoded output, true return, destination cursor advancement,
 and preservation of loads outside the two destination blocks. The regenerated
 AST and all jet proof dependencies compiled successfully; the targeted build
 finished with exit status 0 through `C/check_jet_assumptions.vo`.
@@ -58,7 +62,7 @@ finished with exit status 0 through `C/check_jet_assumptions.vo`.
 The increment theorem still uses a **single-word layout**, now with arbitrary
 initialized destination and independent read/write cursors. One also covers
 two-word crossings at the first boundary. They do not establish general
-frame/base offsets, increment's crossing branches, or `add_8`.
+frame/base offsets or increment/add's crossing branches.
 For a nonzero final cursor, preserve the already-written prefix, not the
 unused low bits: the real C writer clears those low bits.
 
@@ -128,16 +132,20 @@ audit passed again (exit status 0). A separate
 run with the same load paths also completed successfully (exit status 0).
 AST regeneration checked byte-for-byte, script syntax checks passed, and invalid
 assertion modes/implicit alternate-mode overwrites were rejected as intended.
+After adding `add_8`, the full targeted build and assumption audit passed
+again, as did `coqchk -silent C.jet_add8_spec` (all exit status 0).
+The symbolic add value bridge and its monadic interpretation are closed
+under the global context.
 
 ## Remaining work beyond the concrete-layout results
 
 1. Extend the crossing writer from byte value one to arbitrary bytes, then
    support increment's carry-bit write into the high word and crossing reads.
    Generalize physical frame/backing-word base offsets as a separate step.
-2. Implement `add_8` using `eval_read8_position` at 48 and 56. The generated
-   body is at `jets.v:f_simplicity_add_8`; use `Word.adder` as the canonical
-   primitive specification, with `Word.adder_correct` and `toZ` injectivity
-   for a symbolic value bridge instead of 65,536-case enumeration.
+2. Extend increment/add beyond single-word reads/writes, then to larger widths.
+   `add_8` now uses `Word.adder` as its canonical primitive specification,
+   with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.
+   Reuse those arithmetic lemmas rather than enumerating byte pairs.
 3. Preserve the public initial-memory-only theorem interface; do not reintroduce
    assumed helper contracts or successful-store premises as final results.
    Fully debug-enabled execution would also require proving the live writeBit
@@ -165,10 +173,11 @@ output cursors), `e0be9cf` (crossing execution), `3639174` (crossing one theorem
 `f10be65` (independent increment cursors), and `c46668f` (production assertions,
 checked dynamic symbol blocks, and reproducible AST checking).
 
-Next implementation notes: the generated add jet reads twice, binds `_x` and
+Completed add implementation notes: the generated add jet reads twice, binds `_x` and
 `_y`, writes carry `255U - y < x`, then the truncated sum. Its local-frame
-copy/allocation/free pattern matches increment. Reuse the initial-memory-only
-construction, extending it with the second local cursor store. Arithmetic
+copy/allocation/free pattern matches increment. `jet_add8_call.v` constructs
+both local cursor stores from initial permissions. `jet_add8_word.v` proves
+the symbolic bridge; `jet_add8_spec.v` exposes the initial-memory-only theorem. Arithmetic
 promotion still makes the comparison unsigned even though real glibc's
 `UINT8_MAX` literal has type `int`. For Word8, `Word.adder` unfolds to the
 same `false &&& iden >>> full_add` composition as Haskell's `add word8`.

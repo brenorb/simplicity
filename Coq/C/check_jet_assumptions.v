@@ -6,6 +6,10 @@ Require Import C.jet_increment8_position C.jet_increment8_position_word.
 Require Import C.jet_one8_crossing C.jet_crossing_word.
 Require Import C.jet_increment8_cursors.
 Require Import C.jet_add8_call.
+Require Import C.jet_add8_spec C.jet_add8_word.
+Print Assumptions eval_add8_cursors_matches_spec.
+Print Assumptions add8_values_denote_spec.
+Print Assumptions add8_spec_initial.
 Print Assumptions eval_add8_position_call.
 Print Assumptions eval_increment8_cursors_matches_spec.
 Print Assumptions eval_one8_crossing_matches_spec.

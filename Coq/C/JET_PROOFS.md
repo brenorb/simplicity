@@ -2,6 +2,14 @@
 
 ## Public results and exact scope
 
+`jet_add8_spec.v:eval_add8_cursors_matches_spec` proves complete execution of
+the generated `f_simplicity_add_8` against the canonical primitive
+`Word.adder` (`false &&& iden >>> full_add word8`). It covers every pair of
+byte inputs, including carry, at read cursors 0..48 and independent output
+cursors 9..64. Both reads fit in one word; unrelated input bits and the initial
+output word are arbitrary. The arithmetic bridge uses `Word.adder_correct`
+and injectivity of the word encoding, with no input-pair enumeration.
+
 `jet_increment8_cursors.v:eval_increment8_cursors_matches_spec` constructs a complete
 `ClightBigstep.Clight2.eval_funcall` of the generated
 `f_simplicity_increment_8`, returning true with an empty trace. For every
@@ -24,7 +32,7 @@ the high word's low `k` bits followed by the low word's high `8-k` bits.
 The previous fixed-cursor and zero-initialized theorems remain checked
 corollaries/regression tests.
 
-These results prove the final output cursor (`cursor-9` for increment,
+These results prove the final output cursor (`cursor-9` for increment/add,
 `cursor-8` for one) and preserve loads in
 initially valid blocks other than the destination frame and output word.
 Their premises contain **only initial memory facts and write permissions**.
@@ -41,8 +49,10 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   `Word8`; every other input bit is arbitrary. Input and output cursors vary
   independently. The generalized reader includes cursor 48, needed before
   the second read at cursor 56 in a two-operand byte jet.
+  Add's source frame has the same base layout and cursor 0..48; its two
+  consecutive byte slices encode the input pair.
 - The output frame points to an initialized but otherwise arbitrary word
-  and has any cursor in `[9,64]` for increment, or `[8,64]` for the single-word
+  and has any cursor in `[9,64]` for increment/add, or `[8,64]` for the single-word
   one theorem. The crossing one theorem uses two initialized words and a
   cursor in `[65,71]`.
   The output word and output frame are distinct blocks and writable in the
@@ -51,16 +61,17 @@ These are **concrete-layout results**, not all-layout jet equivalence:
   C's writer may clear unused bits below the output slice; their preservation
   is intentionally not required.
 - One's unused source frame must still be readable for its 16-byte C copy.
-- The caller's environment argument is `Vundef`; neither jet uses it.
+- The caller's environment argument is `Vundef`; none of these jets uses it.
 - The generated artifact uses the library-recommended `PRODUCTION` mode:
   ordinary assertions remain enabled (`NDEBUG` and `RECKLESS` are not set),
   while debug assertions have a false guard. The writeBit proof executes that
   generated guard; it does not assume assertions succeed. Static assertions
   remain enabled and checked by clightgen.
 
-Increment's crossing paths, nonzero frame/backing-word base offsets,
+Increment/add's crossing paths, nonzero frame/backing-word base offsets,
 other target ABIs, fully debug-enabled execution (without `PRODUCTION`),
-and `add_8` are not established by these public theorems. No binary-level linking or native ARM execution
+and larger-width arithmetic jets are not established by these public theorems.
+No binary-level linking or native ARM execution
 claim is made. The results are constructive terminating Clight executions,
 not separate universal determinism/small-step theorems.
 
@@ -91,6 +102,12 @@ not separate universal determinism/small-step theorems.
   at all in-word read and carry-bit cursors.
 - `jet_increment8_position_*.v`, `jet_increment8_cursors.v`: composition,
   memory construction, and public equivalence with independent cursors.
+- `jet_add8.v`, `jet_add8_update.v`, `jet_add8_exec.v`, `jet_add8_call.v`:
+  actual two-read/add/carry/write body, helper executions, and construction of
+  the complete call from initial loads and permissions.
+- `jet_add8_word.v`, `jet_add8_spec.v`: symbolic byte arithmetic, output-slice
+  interpretation, prefix preservation, primitive specification parametricity,
+  and the public all-input-pairs equivalence theorem.
 - `jet_exec.v`, `jet_one8.v`, `jet_read8.v`, `jet_write8.v`, `jet_writeBit.v`:
   actual generated helper bodies, memory accesses, calls, and function entry.
   Helper blocks are now resolved with `jet_symbol_block`, with kernel-checked
@@ -151,6 +168,9 @@ production AST with the same dependency load paths on 2026-09-22 (exit status 0)
 The full targeted build and its final assumption audit passed after regenerating
 that AST. This independently rechecks their
 compiled proof objects; it does not remove the documented inherited assumptions.
+The subsequent `add_8` milestone passed the targeted build, assumption audit,
+and an independent `coqchk -silent C.jet_add8_spec` check on the same date.
+Its symbolic value and monadic bridges are closed under the global context.
 
 ## Reproduce the generated AST
 
