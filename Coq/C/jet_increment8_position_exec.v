@@ -2,27 +2,28 @@
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps.
 From compcert Require Import ClightBigstep Memory Events Globalenvs.
-Require Import C.jet_exec C.jet_one8 C.jet_read8 C.jet_increment8 C.jets.
+Require Import C.jet_exec C.jet_one8 C.jet_read8 C.jet_read8_position C.jet_increment8 C.jets.
 Require Import C.jet_increment8_exec C.jet_increment8_position_update.
 Require Import C.jet_writeBit_position C.jet_write8_position.
 Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 
-Lemma increment8_helper_statements_position m mr mo mc mw mf bl bd bs bi bw w old cursor :
+Lemma increment8_helper_statements_position m mr mo mc mw mf bl bd bs bi bw w old cursor read_cursor :
+  0 <= read_cursor <= 56 ->
   9 <= cursor <= 64 ->
   Mem.load Mptr m bl 0 = Some (Vptr bi (Ptrofs.repr 8)) ->
-  Mem.load Mint64 m bl 8 = Some (Vlong (Int64.repr 56)) ->
+  Mem.load Mint64 m bl 8 = Some (Vlong (Int64.repr read_cursor)) ->
   Mem.load Mint64 m bi 0 = Some (Vlong w) ->
   Mem.load Mptr m bd 0 = Some (Vptr bw Ptrofs.zero) ->
   Mem.load Mint64 m bd 8 = Some (Vlong (Int64.repr cursor)) ->
   Mem.load Mint64 m bw 0 = Some (Vlong old) ->
   bl <> bd -> bl <> bw -> bd <> bw ->
-  Mem.store Mint64 m bl 8 (Vlong (Int64.repr 64)) = Some mr ->
+  Mem.store Mint64 m bl 8 (Vlong (Int64.repr (read_cursor + 8))) = Some mr ->
   Mem.store Mint64 mr bd 8 (Vlong (Int64.repr (cursor - 1))) = Some mo ->
-  Mem.store Mint64 mo bw 0 (Vlong (increment8_carry_at cursor old (read8_result w))) = Some mc ->
-  Mem.store Mint64 mc bw 0 (Vlong (increment8_word_at cursor old (read8_result w))) = Some mw ->
+  Mem.store Mint64 mo bw 0 (Vlong (increment8_carry_at cursor old (read8_at read_cursor w))) = Some mc ->
+  Mem.store Mint64 mc bw 0 (Vlong (increment8_word_at cursor old (read8_at read_cursor w))) = Some mw ->
   Mem.store Mint64 mw bd 8 (Vlong (Int64.repr (cursor - 9))) = Some mf ->
-  let r := read8_result w in
+  let r := read8_at read_cursor w in
   ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl)
     (le_increment8 bd bs Ptrofs.zero) m increment8_read_stmt
     E0 (le_increment8_read bd bs Ptrofs.zero r) mr Out_normal /\
@@ -33,7 +34,7 @@ Lemma increment8_helper_statements_position m mr mo mc mw mf bl bd bs bi bw w ol
     (le_increment8_x bd bs Ptrofs.zero r) mc increment8_write_stmt
     E0 (le_increment8_x bd bs Ptrofs.zero r) mf Out_normal.
 Proof.
-  intros HCurs HLE HLO HI HE HO HW HLd HLw HDw SR SO SC SW SF r.
+  intros HRead HCurs HLE HLO HI HE HO HW HLd HLw HDw SR SO SC SW SF r.
   assert (HEr : Mem.load Mptr mr bd 0 = Some (Vptr bw Ptrofs.zero))
     by (eapply load_store64_other_block; eauto).
   assert (HOr : Mem.load Mint64 mr bd 8 = Some (Vlong (Int64.repr cursor)))
@@ -56,7 +57,7 @@ Proof.
   - eapply call_increment8_read.
     + apply symbol_read8.
     + apply funct_read8.
-    + eapply eval_read8; eauto using symbol_LSBkeep, funct_LSBkeep.
+    + eapply eval_read8_position; eauto.
   - split.
     + eapply call_increment8_writeBit with (bit := increment8_carry_bit r)
         (vret := Vint (increment8_carry_bit r)).

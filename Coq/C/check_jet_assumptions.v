@@ -4,6 +4,8 @@ Require Import C.jet_increment8_general.
 Require Import C.jet_one8_position C.jet_word_position.
 Require Import C.jet_increment8_position C.jet_increment8_position_word.
 Require Import C.jet_one8_crossing C.jet_crossing_word.
+Require Import C.jet_increment8_cursors.
+Print Assumptions eval_increment8_cursors_matches_spec.
 Print Assumptions eval_one8_crossing_matches_spec.
 Print Assumptions crossing_byte_one.
 Print Assumptions eval_increment8_position_matches_spec.

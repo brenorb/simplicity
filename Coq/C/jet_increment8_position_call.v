@@ -3,16 +3,17 @@
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps.
 From compcert Require Import ClightBigstep Memory Events Globalenvs.
-Require Import C.jet_exec C.jet_one8 C.jet_read8 C.jet_increment8.
+Require Import C.jet_exec C.jet_one8 C.jet_read8 C.jet_read8_position C.jet_increment8.
 Require Import C.jet_increment8_exec C.jet_frame_copy C.jets.
 Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Require Import C.jet_increment8_position_update C.jet_increment8_position_exec.
 Local Open Scope Z_scope.
 
-Theorem eval_increment8_position_call m bd bs bi bw w old cursor :
+Theorem eval_increment8_position_call m bd bs bi bw w old cursor read_cursor :
+  0 <= read_cursor <= 56 ->
   9 <= cursor <= 64 ->
   Mem.load Mptr m bs 0 = Some (Vptr bi (Ptrofs.repr 8)) ->
-  Mem.load Mint64 m bs 8 = Some (Vlong (Int64.repr 56)) ->
+  Mem.load Mint64 m bs 8 = Some (Vlong (Int64.repr read_cursor)) ->
   Mem.load Mint64 m bi 0 = Some (Vlong w) ->
   Mem.load Mptr m bd 0 = Some (Vptr bw Ptrofs.zero) ->
   Mem.load Mint64 m bd 8 = Some (Vlong (Int64.repr cursor)) ->
@@ -26,12 +27,12 @@ Theorem eval_increment8_position_call m bd bs bi bw w old cursor :
       [Vptr bd Ptrofs.zero; Vptr bs Ptrofs.zero; Vundef]
       E0 mf (Vint Int.one) /\
     Mem.load Mint64 mf bw 0 =
-      Some (Vlong (increment8_word_at cursor old (read8_result w))) /\
+      Some (Vlong (increment8_word_at cursor old (read8_at read_cursor w))) /\
     Mem.load Mint64 mf bd 8 = Some (Vlong (Int64.repr (cursor - 9))) /\
     (forall chunk b ofs, Mem.valid_block m b -> b <> bd -> b <> bw ->
       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
-  intros HCurs HSE HSO HI HDE HDO HW PD PW HDw.
+  intros HRead HCurs HSE HSO HI HDE HDO HW PD PW HDw.
   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
   assert (HLs : bl <> bs) by (eapply fresh_frame_not_loaded; eauto).
   assert (HLi : bl <> bi) by (eapply fresh_frame_not_loaded; eauto).
@@ -39,7 +40,7 @@ Proof.
   assert (HLw : bl <> bw) by (eapply fresh_frame_not_loaded; eauto).
   assert (HSEa : Mem.load Mptr ma bs 0 = Some (Vptr bi (Ptrofs.repr 8)))
     by (eapply Mem.load_alloc_other; eauto).
-  assert (HSOa : Mem.load Mint64 ma bs 8 = Some (Vlong (Int64.repr 56)))
+  assert (HSOa : Mem.load Mint64 ma bs 8 = Some (Vlong (Int64.repr read_cursor)))
     by (eapply Mem.load_alloc_other; eauto).
   destruct (frame_loadbytes ma bs _ _ HSEa HSOa) as [bytes HB].
   pose proof (Mem.loadbytes_length _ _ _ _ _ HB) as Hlen.
@@ -70,7 +71,7 @@ Proof.
     eapply Mem.valid_access_implies with (p1 := Freeable); [|constructor].
     eapply Mem.valid_access_alloc_same; [exact HA | lia | cbn; lia |].
     exists 1; reflexivity. }
-  destruct (Mem.valid_access_store mc Mint64 bl 8 (Vlong (Int64.repr 64)) PLC)
+  destruct (Mem.valid_access_store mc Mint64 bl 8 (Vlong (Int64.repr (read_cursor + 8))) PLC)
     as [mr SR].
   assert (PDR : Mem.valid_access mr Mint64 bd 8 Writable)
     by (eapply Mem.store_valid_access_1; eauto).
@@ -79,11 +80,11 @@ Proof.
   assert (PWO : Mem.valid_access mo Mint64 bw 0 Writable)
     by (eauto using Mem.store_valid_access_1).
   destruct (Mem.valid_access_store mo Mint64 bw 0
-    (Vlong (increment8_carry_at cursor old (read8_result w))) PWO) as [mb SB].
+    (Vlong (increment8_carry_at cursor old (read8_at read_cursor w))) PWO) as [mb SB].
   assert (PWB : Mem.valid_access mb Mint64 bw 0 Writable)
     by (eapply Mem.store_valid_access_1; eauto).
   destruct (Mem.valid_access_store mb Mint64 bw 0
-    (Vlong (increment8_word_at cursor old (read8_result w))) PWB) as [mw SW].
+    (Vlong (increment8_word_at cursor old (read8_at read_cursor w))) PWB) as [mw SW].
   assert (PDW : Mem.valid_access mw Mint64 bd 8 Writable)
     by (eauto 8 using Mem.store_valid_access_1).
   destruct (Mem.valid_access_store mw Mint64 bd 8 (Vlong (Int64.repr (cursor - 9))) PDW)
@@ -98,13 +99,13 @@ Proof.
     eapply Mem.perm_storebytes_1; [exact SC |].
     apply PL; exact Hrange. }
   destruct (Mem.range_perm_free me bl 0 16 PLE) as [mf HF].
-  destruct (increment8_helper_statements_position mc mr mo mb mw me bl bd bs bi bw w old cursor HCurs
+  destruct (increment8_helper_statements_position mc mr mo mb mw me bl bd bs bi bw w old cursor read_cursor HRead HCurs
     HLE HLO HIC HDEC HDOC HWC HLd HLw HDw SR SO SB SW SE)
     as [Hread [Hbit Hwrite]].
   exists mf. split.
   - eapply ClightBigstep.eval_funcall_internal
       with (e := e_increment8 bl) (le1 := le_increment8 bd bs Ptrofs.zero)
-        (m1 := ma) (le2 := le_increment8_x bd bs Ptrofs.zero (read8_result w))
+        (m1 := ma) (le2 := le_increment8_x bd bs Ptrofs.zero (read8_at read_cursor w))
         (m2 := me) (out := Out_return (Some (Vint Int.one, tint)))
         (vres := Vint Int.one).
     + apply entry_increment8; exact HA.

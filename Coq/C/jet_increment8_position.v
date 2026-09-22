@@ -5,6 +5,7 @@ From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Eve
 Require Import Simplicity.Word C.jet_exec C.jet_read8 C.jet_spec C.jets.
 Require Import C.jet_increment8_spec C.jet_increment8_position_call C.jet_increment8_position_update.
 Require Import C.jet_increment8_word C.jet_frame_spec C.jet_increment8_position_word.
+Require Import C.jet_increment8_cursors C.jet_input_position.
 Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 
@@ -24,18 +25,7 @@ Theorem eval_increment8_position_matches_spec m bd bs bi bw (x : Ty.tySem Word8)
     Mem.load Mint64 mf bd 8 = Some (Vlong (Int64.repr (cursor - 9))) /\
     loads_outside_blocks m mf bd bw.
 Proof.
-  intros HCurs HI [[HE HO] [HN [HDw [PD [PW [old HW]]]]]].
-  destruct (single_word_input_decode m bs bi x HI)
-    as [input [[HSE HSO] [Hinput Hdecode]]].
-  destruct (eval_increment8_position_call m bd bs bi bw input old cursor HCurs
-    HSE HSO Hinput HE HO HW PD PW HDw) as [mf [HC [Hout [Hoff Hmem]]]].
-  exists mf, (increment8_word_at cursor old (read8_result input)).
-  split; [exact HC |]. split; [exact Hout |].
-  split.
-  - rewrite increment8_word_at_decode by exact HCurs.
-    rewrite increment8_word_update_spec, Hdecode. reflexivity.
-  - split.
-    + intros old' HW'. assert (old' = old) by congruence. subst old'.
-      apply increment8_word_at_prefix; exact HCurs.
-    + split; assumption.
+  intros HCurs HI HO.
+  eapply eval_increment8_cursors_matches_spec with (read_cursor := 56);
+    [exact HCurs | apply single_word_input_at_56; exact HI | exact HO].
 Qed.
