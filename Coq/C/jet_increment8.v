@@ -173,6 +173,52 @@ Definition increment8_bit_stmt : statement :=
     ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
      increment8_carry_expr :: nil).
 
+Lemma call_increment8_writeBit : forall (le : temp_env) (m m' : mem)
+    (bl bd : block) (bit : int) (vret : val) (b : block),
+  le!_dst = Some (Vptr bd Ptrofs.zero) ->
+  eval_expr ge0 (e_increment8 bl) le m increment8_carry_expr
+    (Vint bit) ->
+  sem_cast (Vint bit) (typeof increment8_carry_expr) tbool m =
+    Some (Vint bit) ->
+  Genv.find_symbol (Clight.genv_genv ge0) _writeBit = Some b ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr b Ptrofs.zero) =
+    Some (Internal f_writeBit) ->
+  ClightBigstep.Clight2.eval_funcall ge0 m
+    (Internal f_writeBit)
+    (Vptr bd Ptrofs.zero :: Vint bit :: nil) E0 m' vret ->
+  ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl) le m
+    increment8_bit_stmt E0 le m' Out_normal.
+Proof.
+  intros le m m' bl bd bit vret b Hdst Hbit Hbit_cast Hsym Hfun HwriteBit.
+  change (ClightBigstep.exec_stmt function_entry2 ge0 (e_increment8 bl) le m
+    increment8_bit_stmt E0 le m' Out_normal).
+  eapply ClightBigstep.exec_Scall
+    with (vf := Vptr b Ptrofs.zero)
+         (vargs := Vptr bd Ptrofs.zero :: Vint bit :: nil)
+         (f := Internal f_writeBit) (vres := vret).
+  - vm_compute; reflexivity.
+  - eapply eval_Elvalue.
+    + eapply eval_Evar_global.
+      * simpl; reflexivity.
+      * exact Hsym.
+    + apply deref_loc_reference.
+      change (access_mode
+        (Tfunction
+          (Tcons (tptr (Tstruct _frameItem noattr))
+            (Tcons tbool Tnil)) tbool cc_default) = By_reference).
+      reflexivity.
+  - eapply eval_Econs.
+    + eapply eval_Etempvar; exact Hdst.
+    + reflexivity.
+    + eapply eval_Econs.
+      * exact Hbit.
+      * exact Hbit_cast.
+      * apply eval_Enil.
+  - exact Hfun.
+  - vm_compute; reflexivity.
+  - exact HwriteBit.
+Qed.
+
 Definition increment8_sum_expr : expr :=
   Ecast
     (Ebinop Oadd
@@ -189,6 +235,52 @@ Definition increment8_write_stmt : statement :=
           (Tcons tuchar Tnil)) tvoid cc_default))
     ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
      increment8_sum_expr :: nil).
+
+Lemma call_increment8_write : forall (le : temp_env) (m m' : mem)
+    (bl bd : block) (x : int) (b : block),
+  le!_dst = Some (Vptr bd Ptrofs.zero) ->
+  eval_expr ge0 (e_increment8 bl) le m increment8_sum_expr
+    (Vint x) ->
+  sem_cast (Vint x) (typeof increment8_sum_expr) tuchar m =
+    Some (Vint x) ->
+  Genv.find_symbol (Clight.genv_genv ge0) _simplicity_write8 = Some b ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr b Ptrofs.zero) =
+    Some (Internal f_simplicity_write8) ->
+  ClightBigstep.Clight2.eval_funcall ge0 m
+    (Internal f_simplicity_write8)
+    (Vptr bd Ptrofs.zero :: Vint x :: nil) E0 m' Vundef ->
+  ClightBigstep.Clight2.exec_stmt ge0 (e_increment8 bl) le m
+    increment8_write_stmt E0 le m' Out_normal.
+Proof.
+  intros le m m' bl bd x b Hdst Hx Hx_cast Hsym Hfun Hwrite8.
+  change (ClightBigstep.exec_stmt function_entry2 ge0 (e_increment8 bl) le m
+    increment8_write_stmt E0 le m' Out_normal).
+  eapply ClightBigstep.exec_Scall
+    with (vf := Vptr b Ptrofs.zero)
+         (vargs := Vptr bd Ptrofs.zero :: Vint x :: nil)
+         (f := Internal f_simplicity_write8) (vres := Vundef).
+  - vm_compute; reflexivity.
+  - eapply eval_Elvalue.
+    + eapply eval_Evar_global.
+      * simpl; reflexivity.
+      * exact Hsym.
+    + apply deref_loc_reference.
+      change (access_mode
+        (Tfunction
+          (Tcons (tptr (Tstruct _frameItem noattr))
+            (Tcons tuchar Tnil)) tvoid cc_default) = By_reference).
+      reflexivity.
+  - eapply eval_Econs.
+    + eapply eval_Etempvar; exact Hdst.
+    + reflexivity.
+    + eapply eval_Econs.
+      * exact Hx.
+      * exact Hx_cast.
+      * apply eval_Enil.
+  - exact Hfun.
+  - vm_compute; reflexivity.
+  - exact Hwrite8.
+Qed.
 
 Lemma eval_increment8_setx : forall (m : mem) (bl bd bs : block)
     (ofs : ptrofs) (r : int),
