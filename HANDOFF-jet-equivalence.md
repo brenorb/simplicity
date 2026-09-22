@@ -5,6 +5,23 @@ been pushed. The user's latest instruction removes the requirement to ask an
 Astra Medium subagent for guidance. Continue using the Coq Proof Engineering
 skill and frequent, atomic local commits.
 
+## Revised active goal (user-approved continuation)
+
+Strengthen the implementation-to-Simplicity results, preserving the existing
+checked theorems as regression tests. First introduce reusable frame/bit-slice
+contracts and remove zero-output and exact-input-padding restrictions for
+`one_8` and `increment_8`. Then generalize valid cursor positions and crossing
+paths, cover the intended assertion configuration, and extend to `add_8` and
+larger widths. Improve symbolic word lemmas and reusable memory contracts as
+needed; never replace actual helper execution with assumed behavior.
+
+The immediate milestone is unrestricted initialized output words at the
+currently proved single-word cursor positions, with preservation of the bits
+outside the output slice. The app's existing goal record cannot be edited or
+resumed through the available goal API; this file records the revised work plan.
+The user's `jet-proof-review.patch` is an existing untracked review artifact
+and must not be overwritten or included in proof commits.
+
 ## What is proved
 
 The new public results are:
