@@ -91,8 +91,8 @@ Lemma eval_writeBit_zero_position_body : forall (m m1 m2 : mem) (bf bw : block),
   Mem.load Mint64 m1 bf 8 = Some (Vlong (Int64.repr (cursor - 1))) ->
   Mem.load Mint64 m1 bw 0 = Some (Vlong w) ->
   Mem.store Mint64 m1 bw 0 (Vlong c) = Some m2 ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some 71%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 71%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some block_LSBclear ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBclear Ptrofs.zero) =
     Some (Internal f_LSBclear) ->
   ClightBigstep.Clight2.eval_funcall ge0 m1 (Internal f_LSBclear)
     (Vlong w :: Vlong (Int64.repr cursor) :: nil) E0 m1
@@ -172,7 +172,7 @@ Proof.
                              le_bitpos_offset le_writeBit0]. reflexivity. }
                          { exact Hoffset1. }
                      +++ eapply ClightBigstep.exec_Scall
-                           with (vf := Vptr 71%positive Ptrofs.zero)
+                           with (vf := Vptr block_LSBclear Ptrofs.zero)
                                 (vargs := Vlong w ::
                                   Vlong (Int64.repr cursor) :: nil)
                                 (f := Internal f_LSBclear)

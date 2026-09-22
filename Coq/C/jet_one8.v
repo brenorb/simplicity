@@ -89,11 +89,11 @@ Proof.
 Qed.
 
 Lemma symbol_write8 :
-  Genv.find_symbol (Clight.genv_genv ge0) _simplicity_write8 = Some 87%positive.
+  Genv.find_symbol (Clight.genv_genv ge0) _simplicity_write8 = Some block_write8.
 Proof. vm_compute; reflexivity. Qed.
 
 Lemma funct_write8 :
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 87%positive Ptrofs.zero) =
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_write8 Ptrofs.zero) =
     Some (Internal f_simplicity_write8).
 Proof.
   change (Some (Internal f_simplicity_write8) = Some (Internal f_simplicity_write8)).

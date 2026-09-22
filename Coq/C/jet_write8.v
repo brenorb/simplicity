@@ -316,11 +316,11 @@ Lemma write8_body_x : forall (m : mem) (bf bw : block) (x : int)
   Mem.store Mint64 m1 bf 8 (Vlong (Int64.repr 0)) = Some m2 ->
   q = Int64.or c (Int64.shl k
         (Int64.sub (Int64.repr 8) (Int64.repr 8))) ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some 71%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 71%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some block_LSBclear ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBclear Ptrofs.zero) =
     Some (Internal f_LSBclear) ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some block_LSBkeep ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBkeep Ptrofs.zero) =
     Some (Internal f_LSBkeep) ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBclear)
     (Vlong w :: Vlong (Int64.repr 8) :: nil) E0 m (Vlong c) ->
@@ -430,11 +430,11 @@ Lemma eval_write8_x : forall (m : mem) (bf bw : block) (x : int)
   q = Int64.or c
         (Int64.shl k
           (Int64.sub (Int64.repr 8) (Int64.repr 8))) ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some 71%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 71%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some block_LSBclear ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBclear Ptrofs.zero) =
     Some (Internal f_LSBclear) ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some block_LSBkeep ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBkeep Ptrofs.zero) =
     Some (Internal f_LSBkeep) ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBclear)
     (Vlong w :: Vlong (Int64.repr 8) :: nil) E0 m (Vlong c) ->

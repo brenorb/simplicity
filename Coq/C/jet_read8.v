@@ -189,8 +189,8 @@ Lemma eval_read8_body : forall (m m' : mem) (bf bs : block) (w : int64),
   Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 56)) ->
   Mem.load Mint64 m bs 0 = Some (Vlong w) ->
   Mem.store Mint64 m bf 8 (Vlong (Int64.repr 64)) = Some m' ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some block_LSBkeep ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBkeep Ptrofs.zero) =
     Some (Internal f_LSBkeep) ->
   eval_expr ge0 empty_env
     (le_read8_keep bf bs w (Int64.and w (Int64.repr 255))) m
@@ -383,8 +383,8 @@ Lemma eval_read8_body_fixed : forall (m m' : mem) (bf bs : block) (w : int64),
   Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 56)) ->
   Mem.load Mint64 m bs 0 = Some (Vlong w) ->
   Mem.store Mint64 m bf 8 (Vlong (Int64.repr 64)) = Some m' ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some block_LSBkeep ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBkeep Ptrofs.zero) =
     Some (Internal f_LSBkeep) ->
   ClightBigstep.Clight2.exec_stmt ge0 empty_env (le_read8 bf) m
     (fn_body f_simplicity_read8) E0
@@ -402,8 +402,8 @@ Lemma eval_read8 : forall (m m' : mem) (bf bs : block) (w : int64),
   Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 56)) ->
   Mem.load Mint64 m bs 0 = Some (Vlong w) ->
   Mem.store Mint64 m bf 8 (Vlong (Int64.repr 64)) = Some m' ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some block_LSBkeep ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBkeep Ptrofs.zero) =
     Some (Internal f_LSBkeep) ->
   ClightBigstep.Clight2.eval_funcall ge0 m
     (Internal f_simplicity_read8)

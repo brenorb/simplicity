@@ -74,6 +74,19 @@ End DIRECT_CLIGHT.
 
 Definition ge0 : genv := Clight.globalenv prog.
 
+(** Resolve global blocks from the generated program, never from list positions.
+    The symbol/funct lemmas below prove that the fallback is unreachable. *)
+Definition jet_symbol_block (id : ident) : block :=
+  match Genv.find_symbol (Clight.genv_genv ge0) id with
+  | Some b => b
+  | None => 1%positive
+  end.
+Definition block_LSBclear : block := jet_symbol_block _LSBclear.
+Definition block_LSBkeep : block := jet_symbol_block _LSBkeep.
+Definition block_writeBit : block := jet_symbol_block _writeBit.
+Definition block_read8 : block := jet_symbol_block _simplicity_read8.
+Definition block_write8 : block := jet_symbol_block _simplicity_write8.
+
 Lemma eval_frame_edge : forall (m : mem) (le : temp_env) (bf bw : block),
   le!_frame = Some (Vptr bf Ptrofs.zero) ->
   Mem.load Mptr m bf 0 = Some (Vptr bw Ptrofs.zero) ->
@@ -430,11 +443,11 @@ Lemma write8_prefix_probe : forall (m : mem) (bf bw : block)
   q = Int64.or c
         (Int64.shl (Int64.repr 1)
           (Int64.sub (Int64.repr 8) (Int64.repr 8))) ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some 71%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 71%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some block_LSBclear ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBclear Ptrofs.zero) =
     Some (Internal f_LSBclear) ->
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some block_LSBkeep ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBkeep Ptrofs.zero) =
     Some (Internal f_LSBkeep) ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBclear)
     (Vlong w :: Vlong (Int64.repr 8) :: nil) E0 m (Vlong c) ->
@@ -553,11 +566,11 @@ Proof.
 Qed.
 
 Lemma symbol_LSBclear :
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some 71%positive.
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some block_LSBclear.
 Proof. vm_compute; reflexivity. Qed.
 
 Lemma funct_LSBclear :
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 71%positive Ptrofs.zero) =
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBclear Ptrofs.zero) =
     Some (Internal f_LSBclear).
 Proof.
   change (Some (Internal f_LSBclear) = Some (Internal f_LSBclear)).
@@ -565,11 +578,11 @@ Proof.
 Qed.
 
 Lemma symbol_LSBkeep :
-  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive.
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some block_LSBkeep.
 Proof. vm_compute; reflexivity. Qed.
 
 Lemma funct_LSBkeep :
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_LSBkeep Ptrofs.zero) =
     Some (Internal f_LSBkeep).
 Proof.
   change (Some (Internal f_LSBkeep) = Some (Internal f_LSBkeep)).

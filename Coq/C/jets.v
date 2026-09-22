@@ -24,6 +24,7 @@ Definition _LSBkeep : ident := $"LSBkeep".
 Definition _ReadBE32 : ident := $"ReadBE32".
 Definition _WriteBE32 : ident := $"WriteBE32".
 Definition _WriteBE64 : ident := $"WriteBE64".
+Definition ___assert_fail : ident := $"__assert_fail".
 Definition ___builtin_ais_annot : ident := $"__builtin_ais_annot".
 Definition ___builtin_annot : ident := $"__builtin_annot".
 Definition ___builtin_annot_intval : ident := $"__builtin_annot_intval".
@@ -81,6 +82,24 @@ Definition ___compcert_va_float64 : ident := $"__compcert_va_float64".
 Definition ___compcert_va_int32 : ident := $"__compcert_va_int32".
 Definition ___compcert_va_int64 : ident := $"__compcert_va_int64".
 Definition ___compound : ident := $"__compound".
+Definition ___func__ : ident := $"__func__".
+Definition ___func____1 : ident := $"__func____1".
+Definition ___func____2 : ident := $"__func____2".
+Definition ___func____3 : ident := $"__func____3".
+Definition ___func____4 : ident := $"__func____4".
+Definition ___func____5 : ident := $"__func____5".
+Definition ___func____6 : ident := $"__func____6".
+Definition ___stringlit_1 : ident := $"__stringlit_1".
+Definition ___stringlit_10 : ident := $"__stringlit_10".
+Definition ___stringlit_11 : ident := $"__stringlit_11".
+Definition ___stringlit_2 : ident := $"__stringlit_2".
+Definition ___stringlit_3 : ident := $"__stringlit_3".
+Definition ___stringlit_4 : ident := $"__stringlit_4".
+Definition ___stringlit_5 : ident := $"__stringlit_5".
+Definition ___stringlit_6 : ident := $"__stringlit_6".
+Definition ___stringlit_7 : ident := $"__stringlit_7".
+Definition ___stringlit_8 : ident := $"__stringlit_8".
+Definition ___stringlit_9 : ident := $"__stringlit_9".
 Definition __res : ident := $"_res".
 Definition __res__1 : ident := $"_res__1".
 Definition _a : ident := $"a".
@@ -558,6 +577,186 @@ Definition _t'6 : ident := 133%positive.
 Definition _t'7 : ident := 134%positive.
 Definition _t'8 : ident := 135%positive.
 Definition _t'9 : ident := 136%positive.
+
+Definition v___stringlit_11 := {|
+  gvar_info := (tarray tschar 40);
+  gvar_init := (Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 60) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 110) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 38) :: Init_int8 (Int.repr 38) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 110) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 60) ::
+                Init_int8 (Int.repr 61) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 53) :: Init_int8 (Int.repr 49) ::
+                Init_int8 (Int.repr 50) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 38) :: Init_int8 (Int.repr 38) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 40) ::
+                Init_int8 (Int.repr 110) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 38) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 40) :: Init_int8 (Int.repr 110) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 45) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 49) ::
+                Init_int8 (Int.repr 41) :: Init_int8 (Int.repr 41) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 61) ::
+                Init_int8 (Int.repr 61) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_4 := {|
+  gvar_info := (tarray tschar 22);
+  gvar_init := (Init_int8 (Int.repr 67) :: Init_int8 (Int.repr 111) ::
+                Init_int8 (Int.repr 113) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 67) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 46) :: Init_int8 (Int.repr 46) ::
+                Init_int8 (Int.repr 47) :: Init_int8 (Int.repr 46) ::
+                Init_int8 (Int.repr 46) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 67) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 102) :: Init_int8 (Int.repr 114) ::
+                Init_int8 (Int.repr 97) :: Init_int8 (Int.repr 109) ::
+                Init_int8 (Int.repr 101) :: Init_int8 (Int.repr 46) ::
+                Init_int8 (Int.repr 99) :: Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_7 := {|
+  gvar_info := (tarray tschar 21);
+  gvar_init := (Init_int8 (Int.repr 67) :: Init_int8 (Int.repr 111) ::
+                Init_int8 (Int.repr 113) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 67) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 46) :: Init_int8 (Int.repr 46) ::
+                Init_int8 (Int.repr 47) :: Init_int8 (Int.repr 46) ::
+                Init_int8 (Int.repr 46) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 67) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 106) :: Init_int8 (Int.repr 101) ::
+                Init_int8 (Int.repr 116) :: Init_int8 (Int.repr 115) ::
+                Init_int8 (Int.repr 46) :: Init_int8 (Int.repr 99) ::
+                Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_9 := {|
+  gvar_info := (tarray tschar 25);
+  gvar_init := (Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 120) ::
+                Init_int8 (Int.repr 56) :: Init_int8 (Int.repr 48) ::
+                Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 48) ::
+                Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 48) ::
+                Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 48) ::
+                Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 48) ::
+                Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 48) ::
+                Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 48) ::
+                Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 48) ::
+                Init_int8 (Int.repr 117) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 60) :: Init_int8 (Int.repr 61) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 98) ::
+                Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_3 := {|
+  gvar_info := (tarray tschar 19);
+  gvar_init := (Init_int8 (Int.repr 110) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 60) :: Init_int8 (Int.repr 61) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 102) ::
+                Init_int8 (Int.repr 114) :: Init_int8 (Int.repr 97) ::
+                Init_int8 (Int.repr 109) :: Init_int8 (Int.repr 101) ::
+                Init_int8 (Int.repr 45) :: Init_int8 (Int.repr 62) ::
+                Init_int8 (Int.repr 111) :: Init_int8 (Int.repr 102) ::
+                Init_int8 (Int.repr 102) :: Init_int8 (Int.repr 115) ::
+                Init_int8 (Int.repr 101) :: Init_int8 (Int.repr 116) ::
+                Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_6 := {|
+  gvar_info := (tarray tschar 25);
+  gvar_init := (Init_int8 (Int.repr 108) :: Init_int8 (Int.repr 101) ::
+                Init_int8 (Int.repr 110) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 60) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 40) :: Init_int8 (Int.repr 40) ::
+                Init_int8 (Int.repr 115) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 122) :: Init_int8 (Int.repr 101) ::
+                Init_int8 (Int.repr 95) :: Init_int8 (Int.repr 116) ::
+                Init_int8 (Int.repr 41) :: Init_int8 (Int.repr 49) ::
+                Init_int8 (Int.repr 60) :: Init_int8 (Int.repr 60) ::
+                Init_int8 (Int.repr 40) :: Init_int8 (Int.repr 110) ::
+                Init_int8 (Int.repr 43) :: Init_int8 (Int.repr 49) ::
+                Init_int8 (Int.repr 41) :: Init_int8 (Int.repr 41) ::
+                Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_8 := {|
+  gvar_info := (tarray tschar 7);
+  gvar_init := (Init_int8 (Int.repr 97) :: Init_int8 (Int.repr 104) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 60) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 98) ::
+                Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_2 := {|
+  gvar_info := (tarray tschar 18);
+  gvar_init := (Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 60) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 102) :: Init_int8 (Int.repr 114) ::
+                Init_int8 (Int.repr 97) :: Init_int8 (Int.repr 109) ::
+                Init_int8 (Int.repr 101) :: Init_int8 (Int.repr 45) ::
+                Init_int8 (Int.repr 62) :: Init_int8 (Int.repr 111) ::
+                Init_int8 (Int.repr 102) :: Init_int8 (Int.repr 102) ::
+                Init_int8 (Int.repr 115) :: Init_int8 (Int.repr 101) ::
+                Init_int8 (Int.repr 116) :: Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_10 := {|
+  gvar_info := (tarray tschar 6);
+  gvar_init := (Init_int8 (Int.repr 114) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 60) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 98) :: Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_1 := {|
+  gvar_info := (tarray tschar 22);
+  gvar_init := (Init_int8 (Int.repr 67) :: Init_int8 (Int.repr 111) ::
+                Init_int8 (Int.repr 113) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 67) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 46) :: Init_int8 (Int.repr 46) ::
+                Init_int8 (Int.repr 47) :: Init_int8 (Int.repr 46) ::
+                Init_int8 (Int.repr 46) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 67) :: Init_int8 (Int.repr 47) ::
+                Init_int8 (Int.repr 102) :: Init_int8 (Int.repr 114) ::
+                Init_int8 (Int.repr 97) :: Init_int8 (Int.repr 109) ::
+                Init_int8 (Int.repr 101) :: Init_int8 (Int.repr 46) ::
+                Init_int8 (Int.repr 104) :: Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
+Definition v___stringlit_5 := {|
+  gvar_info := (tarray tschar 17);
+  gvar_init := (Init_int8 (Int.repr 48) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 60) :: Init_int8 (Int.repr 61) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 110) ::
+                Init_int8 (Int.repr 32) :: Init_int8 (Int.repr 38) ::
+                Init_int8 (Int.repr 38) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 110) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 60) :: Init_int8 (Int.repr 32) ::
+                Init_int8 (Int.repr 49) :: Init_int8 (Int.repr 54) ::
+                Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
 
 Definition f_ReadBE32 := {|
   fn_return := tuint;
@@ -3157,6 +3356,17 @@ Definition f_readBit := {|
     (Sreturn (Some (Etempvar _result tbool)))))
 |}.
 
+Definition v___func__ := {|
+  gvar_info := (tarray tschar 9);
+  gvar_init := (Init_int8 (Int.repr 119) :: Init_int8 (Int.repr 114) ::
+                Init_int8 (Int.repr 105) :: Init_int8 (Int.repr 116) ::
+                Init_int8 (Int.repr 101) :: Init_int8 (Int.repr 66) ::
+                Init_int8 (Int.repr 105) :: Init_int8 (Int.repr 116) ::
+                Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
 Definition f_writeBit := {|
   fn_return := tbool;
   fn_callconv := cc_default;
@@ -3164,14 +3374,32 @@ Definition f_writeBit := {|
                 (_bit, tbool) :: nil);
   fn_vars := nil;
   fn_temps := ((_dst_ptr, (tptr tulong)) :: (_t'1, tulong) ::
-               (_t'8, tulong) :: (_t'7, tulong) :: (_t'6, (tptr tulong)) ::
-               (_t'5, tulong) :: (_t'4, tulong) :: (_t'3, tulong) ::
-               (_t'2, tulong) :: nil);
+               (_t'9, tulong) :: (_t'8, tulong) :: (_t'7, tulong) ::
+               (_t'6, (tptr tulong)) :: (_t'5, tulong) :: (_t'4, tulong) ::
+               (_t'3, tulong) :: (_t'2, tulong) :: nil);
   fn_body :=
 (Ssequence
   (Sloop
-    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 0) tint) tint)
-      Sskip
+    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 1) tint) tint)
+      (Ssequence
+        (Sset _t'9
+          (Efield
+            (Ederef (Etempvar _frame (tptr (Tstruct _frameItem noattr)))
+              (Tstruct _frameItem noattr)) _offset tulong))
+        (Sifthenelse (Ebinop Olt (Econst_int (Int.repr 0) tint)
+                       (Etempvar _t'9 tulong) tint)
+          Sskip
+          (Scall None
+            (Evar ___assert_fail (Tfunction
+                                   (Tcons (tptr tschar)
+                                     (Tcons (tptr tschar)
+                                       (Tcons tuint
+                                         (Tcons (tptr tschar) Tnil)))) tvoid
+                                   cc_default))
+            ((Evar ___stringlit_2 (tarray tschar 18)) ::
+             (Evar ___stringlit_1 (tarray tschar 22)) ::
+             (Econst_int (Int.repr 81) tint) ::
+             (Evar ___func__ (tarray tschar 9)) :: nil))))
       Sskip)
     Sbreak)
   (Ssequence
@@ -3430,18 +3658,47 @@ Definition f_forwardBits := {|
     (Ebinop Oadd (Etempvar _t'1 tulong) (Etempvar _n tulong) tulong)))
 |}.
 
+Definition v___func____1 := {|
+  gvar_info := (tarray tschar 9);
+  gvar_init := (Init_int8 (Int.repr 115) :: Init_int8 (Int.repr 107) ::
+                Init_int8 (Int.repr 105) :: Init_int8 (Int.repr 112) ::
+                Init_int8 (Int.repr 66) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 116) :: Init_int8 (Int.repr 115) ::
+                Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
 Definition f_skipBits := {|
   fn_return := tvoid;
   fn_callconv := cc_default;
   fn_params := ((_frame, (tptr (Tstruct _frameItem noattr))) ::
                 (_n, tulong) :: nil);
   fn_vars := nil;
-  fn_temps := ((_t'1, tulong) :: nil);
+  fn_temps := ((_t'2, tulong) :: (_t'1, tulong) :: nil);
   fn_body :=
 (Ssequence
   (Sloop
-    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 0) tint) tint)
-      Sskip
+    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 1) tint) tint)
+      (Ssequence
+        (Sset _t'2
+          (Efield
+            (Ederef (Etempvar _frame (tptr (Tstruct _frameItem noattr)))
+              (Tstruct _frameItem noattr)) _offset tulong))
+        (Sifthenelse (Ebinop Ole (Etempvar _n tulong) (Etempvar _t'2 tulong)
+                       tint)
+          Sskip
+          (Scall None
+            (Evar ___assert_fail (Tfunction
+                                   (Tcons (tptr tschar)
+                                     (Tcons (tptr tschar)
+                                       (Tcons tuint
+                                         (Tcons (tptr tschar) Tnil)))) tvoid
+                                   cc_default))
+            ((Evar ___stringlit_3 (tarray tschar 19)) ::
+             (Evar ___stringlit_1 (tarray tschar 22)) ::
+             (Econst_int (Int.repr 105) tint) ::
+             (Evar ___func____1 (tarray tschar 9)) :: nil))))
       Sskip)
     Sbreak)
   (Ssequence
@@ -8992,6 +9249,24 @@ Definition f_simplicity_write64 := {|
                 tulong))))))))
 |}.
 
+Definition v___func____2 := {|
+  gvar_info := (tarray tschar 24);
+  gvar_init := (Init_int8 (Int.repr 115) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 109) :: Init_int8 (Int.repr 112) ::
+                Init_int8 (Int.repr 108) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 99) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 116) :: Init_int8 (Int.repr 121) ::
+                Init_int8 (Int.repr 95) :: Init_int8 (Int.repr 114) ::
+                Init_int8 (Int.repr 101) :: Init_int8 (Int.repr 97) ::
+                Init_int8 (Int.repr 100) :: Init_int8 (Int.repr 95) ::
+                Init_int8 (Int.repr 98) :: Init_int8 (Int.repr 117) ::
+                Init_int8 (Int.repr 102) :: Init_int8 (Int.repr 102) ::
+                Init_int8 (Int.repr 101) :: Init_int8 (Int.repr 114) ::
+                Init_int8 (Int.repr 56) :: Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
 Definition f_simplicity_read_buffer8 := {|
   fn_return := tvoid;
   fn_callconv := cc_default;
@@ -8999,12 +9274,33 @@ Definition f_simplicity_read_buffer8 := {|
                 (_src, (tptr (Tstruct _frameItem noattr))) :: (_n, tint) ::
                 nil);
   fn_vars := nil;
-  fn_temps := ((_i, tulong) :: (_t'1, tbool) :: (_t'2, tulong) :: nil);
+  fn_temps := ((_i, tulong) :: (_t'2, tbool) :: (_t'1, tint) ::
+               (_t'3, tulong) :: nil);
   fn_body :=
 (Ssequence
   (Sloop
-    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 0) tint) tint)
-      Sskip
+    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 1) tint) tint)
+      (Ssequence
+        (Sifthenelse (Ebinop Ole (Econst_int (Int.repr 0) tint)
+                       (Etempvar _n tint) tint)
+          (Sset _t'1
+            (Ecast
+              (Ebinop Olt (Etempvar _n tint) (Econst_int (Int.repr 16) tint)
+                tint) tbool))
+          (Sset _t'1 (Econst_int (Int.repr 0) tint)))
+        (Sifthenelse (Etempvar _t'1 tint)
+          Sskip
+          (Scall None
+            (Evar ___assert_fail (Tfunction
+                                   (Tcons (tptr tschar)
+                                     (Tcons (tptr tschar)
+                                       (Tcons tuint
+                                         (Tcons (tptr tschar) Tnil)))) tvoid
+                                   cc_default))
+            ((Evar ___stringlit_5 (tarray tschar 17)) ::
+             (Evar ___stringlit_4 (tarray tschar 22)) ::
+             (Econst_int (Int.repr 105) tint) ::
+             (Evar ___func____2 (tarray tschar 24)) :: nil))))
       Sskip)
     Sbreak)
   (Ssequence
@@ -9021,12 +9317,12 @@ Definition f_simplicity_read_buffer8 := {|
             Sskip
             Sbreak)
           (Ssequence
-            (Scall (Some _t'1)
+            (Scall (Some _t'2)
               (Evar _readBit (Tfunction
                                (Tcons (tptr (Tstruct _frameItem noattr))
                                  Tnil) tbool cc_default))
               ((Etempvar _src (tptr (Tstruct _frameItem noattr))) :: nil))
-            (Sifthenelse (Etempvar _t'1 tbool)
+            (Sifthenelse (Etempvar _t'2 tbool)
               (Ssequence
                 (Scall None
                   (Evar _read8s (Tfunction
@@ -9042,9 +9338,9 @@ Definition f_simplicity_read_buffer8 := {|
                     (Ebinop Oadd (Etempvar _buf (tptr tuchar))
                       (Etempvar _i tulong) (tptr tuchar)))
                   (Ssequence
-                    (Sset _t'2 (Ederef (Etempvar _len (tptr tulong)) tulong))
+                    (Sset _t'3 (Ederef (Etempvar _len (tptr tulong)) tulong))
                     (Sassign (Ederef (Etempvar _len (tptr tulong)) tulong)
-                      (Ebinop Oadd (Etempvar _t'2 tulong)
+                      (Ebinop Oadd (Etempvar _t'3 tulong)
                         (Etempvar _i tulong) tulong)))))
               (Scall None
                 (Evar _forwardBits (Tfunction
@@ -9059,24 +9355,79 @@ Definition f_simplicity_read_buffer8 := {|
             tulong))))))
 |}.
 
+Definition v___func____3 := {|
+  gvar_info := (tarray tschar 25);
+  gvar_init := (Init_int8 (Int.repr 115) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 109) :: Init_int8 (Int.repr 112) ::
+                Init_int8 (Int.repr 108) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 99) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 116) :: Init_int8 (Int.repr 121) ::
+                Init_int8 (Int.repr 95) :: Init_int8 (Int.repr 119) ::
+                Init_int8 (Int.repr 114) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 116) :: Init_int8 (Int.repr 101) ::
+                Init_int8 (Int.repr 95) :: Init_int8 (Int.repr 98) ::
+                Init_int8 (Int.repr 117) :: Init_int8 (Int.repr 102) ::
+                Init_int8 (Int.repr 102) :: Init_int8 (Int.repr 101) ::
+                Init_int8 (Int.repr 114) :: Init_int8 (Int.repr 56) ::
+                Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
 Definition f_simplicity_write_buffer8 := {|
   fn_return := tvoid;
   fn_callconv := cc_default;
   fn_params := ((_dst, (tptr (Tstruct _frameItem noattr))) ::
                 (_buf, (tptr tuchar)) :: (_len, tulong) :: (_n, tint) :: nil);
   fn_vars := nil;
-  fn_temps := ((_i, tulong) :: (_t'1, tbool) :: nil);
+  fn_temps := ((_i, tulong) :: (_t'2, tbool) :: (_t'1, tint) :: nil);
   fn_body :=
 (Ssequence
   (Sloop
-    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 0) tint) tint)
-      Sskip
+    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 1) tint) tint)
+      (Ssequence
+        (Sifthenelse (Ebinop Ole (Econst_int (Int.repr 0) tint)
+                       (Etempvar _n tint) tint)
+          (Sset _t'1
+            (Ecast
+              (Ebinop Olt (Etempvar _n tint) (Econst_int (Int.repr 16) tint)
+                tint) tbool))
+          (Sset _t'1 (Econst_int (Int.repr 0) tint)))
+        (Sifthenelse (Etempvar _t'1 tint)
+          Sskip
+          (Scall None
+            (Evar ___assert_fail (Tfunction
+                                   (Tcons (tptr tschar)
+                                     (Tcons (tptr tschar)
+                                       (Tcons tuint
+                                         (Tcons (tptr tschar) Tnil)))) tvoid
+                                   cc_default))
+            ((Evar ___stringlit_5 (tarray tschar 17)) ::
+             (Evar ___stringlit_4 (tarray tschar 22)) ::
+             (Econst_int (Int.repr 130) tint) ::
+             (Evar ___func____3 (tarray tschar 25)) :: nil))))
       Sskip)
     Sbreak)
   (Ssequence
     (Sloop
-      (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 0) tint) tint)
-        Sskip
+      (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 1) tint) tint)
+        (Sifthenelse (Ebinop Olt (Etempvar _len tulong)
+                       (Ebinop Oshl
+                         (Ecast (Econst_int (Int.repr 1) tint) tulong)
+                         (Ebinop Oadd (Etempvar _n tint)
+                           (Econst_int (Int.repr 1) tint) tint) tulong) tint)
+          Sskip
+          (Scall None
+            (Evar ___assert_fail (Tfunction
+                                   (Tcons (tptr tschar)
+                                     (Tcons (tptr tschar)
+                                       (Tcons tuint
+                                         (Tcons (tptr tschar) Tnil)))) tvoid
+                                   cc_default))
+            ((Evar ___stringlit_6 (tarray tschar 25)) ::
+             (Evar ___stringlit_4 (tarray tschar 22)) ::
+             (Econst_int (Int.repr 131) tint) ::
+             (Evar ___func____3 (tarray tschar 25)) :: nil)))
         Sskip)
       Sbreak)
     (Ssequence
@@ -9090,14 +9441,14 @@ Definition f_simplicity_write_buffer8 := {|
             Sskip
             Sbreak)
           (Ssequence
-            (Scall (Some _t'1)
+            (Scall (Some _t'2)
               (Evar _writeBit (Tfunction
                                 (Tcons (tptr (Tstruct _frameItem noattr))
                                   (Tcons tbool Tnil)) tbool cc_default))
               ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
                (Ebinop Ole (Etempvar _i tulong) (Etempvar _len tulong) tint) ::
                nil))
-            (Sifthenelse (Etempvar _t'1 tbool)
+            (Sifthenelse (Etempvar _t'2 tbool)
               (Ssequence
                 (Scall None
                   (Evar _write8s (Tfunction
@@ -24415,6 +24766,19 @@ Definition f_simplicity_divides_64 := {|
         (Sreturn (Some (Econst_int (Int.repr 1) tint)))))))
 |}.
 
+Definition v___func____4 := {|
+  gvar_info := (tarray tschar 14);
+  gvar_init := (Init_int8 (Int.repr 100) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 118) :: Init_int8 (Int.repr 95) ::
+                Init_int8 (Int.repr 109) :: Init_int8 (Int.repr 111) ::
+                Init_int8 (Int.repr 100) :: Init_int8 (Int.repr 95) ::
+                Init_int8 (Int.repr 57) :: Init_int8 (Int.repr 54) ::
+                Init_int8 (Int.repr 95) :: Init_int8 (Int.repr 54) ::
+                Init_int8 (Int.repr 52) :: Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
 Definition f_div_mod_96_64 := {|
   fn_return := tvoid;
   fn_callconv := cc_default;
@@ -24428,14 +24792,40 @@ Definition f_div_mod_96_64 := {|
   fn_body :=
 (Ssequence
   (Sloop
-    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 0) tint) tint)
-      Sskip
+    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 1) tint) tint)
+      (Sifthenelse (Ebinop Olt (Etempvar _ah tulong) (Etempvar _b tulong)
+                     tint)
+        Sskip
+        (Scall None
+          (Evar ___assert_fail (Tfunction
+                                 (Tcons (tptr tschar)
+                                   (Tcons (tptr tschar)
+                                     (Tcons tuint (Tcons (tptr tschar) Tnil))))
+                                 tvoid cc_default))
+          ((Evar ___stringlit_8 (tarray tschar 7)) ::
+           (Evar ___stringlit_7 (tarray tschar 21)) ::
+           (Econst_int (Int.repr 1112) tint) ::
+           (Evar ___func____4 (tarray tschar 14)) :: nil)))
       Sskip)
     Sbreak)
   (Ssequence
     (Sloop
-      (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 0) tint) tint)
-        Sskip
+      (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 1) tint) tint)
+        (Sifthenelse (Ebinop Ole
+                       (Econst_long (Int64.repr (-9223372036854775808)) tulong)
+                       (Etempvar _b tulong) tint)
+          Sskip
+          (Scall None
+            (Evar ___assert_fail (Tfunction
+                                   (Tcons (tptr tschar)
+                                     (Tcons (tptr tschar)
+                                       (Tcons tuint
+                                         (Tcons (tptr tschar) Tnil)))) tvoid
+                                   cc_default))
+            ((Evar ___stringlit_9 (tarray tschar 25)) ::
+             (Evar ___stringlit_7 (tarray tschar 21)) ::
+             (Econst_int (Int.repr 1113) tint) ::
+             (Evar ___func____4 (tarray tschar 14)) :: nil)))
         Sskip)
       Sbreak)
     (Ssequence
@@ -24518,6 +24908,25 @@ Definition f_div_mod_96_64 := {|
                         tulong) (Etempvar _d tulong) tulong)))))))))))
 |}.
 
+Definition v___func____5 := {|
+  gvar_info := (tarray tschar 26);
+  gvar_init := (Init_int8 (Int.repr 115) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 109) :: Init_int8 (Int.repr 112) ::
+                Init_int8 (Int.repr 108) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 99) :: Init_int8 (Int.repr 105) ::
+                Init_int8 (Int.repr 116) :: Init_int8 (Int.repr 121) ::
+                Init_int8 (Int.repr 95) :: Init_int8 (Int.repr 100) ::
+                Init_int8 (Int.repr 105) :: Init_int8 (Int.repr 118) ::
+                Init_int8 (Int.repr 95) :: Init_int8 (Int.repr 109) ::
+                Init_int8 (Int.repr 111) :: Init_int8 (Int.repr 100) ::
+                Init_int8 (Int.repr 95) :: Init_int8 (Int.repr 49) ::
+                Init_int8 (Int.repr 50) :: Init_int8 (Int.repr 56) ::
+                Init_int8 (Int.repr 95) :: Init_int8 (Int.repr 54) ::
+                Init_int8 (Int.repr 52) :: Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
 Definition f_simplicity_div_mod_128_64 := {|
   fn_return := tbool;
   fn_callconv := cc_default;
@@ -24529,8 +24938,8 @@ Definition f_simplicity_div_mod_128_64 := {|
   fn_temps := ((_ah, tulong) :: (_am, tulong) :: (_al, tulong) ::
                (_b, tulong) :: (_t'5, tint) :: (_t'4, tulong) ::
                (_t'3, tulong) :: (_t'2, tulong) :: (_t'1, tulong) ::
-               (_t'9, tulong) :: (_t'8, tulong) :: (_t'7, tulong) ::
-               (_t'6, tulong) :: nil);
+               (_t'10, tulong) :: (_t'9, tulong) :: (_t'8, tulong) ::
+               (_t'7, tulong) :: (_t'6, tulong) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -24601,8 +25010,25 @@ Definition f_simplicity_div_mod_128_64 := {|
                   (Ssequence
                     (Sloop
                       (Sifthenelse (Eunop Onotbool
-                                     (Econst_int (Int.repr 0) tint) tint)
-                        Sskip
+                                     (Econst_int (Int.repr 1) tint) tint)
+                        (Ssequence
+                          (Sset _t'10 (Evar _r tulong))
+                          (Sifthenelse (Ebinop Olt (Etempvar _t'10 tulong)
+                                         (Etempvar _b tulong) tint)
+                            Sskip
+                            (Scall None
+                              (Evar ___assert_fail (Tfunction
+                                                     (Tcons (tptr tschar)
+                                                       (Tcons (tptr tschar)
+                                                         (Tcons tuint
+                                                           (Tcons
+                                                             (tptr tschar)
+                                                             Tnil)))) tvoid
+                                                     cc_default))
+                              ((Evar ___stringlit_10 (tarray tschar 6)) ::
+                               (Evar ___stringlit_7 (tarray tschar 21)) ::
+                               (Econst_int (Int.repr 1179) tint) ::
+                               (Evar ___func____5 (tarray tschar 26)) :: nil))))
                         Sskip)
                       Sbreak)
                     (Ssequence
@@ -24811,6 +25237,22 @@ Definition f_simplicity_sha_256_ctx_8_init := {|
       (Sreturn (Some (Etempvar _t'1 tbool))))))
 |}.
 
+Definition v___func____6 := {|
+  gvar_info := (tarray tschar 20);
+  gvar_init := (Init_int8 (Int.repr 115) :: Init_int8 (Int.repr 104) ::
+                Init_int8 (Int.repr 97) :: Init_int8 (Int.repr 95) ::
+                Init_int8 (Int.repr 50) :: Init_int8 (Int.repr 53) ::
+                Init_int8 (Int.repr 54) :: Init_int8 (Int.repr 95) ::
+                Init_int8 (Int.repr 99) :: Init_int8 (Int.repr 116) ::
+                Init_int8 (Int.repr 120) :: Init_int8 (Int.repr 95) ::
+                Init_int8 (Int.repr 56) :: Init_int8 (Int.repr 95) ::
+                Init_int8 (Int.repr 97) :: Init_int8 (Int.repr 100) ::
+                Init_int8 (Int.repr 100) :: Init_int8 (Int.repr 95) ::
+                Init_int8 (Int.repr 110) :: Init_int8 (Int.repr 0) :: nil);
+  gvar_readonly := true;
+  gvar_volatile := false
+|}.
+
 Definition f_sha_256_ctx_8_add_n := {|
   fn_return := tbool;
   fn_callconv := cc_default;
@@ -24820,12 +25262,43 @@ Definition f_sha_256_ctx_8_add_n := {|
   fn_vars := ((_midstate, (Tstruct _sha256_midstate noattr)) ::
               (_buf, (tarray tuchar 512)) ::
               (_ctx, (Tstruct _sha256_context noattr)) :: nil);
-  fn_temps := ((_t'2, tbool) :: (_t'1, tbool) :: nil);
+  fn_temps := ((_t'4, tbool) :: (_t'3, tbool) :: (_t'2, tint) ::
+               (_t'1, tint) :: nil);
   fn_body :=
 (Ssequence
   (Sloop
-    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 0) tint) tint)
-      Sskip
+    (Sifthenelse (Eunop Onotbool (Econst_int (Int.repr 1) tint) tint)
+      (Ssequence
+        (Ssequence
+          (Sifthenelse (Ebinop Olt (Econst_int (Int.repr 0) tint)
+                         (Etempvar _n tulong) tint)
+            (Sset _t'1
+              (Ecast
+                (Ebinop Ole (Etempvar _n tulong)
+                  (Econst_int (Int.repr 512) tint) tint) tbool))
+            (Sset _t'1 (Econst_int (Int.repr 0) tint)))
+          (Sifthenelse (Etempvar _t'1 tint)
+            (Sset _t'2
+              (Ecast
+                (Ebinop Oeq
+                  (Ebinop Oand (Etempvar _n tulong)
+                    (Ebinop Osub (Etempvar _n tulong)
+                      (Econst_int (Int.repr 1) tint) tulong) tulong)
+                  (Econst_int (Int.repr 0) tint) tint) tbool))
+            (Sset _t'2 (Econst_int (Int.repr 0) tint))))
+        (Sifthenelse (Etempvar _t'2 tint)
+          Sskip
+          (Scall None
+            (Evar ___assert_fail (Tfunction
+                                   (Tcons (tptr tschar)
+                                     (Tcons (tptr tschar)
+                                       (Tcons tuint
+                                         (Tcons (tptr tschar) Tnil)))) tvoid
+                                   cc_default))
+            ((Evar ___stringlit_11 (tarray tschar 40)) ::
+             (Evar ___stringlit_7 (tarray tschar 21)) ::
+             (Econst_int (Int.repr 1250) tint) ::
+             (Evar ___func____6 (tarray tschar 20)) :: nil))))
       Sskip)
     Sbreak)
   (Ssequence
@@ -25557,7 +26030,7 @@ Definition f_sha_256_ctx_8_add_n := {|
                                                                     (Econst_int (Int.repr 0) tint))
                                                                     (Ssequence
                                                                     (Ssequence
-                                                                    (Scall (Some _t'1)
+                                                                    (Scall (Some _t'3)
                                                                     (Evar _simplicity_read_sha256_context 
                                                                     (Tfunction
                                                                     (Tcons
@@ -25574,7 +26047,7 @@ Definition f_sha_256_ctx_8_add_n := {|
                                                                     nil))
                                                                     (Sifthenelse 
                                                                     (Eunop Onotbool
-                                                                    (Etempvar _t'1 tbool)
+                                                                    (Etempvar _t'3 tbool)
                                                                     tint)
                                                                     (Sreturn (Some (Econst_int (Int.repr 0) tint)))
                                                                     Sskip))
@@ -25615,7 +26088,7 @@ Definition f_sha_256_ctx_8_add_n := {|
                                                                     (Etempvar _n tulong) ::
                                                                     nil))
                                                                     (Ssequence
-                                                                    (Scall (Some _t'2)
+                                                                    (Scall (Some _t'4)
                                                                     (Evar _simplicity_write_sha256_context 
                                                                     (Tfunction
                                                                     (Tcons
@@ -25630,7 +26103,7 @@ Definition f_sha_256_ctx_8_add_n := {|
                                                                     (Evar _ctx (Tstruct _sha256_context noattr))
                                                                     (tptr (Tstruct _sha256_context noattr))) ::
                                                                     nil))
-                                                                    (Sreturn (Some (Etempvar _t'2 tbool)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+                                                                    (Sreturn (Some (Etempvar _t'4 tbool)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 |}.
 
 Definition f_simplicity_sha_256_ctx_8_add_1 := {|
@@ -27851,7 +28324,17 @@ Definition global_definitions : list (ident * globdef fundef type) :=
    Gfun(External (EF_runtime "__compcert_i64_umulh"
                    (mksignature (AST.Tlong :: AST.Tlong :: nil) AST.Tlong
                      cc_default)) (Tcons tulong (Tcons tulong Tnil)) tulong
-     cc_default)) ::
+     cc_default)) :: (___stringlit_11, Gvar v___stringlit_11) ::
+ (___stringlit_4, Gvar v___stringlit_4) ::
+ (___stringlit_7, Gvar v___stringlit_7) ::
+ (___stringlit_9, Gvar v___stringlit_9) ::
+ (___stringlit_3, Gvar v___stringlit_3) ::
+ (___stringlit_6, Gvar v___stringlit_6) ::
+ (___stringlit_8, Gvar v___stringlit_8) ::
+ (___stringlit_2, Gvar v___stringlit_2) ::
+ (___stringlit_10, Gvar v___stringlit_10) ::
+ (___stringlit_1, Gvar v___stringlit_1) ::
+ (___stringlit_5, Gvar v___stringlit_5) ::
  (___builtin_ais_annot,
    Gfun(External (EF_builtin "__builtin_ais_annot"
                    (mksignature (AST.Tlong :: nil) AST.Tvoid
@@ -28038,7 +28521,15 @@ Definition global_definitions : list (ident * globdef fundef type) :=
                    (mksignature (AST.Tlong :: AST.Tlong :: AST.Tlong :: nil)
                      AST.Tlong cc_default))
      (Tcons (tptr tvoid) (Tcons (tptr tvoid) (Tcons tulong Tnil)))
-     (tptr tvoid) cc_default)) :: (_ReadBE32, Gfun(Internal f_ReadBE32)) ::
+     (tptr tvoid) cc_default)) ::
+ (___assert_fail,
+   Gfun(External (EF_external "__assert_fail"
+                   (mksignature
+                     (AST.Tlong :: AST.Tlong :: AST.Tint :: AST.Tlong :: nil)
+                     AST.Tvoid cc_default))
+     (Tcons (tptr tschar)
+       (Tcons (tptr tschar) (Tcons tuint (Tcons (tptr tschar) Tnil)))) tvoid
+     cc_default)) :: (_ReadBE32, Gfun(Internal f_ReadBE32)) ::
  (_WriteBE64, Gfun(Internal f_WriteBE64)) ::
  (_WriteBE32, Gfun(Internal f_WriteBE32)) ::
  (_sha256_fromMidstate, Gfun(Internal f_sha256_fromMidstate)) ::
@@ -28054,9 +28545,10 @@ Definition global_definitions : list (ident * globdef fundef type) :=
  (_LSBclear, Gfun(Internal f_LSBclear)) ::
  (_LSBkeep, Gfun(Internal f_LSBkeep)) ::
  (_peekBit, Gfun(Internal f_peekBit)) ::
- (_readBit, Gfun(Internal f_readBit)) ::
+ (_readBit, Gfun(Internal f_readBit)) :: (___func__, Gvar v___func__) ::
  (_writeBit, Gfun(Internal f_writeBit)) ::
  (_forwardBits, Gfun(Internal f_forwardBits)) ::
+ (___func____1, Gvar v___func____1) ::
  (_skipBits, Gfun(Internal f_skipBits)) ::
  (_read8s, Gfun(Internal f_read8s)) ::
  (_write8s, Gfun(Internal f_write8s)) ::
@@ -28071,7 +28563,9 @@ Definition global_definitions : list (ident * globdef fundef type) :=
  (_simplicity_write16, Gfun(Internal f_simplicity_write16)) ::
  (_simplicity_write32, Gfun(Internal f_simplicity_write32)) ::
  (_simplicity_write64, Gfun(Internal f_simplicity_write64)) ::
+ (___func____2, Gvar v___func____2) ::
  (_simplicity_read_buffer8, Gfun(Internal f_simplicity_read_buffer8)) ::
+ (___func____3, Gvar v___func____3) ::
  (_simplicity_write_buffer8, Gfun(Internal f_simplicity_write_buffer8)) ::
  (_simplicity_read_sha256_context, Gfun(Internal f_simplicity_read_sha256_context)) ::
  (_simplicity_write_sha256_context, Gfun(Internal f_simplicity_write_sha256_context)) ::
@@ -28400,11 +28894,14 @@ Definition global_definitions : list (ident * globdef fundef type) :=
  (_simplicity_divides_16, Gfun(Internal f_simplicity_divides_16)) ::
  (_simplicity_divides_32, Gfun(Internal f_simplicity_divides_32)) ::
  (_simplicity_divides_64, Gfun(Internal f_simplicity_divides_64)) ::
+ (___func____4, Gvar v___func____4) ::
  (_div_mod_96_64, Gfun(Internal f_div_mod_96_64)) ::
+ (___func____5, Gvar v___func____5) ::
  (_simplicity_div_mod_128_64, Gfun(Internal f_simplicity_div_mod_128_64)) ::
  (_simplicity_sha_256_iv, Gfun(Internal f_simplicity_sha_256_iv)) ::
  (_simplicity_sha_256_block, Gfun(Internal f_simplicity_sha_256_block)) ::
  (_simplicity_sha_256_ctx_8_init, Gfun(Internal f_simplicity_sha_256_ctx_8_init)) ::
+ (___func____6, Gvar v___func____6) ::
  (_sha_256_ctx_8_add_n, Gfun(Internal f_sha_256_ctx_8_add_n)) ::
  (_simplicity_sha_256_ctx_8_add_1, Gfun(Internal f_simplicity_sha_256_ctx_8_add_1)) ::
  (_simplicity_sha_256_ctx_8_add_2, Gfun(Internal f_simplicity_sha_256_ctx_8_add_2)) ::
@@ -28573,8 +29070,8 @@ Definition public_idents : list ident :=
  _simplicity_read_buffer8 :: _simplicity_write64 :: _simplicity_write32 ::
  _simplicity_write16 :: _simplicity_write8 :: _simplicity_read64 ::
  _simplicity_read32 :: _simplicity_read16 :: _simplicity_read8 ::
- _simplicity_read4 :: _simplicity_sha256_compression :: _memcpy ::
- ___builtin_debug :: ___builtin_write32_reversed ::
+ _simplicity_read4 :: _simplicity_sha256_compression :: ___assert_fail ::
+ _memcpy :: ___builtin_debug :: ___builtin_write32_reversed ::
  ___builtin_write16_reversed :: ___builtin_read32_reversed ::
  ___builtin_read16_reversed :: ___builtin_fnmsub :: ___builtin_fnmadd ::
  ___builtin_fmsub :: ___builtin_fmadd :: ___builtin_fmin ::

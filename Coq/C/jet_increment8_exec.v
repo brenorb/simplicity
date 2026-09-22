@@ -9,20 +9,20 @@ Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 
 Lemma symbol_read8 :
-  Genv.find_symbol (Clight.genv_genv ge0) _simplicity_read8 = Some 83%positive.
+  Genv.find_symbol (Clight.genv_genv ge0) _simplicity_read8 = Some block_read8.
 Proof. vm_compute; reflexivity. Qed.
 
 Lemma funct_read8 :
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 83%positive Ptrofs.zero) =
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_read8 Ptrofs.zero) =
     Some (Internal f_simplicity_read8).
 Proof. reflexivity. Qed.
 
 Lemma symbol_writeBit :
-  Genv.find_symbol (Clight.genv_genv ge0) _writeBit = Some 75%positive.
+  Genv.find_symbol (Clight.genv_genv ge0) _writeBit = Some block_writeBit.
 Proof. vm_compute; reflexivity. Qed.
 
 Lemma funct_writeBit :
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr 75%positive Ptrofs.zero) =
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr block_writeBit Ptrofs.zero) =
     Some (Internal f_writeBit).
 Proof. reflexivity. Qed.
 
