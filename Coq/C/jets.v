@@ -15,7 +15,7 @@ Module Info.
   Definition abi := "standard".
   Definition bitsize := 64.
   Definition big_endian := false.
-  Definition source_file := "Coq/C/.clightgen-frame-jets.c".
+  Definition source_file := "Coq/C/jet_translation_unit.c".
   Definition normalized := true.
 End Info.
 
@@ -10645,7 +10645,7 @@ Definition f_simplicity_high_8 := {|
                                  (Tcons (tptr (Tstruct _frameItem noattr))
                                    (Tcons tuchar Tnil)) tvoid cc_default))
       ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-       (Econst_int (Int.repr 255) tuint) :: nil))
+       (Econst_int (Int.repr 255) tint) :: nil))
     (Sreturn (Some (Econst_int (Int.repr 1) tint)))))
 |}.
 
@@ -10667,7 +10667,7 @@ Definition f_simplicity_high_16 := {|
                                   (Tcons (tptr (Tstruct _frameItem noattr))
                                     (Tcons tulong Tnil)) tvoid cc_default))
       ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-       (Econst_int (Int.repr 65535) tuint) :: nil))
+       (Econst_int (Int.repr 65535) tint) :: nil))
     (Sreturn (Some (Econst_int (Int.repr 1) tint)))))
 |}.
 
@@ -12610,7 +12610,7 @@ Definition f_simplicity_all_8 := {|
                           (Tcons (tptr (Tstruct _frameItem noattr))
                             (Tcons tbool Tnil)) tbool cc_default))
         ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-         (Ebinop Oeq (Etempvar _x tuchar) (Econst_int (Int.repr 255) tuint)
+         (Ebinop Oeq (Etempvar _x tuchar) (Econst_int (Int.repr 255) tint)
            tint) :: nil))
       (Sreturn (Some (Econst_int (Int.repr 1) tint))))))
 |}.
@@ -12642,7 +12642,7 @@ Definition f_simplicity_all_16 := {|
                           (Tcons (tptr (Tstruct _frameItem noattr))
                             (Tcons tbool Tnil)) tbool cc_default))
         ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-         (Ebinop Oeq (Etempvar _x tulong) (Econst_int (Int.repr 65535) tuint)
+         (Ebinop Oeq (Etempvar _x tulong) (Econst_int (Int.repr 65535) tint)
            tint) :: nil))
       (Sreturn (Some (Econst_int (Int.repr 1) tint))))))
 |}.
@@ -15802,7 +15802,7 @@ Definition f_simplicity_left_pad_high_8_16 := {|
                                          (Tcons tuchar Tnil)) tvoid
                                        cc_default))
             ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-             (Econst_int (Int.repr 255) tuint) :: nil)))
+             (Econst_int (Int.repr 255) tint) :: nil)))
         (Sset _i
           (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
             tint))))
@@ -15853,7 +15853,7 @@ Definition f_simplicity_left_pad_high_8_32 := {|
                                          (Tcons tuchar Tnil)) tvoid
                                        cc_default))
             ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-             (Econst_int (Int.repr 255) tuint) :: nil)))
+             (Econst_int (Int.repr 255) tint) :: nil)))
         (Sset _i
           (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
             tint))))
@@ -15904,7 +15904,7 @@ Definition f_simplicity_left_pad_high_8_64 := {|
                                          (Tcons tuchar Tnil)) tvoid
                                        cc_default))
             ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-             (Econst_int (Int.repr 255) tuint) :: nil)))
+             (Econst_int (Int.repr 255) tint) :: nil)))
         (Sset _i
           (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
             tint))))
@@ -15955,7 +15955,7 @@ Definition f_simplicity_left_pad_high_16_32 := {|
                                           (Tcons tulong Tnil)) tvoid
                                         cc_default))
             ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-             (Econst_int (Int.repr 65535) tuint) :: nil)))
+             (Econst_int (Int.repr 65535) tint) :: nil)))
         (Sset _i
           (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
             tint))))
@@ -16006,7 +16006,7 @@ Definition f_simplicity_left_pad_high_16_64 := {|
                                           (Tcons tulong Tnil)) tvoid
                                         cc_default))
             ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-             (Econst_int (Int.repr 65535) tuint) :: nil)))
+             (Econst_int (Int.repr 65535) tint) :: nil)))
         (Sset _i
           (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
             tint))))
@@ -16084,7 +16084,7 @@ Definition f_simplicity_left_extend_1_8 := {|
                 (_src, (Tstruct _frameItem noattr)) ::
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
-  fn_temps := ((_bit, tbool) :: (_t'2, tuint) :: (_t'1, tbool) :: nil);
+  fn_temps := ((_bit, tbool) :: (_t'2, tint) :: (_t'1, tbool) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -16101,15 +16101,15 @@ Definition f_simplicity_left_extend_1_8 := {|
     (Ssequence
       (Ssequence
         (Sifthenelse (Etempvar _bit tbool)
-          (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tuint) tuint))
-          (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+          (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tint) tint))
+          (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
         (Scall None
           (Evar _simplicity_write8 (Tfunction
                                      (Tcons
                                        (tptr (Tstruct _frameItem noattr))
                                        (Tcons tuchar Tnil)) tvoid cc_default))
           ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-           (Etempvar _t'2 tuint) :: nil)))
+           (Etempvar _t'2 tint) :: nil)))
       (Sreturn (Some (Econst_int (Int.repr 1) tint))))))
 |}.
 
@@ -16120,7 +16120,7 @@ Definition f_simplicity_left_extend_1_16 := {|
                 (_src, (Tstruct _frameItem noattr)) ::
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
-  fn_temps := ((_bit, tbool) :: (_t'2, tuint) :: (_t'1, tbool) :: nil);
+  fn_temps := ((_bit, tbool) :: (_t'2, tint) :: (_t'1, tbool) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -16137,8 +16137,8 @@ Definition f_simplicity_left_extend_1_16 := {|
     (Ssequence
       (Ssequence
         (Sifthenelse (Etempvar _bit tbool)
-          (Sset _t'2 (Ecast (Econst_int (Int.repr 65535) tuint) tuint))
-          (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+          (Sset _t'2 (Ecast (Econst_int (Int.repr 65535) tint) tint))
+          (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
         (Scall None
           (Evar _simplicity_write16 (Tfunction
                                       (Tcons
@@ -16146,7 +16146,7 @@ Definition f_simplicity_left_extend_1_16 := {|
                                         (Tcons tulong Tnil)) tvoid
                                       cc_default))
           ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-           (Etempvar _t'2 tuint) :: nil)))
+           (Etempvar _t'2 tint) :: nil)))
       (Sreturn (Some (Econst_int (Int.repr 1) tint))))))
 |}.
 
@@ -16232,7 +16232,7 @@ Definition f_simplicity_left_extend_8_16 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tuchar) :: (_msb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tuchar) :: nil);
+               (_t'2, tint) :: (_t'1, tuchar) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -16266,8 +16266,8 @@ Definition f_simplicity_left_extend_8_16 := {|
                 Sbreak)
               (Ssequence
                 (Sifthenelse (Etempvar _msb tbool)
-                  (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tuint) tuint))
-                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tint) tint))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                 (Scall None
                   (Evar _simplicity_write8 (Tfunction
                                              (Tcons
@@ -16275,7 +16275,7 @@ Definition f_simplicity_left_extend_8_16 := {|
                                                (Tcons tuchar Tnil)) tvoid
                                              cc_default))
                   ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                   (Etempvar _t'2 tuint) :: nil))))
+                   (Etempvar _t'2 tint) :: nil))))
             (Sset _i
               (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
                 tint))))
@@ -16299,7 +16299,7 @@ Definition f_simplicity_left_extend_8_32 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tuchar) :: (_msb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tuchar) :: nil);
+               (_t'2, tint) :: (_t'1, tuchar) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -16333,8 +16333,8 @@ Definition f_simplicity_left_extend_8_32 := {|
                 Sbreak)
               (Ssequence
                 (Sifthenelse (Etempvar _msb tbool)
-                  (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tuint) tuint))
-                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tint) tint))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                 (Scall None
                   (Evar _simplicity_write8 (Tfunction
                                              (Tcons
@@ -16342,7 +16342,7 @@ Definition f_simplicity_left_extend_8_32 := {|
                                                (Tcons tuchar Tnil)) tvoid
                                              cc_default))
                   ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                   (Etempvar _t'2 tuint) :: nil))))
+                   (Etempvar _t'2 tint) :: nil))))
             (Sset _i
               (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
                 tint))))
@@ -16366,7 +16366,7 @@ Definition f_simplicity_left_extend_8_64 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tuchar) :: (_msb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tuchar) :: nil);
+               (_t'2, tint) :: (_t'1, tuchar) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -16400,8 +16400,8 @@ Definition f_simplicity_left_extend_8_64 := {|
                 Sbreak)
               (Ssequence
                 (Sifthenelse (Etempvar _msb tbool)
-                  (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tuint) tuint))
-                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tint) tint))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                 (Scall None
                   (Evar _simplicity_write8 (Tfunction
                                              (Tcons
@@ -16409,7 +16409,7 @@ Definition f_simplicity_left_extend_8_64 := {|
                                                (Tcons tuchar Tnil)) tvoid
                                              cc_default))
                   ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                   (Etempvar _t'2 tuint) :: nil))))
+                   (Etempvar _t'2 tint) :: nil))))
             (Sset _i
               (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
                 tint))))
@@ -16433,7 +16433,7 @@ Definition f_simplicity_left_extend_16_32 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tulong) :: (_msb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tulong) :: nil);
+               (_t'2, tint) :: (_t'1, tulong) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -16467,9 +16467,8 @@ Definition f_simplicity_left_extend_16_32 := {|
                 Sbreak)
               (Ssequence
                 (Sifthenelse (Etempvar _msb tbool)
-                  (Sset _t'2
-                    (Ecast (Econst_int (Int.repr 65535) tuint) tuint))
-                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 65535) tint) tint))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                 (Scall None
                   (Evar _simplicity_write16 (Tfunction
                                               (Tcons
@@ -16477,7 +16476,7 @@ Definition f_simplicity_left_extend_16_32 := {|
                                                 (Tcons tulong Tnil)) tvoid
                                               cc_default))
                   ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                   (Etempvar _t'2 tuint) :: nil))))
+                   (Etempvar _t'2 tint) :: nil))))
             (Sset _i
               (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
                 tint))))
@@ -16501,7 +16500,7 @@ Definition f_simplicity_left_extend_16_64 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tulong) :: (_msb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tulong) :: nil);
+               (_t'2, tint) :: (_t'1, tulong) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -16535,9 +16534,8 @@ Definition f_simplicity_left_extend_16_64 := {|
                 Sbreak)
               (Ssequence
                 (Sifthenelse (Etempvar _msb tbool)
-                  (Sset _t'2
-                    (Ecast (Econst_int (Int.repr 65535) tuint) tuint))
-                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 65535) tint) tint))
+                  (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                 (Scall None
                   (Evar _simplicity_write16 (Tfunction
                                               (Tcons
@@ -16545,7 +16543,7 @@ Definition f_simplicity_left_extend_16_64 := {|
                                                 (Tcons tulong Tnil)) tvoid
                                               cc_default))
                   ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                   (Etempvar _t'2 tuint) :: nil))))
+                   (Etempvar _t'2 tint) :: nil))))
             (Sset _i
               (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
                 tint))))
@@ -17292,7 +17290,7 @@ Definition f_simplicity_right_pad_high_8_16 := {|
                                            (Tcons tuchar Tnil)) tvoid
                                          cc_default))
               ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-               (Econst_int (Int.repr 255) tuint) :: nil)))
+               (Econst_int (Int.repr 255) tint) :: nil)))
           (Sset _i
             (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
               tint))))
@@ -17342,7 +17340,7 @@ Definition f_simplicity_right_pad_high_8_32 := {|
                                            (Tcons tuchar Tnil)) tvoid
                                          cc_default))
               ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-               (Econst_int (Int.repr 255) tuint) :: nil)))
+               (Econst_int (Int.repr 255) tint) :: nil)))
           (Sset _i
             (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
               tint))))
@@ -17392,7 +17390,7 @@ Definition f_simplicity_right_pad_high_8_64 := {|
                                            (Tcons tuchar Tnil)) tvoid
                                          cc_default))
               ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-               (Econst_int (Int.repr 255) tuint) :: nil)))
+               (Econst_int (Int.repr 255) tint) :: nil)))
           (Sset _i
             (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
               tint))))
@@ -17442,7 +17440,7 @@ Definition f_simplicity_right_pad_high_16_32 := {|
                                             (Tcons tulong Tnil)) tvoid
                                           cc_default))
               ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-               (Econst_int (Int.repr 65535) tuint) :: nil)))
+               (Econst_int (Int.repr 65535) tint) :: nil)))
           (Sset _i
             (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
               tint))))
@@ -17492,7 +17490,7 @@ Definition f_simplicity_right_pad_high_16_64 := {|
                                             (Tcons tulong Tnil)) tvoid
                                           cc_default))
               ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-               (Econst_int (Int.repr 65535) tuint) :: nil)))
+               (Econst_int (Int.repr 65535) tint) :: nil)))
           (Sset _i
             (Ebinop Oadd (Etempvar _i tint) (Econst_int (Int.repr 1) tint)
               tint))))
@@ -17557,7 +17555,7 @@ Definition f_simplicity_right_extend_8_16 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tuchar) :: (_lsb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tuchar) :: nil);
+               (_t'2, tint) :: (_t'1, tuchar) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -17598,9 +17596,8 @@ Definition f_simplicity_right_extend_8_16 := {|
                   Sbreak)
                 (Ssequence
                   (Sifthenelse (Etempvar _lsb tbool)
-                    (Sset _t'2
-                      (Ecast (Econst_int (Int.repr 255) tuint) tuint))
-                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                    (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tint) tint))
+                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                   (Scall None
                     (Evar _simplicity_write8 (Tfunction
                                                (Tcons
@@ -17608,7 +17605,7 @@ Definition f_simplicity_right_extend_8_16 := {|
                                                  (Tcons tuchar Tnil)) tvoid
                                                cc_default))
                     ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                     (Etempvar _t'2 tuint) :: nil))))
+                     (Etempvar _t'2 tint) :: nil))))
               (Sset _i
                 (Ebinop Oadd (Etempvar _i tint)
                   (Econst_int (Int.repr 1) tint) tint))))
@@ -17623,7 +17620,7 @@ Definition f_simplicity_right_extend_8_32 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tuchar) :: (_lsb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tuchar) :: nil);
+               (_t'2, tint) :: (_t'1, tuchar) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -17664,9 +17661,8 @@ Definition f_simplicity_right_extend_8_32 := {|
                   Sbreak)
                 (Ssequence
                   (Sifthenelse (Etempvar _lsb tbool)
-                    (Sset _t'2
-                      (Ecast (Econst_int (Int.repr 255) tuint) tuint))
-                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                    (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tint) tint))
+                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                   (Scall None
                     (Evar _simplicity_write8 (Tfunction
                                                (Tcons
@@ -17674,7 +17670,7 @@ Definition f_simplicity_right_extend_8_32 := {|
                                                  (Tcons tuchar Tnil)) tvoid
                                                cc_default))
                     ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                     (Etempvar _t'2 tuint) :: nil))))
+                     (Etempvar _t'2 tint) :: nil))))
               (Sset _i
                 (Ebinop Oadd (Etempvar _i tint)
                   (Econst_int (Int.repr 1) tint) tint))))
@@ -17689,7 +17685,7 @@ Definition f_simplicity_right_extend_8_64 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tuchar) :: (_lsb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tuchar) :: nil);
+               (_t'2, tint) :: (_t'1, tuchar) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -17730,9 +17726,8 @@ Definition f_simplicity_right_extend_8_64 := {|
                   Sbreak)
                 (Ssequence
                   (Sifthenelse (Etempvar _lsb tbool)
-                    (Sset _t'2
-                      (Ecast (Econst_int (Int.repr 255) tuint) tuint))
-                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                    (Sset _t'2 (Ecast (Econst_int (Int.repr 255) tint) tint))
+                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                   (Scall None
                     (Evar _simplicity_write8 (Tfunction
                                                (Tcons
@@ -17740,7 +17735,7 @@ Definition f_simplicity_right_extend_8_64 := {|
                                                  (Tcons tuchar Tnil)) tvoid
                                                cc_default))
                     ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                     (Etempvar _t'2 tuint) :: nil))))
+                     (Etempvar _t'2 tint) :: nil))))
               (Sset _i
                 (Ebinop Oadd (Etempvar _i tint)
                   (Econst_int (Int.repr 1) tint) tint))))
@@ -17755,7 +17750,7 @@ Definition f_simplicity_right_extend_16_32 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tulong) :: (_lsb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tulong) :: nil);
+               (_t'2, tint) :: (_t'1, tulong) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -17798,8 +17793,8 @@ Definition f_simplicity_right_extend_16_32 := {|
                 (Ssequence
                   (Sifthenelse (Etempvar _lsb tbool)
                     (Sset _t'2
-                      (Ecast (Econst_int (Int.repr 65535) tuint) tuint))
-                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                      (Ecast (Econst_int (Int.repr 65535) tint) tint))
+                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                   (Scall None
                     (Evar _simplicity_write16 (Tfunction
                                                 (Tcons
@@ -17807,7 +17802,7 @@ Definition f_simplicity_right_extend_16_32 := {|
                                                   (Tcons tulong Tnil)) tvoid
                                                 cc_default))
                     ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                     (Etempvar _t'2 tuint) :: nil))))
+                     (Etempvar _t'2 tint) :: nil))))
               (Sset _i
                 (Ebinop Oadd (Etempvar _i tint)
                   (Econst_int (Int.repr 1) tint) tint))))
@@ -17822,7 +17817,7 @@ Definition f_simplicity_right_extend_16_64 := {|
                 (_env, (tptr (Tstruct _txEnv noattr))) :: nil);
   fn_vars := ((_src, (Tstruct _frameItem noattr)) :: nil);
   fn_temps := ((_input, tulong) :: (_lsb, tbool) :: (_i, tint) ::
-               (_t'2, tuint) :: (_t'1, tulong) :: nil);
+               (_t'2, tint) :: (_t'1, tulong) :: nil);
   fn_body :=
 (Ssequence
   (Sassign (Evar _src (Tstruct _frameItem noattr))
@@ -17865,8 +17860,8 @@ Definition f_simplicity_right_extend_16_64 := {|
                 (Ssequence
                   (Sifthenelse (Etempvar _lsb tbool)
                     (Sset _t'2
-                      (Ecast (Econst_int (Int.repr 65535) tuint) tuint))
-                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tuint)))
+                      (Ecast (Econst_int (Int.repr 65535) tint) tint))
+                    (Sset _t'2 (Ecast (Econst_int (Int.repr 0) tint) tint)))
                   (Scall None
                     (Evar _simplicity_write16 (Tfunction
                                                 (Tcons
@@ -17874,7 +17869,7 @@ Definition f_simplicity_right_extend_16_64 := {|
                                                   (Tcons tulong Tnil)) tvoid
                                                 cc_default))
                     ((Etempvar _dst (tptr (Tstruct _frameItem noattr))) ::
-                     (Etempvar _t'2 tuint) :: nil))))
+                     (Etempvar _t'2 tint) :: nil))))
               (Sset _i
                 (Ebinop Oadd (Etempvar _i tint)
                   (Econst_int (Int.repr 1) tint) tint))))
@@ -17978,8 +17973,8 @@ Definition f_left_shift_helper_8 := {|
       (Sifthenelse (Etempvar _with tbool)
         (Sset _output
           (Ecast
-            (Ebinop Oxor (Econst_int (Int.repr 255) tuint)
-              (Etempvar _output tuchar) tuint) tuchar))
+            (Ebinop Oxor (Econst_int (Int.repr 255) tint)
+              (Etempvar _output tuchar) tint) tuchar))
         Sskip)
       (Ssequence
         (Sifthenelse (Ebinop Olt (Etempvar _amt tuchar)
@@ -17996,8 +17991,8 @@ Definition f_left_shift_helper_8 := {|
           (Sifthenelse (Etempvar _with tbool)
             (Sset _output
               (Ecast
-                (Ebinop Oxor (Econst_int (Int.repr 255) tuint)
-                  (Etempvar _output tuchar) tuint) tuchar))
+                (Ebinop Oxor (Econst_int (Int.repr 255) tint)
+                  (Etempvar _output tuchar) tint) tuchar))
             Sskip)
           (Scall None
             (Evar _simplicity_write8 (Tfunction
@@ -18103,7 +18098,7 @@ Definition f_left_shift_helper_16 := {|
     (Ssequence
       (Sifthenelse (Etempvar _with tbool)
         (Sset _output
-          (Ebinop Oxor (Econst_int (Int.repr 65535) tuint)
+          (Ebinop Oxor (Econst_int (Int.repr 65535) tint)
             (Etempvar _output tulong) tulong))
         Sskip)
       (Ssequence
@@ -18119,7 +18114,7 @@ Definition f_left_shift_helper_16 := {|
         (Ssequence
           (Sifthenelse (Etempvar _with tbool)
             (Sset _output
-              (Ebinop Oxor (Econst_int (Int.repr 65535) tuint)
+              (Ebinop Oxor (Econst_int (Int.repr 65535) tint)
                 (Etempvar _output tulong) tulong))
             Sskip)
           (Scall None
@@ -18473,8 +18468,8 @@ Definition f_right_shift_helper_8 := {|
       (Sifthenelse (Etempvar _with tbool)
         (Sset _output
           (Ecast
-            (Ebinop Oxor (Econst_int (Int.repr 255) tuint)
-              (Etempvar _output tuchar) tuint) tuchar))
+            (Ebinop Oxor (Econst_int (Int.repr 255) tint)
+              (Etempvar _output tuchar) tint) tuchar))
         Sskip)
       (Ssequence
         (Sifthenelse (Ebinop Olt (Etempvar _amt tuchar)
@@ -18489,8 +18484,8 @@ Definition f_right_shift_helper_8 := {|
           (Sifthenelse (Etempvar _with tbool)
             (Sset _output
               (Ecast
-                (Ebinop Oxor (Econst_int (Int.repr 255) tuint)
-                  (Etempvar _output tuchar) tuint) tuchar))
+                (Ebinop Oxor (Econst_int (Int.repr 255) tint)
+                  (Etempvar _output tuchar) tint) tuchar))
             Sskip)
           (Scall None
             (Evar _simplicity_write8 (Tfunction
@@ -18596,7 +18591,7 @@ Definition f_right_shift_helper_16 := {|
     (Ssequence
       (Sifthenelse (Etempvar _with tbool)
         (Sset _output
-          (Ebinop Oxor (Econst_int (Int.repr 65535) tuint)
+          (Ebinop Oxor (Econst_int (Int.repr 65535) tint)
             (Etempvar _output tulong) tulong))
         Sskip)
       (Ssequence
@@ -18610,7 +18605,7 @@ Definition f_right_shift_helper_16 := {|
         (Ssequence
           (Sifthenelse (Etempvar _with tbool)
             (Sset _output
-              (Ebinop Oxor (Econst_int (Int.repr 65535) tuint)
+              (Ebinop Oxor (Econst_int (Int.repr 65535) tint)
                 (Etempvar _output tulong) tulong))
             Sskip)
           (Scall None
@@ -19572,8 +19567,8 @@ Definition f_simplicity_add_8 := {|
            (Ebinop Olt
              (Ebinop Osub
                (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-                 (Econst_int (Int.repr 255) tuint) tuint)
-               (Etempvar _y tuchar) tuint) (Etempvar _x tuchar) tint) :: nil))
+                 (Econst_int (Int.repr 255) tint) tuint) (Etempvar _y tuchar)
+               tuint) (Etempvar _x tuchar) tint) :: nil))
         (Ssequence
           (Scall None
             (Evar _simplicity_write8 (Tfunction
@@ -19631,7 +19626,7 @@ Definition f_simplicity_add_16 := {|
            (Ebinop Olt
              (Ebinop Osub
                (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-                 (Econst_int (Int.repr 65535) tuint) tuint)
+                 (Econst_int (Int.repr 65535) tint) tuint)
                (Etempvar _y tulong) tulong) (Etempvar _x tulong) tint) ::
            nil))
         (Ssequence
@@ -19816,7 +19811,7 @@ Definition f_simplicity_full_add_8 := {|
             (Sifthenelse (Ebinop Olt
                            (Ebinop Osub
                              (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-                               (Econst_int (Int.repr 255) tuint) tuint)
+                               (Econst_int (Int.repr 255) tint) tuint)
                              (Etempvar _y tuchar) tuint) (Etempvar _x tuchar)
                            tint)
               (Sset _t'4 (Econst_int (Int.repr 1) tint))
@@ -19825,7 +19820,7 @@ Definition f_simplicity_full_add_8 := {|
                   (Ebinop Olt
                     (Ebinop Osub
                       (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-                        (Econst_int (Int.repr 255) tuint) tuint)
+                        (Econst_int (Int.repr 255) tint) tuint)
                       (Etempvar _z tbool) tuint)
                     (Ebinop Oadd
                       (Ebinop Omul (Econst_int (Int.repr 1) tuint)
@@ -19901,7 +19896,7 @@ Definition f_simplicity_full_add_16 := {|
             (Sifthenelse (Ebinop Olt
                            (Ebinop Osub
                              (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-                               (Econst_int (Int.repr 65535) tuint) tuint)
+                               (Econst_int (Int.repr 65535) tint) tuint)
                              (Etempvar _y tulong) tulong)
                            (Etempvar _x tulong) tint)
               (Sset _t'4 (Econst_int (Int.repr 1) tint))
@@ -19910,7 +19905,7 @@ Definition f_simplicity_full_add_16 := {|
                   (Ebinop Olt
                     (Ebinop Osub
                       (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-                        (Econst_int (Int.repr 65535) tuint) tuint)
+                        (Econst_int (Int.repr 65535) tint) tuint)
                       (Etempvar _z tbool) tuint)
                     (Ebinop Oadd
                       (Ebinop Omul (Econst_int (Int.repr 1) tuint)
@@ -20149,7 +20144,7 @@ Definition f_simplicity_full_increment_8 := {|
            (Ebinop Olt
              (Ebinop Osub
                (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-                 (Econst_int (Int.repr 255) tuint) tuint) (Etempvar _z tbool)
+                 (Econst_int (Int.repr 255) tint) tuint) (Etempvar _z tbool)
                tuint) (Etempvar _x tuchar) tint) :: nil))
         (Ssequence
           (Scall None
@@ -20208,7 +20203,7 @@ Definition f_simplicity_full_increment_16 := {|
            (Ebinop Olt
              (Ebinop Osub
                (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-                 (Econst_int (Int.repr 65535) tuint) tuint)
+                 (Econst_int (Int.repr 65535) tint) tuint)
                (Etempvar _z tbool) tuint) (Etempvar _x tulong) tint) :: nil))
         (Ssequence
           (Scall None
@@ -20374,7 +20369,7 @@ Definition f_simplicity_increment_8 := {|
          (Ebinop Olt
            (Ebinop Osub
              (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-               (Econst_int (Int.repr 255) tuint) tuint)
+               (Econst_int (Int.repr 255) tint) tuint)
              (Econst_int (Int.repr 1) tint) tuint) (Etempvar _x tuchar) tint) ::
          nil))
       (Ssequence
@@ -20422,7 +20417,7 @@ Definition f_simplicity_increment_16 := {|
          (Ebinop Olt
            (Ebinop Osub
              (Ebinop Omul (Econst_int (Int.repr 1) tuint)
-               (Econst_int (Int.repr 65535) tuint) tuint)
+               (Econst_int (Int.repr 65535) tint) tuint)
              (Econst_int (Int.repr 1) tint) tuint) (Etempvar _x tulong) tint) ::
          nil))
       (Ssequence
