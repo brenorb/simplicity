@@ -418,3 +418,43 @@ Proof.
                      +++ simpl [le_w8_x_final]; reflexivity.
                      +++ exact H_store_offset.
 Qed.
+
+Lemma eval_write8_x : forall (m : mem) (bf bw : block) (x : int)
+    (w c k q : int64) (m1 m2 : mem),
+  Mem.load Mptr m bf 0 = Some (Vptr bw Ptrofs.zero) ->
+  Mem.load Mint64 m bf 8 = Some (Vlong (Int64.repr 8)) ->
+  Mem.load Mint64 m bw 0 = Some (Vlong w) ->
+  Mem.store Mint64 m bw 0 (Vlong q) = Some m1 ->
+  Mem.load Mint64 m1 bf 8 = Some (Vlong (Int64.repr 8)) ->
+  Mem.store Mint64 m1 bf 8 (Vlong (Int64.repr 0)) = Some m2 ->
+  q = Int64.or c
+        (Int64.shl k
+          (Int64.sub (Int64.repr 8) (Int64.repr 8))) ->
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBclear = Some 71%positive ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr 71%positive Ptrofs.zero) =
+    Some (Internal f_LSBclear) ->
+  Genv.find_symbol (Clight.genv_genv ge0) _LSBkeep = Some 72%positive ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr 72%positive Ptrofs.zero) =
+    Some (Internal f_LSBkeep) ->
+  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBclear)
+    (Vlong w :: Vlong (Int64.repr 8) :: nil) E0 m (Vlong c) ->
+  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBkeep)
+    (Vlong (Int64.repr (Int.unsigned x)) ::
+     Vlong (Int64.repr 8) :: nil) E0 m (Vlong k) ->
+  ClightBigstep.Clight2.eval_funcall ge0 m
+    (Internal f_simplicity_write8)
+    (Vptr bf Ptrofs.zero :: Vint x :: nil)
+    E0 m2 Vundef.
+Proof.
+  intros m bf bw x w c k q m1 m2 H_edge H_offset H_word H_store_word
+    H_offset1 H_store_offset Hq Hsym_clear Hfun_clear Hsym_keep Hfun_keep
+    Hclear Hkeep.
+  eapply ClightBigstep.eval_funcall_internal
+    with (e := empty_env) (le1 := le_write8_x bf x) (m1 := m)
+         (le2 := le_w8_x_final bf bw x w c k) (m2 := m2)
+         (out := Out_normal) (vres := Vundef).
+  - apply entry_write8_x.
+  - eapply write8_body_x; eauto.
+  - cbn; reflexivity.
+  - simpl; reflexivity.
+Qed.
