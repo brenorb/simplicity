@@ -227,6 +227,104 @@ Definition increment8_sum_expr : expr :=
       (Econst_int (Int.repr 1) tint) tuint)
     tuchar.
 
+Definition increment8_u (r : int) : int := Int.zero_ext 8 r.
+
+Definition increment8_carry_bit (r : int) : int :=
+  if Int.ltu (Int.sub (Int.repr 255) (Int.repr 1)) (increment8_u r)
+  then Int.one else Int.zero.
+
+Definition increment8_sum_raw (r : int) : int :=
+  Int.add (Int.mul Int.one (increment8_u r)) Int.one.
+
+Definition increment8_byte (r : int) : int :=
+  Int.zero_ext 8 (increment8_sum_raw r).
+
+Lemma cast_increment8_u_to_uint : forall (m : mem) (r : int),
+  sem_cast (Vint (increment8_u r)) tuchar tuint m =
+    Some (Vint (increment8_u r)).
+Proof.
+  intros m r.
+  unfold increment8_u.
+  unfold sem_cast, classify_cast.
+  cbn.
+  change (Some (Vint (Int.zero_ext 8 r)) =
+    Some (Vint (Int.zero_ext 8 r))).
+  reflexivity.
+Qed.
+
+Lemma eval_increment8_carry : forall (m : mem) (bl bd bs : block)
+    (ofs : ptrofs) (r : int),
+  eval_expr ge0 (e_increment8 bl) (le_increment8_x bd bs ofs r) m
+    increment8_carry_expr (Vint (increment8_carry_bit r)).
+Proof.
+  intros m bl bd bs ofs r.
+  unfold increment8_carry_expr, increment8_carry_bit.
+  eapply eval_Ebinop.
+  - eapply eval_Ebinop.
+    + eapply eval_Ebinop.
+      * apply eval_Econst_int.
+      * apply eval_Econst_int.
+      * cbn; vm_compute; reflexivity.
+    + apply eval_Econst_int.
+    + cbn; reflexivity.
+  - eapply eval_Etempvar.
+    simpl [le_increment8_x le_increment8_read le_increment8]. reflexivity.
+  - change (Some (Val.of_bool
+      (Int.ltu (Int.sub (Int.repr 255) (Int.repr 1)) (increment8_u r))) =
+      Some (Vint
+        (if Int.ltu (Int.sub (Int.repr 255) (Int.repr 1))
+            (increment8_u r)
+        then Int.one else Int.zero))).
+    destruct (Int.ltu (Int.sub (Int.repr 255) (Int.repr 1))
+      (increment8_u r)); reflexivity.
+Qed.
+
+Lemma cast_increment8_carry : forall (m : mem) (r : int),
+  sem_cast (Vint (increment8_carry_bit r))
+    (typeof increment8_carry_expr) tbool m =
+    Some (Vint (increment8_carry_bit r)).
+Proof.
+  intros m r.
+  unfold increment8_carry_bit.
+  unfold sem_cast, classify_cast.
+  destruct (Int.ltu (Int.sub (Int.repr 255) (Int.repr 1))
+    (increment8_u r)); cbn; reflexivity.
+Qed.
+
+Lemma eval_increment8_sum : forall (m : mem) (bl bd bs : block)
+    (ofs : ptrofs) (r : int),
+  eval_expr ge0 (e_increment8 bl) (le_increment8_x bd bs ofs r) m
+    increment8_sum_expr (Vint (increment8_byte r)).
+Proof.
+  intros m bl bd bs ofs r.
+  unfold increment8_sum_expr, increment8_byte, increment8_sum_raw,
+    increment8_u.
+  eapply eval_Ecast.
+  - eapply eval_Ebinop.
+    + eapply eval_Ebinop.
+      * apply eval_Econst_int.
+      * eapply eval_Etempvar.
+        simpl [le_increment8_x le_increment8_read le_increment8].
+        reflexivity.
+      * cbn; reflexivity.
+    + apply eval_Econst_int.
+    + cbn; reflexivity.
+  - cbn; reflexivity.
+Qed.
+
+Lemma cast_increment8_sum : forall (m : mem) (r : int),
+  sem_cast (Vint (increment8_byte r))
+    (typeof increment8_sum_expr) tuchar m =
+    Some (Vint (increment8_byte r)).
+Proof.
+  intros m r.
+  change (Some (Vint (Int.zero_ext 8 (increment8_byte r))) =
+    Some (Vint (increment8_byte r))).
+  unfold increment8_byte.
+  rewrite Int.zero_ext_idem by lia.
+  reflexivity.
+Qed.
+
 Definition increment8_write_stmt : statement :=
   Scall None
     (Evar _simplicity_write8
