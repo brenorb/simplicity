@@ -46,15 +46,31 @@ Definition one8_spec {term : Alg.Core.Algebra} :
   @Alg.Core.Combinators.comp Ty.Unit Bit Word8 term
     (@Bit.true Ty.Unit term) (@left_pad_low_1_8 term).
 
+(* Literal composition from Programs.Arith.full_increment / increment;
+   Word.fullAdder is the corresponding recursive full_add program. *)
+Definition full_increment8_spec {term : Alg.Core.Algebra} :
+    @Alg.Core.domain term (Ty.Prod Bit Word8) (Ty.Prod Bit Word8) :=
+  @Alg.Core.Combinators.comp (Ty.Prod Bit Word8)
+    (Ty.Prod Bit (Ty.Prod Word8 Word8)) (Ty.Prod Bit Word8) term
+    (@Alg.Core.Combinators.pair (Ty.Prod Bit Word8) Bit
+      (Ty.Prod Word8 Word8) term
+      (@Alg.Core.Combinators.take Bit Word8 Bit term
+        (@Alg.Core.Combinators.iden Bit term))
+      (@Alg.Core.Combinators.pair (Ty.Prod Bit Word8) Word8 Word8 term
+        (@Alg.Core.Combinators.drop Bit Word8 Word8 term
+          (@Alg.Core.Combinators.iden Word8 term))
+        (@Alg.Core.Combinators.comp (Ty.Prod Bit Word8) Ty.Unit Word8 term
+          (@Alg.Core.Combinators.unit (Ty.Prod Bit Word8) term)
+          (@Word.zero 3 term))))
+    (@Word.fullAdder 3 term).
+
 Definition increment8_spec {term : Alg.Core.Algebra} :
     @Alg.Core.domain term Word8 (Ty.Prod Bit Word8) :=
-  @Alg.Core.Combinators.comp Word8 (Ty.Prod Word8 Word8)
+  @Alg.Core.Combinators.comp Word8 (Ty.Prod Bit Word8)
     (Ty.Prod Bit Word8) term
-    (@Alg.Core.Combinators.pair Word8 Word8 Word8 term
-      (@Alg.Core.Combinators.iden Word8 term)
-      (@Alg.Core.Combinators.comp Word8 Ty.Unit Word8 term
-        (@Alg.Core.Combinators.unit Word8 term) (@one8_spec term)))
-    (@Word.adder 3 term).
+    (@Alg.Core.Combinators.pair Word8 Bit Word8 term
+      (@Bit.true Word8 term) (@Alg.Core.Combinators.iden Word8 term))
+    (@full_increment8_spec term).
 
 Definition increment8_spec_value :
     Ty.tySem Word8 -> Ty.tySem (Ty.Prod Bit Word8) :=
@@ -65,7 +81,8 @@ Definition one8_spec_value : Ty.tySem Word8 :=
 
 Lemma increment8_spec_fun (x : Ty.tySem Word8) :
     increment8_spec_value x =
-      @Word.adder 3 Alg.CoreFunSem (x, one8_spec_value).
+      @Word.fullAdder 3 Alg.CoreFunSem
+        (inr tt, (x, @Word.zero 3 Alg.CoreFunSem tt)).
 Proof. reflexivity. Qed.
 
 Lemma one8_spec_correct :
@@ -105,11 +122,18 @@ Proof.
   unfold increment8_spec.
   apply Alg.comp_Parametric.
   - apply Alg.pair_Parametric.
+    + apply Bit.true_Parametric.
     + apply Alg.iden_Parametric.
-    + apply Alg.comp_Parametric.
-      * apply Alg.unit_Parametric.
-      * apply one8_spec_parametric.
-  - apply Word.adder_Parametric.
+  - unfold full_increment8_spec.
+    apply Alg.comp_Parametric.
+    + apply Alg.pair_Parametric.
+      * apply Alg.take_Parametric. apply Alg.iden_Parametric.
+      * apply Alg.pair_Parametric.
+        -- apply Alg.drop_Parametric. apply Alg.iden_Parametric.
+        -- apply Alg.comp_Parametric.
+           ++ apply Alg.unit_Parametric.
+           ++ apply Word.zero_Parametric.
+    + apply Word.fullAdder_Parametric.
 Qed.
 
 Lemma one8_spec_initial (M : CIMonad.type) : forall (u : Ty.tySem Ty.Unit),
