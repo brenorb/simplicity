@@ -6,15 +6,16 @@ From compcert Require Import ClightBigstep Memory Events Globalenvs.
 Require Import C.jet_exec C.jet_one8 C.jet_read8 C.jet_increment8.
 Require Import C.jet_increment8_exec C.jet_frame_copy C.jets.
 Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
+Require Import C.jet_increment8_updates C.jet_increment8_general_exec.
 Local Open Scope Z_scope.
 
-Theorem eval_increment8_concrete m bd bs bi bw w :
+Theorem eval_increment8_concrete_word m bd bs bi bw w old :
   Mem.load Mptr m bs 0 = Some (Vptr bi (Ptrofs.repr 8)) ->
   Mem.load Mint64 m bs 8 = Some (Vlong (Int64.repr 56)) ->
   Mem.load Mint64 m bi 0 = Some (Vlong w) ->
   Mem.load Mptr m bd 0 = Some (Vptr bw Ptrofs.zero) ->
   Mem.load Mint64 m bd 8 = Some (Vlong (Int64.repr 9)) ->
-  Mem.load Mint64 m bw 0 = Some (Vlong Int64.zero) ->
+  Mem.load Mint64 m bw 0 = Some (Vlong old) ->
   Mem.valid_access m Mint64 bd 8 Writable ->
   Mem.valid_access m Mint64 bw 0 Writable ->
   bd <> bw ->
@@ -24,7 +25,7 @@ Theorem eval_increment8_concrete m bd bs bi bw w :
       [Vptr bd Ptrofs.zero; Vptr bs Ptrofs.zero; Vundef]
       E0 mf (Vint Int.one) /\
     Mem.load Mint64 mf bw 0 =
-      Some (Vlong (increment8_written_word (read8_result w))) /\
+      Some (Vlong (increment8_word_update old (read8_result w))) /\
     Mem.load Mint64 mf bd 8 = Some (Vlong Int64.zero) /\
     (forall chunk b ofs, Mem.valid_block m b -> b <> bd -> b <> bw ->
       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
@@ -55,7 +56,7 @@ Proof.
   { erewrite Mem.load_storebytes_other; [eapply Mem.load_alloc_other; eauto | exact SC | auto]. }
   assert (HDOC : Mem.load Mint64 mc bd 8 = Some (Vlong (Int64.repr 9))).
   { erewrite Mem.load_storebytes_other; [eapply Mem.load_alloc_other; eauto | exact SC | auto]. }
-  assert (HWC : Mem.load Mint64 mc bw 0 = Some (Vlong Int64.zero)).
+  assert (HWC : Mem.load Mint64 mc bw 0 = Some (Vlong old)).
   { erewrite Mem.load_storebytes_other; [eapply Mem.load_alloc_other; eauto | exact SC | auto]. }
   assert (PDC : Mem.valid_access mc Mint64 bd 8 Writable).
   { eapply Mem.storebytes_valid_access_1; [exact SC |].
@@ -77,11 +78,11 @@ Proof.
   assert (PWO : Mem.valid_access mo Mint64 bw 0 Writable)
     by (eauto using Mem.store_valid_access_1).
   destruct (Mem.valid_access_store mo Mint64 bw 0
-    (Vlong (increment8_carry_word (read8_result w))) PWO) as [mb SB].
+    (Vlong (increment8_carry_update old (read8_result w))) PWO) as [mb SB].
   assert (PWB : Mem.valid_access mb Mint64 bw 0 Writable)
     by (eapply Mem.store_valid_access_1; eauto).
   destruct (Mem.valid_access_store mb Mint64 bw 0
-    (Vlong (increment8_written_word (read8_result w))) PWB) as [mw SW].
+    (Vlong (increment8_word_update old (read8_result w))) PWB) as [mw SW].
   assert (PDW : Mem.valid_access mw Mint64 bd 8 Writable)
     by (eauto 8 using Mem.store_valid_access_1).
   destruct (Mem.valid_access_store mw Mint64 bd 8 (Vlong Int64.zero) PDW)
@@ -96,7 +97,7 @@ Proof.
     eapply Mem.perm_storebytes_1; [exact SC |].
     apply PL; exact Hrange. }
   destruct (Mem.range_perm_free me bl 0 16 PLE) as [mf HF].
-  destruct (increment8_helper_statements mc mr mo mb mw me bl bd bs bi bw w
+  destruct (increment8_helper_statements_word mc mr mo mb mw me bl bd bs bi bw w old
     HLE HLO HIC HDEC HDOC HWC HLd HLw HDw SR SO SB SW SE)
     as [Hread [Hbit Hwrite]].
   exists mf. split.
@@ -138,4 +139,33 @@ Proof.
         erewrite Mem.load_store_other; [|exact SR|auto].
         erewrite Mem.load_storebytes_other; [|exact SC|auto].
         eapply Mem.load_alloc_unchanged; eauto.
+Qed.
+
+(** Backwards-compatible zero-word corollary. *)
+Theorem eval_increment8_concrete m bd bs bi bw w :
+  Mem.load Mptr m bs 0 = Some (Vptr bi (Ptrofs.repr 8)) ->
+  Mem.load Mint64 m bs 8 = Some (Vlong (Int64.repr 56)) ->
+  Mem.load Mint64 m bi 0 = Some (Vlong w) ->
+  Mem.load Mptr m bd 0 = Some (Vptr bw Ptrofs.zero) ->
+  Mem.load Mint64 m bd 8 = Some (Vlong (Int64.repr 9)) ->
+  Mem.load Mint64 m bw 0 = Some (Vlong Int64.zero) ->
+  Mem.valid_access m Mint64 bd 8 Writable ->
+  Mem.valid_access m Mint64 bw 0 Writable ->
+  bd <> bw ->
+  exists mf,
+    ClightBigstep.Clight2.eval_funcall ge0 m
+      (Internal f_simplicity_increment_8)
+      [Vptr bd Ptrofs.zero; Vptr bs Ptrofs.zero; Vundef]
+      E0 mf (Vint Int.one) /\
+    Mem.load Mint64 mf bw 0 =
+      Some (Vlong (increment8_written_word (read8_result w))) /\
+    Mem.load Mint64 mf bd 8 = Some (Vlong Int64.zero) /\
+    (forall chunk b ofs, Mem.valid_block m b -> b <> bd -> b <> bw ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+Proof.
+  intros HSE HSO HI HDE HDO HW PD PW HDw.
+  destruct (eval_increment8_concrete_word m bd bs bi bw w Int64.zero
+    HSE HSO HI HDE HDO HW PD PW HDw) as [mf [HC [HO [HF HP]]]].
+  rewrite increment8_word_update_zero in HO.
+  exists mf. split; [exact HC |]. split; [exact HO |]. split; assumption.
 Qed.

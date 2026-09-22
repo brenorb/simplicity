@@ -47,6 +47,12 @@ Definition loads_outside_blocks (m m' : mem) (bf bw : block) : Prop :=
   forall chunk b ofs, Mem.valid_block m b -> b <> bf -> b <> bw ->
     Mem.load chunk m' b ofs = Mem.load chunk m b ofs.
 
+Definition single_word_input (m : mem) (bf bw : block)
+    (count : Z) (payload : int64) : Prop :=
+  frame_fields m bf bw 8 (64 - count) /\ 0 < count <= 64 /\
+  exists w, Mem.load Mint64 m bw 0 = Some (Vlong w) /\
+    Int64.zero_ext count w = Int64.zero_ext count payload.
+
 (** Useful specialization for the first generalization milestone. Unlike the
     old hypotheses this places no restriction on the initial backing word. *)
 Definition single_word_output (m : mem) (bf bw : block) (count : Z) : Prop :=

@@ -1,29 +1,13 @@
 (** Arbitrary padding and output-word contents: representation lemmas for the
     actual read8/carry/write8 data path, connected to its Simplicity term. *)
 From Coq Require Import ZArith Lia Bool.
-From compcert Require Import Coqlib Integers.
+From compcert Require Import Coqlib Integers Memory AST.
 Require Import Simplicity.Word C.jet_spec C.jet_read8 C.jet_increment8.
 Require Import C.jet_increment8_exec C.jet_increment8_spec.
 Require Import C.jet_word_bits C.jet_word_decode C.jet_frame_spec.
 Local Open Scope Z_scope.
 
-Definition increment8_carry_update (old : int64) (r : int) : int64 :=
-  if Int.ltu (Int.sub (Int.repr 255) (Int.repr 1)) (increment8_u r)
-  then Int64.or old (Int64.repr 256) else clear_low 9 old.
-
-Definition increment8_word_update (old : int64) (r : int) : int64 :=
-  put_low 8 (increment8_carry_update old r)
-    (Int64.repr (Int.unsigned (increment8_byte r))).
-
-Lemma increment8_word_update_zero r :
-  increment8_word_update Int64.zero r = increment8_written_word r.
-Proof.
-  unfold increment8_word_update, increment8_carry_update, put_low,
-    increment8_written_word, increment8_carry_word.
-  rewrite Int64.zero_ext_and by lia.
-  destruct (Int.ltu (Int.sub (Int.repr 255) (Int.repr 1)) (increment8_u r));
-    reflexivity.
-Qed.
+Require Import C.jet_increment8_updates.
 
 Lemma increment8_carry_update_bit8 old r :
   Int64.testbit (increment8_carry_update old r) 8 =
@@ -94,4 +78,24 @@ Proof.
   rewrite increment8_word_update_decode.
   rewrite <- read8_result_projection.
   rewrite <- encode_decode_word8. apply increment8_output_denotes_spec.
+Qed.
+
+Lemma decode_word8_encode x : decode_word8 (encode_word8 x) = x.
+Proof.
+  assert (HR : 0 <= @toZ (WordToZ 3) x < 256).
+  { rewrite toZ_mod. apply Z.mod_pos_bound. reflexivity. }
+  unfold decode_word8, encode_word8.
+  rewrite Int64.unsigned_repr by (change (0 <= toZ x <= 18446744073709551615); lia).
+  apply from_toZ.
+Qed.
+
+Lemma single_word_input_decode m bs bi x :
+  single_word_input m bs bi 8 (encode_word8 x) ->
+  exists w, frame_fields m bs bi 8 56 /\
+    Mem.load AST.Mint64 m bi 0 = Some (Values.Vlong w) /\ decode_word8 w = x.
+Proof.
+  intros [HF [HN [w [HW HP]]]].
+  exists w. split; [exact HF |]. split; [exact HW |].
+  rewrite <- (decode_word8_projection w), HP.
+  rewrite decode_word8_projection. apply decode_word8_encode.
 Qed.
