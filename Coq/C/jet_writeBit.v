@@ -40,6 +40,58 @@ Proof.
   - constructor.
 Qed.
 
+Definition le_writeBit0 (bf : block) : temp_env :=
+  PTree.set _bit (Vint Int.zero)
+    (PTree.set _frame (Vptr bf Ptrofs.zero)
+      (create_undef_temps f_writeBit.(fn_temps))).
+
+Lemma entry_writeBit0 : forall (m : mem) (bf : block),
+  function_entry2 ge0 f_writeBit
+    (Vptr bf Ptrofs.zero :: Vint Int.zero :: nil) m
+    empty_env (le_writeBit0 bf) m.
+Proof.
+  intros m bf.
+  constructor.
+  - constructor.
+  - constructor.
+    + simpl; intro H; destruct H as [H | H].
+      * vm_compute in H; congruence.
+      * contradiction.
+    + constructor.
+      * simpl; intro H; contradiction.
+      * constructor.
+  - intros id1 id2 H1 H2 Heq.
+    simpl in H1, H2.
+    subst id2.
+    repeat match goal with
+    | H : _ \/ _ |- _ => destruct H
+    end.
+    all: vm_compute in *; congruence.
+  - constructor.
+  - reflexivity.
+Qed.
+
+Definition le_writeBit_offset (bf : block) : temp_env :=
+  PTree.set _t'8 (Vlong (Int64.repr 9)) (le_writeBit0 bf).
+
+Definition le_writeBit_edge (bf bw : block) : temp_env :=
+  PTree.set _t'6 (Vptr bw Ptrofs.zero) (le_writeBit_offset bf).
+
+Definition le_writeBit_t7 (bf bw : block) : temp_env :=
+  PTree.set _t'7 (Vlong (Int64.repr 8)) (le_writeBit_edge bf bw).
+
+Definition le_writeBit_ptr (bf bw : block) : temp_env :=
+  PTree.set _dst_ptr (Vptr bw Ptrofs.zero) (le_writeBit_t7 bf bw).
+
+Definition le_writeBit_t2 (bf bw : block) : temp_env :=
+  PTree.set _t'2 (Vlong Int64.zero) (le_writeBit_ptr bf bw).
+
+Definition le_writeBit_t3 (bf bw : block) : temp_env :=
+  PTree.set _t'3 (Vlong (Int64.repr 8)) (le_writeBit_t2 bf bw).
+
+Definition le_writeBit_t1 (bf bw : block) : temp_env :=
+  PTree.set _t'1 (Vlong Int64.zero) (le_writeBit_t3 bf bw).
+
 Definition le_LSBclear9 (w : int64) : temp_env :=
   PTree.set _n (Vlong (Int64.repr 9))
     (PTree.set _x (Vlong w) (PTree.empty val)).
