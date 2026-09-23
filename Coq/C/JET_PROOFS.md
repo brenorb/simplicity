@@ -11,6 +11,18 @@ The result equals the canonical primitive `one8_spec`, the final frame cursor
 is `cursor-8`, and the already-written prefix is preserved. Loads outside the
 modified cursor/word ranges are preserved even within the destination blocks.
 
+`jet_one_wide_layout.v:eval_one_wide_layout_matches_spec` extends the complete
+one-jet result to **one_16, one_32 and one_64**, selected by `W16`, `W32` and
+`W64`. It uses the actual generated function bodies and the canonical
+`true >>> left_pad_low word1 wordN` primitive Simplicity programs. It supports
+arbitrary non-wrapping output cursors and crossings, initialized arbitrary
+output contents, and arbitrary aligned source-frame copy addresses. The
+shared `eval_write_wide_layout` proves actual 16/32/64-bit writer execution
+for every unsigned-long payload, with width-parametric projection/prefix lemmas.
+All successful stores are derived from `write_frame_at`; none are assumed by
+the public complete-jet theorem. `wide_output_at` observes the extracted n-bit
+payload at its actual word locations and decodes it to the Simplicity word.
+
 `jet_increment8_layout.v:eval_increment8_layout_matches_spec` and
 `jet_add8_layout.v:eval_add8_layout_matches_spec` now prove the complete
 increment/add calls with arbitrary non-wrapping input **and output** frame
@@ -141,7 +153,7 @@ the older specializations have additional restrictions described below:
 The output frame and backing words must still be in distinct CompCert blocks;
 same-block disjoint frame/backing regions are not covered. Other target ABIs,
 fully debug-enabled execution (without `PRODUCTION`), and larger-width
-arithmetic jets are not established by these public theorems.
+increment/add jets are not established by these public theorems.
 No binary-level linking or native ARM execution
 claim is made. The results are constructive terminating Clight executions,
 not separate universal determinism/small-step theorems.
@@ -168,6 +180,13 @@ not separate universal determinism/small-step theorems.
   addresses. `jet_increment8_layout_exec.v` and `jet_add8_layout_exec.v` compose
   the actual generated calls; `jet_increment8_layout.v` and `jet_add8_layout.v`
   discharge their memory/execution premises and prove the canonical specifications.
+- `jet_word_slice.v`, `jet_wide.v`, `jet_write_wide_layout.v`,
+  `jet_output_slice.v`, `jet_write_wide_layout_total.v`: symbolic bit algebra,
+  checked generated-function selection, and total arbitrary-layout 16/32/64-bit
+  writers. The unsigned-long shifts are proved directly, without reusing the
+  byte writer's different integer-promotion semantics.
+- `jet_wide_spec.v`, `jet_one_wide_layout_exec.v`, `jet_one_wide_layout.v`:
+  canonical wider one specifications and complete C-call equivalence.
 - `jet_frame_layout.v`, `jet_read8_layout.v`, `jet_read8_layout_total.v`:
   frame-field accesses at arbitrary non-wrapping structure addresses and a
   total byte reader for arbitrary backing-word indices, including crossings.

@@ -59,13 +59,13 @@ Definition frame_writer_call fid aty rty arg :=
     (Tcons (tptr (Tstruct _frameItem noattr)) (Tcons aty Tnil)) rty cc_default))
     [Etempvar _dst (tptr (Tstruct _frameItem noattr)); arg].
 
-Lemma call_frame_writer e le m mf bd dofs fid f b aty rty arg v vret :
+Lemma call_frame_writer_cast e le m mf bd dofs fid f b aty rty arg vraw v vret :
   e!fid = None -> le!_dst = Some (Vptr bd dofs) ->
   type_of_function f = Tfunction
     (Tcons (tptr (Tstruct _frameItem noattr)) (Tcons aty Tnil)) rty cc_default ->
   Genv.find_symbol (Clight.genv_genv ge0) fid = Some b ->
   Genv.find_funct (Clight.genv_genv ge0) (Vptr b Ptrofs.zero) = Some (Internal f) ->
-  eval_expr ge0 e le m arg v -> sem_cast v (typeof arg) aty m = Some v ->
+  eval_expr ge0 e le m arg vraw -> sem_cast vraw (typeof arg) aty m = Some v ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f) [Vptr bd dofs; v] E0 mf vret ->
   ClightBigstep.Clight2.exec_stmt ge0 e le m (frame_writer_call fid aty rty arg)
     E0 le mf Out_normal.
@@ -85,6 +85,18 @@ Proof.
   - exact HT.
   - exact HW.
 Qed.
+
+Lemma call_frame_writer e le m mf bd dofs fid f b aty rty arg v vret :
+  e!fid = None -> le!_dst = Some (Vptr bd dofs) ->
+  type_of_function f = Tfunction
+    (Tcons (tptr (Tstruct _frameItem noattr)) (Tcons aty Tnil)) rty cc_default ->
+  Genv.find_symbol (Clight.genv_genv ge0) fid = Some b ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr b Ptrofs.zero) = Some (Internal f) ->
+  eval_expr ge0 e le m arg v -> sem_cast v (typeof arg) aty m = Some v ->
+  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f) [Vptr bd dofs; v] E0 mf vret ->
+  ClightBigstep.Clight2.exec_stmt ge0 e le m (frame_writer_call fid aty rty arg)
+    E0 le mf Out_normal.
+Proof. intros. eapply call_frame_writer_cast; eauto. Qed.
 
 
 

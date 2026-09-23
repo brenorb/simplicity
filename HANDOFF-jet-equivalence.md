@@ -43,6 +43,10 @@ layout theorems also remove fixed output bases, word indices and the cursor-72
 ceiling. All three byte jets now support arbitrary non-wrapping frame/edge
 addresses and cursors under the explicit input/output contracts. The destination
 frame and backing words are still required to occupy distinct memory blocks.
+The same general-layout result now covers `one_16`, `one_32` and `one_64`, via
+`eval_one_wide_layout_matches_spec`. The actual 16/32/64-bit frame writers are
+proved for all unsigned-long payloads, including crossings, with symbolic
+width-parametric bit lemmas. Wider increment/add remain the next extension.
 All preserve the already-written prefix. The crossing theorem consumes
 `write_frame` directly and constructs all stores from its permissions.
 The user's `jet-proof-review.patch` is an existing untracked review artifact
@@ -52,6 +56,8 @@ and must not be overwritten or included in proof commits.
 
 The new public results are:
 
+- `Coq/C/jet_one_wide_layout.v:eval_one_wide_layout_matches_spec`
+  (instantiate with `W16`, `W32` or `W64`)
 - `Coq/C/jet_increment8_layout.v:eval_increment8_layout_matches_spec`
 - `Coq/C/jet_add8_layout.v:eval_add8_layout_matches_spec`
 - `Coq/C/jet_one8_layout.v:eval_one8_layout_matches_spec`
@@ -213,7 +219,15 @@ assumption audit. Independent
    The output contracts still require the destination frame and backing words
    to occupy distinct CompCert blocks. Same-block disjoint regions and
    other ABIs are not claimed.
-2. Extend to larger widths, reusing the generalized frame infrastructure.
+2. Extend increment/add to larger widths, reusing the generalized infrastructure.
+   Complete `one_16`/`one_32`/`one_64` equivalence is now proved. The shared
+   `eval_write_wide_layout` consumes `write_frame_at` with 16/32/64 cells,
+   constructs every store, and returns `slice_output_at`, prefix preservation,
+   advanced frame fields, precise load-range preservation, and permissions.
+   Next generalize the reader and carry/value bridges. The generated LP64
+   `uint_fast16_t` and `uint_fast32_t` are unsigned long (64 bits), not C short
+   or int; inspect and prove those actual casts/shifts rather than mechanically
+   applying the byte reader's promotions.
    `add_8` now uses `Word.adder` as its canonical primitive specification,
    with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.
    Reuse those arithmetic lemmas rather than enumerating byte pairs.
@@ -313,6 +327,17 @@ construct all their memories and helper executions, then reuse the existing
 canonical arithmetic bridges. Keep identifier-disjointness computation scoped
 to identifier hypotheses: `vm_compute in *` also unfolds large execution
 hypotheses and the entire generated environment, causing avoidable blowups.
+
+Wider-writer notes: `jet_word_slice.v` proves projections and prefix preservation
+for any width up to 64. `jet_write_wide_layout.v` selects the three actual
+generated functions and proves both paths using the existing frame tactics.
+Split the width **before** creating existential final temporary environments;
+otherwise solving the first width incorrectly constrains shared evars in the
+other width branches and triggers very expensive failed conversion checks.
+The general writer passed the targeted build/assumption audit and independent
+`coqchk -silent C.jet_write_wide_layout_total`. Its pure projections are closed
+under the global context. `call_frame_writer_cast` now handles promotions
+that change the CompCert value kind (e.g. the one-jet's int literal to long).
 
 Known check times: a production AST change triggers the older `jet_exec.v`
 (about four minutes) and `jet_write8.v` (about three minutes). The new symbolic
