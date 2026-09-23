@@ -226,18 +226,22 @@ assumption audit. Independent
    `eval_write_wide_layout` consumes `write_frame_at` with 16/32/64 cells,
    constructs every store, and returns `slice_output_at`, prefix preservation,
    advanced frame fields, precise load-range preservation, and permissions.
-   Define a reusable logical input bit-slice contract first: its meaning should
-   be stated in terms of the Simplicity word's bit order, independently of the
-   C reader's branch/alignment algorithm. Then prove the actual W16 `read16`
-   execution against that interface, including cursor-dependent non-crossing
-   subcases and crossings. The generated body contains a loop whose Clight
-   big-step expansion is a loop/break sequence; branch conditions depend on
-   the cursor remainder, so do not hardcode every conditional to one branch.
-   The acceptance criterion for this milestone is a reusable reader contract
+   The reusable logical MSB-first input-bit/word predicates and their append
+   and load-preservation lemmas are now in `jet_input_layout.v`.
+   Checked execution kernels for the actual generated `read16` body cover
+   cursor zero (non-crossing) and cursor 56 (crossing). The crossing proof
+   executes both `LSBkeep` calls and the actual false loop guard after the
+   intermediate cursor update. These restricted-cursor helpers still take
+   successful cursor stores and the post-store low-word load as premises;
+   they are not yet the reader contract. Next generalize both paths to
+   arbitrary cursor remainders, derive stores from permissions, and connect
+   the returned value to `frame_input_word_at`. For W16 the crossing branch
+   leaves fewer than 16 bits, so prove the loop guard false rather than
+   assuming it. The acceptance criterion remains a reusable reader contract
    that composes into complete `increment_16` C-to-Simplicity equivalence,
-   including carry/value arithmetic and writer composition, rather than an
-   isolated reader execution theorem. Next prove `add_16`, then extend to
-   32/64 only after the interfaces compose cleanly. The generated LP64
+   including carry/value arithmetic and writer composition; then prove
+   `add_16` before extending to 32/64.
+   The generated LP64
    `uint_fast16_t` and `uint_fast32_t` are unsigned long (64 bits), not C short
    or int; prove those actual casts/shifts rather than mechanically applying
    the byte reader's promotions.

@@ -196,6 +196,13 @@ not separate universal determinism/small-step theorems.
   actual read to a represented Simplicity `Word8`. `jet_frame_copy_layout.v`
   proves copying a source frame at a nonzero offset preserves its fields.
   Both are composed into the newest public input-layout jet theorems.
+- `jet_input_layout.v` also defines algorithm-independent, MSB-first logical
+  input bit/word predicates with append decomposition and load-preservation
+  lemmas. `jet_read16_layout_exec.v` proves two restricted execution kernels
+  for the actual generated W16 reader: cursor zero (non-crossing) and cursor
+  56 (crossing). Both assume successful cursor stores; the crossing lemma also
+  takes the post-store low-word load as a premise. These are not yet a public
+  reader contract or a complete jet-equivalence theorem.
 - `jet_frame_spec.v`: reusable bit/cursor/address predicates and the concrete
   single-word input/output contracts used by the public theorems.
   `jet_input_position.v` adds arbitrary in-word input slices. `write_frame`
