@@ -41,6 +41,18 @@ Definition frame_input_bits_at (m : mem) (bw : block) (edge cursor : Z)
   forall i b, nth_error bits i = Some b ->
     frame_input_bit_at m bw edge (cursor + Z.of_nat i) b.
 
+Definition frame_input_word_bits {n : nat} (value : Ty.tySem (Word n)) : list bool :=
+  map (fun i => Z.testbit (@toZ (WordToZ n) value)
+       (Z.of_nat (Nat.pow 2 n - S i))) (seq 0 (Nat.pow 2 n)).
+
+Lemma frame_input_word_bits_length {n : nat} (value : Ty.tySem (Word n)) :
+  length (frame_input_word_bits value) = Nat.pow 2 n.
+Proof. unfold frame_input_word_bits. rewrite map_length, seq_length. reflexivity. Qed.
+
+Definition frame_input_word_at {n : nat} (m : mem) (bw : block)
+    (edge cursor : Z) (value : Ty.tySem (Word n)) : Prop :=
+  frame_input_bits_at m bw edge cursor (frame_input_word_bits value).
+
 Lemma frame_input_bits_at_app m bw edge cursor xs ys :
   frame_input_bits_at m bw edge cursor (xs ++ ys) <->
   frame_input_bits_at m bw edge cursor xs /\
