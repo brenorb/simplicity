@@ -22,9 +22,15 @@ Require Import C.jet_write_wide_layout_total.
 Require Import C.jet_one_wide_layout.
 Require Import C.jet_read16_layout_exec.
 Require Import C.jet_read16_layout_total.
+Require Import C.jet_read16_input_word.
 Print Assumptions eval_read16_layout_non_crossing.
 Print Assumptions eval_read16_layout_crossing.
 Print Assumptions eval_read16_layout_total.
+Print Assumptions frame_input_word_bits_nth.
+Print Assumptions frame_input_word_bits16_nth.
+Print Assumptions frame_input_word_at_bit16.
+Print Assumptions cursor_add_index_non_crossing.
+Print Assumptions cursor_add_index_crossing.
 Print Assumptions eval_read16_layout_cursor56.
 Print Assumptions eval_one_wide_layout_matches_spec.
 Print Assumptions jet_wide_spec.decode_wide_one.
