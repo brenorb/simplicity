@@ -198,11 +198,19 @@ not separate universal determinism/small-step theorems.
   Both are composed into the newest public input-layout jet theorems.
 - `jet_input_layout.v` also defines algorithm-independent, MSB-first logical
   input bit/word predicates with append decomposition and load-preservation
-  lemmas. `jet_read16_layout_exec.v` proves two restricted execution kernels
-  for the actual generated W16 reader: cursor zero (non-crossing) and cursor
-  56 (crossing). Both assume successful cursor stores; the crossing lemma also
-  takes the post-store low-word load as a premise. These are not yet a public
-  reader contract or a complete jet-equivalence theorem.
+  lemmas. `jet_read16_layout_exec.v:eval_read16_layout_non_crossing` proves
+  actual W16 reader execution for arbitrary non-wrapping frame/edge addresses
+  and cursors with `cursor mod 64 <= 48`. It still assumes the successful
+  final cursor store. `eval_read16_layout_crossing` covers every crossing
+  remainder (`48 < cursor mod 64 < 64`) at arbitrary non-wrapping addresses
+  and word indices. It assumes two successful cursor stores, but derives the
+  intervening low-word load from the initial load and block separation. The
+  fixed-cursor zero/56 kernels remain regression results.
+  These are checked execution lemmas, not yet a public reader contract or
+  complete increment/add equivalence for W16. In particular, the logical
+  `frame_input_word_at` predicate still needs to be connected to the returned
+  integer, with an exact unsigned-value equality and a representable final
+  cursor; decoding modulo 65536 alone is insufficient for carry arithmetic.
 - `jet_frame_spec.v`: reusable bit/cursor/address predicates and the concrete
   single-word input/output contracts used by the public theorems.
   `jet_input_position.v` adds arbitrary in-word input slices. `write_frame`
@@ -304,9 +312,28 @@ env OPAMROOT=/Users/brenorb/.opam-simplicity-root \
   opam exec --switch=simplicity -- bash Coq/build-jets.sh -j2
 ```
 
-The script generates a targeted makefile with dependency ordering. It uses the
-normal logical name `C.jets`; no `/tmp/jets.vo` or recursive `/tmp` load path is
-needed. `check_jet_assumptions.v` is the final build target.
+The script generates a targeted makefile with dependency ordering and builds
+**every module in `_CoqProject.jets`**, including `check_jet_assumptions.v`.
+Previously it built only the audit target's dependency closure, which could
+omit a listed experimental kernel; the W16 reader is now also explicitly
+imported and printed by the audit. `Print Assumptions` is an inspection report,
+not an automated axiom allowlist. It uses the normal logical name `C.jets`;
+no `/tmp/jets.vo` or recursive `/tmp` load path is needed.
+
+After building dependencies, the same script supports `--coqc`, `--coqtop`,
+and `--coqchk`, forwarding remaining arguments with the project's load paths.
+For example, in the environment above:
+
+```sh
+bash Coq/build-jets.sh --coqc -q C/jet_read16_layout_exec.v
+bash Coq/build-jets.sh --coqtop -quiet
+bash Coq/build-jets.sh --coqchk -silent C.jet_read16_layout_exec
+```
+
+Paths passed to these modes are relative to `Coq/`. They do not rebuild
+dependencies; use the normal build after changing an imported module. Use
+`--coqc` for final acceptance of a scratch proof: an interactive REPL can
+continue after an error and its exit status alone is not proof completion.
 
 The execution theorems inherit CompCert's existing classical logic,
 functional extensionality, real-number decision axioms, and the parameterized
@@ -331,6 +358,13 @@ The two-word-input increment/add milestones also passed the targeted build,
 assumption audit, and
 `coqchk -silent C.jet_increment8_two_words C.jet_add8_two_words` on the same date.
 The crossing-read interpretation is closed under the global context.
+
+On 2026-09-23, the general W16 crossing execution kernel passed direct `coqc`
+and independent `coqchk -silent C.jet_read16_layout_exec`. The expanded build
+of every module listed in `_CoqProject.jets`, including the updated W16
+assumption audit, also passed (exit status 0). The reader execution results
+inherit the same CompCert assumptions listed above; these checks do not yet
+establish the logical-input bridge or complete `increment_16` equivalence.
 
 ## Reproduce the generated AST
 

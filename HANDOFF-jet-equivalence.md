@@ -1,363 +1,293 @@
-# Handoff: C jet equivalence to Simplicity
+# Handoff: next complete arithmetic jet proof
 
-Updated 2026-09-23. All work is local on `feat/jet-equivalence`; nothing has
-been pushed. Continue using the Coq Proof Engineering skill and frequent,
-atomic local commits. The user permits asking Astra Medium for guidance when
-proof strategy or progress is difficult; a recent strategy-level review
-confirmed the reader-contract direction and recommended measuring it by
-end-to-end `increment_16` equivalence.
+Reviewed by Astra on 2026-09-23 for Luna High. Work locally on
+`feat/jet-equivalence`, with small checked commits and no push. Read
+[/Users/brenorb/.codex/skills/coq-proof-engineering/SKILL.md](/Users/brenorb/.codex/skills/coq-proof-engineering/SKILL.md)
+and its Clight reference before proof work.
 
-## Revised active goal (user-approved continuation)
+## Objective and current status
 
-Strengthen the implementation-to-Simplicity results, preserving the existing
-checked theorems as regression tests. First introduce reusable frame/bit-slice
-contracts and remove zero-output and exact-input-padding restrictions for
-`one_8` and `increment_8`. Then generalize valid cursor positions and crossing
-paths, cover the intended assertion configuration, and extend to `add_8` and
-larger widths. Improve symbolic word lemmas and reusable memory contracts as
-needed; never replace actual helper execution with assumed behavior.
+Prove execution of the **actual C library jet**, represented by the generated
+CompCert Clight body, returns the result of its canonical primitive Simplicity
+program. Mathematical correctness of an arithmetic specification is only a
+bridge used inside that proof. No admits, new proof axioms, unchecked casts,
+assumed helper executions, or successful-store premises in public jet theorems.
 
-The app goal is active again. Its old objective cannot be edited through the
-available API; this file records the revised plan and supersedes the obsolete
-instruction in that record to consult Astra Medium.
+The broader user-approved objective still includes unrestricted initialized
+output contents, arbitrary unrelated input bits, valid non-wrapping cursors
+and crossings, the intended assertion configuration, and more arithmetic jets.
+Much of this is already done. Do not restart the byte work or toolchain setup.
 
-Completed: unrestricted initialized output words, arbitrary unused input bits,
-independent in-word input/output cursors for increment (read 0..56, write 9..64),
-and one at output cursors 8..64 plus all seven two-word splits (65..71).
-Also completed: all-input `add_8` equivalence at independent non-crossing
-read cursors 0..48 and write cursors 9..64, with arbitrary input padding and
-initialized output contents. Its value bridge is symbolic, not exhaustive.
-The newest `one_8` theorem supports arbitrary non-wrapping source/output
-structure addresses, output edge addresses, and output cursors/word indices,
-including crossings. It consumes `write_frame_at` and a readable aligned
-16-byte source copy region, and proves the canonical primitive result.
-Increment and add also have complete crossing-output equivalence theorems
-for cursors 65..72: all eight ways their nine output bits span two words.
-The carry-at-the-boundary case (cursor 65) is included.
-The preceding frame theorems also cover two-word input alignment: read cursors 0..120
-for increment and 0..112 for add, with independent output cursors 9..72. This includes
-crossing reads, either operand crossing, and exact-boundary reads. Their input
-frame edge is offset 16, with high/low words at offsets 8/0.
-The newest input-layout theorems remove those input restrictions: source-frame
-offsets, input edge addresses, and backing-word indices are arbitrary, subject
-to explicit non-wrapping bounds and readable byte slices. The newest complete
-layout theorems also remove fixed output bases, word indices and the cursor-72
-ceiling. All three byte jets now support arbitrary non-wrapping frame/edge
-addresses and cursors under the explicit input/output contracts. The destination
-frame and backing words are still required to occupy distinct memory blocks.
-The same general-layout result now covers `one_16`, `one_32` and `one_64`, via
-`eval_one_wide_layout_matches_spec`. The actual 16/32/64-bit frame writers are
-proved for all unsigned-long payloads, including crossings, with symbolic
-width-parametric bit lemmas. Wider increment/add remain the next extension.
-All preserve the already-written prefix. The crossing theorem consumes
-`write_frame` directly and constructs all stores from its permissions.
-The user's `jet-proof-review.patch` is an existing untracked review artifact
-and must not be overwritten or included in proof commits.
+The app goal was **paused** when inspected for this review. This file does not
+resume it or mark it complete. The old goal text's automatic delegation rule
+is obsolete; later user instructions allow occasional strategy guidance.
+Astra's current assignment is this review and handoff, not completing all
+remaining wider jets in this turn.
 
-## What is proved
+| Checked source result | Actual scope |
+| --- | --- |
+| `jet_one8_layout.v`, `jet_increment8_layout.v`, `jet_add8_layout.v` | Complete individual jet calls under arbitrary non-wrapping input/output layouts, including crossings, with initial-memory contracts. |
+| `jet_one_wide_layout.v:eval_one_wide_layout_matches_spec` | Complete `one_16`, `one_32`, `one_64` calls, selected by `W16/W32/W64`. |
+| `jet_write_wide_layout_total.v:eval_write_wide_layout` | Actual 16/32/64-bit writers for every long payload, with stores constructed from permissions, output observation, prefix/range/permission preservation. |
+| `jet_read16_layout_exec.v:eval_read16_layout_non_crossing` | Actual `read16` for arbitrary addresses/word indices and `cursor mod 64 <= 48`; still assumes a successful final cursor store. |
+| `jet_read16_layout_exec.v:eval_read16_layout_crossing` | Actual `read16` for arbitrary addresses/word indices and all crossing remainders 49..63; assumes two cursor stores, deriving the intermediate backing load. |
+| `jet_input_layout.v:frame_input_word_at` | Logical MSB-first input representation, independent of the C extraction algorithm. Its connection to `read16` is not yet proved. |
 
-The new public results are:
+These are Clight2 terminating big-step execution results in `ge0` for the
+committed generated program. They do not yet prove evaluator-wide substitution,
+small-step uniqueness, or machine-code correctness of a built library.
+Destination descriptors and their backing words occupy distinct CompCert
+blocks. Do not advertise same-block disjoint layouts or other ABIs.
 
-- `Coq/C/jet_one_wide_layout.v:eval_one_wide_layout_matches_spec`
-  (instantiate with `W16`, `W32` or `W64`)
-- `Coq/C/jet_increment8_layout.v:eval_increment8_layout_matches_spec`
-- `Coq/C/jet_add8_layout.v:eval_add8_layout_matches_spec`
-- `Coq/C/jet_one8_layout.v:eval_one8_layout_matches_spec`
-- `Coq/C/jet_increment8_input_layout.v:eval_increment8_input_layout_matches_spec`
-- `Coq/C/jet_add8_input_layout.v:eval_add8_input_layout_matches_spec`
-- `Coq/C/jet_increment8_frames.v:eval_increment8_frames_matches_spec`
-- `Coq/C/jet_add8_frames.v:eval_add8_frames_matches_spec`
-- `Coq/C/jet_add8_spec.v:eval_add8_cursors_matches_spec`
-- `Coq/C/jet_add8_crossing.v:eval_add8_crossing_matches_spec`
-- `Coq/C/jet_add8_two_words.v:eval_add8_two_words_matches_spec`
-- `Coq/C/jet_increment8_cursors.v:eval_increment8_cursors_matches_spec`
-- `Coq/C/jet_increment8_crossing.v:eval_increment8_crossing_matches_spec`
-- `Coq/C/jet_increment8_two_words.v:eval_increment8_two_words_matches_spec`
-- `Coq/C/jet_one8_position.v:eval_one8_position_matches_spec`
-- `Coq/C/jet_one8_crossing.v:eval_one8_crossing_matches_spec`
+The C/AST configuration is **x86-64 Linux LP64, little endian, PRODUCTION**:
+ordinary/static assertions are enabled; production debug-assert guards are
+false. It is not the old RECKLESS configuration. Fully debug-enabled execution
+is a separate unproved configuration. Generation uses the real C sources and
+pinned Debian headers; see [JET_PROOFS.md](Coq/C/JET_PROOFS.md) for provenance.
 
-The original fixed-cursor/zero-output results remain compiled as regression
-tests. The generalized byte writer also covers arbitrary payload bytes at
-every non-crossing cursor (`jet_write8_position.v:eval_write8_position`).
-`jet_read8_position.v:eval_read8_position` covers read cursors 0..56, including
-the 48/56 pair needed for `add_8`. `jet_LSBkeep_width.v` and
-`jet_LSBclear_width.v` prove actual mask-helper calls for widths 1..64.
+## Review corrections and checkpoint
 
-They construct complete executions of the actual generated Clight jet bodies
-from initial loads and write permissions. They do not assume helper execution,
-successful intermediate stores, or the desired output. Increment covers all
-256 input values, including overflow, against the canonical primitive
-Simplicity increment term (carry-in one plus input plus a zero word).
-The earlier adder-with-one definition has been replaced with that canonical
-composition. One uses `true >>> left_pad_low word1 word8`.
+The old handoff repeatedly claimed there were no unfinished proofs, omitted
+the general non-crossing reader, and called the goal active. At review start,
+an uncompiled `eval_read16_layout_crossing` experiment was appended to the
+reader source, with `Set Ltac Debug` enabled. Earlier accepted arithmetic
+prefixes did not establish that theorem.
 
-All prove the decoded output, true return, destination cursor advancement,
-and preservation of loads outside the two destination blocks. The regenerated
-AST and all jet proof dependencies compiled successfully; the targeted build
-finished with exit status 0 through `C/check_jet_assumptions.vo`.
+The interrupted diff is recoverable at
+`/tmp/simplicity-handoff-review.3oJwDG/read16-crossing-unverified.patch`.
+It is the **unverified original experiment**, superseded by the checked fixes
+in this review; do not reapply it. The user's
+separate untracked `jet-proof-review.patch` is untouched and must not be staged.
 
-The older input contracts use a **single-word layout**, with arbitrary unused
-bits and independent read/write cursors. The newer `two_word_input` contract
-supports a sequence of bytes within two initialized words; the reader proves
-all three paths (high word, crossing, low word). The newest complete jet
-theorems use `byte_input_at` and `write_frame_at` to generalize both input and
-output addresses and word indices. `carry_byte_output_at` observes increment/add
-results at the actual bit/byte locations, including both kinds of crossings.
-There is no fixed cursor ceiling beyond the representability/non-wrapping
-conditions in the contracts. The precise modified-range postcondition preserves
-unrelated locations within destination blocks as well as other valid blocks.
-For a nonzero final cursor, preserve the already-written prefix, not the
-unused low bits: the real C writer clears those low bits.
+The old default build targeted only `check_jet_assumptions.vo`; that module
+did not import `jet_read16_layout_exec`. Merely listing a file in
+`_CoqProject.jets` did not put it in that target's dependency closure.
+The build now checks **all listed modules**, and the audit explicitly imports
+the W16 reader and prints its execution assumptions. New public results should
+also be added to the audit. `Print Assumptions` prints a report; it is not an
+automated rejection of unexpected axioms.
 
-See [the proof documentation](Coq/C/JET_PROOFS.md) for exact contracts,
-dependency structure, assumptions, build instructions, and remaining scope.
+The general crossing theorem now closes with `Qed`. The review fixed the
+true unsigned comparison through a small explicit semantic lemma, prevented
+eager temporary lookup reduction from expanding symbolic widths, supplied
+both shift guards, proved the next-pointer equality and intermediate cursor
+load, and made the return formula use the same remainder normal form as its
+arithmetic hypotheses. Both general reader branches still need a total
+initial-memory contract and the logical representation bridge. Validation
+and the exact post-review reader checkpoint are recorded below.
 
-## Important provenance correction
+## Next milestone: complete increment_16, then add_16
 
-The original generated `jets.v` used removed handwritten headers. It has now
-been regenerated from `Coq/C/jet_translation_unit.c`, which includes the real
-`C/frame.c` and `C/jets.c`, using genuine Debian amd64 glibc headers.
-The real `UINT8_MAX` constant has type `int`, not `unsigned int`.
-The increment expression proof now follows that exact type.
+The architecture is appropriate. The execution tactic feedback and order of
+integration were the main productivity problems. Both raw W16 reader branches
+are now available; stop generalizing raw reader execution and compose them
+into a useful public result.
 
-The current generated artifact is x86-64 Linux, little-endian, LP64, in the
-library-recommended `PRODUCTION` mode. Ordinary assertions and C11 static
-assertions are enabled; `NDEBUG` and `RECKLESS` are absent. Debug assertions
-are behind the actual generated false guard, which the writeBit proof executes.
-No generated function body was edited manually. The older commits retain the
-previous NDEBUG/RECKLESS proofs; do not confuse their configuration with HEAD.
+1. **Construct the reader memories from initial permissions.** Use the two
+   checked raw kernels and copy the structure of `eval_read8_layout`.
+   Derive stores and intervening loads, return advanced fields and precise
+   load/permission/valid-block preservation. No logical-bit algebra is needed
+   for this first layer.
+2. **Connect the result to the logical Word16 input.** Prove exact unsigned
+   value equality from `frame_input_word_at`, separately for each extraction
+   formula. Compose this bridge with the total reader contract.
+3. **Compose carry-plus-wide output and the actual increment_16 body.**
+   Prove symbolic carry/value correspondence, use the existing bit/wide
+   writers, and include source-frame allocation/copy/free. The acceptance
+   result covers every Word16 input, all valid input/output alignments,
+   arbitrary unused input bits and arbitrary initialized output contents.
+4. **Prove add_16 with two consecutive reads.** Preserve the remaining input
+   slice across the first cursor store. Reuse the carry/output contract and
+   symbolic `Word.adder_correct` bridge.
+5. Only then extend increment/add to 32/64.
 
-Global helper blocks now come from `jet_symbol_block` plus checked lookup
-lemmas, not hardcoded 71/72/75/83/87 positions. Production added assertion
-strings/globals and moved these blocks, so this refactor is essential.
+If the crossing representation bridge stalls, first commit a complete
+`increment_16` theorem for non-crossing input and arbitrary output alignment.
+That is a clearly labeled intermediate milestone, not a replacement for the
+accepted all-alignment goal. It lets arithmetic and function-boundary work
+advance without another sequence of isolated reader-only commits. Do not
+build more fixed-value/cursor kernels.
 
-`regenerate-jets.sh` defaults to production and supports explicit-output
-`JET_ASSERTIONS=debug` / `reckless`. Fully debug-enabled generation and Coq
-AST compilation were tested in `/tmp/simplicity-assertion-audit.QlmC95`, but
-debug-mode jet execution remains unproved. `check-jets-generation.sh` compares
-regenerated output without changing the committed AST.
+### Reader interface: settle this before writing another large tactic
 
-The regeneration script was run twice and its output compared byte-for-byte
-with the committed artifact. The pinned Debian package and checksum are in
-`JET_PROOFS.md`.
+A proposed `eval_read16_word_at` should consume:
 
-## Reproduce checks
+- `frame_base_valid base` and `frame_fields_at m bf base bw edge cursor`;
+- `frame_input_word_at m bw edge cursor x`, where `x : tySem (Word 4)`;
+- `0 <= cursor <= Int64.max_unsigned - 16`;
+- `Mem.valid_access m Mint64 bf (base + 8) Writable` and `bf <> bw`.
 
-Compatible local tools:
+It should return an existential memory `mf` and payload `r`, with the actual
+`f_simplicity_read16` call returning `Vlong r`, and:
 
-- opam root: `/Users/brenorb/.opam-simplicity-root`, switch `simplicity`
-- Coq 8.17.1
-- CompCert 3.14: `/tmp/simplicity-compcert`
-- VST 2.14 with SHA libraries: `/tmp/simplicity-vst`
-- Linux header sysroot: `/tmp/simplicity-linux-sysroot.Nb5jW9`
+- **`Int64.unsigned r = @toZ (WordToZ 4) x`**;
+- final descriptor fields at `cursor + 16`;
+- unchanged loads outside the eight-byte cursor field;
+- preservation of permissions and valid blocks.
 
-From the repository root:
+The exact value equality gives `0 <= unsigned r < 65536`. Equality merely
+after `decode_wide W16` is insufficient: decoding discards high bits but
+the C carry comparison does not.
+
+`frame_input_word_at` describes backing bits only. It does not supply frame
+fields, descriptor permissions, separation, or final-cursor representability.
+Sixteen valid bit positions give at most `cursor + 15 <= max_unsigned`;
+the last cursor update needs `cursor + 16 <= max_unsigned`. State the latter
+explicitly. The caller's original source descriptor need not be writable:
+the jet copies it into a fresh writable local block before reading.
+
+To bridge the representation, first prove indexed lookup for
+`frame_input_word_bits`. Word16 is `Word 4` (Word n has 2^n bits).
+For each `0 <= i < 16`, the expected bit is `testbit (toZ x) (15-i)`.
+On the non-crossing path, `(cursor+i)/64 = cursor/64` and
+`(cursor+i) mod 64 = cursor mod 64+i`. The bit at index zero supplies the
+high-word load; other witnesses for that same load are equal by determinism
+of `Mem.load`. Use `Int64.bits_zero_ext`, `Int64.bits_shru`, range facts
+and bit extensionality to prove the exact value. On crossings, split input
+indices at k: indices below k are in the high word, the rest in the preceding
+word. Index k supplies the second-word load. Use quotient/remainder identities
+and load determinism for all other bit witnesses. Prove high result bits are
+zero; do not stop at equality of its sixteen low bits. Keep payloads symbolic.
+
+Use `jet_read8_layout_total.v` for store/permission/range preservation and
+`jet_input_layout.v` for logical input preservation. Do not redefine the
+logical input predicate to mean “the C extraction result is x”; prove the
+representation bridge.
+
+### Output and arithmetic: work missing from the old reader-only plan
+
+`eval_write_wide_layout W16` writes sixteen bits, but increment needs a
+carry **and** sixteen bits. Generalize the structure of
+`jet_carry_byte_layout.v:eval_carry_byte_layout` to carry-plus-wide output.
+Reuse `write_frame_at_after_bit` (already count-parametric), the total bit
+writer and total wide writer. Preserve the carry when the payload write
+touches the same word, and when the carry was the last bit of the previous
+word. Reuse `write_layout_previous_inside/boundary`. The postcondition uses
+cursor `cursor-17`, written-prefix preservation and the union of modified
+ranges. `slice_output_at`/`slice_write_low` already expose the word payload.
+
+Inspect `f_simplicity_increment_16` in `jets.v` and `INCREMENT_` in
+`C/jets.c`. Under LP64 the input, sum and writer argument are **64-bit
+unsigned long**, not a 16-bit C integer. For input 65535, the sum passed to
+the writer is 65536; the writer's 16-bit observation discards the high bit.
+The carry is the unsigned comparison `65534 < x`.
+
+Define the canonical width-16 increment program by the same composition as
+`increment8_spec`: `true &&& iden >>> full_increment`, with
+`full_increment = oh &&& (ih &&& (unit >>> zero)) >>> full_add`.
+The source is `Haskell/Core/Simplicity/Programs/Arith.hs`.
+Use `Word.fullAdder_correct`, `Word.zero_correct`, pair `toZ` and
+`from_toZ`/injectivity to prove carry and low-word equality symbolically.
+The existing `jet_add8_word.v` is the arithmetic model; do not enumerate
+65,536 increment inputs or input pairs. Prove parametricity/monadic
+interpretation as for the existing specifications.
+
+For the complete call, use `jet_increment8_layout.v` and
+`jet_increment8_layout_exec.v` as templates. Reuse `entry_frame_jet`,
+`exec_frame_jet_copy`, `call_frame_writer_cast`, frame-copy preservation
+and the dynamic reader symbol/function lookup lemmas in `jet_wide.v`.
+Read the actual AST temporary names/types. Preserve input/output backing
+aliasing already allowed by the existing proofs; the fresh local descriptor
+provides the separation needed by the reader. Do not add blanket pairwise
+block inequality assumptions for convenience.
+
+### Crossing execution: solved obligations and lessons to preserve
+
+For `r = cursor mod 64 > 48`, choose `k = 64-r` and `t = r-48 = 16-k`.
+Then `1 <= k,t <= 15`. The C body does:
+
+1. Load high at `edge-8*(1+cursor/64)`; keep its low k bits and shift by t.
+2. Store local cursor `cursor+k`; set n to t, frame_shift to 64, and decrement
+   the backing pointer by eight bytes.
+3. Test the generated constant `UWORD_BIT < n`; it is false because t < 16.
+4. Load low at `edge-8*(2+cursor/64)`; shift right by `64-t`, keep t bits,
+   OR with the high contribution, and store final cursor `cursor+16`.
+
+In particular, the code assigns frame_shift = 64 directly. It does not
+recompute cursor division/modulo after the first store. The while condition
+uses the generated constant, not the `_frame_shift` temporary.
+
+The checked code consistently uses `k = 64-r` and `t = r-48` in its
+arithmetic facts and return formula. The interrupted attempt mixed `r-48`
+with `16-(64-r)`; arithmetic equality is not definitional equality. Keep a
+single normal form when composing the representation bridge.
+
+These execution obligations are now discharged in the source:
+
+- unsigned comparison semantics for the true first branch and false loop;
+- both shift guards: shift counts strictly less than 64;
+- next-pointer equality after subtracting eight bytes;
+- `Mem.load_store_same` for the cursor in the intermediate memory;
+- preservation of the low backing-word load across that cursor store.
+
+The interrupted candidate omitted the next-pointer equality and intermediate
+cursor-load fact; both are now supplied. The remaining obligation is exact
+bit-slice/range interpretation of the result, not another execution replay.
+A bounded 15-case split on k is an acceptable fallback for closed scalar obligations;
+never enumerate payloads or unfold symbolic memory with `vm_compute`.
+
+## Feedback loop and reproducible commands
+
+From the repository root, define a shell helper for the existing environment:
 
 ```sh
-env OPAMROOT=/Users/brenorb/.opam-simplicity-root \
-  COMPCERT=/tmp/simplicity-compcert VST=/tmp/simplicity-vst \
-  opam exec --switch=simplicity -- bash Coq/build-jets.sh -j2
+jet_coq() {
+  env OPAMROOT=/Users/brenorb/.opam-simplicity-root \
+    COMPCERT=/tmp/simplicity-compcert VST=/tmp/simplicity-vst \
+    opam exec --switch=simplicity -- bash Coq/build-jets.sh "$@"
+}
+jet_coq -j2
+jet_coq --coqc -q C/jet_read16_layout_exec.v
+jet_coq --coqtop -quiet
+jet_coq --coqchk -silent C.jet_read16_layout_exec
 ```
 
-The targeted makefile builds `C/check_jet_assumptions.vo`. Proof imports now
-use `C.jets`; the obsolete top-level `/tmp/jets.vo` is not needed. Do not
-recursively map all of `/tmp` into Coq's empty namespace. Do not claim that
-unrelated secp/divsteps or whole-project builds pass.
+Coq is 8.17.1, CompCert 3.14, VST 2.14. The three direct modes reuse the
+project load paths and change directory to Coq. They do not rebuild imports.
+Use the normal build after dependency changes, direct `--coqc` for short
+iterations once dependencies are current, and `--coqchk` after the completed
+module builds. Never add `-q` to coqchk. Do not recursively map /tmp.
 
-Latest verification: all changed jet modules rebuilt successfully against the
-regenerated `C.jets`; `Print Assumptions` reports only the inherited assumptions
-listed below. The regeneration script's output matches `Coq/C/jets.v` exactly.
-The proof sources contain no admits, new axioms, aborted proofs, or unchecked
-cast escapes. No failing or uncompiled proof experiment remains in the tree.
-After the production migration, the complete targeted build and assumption
-audit passed again (exit status 0). A separate
-`coqchk -silent C.jet_increment8_cursors C.jet_one8_crossing C.jet_one8_position`
-run with the same load paths also completed successfully (exit status 0).
-AST regeneration checked byte-for-byte, script syntax checks passed, and invalid
-assertion modes/implicit alternate-mode overwrites were rejected as intended.
-After adding `add_8`, the full targeted build and assumption audit passed
-again, as did `coqchk -silent C.jet_add8_spec` (all exit status 0).
-The symbolic add value bridge and its monadic interpretation are closed
-under the global context.
-After adding general crossing writes and both crossing jet theorems, the
-targeted build and assumption audit passed again. Independent
-`coqchk -silent C.jet_increment8_crossing C.jet_add8_crossing` also passed
-(exit status 0). The crossing-byte interpretation and increment's split-value
-bridge are closed under the global context.
-After integrating two-word inputs, the targeted build and assumption audit
-passed again. Independent
-`coqchk -silent C.jet_increment8_two_words C.jet_add8_two_words` passed
-(exit status 0). The crossing-read value bridge is closed under the global context.
-After unifying both output paths, the full targeted build and assumption audit
-passed again. Independent
-`coqchk -silent C.jet_increment8_frames C.jet_add8_frames` passed (exit status 0).
-The new frame theorems inherit the same assumptions as the preceding executions;
-the carry/byte bit-slice lemmas introduce no axioms.
-After generalizing input addresses in both full jet theorems, the targeted
-build and assumption audit passed again. Independent
-`coqchk -silent C.jet_increment8_input_layout C.jet_add8_input_layout` passed
-(exit status 0), with the same inherited execution assumptions.
-After adding the total arbitrary-address byte writer and complete general-layout
-one jet, the targeted build and assumption audit passed again. Independent
-`coqchk -silent C.jet_write8_layout_total C.jet_one8_layout` passed (exit status 0).
-The total bit writer and carry/byte composition then passed the targeted build
-and assumption audit, and independent `coqchk -silent C.jet_carry_byte_layout`
-passed (exit status 0). The bit-value and prefix lemmas are closed under the
-global context; execution inherits the same CompCert assumptions as before.
-The full arbitrary-layout increment/add proofs passed the targeted build and
-assumption audit. Independent
-`coqchk -silent C.jet_increment8_layout C.jet_add8_layout` passed (exit status 0).
+After a tactic failure, expose the first unfinished leaf goal and its evars.
+Wrapping the entire recursive `read16_cross_stmt` in `try` rolls back all
+progress when a deep leaf fails, so `Show` then displays the whole AST and
+reveals little. Step through statement constructors, or use a one-step
+tactic that leaves the failed leaf visible. Inspect comparison/shift semantics
+in installed `Cop.v`; arithmetic equalities do not prove the shift guard.
 
-## Remaining work beyond the concrete-layout results
+After two attempts at the same failure without a new diagnosis, change the
+decomposition. Use explicit, small expression lemmas before retrying a body.
+A `first` branch can succeed with unresolved goals; use `solve` when closure
+is required. Give speculative tactics roughly ten-second deadlines. Keep
+`Int64` operations symbolic and isolate generated constants.
 
-1. Completed for the three byte jets under the documented separation and
-   non-wrapping contracts: general physical frame/backing-word addresses,
-   arbitrary word indices, independent cursors, and both crossing paths.
-   The strongest public results are `eval_one8_layout_matches_spec`,
-   `eval_increment8_layout_matches_spec`, and `eval_add8_layout_matches_spec`.
-   `entry_frame_jet`, `exec_frame_jet_copy` and `call_frame_writer` share
-   the function-entry/copy/call reasoning. Scalar expression lemmas now depend
-   only on the relevant temporary values, not on fixed frame addresses.
-   The output contracts still require the destination frame and backing words
-   to occupy distinct CompCert blocks. Same-block disjoint regions and
-   other ABIs are not claimed.
-2. Extend increment/add to larger widths, reusing the generalized infrastructure.
-   Complete `one_16`/`one_32`/`one_64` equivalence is now proved. The shared
-   `eval_write_wide_layout` consumes `write_frame_at` with 16/32/64 cells,
-   constructs every store, and returns `slice_output_at`, prefix preservation,
-   advanced frame fields, precise load-range preservation, and permissions.
-   The reusable logical MSB-first input-bit/word predicates and their append
-   and load-preservation lemmas are now in `jet_input_layout.v`.
-   Checked execution kernels for the actual generated `read16` body cover
-   cursor zero (non-crossing) and cursor 56 (crossing). The crossing proof
-   executes both `LSBkeep` calls and the actual false loop guard after the
-   intermediate cursor update. These restricted-cursor helpers still take
-   successful cursor stores and the post-store low-word load as premises;
-   they are not yet the reader contract. Next generalize both paths to
-   arbitrary cursor remainders, derive stores from permissions, and connect
-   the returned value to `frame_input_word_at`. For W16 the crossing branch
-   leaves fewer than 16 bits, so prove the loop guard false rather than
-   assuming it. The acceptance criterion remains a reusable reader contract
-   that composes into complete `increment_16` C-to-Simplicity equivalence,
-   including carry/value arithmetic and writer composition; then prove
-   `add_16` before extending to 32/64.
-   The generated LP64
-   `uint_fast16_t` and `uint_fast32_t` are unsigned long (64 bits), not C short
-   or int; prove those actual casts/shifts rather than mechanically applying
-   the byte reader's promotions.
-   `add_8` now uses `Word.adder` as its canonical primitive specification,
-   with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.
-   Reuse those arithmetic lemmas rather than enumerating byte pairs.
-3. Preserve the public initial-memory-only theorem interface; do not reintroduce
-   assumed helper contracts or successful-store premises as final results.
-   Fully debug-enabled execution would also require proving the live writeBit
-   assertion path, not reusing the production false-guard lemma.
-4. If claiming uniqueness or a small-step theorem, prove the corresponding
-   determinism/soundness result explicitly.
-5. Keep all work local. Scope searches to this repository and known dependency
-   paths; do not search unrelated personal folders.
+Do not edit a source while it is compiling or launch duplicate compilers.
+Changes to foundational modules can trigger several minutes in `jet_exec.v`
+and `jet_write8.v`; that is not a reason to repeat the same build. Keep the
+process id and wait. A stale .vo is not evidence about the current .v.
 
-Proof-engineering notes for this continuation: `Archi.ptr64` is globally opaque
-in CompCert, so `jet_write8_position.v` makes it locally transparent rather than
-computing symbolic memory goals. Closed `UWORD_BIT` evaluation is isolated in
-`eval_generated_uword_bits`. Casted integer constants must be normalized before
-rewriting symbolic shift bounds. New cursor proofs compile in under a second;
-do not replay the older multi-minute helper proofs for local tactic debugging.
+At each public milestone, build all listed modules, inspect the assumption
+report, and run coqchk on the new public module. Execution inherits the
+documented CompCert axioms/external-semantics parameters; no new proof
+assumptions should appear. Pure arithmetic/representation bridges should
+be closed under the global context. AST regeneration is only needed if its
+inputs change; do not reinstall tools or edit generated bodies for this task.
 
-The inherited execution assumptions are CompCert's classical/extensionality
-and real-number decisions plus the external-semantics parameters in the Clight
-relation. No new axioms, admits, or aborted proofs were introduced. The
-increment output-denotation and monadic interpretation bridges are closed
-under the global context.
+## Review validation
 
-Recent local proof commits: `ae8f263` (carry cursors), `612d7fc` (increment
-output cursors), `e0be9cf` (crossing execution), `3639174` (crossing one theorem),
-`f10be65` (independent increment cursors), and `c46668f` (production assertions,
-checked dynamic symbol blocks, and reproducible AST checking).
-Subsequent commits: `b9f3a23`/`938eaee` (add execution/specification),
-`3fc25f9` (arbitrary-byte crossings), `4128275` (second-word carry writes),
-and `0689840` (all eight carry/byte splits).
-Then `8306e5f` completed the crossing-output jet proofs, `669dc6b` proved
-crossing reads, and `36e6ba9` introduced total two-word reads and input contracts.
+- `6a646ad`: general crossing reader, closed with `Qed`; direct `coqc`
+  and independent `coqchk -silent C.jet_read16_layout_exec` passed (exit 0).
+  The last declaration is `eval_read16_layout_crossing`. No unfinished
+  crossing theorem or debug tactic remains in the source.
+- Shell syntax and the new `--coqtop` mode passed.
+- The full `build-jets.sh -j2` build, now covering every listed module and the
+  updated assumption audit, passed (exit 0). The new reader results report
+  only the same six inherited assumptions/parameters: `classic`,
+  `functional_extensionality_dep`, `sig_not_dec`, `sig_forall_dec`,
+  `external_functions_sem`, and `inline_assembly_sem`.
+- No admits, aborted proofs, new axiom declarations or unchecked-cast escapes
+  were found in the jet proof sources. `git diff --check` passed.
 
-Completed add implementation notes: the generated add jet reads twice, binds `_x` and
-`_y`, writes carry `255U - y < x`, then the truncated sum. Its local-frame
-copy/allocation/free pattern matches increment. `jet_add8_call.v` constructs
-both local cursor stores from initial permissions. `jet_add8_word.v` proves
-the symbolic bridge; `jet_add8_spec.v` exposes the initial-memory-only theorem. Arithmetic
-promotion still makes the comparison unsigned even though real glibc's
-`UINT8_MAX` literal has type `int`. For Word8, `Word.adder` unfolds to the
-same `false &&& iden >>> full_add` composition as Haskell's `add word8`.
-
-Crossing implementation notes: `jet_write8_crossing_general.v` proves the
-actual writer for arbitrary payloads, keeping the C signed-shift/cast sequence
-in `crossing_high`. `jet_crossing_byte.v` interprets it symbolically using
-testbit lemmas; no payload enumeration is used. `jet_writeBit_high.v` covers
-cursors 65..128. `jet_write8_split.v` handles byte cursors 64..71, including
-the exact boundary. `jet_carry_byte_crossing.v` composes both actual calls
-for all eight nine-bit splits and proves permission preservation, which the
-outer jet proofs use to free their local source-frame copies.
-
-Input implementation notes: `jet_read8_crossing.v` proves the generated
-crossing branch, and `jet_read8_crossing_word.v` relates its casts/shifts to
-`crossing_byte` without enumerating payloads. `jet_read8_two_positions.v`
-handles non-crossing reads in either word. `jet_read8_two_words.v` constructs
-all cursor stores and exposes a total read contract for cursors 0..120,
-preserving other-block loads, permissions, and valid blocks.
-`jet_two_word_input.v` represents a byte sequence and supplies single/pair
-elimination lemmas. The two-word increment/add proofs use that contract directly;
-they do not assume read executions or intermediate-store success.
-
-Unified output notes: `jet_carry_byte_position.v` constructs non-crossing
-carry/byte calls for arbitrary payloads. `jet_output9.v` combines it with
-the crossing writer under `write_frame`, and defines `output9` and
-`output9_prefix` independently of which output path executes.
-Its preservation lemmas let the public frame theorems transport these contracts
-across source preparation and local-frame freeing without repeating each path.
-The older crossing-only and single-word theorems remain checked regressions.
-
-Arbitrary-address reader notes: `jet_frame_layout.v` proves field accesses for
-nonzero structure offsets; `jet_read8_layout.v` executes both generated branches
-at arbitrary word indices, with explicit non-wrapping address bounds.
-`jet_read8_layout_total.v:eval_read8_layout` constructs the stores and preserves
-loads outside the eight-byte cursor field, including in the same memory block.
-`jet_frame_copy_layout.v` preserves pointer fragments and cursor loads when
-copying a source frame at a nonzero offset to the jet's fresh local frame.
-The reader's full targeted build/assumption audit and independent
-`coqchk -silent C.jet_read8_layout_total` passed (exit status 0).
-
-Arbitrary-output composition notes: `write_frame_at_after_bit` transports the
-remaining writable cells after a bit store, including initialized-word loads.
-`write_layout_previous_inside` / `write_layout_previous_boundary` identify the
-next byte's word and in-word position. `eval_carry_byte_layout` uses the byte
-writer's prefix/range postconditions to preserve the carry and original prefix,
-without enumerating cursor values. `carry_byte_output_at` observes the carry
-at `(cursor-1) mod 64` and the following byte via `byte_output_at` at `cursor-1`.
-All current modules compile; no unfinished proof is left in the tree.
-
-Function-boundary notes: `jet_arith8_layout_exec.v` defines the actual parameter
-binding order (env/src/dst outside the undefined temporaries), reusable entry,
-copy and writer-call lemmas, and scalar evaluation under arbitrary environments.
-`jet_increment8_layout_exec.v` / `jet_add8_layout_exec.v` compose the real
-generated bodies with nonzero destination pointers. The public layout files
-construct all their memories and helper executions, then reuse the existing
-canonical arithmetic bridges. Keep identifier-disjointness computation scoped
-to identifier hypotheses: `vm_compute in *` also unfolds large execution
-hypotheses and the entire generated environment, causing avoidable blowups.
-
-Wider-writer notes: `jet_word_slice.v` proves projections and prefix preservation
-for any width up to 64. `jet_write_wide_layout.v` selects the three actual
-generated functions and proves both paths using the existing frame tactics.
-Split the width **before** creating existential final temporary environments;
-otherwise solving the first width incorrectly constrains shared evars in the
-other width branches and triggers very expensive failed conversion checks.
-The general writer passed the targeted build/assumption audit and independent
-`coqchk -silent C.jet_write_wide_layout_total`. Its pure projections are closed
-under the global context. `call_frame_writer_cast` now handles promotions
-that change the CompCert value kind (e.g. the one-jet's int literal to long).
-
-Known check times: a production AST change triggers the older `jet_exec.v`
-(about four minutes) and `jet_write8.v` (about three minutes). The new symbolic
-cursor/crossing modules compile in under a second each. Avoid modifying sources
-under a running compiler or launching duplicate builds; no proof experiment
-is currently left failing.
+The broader goal remains unfinished and paused. The next work is the reader
+contract based on initial memory, its exact logical-word bridge, and complete
+`increment_16`; there is no remaining raw crossing execution failure to debug.
