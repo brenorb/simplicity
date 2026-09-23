@@ -9,6 +9,7 @@ Require Import C.jet_add8_call.
 Require Import C.jet_add8_spec C.jet_add8_word.
 Require Import C.jet_write8_crossing_frame C.jet_crossing_byte.
 Require Import C.jet_carry_wide_layout.
+Require Import C.jet_increment_wide_word.
 Require Import C.jet_writeBit_high.
 Require Import C.jet_carry_byte_crossing.
 Require Import C.jet_increment8_crossing C.jet_add8_crossing C.jet_increment8_crossing_word.
@@ -59,6 +60,9 @@ Print Assumptions write_bit_value_correct.
 Print Assumptions write_bit_value_prefix.
 Print Assumptions eval_carry_byte_layout.
 Print Assumptions eval_carry_wide_layout.
+Print Assumptions increment_word_spec_initial.
+Print Assumptions increment16_values_denote_spec.
+Print Assumptions increment16_values_denote_input.
 Print Assumptions eval_write8_layout.
 Print Assumptions eval_one8_layout_matches_spec.
 Print Assumptions eval_writeBit_layout_raw.
