@@ -224,10 +224,16 @@ assumption audit. Independent
    `eval_write_wide_layout` consumes `write_frame_at` with 16/32/64 cells,
    constructs every store, and returns `slice_output_at`, prefix preservation,
    advanced frame fields, precise load-range preservation, and permissions.
-   Next generalize the reader and carry/value bridges. The generated LP64
-   `uint_fast16_t` and `uint_fast32_t` are unsigned long (64 bits), not C short
-   or int; inspect and prove those actual casts/shifts rather than mechanically
-   applying the byte reader's promotions.
+   Next start with a dedicated W16 reader execution kernel, then prove its
+   cursor-dependent non-crossing subcases and crossing path before packaging a
+   total layout contract. The generated `read16` body contains a loop whose
+   Clight big-step expansion is a loop/break sequence; the branch conditions
+   depend on the cursor remainder, so do not hardcode every conditional to the
+   false branch. Then prove the carry/value bridge and compose `increment_16`
+   before `add_16`, extending to 32/64 only after those interfaces stabilize.
+   The generated LP64 `uint_fast16_t` and `uint_fast32_t` are unsigned long
+   (64 bits), not C short or int; inspect and prove those actual casts/shifts
+   rather than mechanically applying the byte reader's promotions.
    `add_8` now uses `Word.adder` as its canonical primitive specification,
    with `Word.adder_correct` and `toZ` injectivity for a symbolic value bridge.
    Reuse those arithmetic lemmas rather than enumerating byte pairs.
