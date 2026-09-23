@@ -3,6 +3,7 @@ From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes ClightBigstep Memory Events.
 Require Import Simplicity.Word Simplicity.Util.Arith.
 Require Import C.jets C.jet_exec C.jet_input_layout.
+Require Import C.jet_frame_layout.
 Require Import C.jet_read16_layout_total C.jet_read16_layout_exec.
 Require Import C.jet_frame_arith.
 Import Values Mem Ctypes ListNotations.
@@ -413,4 +414,36 @@ Proof.
   - exists high, Int64.zero.
     split; [exact HH|].
     intros HX. lia.
+Qed.
+
+Theorem eval_read16_word_at m bf base bw edge cursor (x : Ty.tySem (Word 4)) :
+  frame_base_valid base ->
+  0 <= cursor <= Int64.max_unsigned - 16 ->
+  frame_fields_at m bf base bw edge cursor ->
+  frame_input_word_at m bw edge cursor x ->
+  Mem.valid_access m Mint64 bf (base + 8) Writable -> bf <> bw ->
+  exists mf r,
+    ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_simplicity_read16)
+      [Vptr bf (Ptrofs.repr base)] E0 mf (Vlong r) /\
+    Int64.unsigned r = @toZ (WordToZ 4) x /\
+    frame_fields_at mf bf base bw edge (cursor + 16) /\
+    (forall chunk b ofs, b <> bf \/ ofs + size_chunk chunk <= base + 8 \/
+      base + 16 <= ofs -> Mem.load chunk mf b ofs = Mem.load chunk m b ofs) /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  intros HB HC HF Hinput PW Hsep.
+  destruct (read16_input_loads m bw edge cursor x HC Hinput)
+    as [HE [high [low [Hhigh Hlow]]]].
+  destruct (eval_read16_layout_total m bf base bw edge cursor high low
+      HB HC HE HF Hhigh Hlow PW Hsep)
+    as [mf [Heval [Hfields [Hloads [Hperm Hblocks]]]]].
+  exists mf, (read16_layout_value cursor high low).
+  split; [exact Heval|].
+  split.
+  - exact (read16_layout_value_unsigned m bw edge cursor high low x
+      ltac:(lia) Hinput Hhigh (fun Hcross => proj2 (Hlow Hcross))).
+  - split; [exact Hfields|].
+    split; [exact Hloads|].
+    split; [exact Hperm|exact Hblocks].
 Qed.

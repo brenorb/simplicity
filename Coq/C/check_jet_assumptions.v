@@ -43,6 +43,7 @@ Print Assumptions read16_crossing_at_repr.
 Print Assumptions read16_crossing_at_unsigned.
 Print Assumptions read16_layout_value_unsigned.
 Print Assumptions read16_input_loads.
+Print Assumptions eval_read16_word_at.
 Print Assumptions eval_read16_layout_cursor56.
 Print Assumptions eval_one_wide_layout_matches_spec.
 Print Assumptions jet_wide_spec.decode_wide_one.
