@@ -153,6 +153,32 @@ Proof.
   - reflexivity.
 Qed.
 
+Lemma read16_layout_arithmetic cursor :
+  0 <= cursor <= Int64.max_unsigned - 16 -> cursor mod 64 <= 48 ->
+  Int64.sub (Int64.repr 64) (Int64.repr (cursor mod 64)) =
+      Int64.repr (64 - cursor mod 64) /\
+  Int64.ltu (Int64.repr (64 - cursor mod 64)) (Int64.repr 16) = false /\
+  Int64.sub (Int64.repr (64 - cursor mod 64)) (Int64.repr 16) =
+      Int64.repr (48 - cursor mod 64) /\
+  Int64.add (Int64.repr cursor) (Int64.repr 16) = Int64.repr (cursor + 16).
+Proof.
+  intros HC HR. assert (HM : 0 <= cursor mod 64 < 64).
+  { apply Z.mod_pos_bound; lia. }
+  assert (Hshift : Int64.sub (Int64.repr 64) (Int64.repr (cursor mod 64)) =
+      Int64.repr (64 - cursor mod 64))
+    by exact (@cursor_sub 64 (cursor mod 64) ltac:(lia) ltac:(lia)).
+  assert (Hremain : Int64.sub (Int64.repr (64 - cursor mod 64))
+      (Int64.repr 16) = Int64.repr (48 - cursor mod 64)).
+  { pose proof (@cursor_sub (64 - cursor mod 64) 16 ltac:(lia) ltac:(lia)) as H.
+    replace (64 - cursor mod 64 - 16) with (48 - cursor mod 64) in H by lia.
+    exact H. }
+  split; [exact Hshift|]. split.
+  - unfold Int64.ltu. rewrite !cursor_unsigned by lia.
+    rewrite zlt_false by lia. reflexivity.
+  - split; [exact Hremain|].
+    unfold Int64.add. rewrite !Int64.unsigned_repr by lia. reflexivity.
+Qed.
+
 Lemma eval_read16_layout_cursor56 m m64 mf bf base bw high low :
   frame_base_valid base ->
   frame_fields_at m bf base bw 16 56 ->
