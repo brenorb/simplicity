@@ -20,6 +20,10 @@ Require Import C.jet_writeBit_layout_total C.jet_carry_byte_layout.
 Require Import C.jet_increment8_layout C.jet_add8_layout.
 Require Import C.jet_write_wide_layout_total.
 Require Import C.jet_one_wide_layout.
+Require Import C.jet_read16_layout_exec.
+Print Assumptions eval_read16_layout_non_crossing.
+Print Assumptions eval_read16_layout_crossing.
+Print Assumptions eval_read16_layout_cursor56.
 Print Assumptions eval_one_wide_layout_matches_spec.
 Print Assumptions jet_wide_spec.decode_wide_one.
 Print Assumptions jet_wide_spec.wide_one_spec_initial.

@@ -16,5 +16,17 @@ for dir in msl sepcomp veric zlist floyd progs64 concurrency atomics; do
 done
 jet_flags+=(-Q "$VST/sha" sha)
 
+# Reuse the exact project load paths for a short proof/debug/check cycle.
+# These modes do not rebuild dependencies; run the default build first.
+case "${1:-}" in
+  --coqc|--coqtop|--coqchk)
+    jet_tool=${1#--}
+    shift
+    exec "$jet_tool" -Q Simplicity Simplicity -R C C "${jet_flags[@]}" "$@"
+    ;;
+esac
+
 coq_makefile -f _CoqProject.jets "${jet_flags[@]}" -o JetMakefile
-make -f JetMakefile C/check_jet_assumptions.vo "$@"
+# Compile every listed module, including kernels not yet imported by a public
+# theorem. The project also lists check_jet_assumptions.v.
+make -f JetMakefile all "$@"
