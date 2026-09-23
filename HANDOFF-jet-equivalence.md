@@ -108,6 +108,37 @@ accepted all-alignment goal. It lets arithmetic and function-boundary work
 advance without another sequence of isolated reader-only commits. Do not
 build more fixed-value/cursor kernels.
 
+### Reuse strategy across widths
+
+Use the increment_8/add_8 proof architecture, extracting shared lemmas rather
+than duplicating their complete developments for each width. Parameterize
+Simplicity programs by the word index n and arithmetic/bit slices by the bit
+width w = 2^n; these are different parameters (Word16 is Word 4).
+
+- **Frame lifecycle:** reuse source allocation/copy/free, initial-permission
+  store construction, and memory preservation. The existing function-entry
+  and frame-copy lemmas already handle much of this independently of width.
+- **Arithmetic/specifications:** parameterize the canonical increment/add
+  programs and prove carry/payload correspondence using modulus 2^w and
+  Word's symbolic arithmetic lemmas. Follow `jet_add8_word.v`, not the older
+  exhaustive increment_8 bridge. Replacing that byte bridge can follow once
+  the shared proof works; it need not delay the W16 milestone.
+- **Output composition:** generalize carry-plus-byte to carry-plus-word,
+  consuming w+1 writable cells and reusing the already checked wide writers.
+- **C execution:** retain small adapters for the actual generated reader and
+  jet bodies at each width. Shared arithmetic lemmas alone do not establish
+  execution of those functions.
+
+Keep the ABI differences explicit: read8 returns `Vint`, while the generated
+16/32/64-bit readers return `Vlong`. For 16/32-bit inputs the sums fit in the
+64-bit carrier; 64-bit increment/add may wrap that carrier. Use modular sum
+semantics for that case, with the separately computed carry, rather than
+assuming the unsigned machine sum always equals the unbounded integer sum.
+
+Validate this factoring through complete increment_16 and add_16 results,
+then instantiate or extend it for 32/64. Avoid a large framework refactor
+before those two concrete consumers demonstrate which lemmas are shared.
+
 ### Reader interface: settle this before writing another large tactic
 
 A proposed `eval_read16_word_at` should consume:
