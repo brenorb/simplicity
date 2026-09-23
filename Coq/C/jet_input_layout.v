@@ -24,6 +24,70 @@ Definition byte_input_at (m : mem) (bf : block) (base : Z)
   forall i x, nth_error xs i = Some x ->
     byte_slice_at m bw edge (cursor + 8 * Z.of_nat i) x.
 
+(** A logical input bit is the bit encountered at absolute frame cursor [q].
+    This predicate describes the MSB-first frame stream directly, independently
+    of any C reader's extraction and alignment branches. *)
+Definition frame_input_bit_at (m : mem) (bw : block) (edge q : Z) (b : bool) : Prop :=
+  0 <= q <= Int64.max_unsigned /\
+  8 * (1 + q / 64) <= edge <= Ptrofs.max_unsigned /\
+  exists w,
+    Mem.load Mint64 m bw (edge - 8 * (1 + q / 64)) = Some (Vlong w) /\
+    b = Z.testbit (Int64.unsigned w) (63 - q mod 64).
+
+(** A list of logical input bits beginning at [cursor]. The suffix can be
+    retained and reused after consuming a prefix. *)
+Definition frame_input_bits_at (m : mem) (bw : block) (edge cursor : Z)
+    (bits : list bool) : Prop :=
+  forall i b, nth_error bits i = Some b ->
+    frame_input_bit_at m bw edge (cursor + Z.of_nat i) b.
+
+Lemma frame_input_bits_at_app m bw edge cursor xs ys :
+  frame_input_bits_at m bw edge cursor (xs ++ ys) <->
+  frame_input_bits_at m bw edge cursor xs /\
+  frame_input_bits_at m bw edge (cursor + Z.of_nat (length xs)) ys.
+Proof.
+  unfold frame_input_bits_at.
+  split.
+  - intros H. split.
+    + intros i b Hi. apply (H i b). rewrite nth_error_app1; [exact Hi|].
+      apply nth_error_Some. rewrite Hi. discriminate.
+    + intros i b Hi.
+      assert (Hnth : nth_error (xs ++ ys) (length xs + i)%nat = Some b).
+      { rewrite nth_error_app2 by lia.
+        replace (length xs + i - length xs)%nat with i by lia. exact Hi. }
+      pose proof (H (length xs + i)%nat b Hnth) as Hbit.
+      replace (cursor + Z.of_nat (length xs + i)) with
+        (cursor + Z.of_nat (length xs) + Z.of_nat i) in Hbit by
+        (rewrite Nat2Z.inj_add; lia).
+      exact Hbit.
+  - intros [HX HY] i b Hi.
+    destruct (nth_error xs i) as [x|] eqn:EX.
+    + assert (Hsmall : (i < length xs)%nat)
+        by (apply nth_error_Some; rewrite EX; discriminate).
+      rewrite nth_error_app1 in Hi by exact Hsmall.
+      rewrite EX in Hi. inversion Hi; subst b.
+      apply HX; exact EX.
+    + assert (Hlen : (length xs <= i)%nat) by (apply nth_error_None; exact EX).
+      rewrite nth_error_app2 in Hi by exact Hlen.
+      specialize (HY (i - length xs)%nat b Hi).
+      rewrite Nat2Z.inj_sub in HY by exact Hlen.
+      replace (cursor + Z.of_nat (length xs) +
+        (Z.of_nat i - Z.of_nat (length xs)))
+        with (cursor + Z.of_nat i) in HY by lia.
+      exact HY.
+Qed.
+
+Lemma frame_input_bits_at_preserved m mf bw edge cursor bits :
+  (forall ofs w, Mem.load Mint64 m bw ofs = Some (Vlong w) ->
+    Mem.load Mint64 mf bw ofs = Some (Vlong w)) ->
+  frame_input_bits_at m bw edge cursor bits ->
+  frame_input_bits_at mf bw edge cursor bits.
+Proof.
+  intros Hloads Hbits i b Hi. specialize (Hbits i b Hi).
+  destruct Hbits as [HQ [HE [w [HL Hb]]]].
+  split; [exact HQ|]. split; [exact HE|]. exists w. split; [eauto|exact Hb].
+Qed.
+
 Lemma byte_input_single_at m bf base bw edge cursor x :
   byte_input_at m bf base bw edge cursor [x] ->
   frame_base_valid base /\ frame_fields_at m bf base bw edge cursor /\
