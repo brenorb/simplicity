@@ -34,6 +34,25 @@ Simplicity result. The final destination frame advances by nine bits, the
 written prefix is preserved, and loads outside the modified ranges are
 preserved even inside the destination blocks.
 
+The 64-bit arithmetic jets are covered as well. `jet_read64_layout_exec.v`,
+`jet_read64_layout_total.v`, and `jet_read64_input_word_total.v` prove the
+generated `read64` across aligned and crossing layouts, derive its stores from
+initial permissions, and relate its `Vlong` result to the exact `Word 6` input.
+`jet_increment64_layout.v:eval_increment64_layout_matches_spec` proves the
+complete `increment_64` call. `jet_add64_layout.v:eval_add64_layout_matches_spec`
+proves the complete `add_64` call for two consecutive `Word 6` values. Both
+public theorems accept arbitrary valid non-wrapping input/output cursors,
+including crossings, arbitrary unrepresented input bits, and arbitrary
+initialized output contents; all helper calls and intermediate stores are
+derived from the initial frame contracts.
+
+The arithmetic bridges are `jet_increment64_wide_word.v` and
+`jet_add64_wide_word.v`. The latter follows the actual C carry test
+`(UINT64_MAX - y) < x` and proves both its equivalence to the Simplicity carry
+and the modular 64-bit payload result in the machine-wrap case. The proof
+reuses the shared reader, wide-writer, carry/wide-output, frame-copy, and
+lifecycle contracts rather than enumerating 64-bit inputs.
+
 The preceding input-layout results are
 `jet_increment8_input_layout.v:eval_increment8_input_layout_matches_spec` and
 `jet_add8_input_layout.v:eval_add8_input_layout_matches_spec`. Their
@@ -152,8 +171,8 @@ the older specializations have additional restrictions described below:
 
 The output frame and backing words must still be in distinct CompCert blocks;
 same-block disjoint frame/backing regions are not covered. Other target ABIs,
-fully debug-enabled execution (without `PRODUCTION`), and larger-width
-increment/add jets are not established by these public theorems.
+fully debug-enabled execution (without `PRODUCTION`), and increment/add jets
+wider than 64 bits are not established by these public theorems.
 No binary-level linking or native ARM execution
 claim is made. The results are constructive terminating Clight executions,
 not separate universal determinism/small-step theorems.

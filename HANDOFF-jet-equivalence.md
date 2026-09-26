@@ -7,12 +7,15 @@ and its Clight reference before adding execution proofs.
 
 ## Goal status
 
-The active milestone—prove the actual generated C/CompCert Clight bodies for
-`increment_16`, `add_16`, `increment_32`, then `add_32`, equivalent to their
-canonical Simplicity jet specifications—is complete. The 16- and 32-bit
-results are proved from initial-memory/frame contracts, with no assumed
-helper executions or successful stores. Do not restart the readers,
-carry/wide writers, dependency setup, or these four proofs.
+The active goal—prove the actual generated C/CompCert Clight bodies for
+`increment_64` and `add_64` equivalent to their canonical Simplicity jet
+specifications, preserving the 16- and 32-bit results—is complete. All six
+16/32/64-bit increment/add public theorems are proved from initial-memory/frame
+contracts; no helper executions or successful intermediate stores are
+assumed. The 64-bit results cover arbitrary valid non-wrapping cursors,
+including read/write word-boundary crossings, unrelated input bits, and
+arbitrary initialized output contents. Do not restart the reader, carry/wide
+writer, dependency setup, or completed jet proofs.
 
 The goal is specifically implementation-to-specification equivalence for
 individual jets. It does not claim mathematical correctness of the Simplicity
@@ -37,6 +40,11 @@ casts, or informal proof substitutes were used.
 | `jet_increment32_layout.v:eval_increment32_layout_matches_spec` | Complete generated `increment_32` call for arbitrary valid non-wrapping cursors, crossings, unrelated input bits, and initialized output contents. |
 | `jet_add32_wide_word.v:add32_values_denote_input` | Closed symbolic arithmetic bridge to `Word.adder 5`, including the unsigned C carry comparison. |
 | `jet_add32_layout.v:eval_add32_layout_matches_spec` | Complete generated `add_32` call for consecutive Word32 inputs and arbitrary valid non-wrapping cursors, including crossings. |
+| `jet_read64_layout_exec.v`, `jet_read64_layout_total.v`, `jet_read64_input_word_total.v` | Actual aligned/crossing `read64`, total contract from initial permissions, and the exact Word64 value at arbitrary non-wrapping cursors. |
+| `jet_increment64_wide_word.v:increment64_values_denote_spec` | Closed bridge for `increment_64`; the payload and threshold carry match the canonical `Word.increment 6` specification. |
+| `jet_increment64_layout.v:eval_increment64_layout_matches_spec` | Complete generated `increment_64` call for arbitrary valid non-wrapping cursors, crossings, unrelated input bits, and initialized output contents. |
+| `jet_add64_wide_word.v:add64_values_denote_input` | Closed bridge to `Word.adder 6`. It proves the C threshold carry and modular 64-bit payload agree with the Simplicity adder, including machine-word wraparound. |
+| `jet_add64_layout.v:eval_add64_layout_matches_spec` | Complete generated `add_64` call for two consecutive Word64 inputs and arbitrary valid non-wrapping cursors, including crossings. |
 
 The frame API requires descriptor blocks and backing-storage blocks to be
 distinct. The checked generated C/AST configuration is x86-64 Linux LP64,
@@ -64,16 +72,15 @@ The 32-bit proofs validate the same reuse strategy at the next width: retain
 the shared frame lifecycle, logical-bit predicates, wide writers, and
 carry-plus-wide output contracts; add a width-specific reader execution and
 representation layer, then small adapters for the generated jet body and a
-closed symbolic arithmetic bridge. Keep the shared lemmas at the level that
-both widths actually use; avoid a broad framework rewrite. `Word n` has width
+closed symbolic arithmetic bridge. Keep shared lemmas at the level reused
+across the proved widths; avoid a broad framework rewrite. `Word n` has width
 `2^n`; Word16 is `Word 4`, Word32 is `Word 5`, and Word64 is `Word 6`.
 
 ABI details matter: generated 16/32/64-bit reader results are `Vlong`, while
-read8 returns `Vint`. For 64-bit arithmetic, the carrier sum can wrap; use
-modular sum semantics together with the separately computed carry rather than
-assuming the machine sum is the unbounded integer sum. The next natural
-follow-on is `increment_64` and `add_64`; these are not covered by the
-completed 16/32-bit milestone.
+read8 returns `Vint`. For 64-bit arithmetic, the carrier sum can wrap; the
+proved `add64_values_denote_input` bridge uses modular sum semantics together
+with the separately computed carry and does not assume the machine sum equals
+the unbounded integer sum.
 
 The crossing reader proof also surfaced durable tactics lessons: use one
 normal form for equivalent cursor arithmetic; prove exact unsigned values and
@@ -103,7 +110,8 @@ env OPAMROOT=/Users/brenorb/.opam-simplicity-root \
   COMPCERT=/tmp/simplicity-compcert-rebuilt \
   VST=/tmp/simplicity-vst-rebuilt \
   opam exec --switch=simplicity -- bash Coq/build-jets.sh \
-  --coqchk -silent C.jet_add32_layout C.jet_increment32_layout \
+  --coqchk -silent C.jet_add64_layout C.jet_increment64_layout \
+  C.jet_add32_layout C.jet_increment32_layout \
   C.jet_add16_layout C.jet_increment16_layout
 ```
 
@@ -111,8 +119,8 @@ The full build compiles all listed jet modules and the assumption audit.
 `Print Assumptions` reports inherited CompCert/Simplicity execution
 assumptions; inspect it rather than treating it as an automatic axiom gate.
 The pure arithmetic bridges are `Closed under the global context`. The full
-build, assumption audit, and `coqchk` command above passed after the 32-bit
-public theorems were added. The audit reports the existing inherited
+build, assumption audit, and six-module `coqchk` command above passed after the
+64-bit public theorems were added. The audit reports the existing inherited
 CompCert/Simplicity execution assumptions; no new proof axioms were added.
 
 ## Checkpoints
@@ -121,6 +129,9 @@ CompCert/Simplicity execution assumptions; no new proof axioms were added.
 - `5a94026` / `799fe53` / `59d3c34`: add16 arithmetic bridge, Clight adapter,
   and complete equivalence.
 - `6a646ad`: general crossing read16 proof; `coqc` and `coqchk` passed.
+- `64cad28`: closed `add_64` symbolic arithmetic bridge, including wraparound.
+- `9ec5aa6`: complete generated `add_64` equivalence at arbitrary valid layouts.
+- `fb77f07`: assumption audit for the public `add_64` results.
 - `b43d041`: increment32 arithmetic bridge.
 - `36f2793` / `49d1d6f` / `e9bbd63` / `76eddcc`: read32 execution,
   representation, crossing, and total-contract proofs.
