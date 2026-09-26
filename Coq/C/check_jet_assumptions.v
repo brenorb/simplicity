@@ -53,6 +53,7 @@ Print Assumptions word64_toZ_range.
 Print Assumptions word64_toZ_high_bits.
 Print Assumptions read64_crossing_at_bits.
 Print Assumptions eval_read64_layout_aligned.
+Print Assumptions eval_read64_layout_crossing.
 Print Assumptions read32_non_crossing_at_repr.
 Print Assumptions read32_non_crossing_at_unsigned.
 Print Assumptions read32_crossing_at_bits.
