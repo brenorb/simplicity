@@ -13,6 +13,7 @@ Require Import C.jet_increment_wide_word.
 Require Import C.jet_increment32_wide_word.
 Require Import C.jet_increment32_layout_exec C.jet_increment32_layout.
 Require Import C.jet_add16_wide_word.
+Require Import C.jet_add32_wide_word.
 Require Import C.jet_increment16_layout_exec.
 Require Import C.jet_increment16_layout.
 Require Import C.jet_add16_layout_exec.
@@ -95,6 +96,8 @@ Print Assumptions eval_increment32_layout_composes.
 Print Assumptions eval_increment32_layout_matches_spec.
 Print Assumptions add16_carry_denotes_overflow.
 Print Assumptions add16_values_denote_input.
+Print Assumptions add32_carry_denotes_overflow.
+Print Assumptions add32_values_denote_input.
 Print Assumptions eval_increment16_layout_composes.
 Print Assumptions eval_increment16_layout_matches_spec.
 Print Assumptions eval_add16_layout_composes.
