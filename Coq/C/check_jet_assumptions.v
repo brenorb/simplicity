@@ -14,6 +14,7 @@ Require Import C.jet_add16_wide_word.
 Require Import C.jet_increment16_layout_exec.
 Require Import C.jet_increment16_layout.
 Require Import C.jet_add16_layout_exec.
+Require Import C.jet_add16_layout.
 Require Import C.jet_writeBit_high.
 Require Import C.jet_carry_byte_crossing.
 Require Import C.jet_increment8_crossing C.jet_add8_crossing C.jet_increment8_crossing_word.
@@ -72,6 +73,7 @@ Print Assumptions add16_values_denote_input.
 Print Assumptions eval_increment16_layout_composes.
 Print Assumptions eval_increment16_layout_matches_spec.
 Print Assumptions eval_add16_layout_composes.
+Print Assumptions eval_add16_layout_matches_spec.
 Print Assumptions eval_write8_layout.
 Print Assumptions eval_one8_layout_matches_spec.
 Print Assumptions eval_writeBit_layout_raw.
