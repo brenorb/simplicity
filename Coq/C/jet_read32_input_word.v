@@ -143,3 +143,153 @@ Proof.
   change (0 <= @toZ (WordToZ 5) x <= 18446744073709551615).
   lia.
 Qed.
+
+Lemma read32_crossing_at_bits cursor high low j :
+  32 < cursor mod 64 < 64 -> 0 <= j < 64 ->
+  Int64.testbit (read32_crossing_at cursor high low) j =
+    if zlt j (cursor mod 64 - 32)
+    then Int64.testbit low (j + 64 - (cursor mod 64 - 32))
+    else if zlt j 32
+      then Int64.testbit high (j - (cursor mod 64 - 32))
+      else false.
+Proof.
+  intros Hcross Hj.
+  assert (Hr : cursor mod 64 < 64) by lia.
+  assert (Hrest : 0 < cursor mod 64 - 32 < 32) by lia.
+  assert (Hfirst : 0 < 64 - cursor mod 64 < 32) by lia.
+  assert (Hsum : (64 - cursor mod 64) + (cursor mod 64 - 32) = 32) by lia.
+  unfold read32_crossing_at.
+  rewrite Int64.bits_or by exact Hj.
+  rewrite Int64.bits_shl by exact Hj.
+  rewrite !cursor_unsigned by lia.
+  destruct (zlt j (cursor mod 64 - 32)) as [Hlow|Hnotlow].
+  - rewrite Bool.orb_false_l.
+    rewrite Int64.bits_zero_ext by lia. rewrite zlt_true by lia.
+    rewrite Int64.bits_shru by exact Hj. rewrite cursor_unsigned by lia.
+    rewrite zlt_true by
+      (change (j + (64 - (cursor mod 64 - 32)) < 64); lia).
+    f_equal. lia.
+  - rewrite !Int64.bits_zero_ext by lia.
+    destruct (zlt j 32) as [Hwithin|Habove].
+    + rewrite zlt_true by lia. rewrite zlt_false by lia.
+      apply Bool.orb_false_r.
+    + rewrite !zlt_false by lia. reflexivity.
+Qed.
+
+Lemma read32_input_bit_crossing_high m bw edge cursor
+    (x : Ty.tySem (Word 5)) high i :
+  0 <= cursor -> 32 < cursor mod 64 < 64 -> (i < 32)%nat ->
+  Z.of_nat i < 64 - cursor mod 64 ->
+  frame_input_word_at m bw edge cursor x ->
+  Mem.load Mint64 m bw (edge - 8 * (1 + cursor / 64)) = Some (Vlong high) ->
+  Z.testbit (Int64.unsigned high) (63 - cursor mod 64 - Z.of_nat i) =
+    Z.testbit (@toZ (WordToZ 5) x) (31 - Z.of_nat i).
+Proof.
+  intros HC Hcross Hi Hbefore Hinput Hhigh.
+  pose proof (frame_input_word_at_bit32 m bw edge cursor x i Hinput Hi) as Hbit.
+  destruct Hbit as [_ [_ [w [Hw Hvalue]]]].
+  destruct (cursor_add_index_non_crossing cursor (Z.of_nat i)
+      HC ltac:(lia) ltac:(lia)) as [Hq Hmod].
+  replace (edge - 8 * (1 + (cursor + Z.of_nat i) / 64)) with
+      (edge - 8 * (1 + cursor / 64)) in Hw by (rewrite Hq; reflexivity).
+  rewrite Hhigh in Hw. inversion Hw; subst w.
+  rewrite Hmod in Hvalue.
+  replace (63 - (cursor mod 64 + Z.of_nat i)) with
+      (63 - cursor mod 64 - Z.of_nat i) in Hvalue by lia.
+  symmetry. exact Hvalue.
+Qed.
+
+Lemma read32_input_bit_crossing_low m bw edge cursor
+    (x : Ty.tySem (Word 5)) low i :
+  0 <= cursor -> 32 < cursor mod 64 < 64 -> (i < 32)%nat ->
+  64 - cursor mod 64 <= Z.of_nat i ->
+  frame_input_word_at m bw edge cursor x ->
+  Mem.load Mint64 m bw (edge - 8 * (2 + cursor / 64)) = Some (Vlong low) ->
+  Z.testbit (Int64.unsigned low) (127 - cursor mod 64 - Z.of_nat i) =
+    Z.testbit (@toZ (WordToZ 5) x) (31 - Z.of_nat i).
+Proof.
+  intros HC Hcross Hi Hafter Hinput Hlow.
+  pose proof (frame_input_word_at_bit32 m bw edge cursor x i Hinput Hi) as Hbit.
+  destruct Hbit as [_ [_ [w [Hw Hvalue]]]].
+  destruct (cursor_add_index_crossing cursor (Z.of_nat i)
+      HC ltac:(lia) ltac:(lia) ltac:(lia)) as [Hq Hmod].
+  replace (edge - 8 * (1 + (cursor + Z.of_nat i) / 64)) with
+      (edge - 8 * (2 + cursor / 64)) in Hw by (rewrite Hq; lia).
+  rewrite Hlow in Hw. inversion Hw; subst w.
+  rewrite Hmod in Hvalue.
+  replace (63 - (cursor mod 64 + Z.of_nat i - 64)) with
+      (127 - cursor mod 64 - Z.of_nat i) in Hvalue by lia.
+  symmetry. exact Hvalue.
+Qed.
+
+Lemma read32_crossing_at_input_bit m bw edge cursor high low
+    (x : Ty.tySem (Word 5)) i :
+  0 <= cursor -> 32 < cursor mod 64 < 64 -> (i < 32)%nat ->
+  frame_input_word_at m bw edge cursor x ->
+  Mem.load Mint64 m bw (edge - 8 * (1 + cursor / 64)) = Some (Vlong high) ->
+  Mem.load Mint64 m bw (edge - 8 * (2 + cursor / 64)) = Some (Vlong low) ->
+  Int64.testbit (read32_crossing_at cursor high low) (31 - Z.of_nat i) =
+    Z.testbit (@toZ (WordToZ 5) x) (31 - Z.of_nat i).
+Proof.
+  intros HC Hcross Hi Hinput Hhigh Hlow.
+  pose proof (read32_crossing_at_bits cursor high low (31 - Z.of_nat i)
+    Hcross ltac:(pose proof (Nat2Z.is_nonneg i);
+      pose proof (Nat2Z.inj_lt i 32); lia)) as Hbits.
+  rewrite Hbits.
+  destruct (zlt (31 - Z.of_nat i) (cursor mod 64 - 32)) as [Hto_low|Hto_high].
+  - pose proof (read32_input_bit_crossing_low m bw edge cursor x low i
+      HC Hcross Hi ltac:(lia) Hinput Hlow) as Hsource.
+    replace (31 - Z.of_nat i + 64 - (cursor mod 64 - 32)) with
+        (127 - cursor mod 64 - Z.of_nat i) by lia.
+    exact Hsource.
+  - rewrite zlt_true by lia.
+    pose proof (read32_input_bit_crossing_high m bw edge cursor x high i
+      HC Hcross Hi ltac:(lia) Hinput Hhigh) as Hsource.
+    replace (31 - Z.of_nat i - (cursor mod 64 - 32)) with
+        (63 - cursor mod 64 - Z.of_nat i) by lia.
+    exact Hsource.
+Qed.
+
+Lemma read32_crossing_at_repr m bw edge cursor high low
+    (x : Ty.tySem (Word 5)) :
+  0 <= cursor -> 32 < cursor mod 64 < 64 ->
+  frame_input_word_at m bw edge cursor x ->
+  Mem.load Mint64 m bw (edge - 8 * (1 + cursor / 64)) = Some (Vlong high) ->
+  Mem.load Mint64 m bw (edge - 8 * (2 + cursor / 64)) = Some (Vlong low) ->
+  read32_crossing_at cursor high low = Int64.repr (@toZ (WordToZ 5) x).
+Proof.
+  intros HC Hcross Hinput Hhigh Hlow.
+  apply Int64.same_bits_eq. intros j Hj.
+  change (0 <= j < 64) in Hj.
+  destruct (Z_lt_ge_dec j 32) as [Hwithin|Habove].
+  - set (i := Z.to_nat (31 - j)).
+    assert (Hi : (i < 32)%nat).
+    { unfold i. apply Nat2Z.inj_lt. rewrite Z2Nat.id by lia. lia. }
+    pose proof (read32_crossing_at_input_bit m bw edge cursor high low x i
+      HC Hcross Hi Hinput Hhigh Hlow) as HB.
+    replace (31 - Z.of_nat i) with j in HB by
+      (unfold i; rewrite Z2Nat.id by lia; lia).
+    rewrite HB. rewrite Int64.testbit_repr by exact Hj. reflexivity.
+  - rewrite read32_crossing_at_bits by assumption.
+    rewrite zlt_false by lia. rewrite zlt_false by lia.
+    rewrite Int64.testbit_repr by exact Hj.
+    symmetry. apply word32_toZ_high_bits. lia.
+Qed.
+
+Lemma read32_crossing_at_unsigned m bw edge cursor high low
+    (x : Ty.tySem (Word 5)) :
+  0 <= cursor -> 32 < cursor mod 64 < 64 ->
+  frame_input_word_at m bw edge cursor x ->
+  Mem.load Mint64 m bw (edge - 8 * (1 + cursor / 64)) = Some (Vlong high) ->
+  Mem.load Mint64 m bw (edge - 8 * (2 + cursor / 64)) = Some (Vlong low) ->
+  Int64.unsigned (read32_crossing_at cursor high low) =
+    @toZ (WordToZ 5) x.
+Proof.
+  intros HC Hcross Hinput Hhigh Hlow.
+  rewrite (read32_crossing_at_repr m bw edge cursor high low x
+    HC Hcross Hinput Hhigh Hlow).
+  apply Int64.unsigned_repr.
+  pose proof (word32_toZ_range x).
+  change (0 <= @toZ (WordToZ 5) x <= 18446744073709551615).
+  lia.
+Qed.

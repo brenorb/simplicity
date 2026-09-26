@@ -131,6 +131,33 @@ Ltac read32_stmt :=
       apply exec_Sreturn_some; read32_expr
   end.
 
+Ltac read32_cross_stmt :=
+  lazymatch goal with
+  | |- ClightBigstep.exec_stmt _ _ _ _ _ (Ssequence _ _) _ _ _ _ =>
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0);
+        [read32_cross_stmt | read32_cross_stmt]
+  | |- ClightBigstep.exec_stmt _ _ _ _ _ (Sset _ _) _ _ _ _ =>
+      apply exec_set; read32_expr
+  | |- ClightBigstep.exec_stmt _ _ _ _ _ (Sifthenelse _ _ _) _ _ _ _ =>
+      eapply exec_Sifthenelse with (v1 := Vint Int.one) (b := true);
+        [first [solve [eapply eval_read16_unsigned_lt_true;
+                         [reflexivity | reflexivity | eassumption]]
+               | read32_expr]
+        | reflexivity | read32_cross_stmt]
+  | |- ClightBigstep.exec_stmt _ _ _ _ _ (Swhile _ _) _ _ _ _ =>
+      eapply exec_read16_while_false; [read32_expr | read32_scalar]
+  | |- ClightBigstep.exec_stmt _ _ _ _ _ (Scall _ (Evar _LSBkeep _) _) _ _ _ _ =>
+      eapply call_word_helper with (f := f_LSBkeep);
+      [ reflexivity | reflexivity | reflexivity | apply symbol_LSBkeep | apply funct_LSBkeep
+      | read32_expr | read32_expr | apply eval_keep_width; lia ]
+  | |- ClightBigstep.exec_stmt _ _ _ _ _ (Sassign (Efield _ _offset _) _) _ _ _ _ =>
+      eapply exec_Sassign_value;
+      [ apply eval_frame_offset_lvalue_at; reflexivity | read32_expr | read32_scalar
+      | eapply assign_frame_offset_at; [eassumption | read32_scalar] ]
+  | |- ClightBigstep.exec_stmt _ _ _ _ _ (Sreturn (Some _)) _ _ _ _ =>
+      apply exec_Sreturn_some; read32_expr
+  end.
+
 Lemma read32_layout_arithmetic cursor :
   0 <= cursor <= Int64.max_unsigned - 32 -> cursor mod 64 <= 32 ->
   Int64.sub (Int64.repr 64) (Int64.repr (cursor mod 64)) =
@@ -200,6 +227,108 @@ Proof.
   - apply entry_read32_layout.
   - unfold f_simplicity_read32; cbn [fn_body].
     timeout 10 read32_stmt.
+  - cbn; split; [discriminate | reflexivity].
+  - reflexivity.
+Qed.
+
+Definition read32_crossing_at (cursor : Z) (high low : int64) : int64 :=
+  let first := 64 - cursor mod 64 in
+  let rest := cursor mod 64 - 32 in
+  Int64.or
+    (Int64.shl (Int64.zero_ext first high) (Int64.repr rest))
+    (Int64.zero_ext rest (Int64.shru low (Int64.repr (64 - rest)))).
+
+Lemma eval_read32_layout_crossing m mfirst mf bf base bw edge cursor high low :
+  frame_base_valid base ->
+  0 <= cursor <= Int64.max_unsigned - 32 ->
+  32 < cursor mod 64 < 64 ->
+  8 * (2 + cursor / 64) <= edge <= Ptrofs.max_unsigned ->
+  frame_fields_at m bf base bw edge cursor ->
+  Mem.load Mint64 m bw (edge - 8 * (1 + cursor / 64)) = Some (Vlong high) ->
+  Mem.load Mint64 m bw (edge - 8 * (2 + cursor / 64)) = Some (Vlong low) ->
+  bf <> bw ->
+  Mem.store Mint64 m bf (base + 8)
+    (Vlong (Int64.repr (cursor + (64 - cursor mod 64)))) = Some mfirst ->
+  Mem.store Mint64 mfirst bf (base + 8)
+    (Vlong (Int64.repr (cursor + 32))) = Some mf ->
+  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_simplicity_read32)
+    [Vptr bf (Ptrofs.repr base)] E0 mf
+    (Vlong (read32_crossing_at cursor high low)).
+Proof.
+  intros HB HC HR HE [HF HO] HH HL Hsep SF SFinal.
+  assert (Hfirst : 0 < 64 - cursor mod 64 < 32) by lia.
+  assert (Hrest : 0 < cursor mod 64 - 32 < 32) by lia.
+  assert (Hleftvalid : Int64.ltu (Int64.repr (cursor mod 64 - 32))
+      Int64.iwordsize = true).
+  { unfold Int64.ltu. change Int64.iwordsize with (Int64.repr 64).
+    rewrite !cursor_unsigned by lia. rewrite zlt_true by lia. reflexivity. }
+  assert (Hrightvalid : Int64.ltu (Int64.repr (64 - (cursor mod 64 - 32)))
+      Int64.iwordsize = true).
+  { unfold Int64.ltu. change Int64.iwordsize with (Int64.repr 64).
+    rewrite !cursor_unsigned by lia. rewrite zlt_true by lia. reflexivity. }
+  assert (HOfirst : Mem.load Mint64 mfirst bf (base + 8) =
+      Some (Vlong (Int64.repr (cursor + (64 - cursor mod 64))))).
+  { exact (Mem.load_store_same _ _ _ _ _ _ SF). }
+  assert (Hshift : Int64.sub (Int64.repr 64)
+      (Int64.repr (cursor mod 64)) = Int64.repr (64 - cursor mod 64)).
+  { exact (@cursor_sub 64 (cursor mod 64) ltac:(lia) ltac:(lia)). }
+  assert (Hlt : Int64.ltu (Int64.repr (64 - cursor mod 64))
+      (Int64.repr 32) = true).
+  { unfold Int64.ltu. rewrite !cursor_unsigned by lia. apply zlt_true. lia. }
+  assert (Hremain : Int64.sub (Int64.repr 32)
+      (Int64.repr (64 - cursor mod 64)) = Int64.repr (cursor mod 64 - 32)).
+  { pose proof (@cursor_sub 32 (64 - cursor mod 64) ltac:(lia) ltac:(lia)) as H.
+    replace (32 - (64 - cursor mod 64)) with (cursor mod 64 - 32) in H by lia.
+    exact H. }
+  assert (Hltloop : Int64.ltu (Int64.repr 64)
+      (Int64.repr (cursor mod 64 - 32)) = false).
+  { unfold Int64.ltu. rewrite !cursor_unsigned by lia. apply zlt_false. lia. }
+  assert (Hfinalshift : Int64.sub (Int64.repr 64)
+      (Int64.repr (cursor mod 64 - 32)) =
+      Int64.repr (64 - (cursor mod 64 - 32))).
+  { exact (@cursor_sub 64 (cursor mod 64 - 32) ltac:(lia) ltac:(lia)). }
+  assert (Hcursor3 : Int64.add (Int64.repr (cursor + (64 - cursor mod 64)))
+      (Int64.repr (cursor mod 64 - 32)) = Int64.repr (cursor + 32)).
+  { unfold Int64.add. rewrite !Int64.unsigned_repr by lia. f_equal; lia. }
+  assert (Hcursor1 : Int64.add (Int64.repr cursor)
+      (Int64.repr (64 - cursor mod 64)) =
+      Int64.repr (cursor + (64 - cursor mod 64))).
+  { unfold Int64.add. rewrite !Int64.unsigned_repr by lia. reflexivity. }
+  assert (Hqpos : 0 <= cursor / 64) by (apply Z.div_pos; lia).
+  assert (HPnext : Ptrofs.sub (Ptrofs.repr (edge - 8 * (1 + cursor / 64)))
+      (Ptrofs.repr 8) = Ptrofs.repr (edge - 8 * (2 + cursor / 64))).
+  { unfold Ptrofs.sub. rewrite Ptrofs.unsigned_repr by lia.
+    change (Ptrofs.unsigned (Ptrofs.repr 8)) with 8. f_equal; lia. }
+  assert (Hlowfirst : Mem.load Mint64 mfirst bw
+      (Ptrofs.unsigned (Ptrofs.repr (edge - 8 * (2 + cursor / 64)))) =
+      Some (Vlong low)).
+  { erewrite Mem.load_store_other; [|exact SF|].
+    - assert (Hlowofs : 0 <= edge - 8 * (2 + cursor / 64) <=
+          Ptrofs.max_unsigned) by lia.
+      rewrite Ptrofs.unsigned_repr by exact Hlowofs. exact HL.
+    - left. congruence. }
+  assert (Hq : 0 <= cursor / 64 <= Int64.max_unsigned).
+  { split; [exact Hqpos|]. apply Z.div_le_upper_bound; lia. }
+  pose proof (read8_layout_index cursor ltac:(lia)) as [Hdiv [Hmod _]].
+  assert (HEfirst : 8 * (1 + cursor / 64) <= edge <= Ptrofs.max_unsigned)
+    by lia.
+  pose proof (read8_layout_pointer edge (cursor / 64) Hq HEfirst)
+    as [HPfirst HPword].
+  assert (Hptr8 : Ptrofs.mul (Ptrofs.repr 8)
+      (Ptrofs.of_ints (Int.repr 1)) = Ptrofs.repr 8).
+  { unfold Ptrofs.mul, Ptrofs.of_ints. vm_compute. reflexivity. }
+  assert (HHp : Mem.load Mint64 m bw
+      (Ptrofs.unsigned (Ptrofs.repr (edge - 8 * (1 + cursor / 64)))) =
+      Some (Vlong high)).
+  { rewrite Ptrofs.unsigned_repr by lia. exact HH. }
+  eapply ClightBigstep.eval_funcall_internal
+    with (e := empty_env) (le1 := le_read32_layout bf base) (m1 := m)
+      (m2 := mf)
+      (out := Out_return (Some (Vlong (read32_crossing_at cursor high low), tulong)))
+      (vres := Vlong (read32_crossing_at cursor high low)).
+  - apply entry_read32_layout.
+  - unfold f_simplicity_read32; cbn [fn_body].
+    timeout 10 read32_cross_stmt.
   - cbn; split; [discriminate | reflexivity].
   - reflexivity.
 Qed.
