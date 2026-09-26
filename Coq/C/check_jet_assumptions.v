@@ -38,6 +38,8 @@ Require Import C.jet_read32_input_word.
 Require Import C.jet_read32_layout_total C.jet_read32_input_word_total.
 Require Import C.jet_read64_input_word.
 Require Import C.jet_read64_layout_exec.
+Require Import C.jet_read64_layout_total.
+Require Import C.jet_read64_input_word_total.
 Require Import C.jet_read16_layout_total.
 Require Import C.jet_read16_input_word.
 Print Assumptions eval_read16_layout_non_crossing.
@@ -54,6 +56,11 @@ Print Assumptions word64_toZ_high_bits.
 Print Assumptions read64_crossing_at_bits.
 Print Assumptions eval_read64_layout_aligned.
 Print Assumptions eval_read64_layout_crossing.
+Print Assumptions eval_read64_layout_total.
+Print Assumptions read64_crossing_at_repr.
+Print Assumptions read64_layout_value_unsigned.
+Print Assumptions read64_input_loads.
+Print Assumptions eval_read64_word_at.
 Print Assumptions read32_non_crossing_at_repr.
 Print Assumptions read32_non_crossing_at_unsigned.
 Print Assumptions read32_crossing_at_bits.
