@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run under the Coq 8.17.1 opam environment used to build CompCert and VST.
-: "${COMPCERT:?Set COMPCERT to the built CompCert 3.14 source directory}"
-: "${VST:?Set VST to the built VST 2.14 source directory}"
+# Build (or check) the jet proofs.  Run with Coq 8.17.1 on PATH.
+# Dependencies come from JET_DEPS (default ~/.cache/simplicity-jet-deps), which
+# jet-deps.sh populates; COMPCERT and VST override the two source trees.
+JET_DEPS=${JET_DEPS:-${XDG_CACHE_HOME:-$HOME/.cache}/simplicity-jet-deps}
+COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14}
+VST=${VST:-$JET_DEPS/vst-2.14}
+if [[ ! -f "$COMPCERT/compcert.config" || ! -d "$VST/sha" ]]; then
+  printf 'CompCert/VST not found under %s; run Coq/jet-deps.sh (see Coq/JET_BUILD.md)\n' "$JET_DEPS" >&2
+  exit 1
+fi
 cd "$(dirname "$0")"
 
 jet_flags=()
