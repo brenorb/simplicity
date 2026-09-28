@@ -75,9 +75,11 @@ jobs:
           path: ${{ env.JET_DEPS }}
           key: jet-deps-${{ hashFiles('Coq/jet-deps.sh') }}
           fail-on-cache-miss: true
-      # Exact-key cache only: a restored .vo older than its source would be stale.
-      - name: Restore compiled Simplicity core
-        id: core
+      # The Simplicity library and the generated helper bodies (jets, jet_exec,
+      # jet_write8) form the slow serial base of the build (~10 of ~14 minutes) and
+      # rarely change.  Exact-key cache only: a restored .vo older than its source
+      # would be stale, so there is deliberately no restore-keys fallback.
+      - name: Restore compiled Simplicity library and helper base
         uses: actions/cache@v4
         with:
           path: |
@@ -85,7 +87,13 @@ jobs:
             Coq/Simplicity/**/*.vos
             Coq/Simplicity/**/*.vok
             Coq/Simplicity/**/*.glob
-          key: jet-core-${{ hashFiles('Coq/Simplicity/**/*.v', 'Coq/jet-deps.sh', 'Coq/_CoqProject.jets') }}
+            Coq/C/jets.vo*
+            Coq/C/jets.glob
+            Coq/C/jet_exec.vo*
+            Coq/C/jet_exec.glob
+            Coq/C/jet_write8.vo*
+            Coq/C/jet_write8.glob
+          key: jet-base-${{ hashFiles('Coq/Simplicity/**/*.v', 'Coq/C/jets.v', 'Coq/C/jet_exec.v', 'Coq/C/jet_write8.v', 'Coq/jet-deps.sh', 'Coq/_CoqProject.jets') }}
       - name: Build, coqchk and assumption gate
         run: opam exec -- bash Coq/check-jets.sh
   jets-ast:
