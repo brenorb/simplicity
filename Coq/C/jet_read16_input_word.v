@@ -1,7 +1,7 @@
 (** Logical Word16 input bits and exact interpretation of the generated reader. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes ClightBigstep Memory Events.
-Require Import Simplicity.Word Simplicity.Util.Arith.
+Require Import C.jet_word_repr Simplicity.Word Simplicity.Util.Arith.
 Require Import C.jets C.jet_exec C.jet_input_layout.
 Require Import C.jet_frame_layout.
 Require Import C.jet_read16_layout_total C.jet_read16_layout_exec.
@@ -90,27 +90,14 @@ Qed.
 Lemma word16_toZ_range (x : Ty.tySem (Word 4)) :
   0 <= @toZ (WordToZ 4) x < 65536.
 Proof.
-  pose proof (@toZ_mod (WordToZ 4) x) as Hmod.
-  rewrite two_power_nat_equiv in Hmod.
-  pose proof (bitSize_Word 4) as Hsize.
-  rewrite Hsize in Hmod.
-  change (@toZ (WordToZ 4) x =
-    Z.modulo (@toZ (WordToZ 4) x) 65536) in Hmod.
-  rewrite Hmod. apply Z.mod_pos_bound. lia.
+  pose proof (word_toZ_range 4 x) as H.
+  change (2 ^ Z.of_nat (Nat.pow 2 4)) with 65536 in H. exact H.
 Qed.
 
 Lemma word16_toZ_high_bits (x : Ty.tySem (Word 4)) j :
   16 <= j -> Z.testbit (@toZ (WordToZ 4) x) j = false.
 Proof.
-  intros Hj.
-  pose proof (@toZ_mod (WordToZ 4) x) as Hmod.
-  rewrite two_power_nat_equiv in Hmod.
-  pose proof (bitSize_Word 4) as Hsize.
-  rewrite Hsize in Hmod.
-  change (@toZ (WordToZ 4) x =
-    Z.modulo (@toZ (WordToZ 4) x) 65536) in Hmod.
-  rewrite Hmod. replace 65536 with (2 ^ 16) by reflexivity.
-  apply Z.mod_pow2_bits_high. lia.
+  intros Hj. apply word_toZ_high_bits. change (Z.of_nat (Nat.pow 2 4)) with 16. exact Hj.
 Qed.
 
 Lemma read16_input_bit_non_crossing m bw edge cursor

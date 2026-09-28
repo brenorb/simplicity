@@ -12,7 +12,7 @@
 From Coq Require Import ZArith List Lia Bool.
 From compcert Require Import Coqlib Integers AST Memory.
 Require Import Simplicity.Ty Simplicity.Word Simplicity.BitMachine Simplicity.Translate.
-Require Import C.jet_frame_spec C.jet_frame_arith C.jet_frame_layout C.jet_input_layout.
+Require Import C.jet_word_repr C.jet_frame_spec C.jet_frame_arith C.jet_frame_layout C.jet_input_layout.
 Require Import C.jet_crossing_word C.jet_read8_layout_total C.jet_spec.
 Require Import C.jet_write_layout C.jet_output_layout C.jet_word_slice C.jet_output_slice.
 Require Import C.jet_wide C.jet_wide_spec C.jet_carry_wide_layout C.jet_carry_byte_layout.
@@ -50,25 +50,6 @@ Proof.
     reflexivity.
 Qed.
 
-Lemma word_bitSize n : ToZ.Theory.bitSize (WordToZ n) = Nat.pow 2 n.
-Proof.
-  apply Nat2Z.inj. rewrite bitSize_Word, two_power_nat_equiv, Nat2Z.inj_pow.
-  reflexivity.
-Qed.
-
-Lemma word_toZ_mod n (x : Ty.tySem (Word n)) :
-  @toZ (WordToZ n) x mod 2 ^ Z.of_nat (Nat.pow 2 n) = @toZ (WordToZ n) x.
-Proof.
-  pose proof (@toZ_mod (WordToZ n) x) as H.
-  rewrite two_power_nat_equiv, word_bitSize in H. symmetry. exact H.
-Qed.
-
-Lemma word_toZ_range n (x : Ty.tySem (Word n)) :
-  0 <= @toZ (WordToZ n) x < 2 ^ Z.of_nat (Nat.pow 2 n).
-Proof.
-  rewrite <- word_toZ_mod. apply Z.mod_pos_bound. apply Z.pow_pos_nonneg; lia.
-Qed.
-
 Lemma frame_input_word_bits_msb n (x : Ty.tySem (Word n)) :
   frame_input_word_bits x = msb_bits (Nat.pow 2 n) (@toZ (WordToZ n) x).
 Proof. reflexivity. Qed.
@@ -96,40 +77,6 @@ Qed.
 Lemma encode_word_length n (x : Ty.tySem (Word n)) :
   length (encode x) = Nat.pow 2 n.
 Proof. rewrite encode_word, map_length. apply frame_input_word_bits_length. Qed.
-
-Lemma word_fromZ_mod n z :
-  @fromZ (WordToZ n) (z mod 2 ^ Z.of_nat (Nat.pow 2 n)) = @fromZ (WordToZ n) z.
-Proof.
-  rewrite <- (@from_toZ (WordToZ n) (@fromZ (WordToZ n) z)).
-  rewrite to_fromZ, two_power_nat_equiv, word_bitSize. reflexivity.
-Qed.
-
-(** Decoding a machine integer to a word only depends on its low bits. *)
-Lemma word_fromZ_bits n (x : Ty.tySem (Word n)) z :
-  @fromZ (WordToZ n) z = x <->
-  (forall j, 0 <= j < Z.of_nat (Nat.pow 2 n) ->
-    Z.testbit z j = Z.testbit (@toZ (WordToZ n) x) j).
-Proof.
-  split.
-  - intros <- j Hj. rewrite to_fromZ, two_power_nat_equiv, word_bitSize.
-    symmetry. apply Z.mod_pow2_bits_low. lia.
-  - intros H. rewrite <- word_fromZ_mod.
-    replace (z mod 2 ^ Z.of_nat (Nat.pow 2 n)) with (@toZ (WordToZ n) x).
-    + apply from_toZ.
-    + rewrite <- word_toZ_mod. apply Z.bits_inj_iff'. intros k Hk.
-      destruct (Z.lt_ge_cases k (Z.of_nat (Nat.pow 2 n))) as [Hlt|Hge].
-      * rewrite !Z.mod_pow2_bits_low by exact Hlt. symmetry. apply H. lia.
-      * rewrite !Z.mod_pow2_bits_high by lia. reflexivity.
-Qed.
-
-Lemma nth_error_seq_in start n i :
-  (i < n)%nat -> nth_error (List.seq start n) i = Some (start + i)%nat.
-Proof.
-  revert start i. induction n as [|n IH]; intros start i Hi; [lia|].
-  destruct i as [|i]; cbn.
-  - f_equal; lia.
-  - rewrite IH by lia. f_equal; lia.
-Qed.
 
 Lemma nth_error_word_bits n (x : Ty.tySem (Word n)) i :
   (i < Nat.pow 2 n)%nat ->

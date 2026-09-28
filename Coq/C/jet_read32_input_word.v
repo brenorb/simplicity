@@ -1,7 +1,7 @@
 (** Exact logical interpretation of non-crossing generated read32 results. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Memory.
-Require Import Simplicity.Word Simplicity.Util.Arith.
+Require Import C.jet_word_repr Simplicity.Word Simplicity.Util.Arith.
 Require Import C.jets C.jet_input_layout C.jet_read16_input_word.
 Require Import C.jet_read32_layout_exec C.jet_frame_arith.
 Import Values Mem Ctypes ListNotations.
@@ -36,25 +36,14 @@ Qed.
 Lemma word32_toZ_range (x : Ty.tySem (Word 5)) :
   0 <= @toZ (WordToZ 5) x < 4294967296.
 Proof.
-  pose proof (@toZ_mod (WordToZ 5) x) as Hmod.
-  rewrite two_power_nat_equiv in Hmod.
-  rewrite (bitSize_Word 5) in Hmod.
-  change (@toZ (WordToZ 5) x =
-    Z.modulo (@toZ (WordToZ 5) x) 4294967296) in Hmod.
-  rewrite Hmod. apply Z.mod_pos_bound. lia.
+  pose proof (word_toZ_range 5 x) as H.
+  change (2 ^ Z.of_nat (Nat.pow 2 5)) with 4294967296 in H. exact H.
 Qed.
 
 Lemma word32_toZ_high_bits (x : Ty.tySem (Word 5)) j :
   32 <= j -> Z.testbit (@toZ (WordToZ 5) x) j = false.
 Proof.
-  intros Hj.
-  pose proof (@toZ_mod (WordToZ 5) x) as Hmod.
-  rewrite two_power_nat_equiv in Hmod.
-  rewrite (bitSize_Word 5) in Hmod.
-  change (@toZ (WordToZ 5) x =
-    Z.modulo (@toZ (WordToZ 5) x) 4294967296) in Hmod.
-  rewrite Hmod. replace 4294967296 with (2 ^ 32) by reflexivity.
-  apply Z.mod_pow2_bits_high. lia.
+  intros Hj. apply word_toZ_high_bits. change (Z.of_nat (Nat.pow 2 5)) with 32. exact Hj.
 Qed.
 
 Lemma read32_input_bit_non_crossing m bw edge cursor

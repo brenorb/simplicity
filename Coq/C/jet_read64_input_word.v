@@ -2,7 +2,7 @@
 From Coq Require Import ZArith List Lia Bool.
 From compcert Require Import Coqlib Integers AST Ctypes Memory.
 Require Import Simplicity.Word Simplicity.Util.Arith.
-Require Import C.jets C.jet_input_layout C.jet_read16_input_word.
+Require Import C.jet_word_repr C.jets C.jet_input_layout C.jet_read16_input_word.
 Require Import C.jet_read32_input_word C.jet_frame_arith.
 Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
@@ -45,24 +45,14 @@ Qed.
 Lemma word64_toZ_range (x : Ty.tySem (Word 6)) :
   0 <= @toZ (WordToZ 6) x < 18446744073709551616.
 Proof.
-  pose proof (@toZ_mod (WordToZ 6) x) as Hmod.
-  rewrite two_power_nat_equiv in Hmod.
-  rewrite (bitSize_Word 6) in Hmod.
-  change (@toZ (WordToZ 6) x =
-    Z.modulo (@toZ (WordToZ 6) x) 18446744073709551616) in Hmod.
-  rewrite Hmod. apply Z.mod_pos_bound. lia.
+  pose proof (word_toZ_range 6 x) as H.
+  change (2 ^ Z.of_nat (Nat.pow 2 6)) with 18446744073709551616 in H. exact H.
 Qed.
 
 Lemma word64_toZ_high_bits (x : Ty.tySem (Word 6)) j :
   64 <= j -> Z.testbit (@toZ (WordToZ 6) x) j = false.
 Proof.
-  intros Hj. pose proof (@toZ_mod (WordToZ 6) x) as Hmod.
-  rewrite two_power_nat_equiv in Hmod.
-  rewrite (bitSize_Word 6) in Hmod.
-  change (@toZ (WordToZ 6) x =
-    Z.modulo (@toZ (WordToZ 6) x) 18446744073709551616) in Hmod.
-  rewrite Hmod. replace 18446744073709551616 with (2 ^ 64) by reflexivity.
-  apply Z.mod_pow2_bits_high. lia.
+  intros Hj. apply word_toZ_high_bits. change (Z.of_nat (Nat.pow 2 6)) with 64. exact Hj.
 Qed.
 
 Lemma read64_crossing_at_bits cursor high low j :
