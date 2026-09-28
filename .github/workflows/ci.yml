@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: ["c", "cmake", "haskell"] # coq takes a very long time and times out at 6 hours...
+        project: ["c", "cmake", "haskell"] # the full coq derivation takes over six hours; the jet proofs have dedicated jobs below
         os: ["ubuntu-latest", macos-latest]
         channel: ["nixos-25.05", "nixpkgs-unstable"]
     runs-on: ${{ matrix.os }}
@@ -36,3 +36,75 @@ jobs:
           nix-channel --add https://nixos.org/channels/${{matrix.channel}} nixpkgs
           nix-channel --update
       - run: nix-build -A ${{matrix.project}}
+
+  # The jet proofs (Coq/C/jet_*.v) are verified by three separate jobs instead of
+  # the full `coq` derivation.  The pinned CompCert 3.14 / VST 2.14 build and the
+  # opam switch are cached, so the usual cost is the jet build itself.
+  jets-deps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      JET_DEPS: ${{ github.workspace }}/.jet-deps
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 4.14.1
+      - run: opam install -y coq.8.17.1 menhir
+      - name: Restore pinned CompCert and VST
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.JET_DEPS }}
+          key: jet-deps-${{ hashFiles('Coq/jet-deps.sh') }}
+      - run: opam exec -- bash Coq/jet-deps.sh
+  jets:
+    needs: jets-deps
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      JET_DEPS: ${{ github.workspace }}/.jet-deps
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 4.14.1
+      - run: opam install -y coq.8.17.1 menhir
+      - name: Restore pinned CompCert and VST
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.JET_DEPS }}
+          key: jet-deps-${{ hashFiles('Coq/jet-deps.sh') }}
+          fail-on-cache-miss: true
+      # Exact-key cache only: a restored .vo older than its source would be stale.
+      - name: Restore compiled Simplicity core
+        id: core
+        uses: actions/cache@v4
+        with:
+          path: |
+            Coq/Simplicity/**/*.vo
+            Coq/Simplicity/**/*.vos
+            Coq/Simplicity/**/*.vok
+            Coq/Simplicity/**/*.glob
+          key: jet-core-${{ hashFiles('Coq/Simplicity/**/*.v', 'Coq/jet-deps.sh', 'Coq/_CoqProject.jets') }}
+      - name: Build, coqchk and assumption gate
+        run: opam exec -- bash Coq/check-jets.sh
+  jets-ast:
+    needs: jets-deps
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      JET_DEPS: ${{ github.workspace }}/.jet-deps
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore pinned CompCert and VST
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.JET_DEPS }}
+          key: jet-deps-${{ hashFiles('Coq/jet-deps.sh') }}
+          fail-on-cache-miss: true
+      - run: sudo apt-get install -y clang
+      - name: Regenerate the committed AST with the pinned glibc headers
+        run: |
+          bash Coq/jet-sysroot.sh
+          COMPCERT="$JET_DEPS/compcert-3.14" JET_SYSROOT="$JET_DEPS/sysroot-glibc-2.36" \
+            bash Coq/C/check-jets-generation.sh
