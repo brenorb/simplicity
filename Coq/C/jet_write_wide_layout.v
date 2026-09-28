@@ -8,7 +8,9 @@ Require Import C.jet_frame_layout C.jet_write_layout C.jet_frame_arith C.jet_wri
 Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Local Open Scope Z_scope.
 Local Transparent Archi.ptr64.
-Set Default Timeout 10.
+(* The slowest guarded sentence took 5.3 s in a clean baseline build (2026-09-27,
+   see JET_BUILD.md); the bound is kept, with margin for slower CI machines. *)
+Set Default Timeout 30.
 
 Definition le_write_wide s bf base x : temp_env :=
   PTree.set _x (Vlong x) (PTree.set _frame (Vptr bf (Ptrofs.repr base))
