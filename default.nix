@@ -50,6 +50,12 @@ let hp = nixpkgs.haskell.packages.${ghc};
     inherit safegcd-bounds vst;
   };
 
+  # Focused target for the jet proofs (see Coq/JET_BUILD.md).
+  coqJets = nixpkgs.callPackage ./Simplicity.Coq.Jets.nix {
+    inherit (cp) coq;
+    inherit vst compcert;
+  };
+
   c = nixpkgs.callPackage ./Simplicity.C.nix {
     inherit doCheck production wideMultiply withCoverage withProfiler withTiming withValgrind;
     stdenv = nixpkgs.${env};
