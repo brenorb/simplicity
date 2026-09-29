@@ -14,7 +14,7 @@
 #   5. with --ast (or JET_SYSROOT set): regenerate the C AST with the pinned
 #      inputs and compare it with the committed C/jets.v.
 # Requires Coq 8.17.1 on PATH and JET_DEPS prepared by jet-deps.sh (and
-# jet-sysroot.sh for step 5).
+# jet-sysroot.sh for step 5; JET_SYSROOT defaults to its output directory).
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -66,6 +66,11 @@ if $update; then bash audit-jet-assumptions.sh --update; else bash audit-jet-ass
 if $ast; then
   echo "== AST regeneration"
   : "${JET_DEPS:=${XDG_CACHE_HOME:-$HOME/.cache}/simplicity-jet-deps}"
-  COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14} bash C/check-jets-generation.sh
+  JET_SYSROOT=${JET_SYSROOT:-$JET_DEPS/sysroot-glibc-2.36}
+  if [[ ! -d "$JET_SYSROOT/usr/include" ]]; then
+    echo "glibc sysroot not found at $JET_SYSROOT; run Coq/jet-sysroot.sh" >&2; exit 1
+  fi
+  COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14} JET_SYSROOT=$JET_SYSROOT \
+    bash C/check-jets-generation.sh
 fi
 echo "all jet checks passed"
