@@ -159,3 +159,28 @@ Timeouts: 18 jet files set `Set Default Timeout 10` and several use
 sentence took 5.3 s (`jet_write_wide_layout.v`); all others took at most 2.3 s.
 Only `jet_write_wide_layout.v` was raised, to 30 s. The bounds stay in place
 so a runaway reduction still fails quickly.
+
+## Verification record
+
+Independently reproduced, macOS/arm64 host, Coq 8.17.1, OCaml 4.14.1, on a fresh
+`git clone` of `feat/jet-equivalence` with an empty `JET_DEPS`, using only the
+committed scripts (2026-09-28/29):
+
+* `jet-deps.sh`: CompCert 3.14 (x86_64-linux) and the VST `sha` subset built in
+  1 min 48 s (18 cores); both tarballs matched their pinned SHA-256.
+* `check-jets.sh`: all `_CoqProject.jets` modules built from scratch (9 min 37 s
+  wall for build, coqchk and gate together); `coqchk` passed on the 25 modules
+  with public theorems; the assumption gate reported 77 theorems, 10 closed,
+  all axiom sets equal to `C/jet_assumptions.expected`; the library-level coqchk
+  axioms equal `C/jet_coqchk_axioms.expected`.
+* `check-jets.sh --ast` after `jet-sysroot.sh`: the regenerated AST equals the
+  committed `Coq/C/jets.v` byte-for-byte (glibc headers matched the pinned
+  SHA-256).
+* Negative test: editing one recorded assumption set makes the gate fail with a
+  diff.
+
+Not executed in this environment: the Nix derivations (`coqJets`, and the full
+`coq` derivation with the jet modules added to `_CoqProject`), the GitHub Actions
+workflow, and AST regeneration on a Linux host. Earlier claims in the branch
+history that the 16/32/64-bit results were re-checked before this rebuild are
+historical; the record above supersedes them.
