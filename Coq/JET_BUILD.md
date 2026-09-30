@@ -50,7 +50,8 @@ download is rejected.
 ## Build and check
 
 ```sh
-bash Coq/build-jets.sh -j"$(nproc)"     # every module of Coq/_CoqProject.jets
+bash Coq/build-jets.sh -j"$(nproc)"     # public proof dependency closure
+bash Coq/build-jets.sh --regression -j"$(nproc)"  # optional earlier proofs
 bash Coq/check-jets.sh                  # static checks, build, coqchk, assumption gate
 bash Coq/jet-sysroot.sh                 # once: pinned glibc headers for the AST check
 bash Coq/check-jets.sh --ast            # additionally regenerate and compare the AST
@@ -58,7 +59,9 @@ bash Coq/check-jets.sh --ast            # additionally regenerate and compare th
 
 `check-jets.sh` fails when
 
-* a jet source contains `Axiom`, `Parameter`, `Admitted`, `admit` or `Abort`;
+* the lexical scan finds assumed declarations or unfinished-proof commands in
+  jet sources, including inline commands and local/attributed declarations;
+  nested comments and strings are excluded. This complements kernel checks;
 * a jet module of `_CoqProject.jets` is missing from `_CoqProject`;
 * any module that contains a public theorem (`C/jet_public_theorems.txt`) fails
   `coqchk`, or coqchk reports type-in-type, unsafe fixpoints or assumed
@@ -68,10 +71,18 @@ bash Coq/check-jets.sh --ast            # additionally regenerate and compare th
 * the axiom set of any public theorem differs from `C/jet_assumptions.expected`,
   or contains an axiom outside the allowlist in `audit-jet-assumptions.sh`
   (`Print Assumptions` output is an input to this check, not the check);
+* a public theorem type or a recorded contract definition differs from
+  `C/jet_contracts.expected`. This catches added impossible premises and changes
+  hidden behind predicate aliases, which an assumption-set check cannot detect;
+* the isolated negative tests fail to reject the review's impossible-premise
+  attack or the previously missed inline/local/attributed proof escapes;
 * with `--ast`, the regenerated AST differs byte-for-byte from `Coq/C/jets.v`.
 
 After an intentional change, review the diff and run
-`bash Coq/check-jets.sh --update-expected`.
+`bash Coq/check-jets.sh --update-expected`. Review both the assumption and
+contract diffs; this option deliberately accepts changed contracts and is never
+used in CI. The fully explicit type/definition snapshots are conservative:
+harmless presentation changes can also require a reviewed update.
 
 For a short proof cycle use the prepared load paths (they do not rebuild
 dependencies; rebuild imported modules first):
@@ -119,21 +130,27 @@ redoing the proofs against the new AST.
 
 ## Nix and CI
 
-* `nix-build -A coqJets` builds `Simplicity.Coq.Jets.nix`: the Simplicity library
-  and the jet proofs, with coqchk over the public-theorem modules, and none of the
-  secp256k1/modinv verification. The jet modules are also listed in
-  `Coq/_CoqProject`, so the full `coq` derivation builds them too.
-* The full `coq` derivation stays out of the CI matrix (it exceeds six hours).
-  `.github/workflows/ci.yml` instead has three jobs: `jets-deps` builds and caches
-  the pinned CompCert/VST (keyed on `Coq/jet-deps.sh`); `jets` restores that cache,
-  restores an exact-key cache of the compiled `Simplicity/` modules and of the
-  slow serial base `jets`, `jet_exec`, `jet_write8` (never a partial key, since a
-  restored `.vo` older than its source would be stale), and runs
-  `check-jets.sh`; `jets-ast` regenerates the AST in parallel.
+* `nix-build -A coqJets` builds the public jet dependency closure without the
+  secp256k1/modinv verification. Both this derivation and the full `coq`
+  derivation run the same static, kernel-safety, library-axiom, per-theorem
+  assumption and public-contract checks as the shell workflow. Nix provides
+  installed dependencies through Coq's wrapper (`JET_USE_COQPATH=1`); the shell
+  path uses the pinned source trees. Their different Flocq packaging is checked
+  against the same expected contracts and assumptions.
+* The full `coq` derivation remains outside CI because of its measured cost.
+  `.github/workflows/ci.yml` has `jets-deps` (cached CompCert/VST), `jets`
+  (shell proof build and all gates), `jets-ast` (Linux AST regeneration), and
+  `jets-nix` (`coqJets` on Ubuntu with nixos-25.05). Coq is installed by opam in
+  each shell proof job. `coqJets` builds only the SHA dependency closure needed
+  by these proofs; the full `coq` target retains full VST. The compiled-project
+  cache was removed: restored `.vo`
+  timestamps could trigger rebuilds, and its earlier claimed benefit was not
+  verified.
+* The proof target stays `x86_64-linux` on ARM Mac hosts. CompCert's package
+  metadata permits that host to build these target semantics.
 
-The Nix derivation and the workflow have been syntax-checked but **not executed**
-in the environment where this branch was prepared (no Nix installation, no
-GitHub runner); the scripts they call were run directly.
+Executed checks and remaining host/runner coverage are recorded below. A
+configured job does not establish that it has run successfully.
 
 ## Measured costs
 
@@ -148,9 +165,9 @@ are dominated by closed computations on the generated helper bodies:
 `check_jet_assumptions.v` is 178 s of `Print Assumptions` over intermediate
 theorems; `jet_read8_two_words.v` and `jet_read8_layout_total.v` spend ~50 s on
 each of a few `eapply` unifications. The build is a serial chain
-(`jets` → `jet_exec` → `jet_write8` → readers), so wall time (13 min 38 s) is close to
-CPU time (837 s) and `-j` does not shorten it; that chain is what the CI cache
-covers.
+(`jets` → `jet_exec` → `jet_write8` → readers), so wall time (13 min 38 s) was close to
+CPU time (837 s). These are historical measurements; the current build excludes
+the informational assumption dump and reduces the writer computation costs.
 `coqchk` over the 25 public modules and their dependencies: about 40 s; the
 assumption gate: about 60 s.
 
@@ -179,8 +196,53 @@ committed scripts (2026-09-28/29):
 * Negative test: editing one recorded assumption set makes the gate fail with a
   diff.
 
-Not executed in this environment: the Nix derivations (`coqJets`, and the full
+Not executed in the 2026-09-28/29 reproduction: the Nix derivations (`coqJets`, and the full
 `coq` derivation with the jet modules added to `_CoqProject`), the GitHub Actions
 workflow, and AST regeneration on a Linux host. Earlier claims in the branch
 history that the 16/32/64-bit results were re-checked before this rebuild are
 historical; the record above supersedes them.
+
+
+### Review remediation verification (2026-09-30)
+
+The implementation changes following `JET_EQUIVALENCE_REVIEW.md` were checked
+on the same macOS/arm64 host with Coq 8.17.1:
+
+* `check-jets.sh --ast` passed without updating expected results: 144 default
+  modules, `coqchk` on 25 public modules with all kernel-safety checks, 89
+  public results (10 closed), unchanged inherited assumption sets, matching
+  explicit contract snapshots, and byte-identical Clight regeneration.
+* `nix-build -A coqJets` completed a clean proof build and the same gates,
+  including the negative tests. Proof build: 4 min 54 s; check phase: 2 min 3 s.
+  The Nix package uses external Flocq and installed dependencies; the shell
+  uses bundled Flocq and source trees. Both passed the same expected records.
+* `build-jets.sh --regression -j8` rebuilt and passed the 19 optional earlier
+  proof modules and the informational assumption dump. It uses a separate
+  generated Makefile so switching project manifests cannot reuse stale
+  dependency rules.
+* The permanent negative test adds `(1 = 2)%nat` to `add64_guarantees` in an
+  isolated built copy: the assumption gate passes, while the contract gate
+  rejects the altered statement. Inline `Admitted`, local/attributed `Axiom`,
+  `admit` and `Abort` are rejected; nested comments and quoted strings are
+  ignored. Both Nix and shell gates run these tests.
+* Shell syntax, project-manifest partition, Python syntax, `git diff --check`
+  and `codespell` passed. Spelling exemptions are CompCert's `mone` and three
+  existing hypothesis identifiers, rather than edits to generated code.
+* The full `coq` Nix derivation evaluated successfully; its proof build was not
+  run. GitHub Actions and Linux-host AST regeneration remain unexecuted.
+
+The twelve complete calls, canonical/context results and execution guarantees
+now quantify over arbitrary environment values. Local guarantees retain the
+output, written prefix, final cursor and preservation of loads from initially
+valid blocks; each jet also exports a contextual guarantee. The concrete layout
+witness additionally proves the ordered gap-buffer predicate in the same memory.
+
+Maintenance changes share the total 16/32/64-bit reader memory proof, the
+canonical increment program and integer-interpretation injectivity, and reuse
+the existing wide-reader symbol facts. Operator values are explicit in the
+writer derivations to avoid normalizing symbolic payloads: the measured
+`jet_exec.v` proof compilation fell from about 235 s to 98 s. The broader
+width-specific add/increment execution adapters, directory reorganization and
+unifying the separate secp256k1 AST pipeline remain possible follow-ups. Debug
+assertion coverage and evaluator linking/whole-evaluator correctness remain
+explicit scope boundaries, not claims made by these results.

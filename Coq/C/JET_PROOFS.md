@@ -38,7 +38,7 @@ memory `mf` such that
 * the final output cursor is the initial cursor minus the output size
   (`frame_fields_at mf ...`);
 * the already-written prefix of the topmost touched word is preserved
-  (`write_prefix_at`), and every load outside the destination frame item's cursor
+  (`write_prefix_at`), and every load from a block valid in the initial memory, outside the destination frame item's cursor
   field and the modified word range is unchanged, including other locations of the
   same blocks.
 
@@ -135,7 +135,7 @@ The premises are satisfiable in evaluator shape: `jet_layout_witness.v`
 constructs, for arbitrary `a`, `z`, `w`, a two-allocation layout with an inactive
 read frame holding `z`, the `increment_64` input `a`, a 65-cell output frame and
 an inactive write frame holding `w`, proves `bm_rep`, `bm_separated` and the
-permissions, and derives (`increment64_layout_witness_context`) that the call
+permissions together with `gap_buffer_layout`, and derives (`increment64_layout_witness_context`) that the call
 terminates and the resulting memory represents the final state, still containing
 the caller's `z` and `w` frames.
 
@@ -170,8 +170,11 @@ args E0 mf res`:
 This distinguishes uniqueness of terminating executions from safety and
 termination of all maximal executions, and it is scoped to the call boundary:
 after the return nothing is said about the caller. `jet_guarantees.v` combines it
-with layers 1 and 3: `jet_local_spec_guarantees` and `jet_context_guarantees`, and
-`<jet>_guarantees` for all twelve jets.
+with layers 1 and 3: `jet_local_spec_guarantees` retains the output, cursor,
+written prefix and preservation of loads from initially valid blocks;
+`jet_context_guarantees` retains the final represented state and abstract
+translation. All twelve jets export both `<jet>_guarantees` (the complete local
+contract) and `<jet>_context_guarantees` (the represented-context contract).
 
 ## Coverage
 
@@ -198,14 +201,16 @@ ones for a wider carrier that truncates only when written), and the 8-bit
 x86-64, little-endian, LP64, glibc integer typedefs; the library's `PRODUCTION`
 assertion mode (ordinary and static assertions enabled, debug assertions'
 guards false: the `writeBit` proof executes the generated guard rather than
-assuming it succeeds). The caller's environment argument is `Vundef`, which none
-of these jets uses. Frames are 16-byte `frameItem`s: the edge pointer at offset 0,
+assuming it succeeds). The caller's environment argument is an arbitrary CompCert `val`, including
+the evaluator's transaction-environment pointer; none of these jets reads it. Frames are 16-byte `frameItem`s: the edge pointer at offset 0,
 the offset at offset 8. Other ABIs, fully debug-enabled execution, and jets wider
 than 64 bits are not covered.
 
 ## Assumptions
 
-Public theorems are checked with `coqchk` and their axiom sets are recorded in
+Public types and their contract definitions are frozen in `jet_contracts.expected`
+and enforced by `../audit-jet-contracts.sh`; intentional contract changes require
+review of that diff. Public theorems are checked with `coqchk` and their axiom sets are recorded in
 `jet_assumptions.expected` and enforced by `../audit-jet-assumptions.sh` (see
 [../JET_BUILD.md](../JET_BUILD.md)). All axioms are inherited; none is introduced
 by this development, and there are no `Admitted` proofs.
@@ -219,7 +224,7 @@ by this development, and there are no `Admitted` proofs.
   the Clight relation: the value theorems and their consequences.
 * `Events.external_functions_properties` and `Events.inline_assembly_properties`,
   CompCert's axioms on those semantics, used by the determinism results and
-  therefore by `jet_clight_determinism.v` and `jet_guarantees.v` (19 theorems).
+  therefore by `jet_clight_determinism.v` and `jet_guarantees.v` (31 theorems).
 * Closed under the global context: `encode_word`, `gap_buffer_separated` and the
   arithmetic bridges listed above.
 * `coqchk` additionally reports library-level axioms of the loaded dependencies
@@ -241,7 +246,8 @@ about that Clight program, not that it represents the C source. The check
 byte-for-byte with the committed artifact. See
 [../JET_BUILD.md](../JET_BUILD.md) for the trust boundary and pins. The
 regeneration was checked on macOS/arm64 with Apple clang as preprocessor; Linux
-regeneration is exercised by the `jets-ast` CI job.
+regeneration is configured in the `jets-ast` CI job; an executed Linux run is
+required before claiming that host has been verified.
 
 ## Structure copies and VST
 
@@ -254,27 +260,40 @@ therefore carry explicit preconditions for this copy (a readable, 8-aligned,
 fresh block provides) and use `jet_frame_copy.v`, `jet_frame_copy_layout.v` to
 show the copied fields equal the source's.
 
-The proofs are direct Clight big-step proofs. VST 2.14 is used as a dependency for
-the `sha` library that `Simplicity.Word` imports, and its Clight core semantics
-(`veric/Clight_core.v`) is defined with the same `function_entry2` as the semantics
-used here, so an integration is not ruled out. What it would require is a `funspec`
-treatment of the struct-typed parameter (a pointer to caller storage copied by the
-callee prologue), of the block layout predicates (`frame_base_valid`,
-cursor/edge fields, disjoint regions in shared blocks) and a connection from a
-VST postcondition to `jet_local_spec`. That work was not done; the direct proofs
-keep block, offset and cursor arithmetic explicit and no VST specification of
-these functions exists in this repository.
+The proofs are direct Clight big-step proofs. The pinned VST 2.14 manual
+(`doc/VC.tex`, supported C subset) explicitly excludes struct-copy assignments,
+struct parameters and struct returns. These entry functions have a struct
+parameter and a genuine struct-copy assignment, so ordinary Verifiable C
+`semax_body` proofs cannot verify the entrypoints as written. Pointer-based
+helpers can use VST. Sharing `function_entry2` with `veric/Clight_core.v` does
+not remove the supported-language restriction.
+
+Mainline's `Coq/C/secp256k1/` uses VST Floyd specifications and `semax_body`
+proofs of internal helpers; it does not provide an entrypoint template for
+these by-value jets. Reusing that approach for the entrypoints would require
+changing the C interface or extending Verifiable C, defining frame predicates
+and connecting them to `bm_rep`. Moreover, `semax` proves partial correctness
+and safety; the existence and termination guarantees exported here would still
+need an additional adequacy/termination argument. The direct Clight proofs are
+retained for these reasons. VST remains a dependency for the imported `sha`
+library.
 
 ## Remaining boundaries
 
+* Linking: all calls use `ge0 = Clight.globalenv prog` for the generated
+  jets/frame translation unit. Applying them in the separately compiled
+  evaluator also needs an environment/linking preservation argument. An
+  arbitrary environment pointer alone does not establish that argument.
 * Whole-evaluator correctness: nothing proves that every evaluator execution
   establishes `bm_rep`/`bm_separated` before a jet call, or that replacing
   translated code by jet calls is correct for whole programs.
 * Machine code: correctness is for Clight, not for the code a C compiler emits.
 * The C-to-AST step is checked by regeneration only.
 * Other configurations: other targets, `PRODUCTION` off, wider jets.
-* The Nix derivation (`coqJets`) and the CI workflow were not executed where this
-  branch was prepared; the scripts they invoke were.
+* `coqJets` and the shell verification pipeline were executed on macOS/arm64
+  after review remediation (see `../JET_BUILD.md`). The configured GitHub
+  Actions jobs, Linux AST regeneration and the full six-hour `coq` build have
+  not been executed for these changes.
 
 ## Proof organization
 
@@ -294,9 +313,11 @@ arithmetic; isolate closed shift counts from symbolic memory; do not reduce
 symbolic memory or enumerate payload values; never treat a `.vo` from an earlier
 run as evidence for the current `.v`.
 
-Module map (all are built by `Coq/_CoqProject.jets`; the earlier position- and
-crossing-specific modules are kept as regression tests and as dependencies of the
-general results):
+Module map: `Coq/_CoqProject.jets` contains the public dependency closure.
+Earlier modules still needed by those proofs remain in it. Nineteen superseded
+position/crossing results and the informational `check_jet_assumptions.v` are
+retained in `Coq/_CoqProject.jets-regression`, built explicitly with
+`build-jets.sh --regression`; they are not dependencies of the public results.
 
 * Generated code and execution: `jets.v`, `jet_exec.v`, `jet_one8.v`,
   `jet_read8.v`, `jet_write8.v`, `jet_writeBit.v`, `jet_increment8.v`,
@@ -307,14 +328,17 @@ general results):
   `jet_input_position.v`, `jet_output_layout.v`, `jet_output_layout_step.v`,
   `jet_output9.v`, `jet_output_slice.v`, `jet_two_word_input.v`.
 * Bit algebra: `jet_word_bits.v`, `jet_word_decode.v`, `jet_word_position.v`,
-  `jet_word_slice.v`, `jet_word_repr.v` (width-generic range and decoding facts,
+  `jet_word_slice.v`, `jet_toZ.v` (shared interpretation injectivity),
+  `jet_word_repr.v` (width-generic range and decoding facts,
   shared by the 16-, 32- and 64-bit readers and `jet_encoding.v`),
   `jet_LSBclear_width.v`, `jet_LSBkeep_width.v`.
-* Readers: `jet_read8*.v`, `jet_read{16,32,64}_layout_exec.v`,
+* Readers: `jet_reader_total.v` (shared cursor-store and memory-preservation
+  proof), `jet_read8*.v`, `jet_read{16,32,64}_layout_exec.v`,
   `jet_read{16,32,64}_layout_total.v`, `jet_read{16,32,64}_input_word*.v`.
 * Writers: `jet_write*_layout*.v`, `jet_writeBit_*.v`, `jet_write8_*.v`,
   `jet_write_wide_layout*.v`, `jet_crossing_*.v`, `jet_carry_*_layout.v`.
-* Specifications and arithmetic bridges: `jet_spec.v`, `jet_wide_spec.v`,
+* Specifications and arithmetic bridges: `jet_spec.v`, `jet_increment_spec.v`
+  (shared canonical increment program), `jet_wide_spec.v`,
   `jet_increment8_spec.v`, `jet_add8_word.v`, `jet_increment_wide_word.v`,
   `jet_increment{32,64}_wide_word.v`, `jet_add{16,32,64}_wide_word.v`.
 * Complete jet calls: `jet_one8_layout*.v`, `jet_one_wide_layout*.v`,
