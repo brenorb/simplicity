@@ -6,6 +6,7 @@ Require Import Simplicity.Word Simplicity.Bit Simplicity.Util.Monad.
 Require Import C.jet_spec C.jet_read8 C.jet_add8 C.jet_add8_update.
 Require Import C.jet_word_bits C.jet_word_decode C.jet_word_position.
 Require Import C.jet_write8_position C.jet_frame_arith C.jet_frame_spec.
+Require Export C.jet_toZ.
 Local Open Scope Z_scope.
 
 (** Programs.Arith.add word8 is false &&& iden >>> full_add word8. *)
@@ -68,10 +69,6 @@ Proof.
   destruct (zlt (255 - Int.unsigned (add8_u s)) (Int.unsigned (add8_u r)));
     symmetry; [apply Z.ltb_lt | apply Z.ltb_ge]; lia.
 Qed.
-
-Lemma toZ_injective (T : ToZ.type) (x y : Ty.tySem T) :
-  @toZ T x = @toZ T y -> x = y.
-Proof. intros H. rewrite <- (from_toZ x), <- (from_toZ y), H. reflexivity. Qed.
 
 Lemma decode_word8_of_int r :
   @toZ (WordToZ 3) (decode_word8 (Int64.repr (Int.unsigned r))) =

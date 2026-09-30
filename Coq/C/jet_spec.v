@@ -18,6 +18,7 @@ Import ListNotations.
 Local Open Scope ty_scope.
 Local Open Scope term_scope.
 Local Open Scope semantic_scope.
+Require Import C.jet_increment_spec.
 Local Open Scope Z_scope.
 
 (* The arithmetic specification is the primitive Simplicity program
@@ -50,27 +51,11 @@ Definition one8_spec {term : Alg.Core.Algebra} :
    Word.fullAdder is the corresponding recursive full_add program. *)
 Definition full_increment8_spec {term : Alg.Core.Algebra} :
     @Alg.Core.domain term (Ty.Prod Bit Word8) (Ty.Prod Bit Word8) :=
-  @Alg.Core.Combinators.comp (Ty.Prod Bit Word8)
-    (Ty.Prod Bit (Ty.Prod Word8 Word8)) (Ty.Prod Bit Word8) term
-    (@Alg.Core.Combinators.pair (Ty.Prod Bit Word8) Bit
-      (Ty.Prod Word8 Word8) term
-      (@Alg.Core.Combinators.take Bit Word8 Bit term
-        (@Alg.Core.Combinators.iden Bit term))
-      (@Alg.Core.Combinators.pair (Ty.Prod Bit Word8) Word8 Word8 term
-        (@Alg.Core.Combinators.drop Bit Word8 Word8 term
-          (@Alg.Core.Combinators.iden Word8 term))
-        (@Alg.Core.Combinators.comp (Ty.Prod Bit Word8) Ty.Unit Word8 term
-          (@Alg.Core.Combinators.unit (Ty.Prod Bit Word8) term)
-          (@Word.zero 3 term))))
-    (@Word.fullAdder 3 term).
+  @full_increment_word_spec term 3.
 
 Definition increment8_spec {term : Alg.Core.Algebra} :
     @Alg.Core.domain term Word8 (Ty.Prod Bit Word8) :=
-  @Alg.Core.Combinators.comp Word8 (Ty.Prod Bit Word8)
-    (Ty.Prod Bit Word8) term
-    (@Alg.Core.Combinators.pair Word8 Bit Word8 term
-      (@Bit.true Word8 term) (@Alg.Core.Combinators.iden Word8 term))
-    (@full_increment8_spec term).
+  @increment_word_spec term 3.
 
 Definition increment8_spec_value :
     Ty.tySem Word8 -> Ty.tySem (Ty.Prod Bit Word8) :=
@@ -119,12 +104,12 @@ Qed.
 Lemma increment8_spec_parametric : Alg.Core.Parametric (@increment8_spec).
 Proof.
   intros alg1 alg2 R.
-  unfold increment8_spec.
+  unfold increment8_spec, increment_word_spec.
   apply Alg.comp_Parametric.
   - apply Alg.pair_Parametric.
     + apply Bit.true_Parametric.
     + apply Alg.iden_Parametric.
-  - unfold full_increment8_spec.
+  - unfold full_increment8_spec, full_increment_word_spec.
     apply Alg.comp_Parametric.
     + apply Alg.pair_Parametric.
       * apply Alg.take_Parametric. apply Alg.iden_Parametric.

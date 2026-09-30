@@ -5,6 +5,7 @@ Require Import Simplicity.Word Simplicity.Bit.
 Require Import C.jet_spec C.jet_wide C.jet_wide_spec.
 Require Import C.jet_increment_wide_word.
 Require Import C.jet_read16_input_word.
+Require Export C.jet_toZ.
 Local Open Scope Z_scope.
 
 Definition add16_spec {term : Alg.Core.Algebra} :
@@ -19,10 +20,6 @@ Definition add16_carry (x y : int64) : bool :=
   Int64.ltu (Int64.sub (Int64.repr 65535) y) x.
 
 Definition add16_payload (x y : int64) : int64 := Int64.add x y.
-
-Lemma toZ_injective (T : ToZ.type) (x y : Ty.tySem T) :
-  @toZ T x = @toZ T y -> x = y.
-Proof. intros H. rewrite <- (from_toZ x), <- (from_toZ y), H. reflexivity. Qed.
 
 Lemma add16_carry_denotes_overflow x y :
   Int64.unsigned x <= 65535 -> Int64.unsigned y <= 65535 ->

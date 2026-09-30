@@ -3,31 +3,9 @@ From Coq Require Import ZArith Lia.
 From compcert Require Import Coqlib Integers AST.
 Require Import Simplicity.Word Simplicity.Bit Simplicity.Util.Monad Simplicity.Util.Arith.
 Require Import C.jet_spec C.jet_wide C.jet_wide_spec.
+Require Export C.jet_toZ.
+Require Export C.jet_increment_spec.
 Local Open Scope Z_scope.
-
-Definition full_increment_word_spec {term : Alg.Core.Algebra} (n : nat) :
-    @Alg.Core.domain term (Ty.Prod Bit (Word n)) (Ty.Prod Bit (Word n)) :=
-  @Alg.Core.Combinators.comp (Ty.Prod Bit (Word n))
-    (Ty.Prod Bit (Ty.Prod (Word n) (Word n))) (Ty.Prod Bit (Word n)) term
-    (@Alg.Core.Combinators.pair (Ty.Prod Bit (Word n)) Bit
-      (Ty.Prod (Word n) (Word n)) term
-      (@Alg.Core.Combinators.take Bit (Word n) Bit term
-        (@Alg.Core.Combinators.iden Bit term))
-      (@Alg.Core.Combinators.pair (Ty.Prod Bit (Word n)) (Word n) (Word n) term
-        (@Alg.Core.Combinators.drop Bit (Word n) (Word n) term
-          (@Alg.Core.Combinators.iden (Word n) term))
-        (@Alg.Core.Combinators.comp (Ty.Prod Bit (Word n)) Ty.Unit (Word n) term
-          (@Alg.Core.Combinators.unit (Ty.Prod Bit (Word n)) term)
-          (@Word.zero n term))))
-    (@Word.fullAdder n term).
-
-Definition increment_word_spec {term : Alg.Core.Algebra} (n : nat) :
-    @Alg.Core.domain term (Word n) (Ty.Prod Bit (Word n)) :=
-  @Alg.Core.Combinators.comp (Word n) (Ty.Prod Bit (Word n))
-    (Ty.Prod Bit (Word n)) term
-    (@Alg.Core.Combinators.pair (Word n) Bit (Word n) term
-      (@Bit.true (Word n) term) (@Alg.Core.Combinators.iden (Word n) term))
-    (@full_increment_word_spec term n).
 
 Lemma full_increment_word_spec_parametric n :
     Alg.Core.Parametric (fun term => @full_increment_word_spec term n).
@@ -82,10 +60,6 @@ Definition increment16_carry (r : int64) : bool :=
   Int64.ltu (Int64.repr 65534) r.
 
 Definition increment16_payload (r : int64) : int64 := Int64.add r Int64.one.
-
-Lemma toZ_injective (T : ToZ.type) (x y : Ty.tySem T) :
-  @toZ T x = @toZ T y -> x = y.
-Proof. intros H. rewrite <- (from_toZ x), <- (from_toZ y), H. reflexivity. Qed.
 
 Lemma increment16_values_denote_spec r :
   Int64.unsigned r <= 65535 ->
