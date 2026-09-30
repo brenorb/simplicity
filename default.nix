@@ -53,7 +53,8 @@ let hp = nixpkgs.haskell.packages.${ghc};
   # Focused target for the jet proofs (see Coq/JET_BUILD.md).
   coqJets = nixpkgs.callPackage ./Simplicity.Coq.Jets.nix {
     inherit (cp) coq;
-    inherit vst compcert;
+    inherit compcert;
+    vst = vst.override { shaOnly = true; };
   };
 
   c = nixpkgs.callPackage ./Simplicity.C.nix {

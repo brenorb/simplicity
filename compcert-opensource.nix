@@ -77,6 +77,6 @@ stdenv.mkDerivation {
     description = "Formally verified C compiler";
     homepage    = "http://compcert.inria.fr";
     license     = licenses.gpl3; # These particular files are all gpl3 compatible.
-    platforms   = [ "x86_64-linux" "x86_64-darwin" ];
+    platforms   = [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ];
   };
 }

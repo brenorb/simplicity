@@ -2,14 +2,15 @@
 # the Simplicity library plus Coq/C/jet_*.v, without the secp256k1 and modinv
 # verifications of the full `coq` derivation.  Runs coqchk over every module
 # that contains a public theorem (Coq/C/jet_public_theorems.txt).
-{ coq, vst, compcert, lib, stdenv }:
+{ coq, vst, compcert, lib, stdenv, python3 }:
 stdenv.mkDerivation {
   name = "Simplicity-coq-jets-0.0.0";
   src = lib.sourceFilesBySuffices
-      (lib.sourceByRegex ./Coq ["_CoqProject.jets" "C" "C/.*" "Simplicity" "Simplicity/.*" "Util" "Util/.*"])
-    ["_CoqProject.jets" ".v" "jet_public_theorems.txt"];
+      (lib.sourceByRegex ./Coq ["_CoqProject.*" ".*\\.sh" ".*\\.py" "C" "C/.*" "Simplicity" "Simplicity/.*" "Util" "Util/.*"])
+    ["_CoqProject" "_CoqProject.jets" ".v" ".sh" ".py" ".txt" ".expected"];
 
   buildInputs = [ coq ];
+  nativeBuildInputs = [ python3 ];
   propagatedBuildInputs = [ vst compcert ];
   enableParallelBuilding = true;
   makefile = "CoqMakefile";
@@ -20,8 +21,7 @@ stdenv.mkDerivation {
 
   doCheck = true;
   checkPhase = ''
-    mods=$(awk '!/^#/ && NF==2 {print $1}' C/jet_public_theorems.txt | sort -u | tr '\n' ' ')
-    coqchk -silent -R C C -Q Simplicity Simplicity $mods
+    JET_USE_COQPATH=1 bash check-jets.sh --no-build
   '';
 
   installFlags = "COQLIB=$(out)/lib/coq/${coq.coq-version}/";

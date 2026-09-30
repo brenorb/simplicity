@@ -37,9 +37,9 @@ jobs:
           nix-channel --update
       - run: nix-build -A ${{matrix.project}}
 
-  # The jet proofs (Coq/C/jet_*.v) are verified by three separate jobs instead of
-  # the full `coq` derivation.  The pinned CompCert 3.14 / VST 2.14 build and the
-  # opam switch are cached, so the usual cost is the jet build itself.
+  # The jet proofs (Coq/C/jet_*.v) are verified by four separate jobs instead of
+  # the full `coq` derivation. The pinned CompCert/VST source build is cached;
+  # Coq is installed in each proof job by opam.
   jets-deps:
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -75,26 +75,7 @@ jobs:
           path: ${{ env.JET_DEPS }}
           key: jet-deps-${{ hashFiles('Coq/jet-deps.sh') }}
           fail-on-cache-miss: true
-      # The Simplicity library and the generated helper bodies (jets, jet_exec,
-      # jet_write8) form the slow serial base of the build (~10 of ~14 minutes) and
-      # rarely change.  Exact-key cache only: a restored .vo older than its source
-      # would be stale, so there is deliberately no restore-keys fallback.
-      - name: Restore compiled Simplicity library and helper base
-        uses: actions/cache@v4
-        with:
-          path: |
-            Coq/Simplicity/**/*.vo
-            Coq/Simplicity/**/*.vos
-            Coq/Simplicity/**/*.vok
-            Coq/Simplicity/**/*.glob
-            Coq/C/jets.vo*
-            Coq/C/jets.glob
-            Coq/C/jet_exec.vo*
-            Coq/C/jet_exec.glob
-            Coq/C/jet_write8.vo*
-            Coq/C/jet_write8.glob
-          key: jet-base-${{ hashFiles('Coq/Simplicity/**/*.v', 'Coq/C/jets.v', 'Coq/C/jet_exec.v', 'Coq/C/jet_write8.v', 'Coq/jet-deps.sh', 'Coq/_CoqProject.jets') }}
-      - name: Build, coqchk and assumption gate
+      - name: Build, kernel, assumption and public contract gates
         run: opam exec -- bash Coq/check-jets.sh
   jets-ast:
     needs: jets-deps
@@ -116,3 +97,19 @@ jobs:
           bash Coq/jet-sysroot.sh
           COMPCERT="$JET_DEPS/compcert-3.14" JET_SYSROOT="$JET_DEPS/sysroot-glibc-2.36" \
             bash Coq/C/check-jets-generation.sh
+
+  jets-nix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v22
+      - name: Select the supported Coq package set
+        run: |
+          nix-channel --add https://nixos.org/channels/nixos-25.05 nixpkgs
+          nix-channel --update
+      - name: Build jets with the same kernel, assumption and contract gates
+        run: nix-build -A coqJets
