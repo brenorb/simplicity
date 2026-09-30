@@ -495,31 +495,23 @@ Proof.
               *** apply eval_word_lvalue.
                  simpl [le_w8_9]; reflexivity.
               *** eapply eval_Ecast.
-                 --- eapply eval_Ebinop.
+                 --- eapply eval_Ebinop with (v1 := Vlong c)
+                     (v2 := Vlong (Int64.shl (Int64.repr 1) Int64.zero)).
                      { eapply eval_Etempvar; simpl [le_w8_9]; reflexivity. }
-                     { eapply eval_Ebinop.
+                     { eapply eval_Ebinop with (v1 := Vlong (Int64.repr 1)) (v2 := Vlong Int64.zero).
                        { eapply eval_Etempvar; simpl [le_w8_9]; reflexivity. }
-                       { eapply eval_Ebinop.
+                       { eapply eval_Ebinop with (v1 := Vlong (Int64.repr 8))
+                         (v2 := Vlong (Int64.repr 8)).
                          { eapply eval_Etempvar; simpl [le_w8_9]; reflexivity. }
                          { eapply eval_Etempvar; simpl [le_w8_9]; reflexivity. }
-                         { cbn; reflexivity. } }
-                       { cbn; reflexivity. } }
-                     { cbn; reflexivity. }
-                 --- cbn; reflexivity.
-              *** cbn; reflexivity.
+                         { reflexivity. } }
+                       { reflexivity. } }
+                     { reflexivity. }
+                 --- reflexivity.
+              *** reflexivity.
               *** apply assign_word with (le := le_w8_9 bf bw w c).
                  --- simpl [le_w8_9 le_w8_8 le_w8_7 le_w8_6 le_w8_5 le_w8_4 le_w8_3 le_w8_2 le_w8_1 le_w8_0 le_write8]; reflexivity.
-                 --- match goal with
-                     | |- Mem.store Mint64 ?mm ?bb ?ofs
-                           (Vlong (Int64.or c
-                             (Int64.shl (Int64.repr 1)
-                               (Int64.sub ?shift ?n)))) = Some ?mm' =>
-                         assert (Hs : shift = Int64.repr 8) by
-                           (vm_compute; reflexivity);
-                         assert (Hn : n = Int64.repr 8) by
-                           (vm_compute; reflexivity);
-                         rewrite Hs, Hn, <- Hq; exact H_store_word
-                     end.
+                 --- rewrite Hq in H_store_word. exact H_store_word.
     ++ eapply exec_Sseq_1 with (t1 := E0) (t2 := E0).
       ** apply exec_set.
         eapply eval_frame_offset.
