@@ -6,18 +6,18 @@ Require Import C.jets C.jet_exec C.jet_one8 C.jet_frame_layout C.jet_increment8 
 Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Local Open Scope Z_scope.
 
-Definition le_arith8_layout f bd dofs bs sofs : temp_env :=
-  PTree.set _env Vundef (PTree.set _src (Vptr bs sofs)
+Definition le_arith8_layout env f bd dofs bs sofs : temp_env :=
+  PTree.set _env env (PTree.set _src (Vptr bs sofs)
     (PTree.set _dst (Vptr bd dofs) (create_undef_temps f.(fn_temps)))).
 
-Lemma entry_frame_jet f m ma bl bd dofs bs sofs :
+Lemma entry_frame_jet env f m ma bl bd dofs bs sofs :
   f.(fn_vars) = [(_src, Tstruct _frameItem noattr)] ->
   f.(fn_params) = [(_dst, tptr (Tstruct _frameItem noattr));
     (_src, Tstruct _frameItem noattr); (_env, tptr (Tstruct _txEnv noattr))] ->
   list_disjoint [_dst; _src; _env] (map fst f.(fn_temps)) ->
   Mem.alloc m 0 16 = (ma, bl) ->
-  function_entry2 ge0 f [Vptr bd dofs; Vptr bs sofs; Vundef]
-    m (e_one8 bl) (le_arith8_layout f bd dofs bs sofs) ma.
+  function_entry2 ge0 f [Vptr bd dofs; Vptr bs sofs; env]
+    m (e_one8 bl) (le_arith8_layout env f bd dofs bs sofs) ma.
 Proof.
   intros HV HP HT HA. constructor.
   - rewrite HV. cbn. repeat constructor; simpl; tauto.

@@ -11,7 +11,7 @@ Require Import C.jet_increment16_layout_exec.
 Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Local Open Scope Z_scope.
 
-Theorem eval_increment16_layout_matches_spec m bd dbase bs sbase bi bw edge outedge
+Theorem eval_increment16_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge
     (x : Ty.tySem (Word 4)) cursor read_cursor :
   frame_base_valid sbase -> (8 | sbase) ->
   frame_fields_at m bs sbase bi edge read_cursor ->
@@ -21,7 +21,7 @@ Theorem eval_increment16_layout_matches_spec m bd dbase bs sbase bi bw edge oute
   exists mf,
     ClightBigstep.Clight2.eval_funcall ge0 m
       (Internal f_simplicity_increment_16)
-      [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); Vundef]
+      [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
       E0 mf (Vint Int.one) /\
     carry_wide_output_at W16 mf bw outedge cursor
       (@increment16_spec Alg.CoreFunSem x) /\

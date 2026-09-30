@@ -133,9 +133,9 @@ Definition active_write_writable (m : mem) (L : bm_layout) (s : RunState) : Prop
   Mem.range_perm m (cells_blk L) (edge_ofs aw)
     (write_region_hi aw (activeWriteFrame s)) Cur Writable.
 
-Definition jet_args (L : bm_layout) : list val :=
+Definition jet_args (env : val) (L : bm_layout) : list val :=
   [Vptr (frames_blk L) (Ptrofs.repr (item_ofs (active_write_loc L)));
-   Vptr (frames_blk L) (Ptrofs.repr (item_ofs (active_read_loc L))); Vundef].
+   Vptr (frames_blk L) (Ptrofs.repr (item_ofs (active_read_loc L))); env].
 
 (** * Canonical-encoding form of a jet's value theorem *)
 
@@ -144,7 +144,7 @@ Definition jet_args (L : bm_layout) : list val :=
     arbitrary non-wrapping frame items and edges, arbitrary blocks, and the
     exact memory framing of the value theorems. *)
 Definition jet_local_spec (f : function) (A B : Ty) (spec : A -> B) : Prop :=
-  forall m bd dbase bs sbase bi bw edge outedge cursor read_cursor (a : A),
+  forall env m bd dbase bs sbase bi bw edge outedge cursor read_cursor (a : A),
     frame_base_valid sbase -> (8 | sbase) ->
     frame_fields_at m bs sbase bi edge read_cursor ->
     0 <= read_cursor -> read_cursor + Z.of_nat (bitSize A) <= Int64.max_unsigned ->
@@ -152,7 +152,7 @@ Definition jet_local_spec (f : function) (A B : Ty) (spec : A -> B) : Prop :=
     write_frame_at m bd dbase bw outedge cursor (Z.of_nat (bitSize B)) ->
     exists mf,
       Clight2.eval_funcall ge0 m (Internal f)
-        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); Vundef]
+        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
         E0 mf (Vint Int.one) /\
       frame_output_cells_at mf bw outedge cursor (encode (spec a)) /\
       write_prefix_at m mf bw outedge cursor /\

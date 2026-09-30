@@ -56,7 +56,7 @@ Theorem jet_context {A B : Ty} (f : function)
   Alg.Core.Parametric (@t) ->
   jet_local_spec f A B (fun a => @t Alg.CoreFunSem a) ->
   (1 <= bitSize B)%nat ->
-  forall m L (ctx : Context) (a : A),
+  forall env m L (ctx : Context) (a : A),
   let s0 := fillContext ctx
     {| readLocalState := encode a; writeLocalState := newWriteFrame (bitSize B) |} in
   let s1 := fillContext ctx
@@ -64,11 +64,11 @@ Theorem jet_context {A B : Ty} (f : function)
        writeLocalState := fullWriteFrame (encode (@t Alg.CoreFunSem a)) |} in
   bm_rep m L s0 -> bm_separated L s0 -> active_write_writable m L s0 ->
   exists mf,
-    Clight2.eval_funcall ge0 m (Internal f) (jet_args L) E0 mf (Vint Int.one) /\
+    Clight2.eval_funcall ge0 m (Internal f) (jet_args env L) E0 mf (Vint Int.one) /\
     bm_rep mf L s1 /\
     (s0 >>- @t Naive.translate ->> s1).
 Proof.
-  intros Ht Hspec HB m L ctx a s0 s1 Hrep Hsep [HV HR].
+  intros Ht Hspec HB env m L ctx a s0 s1 Hrep Hsep [HV HR].
   pose proof Hrep as Hrep0.
   destruct Hrep as [Hblk [HIR [HAR [HAW HIW]]]].
   set (ar := active_read_loc L) in *. set (aw := active_write_loc L) in *.
@@ -100,7 +100,7 @@ Proof.
   (* Output frame *)
   assert (HWF := write_frame_at_of_rep m L aw (activeWriteFrame s0) (bitSize B)).
   rewrite Hawf in HWF. cbn [writeEmpty] in HWF.
-  destruct (Hspec m (frames_blk L) (item_ofs aw) (frames_blk L) (item_ofs ar)
+  destruct (Hspec env m (frames_blk L) (item_ofs aw) (frames_blk L) (item_ofs ar)
     (cells_blk L) (cells_blk L) (edge_ofs ar) (edge_ofs aw)
     (Z.of_nat (length out + e)) (pad + Z.of_nat (length prev)) a HsB HsA HsF)
     as (mf & Hcall & Hout & Hprefix & Hfields & Hpres).

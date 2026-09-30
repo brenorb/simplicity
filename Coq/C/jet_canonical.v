@@ -76,11 +76,11 @@ Proof. intros alg1 alg2 R. apply Word.adder_Parametric. Qed.
 Theorem one8_local_spec :
   jet_local_spec f_simplicity_one_8 Ty.Unit Word8 (fun a => @one8_spec Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc [] HB HA HF _ _ _ Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc [] HB HA HF _ _ _ Hout.
   change (Z.of_nat (bitSize Word8)) with 8 in *.
   destruct (frame_fields_loadbytes _ _ _ _ _ _ HF) as [bytes Hbytes].
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
-  destruct (eval_one8_layout_matches_spec m bd dbase bs sbase bw outedge cursor bytes
+  destruct (eval_one8_layout_matches_spec env m bd dbase bs sbase bw outedge cursor bytes
     HB HA Hbytes Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   exists mf. split; [exact Hcall|]. split; [apply byte_output_at_encode; [lia|exact Hobs]|].
   split; [exact Hpre|]. split; [exact Hfld|].
@@ -92,13 +92,13 @@ Theorem one_wide_local_spec s :
   jet_local_spec (wide_one s) Ty.Unit (Word (wide_log s))
     (fun a => @wide_one_spec s Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc [] HB HA HF _ _ _ Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc [] HB HA HF _ _ _ Hout.
   replace (Z.of_nat (bitSize (Word (wide_log s)))) with (wide_bits s) in *
     by (destruct s; reflexivity).
   pose proof (wide_bits_bounds s) as Hs.
   destruct (frame_fields_loadbytes _ _ _ _ _ _ HF) as [bytes Hbytes].
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
-  destruct (eval_one_wide_layout_matches_spec s m bd dbase bs sbase bw outedge cursor bytes
+  destruct (eval_one_wide_layout_matches_spec env s m bd dbase bs sbase bw outedge cursor bytes
     HB HA Hbytes Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   exists mf. split; [exact Hcall|]. split; [apply wide_output_at_encode; [lia|exact Hobs]|].
   split; [exact Hpre|]. split; [exact Hfld|].
@@ -121,13 +121,13 @@ Theorem increment8_local_spec :
   jet_local_spec f_simplicity_increment_8 Word8 (Ty.Prod Bit Word8)
     (fun a => @increment8_spec Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc x HB HA HF H0 Hmax Hin Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc x HB HA HF H0 Hmax Hin Hout.
   change (Z.of_nat (bitSize Word8)) with 8 in Hmax.
   change (Z.of_nat (bitSize (Ty.Prod Bit Word8))) with 9 in *.
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
   assert (Hbyte : byte_input_at m bs sbase bi edge rc [x])
     by (apply byte_input_single_encode; refine (conj HB (conj HF (conj _ Hin))); lia).
-  destruct (eval_increment8_layout_matches_spec m bd dbase bs sbase bi bw edge outedge x
+  destruct (eval_increment8_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge x
     cursor rc Hbyte Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   exists mf. split; [exact Hcall|].
   split; [apply carry_byte_output_encode; [lia|exact Hobs]|].
@@ -140,13 +140,13 @@ Theorem add8_local_spec :
   jet_local_spec f_simplicity_add_8 (Ty.Prod Word8 Word8) (Ty.Prod Bit Word8)
     (fun a => @add8_spec Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc [x y] HB HA HF H0 Hmax Hin Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc [x y] HB HA HF H0 Hmax Hin Hout.
   change (Z.of_nat (bitSize (Ty.Prod Word8 Word8))) with 16 in Hmax.
   change (Z.of_nat (bitSize (Ty.Prod Bit Word8))) with 9 in *.
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
   assert (Hbyte : byte_input_at m bs sbase bi edge rc [x; y])
     by (apply byte_input_pair_encode; refine (conj HB (conj HF (conj _ Hin))); lia).
-  destruct (eval_add8_layout_matches_spec m bd dbase bs sbase bi bw edge outedge x y
+  destruct (eval_add8_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge x y
     cursor rc Hbyte Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   exists mf. split; [exact Hcall|].
   split; [apply carry_byte_output_encode; [lia|exact Hobs]|].
@@ -169,12 +169,12 @@ Theorem increment16_local_spec :
   jet_local_spec f_simplicity_increment_16 (Word 4) (Ty.Prod Bit (Word 4))
     (fun a => @increment16_spec Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc x HB HA HF H0 Hmax Hin Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc x HB HA HF H0 Hmax Hin Hout.
   change (Z.of_nat (bitSize (Word 4))) with 16 in Hmax.
   change (Z.of_nat (bitSize (Ty.Prod Bit (Word 4)))) with (16 + 1) in *.
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
   apply frame_input_word_at_encode in Hin.
-  destruct (eval_increment16_layout_matches_spec m bd dbase bs sbase bi bw edge outedge x
+  destruct (eval_increment16_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge x
     cursor rc HB HA HF ltac:(lia) Hin Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   wide_local_output W16 16 Hcall Hobs Hpre Hfld Hpres cursor.
 Qed.
@@ -183,12 +183,12 @@ Theorem increment32_local_spec :
   jet_local_spec f_simplicity_increment_32 (Word 5) (Ty.Prod Bit (Word 5))
     (fun a => @increment32_spec Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc x HB HA HF H0 Hmax Hin Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc x HB HA HF H0 Hmax Hin Hout.
   change (Z.of_nat (bitSize (Word 5))) with 32 in Hmax.
   change (Z.of_nat (bitSize (Ty.Prod Bit (Word 5)))) with (32 + 1) in *.
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
   apply frame_input_word_at_encode in Hin.
-  destruct (eval_increment32_layout_matches_spec m bd dbase bs sbase bi bw edge outedge x
+  destruct (eval_increment32_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge x
     cursor rc HB HA HF ltac:(lia) Hin Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   wide_local_output W32 32 Hcall Hobs Hpre Hfld Hpres cursor.
 Qed.
@@ -197,12 +197,12 @@ Theorem increment64_local_spec :
   jet_local_spec f_simplicity_increment_64 (Word 6) (Ty.Prod Bit (Word 6))
     (fun a => @increment64_spec Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc x HB HA HF H0 Hmax Hin Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc x HB HA HF H0 Hmax Hin Hout.
   change (Z.of_nat (bitSize (Word 6))) with 64 in Hmax.
   change (Z.of_nat (bitSize (Ty.Prod Bit (Word 6)))) with (64 + 1) in *.
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
   apply frame_input_word_at_encode in Hin.
-  destruct (eval_increment64_layout_matches_spec m bd dbase bs sbase bi bw edge outedge x
+  destruct (eval_increment64_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge x
     cursor rc HB HA HF ltac:(lia) Hin Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   wide_local_output W64 64 Hcall Hobs Hpre Hfld Hpres cursor.
 Qed.
@@ -211,13 +211,13 @@ Theorem add16_local_spec :
   jet_local_spec f_simplicity_add_16 (Ty.Prod (Word 4) (Word 4)) (Ty.Prod Bit (Word 4))
     (fun a => @add16_spec Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc [x y] HB HA HF H0 Hmax Hin Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc [x y] HB HA HF H0 Hmax Hin Hout.
   change (Z.of_nat (bitSize (Ty.Prod (Word 4) (Word 4)))) with 32 in Hmax.
   change (Z.of_nat (bitSize (Ty.Prod Bit (Word 4)))) with (16 + 1) in *.
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
   apply frame_input_word_pair_encode in Hin. destruct Hin as [Hx Hy].
   change (Z.of_nat (Nat.pow 2 4)) with 16 in Hy.
-  destruct (eval_add16_layout_matches_spec m bd dbase bs sbase bi bw edge outedge x y
+  destruct (eval_add16_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge x y
     cursor rc HB HA HF ltac:(lia) Hx Hy Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   wide_local_output W16 16 Hcall Hobs Hpre Hfld Hpres cursor.
 Qed.
@@ -226,13 +226,13 @@ Theorem add32_local_spec :
   jet_local_spec f_simplicity_add_32 (Ty.Prod (Word 5) (Word 5)) (Ty.Prod Bit (Word 5))
     (fun a => @add32_spec Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc [x y] HB HA HF H0 Hmax Hin Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc [x y] HB HA HF H0 Hmax Hin Hout.
   change (Z.of_nat (bitSize (Ty.Prod (Word 5) (Word 5)))) with 64 in Hmax.
   change (Z.of_nat (bitSize (Ty.Prod Bit (Word 5)))) with (32 + 1) in *.
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
   apply frame_input_word_pair_encode in Hin. destruct Hin as [Hx Hy].
   change (Z.of_nat (Nat.pow 2 5)) with 32 in Hy.
-  destruct (eval_add32_layout_matches_spec m bd dbase bs sbase bi bw edge outedge x y
+  destruct (eval_add32_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge x y
     cursor rc HB HA HF ltac:(lia) Hx Hy Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   wide_local_output W32 32 Hcall Hobs Hpre Hfld Hpres cursor.
 Qed.
@@ -241,13 +241,13 @@ Theorem add64_local_spec :
   jet_local_spec f_simplicity_add_64 (Ty.Prod (Word 6) (Word 6)) (Ty.Prod Bit (Word 6))
     (fun a => @add64_spec Alg.CoreFunSem a).
 Proof.
-  intros m bd dbase bs sbase bi bw edge outedge cursor rc [x y] HB HA HF H0 Hmax Hin Hout.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc [x y] HB HA HF H0 Hmax Hin Hout.
   change (Z.of_nat (bitSize (Ty.Prod (Word 6) (Word 6)))) with 128 in Hmax.
   change (Z.of_nat (bitSize (Ty.Prod Bit (Word 6)))) with (64 + 1) in *.
   pose proof (write_frame_at_count _ _ _ _ _ _ _ Hout) as HC.
   apply frame_input_word_pair_encode in Hin. destruct Hin as [Hx Hy].
   change (Z.of_nat (Nat.pow 2 6)) with 64 in Hy.
-  destruct (eval_add64_layout_matches_spec m bd dbase bs sbase bi bw edge outedge x y
+  destruct (eval_add64_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge x y
     cursor rc HB HA HF ltac:(lia) Hx Hy Hout) as (mf & Hcall & Hobs & Hpre & Hfld & Hpres).
   wide_local_output W64 64 Hcall Hobs Hpre Hfld Hpres cursor.
 Qed.
@@ -263,7 +263,7 @@ Qed.
 
 Definition jet_context_for (f : function) {A B : Ty}
     (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B) : Prop :=
-  forall m L (ctx : Context) (a : A),
+  forall env m L (ctx : Context) (a : A),
   let s0 := fillContext ctx
     {| readLocalState := encode a; writeLocalState := newWriteFrame (bitSize B) |} in
   let s1 := fillContext ctx
@@ -271,7 +271,7 @@ Definition jet_context_for (f : function) {A B : Ty}
        writeLocalState := fullWriteFrame (encode (@t Alg.CoreFunSem a)) |} in
   bm_rep m L s0 -> bm_separated L s0 -> active_write_writable m L s0 ->
   exists mf,
-    Clight2.eval_funcall ge0 m (Internal f) (jet_args L) E0 mf (Vint Int.one) /\
+    Clight2.eval_funcall ge0 m (Internal f) (jet_args env L) E0 mf (Vint Int.one) /\
     bm_rep mf L s1 /\ (s0 >>- @t Naive.translate ->> s1).
 
 Ltac size_pos := vm_compute; lia.

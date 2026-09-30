@@ -9,10 +9,10 @@ Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 
-Definition le_increment64_layout_x bd dofs bs sofs r :=
+Definition le_increment64_layout_x env bd dofs bs sofs r :=
   PTree.set _x (Vlong r)
     (PTree.set _t'1 (Vlong r)
-      (le_arith8_layout f_simplicity_increment_64 bd dofs bs sofs)).
+      (le_arith8_layout env f_simplicity_increment_64 bd dofs bs sofs)).
 
 Definition increment64_read_stmt : statement :=
   Scall (Some _t'1)
@@ -125,7 +125,7 @@ Proof.
   destruct (Int64.ltu (Int64.repr (Int64.max_unsigned - 1)) r); cbn; reflexivity.
 Qed.
 
-Lemma eval_increment64_layout_composes m ma mc mr mb me mf bl bd dofs bs sbase bytes r :
+Lemma eval_increment64_layout_composes env m ma mc mr mb me mf bl bd dofs bs sbase bytes r :
   frame_base_valid sbase -> (8 | sbase) -> bl <> bs ->
   Mem.alloc m 0 16 = (ma, bl) ->
   Mem.loadbytes ma bs sbase 16 = Some bytes ->
@@ -139,13 +139,13 @@ Lemma eval_increment64_layout_composes m ma mc mr mb me mf bl bd dofs bs sbase b
     [Vptr bd dofs; Vlong (increment64_payload r)] E0 me Vundef ->
   Mem.free me bl 0 16 = Some mf ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_simplicity_increment_64)
-    [Vptr bd dofs; Vptr bs (Ptrofs.repr sbase); Vundef] E0 mf (Vint Int.one).
+    [Vptr bd dofs; Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one).
 Proof.
   intros HB HS HD HA Hbytes SC Hread Hbit Hwrite HF.
   eapply ClightBigstep.eval_funcall_internal
     with (e := e_one8 bl)
-      (le1 := le_arith8_layout f_simplicity_increment_64 bd dofs bs (Ptrofs.repr sbase))
-      (le2 := le_increment64_layout_x bd dofs bs (Ptrofs.repr sbase) r)
+      (le1 := le_arith8_layout env f_simplicity_increment_64 bd dofs bs (Ptrofs.repr sbase))
+      (le2 := le_increment64_layout_x env bd dofs bs (Ptrofs.repr sbase) r)
       (m1 := ma) (m2 := me) (out := Out_return (Some (Vint Int.one, tint))).
   - eapply entry_frame_jet; [reflexivity|reflexivity| |exact HA].
     change (list_disjoint [_dst; _src; _env] [_x; _t'1]).

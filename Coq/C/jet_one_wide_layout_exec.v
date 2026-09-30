@@ -14,7 +14,7 @@ Lemma wide_one_body s : (wide_one s).(fn_body) =
       (Sreturn (Some (Econst_int Int.one tint)))).
 Proof. destruct s; reflexivity. Qed.
 
-Lemma eval_one_wide_layout_composes s m ma mc me mf bl bd dbase bs sbase bytes :
+Lemma eval_one_wide_layout_composes env s m ma mc me mf bl bd dbase bs sbase bytes :
   frame_base_valid sbase -> (8 | sbase) -> bl <> bs ->
   Mem.alloc m 0 16 = (ma, bl) -> Mem.loadbytes ma bs sbase 16 = Some bytes ->
   Mem.storebytes ma bl 0 bytes = Some mc ->
@@ -22,10 +22,10 @@ Lemma eval_one_wide_layout_composes s m ma mc me mf bl bd dbase bs sbase bytes :
     [Vptr bd (Ptrofs.repr dbase); Vlong Int64.one] E0 me Vundef ->
   Mem.free me bl 0 16 = Some mf ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal (wide_one s))
-    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); Vundef] E0 mf (Vint Int.one).
+    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one).
 Proof.
   intros HSbase HSAlign HD HA HB SC HW HF.
-  set (le := le_arith8_layout (wide_one s) bd (Ptrofs.repr dbase) bs (Ptrofs.repr sbase)).
+  set (le := le_arith8_layout env (wide_one s) bd (Ptrofs.repr dbase) bs (Ptrofs.repr sbase)).
   eapply ClightBigstep.eval_funcall_internal
     with (e := e_one8 bl) (le1 := le) (le2 := le) (m1 := ma) (m2 := me)
       (out := Out_return (Some (Vint Int.one, tint))).

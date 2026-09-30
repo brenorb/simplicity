@@ -11,15 +11,15 @@ Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 
-Definition le_add16_layout_x bd dofs bs sofs r :=
+Definition le_add16_layout_x env bd dofs bs sofs r :=
   PTree.set _x (Vlong r)
     (PTree.set _t'1 (Vlong r)
-      (le_arith8_layout f_simplicity_add_16 bd dofs bs sofs)).
+      (le_arith8_layout env f_simplicity_add_16 bd dofs bs sofs)).
 
-Definition le_add16_layout_ready bd dofs bs sofs r s :=
+Definition le_add16_layout_ready env bd dofs bs sofs r s :=
   PTree.set _y (Vlong s)
     (PTree.set _t'2 (Vlong s)
-      (le_add16_layout_x bd dofs bs sofs r)).
+      (le_add16_layout_x env bd dofs bs sofs r)).
 
 Definition add16_read_stmt (tmp : ident) : statement :=
   Scall (Some tmp)
@@ -124,7 +124,7 @@ Proof.
   destruct (Int64.ltu (Int64.sub (Int64.repr 65535) s) r); cbn; reflexivity.
 Qed.
 
-Lemma eval_add16_layout_composes m ma mc mr mr2 mb me mf bl bd dofs bs sbase bytes r s :
+Lemma eval_add16_layout_composes env m ma mc mr mr2 mb me mf bl bd dofs bs sbase bytes r s :
   frame_base_valid sbase -> (8 | sbase) -> bl <> bs ->
   Mem.alloc m 0 16 = (ma, bl) -> Mem.loadbytes ma bs sbase 16 = Some bytes ->
   Mem.storebytes ma bl 0 bytes = Some mc ->
@@ -139,13 +139,13 @@ Lemma eval_add16_layout_composes m ma mc mr mr2 mb me mf bl bd dofs bs sbase byt
     [Vptr bd dofs; Vlong (add16_payload r s)] E0 me Vundef ->
   Mem.free me bl 0 16 = Some mf ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_simplicity_add_16)
-    [Vptr bd dofs; Vptr bs (Ptrofs.repr sbase); Vundef] E0 mf (Vint Int.one).
+    [Vptr bd dofs; Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one).
 Proof.
   intros HB HS HD HA Hbytes SC Hread Hread2 Hbit Hwrite HF.
   eapply ClightBigstep.eval_funcall_internal
     with (e := e_one8 bl)
-      (le1 := le_arith8_layout f_simplicity_add_16 bd dofs bs (Ptrofs.repr sbase))
-      (le2 := le_add16_layout_ready bd dofs bs (Ptrofs.repr sbase) r s)
+      (le1 := le_arith8_layout env f_simplicity_add_16 bd dofs bs (Ptrofs.repr sbase))
+      (le2 := le_add16_layout_ready env bd dofs bs (Ptrofs.repr sbase) r s)
       (m1 := ma) (m2 := me) (out := Out_return (Some (Vint Int.one, tint))).
   - eapply entry_frame_jet; [reflexivity|reflexivity| |exact HA].
     change (list_disjoint [_dst; _src; _env] [_x; _y; _t'2; _t'1]).
@@ -156,12 +156,12 @@ Proof.
     eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mc).
     + eapply exec_frame_jet_copy; eauto; reflexivity.
     + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mr)
-        (le1 := le_add16_layout_x bd dofs bs (Ptrofs.repr sbase) r).
+        (le1 := le_add16_layout_x env bd dofs bs (Ptrofs.repr sbase) r).
       * eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mr).
         -- eapply call_add16_read; [apply symbol_read16|apply funct_read16|exact Hread].
         -- apply exec_set. eapply eval_Etempvar. reflexivity.
       * eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mr2)
-          (le1 := le_add16_layout_ready bd dofs bs (Ptrofs.repr sbase) r s).
+          (le1 := le_add16_layout_ready env bd dofs bs (Ptrofs.repr sbase) r s).
         { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mr2).
           - eapply call_add16_read; [apply symbol_read16|apply funct_read16|exact Hread2].
           - apply exec_set. eapply eval_Etempvar. reflexivity. }

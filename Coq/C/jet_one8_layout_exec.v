@@ -6,16 +6,16 @@ Require Import C.jets C.jet_exec C.jet_one8 C.jet_frame_layout.
 Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Local Open Scope Z_scope.
 
-Definition le_one8_layout bd dbase bs sbase : temp_env :=
+Definition le_one8_layout env bd dbase bs sbase : temp_env :=
   PTree.set _dst (Vptr bd (Ptrofs.repr dbase))
     (PTree.set _src (Vptr bs (Ptrofs.repr sbase))
-      (PTree.set _env Vundef (PTree.empty val))).
+      (PTree.set _env env (PTree.empty val))).
 
-Lemma entry_one8_layout m ma bl bd dbase bs sbase :
+Lemma entry_one8_layout env m ma bl bd dbase bs sbase :
   Mem.alloc m 0 16 = (ma, bl) ->
   function_entry2 ge0 f_simplicity_one_8
-    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); Vundef]
-    m (e_one8 bl) (le_one8_layout bd dbase bs sbase) ma.
+    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
+    m (e_one8 bl) (le_one8_layout env bd dbase bs sbase) ma.
 Proof.
   intros HA. constructor.
   - change (list_norepet [_src]). repeat constructor; simpl; tauto.
@@ -55,7 +55,7 @@ Proof.
   - exact HW.
 Qed.
 
-Lemma eval_one8_layout_composes m ma mc me mf bl bd dbase bs sbase bytes :
+Lemma eval_one8_layout_composes env m ma mc me mf bl bd dbase bs sbase bytes :
   frame_base_valid sbase -> (8 | sbase) -> bl <> bs ->
   Mem.alloc m 0 16 = (ma, bl) -> Mem.loadbytes ma bs sbase 16 = Some bytes ->
   Mem.storebytes ma bl 0 bytes = Some mc ->
@@ -63,14 +63,14 @@ Lemma eval_one8_layout_composes m ma mc me mf bl bd dbase bs sbase bytes :
     [Vptr bd (Ptrofs.repr dbase); Vint Int.one] E0 me Vundef ->
   Mem.free me bl 0 16 = Some mf ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_simplicity_one_8)
-    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); Vundef] E0 mf (Vint Int.one).
+    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one).
 Proof.
   intros HSbase HSAlign HD HA HB SC HW HF.
   assert (HS : Ptrofs.unsigned (Ptrofs.repr sbase) = sbase).
   { apply Ptrofs.unsigned_repr. unfold frame_base_valid in HSbase; lia. }
   eapply ClightBigstep.eval_funcall_internal
-    with (e := e_one8 bl) (le1 := le_one8_layout bd dbase bs sbase)
-      (le2 := le_one8_layout bd dbase bs sbase) (m1 := ma) (m2 := me)
+    with (e := e_one8 bl) (le1 := le_one8_layout env bd dbase bs sbase)
+      (le2 := le_one8_layout env bd dbase bs sbase) (m1 := ma) (m2 := me)
       (out := Out_return (Some (Vint Int.one, tint))).
   - apply entry_one8_layout; exact HA.
   - unfold f_simplicity_one_8; cbn [fn_body].

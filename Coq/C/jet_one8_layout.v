@@ -7,13 +7,13 @@ Require Import C.jet_write8_layout_total C.jet_one8_layout_exec.
 Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 
-Theorem eval_one8_layout_matches_spec m bd dbase bs sbase bw edge cursor bytes :
+Theorem eval_one8_layout_matches_spec env m bd dbase bs sbase bw edge cursor bytes :
   frame_base_valid sbase -> (8 | sbase) ->
   Mem.loadbytes m bs sbase 16 = Some bytes ->
   write_frame_at m bd dbase bw edge cursor 8 ->
   exists mf,
     ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_simplicity_one_8)
-      [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); Vundef] E0 mf (Vint Int.one) /\
+      [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one) /\
     byte_output_at mf bw edge cursor (@one8_spec Alg.CoreFunSem tt) /\
     write_prefix_at m mf bw edge cursor /\
     frame_fields_at mf bd dbase bw edge (cursor - 8) /\

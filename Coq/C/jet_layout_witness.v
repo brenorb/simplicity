@@ -333,9 +333,9 @@ Qed.
     a memory representing the state reached by the Bit Machine translation.
     That state still contains the caller's read frame [encode z] and the
     inactive write frame [encode w]. *)
-Corollary increment64_layout_witness_context (a z w : Ty.tySem (Word 6)) :
+Corollary increment64_layout_witness_context (env : val) (a z w : Ty.tySem (Word 6)) :
   exists m L mf,
-    Clight2.eval_funcall ge0 m (Internal f_simplicity_increment_64) (jet_args L)
+    Clight2.eval_funcall ge0 m (Internal f_simplicity_increment_64) (jet_args env L)
       E0 mf (Vint Int.one) /\
     bm_rep mf L
       (fillContext (witness_ctx z w)
@@ -353,7 +353,7 @@ Corollary increment64_layout_witness_context (a z w : Ty.tySem (Word 6)) :
       [{| writeData := rev (encode w); writeEmpty := 0 |}].
 Proof.
   destruct (increment64_layout_witness a z w) as (m & L & Hrep & Hsep & Hwr).
-  destruct (increment64_context m L (witness_ctx z w) a Hrep Hsep Hwr)
+  destruct (increment64_context env m L (witness_ctx z w) a Hrep Hsep Hwr)
     as (mf & Hcall & Hrep' & Htr).
   exists m, L, mf.
   exact (conj Hcall (conj Hrep' (conj Htr (conj eq_refl eq_refl)))).

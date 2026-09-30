@@ -12,7 +12,7 @@ Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 
-Theorem eval_add64_layout_matches_spec m bd dbase bs sbase bi bw edge outedge
+Theorem eval_add64_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge
     (x y : Ty.tySem (Word 6)) cursor read_cursor :
   frame_base_valid sbase -> (8 | sbase) ->
   frame_fields_at m bs sbase bi edge read_cursor ->
@@ -23,7 +23,7 @@ Theorem eval_add64_layout_matches_spec m bd dbase bs sbase bi bw edge outedge
   exists mf,
     ClightBigstep.Clight2.eval_funcall ge0 m
       (Internal f_simplicity_add_64)
-      [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); Vundef]
+      [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
       E0 mf (Vint Int.one) /\
     carry_wide_output_at W64 mf bw outedge cursor
       (@add64_spec Alg.CoreFunSem (x, y)) /\

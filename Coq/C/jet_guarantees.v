@@ -22,7 +22,7 @@ Local Open Scope Z_scope.
 
 Theorem jet_local_spec_guarantees (f : function) (A B : Ty) (spec : A -> B) :
   jet_local_spec f A B spec ->
-  forall m bd dbase bs sbase bi bw edge outedge cursor read_cursor (a : A),
+  forall env m bd dbase bs sbase bi bw edge outedge cursor read_cursor (a : A),
     frame_base_valid sbase -> (8 | sbase) ->
     frame_fields_at m bs sbase bi edge read_cursor ->
     0 <= read_cursor -> read_cursor + Z.of_nat (bitSize A) <= Int64.max_unsigned ->
@@ -30,12 +30,12 @@ Theorem jet_local_spec_guarantees (f : function) (A B : Ty) (spec : A -> B) :
     write_frame_at m bd dbase bw outedge cursor (Z.of_nat (bitSize B)) ->
     exists mf,
       silent_call_guarantees (Clight.globalenv prog) (Internal f)
-        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); Vundef]
+        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
         m (Vint Int.one) mf /\
       frame_output_cells_at mf bw outedge cursor (encode (spec a)).
 Proof.
-  intros Hspec m bd dbase bs sbase bi bw edge outedge cursor rc a HB HA HF H0 Hmax Hin Hout.
-  destruct (Hspec m bd dbase bs sbase bi bw edge outedge cursor rc a
+  intros Hspec env m bd dbase bs sbase bi bw edge outedge cursor rc a HB HA HF H0 Hmax Hin Hout.
+  destruct (Hspec env m bd dbase bs sbase bi bw edge outedge cursor rc a
     HB HA HF H0 Hmax Hin Hout) as (mf & Hcall & Hobs & _).
   exists mf. split; [|exact Hobs].
   exact (eval_funcall_silent_guarantees prog m (Internal f) _ mf _ Hcall).
@@ -46,7 +46,7 @@ Theorem jet_context_guarantees {A B : Ty} (f : function)
   Alg.Core.Parametric (@t) ->
   jet_local_spec f A B (fun a => @t Alg.CoreFunSem a) ->
   (1 <= bitSize B)%nat ->
-  forall m L (ctx : Context) (a : A),
+  forall env m L (ctx : Context) (a : A),
   let s0 := fillContext ctx
     {| readLocalState := encode a; writeLocalState := newWriteFrame (bitSize B) |} in
   let s1 := fillContext ctx
@@ -54,12 +54,12 @@ Theorem jet_context_guarantees {A B : Ty} (f : function)
        writeLocalState := fullWriteFrame (encode (@t Alg.CoreFunSem a)) |} in
   bm_rep m L s0 -> bm_separated L s0 -> active_write_writable m L s0 ->
   exists mf,
-    silent_call_guarantees (Clight.globalenv prog) (Internal f) (jet_args L)
+    silent_call_guarantees (Clight.globalenv prog) (Internal f) (jet_args env L)
       m (Vint Int.one) mf /\
     bm_rep mf L s1 /\ (s0 >>- @t Naive.translate ->> s1).
 Proof.
-  intros Ht Hspec HB m L ctx a s0 s1 Hrep Hsep Hwr.
-  destruct (jet_context f t Ht Hspec HB m L ctx a Hrep Hsep Hwr)
+  intros Ht Hspec HB env m L ctx a s0 s1 Hrep Hsep Hwr.
+  destruct (jet_context f t Ht Hspec HB env m L ctx a Hrep Hsep Hwr)
     as (mf & Hcall & Hrep' & Htr).
   exists mf. split; [|exact (conj Hrep' Htr)].
   exact (eval_funcall_silent_guarantees prog m (Internal f) _ mf _ Hcall).

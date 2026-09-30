@@ -11,12 +11,12 @@ Require Import C.jet_output_layout C.jet_write_layout C.jet_carry_byte_layout C.
 Import Values Mem Ctypes ListNotations Clightdefs Clightdefs.ClightNotations.
 Local Open Scope Z_scope.
 
-Theorem eval_add8_layout_matches_spec m bd dbase bs sbase bi bw edge outedge (x y : Ty.tySem Word8) cursor read_cursor :
+Theorem eval_add8_layout_matches_spec env m bd dbase bs sbase bi bw edge outedge (x y : Ty.tySem Word8) cursor read_cursor :
   byte_input_at m bs sbase bi edge read_cursor [x; y] ->
   write_frame_at m bd dbase bw outedge cursor 9 ->
   exists mf,
     ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_simplicity_add_8)
-      [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); Vundef] E0 mf (Vint Int.one) /\
+      [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one) /\
     carry_byte_output_at mf bw outedge cursor (@add8_spec Alg.CoreFunSem (x, y)) /\
     write_prefix_at m mf bw outedge cursor /\
     frame_fields_at mf bd dbase bw outedge (cursor - 9) /\
