@@ -33,7 +33,12 @@ case "${1:-}" in
     ;;
 esac
 
-coq_makefile -f _CoqProject.jets "${jet_flags[@]}" -o JetMakefile
-# Compile every listed module, including kernels not yet imported by a public
-# theorem. The project also lists check_jet_assumptions.v.
-make -f JetMakefile all "$@"
+project=_CoqProject.jets
+makefile=JetMakefile
+if [[ "${1:-}" == --regression ]]; then
+  project=_CoqProject.jets-regression
+  makefile=JetRegressionMakefile
+  shift
+fi
+coq_makefile -f "$project" "${jet_flags[@]}" -o "$makefile"
+make -f "$makefile" all "$@"
