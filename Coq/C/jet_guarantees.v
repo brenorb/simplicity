@@ -14,9 +14,9 @@ From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Memory Values Events Ctypes Clight ClightBigstep.
 Require Import Simplicity.Ty Simplicity.BitMachine Simplicity.Translate.
 Require Simplicity.Alg.
-Require Import C.jets C.jet_exec C.jet_frame_spec C.jet_frame_layout C.jet_output_layout.
+Require Import C.jets C.jet_exec C.jet_frame_spec C.jet_frame_layout C.jet_output_layout C.jet_write_layout.
 Require Import C.jet_encoding C.jet_bitmachine_rep C.jet_context C.jet_clight_determinism.
-Require Import C.jet_canonical.
+Require Import C.jet_canonical C.jet_wide C.jet_spec C.jet_wide_spec C.jet_add8_word.
 Import ListNotations.
 Local Open Scope Z_scope.
 
@@ -32,12 +32,20 @@ Theorem jet_local_spec_guarantees (f : function) (A B : Ty) (spec : A -> B) :
       silent_call_guarantees (Clight.globalenv prog) (Internal f)
         [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
         m (Vint Int.one) mf /\
-      frame_output_cells_at mf bw outedge cursor (encode (spec a)).
+      frame_output_cells_at mf bw outedge cursor (encode (spec a)) /\
+      write_prefix_at m mf bw outedge cursor /\
+      frame_fields_at mf bd dbase bw outedge (cursor - Z.of_nat (bitSize B)) /\
+      (forall chunk b ofs, Mem.valid_block m b ->
+        (b <> bd \/ ofs + size_chunk chunk <= dbase + 8 \/ dbase + 16 <= ofs) ->
+        (b <> bw \/
+          ofs + size_chunk chunk <= outedge + 8 * ((cursor - Z.of_nat (bitSize B)) / 64) \/
+          write_word_address outedge cursor + 8 <= ofs) ->
+        Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros Hspec env m bd dbase bs sbase bi bw edge outedge cursor rc a HB HA HF H0 Hmax Hin Hout.
   destruct (Hspec env m bd dbase bs sbase bi bw edge outedge cursor rc a
-    HB HA HF H0 Hmax Hin Hout) as (mf & Hcall & Hobs & _).
-  exists mf. split; [|exact Hobs].
+    HB HA HF H0 Hmax Hin Hout) as (mf & Hcall & Hobs & Hpre & Hfields & Hpres).
+  exists mf. split; [|exact (conj Hobs (conj Hpre (conj Hfields Hpres)))].
   exact (eval_funcall_silent_guarantees prog m (Internal f) _ mf _ Hcall).
 Qed.
 
@@ -79,3 +87,27 @@ Definition add8_guarantees := jet_local_spec_guarantees _ _ _ _ add8_local_spec.
 Definition add16_guarantees := jet_local_spec_guarantees _ _ _ _ add16_local_spec.
 Definition add32_guarantees := jet_local_spec_guarantees _ _ _ _ add32_local_spec.
 Definition add64_guarantees := jet_local_spec_guarantees _ _ _ _ add64_local_spec.
+
+Definition one8_context_guarantees := jet_context_guarantees _ _ one8_spec_parametric one8_local_spec ltac:(vm_compute; lia).
+
+Definition one16_context_guarantees := jet_context_guarantees _ _ (wide_one_spec_parametric W16) one16_local_spec ltac:(vm_compute; lia).
+
+Definition one32_context_guarantees := jet_context_guarantees _ _ (wide_one_spec_parametric W32) one32_local_spec ltac:(vm_compute; lia).
+
+Definition one64_context_guarantees := jet_context_guarantees _ _ (wide_one_spec_parametric W64) one64_local_spec ltac:(vm_compute; lia).
+
+Definition increment8_context_guarantees := jet_context_guarantees _ _ increment8_spec_parametric increment8_local_spec ltac:(vm_compute; lia).
+
+Definition increment16_context_guarantees := jet_context_guarantees _ _ increment16_spec_parametric increment16_local_spec ltac:(vm_compute; lia).
+
+Definition increment32_context_guarantees := jet_context_guarantees _ _ increment32_spec_parametric increment32_local_spec ltac:(vm_compute; lia).
+
+Definition increment64_context_guarantees := jet_context_guarantees _ _ increment64_spec_parametric increment64_local_spec ltac:(vm_compute; lia).
+
+Definition add8_context_guarantees := jet_context_guarantees _ _ add8_spec_parametric add8_local_spec ltac:(vm_compute; lia).
+
+Definition add16_context_guarantees := jet_context_guarantees _ _ add16_spec_parametric add16_local_spec ltac:(vm_compute; lia).
+
+Definition add32_context_guarantees := jet_context_guarantees _ _ add32_spec_parametric add32_local_spec ltac:(vm_compute; lia).
+
+Definition add64_context_guarantees := jet_context_guarantees _ _ add64_spec_parametric add64_local_spec ltac:(vm_compute; lia).
