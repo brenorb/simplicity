@@ -4,6 +4,7 @@ From Coq Require Import ZArith List Lia.
 From compcert Require Import Integers AST Ctypes Clight ClightBigstep Events Memory.
 Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_read16_layout_exec.
 Import Values Mem Ctypes ListNotations.
+Require Import C.jet_reader_total.
 Local Open Scope Z_scope.
 
 Definition read16_layout_value (cursor : Z) (high low : int64) : int64 :=
@@ -30,72 +31,8 @@ Theorem eval_read16_layout_total m bf base bw edge cursor high low :
     (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
-  intros HB HC HE HF HH HLow PW HD.
-  destruct HF as [HFedge HFcursor].
-  assert (HM : 0 <= cursor mod 64 < 64) by (apply Z.mod_pos_bound; lia).
-  unfold read16_layout_value.
-  destruct (Z_le_dec (cursor mod 64) 48) as [HN | HX].
-  - destruct (Mem.valid_access_store m Mint64 bf (base + 8)
-        (Vlong (Int64.repr (cursor + 16))) PW) as [mf SF].
-    exists mf. split.
-    + exact (eval_read16_layout_non_crossing m mf bf base bw edge cursor high
-        HB HC HN HE (conj HFedge HFcursor) HH SF).
-    + split.
-      * unfold frame_fields_at; split.
-        -- transitivity (Mem.load Mptr m bf base).
-           ++ eapply Mem.load_store_other; [exact SF|].
-              right; left; change (base + 8 <= base + 8); lia.
-           ++ exact HFedge.
-        -- exact (Mem.load_store_same _ _ _ _ _ _ SF).
-      * split.
-           ++ intros chunk b ofs Hsep. eapply Mem.load_store_other; [exact SF|].
-              change (b <> bf \/ ofs + size_chunk chunk <= base + 8 \/ base + 8 + 8 <= ofs).
-              tauto || lia.
-           ++ split.
-              ** intros b ofs kind p HP. eapply Mem.perm_store_1; eauto.
-              ** intros b HV. eapply Mem.store_valid_block_1; eauto.
-  - assert (Hcross : 48 < cursor mod 64 < 64) by lia.
-    destruct (HLow ltac:(lia)) as [HE2 HL].
-    set (k := 64 - cursor mod 64).
-    assert (HK : 1 <= k <= 15) by (unfold k; lia).
-    assert (Hedge2 : 8 * (2 + cursor / 64) <= edge) by lia.
-    destruct (Mem.valid_access_store m Mint64 bf (base + 8)
-        (Vlong (Int64.repr (cursor + k))) PW) as [mfirst SF].
-    assert (PWfirst : Mem.valid_access mfirst Mint64 bf (base + 8) Writable)
-      by (eapply Mem.store_valid_access_1; eauto).
-    destruct (Mem.valid_access_store mfirst Mint64 bf (base + 8)
-        (Vlong (Int64.repr (cursor + 16))) PWfirst) as [mf SFinal].
-    assert (HLfirst : Mem.load Mint64 mfirst bw
-        (edge - 8 * (2 + cursor / 64)) = Some (Vlong low)).
-    { erewrite Mem.load_store_other; [exact HL|exact SF|]. left; congruence. }
-    assert (HFfirst : frame_fields_at mfirst bf base bw edge (cursor + k)).
-    { split.
-      - transitivity (Mem.load Mptr m bf base).
-        + eapply Mem.load_store_other; [exact SF|].
-          right; left; change (base + 8 <= base + 8); lia.
-        + exact HFedge.
-      - exact (Mem.load_store_same _ _ _ _ _ _ SF). }
-    exists mf. split.
-    + unfold read16_layout_value. destruct (Z_le_dec (cursor mod 64) 48); [lia|].
-      exact (eval_read16_layout_crossing m mfirst mf bf base bw edge cursor high low
-        HB HC Hcross (conj Hedge2 (proj2 HE)) (conj HFedge HFcursor)
-        HH HL HD SF SFinal).
-    + split.
-      * unfold frame_fields_at; split.
-        -- transitivity (Mem.load Mptr mfirst bf base).
-           ++ eapply Mem.load_store_other; [exact SFinal|].
-              right; left; change (base + 8 <= base + 8); lia.
-           ++ transitivity (Mem.load Mptr m bf base).
-              ** eapply Mem.load_store_other; [exact SF|].
-                 right; left; change (base + 8 <= base + 8); lia.
-              ** exact HFedge.
-        -- exact (Mem.load_store_same _ _ _ _ _ _ SFinal).
-      * split.
-        -- intros chunk b ofs Hsep.
-           assert (Hsep' : b <> bf \/ ofs + size_chunk chunk <= base + 8 \/ base + 8 + 8 <= ofs) by lia.
-           erewrite Mem.load_store_other; [|exact SFinal|exact Hsep'].
-           eapply Mem.load_store_other; eauto.
-        -- split.
-           ++ intros b ofs kind p HP. eauto using Mem.perm_store_1.
-           ++ intros b HV. eauto using Mem.store_valid_block_1.
+  exact (eval_reader_layout_total 16 f_simplicity_read16
+    read16_non_crossing_at read16_crossing_at
+    eval_read16_layout_non_crossing eval_read16_layout_crossing
+    m bf base bw edge cursor high low).
 Qed.

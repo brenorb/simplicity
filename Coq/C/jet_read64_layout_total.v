@@ -4,12 +4,31 @@ From compcert Require Import Integers AST Ctypes Clight ClightBigstep Events Mem
 Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_read64_input_word.
 Require Import C.jet_read64_layout_exec.
 Import Values Mem Ctypes ListNotations.
+Require Import C.jet_reader_total.
 Local Open Scope Z_scope.
 
 Definition read64_layout_value (cursor : Z) (high low : int64) : int64 :=
   if Z.eq_dec (cursor mod 64) 0
   then read64_aligned_at high
   else read64_crossing_at cursor high low.
+
+Lemma eval_read64_layout_noncross_kernel m mf bf base bw edge cursor high :
+  frame_base_valid base ->
+  0 <= cursor <= Int64.max_unsigned - 64 ->
+  cursor mod 64 <= 0 ->
+  8 * (1 + cursor / 64) <= edge <= Ptrofs.max_unsigned ->
+  frame_fields_at m bf base bw edge cursor ->
+  Mem.load Mint64 m bw (edge - 8 * (1 + cursor / 64)) = Some (Vlong high) ->
+  Mem.store Mint64 m bf (base + 8) (Vlong (Int64.repr (cursor + 64))) = Some mf ->
+  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_simplicity_read64)
+    [Vptr bf (Ptrofs.repr base)] E0 mf (Vlong high).
+Proof.
+  intros HB HC Hmod HE HF HH HS.
+  assert (Hz : cursor mod 64 = 0).
+  { pose proof (Z.mod_pos_bound cursor 64 ltac:(lia)); lia. }
+  exact (eval_read64_layout_aligned m mf bf base bw edge cursor high
+    HB HC Hz HE HF HH HS).
+Qed.
 
 Theorem eval_read64_layout_total m bf base bw edge cursor high low :
   frame_base_valid base ->
@@ -32,71 +51,13 @@ Theorem eval_read64_layout_total m bf base bw edge cursor high low :
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
   intros HB HC HE HF HH HLow PW HD.
-  destruct HF as [HFedge HFcursor].
-  assert (HM : 0 <= cursor mod 64 < 64) by (apply Z.mod_pos_bound; lia).
-  unfold read64_layout_value.
-  destruct (Z.eq_dec (cursor mod 64) 0) as [HA|HX].
-  - destruct (Mem.valid_access_store m Mint64 bf (base + 8)
-        (Vlong (Int64.repr (cursor + 64))) PW) as [mf SF].
-    exists mf. split.
-    + exact (eval_read64_layout_aligned m mf bf base bw edge cursor high
-        HB HC HA HE (conj HFedge HFcursor) HH SF).
-    + split.
-      * unfold frame_fields_at; split.
-        -- transitivity (Mem.load Mptr m bf base).
-           ++ eapply Mem.load_store_other; [exact SF|].
-              right; left; change (base + 8 <= base + 8); lia.
-           ++ exact HFedge.
-        -- exact (Mem.load_store_same _ _ _ _ _ _ SF).
-      * split.
-        -- intros chunk b ofs Hsep. eapply Mem.load_store_other; [exact SF|].
-           change (b <> bf \/ ofs + size_chunk chunk <= base + 8 \/ base + 8 + 8 <= ofs).
-           tauto || lia.
-        -- split.
-           ++ intros b ofs kind p HP. eapply Mem.perm_store_1; eauto.
-           ++ intros b HV. eapply Mem.store_valid_block_1; eauto.
-  - assert (Hcross : 0 < cursor mod 64 < 64) by lia.
-    destruct (HLow ltac:(lia)) as [HE2 HL].
-    set (k := 64 - cursor mod 64).
-    assert (HK : 1 <= k <= 64) by (unfold k; lia).
-    assert (Hedge2 : 8 * (2 + cursor / 64) <= edge) by lia.
-    destruct (Mem.valid_access_store m Mint64 bf (base + 8)
-        (Vlong (Int64.repr (cursor + k))) PW) as [mfirst SF].
-    assert (PWfirst : Mem.valid_access mfirst Mint64 bf (base + 8) Writable)
-      by (eapply Mem.store_valid_access_1; eauto).
-    destruct (Mem.valid_access_store mfirst Mint64 bf (base + 8)
-        (Vlong (Int64.repr (cursor + 64))) PWfirst) as [mf SFinal].
-    assert (HLfirst : Mem.load Mint64 mfirst bw
-        (edge - 8 * (2 + cursor / 64)) = Some (Vlong low)).
-    { erewrite Mem.load_store_other; [exact HL|exact SF|]. left; congruence. }
-    assert (HFfirst : frame_fields_at mfirst bf base bw edge (cursor + k)).
-    { split.
-      - transitivity (Mem.load Mptr m bf base).
-        + eapply Mem.load_store_other; [exact SF|].
-          right; left; change (base + 8 <= base + 8); lia.
-        + exact HFedge.
-      - exact (Mem.load_store_same _ _ _ _ _ _ SF). }
-    exists mf. split.
-    + exact (eval_read64_layout_crossing m mfirst mf bf base bw edge cursor high low
-        HB HC Hcross (conj Hedge2 (proj2 HE)) (conj HFedge HFcursor)
-        HH HL HD SF SFinal).
-    + split.
-      * unfold frame_fields_at; split.
-        -- transitivity (Mem.load Mptr mfirst bf base).
-           ++ eapply Mem.load_store_other; [exact SFinal|].
-              right; left; change (base + 8 <= base + 8); lia.
-           ++ transitivity (Mem.load Mptr m bf base).
-              ** eapply Mem.load_store_other; [exact SF|].
-                 right; left; change (base + 8 <= base + 8); lia.
-              ** exact HFedge.
-        -- exact (Mem.load_store_same _ _ _ _ _ _ SFinal).
-      * split.
-        -- intros chunk b ofs Hsep.
-           assert (Hsep' : b <> bf \/ ofs + size_chunk chunk <= base + 8 \/
-               base + 8 + 8 <= ofs) by lia.
-           erewrite Mem.load_store_other; [|exact SFinal|exact Hsep'].
-           eapply Mem.load_store_other; eauto.
-        -- split.
-           ++ intros b ofs kind p HP. eauto using Mem.perm_store_1.
-           ++ intros b HV. eauto using Mem.store_valid_block_1.
+  assert (Hmod : 0 <= cursor mod 64 < 64) by (apply Z.mod_pos_bound; lia).
+  pose proof (eval_reader_layout_total 64 f_simplicity_read64
+    (fun _ high => high) read64_crossing_at
+    eval_read64_layout_noncross_kernel
+    eval_read64_layout_crossing m bf base bw edge cursor high low
+    HB HC HE HF HH ltac:(intros; apply HLow; lia) PW HD) as H.
+  unfold reader_layout_value in H. unfold read64_layout_value.
+  destruct (Z_le_dec (cursor mod 64) (64 - 64)), (Z.eq_dec (cursor mod 64) 0);
+    try lia; exact H.
 Qed.

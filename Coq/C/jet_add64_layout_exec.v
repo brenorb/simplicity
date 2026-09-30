@@ -43,16 +43,8 @@ Definition add64_sum_expr : expr :=
       (Etempvar _y tulong) tulong)
     tulong.
 
-Lemma symbol_read64 :
-  Genv.find_symbol (Clight.genv_genv ge0) _simplicity_read64 =
-    Some (jet_symbol_block _simplicity_read64).
-Proof. vm_compute; reflexivity. Qed.
-
-Lemma funct_read64 :
-  Genv.find_funct (Clight.genv_genv ge0)
-    (Vptr (jet_symbol_block _simplicity_read64) Ptrofs.zero) =
-    Some (Internal f_simplicity_read64).
-Proof. vm_compute; reflexivity. Qed.
+Definition symbol_read64 := wide_reader_symbol W64.
+Definition funct_read64 := wide_reader_funct W64.
 
 Lemma call_add64_read le m m' bl tmp r :
   Genv.find_symbol (Clight.genv_genv ge0) _simplicity_read64 =
