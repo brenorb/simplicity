@@ -233,11 +233,30 @@ Proof.
       unfold disjoint_ranges, write_region_hi; rewrite ?Wa, ?Ww, ?FW1, ?FW2; lay; lia.
 Qed.
 
+(** The same concrete witness has ordered evaluator gap-buffer ranges. *)
+Lemma witness_gap_buffer_layout c f (a z w : Ty.tySem (Word 6)) :
+  gap_buffer_layout (witness_layout c f) (witness_state a z w).
+Proof.
+  unfold gap_buffer_layout, item_ranges, read_ranges, write_ranges,
+    read_region_lo, write_region_hi, read_size, write_size,
+    witness_state, witness_layout, witness_ctx, fillContext,
+    newWriteFrame, read_padding, frame_words.
+  cbn [map combine rev app activeReadFrame activeWriteFrame
+    inactiveReadFrames inactiveWriteFrames active_read_loc active_write_loc
+    inactive_read_locs inactive_write_locs item_ofs edge_ofs
+    prevData nextData writeData writeEmpty readLocalState writeLocalState fst snd
+    length bitSize].
+  rewrite ?app_length, ?rev_length, !encode_len64.
+  change (bitSize Word64) with 64%nat.
+  cbn [increasing_ranges fst snd]. vm_compute. intuition discriminate.
+Qed.
+
 Theorem increment64_layout_witness (a z w : Ty.tySem (Word 6)) :
   exists m L,
     bm_rep m L (witness_state a z w) /\
     bm_separated L (witness_state a z w) /\
-    active_write_writable m L (witness_state a z w).
+    active_write_writable m L (witness_state a z w) /\
+    gap_buffer_layout L (witness_state a z w).
 Proof.
   destruct (Mem.alloc Mem.empty 0 48) as [m1 c] eqn:Hc.
   destruct (Mem.alloc m1 0 64) as [m2 f] eqn:Hf.
@@ -316,7 +335,8 @@ Proof.
       | lay; rewrite Hmax; lia
       | exact F48 | exact Lw ].
   - exact (witness_separated c f a z w).
-  - assert (Wa : write_size (activeWriteFrame (witness_state a z w)) = 65)
+  - split; [|apply witness_gap_buffer_layout].
+    assert (Wa : write_size (activeWriteFrame (witness_state a z w)) = 65)
       by (apply write_size_empty; reflexivity).
     assert (FW2 : frame_words 65 = 2) by reflexivity.
     assert (VA : forall b o, Mem.valid_access m2 Mint64 b o Writable ->
@@ -352,7 +372,7 @@ Corollary increment64_layout_witness_context (env : val) (a z w : Ty.tySem (Word
     inactiveWriteFrames (witness_ctx z w) =
       [{| writeData := rev (encode w); writeEmpty := 0 |}].
 Proof.
-  destruct (increment64_layout_witness a z w) as (m & L & Hrep & Hsep & Hwr).
+  destruct (increment64_layout_witness a z w) as (m & L & Hrep & Hsep & Hwr & Hgap).
   destruct (increment64_context env m L (witness_ctx z w) a Hrep Hsep Hwr)
     as (mf & Hcall & Hrep' & Htr).
   exists m, L, mf.
