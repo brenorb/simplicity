@@ -89,15 +89,23 @@ Proof.
       exact HY.
 Qed.
 
+Lemma frame_input_bit_at_preserved m mf bw edge cursor bit :
+  (forall ofs w, Mem.load Mint64 m bw ofs = Some (Vlong w) ->
+    Mem.load Mint64 mf bw ofs = Some (Vlong w)) ->
+  frame_input_bit_at m bw edge cursor bit ->
+  frame_input_bit_at mf bw edge cursor bit.
+Proof.
+  intros Hloads [HQ [HE [w [HL Hb]]]].
+  split; [exact HQ|]. split; [exact HE|]. exists w. split; [eauto|exact Hb].
+Qed.
+
 Lemma frame_input_bits_at_preserved m mf bw edge cursor bits :
   (forall ofs w, Mem.load Mint64 m bw ofs = Some (Vlong w) ->
     Mem.load Mint64 mf bw ofs = Some (Vlong w)) ->
   frame_input_bits_at m bw edge cursor bits ->
   frame_input_bits_at mf bw edge cursor bits.
 Proof.
-  intros Hloads Hbits i b Hi. specialize (Hbits i b Hi).
-  destruct Hbits as [HQ [HE [w [HL Hb]]]].
-  split; [exact HQ|]. split; [exact HE|]. exists w. split; [eauto|exact Hb].
+  intros Hloads Hbits i b Hi. eapply frame_input_bit_at_preserved; eauto.
 Qed.
 
 Lemma byte_input_single_at m bf base bw edge cursor x :
