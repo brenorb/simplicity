@@ -323,9 +323,11 @@ only; prior theorem types, assumptions and the inherited allowlist are
 unchanged. `build-jets.sh --regression -j12` also passed after rebuilding
 consumers of the shared input-layout lemma.
 
-A clean Nix verification of the 42-jet state was started; this record does not
-claim its success until the process exits successfully. Earlier clean Nix
-results certify only their recorded source states.
+The clean `nix-build -A coqJets --no-out-link` passed for the 42-jet state:
+4 min 49 s in the proof build and 8 min 37 s in the check phase, including
+normal frozen-contract comparisons and the isolated negative-test rebuild.
+The result is `/nix/store/946kw1dy40drsl9qyg4dwcrgdlpnkf8k-Simplicity-coq-jets-0.0.0`.
+This does not certify later extensions.
 
 ### Wide ternary-jet extension (2026-10-01)
 

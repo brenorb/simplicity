@@ -52,7 +52,7 @@ tree otherwise contains only Coq files.
    canonical local specs, and reuses context and call-boundary guarantees.
    The bridges compute closed constants only; symbolic memory is not unfolded.
 2. **Complement and binary and/or/xor: completed.** Five complement calls
-   calls reuse total readers/writers, frame lifecycle, canonical encodings,
+   reuse total readers/writers, frame lifecycle, canonical encodings,
    contexts and guarantees. `jet_complement_spec.v` defines the exact canonical
    recursion (base `Bit.not iden`, successor `take rec &&& drop rec`). Its
    symbolic bridge uses `Word.testbitToZLo` / `Word.testbitToZHi` by induction,
