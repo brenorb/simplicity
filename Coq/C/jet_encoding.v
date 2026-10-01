@@ -166,6 +166,20 @@ Proof.
   reflexivity.
 Qed.
 
+Theorem frame_input_word_triple_encode {n} m bw edge cursor (x y z : Ty.tySem (Word n)) :
+  frame_input_word_at m bw edge cursor x /\
+  frame_input_word_at m bw edge (cursor + Z.of_nat (Nat.pow 2 n)) y /\
+  frame_input_word_at m bw edge (cursor + 2 * Z.of_nat (Nat.pow 2 n)) z <->
+  frame_input_cells_at m bw edge cursor
+    (@encode (Ty.Prod (Word n) (Ty.Prod (Word n) (Word n))) (x, (y, z))).
+Proof.
+  change (@encode (Ty.Prod (Word n) (Ty.Prod (Word n) (Word n))) (x, (y, z))) with
+    (encode x ++ (encode y ++ encode z)).
+  rewrite !frame_input_cells_at_app, !encode_word_length, <- !frame_input_word_at_encode.
+  replace (cursor + Z.of_nat (Nat.pow 2 n) + Z.of_nat (Nat.pow 2 n)) with
+    (cursor + 2 * Z.of_nat (Nat.pow 2 n)) by lia. reflexivity.
+Qed.
+
 Lemma frame_input_word_at_iff {n} m bw edge cursor (x : Ty.tySem (Word n)) :
   frame_input_word_at m bw edge cursor x <->
   forall i, 0 <= i < Z.of_nat (Nat.pow 2 n) ->
