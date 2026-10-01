@@ -2494,6 +2494,215 @@ complement1_context_guarantees
                (@Ctypes.Internal Clight.function jets.f_simplicity_complement_1) (jet_args env L) m
                (Values.Vint Integers.Int.one) mf)
             (and (bm_rep mf L s1) (runProgram (@complement_spec O Naive.translate) (Running s0) (Running s1))))
+binary_word_spec_parametric
+     : forall (n : nat) (k : binary_op),
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) (@binary_word_spec n k)
+binary_int_denotes
+     : forall (n : nat) (k : binary_op) (x y : Ty.tySem (Word.Word n)) (r s : Integers.Int.int)
+         (_ : BinInt.Z.le (Zpower.two_power_nat n)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (_ : @eq BinNums.Z (Integers.Int.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+         (_ : @eq BinNums.Z (Integers.Int.unsigned s) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)),
+       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ n)))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ n) (Integers.Int.unsigned (binary_int k r s)))
+         (@binary_word_spec n k Alg.CoreFunSem (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))
+binary_int64_denotes
+     : forall (n : nat) (k : binary_op) (x y : Ty.tySem (Word.Word n)) (r s : Integers.Int64.int)
+         (_ : BinInt.Z.le (Zpower.two_power_nat n)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned s) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)),
+       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ n)))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ n) (Integers.Int64.unsigned (binary_int64 k r s)))
+         (@binary_word_spec n k Alg.CoreFunSem (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))
+eval_wide_binary_layout_matches_spec
+     : forall (env : Values.val) (k : binary_op) (s : wide_size) (m : Memory.Mem.mem) (bd : Values.block)
+         (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block)
+         (edge outedge : BinNums.Z) (x y : Ty.tySem (Word.Word (wide_log s))) (cursor rc : BinNums.Z)
+         (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (wide_bits s)))))
+         (_ : @frame_input_word_at (wide_log s) m bi edge rc x)
+         (_ : @frame_input_word_at (wide_log s) m bi edge (BinInt.Z.add rc (wide_bits s)) y)
+         (_ : write_frame_at m bd dbase bw outedge cursor (wide_bits s)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function (wide_binary k s))
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Word.Word (wide_log s))
+                     (@binary_word_spec (wide_log s) k Alg.CoreFunSem
+                        (@pair (Ty.tySem (Word.Word (wide_log s))) (Ty.tySem (Word.Word (wide_log s))) x y))))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and (frame_fields_at mf bd dbase bw outedge (BinInt.Z.sub cursor (wide_bits s)))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div (BinInt.Z.sub cursor (wide_bits s))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+wide_binary_local_spec
+     : forall (k : binary_op) (s : wide_size),
+       jet_local_spec (wide_binary k s) (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s)))
+         (Word.Word (wide_log s))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))) =>
+          @binary_word_spec (wide_log s) k Alg.CoreFunSem xy)
+and16_local_spec
+     : jet_local_spec jets.f_simplicity_and_16 (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+         (Word.Word (S (S (S (S O)))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) =>
+          @binary_word_spec (S (S (S (S O)))) BAnd Alg.CoreFunSem xy)
+and32_local_spec
+     : jet_local_spec jets.f_simplicity_and_32
+         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S (S O))))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) =>
+          @binary_word_spec (S (S (S (S (S O))))) BAnd Alg.CoreFunSem xy)
+and64_local_spec
+     : jet_local_spec jets.f_simplicity_and_64
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S (S (S O)))))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))) =>
+          @binary_word_spec (S (S (S (S (S (S O)))))) BAnd Alg.CoreFunSem xy)
+or16_local_spec
+     : jet_local_spec jets.f_simplicity_or_16 (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+         (Word.Word (S (S (S (S O)))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) =>
+          @binary_word_spec (S (S (S (S O)))) BOr Alg.CoreFunSem xy)
+or32_local_spec
+     : jet_local_spec jets.f_simplicity_or_32
+         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S (S O))))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) =>
+          @binary_word_spec (S (S (S (S (S O))))) BOr Alg.CoreFunSem xy)
+or64_local_spec
+     : jet_local_spec jets.f_simplicity_or_64
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S (S (S O)))))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))) =>
+          @binary_word_spec (S (S (S (S (S (S O)))))) BOr Alg.CoreFunSem xy)
+xor16_local_spec
+     : jet_local_spec jets.f_simplicity_xor_16 (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+         (Word.Word (S (S (S (S O)))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) =>
+          @binary_word_spec (S (S (S (S O)))) BXor Alg.CoreFunSem xy)
+xor32_local_spec
+     : jet_local_spec jets.f_simplicity_xor_32
+         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S (S O))))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) =>
+          @binary_word_spec (S (S (S (S (S O))))) BXor Alg.CoreFunSem xy)
+xor64_local_spec
+     : jet_local_spec jets.f_simplicity_xor_64
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S (S (S O)))))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))) =>
+          @binary_word_spec (S (S (S (S (S (S O)))))) BXor Alg.CoreFunSem xy)
+wide_binary_context
+     : forall (k : binary_op) (s : wide_size),
+       @jet_context_for (wide_binary k s) (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s)))
+         (Word.Word (wide_log s)) (@binary_word_spec (wide_log s) k)
+wide_binary_guarantees
+     : forall (k : binary_op) (s : wide_size) (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block)
+         (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block)
+         (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s)))) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat (bitSize (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))))))
+                Integers.Int64.max_unsigned)
+         (_ : frame_input_cells_at m bi edge read_cursor
+                (@encode (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))) a))
+         (_ : write_frame_at m bd dbase bw outedge cursor (BinInt.Z.of_nat (bitSize (Word.Word (wide_log s))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv jets.prog) (@Ctypes.Internal Clight.function (wide_binary k s))
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Word.Word (wide_log s)) (@binary_word_spec (wide_log s) k Alg.CoreFunSem a)))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.of_nat (bitSize (Word.Word (wide_log s))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor (BinInt.Z.of_nat (bitSize (Word.Word (wide_log s)))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+wide_binary_context_guarantees
+     : forall (k : binary_op) (s : wide_size) (env : Values.val) (m : Memory.Mem.mem) (L : bm_layout)
+         (ctx : Context) (a : Ty.tySem (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s)))),
+       let s0 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))) a)
+              (newWriteFrame (bitSize (Word.Word (wide_log s))))) in
+       let s1 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))) a)
+              (fullWriteFrame (@encode (Word.Word (wide_log s)) (@binary_word_spec (wide_log s) k Alg.CoreFunSem a))))
+         in
+       forall (_ : bm_rep m L s0) (_ : bm_separated L s0) (_ : active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv jets.prog) (@Ctypes.Internal Clight.function (wide_binary k s))
+               (jet_args env L) m (Values.Vint Integers.Int.one) mf)
+            (and (bm_rep mf L s1)
+               (runProgram (@binary_word_spec (wide_log s) k Naive.translate) (Running s0) (Running s1))))
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -4923,3 +5132,167 @@ Clight.Scall (@Some AST.ident jets._t'1)
 complement1_expr =
 Clight.Eunop Cop.Onotbool (Clight.Etempvar jets._x Ctypesdefs.tbool) Ctypesdefs.tint
      : Clight.expr
+Inductive binary_op : Set :=  BAnd : binary_op | BOr : binary_op | BXor : binary_op.
+binary_bool =
+fun k : binary_op =>
+match k return (forall (_ : bool) (_ : bool), bool) with
+| BAnd => andb
+| BOr => orb
+| BXor => xorb
+end
+     : forall (_ : binary_op) (_ : bool) (_ : bool), bool
+
+Arguments binary_bool k (b1 b2)%bool_scope
+binary_int64 =
+fun k : binary_op =>
+match k return (forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int) with
+| BAnd => Integers.Int64.and
+| BOr => Integers.Int64.or
+| BXor => Integers.Int64.xor
+end
+     : forall (_ : binary_op) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments binary_int64 k x y
+binary_int =
+fun k : binary_op =>
+match k return (forall (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int) with
+| BAnd => Integers.Int.and
+| BOr => Integers.Int.or
+| BXor => Integers.Int.xor
+end
+     : forall (_ : binary_op) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments binary_int k x y
+binary_bit_spec =
+fun (k : binary_op) (term : Alg.Core.Algebra) =>
+match
+  k return (Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) (Ty.Sum Ty.Unit Ty.Unit))
+with
+| BAnd =>
+    @Bit.and (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term
+      (@Alg.Core.Combinators.take (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+      (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+| BOr =>
+    @Bit.or (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term
+      (@Alg.Core.Combinators.take (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+      (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+| BXor =>
+    @Alg.Core.Combinators.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+      (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)))
+      (Ty.Sum Ty.Unit Ty.Unit) term
+      (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+         (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term
+         (@Alg.Core.Combinators.take (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+            (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+         (@Alg.Core.Combinators.iden (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term))
+      (@Bit.cond (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Bit.not (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term
+            (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+               (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term)))
+         (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+            (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term)))
+end
+     : forall (_ : binary_op) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments binary_bit_spec k {term}
+binary_word_spec =
+fix binary_word_spec (n : nat) (k : binary_op) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) :=
+  match n as n0 return (Alg.Core.domain term (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0)) with
+  | O => @binary_bit_spec k term
+  | S n0 =>
+      @Alg.Core.Combinators.pair
+        (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+        (Word.Word n0) (Word.Word n0) term
+        (@Alg.Core.Combinators.comp
+           (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+           (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+           (@Alg.Core.Combinators.pair
+              (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+              (Word.Word n0) (Word.Word n0) term
+              (@Alg.Core.Combinators.take (Ty.Prod (Word.Word n0) (Word.Word n0))
+                 (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+                 (@Alg.Core.Combinators.take (Word.Word n0) (Word.Word n0) (Word.Word n0) term
+                    (@Alg.Core.Combinators.iden (Word.Word n0) term)))
+              (@Alg.Core.Combinators.drop (Ty.Prod (Word.Word n0) (Word.Word n0))
+                 (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+                 (@Alg.Core.Combinators.take (Word.Word n0) (Word.Word n0) (Word.Word n0) term
+                    (@Alg.Core.Combinators.iden (Word.Word n0) term)))) (binary_word_spec n0 k term))
+        (@Alg.Core.Combinators.comp
+           (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+           (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+           (@Alg.Core.Combinators.pair
+              (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+              (Word.Word n0) (Word.Word n0) term
+              (@Alg.Core.Combinators.take (Ty.Prod (Word.Word n0) (Word.Word n0))
+                 (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+                 (@Alg.Core.Combinators.drop (Word.Word n0) (Word.Word n0) (Word.Word n0) term
+                    (@Alg.Core.Combinators.iden (Word.Word n0) term)))
+              (@Alg.Core.Combinators.drop (Ty.Prod (Word.Word n0) (Word.Word n0))
+                 (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+                 (@Alg.Core.Combinators.drop (Word.Word n0) (Word.Word n0) (Word.Word n0) term
+                    (@Alg.Core.Combinators.iden (Word.Word n0) term)))) (binary_word_spec n0 k term))
+  end
+     : forall (n : nat) (_ : binary_op) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n)
+
+Arguments binary_word_spec n%nat_scope k {term}
+wide_binary =
+fun (k : binary_op) (s : wide_size) =>
+match k return Clight.function with
+| BAnd =>
+    match s return Clight.function with
+    | W16 => jets.f_simplicity_and_16
+    | W32 => jets.f_simplicity_and_32
+    | W64 => jets.f_simplicity_and_64
+    end
+| BOr =>
+    match s return Clight.function with
+    | W16 => jets.f_simplicity_or_16
+    | W32 => jets.f_simplicity_or_32
+    | W64 => jets.f_simplicity_or_64
+    end
+| BXor =>
+    match s return Clight.function with
+    | W16 => jets.f_simplicity_xor_16
+    | W32 => jets.f_simplicity_xor_32
+    | W64 => jets.f_simplicity_xor_64
+    end
+end
+     : forall (_ : binary_op) (_ : wide_size), Clight.function
+
+Arguments wide_binary k s
+binary_clight_op =
+fun k : binary_op =>
+match k return Cop.binary_operation with
+| BAnd => Cop.Oand
+| BOr => Cop.Oor
+| BXor => Cop.Oxor
+end
+     : forall _ : binary_op, Cop.binary_operation
+
+Arguments binary_clight_op k
+wide_binary_expr =
+fun k : binary_op =>
+Clight.Ebinop (binary_clight_op k) (Clight.Etempvar jets._x Ctypesdefs.tulong)
+  (Clight.Etempvar jets._y Ctypesdefs.tulong) Ctypesdefs.tulong
+     : forall _ : binary_op, Clight.expr
+
+Arguments wide_binary_expr k
+wide_binary_read =
+fun (s : wide_size) (result : AST.ident) =>
+Clight.Scall (@Some AST.ident result)
+  (Clight.Evar (wide_reader_id s)
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tulong AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr))) (@nil Clight.expr))
+     : forall (_ : wide_size) (_ : AST.ident), Clight.statement
+
+Arguments wide_binary_read s result
