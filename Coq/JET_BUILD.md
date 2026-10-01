@@ -267,3 +267,9 @@ filtered C header/registration source through `JET_C_REPO`. Negative contract
 tests rebuild consumers after mutating a theorem dependency. The contract
 snapshot extension adds new entries only; all previous types and inherited
 axiom sets remain unchanged.
+
+Local verification on 2026-10-01: `check-jets.sh --ast` passed, including
+`coqchk` on 27 public modules, the 105-result assumption audit (11 closed),
+the frozen contract comparison, both sets of negative tests and exact AST
+regeneration. `build-jets.sh --regression -j12` also passed. These checks
+certify the covered jets, not completion of the every-jet goal.

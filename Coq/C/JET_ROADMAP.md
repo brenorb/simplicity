@@ -57,6 +57,14 @@ tree otherwise contains only Coq files.
    a total arbitrary-layout bit-reader contract; do not replace it with a
    fixed-cursor experiment and count that as complete coverage. Then binary
    and ternary operations, predicates and simple comparisons.
+   The Coq Word module does not currently define the Haskell unary complement
+   program: define its exact recursion (base `Bit.not iden`, successor
+   `take rec &&& drop rec`). For the symbolic representation bridge, use
+   `Word.testbitToZLo` / `Word.testbitToZHi` by induction on the word's log width,
+   then the CompCert `Int.bits_not` / `Int64.bits_not` lemmas. Restrict the bit
+   identity to bits below the logical width and account for writer truncation.
+   Do not use `Word.bitwiseTri_correct` for complement: its required
+   zero-preservation premise is false for bitwise negation.
 3. **Arithmetic families.** Subtraction/decrement and carry-input variants
    should reuse the increment/add machine-value, carry and word-modulo facts.
    Keep width-independent arithmetic separate from generated-body adapters.
