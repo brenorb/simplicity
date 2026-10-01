@@ -15,8 +15,8 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 27 covered core jets: one/increment/add at 8/16/32/64 bits and
-low/high/complement at 1/8/16/32/64 bits. There are 506 declarations without coverage
+There are 42 covered core jets: one/increment/add at 8/16/32/64 bits and
+low/high/complement/and/or/xor at 1/8/16/32/64 bits. There are 491 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -50,7 +50,7 @@ tree otherwise contains only Coq files.
    intermediate allocations and stores from initial contracts, exports ten
    canonical local specs, and reuses context and call-boundary guarantees.
    The bridges compute closed constants only; symbolic memory is not unfolded.
-2. **Complement: completed; other simple bitwise jets next.** Five complete
+2. **Complement and binary and/or/xor: completed.** Five complement calls
    calls reuse total readers/writers, frame lifecycle, canonical encodings,
    contexts and guarantees. `jet_complement_spec.v` defines the exact canonical
    recursion (base `Bit.not iden`, successor `take rec &&& drop rec`). Its
@@ -60,12 +60,19 @@ tree otherwise contains only Coq files.
    premise is false for negation. `jet_readBit_layout.v` now proves both actual
    bit-reader bodies at arbitrary layouts, including the exact returned bit
    and cursor increment. Reuse it for one-bit variants and carry-input jets.
-   Next: binary and/ or/ xor, ternary operations, predicates and comparisons.
-   Coq Word has `bitwiseTri` but no binary mapper yet: mirror the canonical
-   `Programs.Word.bitwise_bin` recursion exactly, then prove symbolic bit
-   bridges. Reuse the two-reader sequencing in add proofs, omitting their
-   separate carry writer. Keep byte promotions and boolean short-circuiting
-   separate from the uniform 16/32/64-bit bodies.
+   Fifteen binary calls use `jet_binary_spec.v`, which mirrors the canonical
+   `Programs.Word.bitwise_bin` recursion exactly and proves shared symbolic
+   bit bridges for both CompCert carriers. `jet_binary_wide_exec.v` and
+   `jet_binary_wide_layout.v` parameterize the operation and W16/W32/W64.
+   `jet_binary8_*.v` account for promotions and truncation; `jet_binary1_*.v`
+   execute the actual and/or conditional branches and the XOR expression.
+   All adapters derive two readers and one writer from initial contracts,
+   and export canonical/context/call-boundary results. Both inputs are read
+   even in the one-bit and/or bodies. Reuse the shared bit-preservation lemma
+   and these sequencing proofs for ternary operations next; then predicates
+   and comparisons. Coq Word already has `bitwiseTri`; check its exact term
+   against the canonical Haskell `bitwise_tri` before using it. Keep byte
+   promotions and boolean branching separate from uniform wide operations.
 3. **Arithmetic families.** Subtraction/decrement and carry-input variants
    should reuse the increment/add machine-value, carry and word-modulo facts.
    Keep width-independent arithmetic separate from generated-body adapters.

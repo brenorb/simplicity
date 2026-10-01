@@ -303,3 +303,26 @@ The normal comparison gates are also run by the clean Nix proof derivation.
 The clean `nix-build -A coqJets --no-out-link` passed for this 27-jet state:
 3 min 42 s in the proof build and 7 min 44 s in the check phase, including
 the isolated negative-test rebuild. This does not certify later extensions.
+
+### Binary-jet extension (2026-10-01)
+
+All fifteen and/or/xor jets at 1/8/16/32/64 bits now have complete
+generated-Clight call proofs against the canonical `Programs.Word.bitwise_bin`
+programs, with canonical local specs, represented-context substitution and
+deterministic call-boundary guarantees. Shared symbolic bridges handle both
+integer carriers. The generated-body adapters handle byte promotions and
+truncation, the wide operations, and the one-bit and/or conditional branches.
+Both operands are read before writing, even for one-bit and/or. The input-bit
+preservation lemma is now shared by single-bit and bit-list contracts.
+
+The proof map is 42/533, with 491 declarations still uncovered.
+`check-jets.sh --update-expected --ast` passed, including `coqchk` on 36 public
+modules, 161 audited results (18 closed), contract snapshot generation,
+negative tests and exact AST regeneration. Snapshot review found additions
+only; prior theorem types, assumptions and the inherited allowlist are
+unchanged. `build-jets.sh --regression -j12` also passed after rebuilding
+consumers of the shared input-layout lemma.
+
+A clean Nix verification of the 42-jet state was started; this record does not
+claim its success until the process exits successfully. Earlier clean Nix
+results certify only their recorded source states.

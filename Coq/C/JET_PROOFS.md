@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of twenty-seven jets of the C library
+Coq proofs that the generated CompCert Clight of forty-two jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -10,6 +10,7 @@ expression in a local, explicitly described context.
 | `low_1/8/16/32/64` | `Word.zero` (the `Prog.zero wordN` specifications of CoreJets) |
 | `high_1/8/16/32/64` | `Word.fill Bit.true` (the `Prog.high wordN` specifications of CoreJets) |
 | `complement_1/8/16/32/64` | `complement_spec`, the exact recursive `Prog.complement wordN` program |
+| `and/or/xor_1/8/16/32/64` | `binary_word_spec`, the exact `Prog.bitwise_bin` recursion with the canonical bit operations |
 | `one_8`, `one_16`, `one_32`, `one_64` | `true >>> left_pad_low word1 wordN` |
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
@@ -50,6 +51,16 @@ arbitrary valid cursors; it exposes the exact returned bit and derives the
 cursor store from initial write permission. These helpers do not themselves
 count as additional public jets.
 
+For binary and/or/xor, `jet_binary{1,8}_layout.v` and
+`jet_binary_wide_layout.v` export complete calls with canonical output
+encodings. `jet_binary_spec.v` mirrors `Programs.Word.bitwise_bin` and its
+canonical bit operators, proving shared symbolic bridges for both CompCert
+integer carriers. The execution adapters distinguish the byte's integer
+promotions/truncation, the uniform wide operations, and the one-bit
+conditional branches. Both input operands are read before any output write,
+including in the short-circuiting one-bit bodies. The bit-reader and
+`frame_input_bit_at_preserved` lemmas are reused at arbitrary cursors.
+
 For the actual generated function body (`f_simplicity_<jet>`), a complete
 `ClightBigstep.Clight2.eval_funcall` (parameters as temporaries,
 `function_entry2`) exists that returns `true`, has an empty trace, and leaves
@@ -72,7 +83,8 @@ locations for an arbitrary non-wrapping cursor (`byte_input_at`,
 `frame_input_word_at`, with `read_cursor <= Int64.max_unsigned - N` for `N` input
 bits), and the output frame is writable with enough remaining cells
 (`write_frame_at`: 8 for `one_8`, 9 for 8-bit increment/add, `wide_bits + 1` for
-wide increment/add, and the selected width for constants). Reads and writes may
+wide increment/add, and the selected width for constants, complement and binary
+jets). Binary jets consume two such input words. Reads and writes may
 cross 64-bit word boundaries; other input bits and the initial output word
 contents are arbitrary. Every helper call,
 allocation, structure copy, store, return conversion and deallocation is derived
@@ -148,6 +160,9 @@ The constant proofs export `constant_local_spec` and ten named
 `low{1,8,16,32,64}_local_spec` / `high{1,8,16,32,64}_local_spec` corollaries.
 Complement exports five named `complement{1,8,16,32,64}_local_spec` theorems,
 plus context and deterministic execution guarantees (shared over 16/32/64).
+Binary exports fifteen named `{and,or,xor}{1,8,16,32,64}_local_spec` theorems,
+with `binary1`, `binary8` and `wide_binary` context and guarantee results
+parameterized by the operation (and wide size where applicable).
 
 `jet_context.v:jet_context` combines `jet_local_spec` with
 `Translate.Naive.translate_correct`: for a parametric Simplicity expression `t`
@@ -214,6 +229,8 @@ and `constant_context_guarantees`, derived through these same generic results.
 | Jet | Value theorem | Canonical / context | Call-boundary |
 | --- | --- | --- | --- |
 | `low/high_1/8/16/32/64` | `eval_constant_layout_matches_spec` | ten named local specs; `constant_context` | `constant_guarantees`, `constant_context_guarantees` |
+| `complement_1/8/16/32/64` | bit/byte/wide layout theorems | five named local specs; bit/byte/wide contexts | bit/byte/wide local and contextual guarantees |
+| `and/or/xor_1/8/16/32/64` | `eval_binary1_layout_matches_spec`, `eval_binary8_layout_matches_spec`, `eval_wide_binary_layout_matches_spec` | fifteen named local specs; bit/byte/wide contexts | bit/byte/wide local and contextual guarantees |
 | `one_8` | `eval_one8_layout_matches_spec` | `one8_local_spec`, `one8_context` | `one8_guarantees` |
 | `one_16/32/64` | `eval_one_wide_layout_matches_spec W16/W32/W64` | `one{16,32,64}_local_spec`, `_context` | `one{16,32,64}_guarantees` |
 | `increment_8` | `eval_increment8_layout_matches_spec` | `increment8_local_spec`, `increment8_context` | `increment8_guarantees` |
@@ -367,6 +384,8 @@ retained in `Coq/_CoqProject.jets-regression`, built explicitly with
   `jet_word_repr.v` (width-generic range and decoding facts,
   shared by the 16-, 32- and 64-bit readers and `jet_encoding.v`),
   `jet_LSBclear_width.v`, `jet_LSBkeep_width.v`.
+  `jet_complement_spec.v` and `jet_binary_spec.v` add shared symbolic
+  bridges to the exact canonical bitwise programs.
 * Readers: `jet_reader_total.v` (shared cursor-store and memory-preservation
   proof), `jet_read8*.v`, `jet_read{16,32,64}_layout_exec.v`,
   `jet_read{16,32,64}_layout_total.v`, `jet_read{16,32,64}_input_word*.v`.
@@ -379,6 +398,9 @@ retained in `Coq/_CoqProject.jets-regression`, built explicitly with
 * Complete jet calls: `jet_one8_layout*.v`, `jet_one_wide_layout*.v`,
   `jet_increment8_*.v`, `jet_add8_*.v`, `jet_increment{16,32,64}_layout*.v`,
   `jet_add{16,32,64}_layout*.v`, `jet_arith8_layout_exec.v`.
+  Constants, complement and binary operations use `jet_constant*.v`,
+  `jet_complement{1,8}_*.v`, `jet_complement_wide_*.v`,
+  `jet_binary{1,8}_*.v` and `jet_binary_wide_*.v`.
 * Representation, context and execution: `jet_encoding.v`, `jet_bitmachine_rep.v`,
   `jet_context.v`, `jet_canonical.v`, `jet_layout_witness.v`,
   `jet_clight_determinism.v`, `jet_guarantees.v`.
