@@ -25,7 +25,9 @@ def main():
         path.write_text(original.replace(
             "Definition add64_guarantees :=",
             "Definition add64_guarantees := fun (_ : (1 = 2)%nat) =>"))
-        run(["bash", "build-jets.sh", "--coqc", "-q", "C/jet_guarantees.v"], project)
+        # Rebuild consumers too: otherwise Coq rejects inconsistent .vo
+        # digests before the contract gate can test the modified theorem.
+        run(["bash", "build-jets.sh", "-j2"], project)
         rejected = run(["bash", "audit-jet-contracts.sh"], project, succeeds=False)
         assert "public theorem contracts changed" in rejected.stderr
         # The added premise does not add axioms: reproduce the original bypass.

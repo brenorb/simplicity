@@ -17,7 +17,11 @@ trap 'rm -rf "$work"' EXIT
   echo 'Set Warnings "-notation-overridden".'
   cat C/jet_public_theorems.txt C/jet_contract_definitions.txt |
     awk '!/^#/ && NF==2 {print $1}' | sort -u |
-    sed 's/^/Require Import /; s/$/./'
+    # Specification-library definitions need loading, not opening. Importing
+    # Word here would change the printed names of all existing contracts.
+    awk '/^Simplicity\./ {print "Require " $0 "."; next}
+         {print "Require Import " $0 "."}'
+  echo 'Import Simplicity.BitMachine Simplicity.Translate.'
   echo 'Set Printing All.'
   echo 'Set Printing Width 120.'
   awk '!/^#/ && NF==2 {printf "Check %s.%s.\n", $1, $2}' C/jet_public_theorems.txt
