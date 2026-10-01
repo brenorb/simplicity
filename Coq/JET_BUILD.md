@@ -300,3 +300,6 @@ including `coqchk` on 32 public modules, 128 audited results (15 closed),
 contract snapshot generation, negative tests and exact Clight regeneration.
 The new snapshots were reviewed: no previous type or assumption entry changed.
 The normal comparison gates are also run by the clean Nix proof derivation.
+The clean `nix-build -A coqJets --no-out-link` passed for this 27-jet state:
+3 min 42 s in the proof build and 7 min 44 s in the check phase, including
+the isolated negative-test rebuild. This does not certify later extensions.
