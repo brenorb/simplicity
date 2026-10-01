@@ -398,3 +398,19 @@ allowlist expansion. The regression target also passed. There are 467 public
 jet declarations without equivalence proofs; the completeness check still
 fails as intended. The clean Nix result for 57 jets does not certify this
 predicate extension.
+
+### Wide equality (2026-10-01)
+
+The eq_16/32/64 calls now have complete implementation-to-specification proofs
+against `Programs.Generic.eq`, mirrored literally in `jet_equality_spec.v`.
+The bridge handles the actual sum swap/case routing and product conditional,
+then uses exact reader integers rather than lossy decoding. Initial contracts
+derive both reads, comparison, bit write, source-frame lifecycle and framing.
+
+The integrated check with `--update-expected --ast` passed at 69/533 with
+49 public modules. Snapshot review found additions only: 12 audited results
+(four closed) and 222 contract lines, with all previous contracts, assumption
+sets and the inherited allowlist unchanged. Negative tests and exact AST
+regeneration passed. The latest snapshots contain 234 audited results (29
+closed). There are 464 declarations without proof entries; the overall goal
+remains incomplete. Earlier Nix results do not certify this extension.

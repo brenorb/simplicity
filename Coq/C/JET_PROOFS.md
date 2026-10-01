@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of sixty-six jets of the C library
+Coq proofs that the generated CompCert Clight of sixty-nine jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -13,6 +13,7 @@ expression in a local, explicitly described context.
 | `and/or/xor_1/8/16/32/64` | `binary_word_spec`, the exact `Prog.bitwise_bin` recursion with the canonical bit operations |
 | `maj/xor_xor/ch_1/8/16/32/64` | `ternary_word_spec`, the existing `Word.bitwiseTri` recursion with `Bit.maj` / `Bit.xor3` / `Bit.ch` |
 | `some_1/8/16/32/64`, `all_8/16/32/64` | `predicate_spec`, the exact recursive `Prog.some` / `Prog.all` programs |
+| `eq_16/32/64` | `equality_spec`, the exact Unit/Sum/Prod recursion of `Programs.Generic.eq` |
 | `one_8`, `one_16`, `one_32`, `one_64` | `true >>> left_pad_low word1 wordN` |
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
@@ -86,6 +87,13 @@ prove nine complete calls. The byte and wide expressions handle their actual
 comparison promotions, including unsigned UINT32_MAX in all_32. These jets
 consume the selected input width and write one bit. There is no public all_1
 declaration in the inventory; the generic specification's base is shared.
+
+For equality, `jet_equality_spec.v` mirrors `Programs.Generic.eq`, including
+the swapped sum routing and product conditional. Its closed symbolic bridge
+uses injectivity of the word's exact integer representation. The wide execution
+and layout adapters compose two real readers, the unsigned comparison, the
+bit writer and local cleanup; they export three complete eq_16/32/64 calls.
+The specification bridge alone is not counted as jet coverage.
 
 For the actual generated function body (`f_simplicity_<jet>`), a complete
 `ClightBigstep.Clight2.eval_funcall` (parameters as temporaries,

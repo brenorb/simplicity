@@ -15,9 +15,9 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 66 covered core jets: one/increment/add at 8/16/32/64 bits,
+There are 69 covered core jets: one/increment/add at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
-and all at 8/16/32/64 bits. There are 467 declarations without coverage
+all at 8/16/32/64 bits, and eq at 16/32/64 bits. There are 464 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -112,7 +112,10 @@ tree otherwise contains only Coq files.
    all_64 uses a long literal. `jet_predicate1_*.v` proves some_1's identity
    call and reuses the existing bit-reader call adapter. There is no public
    all_1 declaration; do not invent an extra covered jet.
-   Next: eq_1/8/16/32/64 and then eq_256, or the next arithmetic family.
+   **Wide equality completed.** eq_16/32/64 reuse two exact wide readers and
+   the total bit writer. `jet_equality_spec.v` supplies the shared canonical
+   recursion, its parametricity and a closed symbolic numeric bridge using
+   `toZ_injective`. Next: eq_1/8 and then eq_256, or the next arithmetic family.
    Equality's canonical program is `Programs.Generic.eq`, not bitwise XOR
    or a newly chosen mathematical predicate. Mirror its actual Unit/Sum/Prod
    recursion (including swap and case routing); prove the numeric bridge
