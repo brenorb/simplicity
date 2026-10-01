@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of fifty-one jets of the C library
+Coq proofs that the generated CompCert Clight of fifty-seven jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -11,7 +11,7 @@ expression in a local, explicitly described context.
 | `high_1/8/16/32/64` | `Word.fill Bit.true` (the `Prog.high wordN` specifications of CoreJets) |
 | `complement_1/8/16/32/64` | `complement_spec`, the exact recursive `Prog.complement wordN` program |
 | `and/or/xor_1/8/16/32/64` | `binary_word_spec`, the exact `Prog.bitwise_bin` recursion with the canonical bit operations |
-| `maj/xor_xor/ch_16/32/64` | `ternary_word_spec`, the existing `Word.bitwiseTri` recursion with `Bit.maj` / `Bit.xor3` / `Bit.ch` |
+| `maj/xor_xor/ch_1/8/16/32/64` | `ternary_word_spec`, the existing `Word.bitwiseTri` recursion with `Bit.maj` / `Bit.xor3` / `Bit.ch` |
 | `one_8`, `one_16`, `one_32`, `one_64` | `true >>> left_pad_low word1 wordN` |
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
@@ -62,13 +62,19 @@ conditional branches. Both input operands are read before any output write,
 including in the short-circuiting one-bit bodies. The bit-reader and
 `frame_input_bit_at_preserved` lemmas are reused at arbitrary cursors.
 
-For ternary maj/xor_xor/ch, `jet_ternary_wide_layout.v` exports nine complete
-calls at 16/32/64 bits. `jet_ternary_spec.v` reuses `Word.bitwiseTri`, whose
+For ternary maj/xor_xor/ch, `jet_ternary{1,8}_layout.v` and
+`jet_ternary_wide_layout.v` export fifteen complete calls at 1/8/16/32/64 bits.
+`jet_ternary_spec.v` reuses `Word.bitwiseTri`, whose
 routing is exactly the canonical Haskell `bitwise_tri` recursion, and its
 existing symbolic bit-correctness theorem. New bridges cover both CompCert
 carriers without enumerating words. The Clight expression adapter preserves
 the generated multiply-by-one inside `ch`'s negation. The layout proof derives
 all three readers and the writer before freeing the copied source frame.
+The byte adapter accounts for the signed intermediate operations of maj and
+xor_xor, ch's mixed signed/unsigned operations, and the final byte cast.
+The one-bit adapter executes maj's nested generated conditionals, ch's branch,
+and xor_xor's expression. Its finite Boolean cases do not unfold symbolic
+memory or enumerate larger words.
 
 For the actual generated function body (`f_simplicity_<jet>`), a complete
 `ClightBigstep.Clight2.eval_funcall` (parameters as temporaries,
@@ -92,8 +98,8 @@ locations for an arbitrary non-wrapping cursor (`byte_input_at`,
 `frame_input_word_at`, with `read_cursor <= Int64.max_unsigned - N` for `N` input
 bits), and the output frame is writable with enough remaining cells
 (`write_frame_at`: 8 for `one_8`, 9 for 8-bit increment/add, `wide_bits + 1` for
-wide increment/add, and the selected width for constants, complement and binary
-jets, and the selected wide width for ternary jets). Binary jets consume two
+wide increment/add, and the selected width for constants, complement, binary
+and ternary jets). Binary jets consume two
 such input words; ternary jets consume three. Reads and writes may
 cross 64-bit word boundaries; other input bits and the initial output word
 contents are arbitrary. Every helper call,

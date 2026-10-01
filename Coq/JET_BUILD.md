@@ -348,3 +348,22 @@ regeneration. Snapshot review found 18 new assumption entries and 469 new
 contract lines, with no prior entry changed and no allowlist expansion.
 `build-jets.sh --regression -j12` also passed. The clean Nix run started for
 the earlier 42-jet state does not certify this ternary extension.
+
+### Complete ternary family (2026-10-01)
+
+The three byte and three one-bit maj/xor_xor/ch calls complete all fifteen
+ternary jets at 1/8/16/32/64 bits. The byte adapter handles the actual mixed
+promotion semantics (notably ch), then the writer's byte cast. The bit adapter
+executes the actual nested maj conditionals, ch branch and xor_xor expression.
+All three reads, the write and frame cleanup are derived from initial layout
+conditions, with arbitrary output bits and non-wrapping cursors.
+
+Both integrated extension checks passed with exact AST regeneration and
+negative tests: the byte extension reached 54/533, 39 public modules and
+187 audited results; the bit extension reached 57/533, 40 public modules and
+195 audited results. The closed-result count remains 21. Snapshot review
+found additions only (byte: 8 assumption entries and 249 contract lines;
+bit: 8 assumption entries and 232 contract lines), with all previous contracts,
+assumption sets and the inherited allowlist unchanged. There are 476 public
+jet declarations still without equivalence proofs. Clean Nix verification of
+the earlier 42-jet state does not certify these later extensions.
