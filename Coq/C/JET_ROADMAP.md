@@ -15,9 +15,9 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 57 covered core jets: one/increment/add at 8/16/32/64 bits, and
-low/high/complement/and/or/xor/maj/xor_xor/ch at 1/8/16/32/64 bits.
-There are 476 declarations without coverage
+There are 66 covered core jets: one/increment/add at 8/16/32/64 bits,
+low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
+and all at 8/16/32/64 bits. There are 467 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -100,11 +100,25 @@ tree otherwise contains only Coq files.
    `exec_stmt function_entry2` head, not its `Clight2.exec_stmt` alias after
    constructors have unfolded it. Inspect the first failing leaf rather than
    wrapping a recursive tactic in rollback-producing `try`.
-   Next: some/all predicates and comparisons, then the arithmetic families.
-   `some_1` is the identity call; wider some/all require a canonical recursive
-   predicate bridge to the exact reader integer, followed by a bit writer.
-   Check all's width-specific constants: all_32 promotes unsigned 32-bit
-   UINT32_MAX to the 64-bit carrier, whereas all_64 uses a long literal.
+   **Some/all predicates completed.** Nine calls use `jet_predicate_spec.v`,
+   which mirrors identity at one bit and recursive `Bit.or` / `Bit.and` of the
+   halves. `predicate_spec_numeric` supplies a closed symbolic induction;
+   `word_modulus` and bounds on each half allow reasoning about zero and
+   maximum values without enumerating words. Keep the modulus symbolic when
+   simplifying arithmetic: `cbn -[word_modulus]`, not unrestricted `cbn`.
+   `jet_predicate_wide_*.v` and `jet_predicate8_*.v` compose exact reader-value
+   bridges with the actual comparisons and the total bit writer.
+   all_32 promotes unsigned 32-bit UINT32_MAX to the 64-bit carrier, whereas
+   all_64 uses a long literal. `jet_predicate1_*.v` proves some_1's identity
+   call and reuses the existing bit-reader call adapter. There is no public
+   all_1 declaration; do not invent an extra covered jet.
+   Next: eq_1/8/16/32/64 and then eq_256, or the next arithmetic family.
+   Equality's canonical program is `Programs.Generic.eq`, not bitwise XOR
+   or a newly chosen mathematical predicate. Mirror its actual Unit/Sum/Prod
+   recursion (including swap and case routing); prove the numeric bridge
+   separately and then use the existing two-reader sequencing with a bit
+   writer. eq_256 additionally has a local array and loop, so the small-width
+   adapter alone will not discharge its function-entry and memory obligations.
 3. **Arithmetic families.** Subtraction/decrement and carry-input variants
    should reuse the increment/add machine-value, carry and word-modulo facts.
    Keep width-independent arithmetic separate from generated-body adapters.

@@ -365,5 +365,36 @@ negative tests: the byte extension reached 54/533, 39 public modules and
 found additions only (byte: 8 assumption entries and 249 contract lines;
 bit: 8 assumption entries and 232 contract lines), with all previous contracts,
 assumption sets and the inherited allowlist unchanged. There are 476 public
-jet declarations still without equivalence proofs. Clean Nix verification of
-the earlier 42-jet state does not certify these later extensions.
+jet declarations still without equivalence proofs.
+
+The clean `nix-build -A coqJets --no-out-link` also passed for the 57-jet
+state: 4 min 55 s in the proof build and 9 min 14 s in the check phase,
+including normal assumption/contract comparisons and the isolated negative
+tests. The result is
+`/nix/store/jrpkf1pbqvnc7f2ms4ys7dcjjlcmf1f3-Simplicity-coq-jets-0.0.0`.
+Normal local assumption/contract comparisons passed at 195 results (21
+closed), and the regression target passed. This Nix result does not certify
+the later predicate extension.
+
+### Some/all predicate family (2026-10-01)
+
+All nine publicly declared some/all jets now have complete generated-Clight
+call proofs against their canonical recursive Simplicity programs: some at
+1/8/16/32/64 bits and all at 8/16/32/64 bits. `predicate_spec_numeric` proves
+the shared symbolic bridge by induction; it does not replace the public jet
+equivalence proofs. The implementation adapters derive the exact reader value,
+actual comparison and cast, one-bit output, frame lifecycle and memory
+preservation. They export canonical local specs, represented-context
+substitution and deterministic call-boundary guarantees.
+
+The integrated wide extension passed at 63/533, with 43 public modules and
+209 audited results (24 closed). The byte/identity extension passed at 66/533,
+with 46 public modules and 222 audited results (25 closed). Both checks
+included negative tests and exact AST regeneration. Reviewed snapshots add
+entries only: wide added 14 assumption entries and 261 contract lines;
+byte/identity added 13 assumption entries and 295 contract lines. Previous
+contracts and assumption sets are unchanged, with no new axioms or inherited
+allowlist expansion. The regression target also passed. There are 467 public
+jet declarations without equivalence proofs; the completeness check still
+fails as intended. The clean Nix result for 57 jets does not certify this
+predicate extension.

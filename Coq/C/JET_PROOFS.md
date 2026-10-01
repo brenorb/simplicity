@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of fifty-seven jets of the C library
+Coq proofs that the generated CompCert Clight of sixty-six jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -12,6 +12,7 @@ expression in a local, explicitly described context.
 | `complement_1/8/16/32/64` | `complement_spec`, the exact recursive `Prog.complement wordN` program |
 | `and/or/xor_1/8/16/32/64` | `binary_word_spec`, the exact `Prog.bitwise_bin` recursion with the canonical bit operations |
 | `maj/xor_xor/ch_1/8/16/32/64` | `ternary_word_spec`, the existing `Word.bitwiseTri` recursion with `Bit.maj` / `Bit.xor3` / `Bit.ch` |
+| `some_1/8/16/32/64`, `all_8/16/32/64` | `predicate_spec`, the exact recursive `Prog.some` / `Prog.all` programs |
 | `one_8`, `one_16`, `one_32`, `one_64` | `true >>> left_pad_low word1 wordN` |
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
@@ -76,6 +77,16 @@ The one-bit adapter executes maj's nested generated conditionals, ch's branch,
 and xor_xor's expression. Its finite Boolean cases do not unfold symbolic
 memory or enumerate larger words.
 
+For some/all, `jet_predicate_spec.v` mirrors the canonical programs: identity
+at one bit, then `Bit.or` / `Bit.and` of the recursive halves. A single symbolic
+induction connects these programs to integer comparisons, retaining exact
+reader values rather than equality only after lossy decoding. The wide, byte
+and one-bit adapters in `jet_predicate*_exec.v` and `jet_predicate*_layout.v`
+prove nine complete calls. The byte and wide expressions handle their actual
+comparison promotions, including unsigned UINT32_MAX in all_32. These jets
+consume the selected input width and write one bit. There is no public all_1
+declaration in the inventory; the generic specification's base is shared.
+
 For the actual generated function body (`f_simplicity_<jet>`), a complete
 `ClightBigstep.Clight2.eval_funcall` (parameters as temporaries,
 `function_entry2`) exists that returns `true`, has an empty trace, and leaves
@@ -100,7 +111,8 @@ bits), and the output frame is writable with enough remaining cells
 (`write_frame_at`: 8 for `one_8`, 9 for 8-bit increment/add, `wide_bits + 1` for
 wide increment/add, and the selected width for constants, complement, binary
 and ternary jets). Binary jets consume two
-such input words; ternary jets consume three. Reads and writes may
+such input words; ternary jets consume three. The some/all predicates require
+one writable output cell and consume one input word. Reads and writes may
 cross 64-bit word boundaries; other input bits and the initial output word
 contents are arbitrary. Every helper call,
 allocation, structure copy, store, return conversion and deallocation is derived
