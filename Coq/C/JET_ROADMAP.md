@@ -15,8 +15,8 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 22 covered core jets: one/increment/add at 8/16/32/64 bits and
-low/high at 1/8/16/32/64 bits. There are 511 declarations without coverage
+There are 27 covered core jets: one/increment/add at 8/16/32/64 bits and
+low/high/complement at 1/8/16/32/64 bits. There are 506 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -50,21 +50,22 @@ tree otherwise contains only Coq files.
    intermediate allocations and stores from initial contracts, exports ten
    canonical local specs, and reuses context and call-boundary guarantees.
    The bridges compute closed constants only; symbolic memory is not unfolded.
-2. **Simple bitwise jets next.** Start with complement at 8 bits, then 16/32/64,
-   reusing the total readers and writers, input encoding, frame lifecycle and
-   canonical context results. Prove a reusable bitwise representation bridge
-   rather than exhaustively enumerating larger words. Single-bit variants need
-   a total arbitrary-layout bit-reader contract; do not replace it with a
-   fixed-cursor experiment and count that as complete coverage. Then binary
-   and ternary operations, predicates and simple comparisons.
-   The Coq Word module does not currently define the Haskell unary complement
-   program: define its exact recursion (base `Bit.not iden`, successor
-   `take rec &&& drop rec`). For the symbolic representation bridge, use
-   `Word.testbitToZLo` / `Word.testbitToZHi` by induction on the word's log width,
-   then the CompCert `Int.bits_not` / `Int64.bits_not` lemmas. Restrict the bit
-   identity to bits below the logical width and account for writer truncation.
-   Do not use `Word.bitwiseTri_correct` for complement: its required
-   zero-preservation premise is false for bitwise negation.
+2. **Complement: completed; other simple bitwise jets next.** Five complete
+   calls reuse total readers/writers, frame lifecycle, canonical encodings,
+   contexts and guarantees. `jet_complement_spec.v` defines the exact canonical
+   recursion (base `Bit.not iden`, successor `take rec &&& drop rec`). Its
+   symbolic bridge uses `Word.testbitToZLo` / `Word.testbitToZHi` by induction,
+   followed by `Int.bits_not` / `Int64.bits_not`, accounting for truncation.
+   `Word.bitwiseTri_correct` cannot prove complement: its zero-preservation
+   premise is false for negation. `jet_readBit_layout.v` now proves both actual
+   bit-reader bodies at arbitrary layouts, including the exact returned bit
+   and cursor increment. Reuse it for one-bit variants and carry-input jets.
+   Next: binary and/ or/ xor, ternary operations, predicates and comparisons.
+   Coq Word has `bitwiseTri` but no binary mapper yet: mirror the canonical
+   `Programs.Word.bitwise_bin` recursion exactly, then prove symbolic bit
+   bridges. Reuse the two-reader sequencing in add proofs, omitting their
+   separate carry writer. Keep byte promotions and boolean short-circuiting
+   separate from the uniform 16/32/64-bit bodies.
 3. **Arithmetic families.** Subtraction/decrement and carry-input variants
    should reuse the increment/add machine-value, carry and word-modulo facts.
    Keep width-independent arithmetic separate from generated-body adapters.
@@ -103,6 +104,10 @@ The constant extension exposed a negative-test fixture bug: mutating
 `jet_guarantees.v` requires rebuilding its consumers before comparing contracts.
 The harness now does so; the impossible-premise test must fail because the
 contract changed, not because Coq rejected an inconsistent artifact digest.
+The complement extension also exposed pretty-print wrapping of long `Locate`
+names in the assumption audit. The gate now uses explicit theorem-name markers
+and checks missing results before either comparison or snapshot update. It does
+not expand the inherited axiom allowlist.
 
 Completion requires inspecting the full inventory, actual theorem statements,
 source/Clight correspondence, supported configurations and checked assumptions.

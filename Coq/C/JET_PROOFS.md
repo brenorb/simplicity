@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of twenty-two jets of the C library
+Coq proofs that the generated CompCert Clight of twenty-seven jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -9,6 +9,7 @@ expression in a local, explicitly described context.
 | --- | --- |
 | `low_1/8/16/32/64` | `Word.zero` (the `Prog.zero wordN` specifications of CoreJets) |
 | `high_1/8/16/32/64` | `Word.fill Bit.true` (the `Prog.high wordN` specifications of CoreJets) |
+| `complement_1/8/16/32/64` | `complement_spec`, the exact recursive `Prog.complement wordN` program |
 | `one_8`, `one_16`, `one_32`, `one_64` | `true >>> left_pad_low word1 wordN` |
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
@@ -38,6 +39,16 @@ with the existing total bit, byte and wide writers, sharing one proof of the
 complete frame allocation/copy/free lifecycle. `jet_constant.v` isolates
 the specification, C literal/cast adapters (including unsigned `UINT32_MAX`
 and `UINT64_MAX`), and closed representation bridges.
+
+For complement, `jet_complement{1,8}_layout.v` and
+`jet_complement_wide_layout.v` export complete calls already observed through
+canonical encodings. `jet_complement_spec.v` defines the exact Haskell program's
+recursion and proves a symbolic, width-generic bridge from CompCert integer
+negation to that program. No enumeration of larger words is needed.
+`jet_readBit_layout.v` proves the actual `peekBit` and `readBit` functions at
+arbitrary valid cursors; it exposes the exact returned bit and derives the
+cursor store from initial write permission. These helpers do not themselves
+count as additional public jets.
 
 For the actual generated function body (`f_simplicity_<jet>`), a complete
 `ClightBigstep.Clight2.eval_funcall` (parameters as temporaries,
@@ -135,6 +146,8 @@ and permitting any change to the unwritten cells below.
 theorems are used unchanged.
 The constant proofs export `constant_local_spec` and ten named
 `low{1,8,16,32,64}_local_spec` / `high{1,8,16,32,64}_local_spec` corollaries.
+Complement exports five named `complement{1,8,16,32,64}_local_spec` theorems,
+plus context and deterministic execution guarantees (shared over 16/32/64).
 
 `jet_context.v:jet_context` combines `jet_local_spec` with
 `Translate.Naive.translate_correct`: for a parametric Simplicity expression `t`

@@ -276,3 +276,27 @@ certify the covered jets, not completion of the every-jet goal.
 The clean `nix-build -A coqJets` also passed: 3 min 47 s in the proof build,
 7 min 23 s in the check phase, including the isolated negative-test rebuild.
 The full `coq` derivation was evaluated but not built in this extension.
+
+### Complement-jet extension (2026-10-01)
+
+All five complement jets at 1/8/16/32/64 bits now have complete generated-Clight
+call proofs, canonical local specs, represented-context substitution and
+deterministic call-boundary guarantees. `C/jet_complement_spec.v` mirrors the
+canonical Haskell recursion and proves symbolic bitwise bridges for both
+CompCert integer carriers. Byte promotions/casts and the three wide bodies
+have separate small execution adapters. `C/jet_readBit_layout.v` supplies the
+actual arbitrary-layout bit-reader proof for the one-bit variant and later
+single-bit/carry-input jets. No fixed input enumeration or new axioms are used.
+
+The proof map is now 27/533, with 506 jets still uncovered. New public contracts
+and assumption snapshots add entries only: prior theorem types and axiom sets
+are unchanged. A long qualified theorem name exposed a wrapping bug in the
+assumption audit's `Locate` parsing. Explicit theorem-name markers now delimit
+the audit, and missing results are checked even when updating expectations;
+the inherited axiom allowlist has not changed.
+
+Local `check-jets.sh --update-expected --ast` passed for the complete family,
+including `coqchk` on 32 public modules, 128 audited results (15 closed),
+contract snapshot generation, negative tests and exact Clight regeneration.
+The new snapshots were reviewed: no previous type or assumption entry changed.
+The normal comparison gates are also run by the clean Nix proof derivation.
