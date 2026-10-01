@@ -273,3 +273,6 @@ Local verification on 2026-10-01: `check-jets.sh --ast` passed, including
 the frozen contract comparison, both sets of negative tests and exact AST
 regeneration. `build-jets.sh --regression -j12` also passed. These checks
 certify the covered jets, not completion of the every-jet goal.
+The clean `nix-build -A coqJets` also passed: 3 min 47 s in the proof build,
+7 min 23 s in the check phase, including the isolated negative-test rebuild.
+The full `coq` derivation was evaluated but not built in this extension.
