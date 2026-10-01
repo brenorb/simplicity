@@ -326,3 +326,23 @@ consumers of the shared input-layout lemma.
 A clean Nix verification of the 42-jet state was started; this record does not
 claim its success until the process exits successfully. Earlier clean Nix
 results certify only their recorded source states.
+
+### Wide ternary-jet extension (2026-10-01)
+
+The nine maj/xor_xor/ch jets at 16/32/64 bits now have complete generated-Clight
+call proofs, canonical local specs, represented-context substitution and
+deterministic call-boundary guarantees. They reuse the existing
+`Word.bitwiseTri` program and `bitwiseTri_correct` theorem, checked against
+the canonical Haskell recursion and bit operators. Shared symbolic bridges
+handle both integer carriers; no larger-word enumeration is used. The actual
+ch expression's multiply-by-one, three reader calls, writer call and entire
+allocation/copy/free lifecycle are formally discharged. The canonical
+three-word input encoding is now a reusable lemma.
+
+The proof map is 51/533, with 482 declarations still uncovered.
+`check-jets.sh --update-expected --ast` passed, including `coqchk` on 38 public
+modules, 179 audited results (21 closed), negative tests and exact AST
+regeneration. Snapshot review found 18 new assumption entries and 469 new
+contract lines, with no prior entry changed and no allowlist expansion.
+`build-jets.sh --regression -j12` also passed. The clean Nix run started for
+the earlier 42-jet state does not certify this ternary extension.

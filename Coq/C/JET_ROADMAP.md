@@ -15,8 +15,9 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 42 covered core jets: one/increment/add at 8/16/32/64 bits and
-low/high/complement/and/or/xor at 1/8/16/32/64 bits. There are 491 declarations without coverage
+There are 51 covered core jets: one/increment/add at 8/16/32/64 bits,
+low/high/complement/and/or/xor at 1/8/16/32/64 bits, and maj/xor_xor/ch at
+16/32/64 bits. There are 482 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -69,10 +70,33 @@ tree otherwise contains only Coq files.
    All adapters derive two readers and one writer from initial contracts,
    and export canonical/context/call-boundary results. Both inputs are read
    even in the one-bit and/or bodies. Reuse the shared bit-preservation lemma
-   and these sequencing proofs for ternary operations next; then predicates
-   and comparisons. Coq Word already has `bitwiseTri`; check its exact term
-   against the canonical Haskell `bitwise_tri` before using it. Keep byte
-   promotions and boolean branching separate from uniform wide operations.
+   and these sequencing proofs for subsequent readers.
+   **Wide ternary operations completed.** Nine maj/xor_xor/ch calls reuse
+   Coq Word's existing `bitwiseTri` and `bitwiseTri_correct`: the recursion
+   and Bit.maj/xor3/ch bases were checked against the canonical Haskell
+   programs. `jet_ternary_spec.v` supplies closed symbolic bridges for both
+   CompCert carriers, preserving the actual multiply-by-one in ch.
+   `jet_ternary_wide_exec.v` shares the binary reader-call adapter and a new
+   long-expression lemma. `jet_ternary_wide_layout.v` derives three reads,
+   one write and the complete frame lifecycle, exporting canonical, context
+   and call-boundary results. `frame_input_word_triple_encode` bridges the
+   nested canonical input product to its three physical word contracts.
+   Next: ternary 8-bit and 1-bit adapters, then predicates and comparisons.
+   Reuse the shared bridges and input encoding; keep byte promotions and
+   boolean branching separate from uniform wide operations.
+   For the byte adapters, reuse `binary8_read` / `call_binary8_read` with
+   `_t'1`, `_t'2`, `_t'3`. The maj/xor_xor intermediates are `tint`, but ch's
+   multiply/negation/second-and/final-or are `tuint`; its first-and is `tint`.
+   Prove those actual promotions before using `ternary_int_denotes`, and
+   truncate only through the actual writer's byte cast. Use
+   `frame_input_word_triple_encode` and `byte_slice_at_encode` for input,
+   exposing the non-wrapping 24-bit consumption bound.
+   For the one-bit adapters, reuse `binary1_read` / `call_binary1_read`,
+   `eval_readBit_layout`, `eval_writeBit_layout` and single-bit preservation.
+   Inspect all generated conditional subtrees: all three bits are read first,
+   and boolean results must be normalized to `bit_int`. Small Boolean case
+   analysis is appropriate here; do not enumerate larger words or unfold
+   symbolic memory. Existing integer bridges alone do not prove these calls.
 3. **Arithmetic families.** Subtraction/decrement and carry-input variants
    should reuse the increment/add machine-value, carry and word-modulo facts.
    Keep width-independent arithmetic separate from generated-body adapters.
