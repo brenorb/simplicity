@@ -1,19 +1,23 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of twelve jets of the C library
+Coq proofs that the generated CompCert Clight of twenty-two jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
 
 | Jet | Simplicity specification |
 | --- | --- |
+| `low_1/8/16/32/64` | `Word.zero` (the `Prog.zero wordN` specifications of CoreJets) |
+| `high_1/8/16/32/64` | `Word.fill Bit.true` (the `Prog.high wordN` specifications of CoreJets) |
 | `one_8`, `one_16`, `one_32`, `one_64` | `true >>> left_pad_low word1 wordN` |
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
-Nothing here concerns jets outside this list, the C evaluator as a whole, or
-machine code.
+The every-jet goal includes the remaining core, Bitcoin and Elements jets;
+this document claims completed proofs only for the list above. It makes no
+whole-evaluator or machine-code correctness claim. The full inventory and
+continuation plan are in [JET_ROADMAP.md](JET_ROADMAP.md).
 
 ## What is proved
 
@@ -27,6 +31,14 @@ statements are in the sources.
 `jet_increment8_layout.v`, `jet_add8_layout.v`, `jet_increment{16,32,64}_layout.v`
 and `jet_add{16,32,64}_layout.v`.
 
+For the ten constants, `jet_constant_layout.v:eval_constant_layout_matches_spec`
+is already in canonical-encoding form. `constant_size` selects 1/8/16/32/64
+bits, and the boolean selects low/high. It composes the real generated bodies
+with the existing total bit, byte and wide writers, sharing one proof of the
+complete frame allocation/copy/free lifecycle. `jet_constant.v` isolates
+the specification, C literal/cast adapters (including unsigned `UINT32_MAX`
+and `UINT64_MAX`), and closed representation bridges.
+
 For the actual generated function body (`f_simplicity_<jet>`), a complete
 `ClightBigstep.Clight2.eval_funcall` (parameters as temporaries,
 `function_entry2`) exists that returns `true`, has an empty trace, and leaves
@@ -34,7 +46,7 @@ memory `mf` such that
 
 * the output cells hold the result of the canonical specification evaluated with
   `Alg.CoreFunSem` (`byte_output_at`, `wide_output_at`, `carry_byte_output_at`,
-  `carry_wide_output_at`);
+  `carry_wide_output_at`, or directly `frame_output_cells_at` for constants);
 * the final output cursor is the initial cursor minus the output size
   (`frame_fields_at mf ...`);
 * the already-written prefix of the topmost touched word is preserved
@@ -49,8 +61,9 @@ locations for an arbitrary non-wrapping cursor (`byte_input_at`,
 `frame_input_word_at`, with `read_cursor <= Int64.max_unsigned - N` for `N` input
 bits), and the output frame is writable with enough remaining cells
 (`write_frame_at`: 8 for `one_8`, 9 for 8-bit increment/add, `wide_bits + 1` for
-wide increment/add). Reads and writes may cross 64-bit word boundaries; other
-input bits and the initial output word contents are arbitrary. Every helper call,
+wide increment/add, and the selected width for constants). Reads and writes may
+cross 64-bit word boundaries; other input bits and the initial output word
+contents are arbitrary. Every helper call,
 allocation, structure copy, store, return conversion and deallocation is derived
 inside the proof; no intermediate successful store is assumed.
 
@@ -116,9 +129,12 @@ re-establish `bm_rep` with the written cells prepended to the active write frame
 preserving the caller's read frame, the inactive frames and the written prefix,
 and permitting any change to the unwritten cells below.
 
-`jet_canonical.v` restates layer 1 for every jet as `jet_local_spec f A B spec`
-(inputs and outputs are `Translate.encode` cells; `*_local_spec`). The value
+`jet_canonical.v` restates layer 1 for the original twelve jets as
+`jet_local_spec f A B spec` (inputs and outputs are `Translate.encode` cells;
+`*_local_spec`). The value
 theorems are used unchanged.
+The constant proofs export `constant_local_spec` and ten named
+`low{1,8,16,32,64}_local_spec` / `high{1,8,16,32,64}_local_spec` corollaries.
 
 `jet_context.v:jet_context` combines `jet_local_spec` with
 `Translate.Naive.translate_correct`: for a parametric Simplicity expression `t`
@@ -130,6 +146,8 @@ C call to a memory representing
 translation of `t` reaches the same abstract state from the same start
 (`s0 >>- t Naive.translate ->> s1`). `jet_canonical.v` instantiates it for all
 twelve jets (`*_context`).
+`jet_constant_layout.v:constant_context` instantiates the same result for
+all ten constants, using `constant_spec_parametric`.
 
 The premises are satisfiable in evaluator shape: `jet_layout_witness.v`
 constructs, for arbitrary `a`, `z`, `w`, a two-allocation layout with an inactive
@@ -175,11 +193,14 @@ written prefix and preservation of loads from initially valid blocks;
 `jet_context_guarantees` retains the final represented state and abstract
 translation. All twelve jets export both `<jet>_guarantees` (the complete local
 contract) and `<jet>_context_guarantees` (the represented-context contract).
+The constants export the width/low-high-parameterized `constant_guarantees`
+and `constant_context_guarantees`, derived through these same generic results.
 
 ## Coverage
 
 | Jet | Value theorem | Canonical / context | Call-boundary |
 | --- | --- | --- | --- |
+| `low/high_1/8/16/32/64` | `eval_constant_layout_matches_spec` | ten named local specs; `constant_context` | `constant_guarantees`, `constant_context_guarantees` |
 | `one_8` | `eval_one8_layout_matches_spec` | `one8_local_spec`, `one8_context` | `one8_guarantees` |
 | `one_16/32/64` | `eval_one_wide_layout_matches_spec W16/W32/W64` | `one{16,32,64}_local_spec`, `_context` | `one{16,32,64}_guarantees` |
 | `increment_8` | `eval_increment8_layout_matches_spec` | `increment8_local_spec`, `increment8_context` | `increment8_guarantees` |
@@ -224,7 +245,8 @@ by this development, and there are no `Admitted` proofs.
   the Clight relation: the value theorems and their consequences.
 * `Events.external_functions_properties` and `Events.inline_assembly_properties`,
   CompCert's axioms on those semantics, used by the determinism results and
-  therefore by `jet_clight_determinism.v` and `jet_guarantees.v` (31 theorems).
+  therefore by `jet_clight_determinism.v`, `jet_guarantees.v` and the constant
+  call-boundary guarantees.
 * Closed under the global context: `encode_word`, `gap_buffer_separated` and the
   arithmetic bridges listed above.
 * `coqchk` additionally reports library-level axioms of the loaded dependencies

@@ -7,7 +7,7 @@ stdenv.mkDerivation {
   name = "Simplicity-coq-jets-0.0.0";
   src = lib.sourceFilesBySuffices
       (lib.sourceByRegex ./Coq ["_CoqProject.*" ".*\\.sh" ".*\\.py" "C" "C/.*" "Simplicity" "Simplicity/.*" "Util" "Util/.*"])
-    ["_CoqProject" "_CoqProject.jets" ".v" ".sh" ".py" ".txt" ".expected"];
+    ["_CoqProject" "_CoqProject.jets" ".v" ".sh" ".py" ".txt" ".tsv" ".expected"];
 
   buildInputs = [ coq ];
   nativeBuildInputs = [ python3 ];
@@ -21,7 +21,8 @@ stdenv.mkDerivation {
 
   doCheck = true;
   checkPhase = ''
-    JET_USE_COQPATH=1 bash check-jets.sh --no-build
+    JET_C_REPO=${import ./Simplicity.JetInventory.nix { inherit lib; }} \
+      JET_USE_COQPATH=1 bash check-jets.sh --no-build
   '';
 
   installFlags = "COQLIB=$(out)/lib/coq/${coq.coq-version}/";

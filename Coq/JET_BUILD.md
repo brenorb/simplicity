@@ -246,3 +246,24 @@ width-specific add/increment execution adapters, directory reorganization and
 unifying the separate secp256k1 AST pipeline remain possible follow-ups. Debug
 assertion coverage and evaluator linking/whole-evaluator correctness remain
 explicit scope boundaries, not claims made by these results.
+
+### Constant-jet extension (2026-10-01)
+
+The ten low/high jets at 1/8/16/32/64 bits now have complete generated-Clight
+call proofs, canonical local specs, represented-context substitution and
+call-boundary guarantees in `C/jet_constant*.v`. They reuse the existing total
+writers and derive the entire frame lifecycle from initial permissions, with
+arbitrary output contents and non-wrapping cursors, including crossings.
+
+`jet-coverage.py` inventories all three public C jet headers and both
+registration catalogs. The current map is 22/533, not every-jet completion;
+`--require-complete` fails while any jet lacks an entry. The inventory validates
+links to audited direct canonical theorem statements, but the regular kernel,
+assumption, contract and AST gates remain the proof evidence. See
+[C/JET_ROADMAP.md](C/JET_ROADMAP.md) for the full scope and continuation plan.
+
+The Nix proof sources include the coverage metadata and receive the separately
+filtered C header/registration source through `JET_C_REPO`. Negative contract
+tests rebuild consumers after mutating a theorem dependency. The contract
+snapshot extension adds new entries only; all previous types and inherited
+axiom sets remain unchanged.

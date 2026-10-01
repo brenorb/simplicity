@@ -32,6 +32,8 @@ jobs=${JOBS:-$( (nproc || sysctl -n hw.ncpu) 2>/dev/null || echo 2)}
 
 echo "== static checks"
 python3 scan-jet-proofs.py
+python3 jet-coverage.py
+python3 test-jet-coverage.py
 
 missing=$(comm -23 <(grep -E '^C/jets?[_.]' _CoqProject.jets | sort -u) \
                    <(grep -E '^C/jets?[_.]' _CoqProject | sort -u) || true)
