@@ -26,7 +26,10 @@ trap 'rm -rf "$work"' EXIT
 {
   echo "Set Warnings \"-notation-overridden\"."
   awk '!/^#/ && NF==2 {print $1}' "$list" | sort -u | sed 's/^/Require Import /; s/$/./'
-  awk '!/^#/ && NF==2 {printf "Locate %s.%s.\nPrint Assumptions %s.%s.\n", $1, $2, $1, $2}' "$list"
+  # Locate wraps long qualified names onto a second line. Explicit, single
+  # string markers keep theorem boundaries independent of pretty-print width;
+  # Print Assumptions still fails compilation if the named theorem is absent.
+  awk '!/^#/ && NF==2 {printf "Goal True. idtac \"JET_ASSUMPTIONS %s.%s\". exact I. Qed.\nPrint Assumptions %s.%s.\n", $1, $2, $1, $2}' "$list"
 } > "$work/audit.v"
 
 bash build-jets.sh --coqc -q "$work/audit.v" > "$work/audit.out"
@@ -49,7 +52,7 @@ INHERITED = {
 result, cur, axioms = {}, None, None
 for line in open(out):
     line = line.rstrip("\n")
-    m = re.match(r"^(?:Constant|Inductive) (\S+)", line)
+    m = re.match(r"^JET_ASSUMPTIONS (\S+)$", line)
     if m:
         cur = m.group(1); result[cur] = set(); axioms = False; continue
     if line.startswith("Axioms:"):
@@ -64,6 +67,10 @@ bad = sorted({a for s in result.values() for a in s} - INHERITED)
 if bad:
     print("Unexpected axioms (not inherited from Coq/CompCert):", *bad, sep="\n  ")
     sys.exit(1)
+listed = [l.split() for l in open("C/jet_public_theorems.txt") if l.strip() and not l.startswith("#")]
+missing = [f"{m}.{t}" for m, t in listed if f"{m}.{t}" not in result]
+if missing:
+    sys.exit("missing from audit output: %s" % missing)
 if update:
     open(expected, "w").write(text); print("updated", expected); sys.exit(0)
 want = open(expected).read()
@@ -72,9 +79,5 @@ if text != want:
     sys.stdout.writelines(difflib.unified_diff(want.splitlines(True), text.splitlines(True),
                                                expected, "current"))
     sys.exit("assumption sets differ from %s" % expected)
-listed = [l.split() for l in open("C/jet_public_theorems.txt") if l.strip() and not l.startswith("#")]
-missing = [f"{m}.{t}" for m, t in listed if f"{m}.{t}" not in result]
-if missing:
-    sys.exit("missing from audit output: %s" % missing)
 print("assumption audit passed: %d theorems, %d closed" % (len(result), sum(1 for a in result.values() if not a)))
 PY
