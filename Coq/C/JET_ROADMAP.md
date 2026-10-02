@@ -1192,6 +1192,31 @@ tree otherwise contains only Coq files.
    itself establish jet equivalence. Check artifact provenance and configuration
    before using it. Bitcoin/Elements require concrete environment representations,
    their primitive semantics, failures and suitable generated C artifacts.
+   **Context initialization independently completed.**
+   `jet_sha256_ctx8_init_layout.v:sha256_ctx8_init_local_spec` now derives the
+   complete actual public call against literal ctx8Init, including five local
+   allocations, every initializer store, both 88-byte context copies, the
+   830-cell writer, return and cleanup. Fresh current-source/kernel checks pass;
+   registration waits for the live context-writer audit `45575`. Shared typed
+   By_copy field preservation and size-parameterized four-local lifecycle
+   lemmas avoid duplicating those obligations in later consumers. This is one
+   public jet, not coverage for context add/finalize/compression.
+   **Next bounded SHA milestone:** derive read8s and read_buffer8 from initial
+   canonical Buffer63 cells, including both present and absent chunks, writable
+   byte-array stores, arbitrary padding and source cursor crossings. Reuse the
+   descending-count loop strategy, but retain the actual initial len store,
+   readBit calls, forwardBits calls and present-branch pointer/length updates.
+   Extend write_buffer8 beyond its completed empty case in parallel. Then
+   compose read_sha256_context's counter/array observations and overflow return.
+   Its compression-count threshold is 2^55; invalid input is a required failure
+   case, not an assumption to remove from a public contract. The frame.c prose
+   saying 838 output cells is stale: the actual canonical context has 830.
+   Context add/finalize and tapdata_init also require actual SHA compression:
+   the current jets AST's mutable compression-function-pointer global has an
+   empty initializer, so it does not establish a particular implementation's
+   code or initialized dispatch. Resolve concrete Clight linking/initialization
+   and artifact provenance before claiming any compression call. An assumed
+   compression execution or functional SHA result is not public C coverage.
 
 ## Verification and completion discipline
 
