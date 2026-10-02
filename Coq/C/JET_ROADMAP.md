@@ -20,14 +20,14 @@ low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8/16/32 bits, and div_mod_128_64.
 There are 330 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
-audit `97656` covers all 202 entries, including the four div_mod whole-call proofs,
-the complete 96/64 helper and the checked 128/64 integration infrastructure.
-All gates, negative fixtures and pinned AST regeneration passed on 318 modules /
-1511 results (607 closed).
+audit `39496` covers all 203 entries, including the complete DivMod128_64 public
+contract and all supporting allocation/copy/read/helper/write/free proofs.
+All gates, negative fixtures and pinned AST regeneration passed on 322 modules /
+1520 results (610 closed).
 Earlier snapshots and the 15 inherited kernel axioms are unchanged.
-The complete public DivMod128_64 theorem passes current-source coqc, scan,
-assumption and fresh kernel checks and is now registered; its expanded integrated
-audit is the next verification milestone, not yet an accepted baseline.
+The complete public DivMod128_64 theorem is integrated and audited. The complete
+multiply_64 public contract independently passes current-source coqc, scans,
+assumption checks and a fresh kernel; it awaits registration and expanded auditing.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -1097,13 +1097,30 @@ tree otherwise contains only Coq files.
    These four modules / nine results / four definitions and the named public
    coverage entry are registered. Inventory bookkeeping is now 203/533, 330
    missing; the complete expanded audit must pass before accepting its snapshots.
-   Expanded audit `39496` is running. Freeze registered proof sources, manifests
-   and public lists until its terminal result; poll that same handle.
-   Expected totals: 322 modules / 1520 results. Baseline: accepted `cd7d4ee`.
-   Remove only these four modules' assumptions and their new contract blocks to
-   reproduce that baseline byte-for-byte, retaining the inherited kernel axioms.
-   Next executable family: multiply_64/full_multiply_64, using the actual
-   secp256k1_umul128/u128 helpers and write128, not invented scalar operations.
+   Expanded audit `39496` completed with terminal exit 0: all gates, negative
+   fixtures and exact pinned AST regeneration passed on 322 modules / 1520
+   results (610 closed). Filtering these four modules' assumptions and their new
+   contract blocks reproduces accepted `cd7d4ee` byte-for-byte; all 15 inherited
+   kernel axioms remain unchanged. Accept these snapshots. This establishes
+   audited DivMod128_64 coverage, not completion of the every-jet goal.
+   **multiply_64 now independently checked.** Ten new, not-yet-registered
+   modules prove the actual 32-limb umul128 algorithm and machine operations,
+   complete secp256k1_umul128/u128_mul calls, actual lo/hi struct fields and
+   getters, write128's getter/writer/getter/writer order, the literal canonical
+   multiply bridge, two-local lifecycle and complete public multiply64_local_spec.
+   The intermediate low-field reload is protected across the first writer;
+   arbitrary original frames/cursors/crossings/output bits remain supported.
+   Fresh kernels passed for all modules (`59569`, `89699`, `32146`, `34160`,
+   `52025`, `20300`, `21748`, `99795`, `43991`, `98186`), with explicit scans
+   and only inherited assumptions. Register their 39 results / 27 definitions
+   and the named public entry, then run the expanded audit (332 modules /
+   1559 results). Only the complete public theorem counts as added coverage.
+   Next: full_multiply_64's two actual u128_accum_u64 calls. Reuse the checked
+   fields/getters/writer and two-local lifecycle; derive each carry from the
+   wrapped low sum, bound the high sum from the canonical fullMultiplier range,
+   and discharge four readers and all helper calls from original frames.
+   Avoid vm_compute in an open memory context; compute only closed identifier
+   lists/AST metadata, and isolate unrelated nonlinear hypotheses before nia.
    Subsequent div_mod calls require two writers with intermediate memory;
    divides swaps operands and writes one bit. A source-comment trap: the
    Haskell divides documentation says divides(0,y) is True, but its actual

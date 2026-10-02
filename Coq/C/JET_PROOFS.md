@@ -40,10 +40,13 @@ passed integrated audit `97656`, including all gates, negative fixtures and exac
 pinned AST regeneration: 318 modules / 1511 results (607 closed). Earlier
 snapshots and inherited axioms are unchanged. Four new initial-only integration
 modules, including `divmod128_local_spec`, independently compile and pass fresh
-kernel checks; their expanded integration audit is now running as `39496`.
+kernel checks and passed integrated audit `39496`: all gates, negative fixtures
+and exact pinned AST regeneration on 322 modules / 1520 results (610 closed).
 The four modules / nine results / four definitions and public coverage entry are
-now registered (203/533, 330 remaining); the expanded integration audit must pass
-before its snapshots become the accepted baseline. The concrete path is recorded
+now integrated and audited (203/533, 330 remaining), with older snapshots and
+all inherited kernel axioms unchanged. The complete multiply_64 proof and its
+shared uint128 infrastructure also pass independent current-source/kernel checks;
+they await registration and expanded auditing. The concrete path is recorded
 in [JET_ROADMAP.md](JET_ROADMAP.md).
 
 | Jet | Simplicity specification |
