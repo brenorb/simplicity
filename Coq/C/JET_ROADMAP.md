@@ -444,6 +444,18 @@ tree otherwise contains only Coq files.
    preserved prefix, updated cursor fields and two-word/cursor framing.
    Undefined cells and initially aligned sources are supported; no unused
    next-source-word premise is imposed. This remains shared helper progress.
+   **Larger source shift, both crossings: helper and wrapper completed.**
+   `jet_copyBits_two_words_right_full.v` derives all four stores and the
+   next-source read after stores to both destination words, executing the
+   actual second return of the first loop iteration. Its cell module derives
+   word loads/access/bounds and separation from logical initial frames and
+   the existing whole-buffer predicate. The actual wrapper has equal output
+   cells, preserved prefix, updated metadata and two-word/cursor framing for
+   `0 < dst_shift < src_shift < n <= 64`. No execution/store premise remains.
+   The separately checked branch contracts now cover all positive counts up
+   to 64 that do not reach plain external memcpy. Assemble their uniform
+   footprint contract next; the external-library model still prevents full
+   projection coverage and must not be replaced with an assumed jet call.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

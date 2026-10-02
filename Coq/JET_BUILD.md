@@ -1057,3 +1057,22 @@ Explicit compilation and direct kernel checking finished with exit 0,
 unchanged inherited library axioms and no unsafe kernel features. Both build
 manifests include this module. It is later than the 109-module public audit
 and adds no public jet coverage.
+
+## Larger source shift: both crossings and the second loop return
+
+`jet_copyBits_two_words_right_full.v:eval_copy_helper_two_right_full` derives
+the complete actual helper call for `0 < dst_shift < src_shift < n <= 64`.
+All four stores follow from initial writable access; the next-source read
+after both output words have been modified follows from initial word
+protections. It proves both exact words, metadata and memory framing.
+`jet_copyBits_two_words_right_full_cells.v:eval_copyBits_two_right_full_layout`
+derives these accesses/protections from logical cells, writable frames and
+whole-buffer separation, then proves the actual wrapper call, equal cells,
+prefix/cursor observations and two-word/cursor framing. Undefined cells are
+supported and no intermediate execution/store premise remains.
+
+Explicit compilation and direct kernel checking finished with exit 0,
+unchanged inherited library axioms and no unsafe kernel features. Both build
+manifests include the modules; they are later than the 109-module audit.
+Their branch contracts add no public jet coverage: plain external memcpy and
+the final canonical projection calls still need proving.
