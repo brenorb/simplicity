@@ -456,6 +456,20 @@ tree otherwise contains only Coq files.
    to 64 that do not reach plain external memcpy. Assemble their uniform
    footprint contract next; the external-library model still prevents full
    projection coverage and must not be replaced with an assumed jet call.
+   **Uniform non-memcpy small-copy contract completed.**
+   `jet_copyBits_small_layout.v:eval_copyBits_small_no_memcpy_layout` composes
+   all checked branches for every `0 < n <= 64`, with uniform output footprint
+   `[outedge + 8 * ((cursor - n) / 64), write_word_address outedge cursor + 8)`.
+   It proves the actual wrapper call, equal cells, prefix/cursor observations
+   and memory framing from initial frames and whole-buffer separation. Its
+   explicit `~ copy_small_memcpy_case` premise excludes exactly the aligned
+   source/destination path and continuation with equal initial shifts. This
+   is not a general copyBits contract or a public jet proof; those valid
+   layouts remain required by the goal. Next resolve the plain-library-call
+   model and add its missing branch, then compose the actual leftmost/rightmost
+   jet boundaries (including by-value source copies, forwardBits and frees)
+   with the canonical programs. Do not add restricted-layout projection
+   entries to coverage while that branch remains missing.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

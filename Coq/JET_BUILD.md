@@ -1076,3 +1076,22 @@ unchanged inherited library axioms and no unsafe kernel features. Both build
 manifests include the modules; they are later than the 109-module audit.
 Their branch contracts add no public jet coverage: plain external memcpy and
 the final canonical projection calls still need proving.
+
+## Uniform positive small-copy contract outside the external memcpy paths
+
+`jet_copyBits_small_layout.v:eval_copyBits_small_no_memcpy_layout` composes
+all branch contracts for every positive count up to 64. It proves the actual
+wrapper, equal cells, prefix/cursor observations, permissions/valid blocks
+and a uniform output footprint whose low endpoint is
+`outedge + 8 * ((cursor - n) / 64)`. Three closed arithmetic lemmas reconcile
+the individual one-word/two-word footprints.
+
+The explicit `~ copy_small_memcpy_case` premise excludes two still-required
+paths: initially aligned source/destination, and a partial-destination
+continuation with equal initial shifts. No library behavior is assumed.
+This is not full copyBits correctness or a full projection-jet theorem.
+The external model and final canonical jet calls remain outstanding.
+
+Explicit compilation and direct `coqchk -silent -o` finished with exit 0,
+unchanged inherited library axioms and no unsafe kernel features. Both build
+manifests include this later module; it is not in the 109-module audit.
