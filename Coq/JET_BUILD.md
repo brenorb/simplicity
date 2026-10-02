@@ -503,3 +503,8 @@ and the inherited axiom allowlist are unchanged. Normal comparison gates passed
 at 279 results (38 closed), and the regression target passed. There are 454
 declarations without proof entries; the completeness gate still fails as
 intended. The earlier 72-jet clean Nix result does not certify this extension.
+
+A clean Nix rebuild of the committed 79-jet proof snapshot is running. Its
+derivation is `/nix/store/0ddf7idmj3z95bvswfy9a4af3k5b31g0-Simplicity-coq-jets-0.0.0.drv`
+and immutable source is `/nix/store/3fjhp6mq6q85yzjhrswzakv0m75rflz2-source`.
+This is pending verification, not a completed clean-build claim.
