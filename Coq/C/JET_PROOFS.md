@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of seventy-five jets of the C library
+Coq proofs that the generated CompCert Clight of seventy-six jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -18,6 +18,7 @@ expression in a local, explicitly described context.
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `full_increment_8/16/32/64` | `full_increment_word_spec`, the canonical carry-input `Programs.Arith.full_increment wordN` |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
+| `full_add_8` | `Word.fullAdder`, the canonical carry-input `Programs.Arith.full_add word8` |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -109,6 +110,15 @@ module derives these calls and local cleanup from initial nine-bit input and
 output contracts, with arbitrary valid cursors and unrelated bits. Its public
 results include both input carry values, canonical output encoding, represented
 context substitution and deterministic call-boundary guarantees.
+
+For carry-input byte addition, `jet_full_add8_word.v` reuses the byte-adder
+representation lemmas and the existing canonical `Word.fullAdder` program,
+whose recursion matches `Programs.Arith.full_add`. Its symbolic bridge proves
+the short-circuit carry and truncated payload without enumerating word inputs.
+`jet_full_add8_exec.v` executes the generated conditional assigning `_t'4`,
+three real reads, both output writes, return and local cleanup. The layout
+module derives these from initial 17-bit input and nine-bit output contracts,
+including arbitrary valid cursors, crossings and unrelated output bits.
 
 `jet_full_increment_wide_word.v` extends this bridge to 16/32/64 bits by
 reusing the verified increment bridges for carry one and proving the canonical

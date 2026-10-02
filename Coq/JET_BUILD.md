@@ -450,10 +450,12 @@ and 241 contract lines only, without changing previous contracts, assumption
 sets or the inherited axiom allowlist. Negative tests passed. Normal audit
 comparisons passed at 252 results (32 closed), and the regression target passed.
 There are 461 declarations without proof entries; the completeness check still
-fails as intended. A fresh Nix build for this 72-jet state is running; its
+fails as intended. A fresh Nix build for this 72-jet state passed; its
 derivation is `/nix/store/s5c4wp8gy6ridzgcram2zcfmdrxz51zv-Simplicity-coq-jets-0.0.0.drv`
 and source is `/nix/store/g0px66r68291v1cgsxyxrn6q51ws82gd-source`. This is
-pending verification, not a completed clean-build claim.
+result is `/nix/store/1yc61chh7mk6q7l4f9l48d66ygxf17hn-Simplicity-coq-jets-0.0.0`.
+The proof build took 5 min 28 s and checks took 14 min 47 s. It certifies this
+72-jet snapshot, not subsequent extensions.
 
 ### Carry-input wide increments (2026-10-01)
 
@@ -468,3 +470,18 @@ modules, including negative tests. Reviewed snapshots add ten audited results
 sets, and the inherited axiom allowlist, are unchanged. There are 262 audited
 results (34 closed) and 458 declarations without proof entries. This extension
 is not certified by the earlier clean Nix runs.
+
+### Carry-input byte addition (2026-10-01)
+
+`full_add_8` now has a complete C-call proof against canonical `Word.fullAdder`.
+Its symbolic bridge retains the short-circuit carry and byte truncation;
+execution includes the actual conditional, three reads and both writes.
+Initial-only contracts cover 17 input bits and nine output bits at arbitrary
+valid cursors, including crossings and unrelated bits.
+
+The integrated check with exact AST regeneration passed at 76/533 and 58 public
+modules, including negative tests. Reviewed snapshots add seven audited results
+(two closed) and 260 contract lines only; previous contracts, assumption sets
+and the inherited axiom allowlist are unchanged. There are 269 audited results
+(36 closed), and 457 declarations without proof entries. The completeness gate
+still fails as intended. The 72-jet clean Nix result does not certify this extension.
