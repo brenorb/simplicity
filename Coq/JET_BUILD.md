@@ -1651,3 +1651,34 @@ negative fixtures and pinned AST regeneration. Removing only these 20 results
 and five definitions reproduces the `5f45b8c` snapshots byte-for-byte. The
 inherited 15 kernel axioms are unchanged. Next use read8-controlled wide
 sequences and the checked generic helper for 32/64-bit shifts.
+
+## Complete 32/64-bit variable shifts (2026-10-02)
+
+All eight left/right zero-fill/fill-controlled contracts now compile. Fresh
+independent kernel checks of their final modules exited 0 (zero32 `54332`,
+zero64 `59036`, fill32 `75562`, fill64 `72093`), checking their dependencies as
+well. Named local specs retain the same six inherited assumptions; machine
+and payload bridges are closed. Initial-only frame contracts derive copying,
+all reads, the actual helper, writing, return and cleanup; arbitrary valid
+cursors/crossings and unrelated output contents remain supported.
+
+`jet_shift_byte_layout_machine.v` shares W32/W64 zero-fill execution.
+`jet_readBit8_wide_sequence.v` and `jet_shift_byte_with_layout_machine.v` share
+fill-controlled execution. Canonical programs use Word8 controls as in
+CoreJets, including >=width shifts and continued controls at SingleV.
+Only controls/fill flags are enumerated; payloads remain symbolic.
+
+For fill64, `cbn` rewriting exceeded the 180s process deadline. An isolated
+four-case check took 7.06s with `cbn`, 0.143s with `lazy` and component-wise
+equality. The combined theorem then timed out specifically at `Qed` under
+the default 10s limit, not during its tactics. Four separately checked
+256-control lemmas solved that final check without increasing the timeout.
+Source checking uses the same 180s process deadline; no proof escape is used.
+
+Fifteen modules / 49 results / six definitions are registered, adding eight
+jets: 186/533 entries, 347 missing. The expanded integrated audit is running
+as session `87578`; poll that handle without starting another run. Freeze
+registered sources/manifests/public lists until it exits. The last complete
+audit covers 178 entries. Review the new snapshots against `8ef795b`, removing
+only the newly registered results/definitions; the kernel axiom list must
+remain unchanged. This remains progress toward, not completion of, every jet.

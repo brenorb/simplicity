@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 178 registered covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate at 8/16/32/64 bits; left/right_shift and left/right_shift_with at 8/16 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 186 registered covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 355 declarations without coverage
+There are 347 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -866,11 +866,36 @@ tree otherwise contains only Coq files.
    negative tests and pinned AST regeneration. Earlier snapshots and inherited
    kernel axioms are unchanged. The bit read precedes the count/payload helpers, so the count
    begins at rc+1, payload at rc+5, and the final copied cursor is rc+21.
-   **Next: 32/64-bit zero-fill shifts, then their fill-input variants.** Reuse
-   `jet_shift_wide_exec.v`, `jet_read8_wide_sequence.v` and the checked generic
-   low-bit shift/count branch bridge. The counts are Word8, not Word4. Derive
-   their initial-only memory/frame lifecycle and connect to literal canonical
-   controls before registering. Do not assume helper execution or output values.
+   **32/64-bit zero-fill and fill-input shifts: complete and registered;
+   expanded audit running.** `jet_shift_byte_layout_machine.v` shares the
+   zero-fill initial-frame lifecycle; `jet_readBit8_wide_sequence.v` derives
+   exact bit/read8/wide calls; `jet_shift_byte_with_layout_machine.v` shares
+   the fill-input lifecycle. Reusing `byte_rotate_size` only selects W32/W64:
+   these theorems execute shift functions, not rotation functions. Canonical
+   adapters in `jet_shift{32,64}_spec.v` normalize byte controls with symbolic
+   payloads. The corresponding `_word.v` and `_layout.v` discharge the value
+   bridges and export named local specs, contexts and guarantees. The `_with_`
+   counterparts retain the literal fill-input canonical programs and low-bit
+   XOR bridges. All sources and fresh independent kernel checks passed.
+   Named specs retain the existing six assumptions; value bridges are closed.
+   Fifteen modules / 49 results / six definitions add eight coverage entries:
+   186/533 (347 missing). The last completed integrated audit covers 178;
+   poll expanded audit session `87578`, do not restart it. Registered sources,
+   manifests and public lists must remain frozen until it finishes. Compare
+   updated snapshots against `8ef795b` after removing only these new entries.
+   **Normalization lesson:** aggregate `cbn`/repeated rewriting is too slow
+   for the fill64 tuple. Measured lazy reduction plus component-wise `f_equal2`
+   solves the same four cases in 0.14s instead of 7s. The combined 1024-case
+   theorem still timed out at `Qed`; four separately checked 256-control
+   lemmas close it under the unchanged 10-second default. Do not increase
+   timeouts blindly or enumerate payload values. Keep non-wrapping cursor
+   bounds, >=width behavior and final SingleV controls intact.
+   **Next scalar candidate: div_mod_8, divide_8 and modulo_8**, then wider
+   instances with shared canonical arithmetic and frame lemmas. Inspect the
+   actual zero-divisor branch and canonical Programs.Arith terms before
+   choosing contracts; do not assume a nonzero divisor to make them pass.
+   Static full-left/right-shift jets are a separate family: their fill input
+   and shifted-out output are fixed-width words, not variable byte controls.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical

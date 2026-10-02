@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 172 jets of the C library
+Coq proofs that the generated CompCert Clight of 186 registered jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -50,6 +50,8 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `left_shift_with_8`, `right_shift_with_8` | `shift8_with_spec`, literal `Programs.Word.left/right_shift_with word4 word8` with an input fill bit |
 | `left_shift_16`, `right_shift_16` | `shift16_plain_spec`, literal `Programs.Word.left/right_shift word4 word16` |
 | `left_shift_with_16`, `right_shift_with_16` | `shift16_with_spec`, literal `Programs.Word.left/right_shift_with word4 word16` with an input fill bit |
+| `left_shift_32/64`, `right_shift_32/64` | `shift32_plain_spec` / `shift64_plain_spec`, literal `Programs.Word.left/right_shift word8 wordN` |
+| `left_shift_with_32/64`, `right_shift_with_32/64` | `shift32_with_spec` / `shift64_with_spec`, literal `Programs.Word.left/right_shift_with word8 wordN` with an input fill bit |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The wide left-rotation specs and shared helpers passed every integrated gate
@@ -93,6 +95,13 @@ are registered, bringing entries to 178/533 (355 remain). Their expanded
 integrated audit passed every gate on 256 modules / 1195 results (414 closed),
 including negative tests and pinned AST regeneration. Earlier snapshots and
 the 15 inherited kernel axioms are unchanged. This completed audit covers 178.
+All eight 32/64-bit zero-fill/fill-input shift contracts compiled and passed
+fresh independent kernel checks. Named local specs retain the existing six
+assumptions; their machine-value bridges are closed. Fifteen modules / 49
+results / six definitions are registered, bringing entries to 186/533
+(347 remain). The expanded integrated audit is running; the last completed
+audit covers 178. General valid cursors/crossings, arbitrary output contents,
+all byte counts (including counts >= width), and memory framing are retained.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
