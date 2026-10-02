@@ -1913,6 +1913,8 @@ Current-source coqc, explicit scans/assumption checks and fresh kernels passed
 (`18978`, `19483`, `63010`, `64639`). Its local spec, canonical context replacement
 and both guarantees have no intermediate execution premises. These four modules /
 nine results / four definitions plus the public coverage entry are now registered
-(203/533, 330 remaining). Run the expanded audit against accepted `cd7d4ee`
+(203/533, 330 remaining). Expanded audit `39496` is running against accepted `cd7d4ee`
 (expected: 322 modules / 1520 results); do not accept snapshots before terminal
 exit 0, all gates/negative fixtures and exact pinned AST regeneration.
+Freeze registered sources, manifests and public lists until that terminal result;
+develop any subsequent consumers in new, unregistered modules.

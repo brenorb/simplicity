@@ -1097,6 +1097,8 @@ tree otherwise contains only Coq files.
    These four modules / nine results / four definitions and the named public
    coverage entry are registered. Inventory bookkeeping is now 203/533, 330
    missing; the complete expanded audit must pass before accepting its snapshots.
+   Expanded audit `39496` is running. Freeze registered proof sources, manifests
+   and public lists until its terminal result; poll that same handle.
    Expected totals: 322 modules / 1520 results. Baseline: accepted `cd7d4ee`.
    Remove only these four modules' assumptions and their new contract blocks to
    reproduce that baseline byte-for-byte, retaining the inherited kernel axioms.

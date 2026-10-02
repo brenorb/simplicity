@@ -40,7 +40,7 @@ passed integrated audit `97656`, including all gates, negative fixtures and exac
 pinned AST regeneration: 318 modules / 1511 results (607 closed). Earlier
 snapshots and inherited axioms are unchanged. Four new initial-only integration
 modules, including `divmod128_local_spec`, independently compile and pass fresh
-kernel checks; they await registration and expanded integration auditing.
+kernel checks; their expanded integration audit is now running as `39496`.
 The four modules / nine results / four definitions and public coverage entry are
 now registered (203/533, 330 remaining); the expanded integration audit must pass
 before its snapshots become the accepted baseline. The concrete path is recorded
