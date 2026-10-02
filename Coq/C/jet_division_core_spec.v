@@ -5,6 +5,7 @@ Require Import Simplicity.Word Simplicity.Alg Simplicity.Bit.
 Require Import C.jet_order_spec C.jet_subtract_spec C.jet_multiply_spec.
 Require Import C.jet_predicate_spec.
 Require Import C.jet_complement_spec.
+Require Import C.jet_borrow_unary_word.
 Require Import C.jet_division_normalize_spec C.jet_test_value_spec.
 Local Open Scope Z_scope.
 Local Open Scope term_scope.
@@ -13,27 +14,50 @@ Set Default Timeout 10.
 Definition division_high_word n {term : Alg.Core.Algebra} : term Ty.Unit (Word n) :=
   @Word.fill Ty.Unit Bit n term (@Bit.true Ty.Unit term).
 
+Definition div3n2n_approx_spec n {term : Alg.Core.Algebra}
+    (rec : term (Ty.Prod (Word (S n)) (Word n)) (Word (S n))) :
+  term (Ty.Prod (Word (S n)) (Word n)) (Ty.Prod Bit (Word (S n))) :=
+    (((O O H &&& I H) >>> @lt_word_spec term n) &&& H) >>>
+    Bit.cond (Bit.false &&& rec)
+      (((O I H &&& I H) >>> @Word.adder n term) >>>
+        O H &&& ((Alg.Core.Combinators.unit >>> @division_high_word n term) &&& I H)).
+
+Definition div3n2n_loop2_spec n {term : Alg.Core.Algebra} :
+  term (Ty.Prod (Word (S n)) (Ty.Prod (Word n) (Word (S n))))
+       (Ty.Prod (Word n) (Word (S n))) :=
+  let dec := @decrement_word_spec term n in
+  let add2w := @Word.adder (S n) term in
+  (I (O (dec >>> I H))) &&& ((O H &&& I I H) >>> add2w >>> I H).
+
+Definition div3n2n_loop1_spec n {term : Alg.Core.Algebra} :
+  term (Ty.Prod (Word (S n)) (Ty.Prod (Word n) (Word (S n))))
+       (Ty.Prod (Word n) (Word (S n))) :=
+  let dec := @decrement_word_spec term n in
+  let add2w := @Word.adder (S n) term in
+  (((O H &&& I I H) >>> add2w) &&& I ((O (dec >>> I H)) &&& I H)) >>>
+    O O H &&& (O I H &&& I H) >>>
+      Bit.cond (I O H &&& O H) (@div3n2n_loop2_spec n term).
+
+Definition div3n2n_loop0_spec n {term : Alg.Core.Algebra} :
+  term (Ty.Prod (Ty.Prod Bit (Word (S n))) (Ty.Prod (Word n) (Word (S n))))
+       (Ty.Prod (Word n) (Word (S n))) :=
+  (O O H &&& (O I H &&& I H)) >>>
+    Bit.cond (@div3n2n_loop1_spec n term) (I O H &&& O H).
+
+Definition div3n2n_body_spec n {term : Alg.Core.Algebra} :
+  term (Ty.Prod (Ty.Prod Bit (Word (S n))) (Ty.Prod (Word n) (Word (S n))))
+       (Ty.Prod (Word n) (Word (S n))) :=
+    (O O H &&&
+      ((((O I I H &&& I O H) &&& ((O I O H &&& I I I H) >>> @multiply_word_spec n term)) >>>
+          @subtract_word_spec term (S n)) &&& (O I O H &&& I I H))) >>>
+      Bit.cond (I O H &&& O I H) (@div3n2n_loop0_spec n term).
+
 Definition div3n2n_word_builder n {term : Alg.Core.Algebra}
     (rec : term (Ty.Prod (Word (S n)) (Word n)) (Word (S n))) :
   term (Ty.Prod (Ty.Prod (Word (S n)) (Word n)) (Word (S n)))
        (Ty.Prod (Word n) (Word (S n))) :=
-  let approx :=
-    (((O O H &&& I H) >>> @lt_word_spec term n) &&& H) >>>
-    Bit.cond (Bit.false &&& rec)
-      (((O I H &&& I H) >>> @Word.adder n term) >>>
-        O H &&& ((Alg.Core.Combinators.unit >>> @division_high_word n term) &&& I H)) in
-  let dec := @decrement_word_spec term n in
-  let add2w := @Word.adder (S n) term in
-  let loop2 := (I (O (dec >>> I H))) &&& ((O H &&& I I H) >>> add2w >>> I H) in
-  let loop1 := (((O H &&& I I H) >>> add2w) &&& I ((O (dec >>> I H)) &&& I H)) >>>
-    O O H &&& (O I H &&& I H) >>> Bit.cond (I O H &&& O H) loop2 in
-  let loop0 := (O O H &&& (O I H &&& I H)) >>> Bit.cond loop1 (I O H &&& O H) in
-  let body :=
-    (O O H &&&
-      ((((O I I H &&& I O H) &&& ((O I O H &&& I I I H) >>> @multiply_word_spec n term)) >>>
-          @subtract_word_spec term (S n)) &&& (O I O H &&& I I H))) >>>
-      Bit.cond (I O H &&& O I H) loop0 in
-  (((O O H &&& I O H) >>> approx) &&& (O I H &&& I H)) >>> body.
+  (((O O H &&& I O H) >>> @div3n2n_approx_spec n term rec) &&& (O I H &&& I H)) >>>
+    @div3n2n_body_spec n term.
 
 Definition div2n1n_bit_spec {term : Alg.Core.Algebra} :
   term (Ty.Prod (Word 1) Bit) (Word 1) :=
@@ -80,7 +104,11 @@ Lemma div3n2n_word_builder_parametric n {term1 term2 : Alg.Core.Algebra}
     (R : Alg.Core.Parametric.Rel term1 term2) rec1 rec2 :
   R _ _ rec1 rec2 ->
   R _ _ (@div3n2n_word_builder n term1 rec1) (@div3n2n_word_builder n term2 rec2).
-Proof. intros Hrec. unfold div3n2n_word_builder. division_core_parametric. Qed.
+Proof.
+  intros Hrec. unfold div3n2n_word_builder, div3n2n_approx_spec,
+    div3n2n_body_spec, div3n2n_loop0_spec, div3n2n_loop1_spec, div3n2n_loop2_spec.
+  division_core_parametric.
+Qed.
 
 Lemma div2n1n_bit_spec_parametric : Alg.Core.Parametric (@div2n1n_bit_spec).
 Proof. intros term1 term2 R. unfold div2n1n_bit_spec. division_core_parametric. Qed.
