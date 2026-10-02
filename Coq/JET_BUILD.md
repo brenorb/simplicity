@@ -1199,9 +1199,34 @@ checked with exit 0, the same inherited library-level axiom list and no unsafe
 kernel features. All 18 new lemma assumption checks report closed under the
 global context. Both project manifests include these modules.
 
-They were added after the 133-module integrated audit and are not yet in its
-public type/assumption snapshots. They prove shared projection/mask facts,
+They were added after the 133-module integrated audit; the later expanded
+parse_sequence audit below includes their public type/assumption snapshots.
+They prove shared projection/mask facts,
 the literal canonical parse_sequence term's carrier bridge, and both output
-encodings, not the actual C call. Coverage stays 135/533. The actual skipBits
-contract, generated branch execution and complete jet lifecycle remain open;
-the roadmap records the next decomposition.
+encodings, not by themselves the actual C call. Coverage at that stage stayed
+135/533. The next results discharge skipBits and the complete jet lifecycle.
+
+## parse_sequence and skipBits verification (2026-10-02)
+
+The actual skipBits cursor/padding contract and the three parse_sequence
+execution/writer/layout modules were explicitly compiled and freshly kernel
+checked with exit 0. The complete
+`check-jets.sh --update-expected --ast` run also finished with exit 0:
+140 public-audit modules, 719 audited results, 205 closed. Snapshots add 38
+results and 15 definitions, including the 18 preceding representation results.
+Removing these additions reproduces the previous contract and assumption
+snapshots byte-for-byte; the inherited kernel axiom list is unchanged.
+The complete local spec retains the existing six assumptions. Context/call
+guarantees retain their existing external-call-properties assumptions.
+
+Both actual branches are proved from initial frames, including arbitrary
+valid cursors/crossings and output contents. Disabled output executes skip17
+and establishes physical storage for undefined cells without zero assumptions.
+The complete call derives source allocation/copy, read32, flag write/branch,
+remaining writes/skipping and local cleanup. Prefix, cursor and memory framing
+are preserved. Canonical bit/mask and encoding bridges remain closed.
+
+Inventory/coverage tests, negative gates and byte-identical AST regeneration
+passed; the optional regression build and subsequent normal public-contract
+comparison passed too. Coverage is 136/533, with 397 remaining. No newer clean
+Nix, remote CI, other ABI/build or whole-evaluator result is claimed.

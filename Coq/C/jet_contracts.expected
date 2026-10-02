@@ -14528,6 +14528,736 @@ parse_lock_context_guarantees
             (silent_call_guarantees (Clight.globalenv prog) (@Ctypes.Internal Clight.function f_simplicity_parse_lock)
                (jet_args env L) m (Values.Vint Integers.Int.one) mf)
             (and (bm_rep mf L s1) (runProgram (@parse_lock_spec Naive.translate) (Running s0) (Running s1))))
+word_bit_spec_parametric
+     : forall n i : nat, @Alg.Core.Parametric (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) (@word_bit_spec n i)
+word_count_power
+     : forall n : nat, @eq BinNums.Z (Zpower.two_power_nat n) (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) n))
+word_bit_spec_numeric
+     : forall (n i : nat) (x : Ty.tySem (Word.Word n)) (_ : lt i (PeanoNat.Nat.pow (S (S O)) n)),
+       @eq bool (Bit.toBool (@word_bit_spec n i Alg.CoreFunSem x))
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (BinInt.Z.of_nat i))
+top_bit_threshold
+     : forall (z k : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 k)
+         (_ : and (BinInt.Z.le BinNums.Z0 z)
+                (BinInt.Z.lt z
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.add k (BinNums.Zpos BinNums.xH))))),
+       @eq bool (BinInt.Z.testbit z k) (negb (BinInt.Z.ltb z (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+int64_single_bit_mask
+     : forall (r : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq Integers.Int64.int
+         (Integers.Int64.and r (Integers.Int64.repr (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+         match Integers.Int64.testbit r k return Integers.Int64.int with
+         | true => Integers.Int64.repr (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+         | false => Integers.Int64.zero
+         end
+int64_single_bit_mask_nonzero
+     : forall (r : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool
+         (negb
+            (Integers.Int64.eq
+               (Integers.Int64.and r (Integers.Int64.repr (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+               Integers.Int64.zero)) (Integers.Int64.testbit r k)
+parse_sequence_spec_parametric
+     : @Alg.Core.Parametric (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+         (@parse_sequence_spec)
+parse_sequence_enabled_bit31
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)),
+       @eq bool (parse_sequence_enabled r)
+         (negb
+            (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)
+               (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+parse_sequence_tag_bit22
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)),
+       @eq bool (parse_sequence_tag r)
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)
+            (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+parse_sequence_payload_decode
+     : forall r : Integers.Int64.int,
+       @eq (Ty.tySem (Word.Word (wide_log W16)))
+         (decode_wide W16
+            (Integers.Int64.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+               (parse_sequence_payload r)))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O))))) (Integers.Int64.unsigned r))
+@parse_sequence_bit31_projection ?term
+     : @eq (Alg.Core.domain ?term (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit Ty.Unit))
+         (@parse_sequence_bit31 ?term)
+         (@word_bit_spec (S (S (S (S (S O)))))
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+            ?term)
+where
+?term : [ |- Alg.Core.Algebra]
+@parse_sequence_bit22_projection ?term
+     : @eq (Alg.Core.domain ?term (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit Ty.Unit))
+         (@parse_sequence_bit22 ?term)
+         (@word_bit_spec (S (S (S (S (S O)))))
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))))))))
+            ?term)
+where
+?term : [ |- Alg.Core.Algebra]
+parse_sequence_spec_value
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       @eq (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+         (@parse_sequence_spec Alg.CoreFunSem x)
+         match
+           Bit.toBool (@parse_sequence_bit31 Alg.CoreFunSem x)
+           return (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+         with
+         | true =>
+             @inl unit
+               (sum
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S O))))))
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S O))))))) tt
+         | false =>
+             @inr unit
+               (sum
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+               match
+                 Bit.toBool (@parse_sequence_bit22 Alg.CoreFunSem x)
+                 return
+                   (sum
+                      (prod
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                      (prod
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+               with
+               | true =>
+                   @inr
+                     (prod
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                     (prod
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                     (@snd
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))) x)
+               | false =>
+                   @inl
+                     (prod
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                     (prod
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                     (@snd
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))) x)
+               end
+         end
+parse_sequence_low16
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O)))))))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x))
+         (@snd
+            (prod
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+            (prod
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))) x)
+parse_sequence_spec_numeric
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       @eq (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+         (@parse_sequence_spec Alg.CoreFunSem x)
+         match
+           BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)
+             (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))
+           return (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+         with
+         | true =>
+             @inl unit
+               (sum
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S O))))))
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S O))))))) tt
+         | false =>
+             @inr unit
+               (sum (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O)))))))
+                  (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O))))))))
+               match
+                 BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))
+                 return
+                   (sum (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O)))))))
+                      (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O))))))))
+               with
+               | true =>
+                   @inr (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O)))))))
+                     (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O)))))))
+                     (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x))
+               | false =>
+                   @inl (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O)))))))
+                     (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O)))))))
+                     (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x))
+               end
+         end
+parse_sequence_int64_denotes
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)),
+       @eq (sum unit (sum (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16)))))
+         match
+           parse_sequence_enabled r
+           return (sum unit (sum (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16)))))
+         with
+         | true =>
+             @inr unit (sum (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16))))
+               match
+                 parse_sequence_tag r
+                 return (sum (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16))))
+               with
+               | true =>
+                   @inr (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16)))
+                     (decode_wide W16
+                        (Integers.Int64.zero_ext
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                           (parse_sequence_payload r)))
+               | false =>
+                   @inl (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16)))
+                     (decode_wide W16
+                        (Integers.Int64.zero_ext
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                           (parse_sequence_payload r)))
+               end
+         | false => @inl unit (sum (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16)))) tt
+         end (@parse_sequence_spec Alg.CoreFunSem x)
+encode_parse_sequence_disabled
+     : @eq (list Cell)
+         (@encode (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+            (@inl unit
+               (sum
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S O))))))
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word (S (S (S (S O))))))) tt))
+         (@cons (option bool) (@Some bool false)
+            (@List.repeat (option bool) (@None bool)
+               (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))))
+encode_parse_sequence_enabled
+     : forall (tag : bool) (x : Ty.tySem (Word.Word (S (S (S (S O)))))),
+       @eq (list Cell)
+         (@encode (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+            (@inr unit (sum (Ty.tySem (Word.Word (S (S (S (S O)))))) (Ty.tySem (Word.Word (S (S (S (S O)))))))
+               match
+                 tag return (sum (Ty.tySem (Word.Word (S (S (S (S O)))))) (Ty.tySem (Word.Word (S (S (S (S O)))))))
+               with
+               | true => @inr (Ty.tySem (Word.Word (S (S (S (S O)))))) (Ty.tySem (Word.Word (S (S (S (S O)))))) x
+               | false => @inl (Ty.tySem (Word.Word (S (S (S (S O)))))) (Ty.tySem (Word.Word (S (S (S (S O)))))) x
+               end))
+         (@cons (option bool) (@Some bool true)
+            (@cons (option bool) (@Some bool tag) (@encode (Word.Word (S (S (S (S O))))) x)))
+skipBits_entry
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base n : BinNums.Z),
+       Clight.function_entry2 ge0 f_skipBits
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val))) m Clight.empty_env
+         (skip_frame_env bf base n) m
+write_frame_padding_cells
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (count : nat) (_ : write_frame_at m bf base bw edge cursor (BinInt.Z.of_nat count)),
+       frame_output_cells_at m bw edge cursor (@List.repeat (option bool) (@None bool) count)
+eval_skipBits_store
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (base cursor n : BinNums.Z) (_ : frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 n) (BinInt.Z.le n cursor))
+         (_ : BinInt.Z.le cursor Integers.Int64.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bf
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr cursor))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bf
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (Values.Vlong (Integers.Int64.repr (BinInt.Z.sub cursor n)))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_skipBits)
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val))) Events.E0 mf Values.Vundef
+eval_skipBits_layout
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor n : BinNums.Z) (_ : frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 n) (BinInt.Z.le n cursor))
+         (_ : BinInt.Z.le cursor Integers.Int64.max_unsigned) (_ : frame_fields_at m bf base bw edge cursor)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_skipBits)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and (frame_fields_at mf bf base bw edge (BinInt.Z.sub cursor n))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bf))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))
+eval_skipBits_padding
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (count : nat) (_ : write_frame_at m bf base bw edge cursor (BinInt.Z.of_nat count)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_skipBits)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vlong (Integers.Int64.repr (BinInt.Z.of_nat count))) (@nil Values.val)))
+               Events.E0 mf Values.Vundef)
+            (and (frame_output_cells_at mf bw edge cursor (@List.repeat (option bool) (@None bool) count))
+               (and (write_prefix_at m mf bw edge cursor)
+                  (and (frame_fields_at mf bf base bw edge (BinInt.Z.sub cursor (BinInt.Z.of_nat count)))
+                     (and
+                        (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                           (_ : or (not (@eq Values.block b bf))
+                                  (or
+                                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                        (BinInt.Z.add base
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     (BinInt.Z.le
+                                        (BinInt.Z.add base
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                        ofs))),
+                         @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                        (and
+                           (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                            Memory.Mem.perm mf b ofs kind p)
+                           (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))))
+eval_long_one_shift
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       Clight.eval_expr ge0 e le m (long_one_shift_expr k)
+         (Values.Vlong (Integers.Int64.shl Integers.Int64.one (Integers.Int64.repr k)))
+eval_parse_sequence_enabled
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (r : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _nSequence le) (@Some Values.val (Values.Vlong r))),
+       Clight.eval_expr ge0 e le m parse_sequence_enabled_expr
+         (Values.Vint
+            match parse_sequence_enabled r return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+cast_parse_sequence_enabled
+     : forall (m : Memory.Mem.mem) (r : Integers.Int64.int),
+       @eq (option Values.val)
+         (Cop.sem_cast
+            (Values.Vint
+               match parse_sequence_enabled r return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end) (Clight.typeof parse_sequence_enabled_expr) Ctypesdefs.tbool m)
+         (@Some Values.val
+            (Values.Vint
+               match parse_sequence_enabled r return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end))
+eval_parse_sequence_tag
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (r : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _nSequence le) (@Some Values.val (Values.Vlong r))),
+       Clight.eval_expr ge0 e le m parse_sequence_tag_expr
+         (Values.Vlong
+            (Integers.Int64.and r
+               (Integers.Int64.shl Integers.Int64.one
+                  (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+cast_parse_sequence_tag
+     : forall (m : Memory.Mem.mem) (r : Integers.Int64.int),
+       @eq (option Values.val)
+         (Cop.sem_cast
+            (Values.Vlong
+               (Integers.Int64.and r
+                  (Integers.Int64.shl Integers.Int64.one
+                     (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+            (Clight.typeof parse_sequence_tag_expr) Ctypesdefs.tbool m)
+         (@Some Values.val
+            (Values.Vint
+               match parse_sequence_tag r return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end))
+eval_parse_sequence_payload
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (r : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _nSequence le) (@Some Values.val (Values.Vlong r))),
+       Clight.eval_expr ge0 e le m parse_sequence_payload_expr (Values.Vlong (parse_sequence_payload r))
+symbol_skipBits
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge0) _skipBits)
+         (@Some Values.block (jet_symbol_block _skipBits))
+funct_skipBits
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv ge0)
+            (Values.Vptr (jet_symbol_block _skipBits) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f_skipBits))
+eval_parse_sequence_composes
+     : forall (env : Values.val) (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (mc mr mb me mf : Memory.Mem.mem)
+         (bl bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block) (sbase : BinNums.Z)
+         (bytes : list Memdata.memval) (r : Integers.Int64.int) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes ma bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes ma bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mc (@Ctypes.Internal Clight.function f_simplicity_read32)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr
+                (Values.Vlong r))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mr (@Ctypes.Internal Clight.function f_writeBit)
+                (@cons Values.val (Values.Vptr bd dofs)
+                   (@cons Values.val
+                      (Values.Vint
+                         match parse_sequence_enabled r return Integers.Int.int with
+                         | true => Integers.Int.one
+                         | false => Integers.Int.zero
+                         end) (@nil Values.val))) Events.E0 mb
+                (Values.Vint
+                   match parse_sequence_enabled r return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end)) (_ : parse_sequence_branch_calls mb me bd dofs r)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free me bl BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_parse_sequence)
+         (@cons Values.val (Values.Vptr bd dofs)
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         Events.E0 mf (Values.Vint Integers.Int.one)
+eval_parse_sequence_writer
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (r : Integers.Int64.int)
+         (_ : write_frame_at m bf base bw edge cursor
+                (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))),
+       @ex Memory.Mem.mem
+         (fun mb : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_writeBit)
+                  (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                     (@cons Values.val
+                        (Values.Vint
+                           match parse_sequence_enabled r return Integers.Int.int with
+                           | true => Integers.Int.one
+                           | false => Integers.Int.zero
+                           end) (@nil Values.val))) Events.E0 mb
+                  (Values.Vint
+                     match parse_sequence_enabled r return Integers.Int.int with
+                     | true => Integers.Int.one
+                     | false => Integers.Int.zero
+                     end))
+               (and (parse_sequence_branch_calls mb mf bf (Integers.Ptrofs.repr base) r)
+                  (and
+                     (frame_output_cells_at mf bw edge cursor
+                        (@encode (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+                           match
+                             parse_sequence_enabled r
+                             return
+                               (Ty.tySem
+                                  (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+                           with
+                           | true =>
+                               @inr unit
+                                 (sum (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16))))
+                                 match
+                                   parse_sequence_tag r
+                                   return
+                                     (sum (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16))))
+                                 with
+                                 | true =>
+                                     @inr (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16)))
+                                       (decode_wide W16
+                                          (Integers.Int64.zero_ext
+                                             (BinNums.Zpos
+                                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                             (parse_sequence_payload r)))
+                                 | false =>
+                                     @inl (Ty.tySem (Word.Word (wide_log W16))) (Ty.tySem (Word.Word (wide_log W16)))
+                                       (decode_wide W16
+                                          (Integers.Int64.zero_ext
+                                             (BinNums.Zpos
+                                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                             (parse_sequence_payload r)))
+                                 end
+                           | false =>
+                               @inl unit
+                                 (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))) tt
+                           end))
+                     (and (write_prefix_at m mf bw edge cursor)
+                        (and
+                           (frame_fields_at mf bf base bw edge
+                              (BinInt.Z.sub cursor
+                                 (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                           (and
+                              (loads_outside_ranges m mf bf
+                                 (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                 (BinInt.Z.add base
+                                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) bw
+                                 (BinInt.Z.add edge
+                                    (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                       (BinInt.Z.div
+                                          (BinInt.Z.sub cursor
+                                             (BinNums.Zpos
+                                                (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                          (BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                                 (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                              (and
+                                 (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                                    (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                                  Memory.Mem.perm mf b ofs kind p)
+                                 (forall (b : Values.block) (_ : Memory.Mem.valid_block m b),
+                                  Memory.Mem.valid_block mf b)))))))))
+eval_parse_sequence_layout_matches_spec
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge : BinNums.Z)
+         (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (cursor read_cursor : BinNums.Z)
+         (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge read_cursor)
+         (_ : and (BinInt.Z.le BinNums.Z0 read_cursor)
+                (BinInt.Z.le read_cursor
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : @frame_input_word_at (S (S (S (S (S O))))) m bi edge read_cursor x)
+         (_ : write_frame_at m bd dbase bw outedge cursor
+                (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_parse_sequence)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+                     (@parse_sequence_spec Alg.CoreFunSem x)))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinNums.Zpos
+                                                    (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+parse_sequence_local_spec
+     : jet_local_spec f_simplicity_parse_sequence (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+         (fun x : Ty.tySem (Word.Word (S (S (S (S (S O)))))) => @parse_sequence_spec Alg.CoreFunSem x)
+parse_sequence_context
+     : @jet_context_for f_simplicity_parse_sequence (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+         (@parse_sequence_spec)
+parse_sequence_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (bitSize (Word.Word (S (S (S (S (S O)))))))))
+                Integers.Int64.max_unsigned)
+         (_ : frame_input_cells_at m bi edge read_cursor (@encode (Word.Word (S (S (S (S (S O)))))) a))
+         (_ : write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat
+                   (bitSize (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv prog)
+               (@Ctypes.Internal Clight.function f_simplicity_parse_sequence)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+                     (@parse_sequence_spec Alg.CoreFunSem a)))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat
+                              (bitSize
+                                 (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (bitSize
+                                                       (Ty.Sum Ty.Unit
+                                                          (Ty.Sum (Word.Word (S (S (S (S O)))))
+                                                             (Word.Word (S (S (S (S O))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+parse_sequence_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : bm_layout) (ctx : Context)
+         (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       let s0 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Word.Word (S (S (S (S (S O)))))) a)
+              (newWriteFrame
+                 (bitSize (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))))) in
+       let s1 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Word.Word (S (S (S (S (S O)))))) a)
+              (fullWriteFrame
+                 (@encode (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+                    (@parse_sequence_spec Alg.CoreFunSem a)))) in
+       forall (_ : bm_rep m L s0) (_ : bm_separated L s0) (_ : active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv prog)
+               (@Ctypes.Internal Clight.function f_simplicity_parse_sequence) (jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (bm_rep mf L s1) (runProgram (@parse_sequence_spec Naive.translate) (Running s0) (Running s1))))
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -20415,3 +21145,792 @@ fun (env : Values.val) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Va
          (_ : Integers.Ptrofs.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
 
 Arguments le_parse_lock_x env bd dofs bs sofs r
+word_bit_spec =
+fix word_bit_spec (n i : nat) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) :=
+  match n as k return (Alg.Core.domain term (Word.Word k) (Ty.Sum Ty.Unit Ty.Unit)) with
+  | O => @BC.iden (Word.Word O) term
+  | S k =>
+      match
+        PeanoNat.Nat.ltb i (PeanoNat.Nat.pow (S (S O)) k)
+        return (Alg.Core.domain term (Word.Word (S k)) (Ty.Sum Ty.Unit Ty.Unit))
+      with
+      | true =>
+          @BC.drop
+            ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                match n0 return Ty.Ty with
+                | O => X
+                | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                end) (Ty.Sum Ty.Unit Ty.Unit) k) (Word.Word k) (Ty.Sum Ty.Unit Ty.Unit) term
+            (word_bit_spec k i term)
+      | false =>
+          @BC.take (Word.Word k)
+            ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                match n0 return Ty.Ty with
+                | O => X
+                | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                end) (Ty.Sum Ty.Unit Ty.Unit) k) (Ty.Sum Ty.Unit Ty.Unit) term
+            (word_bit_spec k (Nat.sub i (PeanoNat.Nat.pow (S (S O)) k)) term)
+      end
+  end
+     : forall (n _ : nat) (term : Alg.Core.Algebra), Alg.Core.domain term (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments word_bit_spec (n i)%nat_scope {term}
+parse_sequence_bit31 =
+fun term : Alg.Core.Algebra =>
+@SC.take
+  (Ty.Prod
+     (Ty.Prod
+        (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)))
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))))
+     (Ty.Prod
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S O)))
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S O)))))
+  (Ty.Prod
+     ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+         match n return Ty.Ty with
+         | O => X
+         | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+         end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+     ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+         match n return Ty.Ty with
+         | O => X
+         | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+         end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))) (Ty.Sum Ty.Unit Ty.Unit) term
+  (@SC.take
+     (Ty.Prod
+        (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)))
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))))
+     (Ty.Prod
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S O)))
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S O)))) (Ty.Sum Ty.Unit Ty.Unit) term
+     (@SC.take
+        (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)))
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))) (Ty.Sum Ty.Unit Ty.Unit) term
+        (@SC.take (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)) (Ty.Sum Ty.Unit Ty.Unit) term
+           (@SC.take (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+              (@SC.iden (Ty.Sum Ty.Unit Ty.Unit) term)))))
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments parse_sequence_bit31 {term}
+parse_sequence_bit22 =
+fun term : Alg.Core.Algebra =>
+@SC.take
+  (Ty.Prod
+     (Ty.Prod
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S O)))
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S O))))
+     (Ty.Prod
+        (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)))
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O)))))
+  (Ty.Prod
+     ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+         match n return Ty.Ty with
+         | O => X
+         | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+         end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+     ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+         match n return Ty.Ty with
+         | O => X
+         | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+         end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))) (Ty.Sum Ty.Unit Ty.Unit) term
+  (@SC.drop
+     (Ty.Prod
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S O)))
+        ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+            match n return Ty.Ty with
+            | O => X
+            | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+            end) (Ty.Sum Ty.Unit Ty.Unit) (S (S O))))
+     (Ty.Prod
+        (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)))
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O)))) (Ty.Sum Ty.Unit Ty.Unit) term
+     (@SC.take
+        (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)))
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S O))) (Ty.Sum Ty.Unit Ty.Unit) term
+        (@SC.take (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) O)) (Ty.Sum Ty.Unit Ty.Unit) term
+           (@SC.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+              (@SC.iden (Ty.Sum Ty.Unit Ty.Unit) term)))))
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments parse_sequence_bit22 {term}
+parse_sequence_spec =
+fun term : Alg.Core.Algebra =>
+@SC.comp (Word.Word (S (S (S (S (S O))))))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+     (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))))
+  (Ty.Sum Ty.Unit
+     (Ty.Sum
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))))) term
+  (@SC.pair (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit Ty.Unit)
+     (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) term (@parse_sequence_bit31 term)
+     (@SC.pair (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit Ty.Unit)
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))) term (@parse_sequence_bit22 term)
+        (@SC.drop
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))) term
+           (@SC.iden
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))) term))))
+  (@Bit.cond
+     (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+        (Ty.Prod
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+           ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+               match n return Ty.Ty with
+               | O => X
+               | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+               end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))))
+     (Ty.Sum Ty.Unit
+        (Ty.Sum
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))))) term
+     (@SC.injl
+        (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) Ty.Unit
+        (Ty.Sum
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) term
+        (@SC.unit
+           (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) term))
+     (@SC.injr
+        (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) Ty.Unit
+        (Ty.Sum
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) term
+        (@Bit.cond
+           (Ty.Prod
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                  match n return Ty.Ty with
+                  | O => X
+                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+           (Ty.Sum
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) term
+           (@SC.injr
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))) term
+              (@SC.iden
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))) term))
+           (@SC.injl
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+              (Ty.Prod
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                 ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X
+                     | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                     end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))) term
+              (@SC.iden
+                 (Ty.Prod
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))) term)))))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+
+Arguments parse_sequence_spec {term}
+parse_sequence_enabled =
+fun r : Integers.Int64.int =>
+Integers.Int64.ltu r
+  (Integers.Int64.shl Integers.Int64.one
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+     : forall _ : Integers.Int64.int, bool
+
+Arguments parse_sequence_enabled r
+parse_sequence_tag =
+fun r : Integers.Int64.int =>
+negb
+  (Integers.Int64.eq
+     (Integers.Int64.and r
+        (Integers.Int64.shl Integers.Int64.one
+           (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     Integers.Int64.zero)
+     : forall _ : Integers.Int64.int, bool
+
+Arguments parse_sequence_tag r
+parse_sequence_payload =
+fun r : Integers.Int64.int =>
+Integers.Int64.and r
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+     : forall _ : Integers.Int64.int, Integers.Int64.int
+
+Arguments parse_sequence_payload r
+skip_frame_env =
+fun (bf : Values.block) (base n : BinNums.Z) =>
+@Maps.PTree.set Values.val _n (Values.Vlong (Integers.Int64.repr n))
+  (@Maps.PTree.set Values.val _frame (Values.Vptr bf (Integers.Ptrofs.repr base))
+     (Clight.create_undef_temps (Clight.fn_temps f_skipBits)))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments skip_frame_env bf (base n)%Z_scope
+long_one_shift_expr =
+fun k : BinNums.Z =>
+Clight.Ebinop Cop.Oshl
+  (Clight.Ecast (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint) Ctypesdefs.tulong)
+  (Clight.Econst_int (Integers.Int.repr k) Ctypesdefs.tint) Ctypesdefs.tulong
+     : forall _ : BinNums.Z, Clight.expr
+
+Arguments long_one_shift_expr k%Z_scope
+parse_sequence_enabled_expr =
+Clight.Ebinop Cop.Olt (Clight.Etempvar _nSequence Ctypesdefs.tulong)
+  (long_one_shift_expr (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))) Ctypesdefs.tint
+     : Clight.expr
+parse_sequence_tag_expr =
+Clight.Ebinop Cop.Oand (Clight.Etempvar _nSequence Ctypesdefs.tulong)
+  (long_one_shift_expr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))) Ctypesdefs.tulong
+     : Clight.expr
+parse_sequence_payload_expr =
+Clight.Ebinop Cop.Oand (Clight.Etempvar _nSequence Ctypesdefs.tulong)
+  (Clight.Econst_int
+     (Integers.Int.repr
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+     Ctypesdefs.tint) Ctypesdefs.tulong
+     : Clight.expr
+le_parse_sequence_x =
+fun (env : Values.val) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block)
+  (sofs : Integers.Ptrofs.int) (r : Integers.Int64.int) =>
+@Maps.PTree.set Values.val _nSequence (Values.Vlong r)
+  (@Maps.PTree.set Values.val _t'1 (Values.Vlong r)
+     (jet_arith8_layout_exec.le_arith8_layout env f_simplicity_parse_sequence bd dofs bs sofs))
+     : forall (_ : Values.val) (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Values.block)
+         (_ : Integers.Ptrofs.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments le_parse_sequence_x env bd dofs bs sofs r
+le_parse_sequence_flag =
+fun (env : Values.val) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block)
+  (sofs : Integers.Ptrofs.int) (r : Integers.Int64.int) =>
+@Maps.PTree.set Values.val _t'2
+  (Values.Vint
+     match parse_sequence_enabled r return Integers.Int.int with
+     | true => Integers.Int.one
+     | false => Integers.Int.zero
+     end) (le_parse_sequence_x env bd dofs bs sofs r)
+     : forall (_ : Values.val) (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Values.block)
+         (_ : Integers.Ptrofs.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments le_parse_sequence_flag env bd dofs bs sofs r
+parse_sequence_branch_calls =
+fun (mb me : Memory.Mem.mem) (bd : Values.block) (dofs : Integers.Ptrofs.int) (r : Integers.Int64.int) =>
+match parse_sequence_enabled r return Prop with
+| true =>
+    @ex Memory.Mem.mem
+      (fun mt : Memory.Mem.mem =>
+       and
+         (ClightBigstep.Clight2.eval_funcall ge0 mb (@Ctypes.Internal Clight.function f_writeBit)
+            (@cons Values.val (Values.Vptr bd dofs)
+               (@cons Values.val
+                  (Values.Vint
+                     match parse_sequence_tag r return Integers.Int.int with
+                     | true => Integers.Int.one
+                     | false => Integers.Int.zero
+                     end) (@nil Values.val))) Events.E0 mt
+            (Values.Vint
+               match parse_sequence_tag r return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end))
+         (ClightBigstep.Clight2.eval_funcall ge0 mt (@Ctypes.Internal Clight.function (wide_writer W16))
+            (@cons Values.val (Values.Vptr bd dofs)
+               (@cons Values.val (Values.Vlong (parse_sequence_payload r)) (@nil Values.val))) Events.E0 me
+            Values.Vundef))
+| false =>
+    ClightBigstep.Clight2.eval_funcall ge0 mb (@Ctypes.Internal Clight.function f_skipBits)
+      (@cons Values.val (Values.Vptr bd dofs)
+         (@cons Values.val
+            (Values.Vlong
+               (Integers.Int64.repr (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+            (@nil Values.val))) Events.E0 me Values.Vundef
+end
+     : forall (_ : Memory.Mem.mem) (_ : Memory.Mem.mem) (_ : Values.block) (_ : Integers.Ptrofs.int)
+         (_ : Integers.Int64.int), Prop
+
+Arguments parse_sequence_branch_calls mb me bd dofs r

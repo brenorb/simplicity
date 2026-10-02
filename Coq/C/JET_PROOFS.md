@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 135 jets of the C library
+Coq proofs that the generated CompCert Clight of 136 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -33,6 +33,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `multiply_8/16/32` | `multiply_word_spec`, literal canonical `iden &&& (unit >>> zero word2N) >>> full_multiply wordN` |
 | `full_multiply_8/16/32` | `Word.fullMultiplier`, the canonical four-input `Programs.Arith.full_multiply wordN` |
 | `parse_lock` | Literal `Programs.TimeLock.parseLock`, including the canonical 500000000 constant and subtraction-borrow branch |
+| `parse_sequence` | Literal `Programs.TimeLock.parseSequence`: bit31 disables the result; otherwise bit22 selects the low 16-bit payload branch |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -82,7 +83,17 @@ encoding to the existing tag-plus-word writer observation. The proof derives
 the reader, both writes and local allocation/copy/free from initial contracts,
 supports all valid crossings and arbitrary unrelated output contents, and
 exports context substitution and deterministic call-boundary guarantees.
-`parse_sequence` is not covered by this result.
+The separate `jet_parse_sequence_layout.v:parse_sequence_local_spec` proves
+the complete `Programs.TimeLock.parseSequence` call. Its actual first
+`writeBit` return controls the branch: enabled inputs write bit22 and the
+low 16-bit payload, while disabled inputs execute `skipBits 17`. The latter
+changes only the cursor; the 17 undefined encoding cells have existing
+physical storage with arbitrary contents, not assumed zero. Both branches
+support valid word crossings, preserve the output prefix and bound memory
+effects. Allocation, source copying, read32, writes/skipping and freeing are
+derived from initial contracts. The exact long shifts, mask operations and
+Boolean argument casts remain in the execution proof. Context substitution
+and deterministic call-boundary guarantees are also checked.
 
 ## What is proved
 

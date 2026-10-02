@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 135 covered core jets: verify, parse_lock; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 136 covered core jets: verify, parse_lock, parse_sequence; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 398 declarations without coverage
+There are 397 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -523,9 +523,8 @@ tree otherwise contains only Coq files.
    general. Canonical local/context/call-guarantee results are in the expanded
    133-module audit. This C declaration is core despite its BitcoinJet catalog
    constructor; it requires no application primitive or environment model.
-   **Next independent consumer: parse_sequence.** Three later helper modules
-   have explicit compilation, direct kernel checking and closed per-result
-   assumption checks, but are not in the 133-module public audit yet.
+   **parse_sequence completed.** The expanded 140-module audit includes its
+   complete C-call consumer and the preceding representation infrastructure.
    `jet_word_bit_spec.v` shares an index-parametric take/drop bit projection
    and symbolic numeric bridge. `jet_int64_bit_mask.v` proves the top-bit
    threshold and isolated-bit mask/nonzero bridges for the actual long carrier.
@@ -533,22 +532,30 @@ tree otherwise contains only Coq files.
    its bit31/bit22 projection paths, payload decoding, actual carrier-to-program
    bridge and both sum encodings. Disabled output is a false tag followed by
    17 undefined cells; enabled output is a true tag, bit22 and the low 16 bits.
-   These 18 results are representation infrastructure, not added jet coverage.
-   `jet_skipBits_layout.v` now proves the actual `f_skipBits` cursor decrement
+   These 18 closed results are shared representation infrastructure. The
+   separate execution/layout results establish the added jet coverage.
+   `jet_skipBits_layout.v` proves the actual `f_skipBits` cursor decrement
    from initial writable frame conditions, including its PRODUCTION
    assertion loop with a constant-false guard. The initial-only contract
    derives the cursor store and preserves every load outside that field,
    permissions and valid blocks. Its padding contract establishes physical
    existence of arbitrary skipped cells and preserves the output prefix;
-   it does not require zero contents. This module has explicit compilation,
-   fresh kernel checking and per-result assumption inspection (only existing
-   inherited assumptions), but is not in the public audit yet. Then execute
-   parse_sequence's actual read, first Boolean-returning writer, conditional
-   branch (second tag/write16 or skip17), true return and local cleanup.
-   On the skip branch derive physical existence of the undefined padding cells
-   from the initial writable output frame; do not require them to be zero.
-   Retain the actual shifted long masks and argument casts. Add these helper
-   results to the expanded type/assumption audit with the complete jet consumer.
+   it does not require zero contents. `jet_parse_sequence_exec.v` executes the
+   actual read, first Boolean-returning writer, conditional branch (second
+   tag/write16 or skip17), true return and local cleanup. The writer module
+   composes both branches, preserving the first flag also across word
+   boundaries. `jet_parse_sequence_layout.v` derives the entire call from
+   initial frames and exports canonical local/context/call guarantees.
+   All actual shifted long masks and argument casts are retained. The audit
+   has 719 results (205 closed); prior types, assumptions and the inherited
+   kernel axiom list are unchanged. AST regeneration and negative gates pass.
+   **Next copy-family representation bridge.** `jet_full_shift_cells.v` proves
+   that canonical full-left/full-right-shift1 rebalances tuples without
+   changing their serialized cells, for arbitrary element types and vector
+   sizes. It has separate compilation/kernel/closed-assumption checks after
+   the integrated audit, but is not in its public snapshots yet. This does
+   not add full-shift jet coverage: actual copyBits paths, including the
+   unspecified external memcpy paths, still require execution proofs.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
