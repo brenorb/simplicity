@@ -1715,3 +1715,28 @@ The prior complete shift audit covers 186/533 jets. The next proof obligation
 is the literal Programs.Arith recursive division/normalization bridge, not
 another mathematical specification or assumed numeric identity. See
 JET_ROADMAP.md for the exact canonical dependency chain.
+
+## Shared canonical full-shift observations (2026-10-02)
+
+`jet_vector_shift_word.v` proves numeric conservation, range and both output
+projections of the literal Word.full_left/right_shift1 programs with arbitrary
+ToZ base items. `jet_full_shift_spec.v` supplies typed adapters corresponding
+to Programs.Word.full_shift when one word is a vector of the other. Transparent
+product equalities identify Vector (Word n) m with Word (m+n); a checked
+representation induction proves that those casts preserve numeric values.
+The adapters are parametric and their value/quotient/remainder observations
+are symbolic in both word values and widths.
+
+Current-source coqc and fresh independent kernel checks exited 0 for both
+modules (`16239`, `5915`). All 24 new results / six definitions are closed
+under the global context; explicit static scans pass. Local source commits
+are `473aa63` and `f999311`. These are internal canonical-program bridges,
+not new C jet equivalence entries. They support division normalization and
+eventual fixed-block full-shift jets; the latter still require actual copyBits
+calls, including its currently unproved external memcpy paths.
+
+Both manifests and public lists register these additions. Integrated audit
+`76184` is running against baseline `723ec34`; poll the same handle and keep
+registered sources/manifests/lists frozen until it is terminal. Snapshot review
+must remove only these 24 results / six definitions and preserve inherited
+kernel axioms. Coverage remains 186/533, not goal completion.

@@ -910,6 +910,18 @@ tree otherwise contains only Coq files.
    Removing only the 21 results / 19 definitions reproduces the `7e90c02`
    snapshots byte-for-byte; inherited kernel axioms are unchanged. Coverage
    remains 186 entries: none of these numeric helpers is a canonical jet proof.
+   **Shared canonical full-shift bridges.** `jet_vector_shift_word.v` proves
+   value conservation and quotient/remainder observations of the literal
+   Word.full_left/right_shift1 programs for arbitrary ToZ base items.
+   `jet_full_shift_spec.v` casts nested Word vectors to ordinary Word types,
+   proves numeric preservation of those casts, and exports parametric canonical
+   full-shift adapters with both numeric projections. No proof irrelevance or
+   new axiom is needed for these transports: product equality is transparent.
+   Both sources and fresh kernel checks pass; every new result/definition has
+   a closed assumption check. The two modules / 24 results / six definitions
+   are registered without coverage additions. Integrated audit `76184` is
+   running against baseline `723ec34`; poll that handle and freeze registered
+   sources/manifests/lists. Remove only these entries when reviewing snapshots.
    **Next: literal canonical division bridge**, then div_mod/divides consumers.
    Mirror Programs.Arith.div3n2n, div2n1n, divPreShift and divPostShift; retain
    the exact CoreJets div_mod program and its quotient/remainder projections.
