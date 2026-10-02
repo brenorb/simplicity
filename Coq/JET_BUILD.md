@@ -1107,3 +1107,23 @@ previous theorem contracts, assumption sets and the inherited kernel axiom
 allowlist are unchanged. Negative tests and byte-identical AST regeneration
 passed; the subsequent normal public-contract comparison also passed.
 Public coverage remains 127/533: these are helper results, not new jets.
+
+## multiply_8/16/32 verification (2026-10-02)
+
+The five multiplication modules were explicitly compiled and independently
+kernel checked with exit 0. The subsequent complete
+`check-jets.sh --update-expected --ast` run also finished with exit 0:
+120 public-audit modules, 630 audited results, 166 closed. Reviewed snapshots
+add only 25 results and 13 definitions; all previous contracts/assumption sets
+and the inherited kernel axiom allowlist are unchanged. The assumption sets
+of the new local specs contain only the existing six Coq/CompCert assumptions;
+the shared numeric bridges are closed. Context/call guarantees retain the
+existing external-call-properties assumptions. No new axioms or execution
+premises were added to the final jet contracts.
+
+Coverage/inventory tests, negative gate tests and byte-identical AST
+regeneration passed. A subsequent normal public-contract comparison passed,
+as did the optional regression target. Coverage is now 130/533, with 403
+remaining; `jet-coverage.py --require-complete` still fails as intended.
+The earlier clean Nix reproduction covers its recorded 127-jet revision, not
+these later modules. No newer clean Nix or remote CI run is claimed.

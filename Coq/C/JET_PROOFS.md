@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 127 jets of the C library
+Coq proofs that the generated CompCert Clight of 130 jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -28,12 +28,26 @@ expression in a local, explicitly described context.
 | `is_zero/is_one_8/16/32/64` | `is_zero_word_spec` / `is_one_word_spec`, canonical negated-some and decrement-payload-zero compositions |
 | `min/max_8/16/32/64` | `minmax_word_spec`, canonical le-and-input followed by conditional projections |
 | `median_8/16/32/64` | `median_word_spec`, the literal canonical nested min/max composition |
+| `multiply_8/16/32` | `multiply_word_spec`, literal canonical `iden &&& (unit >>> zero word2N) >>> full_multiply wordN` |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
 continuation plan are in [JET_ROADMAP.md](JET_ROADMAP.md).
+
+For multiplication, `jet_multiply8_layout.v:multiply8_local_spec` and
+`jet_multiply_wide_layout.v:multiply16_local_spec` / `multiply32_local_spec`
+prove the complete actual C calls against those canonical programs. The
+initial-only contracts support arbitrary valid input/output cursors and
+crossings, unrelated output contents, prefix preservation and memory framing.
+Two readers run before the doubled-width writer; local frame allocation,
+copying and freeing are derived rather than assumed. Context substitution and
+call-boundary guarantees reuse the existing generic theorems.
+`jet_multiply_spec.v` shares the symbolic carrier bridge across all three
+widths. The byte adapter preserves the actual unsigned byte-to-long casts;
+the wide adapter selects separate input-reader and output-writer widths.
+`multiply_64` uses uint128 helpers and is not covered by these results.
 
 ## What is proved
 
