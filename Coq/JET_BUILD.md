@@ -1352,4 +1352,20 @@ signed-int, unsigned-int and unsigned-long carriers. The final specifications
 retain the literal canonical conditional padding program. No cursor or
 initial-output restrictions were added. Both project manifests and public
 audit/coverage lists include the family. Coverage entries are 149/533
-(384 remaining); the expanded integrated audit is pending.
+(384 remaining). The expanded audit result follows below.
+
+## Integrated padding/extension audit (2026-10-02)
+
+The complete `JOBS=12 check-jets.sh --update-expected --ast` run exited 0:
+static/inventory/coverage tests, public build, fresh kernel check of 162
+modules, 829 public-result assumption and contract snapshots (239 closed),
+negative escape-hatch and impossible-premise tests, and pinned AST regeneration.
+The 54 added result snapshots and 24 added definition snapshots cover the
+canonical bridges, shared lifecycle and eight right-padding/left-extension
+jets. Removing those new entries yields byte-for-byte identical previous
+contract and assumption snapshots. The inherited 15 library-level kernel
+axioms are unchanged, with no type-in-type, unsafe recursion or assumed
+positivity. All eight local specs retain only the existing six assumptions.
+The separate regression build also exited 0. Coverage is 149/533, with 384
+remaining; the completeness gate is intentionally not satisfied. These are
+local checks, not a new clean Nix or remote CI result.

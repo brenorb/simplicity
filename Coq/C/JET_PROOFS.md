@@ -80,7 +80,8 @@ The specification retains the literal conditional high/low padding program,
 not merely a numerical characterization. All four final local specs discharge
 the internal helper contracts and retain arbitrary valid cursors, crossings,
 unrelated output contents and memory framing. Context and call-boundary
-guarantees are included; the integrated audit is pending.
+guarantees are included. The expanded 162-module integrated audit passed;
+the exact result and assumption counts are recorded in JET_BUILD.md.
 
 For multiplication, `jet_multiply8_layout.v:multiply8_local_spec` and
 `jet_multiply_wide_layout.v:multiply16_local_spec` / `multiply32_local_spec`

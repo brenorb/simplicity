@@ -598,7 +598,7 @@ tree otherwise contains only Coq files.
    and left-extension terms, parametricity and byte/wide carrier bridges.
    Explicit source compilation and fresh kernel checking passed; all seven
    lemma assumptions are closed. Both project manifests include it, but this
-   post-audit module is not yet in public snapshots and adds no jet coverage.
+   module is now in public snapshots but adds no jet coverage on its own.
    For right padding, adapt the exact cast/shift/cast expression in the
    generated body and prove its 7/15/31/63 shift guards. For extension, retain
    the conditional _t'2 assignment: tint at 8/16, tuint at 32, tulong at 64.
@@ -612,7 +612,7 @@ tree otherwise contains only Coq files.
    `jet_right_pad_bit{8,_wide}_{exec,layout}.v` completes all four calls,
    including exact casts and 7/15/31/63 shift guards. Source compilation,
    fresh independent kernel checks and local-spec assumption checks passed;
-   the expanded integrated audit is pending. Four `left_extend_1` consumers
+   the expanded 162-module integrated audit passed. Four `left_extend_1` consumers
    now reuse this lifecycle, proving the actual conditional assignment,
    all-ones constants and casts against the literal canonical conditional
    padding program. All four compile from current source and passed fresh
