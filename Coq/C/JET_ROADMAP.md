@@ -15,19 +15,23 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 205 registered core proof entries: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides/div_mod at 8/16/32/64 bits,
+There are 206 registered core proof entries: verify, parse_lock, parse_sequence,
+sha_256_iv and sha_256_ctx_8_init; left_pad_low_1/right_pad_low_1/left_extend_1 at
+8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits;
+left/right_extend_16 at 32/64 bits and left/right_extend_32_64;
+left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits;
+one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides/div_mod at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8/16/32/64 bits, and div_mod_128_64.
-There are 328 declarations without coverage
-entries, including all Bitcoin and Elements jets. The latest completed integrated
-audit `54062` covers all 204 entries, including complete DivMod128_64 and
-multiply64 public contracts and their supporting actual lifecycle/helper calls.
-All gates, negative fixtures and pinned AST regeneration passed on 332 modules /
-1559 results (632 closed).
-Earlier snapshots and the 15 inherited kernel axioms are unchanged.
-Both complete public DivMod128_64 and multiply_64 theorems are integrated and audited.
-The complete full_multiply_64 public contract independently passes source/scans,
-assumption checks and a fresh kernel; it is registered and awaits expanded auditing.
+There are 327 declarations without coverage entries, including all Bitcoin and
+Elements jets. The latest completed integrated audit `45575` covers 205 public
+entries, including DivMod128_64, multiply64 and fullMultiply64, plus the complete
+initialized-context writer infrastructure (350 modules / 1623 results, 667 closed).
+All gates, negative fixtures and pinned AST regeneration passed. Earlier
+snapshots and the 15 inherited kernel axioms are unchanged; accepted baseline
+is `a77fcf0`. The complete public sha_256_ctx_8_init theorem passes current-source,
+scan, assumption and fresh kernel checks; its nine additional modules are now
+registered for expanded integration (359 modules / 1649 results, 206 entries).
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -1197,7 +1201,7 @@ tree otherwise contains only Coq files.
    complete actual public call against literal ctx8Init, including five local
    allocations, every initializer store, both 88-byte context copies, the
    830-cell writer, return and cleanup. Fresh current-source/kernel checks pass;
-   registration waits for the live context-writer audit `45575`. Shared typed
+   registration followed the accepted context-writer audit `45575`. Shared typed
    By_copy field preservation and size-parameterized four-local lifecycle
    lemmas avoid duplicating those obligations in later consumers. This is one
    public jet, not coverage for context add/finalize/compression.

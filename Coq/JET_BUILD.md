@@ -2088,3 +2088,9 @@ and the inherited global kernel axiom list is unchanged. Accept these helper
 snapshots; public coverage remains 205/533, with the completed context-init public
 theorem ready for registration. The registered sources/manifests are no longer
 frozen for this completed run.
+
+After accepting `45575` at `a77fcf0`, the nine complete context-init modules /
+26 results / 15 definitions and exact public coverage entry are registered
+(206/533, 327 remaining; 205 fully integrated so far). Run the expanded
+359-module / 1649-result audit against that accepted baseline. Helpers do not
+count separately, and no context add/finalize/compression result is claimed.

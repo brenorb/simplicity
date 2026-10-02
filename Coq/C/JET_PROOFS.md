@@ -61,9 +61,19 @@ the new entries reproduces accepted `87d0082` contracts/assumptions byte-for-byt
 and the inherited kernel axioms are unchanged. Pure buffer/context bridges and the
 false-tag/skip sequence are infrastructure only, not SHA context jet coverage.
 
+Audit `45575` also passed every gate, negative fixture and exact AST regeneration
+for the complete empty-buffer/context writer infrastructure (350 modules / 1623
+results, 667 closed), without changing older contracts or assumptions. The
+complete public `sha256_ctx8_init_local_spec` now passes current-source and fresh
+kernel checks and is registered for the next audit (206/533 registered, 327
+remaining; 205 fully integrated). It derives the actual caller/initializer
+allocations, stores, struct copies, writer and frees from initial frames; no
+intermediate execution is assumed. Its encoding is the literal 830-cell ctx8Init.
+
 | Jet | Simplicity specification |
 | --- | --- |
 | `verify` | Literal `Programs.Bit.verify`: `iden &&& unit >>> assertr cmrFail0 oh`, in option/assertion semantics |
+| `sha_256_ctx_8_init` | Literal `Programs.Sha256.ctx8Init`: `buffer63Empty &&& (zero word64 &&& iv)`; complete actual initializer/copies/writer/cleanup |
 | `div_mod_128_64` | Literal `Prog.div2n1n word64`, including its invalid-input all-ones result; complete allocation/copy/read/helper/write/free execution |
 | `low_1/8/16/32/64` | `Word.zero` (the `Prog.zero wordN` specifications of CoreJets) |
 | `high_1/8/16/32/64` | `Word.fill Bit.true` (the `Prog.high wordN` specifications of CoreJets) |
