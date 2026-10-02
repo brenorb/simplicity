@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 174 registered covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate at 8/16/32/64 bits; left/right_shift_8 and left/right_shift_with_8; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 176 registered covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate at 8/16/32/64 bits; left/right_shift at 8/16 bits and left/right_shift_with_8; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 359 declarations without coverage
+There are 357 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -806,7 +806,7 @@ tree otherwise contains only Coq files.
    complemented canonical word. Its source and fresh independent kernel check
    passed; the checked representation and involution results are closed.
    These value lemmas support fill-input proofs but add no coverage by themselves.
-   **Next: 16/32/64 scalar shifts, including fill variants.** The 16-bit
+   **Zero-fill 16-bit shifts: complete canonical contracts; expanded audit pending.** The 16-bit
    helper reads its count with read4, its payload with read16 into Vlong and
    writes through write16. There is no payload uchar cast. The right shift
    is unsigned Int64.shru, unlike the promoted signed Int.shr byte helper;
@@ -815,12 +815,36 @@ tree otherwise contains only Coq files.
    accounted for in reusable execution. Adapt actual ASTs while sharing
    canonical controls and reader/writer contracts; do not substitute a
    mathematical shift specification or merely rename the byte carrier.
-   `jet_shift_wide_expr.v` is checked, unregistered follow-on infrastructure:
+   `jet_shift_wide_expr.v` is registered shared infrastructure:
    exact body shapes for all six LP64 helpers and shared scalar, fill and
    count expression evaluation. Source and fresh independent kernel checks
    passed. The width-specific fill constants retain their actual C types:
-   signed int 65535, unsigned int -1, unsigned long -1. No wide helper call,
-   initial-frame consumer or wider shift jet coverage is claimed yet.
+   signed int 65535, unsigned int -1, unsigned long -1.
+   `jet_shift_wide_helper_exec.v` now executes all six actual helpers through
+   internal reader/writer contracts, both fill flags and every count branch.
+   `jet_shift_wide_exec.v` executes their six zero-fill public wrappers;
+   these internal results alone are not jet coverage. The 16-bit initial-frame
+   theorem in `jet_shift16_layout_machine.v` discharges all internal calls,
+   allocations, copies, writes and cleanup. `jet_shift16_spec.v` retains the
+   literal canonical program, normalizing only the 16 controls with symbolic
+   payload bits. `jet_shift_wide_bits.v` proves the shared low-bit branch bridge,
+   including shifts past the logical/carrier width and no count modulo.
+   `jet_shift16_word.v` connects the writer's decoded value to the canonical
+   program. Both named specs in `jet_shift16_layout.v` passed fresh kernel and
+   assumption checks (same six inherited assumptions; pure bridges closed).
+   Eight modules / 27 results / 21 definitions are registered, bringing entries
+   to 176/533 (357 missing). Their expanded audit is pending; the last completed
+   audit covers 174.
+   **Next: fill-controlled 16-bit shifts, then 32/64-bit shifts.** Reuse the
+   complete helper with the bit-read flag, derive a bit/read4/read16 sequence
+   from initial frames and inspect both fill toggles. Unlike the byte helper,
+   wide left shifts can retain upper bits until writing: prove the second
+   XOR's low bits directly, rather than asserting a false exact truncated
+   carrier equality. For 32/64-bit consumers use read8 controls and the existing
+   read8/wide sequence; retain >=width zero-fill behavior and final SingleV
+   controls in the canonical program. Extend the canonical normalization
+   structurally if exhaustive control normalization becomes expensive; do
+   not enumerate payload values or replace the program by a mathematical spec.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical

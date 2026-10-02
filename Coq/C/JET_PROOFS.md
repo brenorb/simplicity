@@ -48,6 +48,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `left_rotate_8`, `right_rotate_8` | `rotate8_spec`, literal canonical `Programs.Word.left/right_rotate word4 word8` |
 | `left_shift_8`, `right_shift_8` | `shift8_plain_spec`, literal `false &&& iden >>> Programs.Word.left/right_shift_with word4 word8` |
 | `left_shift_with_8`, `right_shift_with_8` | `shift8_with_spec`, literal `Programs.Word.left/right_shift_with word4 word8` with an input fill bit |
+| `left_shift_16`, `right_shift_16` | `shift16_plain_spec`, literal `Programs.Word.left/right_shift word4 word16` |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The wide left-rotation specs and shared helpers passed every integrated gate
@@ -79,6 +80,10 @@ Their expanded integrated audit passed all gates on 241 modules / 1148 results
 (392 closed), including negative tests and pinned AST regeneration. Earlier
 snapshots and the 15 inherited kernel axioms are unchanged. This completed
 audit covers 174 entries (359 jets remain).
+Both zero-fill 16-bit shifts now compile and have passed fresh kernel and
+individual assumption checks. Their eight modules / 27 results / 21 definitions
+are registered, bringing entries to 176/533 (357 remain). Their expanded
+integrated audit is pending; the last completed audit covers 174.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
@@ -111,6 +116,13 @@ preservation and local cleanup are derived from initial frames. The canonical
 complement normal form splits only fill/control values and payload product
 structure, not payload bit values. The final local specs retain the existing
 six assumptions; both payload and decoded specification bridges are closed.
+The 16-bit contracts execute the actual unsigned-long helper, its promoted
+multiply-by-one left shift or unsigned right shift, count cast and frame
+lifecycle. Shared expression and helper contracts cover all three wider widths
+and both fill flags, but only the named 16-bit zero-fill consumers count as
+additional jets. Their canonical bridge case-splits 16 controls only; payload
+bits remain symbolic. The generic low-bit count-branch bridge also handles
+oversized counts without reducing them modulo the word width.
 The shared helper execution covers both fill flags, but the fill-input public
 wrappers and canonical bridge remain unproved and are not claimed as coverage.
 

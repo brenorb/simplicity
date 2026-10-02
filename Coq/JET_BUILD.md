@@ -1591,11 +1591,28 @@ five definitions reproduces the completed 233-module assumption and contract
 snapshots at `b557293` byte-for-byte. The 15 inherited kernel axioms are unchanged.
 This completed audit covers 174/533 entries and does not complete the goal.
 
-`C/jet_shift_wide_expr.v` is unregistered follow-on infrastructure. It proves
+`C/jet_shift_wide_expr.v` is now registered through 16-bit consumers. It proves
 the exact generated shapes of all six 16/32/64-bit helpers and evaluates their
 scalar shifts, fill XORs and count comparisons, accounting for the three
 different mask-constant types and Int64 shifts with Vint counts. Its source
 compiled and fresh independent kernel check exited 0 with no unsafe recursion,
-assumed positivity or type-in-type. No complete wide helper execution or
-wider shift jet equivalence is claimed. Next compose actual count/payload
-readers and writers, reuse frame lifecycle, then prove canonical value bridges.
+assumed positivity or type-in-type.
+
+`C/jet_shift_wide_helper_exec.v` now composes all six generated LP64 helpers
+with both fill flags and count branches; `C/jet_shift_wide_exec.v` composes
+all six zero-fill wrappers. These contracts retain internal reader/writer
+premises, so they do not add coverage on their own. Both complete 16-bit
+zero-fill local specs now discharge them through initial frames, via
+`jet_shift16_layout_machine.v`, literal `jet_shift16_spec.v`, shared symbolic
+`jet_shift_wide_bits.v` and closed `jet_shift16_word.v`.
+All eight sources compiled; fresh independent checks, including a final
+`C.jet_shift16_layout` kernel check, exited 0 with no unsafe recursion,
+assumed positivity or type-in-type. Individual local-spec assumption checks
+retain the existing six assumptions; generic branch and decoded canonical
+bridges are closed. Eight modules / 27 results / 21 definitions are registered;
+entries are 176/533 (357 missing). The expanded integrated audit is pending.
+Compare updated snapshots against `c3c8548` after removing only these new
+results/definitions. The last completed audit covers 174/533.
+Next add fill-controlled 16-bit consumers with a mixed bit/read4/read16
+initial-state sequence and low-bit (not false exact truncated-carrier) XOR
+bridges, then extend 32/64-bit read8-controlled consumers.
