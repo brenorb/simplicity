@@ -905,10 +905,11 @@ tree otherwise contains only Coq files.
    canonical jet specifications. All eight divide/modulo jets remain uncovered.
    These seven modules / 21 results / 19 definitions are now registered in
    both manifests and public lists, with NO coverage additions. Their expanded
-   helper audit is running as session `27757`; poll the same handle and keep
-   registered sources/manifests/lists frozen. The completed shift audit covers
-   186 entries. Compare new snapshots against `7e90c02` after removing only
-   these helper entries; inherited kernel axioms must remain unchanged.
+   helper audit (`27757`) exited 0 through all gates, negative fixtures and
+   pinned AST regeneration: 278 modules / 1265 results (447 closed).
+   Removing only the 21 results / 19 definitions reproduces the `7e90c02`
+   snapshots byte-for-byte; inherited kernel axioms are unchanged. Coverage
+   remains 186 entries: none of these numeric helpers is a canonical jet proof.
    **Next: literal canonical division bridge**, then div_mod/divides consumers.
    Mirror Programs.Arith.div3n2n, div2n1n, divPreShift and divPostShift; retain
    the exact CoreJets div_mod program and its quotient/remainder projections.

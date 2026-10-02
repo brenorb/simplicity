@@ -1707,9 +1707,10 @@ theorems. The wide theorem shares W16/W32/W64 and the operation selector.
 
 The modules are now registered (21 results / 19 definitions) in both manifests
 and public audit lists, without adding coverage. The expanded helper audit is
-running as session `27757`; poll it rather than restarting, and freeze registered
-sources/manifests/lists. Its baseline is `7e90c02`: remove only these new helper
-entries to review snapshots, requiring inherited kernel axioms to stay unchanged.
+complete: session `27757` exited 0 through all gates, negative fixtures and
+pinned AST regeneration on 278 modules / 1265 results (447 closed). Removing
+only the 21 new results / 19 definitions reproduces the `7e90c02` snapshots
+byte-for-byte. The inherited 15 kernel axioms are unchanged.
 The prior complete shift audit covers 186/533 jets. The next proof obligation
 is the literal Programs.Arith recursive division/normalization bridge, not
 another mathematical specification or assumed numeric identity. See
