@@ -722,9 +722,10 @@ The clean Nix build started from immutable source
 `/nix/store/mm52rc5c1msa381k0wifrqgj0v8rk979-source` and derivation
 `/nix/store/j0s7vnj4mqq6cjjq05r5gzy72dqf3fdv-Simplicity-coq-jets-0.0.0.drv`.
 It contains the 127-jet median proofs and forwardBits helper, not the subsequent
-separated-call interface. Compilation, kernel checking on 90 public modules,
-and normal assumption/contract comparisons passed; negative tests are still
-running. Do not call this clean build successful until it finishes with exit 0.
+separated-call interface. The clean build finished with exit 0, including kernel
+checking on 90 public modules, normal assumption/contract comparisons and gate
+negative tests. Its installed result is
+`/nix/store/5cdvfbk7qg0vfrdxbnxy75kjn57067af-Simplicity-coq-jets-0.0.0`.
 
 ## copyBits wrapper composition (not jet coverage)
 
