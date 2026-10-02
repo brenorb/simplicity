@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 136 jets of the C library
+Coq proofs that the generated CompCert Clight of 137 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -34,12 +34,23 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `full_multiply_8/16/32` | `Word.fullMultiplier`, the canonical four-input `Programs.Arith.full_multiply wordN` |
 | `parse_lock` | Literal `Programs.TimeLock.parseLock`, including the canonical 500000000 constant and subtraction-borrow branch |
 | `parse_sequence` | Literal `Programs.TimeLock.parseSequence`: bit31 disables the result; otherwise bit22 selects the low 16-bit payload branch |
+| `sha_256_iv` | Literal `Programs.Sha256.Lib.iv`: canonical scribe of the 256-bit initial register constant |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
 continuation plan are in [JET_ROADMAP.md](JET_ROADMAP.md).
+
+For `sha_256_iv`, `jet_sha256_iv_layout.v:sha256_iv_local_spec` proves the
+complete actual C call, including source-frame and array allocation, source
+copy, all eight initializer stores, the actual write32s pointer/count loop,
+true return and both local frees. Initial-only contracts retain arbitrary
+valid cursors, crossings, unrelated output contents, prefix and memory framing.
+Context substitution and call-boundary guarantees reuse the generic results.
+`jet_uint32_array_init.v` and `jet_write32s_layout.v` share array initialization
+and serialization contracts; `jet_output_sequence_step.v` composes successive
+slice writes. This is not SHA256 compression or a claim about other hash jets.
 
 For multiplication, `jet_multiply8_layout.v:multiply8_local_spec` and
 `jet_multiply_wide_layout.v:multiply16_local_spec` / `multiply32_local_spec`

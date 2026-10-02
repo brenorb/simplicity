@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 136 covered core jets: verify, parse_lock, parse_sequence; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 137 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 397 declarations without coverage
+There are 396 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -556,25 +556,27 @@ tree otherwise contains only Coq files.
    the integrated audit, but is not in its public snapshots yet. This does
    not add full-shift jet coverage: actual copyBits paths, including the
    unspecified external memcpy paths, still require execution proofs.
-   **Next independent consumer: sha_256_iv.** The actual C helper initializes
+   **Completed independent consumer: sha_256_iv.** The actual C helper initializes
    eight uint32 words and the enclosing jet calls the actual write32s loop.
    `jet_uint32_array_init.v` proves a reusable constant-array statement/store
    contract from initial writable permissions. `jet_sha256_iv_init.v` applies
    it to the actual f_sha256_iv function, with all eight stores, framing and
    permission/block preservation derived. Its exact canonical scribe constant
    is checked against both Digest.sha256_iv and the serialized eight words.
-   These modules have explicit compilation and fresh kernel checks, but are
-   not in the public snapshots yet and add no jet coverage. The checked
+   These modules have explicit compilation and fresh kernel checks. The checked
    `jet_output_sequence_step.v` supplies slice-write continuation and prefix/
    cell preservation for successive writes. `jet_write32s_exec.v` executes the
    actual pointer/count loop; `jet_write32s_layout.v` derives its complete
    helper contract from the initial array and writable frame, retaining
-   arbitrary output contents, cursor crossings and memory framing. Next compose
-   repeated write32 calls under general output-frame contracts, execute the
-   actual write32s pointer/count loop, then derive the jet's two local
-   allocations, source copy, array initialization, write loop and cleanup.
-   Keep the arbitrary cursor/crossing/output-content contract; do not replace
-   the actual array writer with eight assumed writes or an aligned-only proof.
+   arbitrary output contents, cursor crossings and memory framing.
+   `jet_sha256_iv_exec.v` adapts the exact generated two-local body and
+   `jet_sha256_iv_layout.v:sha256_iv_local_spec` derives the complete call
+   against the canonical scribe term, including both allocations, source
+   copy, actual array initializer/write loop and both local frees. It exports
+   context and call-boundary guarantees. Coverage is now 137/533. The expanded
+   public type/assumption audit is pending; do not infer its success from the
+   individual compiler/kernel checks. Reuse the array read/write sequencing
+   for subsequent hash jets; compression still needs its own verified bridge.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
