@@ -46,8 +46,10 @@ The four modules / nine results / four definitions and public coverage entry are
 now integrated and audited (203/533, 330 remaining), with older snapshots and
 all inherited kernel axioms unchanged. The complete multiply_64 proof and its
 shared uint128 infrastructure also pass independent current-source/kernel checks;
-they are registered and await expanded auditing (204/533 registered, 329 remaining;
-203/533 integrated and audited). The concrete path is recorded
+their expanded audit `54062` passed every gate, negative fixtures and exact AST
+regeneration on 332 modules / 1559 results (632 closed). Coverage is now
+204/533 integrated and audited, 329 remaining; all prior contracts, assumptions
+and inherited kernel axioms are unchanged. The concrete path is recorded
 in [JET_ROADMAP.md](JET_ROADMAP.md).
 
 | Jet | Simplicity specification |

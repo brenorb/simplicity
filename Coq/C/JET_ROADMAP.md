@@ -20,14 +20,14 @@ low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply at 8/16/32/64 bits, full_multiply at 8/16/32 bits, and div_mod_128_64.
 There are 329 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
-audit `39496` covers all 203 entries, including the complete DivMod128_64 public
-contract and all supporting allocation/copy/read/helper/write/free proofs.
-All gates, negative fixtures and pinned AST regeneration passed on 322 modules /
-1520 results (610 closed).
+audit `54062` covers all 204 entries, including complete DivMod128_64 and
+multiply64 public contracts and their supporting actual lifecycle/helper calls.
+All gates, negative fixtures and pinned AST regeneration passed on 332 modules /
+1559 results (632 closed).
 Earlier snapshots and the 15 inherited kernel axioms are unchanged.
-The complete public DivMod128_64 theorem is integrated and audited. The complete
-multiply_64 public contract independently passes current-source coqc, scans,
-assumption checks and a fresh kernel; it is registered and awaits expanded auditing.
+Both complete public DivMod128_64 and multiply_64 theorems are integrated and audited.
+The complete full_multiply_64 public contract independently passes source/scans,
+assumption checks and a fresh kernel; it is not yet registered.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -1115,6 +1115,11 @@ tree otherwise contains only Coq files.
    and only inherited assumptions. Their 39 results / 27 definitions
    and named public entry are registered (204/533, 329 missing); run the expanded audit (332 modules /
    1559 results). Only the complete public theorem counts as added coverage.
+   Audit `54062` completed with terminal exit 0 through all gates, negative
+   fixtures and exact pinned AST regeneration (332 modules / 1559 results,
+   632 closed). Filtering the ten added modules and their new contract blocks
+   reproduces accepted `027ee37` byte-for-byte; all 15 inherited kernel axioms
+   remain unchanged. Accept these snapshots: multiply_64 is integrated.
    **full_multiply_64 now independently checked, not yet registered.** Six
    new modules prove the low-word carry/balance, both actual accumulator stores
    and intervening reloads, a width-generic initial-only four-reader sequence,

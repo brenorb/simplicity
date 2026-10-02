@@ -1928,14 +1928,13 @@ operation. Their 39 results / 27 definitions and public entry are now registered
 the expanded 332 modules / 1559 results. None of the private helper facts counts
 as a public jet. Continue with the two u128_accum_u64 calls for full_multiply_64.
 
-Expanded multiply64 integration audit is running as session `54062`, with
-accepted snapshot baseline `027ee37`. The registered sources/manifests/public
-lists are frozen until it terminates. Expect 332 modules / 1559 results. Accept
-the new snapshots only after terminal exit 0 through all gates, negative fixtures
-and pinned AST regeneration; then filter the ten new modules and their contract
-blocks to compare prior assumptions/contracts exactly, and verify unchanged
-global kernel axioms. New unregistered accumulator proof modules may be developed
-independently while this audit runs.
+Expanded multiply64 integration audit `54062` completed with terminal exit 0
+through every gate, negative fixtures and pinned AST regeneration: 332 modules /
+1559 results (632 closed). Filtering the ten new modules and their contract
+blocks reproduces accepted `027ee37` assumptions/contracts byte-for-byte; all
+15 global inherited kernel axioms remain unchanged. Accept the snapshots.
+multiply_64 is now fully integrated (204/533, 329 remaining). The registered
+sources/manifests/public lists are no longer frozen for this finished run.
 
 ## Independently checked fullMultiply64 consumer (2026-10-02)
 
