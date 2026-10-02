@@ -414,3 +414,22 @@ sets and the inherited allowlist unchanged. Negative tests and exact AST
 regeneration passed. The latest snapshots contain 234 audited results (29
 closed). There are 464 declarations without proof entries; the overall goal
 remains incomplete. Earlier Nix results do not certify this extension.
+
+### Byte and bit equality (2026-10-01)
+
+eq_8 and eq_1 extend the same canonical Generic.eq proof family. Both derive
+two real reader calls before the bit write and free their local source copy.
+The byte expression handles promoted uchar operands and Boolean conversion;
+the one-bit expression handles normalized Boolean reader results and casts.
+They retain arbitrary unrelated bits, valid non-wrapping cursors and crossings.
+
+The integrated check passed at 71/533 with 52 public modules, including
+negative tests and exact AST regeneration. Reviewed snapshots add 11 audited
+results (one closed) and 283 contract lines only. Previous theorem types and
+assumption sets, and the inherited axiom allowlist, are unchanged. There are
+245 audited results (30 closed), and 462 declarations without proof entries.
+
+The earlier clean Nix run also finished successfully at 66/533: the proof
+build took 4 min 58 s and checks took 9 min 37 s. Its result is
+`/nix/store/9wyvl6bmcqbbpwqr0vl7apqgznw50bvp-Simplicity-coq-jets-0.0.0`.
+It certifies the predicate extension, not these later equality additions.

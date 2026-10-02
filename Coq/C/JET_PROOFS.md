@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of sixty-nine jets of the C library
+Coq proofs that the generated CompCert Clight of seventy-one jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -13,7 +13,7 @@ expression in a local, explicitly described context.
 | `and/or/xor_1/8/16/32/64` | `binary_word_spec`, the exact `Prog.bitwise_bin` recursion with the canonical bit operations |
 | `maj/xor_xor/ch_1/8/16/32/64` | `ternary_word_spec`, the existing `Word.bitwiseTri` recursion with `Bit.maj` / `Bit.xor3` / `Bit.ch` |
 | `some_1/8/16/32/64`, `all_8/16/32/64` | `predicate_spec`, the exact recursive `Prog.some` / `Prog.all` programs |
-| `eq_16/32/64` | `equality_spec`, the exact Unit/Sum/Prod recursion of `Programs.Generic.eq` |
+| `eq_1/8/16/32/64` | `equality_spec`, the exact Unit/Sum/Prod recursion of `Programs.Generic.eq` |
 | `one_8`, `one_16`, `one_32`, `one_64` | `true >>> left_pad_low word1 wordN` |
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
@@ -93,6 +93,10 @@ the swapped sum routing and product conditional. Its closed symbolic bridge
 uses injectivity of the word's exact integer representation. The wide execution
 and layout adapters compose two real readers, the unsigned comparison, the
 bit writer and local cleanup; they export three complete eq_16/32/64 calls.
+The byte adapter accounts for integer promotions and the actual Boolean
+argument conversion. The bit adapter reuses two actual readBit calls and
+their Boolean casts, without adding fictitious branches or temporaries.
+Both export the same canonical, context and call-boundary results.
 The specification bridge alone is not counted as jet coverage.
 
 For the actual generated function body (`f_simplicity_<jet>`), a complete
