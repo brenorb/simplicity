@@ -1,12 +1,14 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 133 jets of the C library
-(`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
-computes, and that a call can replace the Bit Machine translation of that
-expression in a local, explicitly described context.
+Coq proofs that the generated CompCert Clight of 134 jets of the C library
+(`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
+The total, positive-output contracts also prove replacement of the Bit Machine
+translation in a local, explicitly described context. `verify` instead uses
+canonical option/assertion semantics, covering success and failure with no output.
 
 | Jet | Simplicity specification |
 | --- | --- |
+| `verify` | Literal `Programs.Bit.verify`: `iden &&& unit >>> assertr cmrFail0 oh`, in option/assertion semantics |
 | `low_1/8/16/32/64` | `Word.zero` (the `Prog.zero wordN` specifications of CoreJets) |
 | `high_1/8/16/32/64` | `Word.fill Bit.true` (the `Prog.high wordN` specifications of CoreJets) |
 | `complement_1/8/16/32/64` | `complement_spec`, the exact recursive `Prog.complement wordN` program |
@@ -59,6 +61,17 @@ the actual left-associated `x * y + z + w`, using the canonical output range
 and the nonnegative inputs. All four byte-to-long casts are retained; input
 and output widths are selected separately. The nested input encoding supplies
 four reads at successive word offsets. `full_multiply_64` is not covered.
+
+For `verify`, `jet_verify_layout.v:verify_local_spec` proves the complete
+actual C call against the literal canonical assertion program, including its
+canonical fail0 commitment hash. `jet_partial.v:jet_partial_local_spec` ties
+the Boolean return to option semantics on every input, keeps successful
+canonical output/prefix/cursor observations and bounds the memory footprint
+also on failure. `eval_verify_layout` proves the stronger fact that every
+pre-existing load is unchanged for either input bit. `verify_silent_guarantees`
+adds the existing deterministic small-step call-boundary guarantees for both
+return values. No success-only precondition is used. The current Core-only,
+positive-output context theorem is not applied to this zero-output assertion.
 
 ## What is proved
 

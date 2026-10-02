@@ -1156,3 +1156,22 @@ Context/call guarantees retain the existing external-call-properties assumptions
 Inventory/coverage tests, negative gate tests and byte-identical AST regeneration
 passed. Coverage is 133/533, with 400 remaining. The earlier clean Nix reproduction
 does not cover these later modules; no newer clean Nix or remote CI is claimed.
+
+## verify success/failure verification (2026-10-02)
+
+The four assertion/partial-contract/verify modules were explicitly compiled
+and independently kernel checked with exit 0. The complete
+`check-jets.sh --update-expected --ast` run finished with exit 0:
+130 public-audit modules, 669 audited results, 180 closed. Reviewed snapshots
+add only eight results and six definitions, including the partial contract,
+canonical assertion program/hash and existing assertion interpretation.
+All prior theorem types, assumption sets and the kernel axiom allowlist are
+unchanged. The option semantics and parametricity bridges are closed; the
+new local spec retains the existing six assumptions, and its small-step
+guarantees retain the existing external-call-properties assumptions.
+
+Coverage tests now explicitly exercise partial exact-function contracts,
+rejecting helper and wrong-function entries. These tests, negative gates and
+byte-identical AST regeneration passed. Coverage is 134/533, with 399 remaining.
+No additional ABI/build, clean Nix, remote CI, or assertion Bit Machine context
+translation claim is made by this verification.

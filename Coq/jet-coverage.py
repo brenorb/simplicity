@@ -95,7 +95,8 @@ def inventory():
             raise ValueError(f"coverage theorem not publicly audited: {module}.{theorem}")
         code = scanner.code_only((COQ / (module.replace(".", "/") + ".v")).read_text())
         statement = re.search(rf"\b(?:Theorem|Lemma|Corollary)\s+{re.escape(theorem)}\s*:(.*?)\bProof\.", code, re.S)
-        if not statement or not re.search(rf"\bjet_local_spec\s+f_{re.escape(name)}\b", statement[1]):
+        if not statement or not re.search(
+                rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b", statement[1]):
             raise ValueError(f"coverage entry is not a direct canonical jet theorem: {module}.{theorem}")
         jets[name]["proof"] = f"{module}.{theorem}"
     return list(jets.values())

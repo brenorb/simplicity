@@ -55,7 +55,21 @@ def main():
         manifest.write_text(original.replace("C.jet_constant_layout low1_local_spec",
                                               "C.jet_constant_layout unaudited_theorem"))
         rejects(coverage.inventory, "not publicly audited")
-    print("coverage tests passed: complete header inventory; unknown/duplicate/helper/unaudited entries rejected")
+        # Partial/assertion specs are accepted only as named, audited contracts
+        # of the exact public function, not as stronger helper results.
+        manifest.write_text(original.replace("C.jet_verify_layout verify_local_spec",
+                                              "C.jet_verify_layout verify_silent_guarantees"))
+        rejects(coverage.inventory, "not a direct canonical jet theorem")
+        manifest.write_text(original)
+        partial = project / "C/jet_verify_layout.v"
+        partial_original = partial.read_text()
+        partial.write_text(partial_original.replace(
+            "jet_partial_local_spec f_simplicity_verify",
+            "jet_partial_local_spec f_simplicity_some_1"))
+        rejects(coverage.inventory, "not a direct canonical jet theorem")
+        partial.write_text(partial_original)
+        assert coverage.inventory() == rows
+    print("coverage tests passed: complete header inventory; total/partial exact-function contracts; unknown/duplicate/helper/unaudited entries rejected")
 
 
 if __name__ == "__main__":

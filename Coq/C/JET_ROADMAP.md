@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 133 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 134 covered core jets: verify; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 400 declarations without coverage
+There are 399 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -514,18 +514,24 @@ tree otherwise contains only Coq files.
    three named complete jet contracts count as added coverage.
    `multiply_64` and `full_multiply_64` instead execute actual uint128 helpers
    and require separate adapters; do not force them into the scalar bodies.
-4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
-   infrastructure with a contract tied to the Simplicity assertion semantics,
-   covering both return values and the permitted memory effects on failure.
-   The inventory's theorem-shape validation must be extended explicitly for
-   that contract. Do not force partial specifications into a total function or
-   assume away failures merely to reuse the current predicate.
-   Start with `verify`: its actual body copies the source frame, reads one bit
+4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
+   an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
+   It determines the return value on every input, retains successful canonical
+   output/prefix/cursor observations and bounds memory effects on failure.
+   The inventory accepts named audited instances of this contract only for
+   their exact C function; negative tests reject helper and wrong-function
+   entries. Do not force partial specifications into total functions or assume
+   away failures. `verify` is completed: its actual body copies the source frame, reads one bit
    and returns that Boolean without a writer. Its canonical specification is
    `Programs.Bit.verify` (`iden &&& unit >>> assertr cmrFail0 oh`), interpreted
    in option/assertion semantics. Cover both true and false inputs, zero output
-   width, and preservation of all pre-existing memory loads. This is independent
-   of the unresolved external memcpy model.
+   width, and preservation of all pre-existing memory loads are proved.
+   Both returns have deterministic small-step call-boundary guarantees.
+   The current Core-only positive-output context theorem does not apply to
+   assertions or zero-output terms; no context-translation result is claimed
+   for verify. This does not limit its individual C-to-assertion equivalence.
+   Next reuse the contract for failure-capable cryptographic/application jets,
+   extending their environment and failure-memory observations as needed.
 5. **Hashing, secp256k1 and application primitives.** Reuse the library and
    existing cryptographic verification lemmas where they actually apply.
    `Simplicity/SHA256.v:hashBlock_correct` connects a Simplicity term to VST's

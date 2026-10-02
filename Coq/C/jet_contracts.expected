@@ -14137,6 +14137,95 @@ full_multiply8_context_guarantees
                (Values.Vint Integers.Int.one) mf)
             (and (bm_rep mf L s1)
                (runProgram (@Word.fullMultiplier (S (S (S O))) Naive.translate) (Running s0) (Running s1))))
+verify_spec_parametric
+     : @Alg.Assertion.Parametric (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (@verify_spec)
+verify_spec_option
+     : forall x : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         (@verify_spec (Alg.AssertionSem Option.option_Monad_Zero) x)
+         match
+           Bit.toBool x
+           return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         with
+         | true => @Some unit tt
+         | false => @None (Ty.tySem Ty.Unit)
+         end
+jet_total_to_partial
+     : forall (f : Clight.function) (A B : Ty.Ty) (spec : forall _ : Ty.tySem A, Ty.tySem B)
+         (_ : jet_local_spec f A B spec),
+       jet_partial_local_spec f A B (fun a : Ty.tySem A => @Some (Ty.tySem B) (spec a))
+verify_body
+     : @eq Clight.statement (Clight.fn_body f_simplicity_verify)
+         (Clight.Ssequence
+            (Clight.Sassign (Clight.Evar _src (Ctypes.Tstruct _frameItem Ctypes.noattr))
+               (Clight.Etempvar _src (Ctypes.Tstruct _frameItem Ctypes.noattr)))
+            (Clight.Ssequence bit_jet_read (Clight.Sreturn (@Some Clight.expr (Clight.Etempvar _t'1 Ctypesdefs.tbool)))))
+eval_verify_composes
+     : forall (env : Values.val) (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (mc mr mf : Memory.Mem.mem)
+         (bl bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (bytes : list Memdata.memval) (bit : bool) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes ma bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes ma bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mc (@Ctypes.Internal Clight.function f_readBit)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr
+                (Values.Vint (bit_int bit)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free mr bl BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_verify)
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         Events.E0 mf (Values.Vint (bit_int bit))
+eval_verify_layout
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi : Values.block) (edge : BinNums.Z) (bit : bool)
+         (rc : BinNums.Z) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc (BinInt.Z.sub Integers.Int64.max_unsigned (BinNums.Zpos BinNums.xH))))
+         (_ : frame_input_bit_at m bi edge rc bit),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_verify)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint (bit_int bit)))
+            (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b),
+             @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs)))
+verify_local_spec
+     : jet_partial_local_spec f_simplicity_verify (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit
+         (fun x : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit) => @verify_spec (Alg.AssertionSem Option.option_Monad_Zero) x)
+verify_silent_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi : Values.block) (edge : BinNums.Z)
+         (x : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (rc : BinNums.Z) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc (BinInt.Z.sub Integers.Int64.max_unsigned (BinNums.Zpos BinNums.xH))))
+         (_ : frame_input_bit_at m bi edge rc (Bit.toBool x)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees ge0 (@Ctypes.Internal Clight.function f_simplicity_verify)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m
+               (@jet_partial_return (Ty.tySem Ty.Unit) (@verify_spec (Alg.AssertionSem Option.option_Monad_Zero) x)) mf)
+            (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b),
+             @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs)))
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -19769,3 +19858,156 @@ fun (env : Values.val) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Va
          (_ : Integers.Int.int), Maps.PTree.tree Values.val
 
 Arguments le_full_multiply8_w env bd dofs bs sofs r t u v
+assertion_hash0 =
+Digest.Hash256
+  (@cons Integers.Int.int Integers.Int.zero
+     (@cons Integers.Int.int Integers.Int.zero
+        (@cons Integers.Int.int Integers.Int.zero
+           (@cons Integers.Int.int Integers.Int.zero
+              (@cons Integers.Int.int Integers.Int.zero
+                 (@cons Integers.Int.int Integers.Int.zero
+                    (@cons Integers.Int.int Integers.Int.zero
+                       (@cons Integers.Int.int Integers.Int.zero (@nil Integers.Int.int)))))))))
+  (@eq_refl nat
+     (@length Integers.Int.int
+        (@cons Integers.Int.int Integers.Int.zero
+           (@cons Integers.Int.int Integers.Int.zero
+              (@cons Integers.Int.int Integers.Int.zero
+                 (@cons Integers.Int.int Integers.Int.zero
+                    (@cons Integers.Int.int Integers.Int.zero
+                       (@cons Integers.Int.int Integers.Int.zero
+                          (@cons Integers.Int.int Integers.Int.zero
+                             (@cons Integers.Int.int Integers.Int.zero (@nil Integers.Int.int)))))))))))
+     : Digest.hash256
+assertion_cmr_fail0 =
+@Alg.Assertion.Combinators.fail Ty.Unit Ty.Unit MerkleRoot.CommitmentRoot_Assertion_alg
+  (@pair Digest.hash256 Digest.hash256 assertion_hash0 assertion_hash0)
+     : Digest.hash256
+verify_spec =
+fun term : Alg.Assertion.Algebra =>
+@Alg.Core.Combinators.comp (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit) Ty.Unit
+  (Alg.Assertion.toCore term)
+  (@Alg.Core.Combinators.pair (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (Alg.Assertion.toCore term)
+     (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) (Alg.Assertion.toCore term))
+     (@Alg.Core.Combinators.unit (Ty.Sum Ty.Unit Ty.Unit) (Alg.Assertion.toCore term)))
+  (@Alg.Assertion.Combinators.assertr Ty.Unit Ty.Unit Ty.Unit Ty.Unit term assertion_cmr_fail0
+     (@Alg.Core.Combinators.take Ty.Unit Ty.Unit Ty.Unit (Alg.Assertion.toCore term)
+        (@Alg.Core.Combinators.iden Ty.Unit (Alg.Assertion.toCore term))))
+     : forall term : Alg.Assertion.Algebra, Alg.Assertion.domain term (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit
+
+Arguments verify_spec {term}
+jet_partial_return =
+fun (B : Type) (result : option B) =>
+match result return Values.val with
+| Some _ => Values.Vint Integers.Int.one
+| None => Values.Vint Integers.Int.zero
+end
+     : forall (B : Type) (_ : option B), Values.val
+
+Arguments jet_partial_return {B}%type_scope result
+jet_partial_local_spec =
+fun (f : Clight.function) (A B : Ty.Ty) (spec : forall _ : Ty.tySem A, option (Ty.tySem B)) =>
+forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block)
+  (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+  (a : Ty.tySem A) (_ : frame_base_valid sbase)
+  (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+  (_ : frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+  (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (bitSize A))) Integers.Int64.max_unsigned)
+  (_ : frame_input_cells_at m bi edge read_cursor (@encode A a))
+  (_ : write_frame_at m bd dbase bw outedge cursor (BinInt.Z.of_nat (bitSize B))),
+@ex Memory.Mem.mem
+  (fun mf : Memory.Mem.mem =>
+   and
+     (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f)
+        (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+           (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+        Events.E0 mf (@jet_partial_return (Ty.tySem B) (spec a)))
+     (and
+        match spec a return Prop with
+        | Some b =>
+            and (frame_output_cells_at mf bw outedge cursor (@encode B b))
+              (and (write_prefix_at m mf bw outedge cursor)
+                 (frame_fields_at mf bd dbase bw outedge (BinInt.Z.sub cursor (BinInt.Z.of_nat (bitSize B)))))
+        | None => True
+        end
+        (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+           (_ : or (not (@eq Values.block b bd))
+                  (or
+                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                        (BinInt.Z.add dbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     (BinInt.Z.le
+                        (BinInt.Z.add dbase
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs)))
+           (_ : or (not (@eq Values.block b bw))
+                  (or
+                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                        (BinInt.Z.add outedge
+                           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                              (BinInt.Z.div (BinInt.Z.sub cursor (BinInt.Z.of_nat (bitSize B)))
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                     (BinInt.Z.le
+                        (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+         @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))
+     : forall (_ : Clight.function) (A B : Ty.Ty) (_ : forall _ : Ty.tySem A, option (Ty.tySem B)), Prop
+
+Arguments jet_partial_local_spec f (A B)%ty_scope spec%function_scope
+Alg.AssertionSem_mixin =
+fun M : Monad.MonadZero.type =>
+Alg.Assertion.Mixin (fun x x0 : Ty.Ty => forall _ : Ty.tySem x, Monad.MonadZero.domain M (Ty.tySem x0))
+  (fun (A B C D : Ty.Ty)
+     (s : (fun x x0 : Ty.Ty => forall _ : Ty.tySem x, Monad.MonadZero.domain M (Ty.tySem x0)) (Ty.Prod A C) D)
+     (_ : Digest.hash256) (p : Ty.tySem (Ty.Prod (Ty.Sum A B) C)) =>
+   match p return (Monad.MonadZero.domain M (Ty.tySem D)) with
+   | pair ab c =>
+       match ab return (Monad.MonadZero.domain M (Ty.tySem D)) with
+       | inl a =>
+           s
+             (@pair
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) A)
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) C) a c)
+       | inr _ => @Monad.MonadZero.Theory.mzero M (Ty.tySem D)
+       end
+   end)
+  (fun (A B C D : Ty.Ty) (_ : Digest.hash256)
+     (t : (fun x x0 : Ty.Ty => forall _ : Ty.tySem x, Monad.MonadZero.domain M (Ty.tySem x0)) (Ty.Prod B C) D)
+     (p : Ty.tySem (Ty.Prod (Ty.Sum A B) C)) =>
+   match p return (Monad.MonadZero.domain M (Ty.tySem D)) with
+   | pair ab c =>
+       match ab return (Monad.MonadZero.domain M (Ty.tySem D)) with
+       | inl _ => @Monad.MonadZero.Theory.mzero M (Ty.tySem D)
+       | inr b =>
+           t
+             (@pair
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) B)
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) C) b c)
+       end
+   end)
+  (fun (A B : Ty.Ty) (_ : prod Digest.hash256 Digest.hash256) =>
+   @Monad.MonadZero.Theory.kzero M (Ty.tySem A) (Ty.tySem B))
+     : forall M : Monad.MonadZero.type,
+       Alg.Assertion.mixin (Ty.Kleisli (Monad.CIMonad.domain (Monad.MonadZero.to_Monad M)))
+
+Arguments Alg.AssertionSem_mixin M
