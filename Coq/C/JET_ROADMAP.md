@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 166 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate at 32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 170 registered covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 367 declarations without coverage
+There are 363 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -719,21 +719,42 @@ tree otherwise contains only Coq files.
    snapshots exactly; the 15 inherited kernel axioms remain unchanged, with
    no unsafe recursion, assumed positivity or type-in-type. The separate
    regression build passed. Coverage is 166/533 (367 missing), not completion.
-   **Next: rotations at 8/16 bits and scalar shifts.** Those smaller rotations
-   read a four-bit amount. Six staged `jet_read4_*.v` modules now prove the
+   **Scalar rotations at 16 bits: completed and audited.** Smaller rotations
+   read a four-bit amount. The `jet_read4_*.v` modules prove the
    actual non-crossing/crossing branches, total initial-frame execution,
    exact unsigned Word4 interpretation, cursor increment and memory framing,
    including a mixed read4-plus-wide reader contract.
-   Their current sources and fresh combined kernel passed, but they are
-   outside public manifests/audits until a jet consumer is ready. Compose
-   read4 with the byte payload reader for rotate_8; the read4-plus-wide
-   pipeline for rotate_16 is already checked. Its actual body still evaluates
-   `(amount % 16)` and the uchar cast: execute them with the shared count
-   theorem even though the nibble range makes the modulus an identity.
-   Adapt rotate_8's signed promotions and reuse rotate_16's checked long helper. Instantiate
-   the canonical control program at Word4. Preserve whether its final SingleV
-   recursion sees an empty control list; do not invent or omit a conditional.
-   Do not count these reader helpers as jets or weaken the final frame contract.
+   Both canonical rotate_16 contracts derive the whole actual C call from
+   initial frames, with arbitrary valid cursors, crossings, output contents
+   and memory framing. They retain `% 16` and the uchar cast even though the
+   nibble range makes the modulus an identity. `jet_rotate_control_word.v`
+   shares the symbolic bit-composition bridge across control widths and
+   directions; `jet_rotate16_spec.v` retains the literal canonical program
+   whose control list is exhausted before SingleV.
+   The expanded audit passed all gates on 216 modules / 1061 results (344
+   closed), adding 37 results / 17 definitions. Removing just those additions
+   reproduces the previous assumption and contract snapshots byte-for-byte.
+   The inherited 15 kernel axioms are unchanged. Negative tests, pinned AST
+   regeneration and the separate regression build passed. Coverage is
+   168/533 (365 missing), not completion.
+   **Byte rotations: complete canonical contracts; expanded audit pending.**
+   `jet_rotate8_*.v` and `jet_read4_byte_sequence.v` compile end-to-end source
+   proofs and passed a fresh final independent kernel check. Individual local
+   specs retain the existing six assumptions and the pure machine/canonical
+   bridge is closed. Nine modules / 31 results / 17 definitions are registered,
+   bringing entries to 170/533 (363 missing); the latest completed integrated
+   audit still covers 168/533. The helper executes the actual unsigned left and
+   signed right promotions, with uchar truncation. Its low-bit bridge is
+   symbolic and does not assume signed shift equals unsigned shift. The
+   literal canonical Word4 control program retains its final SingleV identity
+   step; normalization splits only the 16 control values, never the payload.
+   No helper execution, writer or output-value premise remains in the final
+   local contracts. Do not count reader/helper lemmas as jets or weaken frames.
+   **Next: scalar shifts.** Reuse the exact nibble/byte-control reader sequences
+   and frame lifecycle, but inspect each helper's out-of-range count branch.
+   Shift semantics are not rotation modulo semantics. Preserve signed/unsigned
+   promotions, optional fill inputs and canonical final SingleV behavior; prove
+   the actual helper before connecting its result to the literal shift program.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical

@@ -1511,5 +1511,25 @@ unsafe recursion, assumed positivity or type-in-type. They derive actual
 read4 execution, exact unsigned Word4 interpretation and cursor/memory
 observations from initial frames, including all crossing cases and a shared
 read4-plus-wide reader pipeline with exact carriers. They are
-outside the public manifests/audit until smaller-width consumers are ready,
+now registered through the complete left/right_rotate_16 consumers,
 and add no jet coverage by themselves.
+
+Both canonical rotate_16 local specs compiled and passed fresh independent
+kernel checks. The expanded `JOBS=12 check-jets.sh --update-expected --ast`
+run exited 0 through every gate on 216 modules / 1061 results (344 closed),
+adding 37 results / 17 definitions. Removing those additions reproduces the
+203-module baseline's assumptions and public contracts byte-for-byte. The
+inherited 15 kernel axioms are unchanged, with no unsafe recursion, assumed
+positivity or type-in-type. Negative fixtures, pinned AST regeneration and the
+separate regression build passed. This audit covers 168/533 jets (365 missing),
+not completion, a clean Nix run or remote CI.
+
+The byte-rotation source proofs now compile through the complete canonical
+left/right_rotate_8 local contracts. Individual assumption checks retain the
+existing six assumptions, and `rotate8_machine_denotes` is closed. The final
+independent kernel check exited 0 with no unsafe recursion, assumed positivity
+or type-in-type. Nine modules / 31 results / 17 definitions are registered;
+the expanded integrated audit is pending. Current entries are 170/533 (363
+missing), while the latest completed audit covers 168/533. They account explicitly for the signed
+right-shift promotion, nibble count, payload cast, helper parameter conversions,
+writer cast and complete local-frame lifecycle.
