@@ -1339,3 +1339,17 @@ casts and 7/15/31/63 shift guards are proved. All frame generality is retained.
 Both project manifests, public audit lists and coverage entries include these
 modules, with the previously checked canonical padding/extension bridges.
 Coverage entries are 145/533 (388 remaining); integrated audit is pending.
+
+## Later checked complete one-bit left-extension family
+
+`jet_extend_bit{8,_wide}_{exec,layout}.v` was explicitly compiled from
+current source and freshly kernel checked with exit 0 and no unsafe proofs.
+All four local-spec assumption
+checks retain exactly the existing six Coq/CompCert assumptions. The shared
+initial-only lifecycle discharges its internal contracts for each actual
+conditional assignment, all-ones constant and cast, including the distinct
+signed-int, unsigned-int and unsigned-long carriers. The final specifications
+retain the literal canonical conditional padding program. No cursor or
+initial-output restrictions were added. Both project manifests and public
+audit/coverage lists include the family. Coverage entries are 149/533
+(384 remaining); the expanded integrated audit is pending.

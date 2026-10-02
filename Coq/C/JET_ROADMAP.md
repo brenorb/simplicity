@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 145 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1 at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 149 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 388 declarations without coverage
+There are 384 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -612,9 +612,12 @@ tree otherwise contains only Coq files.
    `jet_right_pad_bit{8,_wide}_{exec,layout}.v` completes all four calls,
    including exact casts and 7/15/31/63 shift guards. Source compilation,
    fresh independent kernel checks and local-spec assumption checks passed;
-   the expanded integrated audit is pending. Coverage entries are 145/533.
-   Reuse this lifecycle for extension without leaving its contracts as final
-   premises or changing the canonical specification to a numerical function.
+   the expanded integrated audit is pending. Four `left_extend_1` consumers
+   now reuse this lifecycle, proving the actual conditional assignment,
+   all-ones constants and casts against the literal canonical conditional
+   padding program. All four compile from current source and passed fresh
+   independent kernel and local-spec assumption checks. Coverage entries
+   are 149/533. Internal contracts are discharged, not left as final premises.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical

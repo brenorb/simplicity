@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 145 jets of the C library
+Coq proofs that the generated CompCert Clight of 149 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -37,6 +37,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `sha_256_iv` | Literal `Programs.Sha256.Lib.iv`: canonical scribe of the 256-bit initial register constant |
 | `left_pad_low_1_8/16/32/64` | `left_pad_low_1_n`, the canonical `Programs.Word.left_pad_low word1 vectorN` recursion |
 | `right_pad_low_1_8/16/32/64` | `right_pad_low_1_n`, the canonical `Programs.Word.right_pad_low word1 vectorN` recursion |
+| `left_extend_1_8/16/32/64` | `left_extend_bit_spec`, the literal canonical conditional `Programs.Word.left_extend word1 vectorN` composition |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -71,6 +72,15 @@ internal contracts are not assumptions of the four final local specs. The
 concrete adapters retain the actual 7/15/31/63 shifts, guard checks and casts;
 the byte expression promotes its uchar operand to tint before shifting.
 No cursor alignment or initial-output restriction is introduced.
+
+For `left_extend_1_8/16/32/64`, `jet_extend_bit*_layout.v` reuses the same
+initial-only lifecycle. The actual conditional assignment, width-specific
+all-ones constant, and byte/long casts are proved before composing the call.
+The specification retains the literal conditional high/low padding program,
+not merely a numerical characterization. All four final local specs discharge
+the internal helper contracts and retain arbitrary valid cursors, crossings,
+unrelated output contents and memory framing. Context and call-boundary
+guarantees are included; the integrated audit is pending.
 
 For multiplication, `jet_multiply8_layout.v:multiply8_local_spec` and
 `jet_multiply_wide_layout.v:multiply16_local_spec` / `multiply32_local_spec`
