@@ -1533,3 +1533,18 @@ the expanded integrated audit is pending. Current entries are 170/533 (363
 missing), while the latest completed audit covers 168/533. They account explicitly for the signed
 right-shift promotion, nibble count, payload cast, helper parameter conversions,
 writer cast and complete local-frame lifecycle.
+
+The expanded byte-rotation integrated audit was launched with the same command
+and is running in session `4716`; its 225-module kernel stage passed and it is
+checking assumptions. Poll that existing handle before starting another audit.
+While it is live, keep registered proof sources, manifests and audit lists
+unchanged. The previous completed audit remains the 216-module / 168-jet one.
+
+`C/jet_shift8_expr.v` is an unregistered next-family source. Its explicit source
+build passed, including exact equality to both generated helper body shapes
+and evaluation of their promoted shift, fill and count expressions. Its
+fresh independent kernel check also exited 0, without unsafe recursion, assumed
+positivity or type-in-type. This infrastructure alone does not prove a shift
+jet. The helper's pointer-parameter reader calls, fill/count control flow,
+writer, complete function boundary and
+canonical variable-control bridge still need to be composed and discharged.
