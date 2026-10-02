@@ -1584,18 +1584,12 @@ exited 0 with no unsafe recursion, assumed positivity or type-in-type.
 The named local specs retain the existing six assumptions. Both exact payload
 and decoded canonical bridges are closed. Eight modules / 23 results / five
 definitions are registered; coverage entries are 174/533 (359 missing).
-The expanded integrated audit is pending; the last completed audit covers 172.
-When reviewing updated snapshots, remove only these eight modules' added
-results/definitions and compare against the completed 233-module baseline
-at `b557293`. Next inspect the 16-bit helper's Vlong payload, unsigned
-right-shift and read4/read16/write16 calls before extending widths.
-
-The expanded fill-input integrated audit is live in session `36618`. Its
-241-module kernel stage passed with the inherited axiom list unchanged;
-the assumption gate is running. Poll this handle and keep registered proof
-sources, manifests and public lists frozen until terminal completion. A quiet
-observation is not evidence that the run stopped. The expected snapshots have
-not yet been accepted or committed for this extension.
+The expanded fill-input integrated audit (`36618`) exited 0 through every
+gate on 241 modules / 1148 results (392 closed), including negative fixtures
+and pinned AST regeneration. Removing only these eight modules' 23 results /
+five definitions reproduces the completed 233-module assumption and contract
+snapshots at `b557293` byte-for-byte. The 15 inherited kernel axioms are unchanged.
+This completed audit covers 174/533 entries and does not complete the goal.
 
 `C/jet_shift_wide_expr.v` is unregistered follow-on infrastructure. It proves
 the exact generated shapes of all six 16/32/64-bit helpers and evaluates their

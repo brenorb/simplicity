@@ -71,11 +71,14 @@ individual assumption checks. Eight modules / 33 results / 24 definitions are
 registered; their expanded integrated audit passed all gates on 233 modules /
 1125 results, including negative tests and pinned AST regeneration. Removing
 the added results and definitions reproduces the earlier snapshots byte-for-byte.
-The latest completed audit covers all 172 current entries (361 jets remain).
+That completed audit covers the then-registered 172 entries (361 jets remained).
 Both fill-input byte shifts have now compiled and passed fresh kernel and
 individual assumption checks. Eight additional modules / 23 results / five
 definitions are registered, bringing coverage entries to 174/533 (359 remain).
-Their expanded integrated audit is pending; the last completed audit covers 172.
+Their expanded integrated audit passed all gates on 241 modules / 1148 results
+(392 closed), including negative tests and pinned AST regeneration. Earlier
+snapshots and the 15 inherited kernel axioms are unchanged. This completed
+audit covers 174 entries (359 jets remain).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and

@@ -785,7 +785,7 @@ tree otherwise contains only Coq files.
    are registered, bringing entries to 172/533 (361 missing); their expanded
    integrated audit passed all gates on 233 modules / 1125 results, including
    negative tests and pinned AST regeneration. Earlier snapshots are unchanged.
-   **Fill-controlled byte shifts: complete canonical contracts; expanded audit pending.**
+   **Fill-controlled byte shifts: complete canonical contracts; integrated audit passed.**
    `jet_readBit4_byte_sequence.v` derives exact bit/nibble/byte reads, 13-bit
    non-wrapping cursor advance and memory observations. `jet_shift8_with_exec.v`
    executes the real wrappers with readBit and a Boolean cast; the helper uses
@@ -798,8 +798,9 @@ tree otherwise contains only Coq files.
    Both named specs in `jet_shift8_with_layout.v` passed fresh kernel and
    assumption checks (same six inherited assumptions; pure bridges closed).
    Eight modules / 23 results / five definitions are registered, bringing
-   entries to 174/533 (359 missing). The last completed audit covers 172;
-   the expanded fill-input audit is pending.
+   entries to 174/533 (359 missing). The expanded audit passed all gates on
+   241 modules / 1148 results (392 closed), including negative tests and pinned
+   AST regeneration. Earlier snapshots and inherited kernel axioms are unchanged.
    The registered `jet_shift8_fill_word.v` supplies complement involution,
    exact low-byte fill-XOR bits and exact unsigned representation of the
    complemented canonical word. Its source and fresh independent kernel check
