@@ -1828,13 +1828,12 @@ memory framing are retained. Public local specs, contextual replacement and
 call-boundary guarantees are exported.
 
 Six modules / 68 results / 21 definitions and eight new coverage entries are
-registered. Coverage bookkeeping is 194/533 (339 missing); the last completed
-integrated audit `13659` still covers 186 entries. Expanded audit `28051` is
-running against baseline `c5e084d`; poll the same handle and freeze registered
-proof sources/manifests/public lists. Expected totals are 288 modules / 1395
-results (561 closed). Accept updated snapshots only after all gates, negative
-fixtures and pinned AST regeneration finish, removing only the six new modules'
-entries to verify the baseline and preserving all 15 inherited kernel axioms.
+registered. Coverage bookkeeping is 194/533 (339 missing). Expanded audit
+`28051` finished with exit 0: all gates, negative fixtures and pinned AST
+regeneration passed (288 modules / 1395 results, 561 closed). Removing only
+the six new modules' assumptions and contract blocks reproduces baseline
+`c5e084d` byte-for-byte. All 15 inherited kernel axioms are unchanged. The
+updated snapshots have been reviewed and accepted.
 
 Next: actual div_mod calls (two writers), divides calls (swapped operands and
 one-bit output), then DivMod128_64 (including invalid input behavior). Reuse

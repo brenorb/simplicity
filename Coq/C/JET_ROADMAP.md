@@ -20,8 +20,7 @@ low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
 There are 339 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
-audit covers 186 entries; the eight new divide/modulo proofs pass independent
-source and kernel checks and are included in running audit `28051`.
+audit `28051` covers all 194 entries, including the eight divide/modulo proofs.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -959,9 +958,10 @@ tree otherwise contains only Coq files.
    results retain the existing six assumptions; guarantees add only the
    existing two Events property assumptions. All six modules / 68 results /
    21 definitions and eight coverage entries are registered. Expanded audit
-   `28051` is running against `c5e084d`; poll it and freeze registered proof
-   sources/manifests/public lists. Expected totals: 288 modules / 1395 results,
-   561 closed. Review additions only and preserve all inherited kernel axioms.
+   `28051` finished with exit 0: all gates, negative fixtures and pinned AST
+   regeneration passed (288 modules / 1395 results, 561 closed). Removing only
+   these six modules' additions reproduces baseline `c5e084d` assumptions and
+   contracts byte-for-byte; all 15 inherited kernel axioms are unchanged.
    **Next: div_mod/divides C consumers and DivMod128_64.** The canonical
    numeric bridge is now proved; do not restart normalization or replace
    the actual program with division_numeric. Reuse division_word_representation
