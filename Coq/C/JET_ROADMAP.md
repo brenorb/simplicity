@@ -923,12 +923,26 @@ tree otherwise contains only Coq files.
    0 through all gates, negative fixtures and pinned AST regeneration on
    280 modules / 1289 results (471 closed). Removing only these entries
    reproduces the `723ec34` snapshots byte-for-byte; kernel axioms are unchanged.
+   **Recursive normalization is checked.** `jet_division_shift_step.v`
+   derives both guard bounds from the literal is_zero/leftmost composition
+   and proves exact pre/post shift observations. `jet_division_normalize_spec.v`
+   mirrors divPreShift/divPostShift, including each recursive vectorComp cast,
+   and proves parametricity, common scaling of numerator/divisor, normalized
+   divisor bound, preserved numerator bound, remainder inverse scaling and
+   agreement of the pre/post normalized divisors. Its plain-input theorem
+   prepends the canonical zero word and derives the required bounds for every
+   nonzero divisor. Both sources and fresh kernel checks pass; all 38 new
+   results / ten definitions are closed. They are registered without coverage
+   additions. Expanded audit `13659` is running against `ef3ec4d`; poll it and
+   freeze registered sources/manifests/lists. Remove only these two modules'
+   entries when reviewing snapshots; inherited axioms must remain unchanged.
    **Next: literal canonical division bridge**, then div_mod/divides consumers.
-   Mirror Programs.Arith.div3n2n, div2n1n, divPreShift and divPostShift; retain
+   Mirror Programs.Arith.div3n2n and div2n1n; reuse the checked normalization
+   adapters and retain
    the exact CoreJets div_mod program and its quotient/remainder projections.
    Reuse the existing canonical arithmetic/borrow/multiplication bridges and
-   Word full_left/right_shift1 for normalization. Prove normalization's
-   high-bit and numerator bounds and the approximation/correction cases;
+   Word full_left/right_shift1 for normalization. Connect the normalized
+   numeric bound to the literal msb condition and prove approximation/correction cases;
    characterize quotient/remainder by Euclidean uniqueness for nonzero
    divisors. Prove the zero case directly from the program. Only then connect
    that checked canonical bridge to eval_division8_layout_machine and

@@ -1740,3 +1740,35 @@ Both manifests and public lists register these additions. Integrated audit
 on 280 modules / 1289 results (471 closed). Removing only these 24 results /
 six definitions reproduces the `723ec34` snapshots byte-for-byte. The inherited
 15 kernel axioms are unchanged. Coverage remains 186/533, not goal completion.
+
+## Recursive canonical division normalization (2026-10-02)
+
+`jet_division_shift_step.v` now proves both zero/nonzero guard bounds from
+the actual is_zero(leftmost ...) composition. The zero branch permits exact
+numerator/divisor shifts without overflow. The nonzero branch derives the
+lower bound required by the next smaller block word.
+
+`jet_division_normalize_spec.v` mirrors Programs.Arith.divPreShift/divPostShift
+with n = remaining block-word depth and m = outer vector depth. Each successor
+casts the unchanged total size from S m+n to m+S n and recursively uses the
+promoted vector. Those casts preserve both numeric observations and algebraic
+parametricity. Symbolic inductions prove common positive scaling of numerator
+and divisor, normalized divisor bound, preserved numerator bound, inverse
+scaling of the remainder and identical normalized divisors for pre/post.
+`division_plain_input_normalization` derives the entry bounds after prepending
+Word.zero for every positive divisor. No payload enumeration or assumed
+division identity is used; div3n2n/div2n1n remain the next missing bridges.
+
+Both current sources compile; fresh independent kernel checks `33224` and
+`4202` exited 0, with the inherited library axiom set and no unsafe features.
+Explicit Print Assumptions checks of all 38 results / ten definitions are
+closed, without REPL errors. Explicit static scans pass. Source commits are
+`f0aca75`, `b0cbabe` and `6882309`. These are internal canonical-program
+observations, not new C jet coverage.
+
+Both manifests and public lists register the two modules. Expanded audit
+`13659` is running against baseline `ef3ec4d`; poll the same handle and freeze
+registered sources/manifests/lists. Snapshot review must remove only these
+38 results / ten definitions and preserve inherited kernel axioms. The last
+completed integrated audit remains `76184`: 280 modules / 1289 results,
+471 closed. Coverage remains 186/533, and the every-jet goal is active.
