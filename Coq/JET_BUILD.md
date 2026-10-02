@@ -763,3 +763,34 @@ does not increase the 127-jet coverage. Other partial-word paths, crossings,
 aligned memcpy and loop behavior remain to be proved and composed with the
 wrapper before adding projection coverage. The clean Nix build above predates
 this module and does not certify it.
+
+## Both short-copy paths and the actual wrapper (not jet coverage)
+
+`jet_copyBits_helper_right.v` proves the second partial-word return path,
+`src_shift >= dst_shift > 0`, `n <= dst_shift`, from initial memory. Its
+clear/store/framing derivation is shared with the first path through the
+INTERNAL `eval_copy_helper_partial_from_tail`. Both branch theorems discharge
+that lemma's execution premise rather than exposing it as a final precondition.
+
+`jet_copyBits_short_exec.v:eval_copyBits_short` combines the paths under
+`0 < n <= src_shift`, `n <= dst_shift`, executes the actual wrapper, and derives
+its cursor store from initial writable access. Its postcondition includes the
+exact stored word, destination fields at `cursor - n`, unchanged loads outside
+the destination word and cursor field, and preserved permissions/valid blocks.
+`jet_copyBits_short_word.v` proves symbolic, width-independent bit observations
+of those actual stored values. No enumeration or zero-output assumption is used.
+
+The updated audit adds 40 helper results and 30 transparent definitions,
+including the previously direct-checked wrapper module. The existing assumption
+and contract records are unchanged, as is the kernel's inherited axiom allowlist.
+Kernel checking has passed on 97 audited modules; the updated snapshots contain
+525 results, 128 closed. Initially aligned destinations and input/output
+crossings are not covered by these short-copy contracts. Coverage remains
+127/533, with all 36 projection jets still outstanding. The clean Nix build
+above predates these additions.
+
+The integrated `check-jets.sh --update-expected --ast` run finished with exit 0,
+including proof scanning, complete-inventory tests, build, 97-module kernel
+checking, assumption/contract updates, gate negative tests and regenerated-AST
+comparison. Snapshot review found only the new records/definitions; previous
+contracts and per-result assumption sets were not changed.

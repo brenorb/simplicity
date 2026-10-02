@@ -285,6 +285,25 @@ tree otherwise contains only Coq files.
    intermediate execution/store premise remains in that theorem. Other
    partial-word branches, crossings, aligned memcpy and the loop are still
    outstanding, so this adds no projection coverage.
+   **Both non-crossing partial-word returns and their wrapper completed.**
+   `jet_copyBits_helper_right.v` handles `src_shift >= dst_shift > 0` and
+   `n <= dst_shift`. It shares `eval_copy_helper_partial_from_tail` with the
+   first branch: intermediate store/execution premises are INTERNAL and are
+   discharged by both initial-only branch theorems. `jet_copyBits_short_exec.v`
+   combines them for `0 < n <= src_shift` and `n <= dst_shift` and derives the
+   actual `simplicity_copyBits` call, its cursor update, resulting word and
+   load/permission/block framing. `jet_copyBits_short_word.v` bridges both
+   stored values symbolically to copied bits and preserved written bits.
+   These results do not cover an initially aligned destination or a crossing.
+   **Bound the next helper milestone by its consumers.** All 36 projection
+   jets copy at most 32 bits. A helper contract for `0 < n <= 64`, at every
+   valid cursor, suffices for them without narrowing any projection's input
+   or frame-layout coverage. After a partial-word copy, the remaining count
+   still satisfies that bound: an unaligned loop returns in its first
+   iteration, while the aligned `ROUND_UWORD(n)` / memcpy path copies exactly
+   one word. Prove these actual branches and pointer transitions next. A
+   multi-iteration helper contract remains a later requirement for consumers
+   that copy larger counts; do not count short-return results as full jets.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

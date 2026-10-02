@@ -459,6 +459,75 @@ Proof.
            ++ apply exec_Sreturn_none.
 Qed.
 
+(** INTERNAL: the two stores and their framing are shared by the partial-word
+    paths. Each initial-only branch theorem below discharges the actual tail
+    execution premise; this composition lemma alone proves no jet. *)
+Lemma eval_copy_helper_partial_from_tail m bd base bs sbase bi edge rc bw outedge cursor n old source payload :
+  frame_base_valid sbase -> frame_base_valid base ->
+  frame_fields_at m bs sbase bi edge rc -> frame_fields_at m bd base bw outedge cursor ->
+  0 <= rc <= Int64.max_unsigned -> 1 <= cursor <= Int64.max_unsigned ->
+  8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
+  0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
+  bd <> bw ->
+  (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
+    write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
+  Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
+  Mem.load Mint64 m bw (write_word_address outedge cursor) = Some (Vlong old) ->
+  Mem.valid_access m Mint64 bw (write_word_address outedge cursor) Writable ->
+  (forall mc mf,
+    Mem.load Mint64 mc bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
+    Mem.store Mint64 m bw (write_word_address outedge cursor)
+      (Vlong (clear_low (cursor mod 64) old)) = Some mc ->
+    Mem.store Mint64 mc bw (write_word_address outedge cursor) (Vlong payload) = Some mf ->
+    exists le' out,
+      Clight2.exec_stmt ge0 empty_env
+        (copy_helper_env bd base bs sbase n bi edge rc bw outedge cursor)
+        m copy_helper_tail E0 le' mf out /\
+      (out = Out_normal \/ out = Out_return None)) ->
+  exists mf,
+    Clight2.eval_funcall ge0 m (Internal f_copyBitsHelper)
+      [Vptr bd (Ptrofs.repr base); Vptr bs (Ptrofs.repr sbase); Vlong (Int64.repr n)] E0 mf Vundef /\
+    Mem.load Mint64 mf bw (write_word_address outedge cursor) =
+      Some (Vlong payload) /\
+    frame_fields_at mf bd base bw outedge cursor /\
+    (forall chunk b ofs, b <> bw \/ ofs + size_chunk chunk <= write_word_address outedge cursor \/
+      write_word_address outedge cursor + 8 <= ofs -> Mem.load chunk mf b ofs = Mem.load chunk m b ofs) /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  intros HS HB HF HW HR HC HE HO HA Hbd Hsep Hsource Hold PW Htail.
+  assert (Hsrcaddr : 0 <= edge - 8 * (1 + rc / 64) <= Ptrofs.max_unsigned).
+  { pose proof (Z.div_pos rc 64 ltac:(lia) ltac:(lia)); lia. }
+  assert (Hdstaddr : 0 <= write_word_address outedge cursor <= Ptrofs.max_unsigned).
+  { unfold write_word_address in *. pose proof (Z.div_pos (cursor - 1) 64 ltac:(lia) ltac:(lia)); lia. }
+  destruct (Mem.valid_access_store m Mint64 bw (write_word_address outedge cursor)
+    (Vlong (clear_low (cursor mod 64) old)) PW) as [mc SC].
+  assert (HsourceC : Mem.load Mint64 mc bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source)).
+  { erewrite Mem.load_store_other; [exact Hsource|exact SC|exact Hsep]. }
+  assert (PWC : Mem.valid_access mc Mint64 bw (write_word_address outedge cursor) Writable)
+    by (eapply Mem.store_valid_access_1; eauto).
+  destruct (Mem.valid_access_store mc Mint64 bw (write_word_address outedge cursor)
+    (Vlong payload) PWC) as [mf SF].
+  exists mf. split.
+  - destruct (Htail mc mf HsourceC SC SF) as [le' [out [HT Hout]]].
+    eapply eval_copy_helper_prefix_composes; eassumption.
+  - split.
+    + exact (Mem.load_store_same _ _ _ _ _ _ SF).
+    + split.
+      * destruct HW as [Hedge Hcursor]. split.
+        -- erewrite Mem.load_store_other; [|exact SF|auto].
+           erewrite Mem.load_store_other; [exact Hedge|exact SC|auto].
+        -- erewrite Mem.load_store_other; [|exact SF|auto].
+           erewrite Mem.load_store_other; [exact Hcursor|exact SC|auto].
+      * split.
+        -- intros chunk b ofs Houtside.
+           erewrite Mem.load_store_other; [|exact SF|exact Houtside].
+           eapply Mem.load_store_other; eauto.
+        -- split.
+           ++ intros b ofs kind p HP; eauto using Mem.perm_store_1.
+           ++ intros b HV; eauto using Mem.store_valid_block_1.
+Qed.
+
 Theorem eval_copy_helper_short_left m bd base bs sbase bi edge rc bw outedge cursor n old source :
   frame_base_valid sbase -> frame_base_valid base ->
   frame_fields_at m bs sbase bi edge rc -> frame_fields_at m bd base bw outedge cursor ->
@@ -490,46 +559,26 @@ Proof.
   { pose proof (Z.div_pos rc 64 ltac:(lia) ltac:(lia)); lia. }
   assert (Hdstaddr : 0 <= write_word_address outedge cursor <= Ptrofs.max_unsigned).
   { unfold write_word_address in *. pose proof (Z.div_pos (cursor - 1) 64 ltac:(lia) ltac:(lia)); lia. }
-  destruct (Mem.valid_access_store m Mint64 bw (write_word_address outedge cursor)
-    (Vlong (clear_low (cursor mod 64) old)) PW) as [mc SC].
-  assert (HsourceC : Mem.load Mint64 mc bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source)).
-  { erewrite Mem.load_store_other; [exact Hsource|exact SC|exact Hsep]. }
-  assert (PWC : Mem.valid_access mc Mint64 bw (write_word_address outedge cursor) Writable)
-    by (eapply Mem.store_valid_access_1; eauto).
-  destruct (Mem.valid_access_store mc Mint64 bw (write_word_address outedge cursor)
-    (Vlong (copy_left_value (64 - rc mod 64) (cursor mod 64) old source)) PWC) as [mf SF].
-  exists mf. split.
-  - eapply eval_copy_helper_prefix_composes; try eassumption; [|right; reflexivity].
-    eapply exec_copy_tail_short_left with (src_ofs := Ptrofs.repr (edge - 8 * (1 + rc / 64)))
-      (dst_ofs := Ptrofs.repr (write_word_address outedge cursor)) (mc := mc)
-      (bi := bi) (bw := bw) (ss := 64 - rc mod 64) (ds := cursor mod 64)
-      (n := n) (old := old) (source := source); try lia.
-    + unfold copy_helper_env, copy_dst_shift_env, copy_src_shift_env, copy_dst_env, copy_src_env.
-      rewrite !PTree.gso by discriminate. rewrite PTree.gss; reflexivity.
-    + unfold copy_helper_env, copy_dst_shift_env, copy_src_shift_env, copy_dst_env.
-      rewrite !PTree.gso by discriminate. rewrite PTree.gss; reflexivity.
-    + unfold copy_helper_env, copy_dst_shift_env, copy_src_shift_env.
-      rewrite !PTree.gso by discriminate. rewrite PTree.gss; reflexivity.
-    + unfold copy_helper_env, copy_dst_shift_env. rewrite PTree.gss; reflexivity.
-    + unfold copy_helper_env, copy_dst_shift_env, copy_src_shift_env, copy_dst_env, copy_src_env, copy_frame_env.
-      rewrite !PTree.gso by discriminate. rewrite PTree.gss; reflexivity.
-    + rewrite Ptrofs.unsigned_repr by exact Hdstaddr; exact Hold.
-    + rewrite Ptrofs.unsigned_repr by exact Hdstaddr; exact SC.
-    + rewrite Ptrofs.unsigned_repr by exact Hsrcaddr; exact HsourceC.
-    + rewrite Ptrofs.unsigned_repr by exact Hdstaddr; exact SF.
-  - split.
-    + exact (Mem.load_store_same _ _ _ _ _ _ SF).
-    + split.
-      * destruct HW as [Hedge Hcursor]. split.
-        -- erewrite Mem.load_store_other; [|exact SF|auto].
-           erewrite Mem.load_store_other; [exact Hedge|exact SC|auto].
-        -- erewrite Mem.load_store_other; [|exact SF|auto].
-           erewrite Mem.load_store_other; [exact Hcursor|exact SC|auto].
-      * split.
-        -- intros chunk b ofs Houtside.
-           erewrite Mem.load_store_other; [|exact SF|exact Houtside].
-           eapply Mem.load_store_other; eauto.
-        -- split.
-           ++ intros b ofs kind p HP; eauto using Mem.perm_store_1.
-           ++ intros b HV; eauto using Mem.store_valid_block_1.
+  eapply eval_copy_helper_partial_from_tail with (bi := bi) (edge := edge) (rc := rc)
+    (old := old) (source := source); try eassumption.
+  intros mc mf HsourceC SC SF.
+  eexists; exists (Out_return None). split; [|right; reflexivity].
+  eapply exec_copy_tail_short_left with (src_ofs := Ptrofs.repr (edge - 8 * (1 + rc / 64)))
+    (dst_ofs := Ptrofs.repr (write_word_address outedge cursor)) (mc := mc)
+    (bi := bi) (bw := bw) (ss := 64 - rc mod 64) (ds := cursor mod 64)
+    (n := n) (old := old) (source := source); try lia.
+  + unfold copy_helper_env, copy_dst_shift_env, copy_src_shift_env, copy_dst_env, copy_src_env.
+    rewrite !PTree.gso by discriminate. rewrite PTree.gss; reflexivity.
+  + unfold copy_helper_env, copy_dst_shift_env, copy_src_shift_env, copy_dst_env.
+    rewrite !PTree.gso by discriminate. rewrite PTree.gss; reflexivity.
+  + unfold copy_helper_env, copy_dst_shift_env, copy_src_shift_env.
+    rewrite !PTree.gso by discriminate. rewrite PTree.gss; reflexivity.
+  + unfold copy_helper_env, copy_dst_shift_env. rewrite PTree.gss; reflexivity.
+  + unfold copy_helper_env, copy_dst_shift_env, copy_src_shift_env, copy_dst_env, copy_src_env, copy_frame_env.
+    rewrite !PTree.gso by discriminate. rewrite PTree.gss; reflexivity.
+  + rewrite Ptrofs.unsigned_repr by exact Hdstaddr; exact Hold.
+  + rewrite Ptrofs.unsigned_repr by exact Hdstaddr; exact SC.
+  + rewrite Ptrofs.unsigned_repr by exact Hsrcaddr; exact HsourceC.
+  + rewrite Ptrofs.unsigned_repr by exact Hdstaddr; exact SF.
+
 Qed.

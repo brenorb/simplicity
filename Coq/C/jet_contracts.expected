@@ -8358,6 +8358,1098 @@ copy_buffers_separated_of_rep
 where
 ?A : [ |- Ty.Ty]
 ?B : [ |- Ty.Ty]
+copy_frame_entry
+     : forall (f : Clight.function) (m : Memory.Mem.mem) (bd : Values.block) (dofs : Integers.Ptrofs.int)
+         (bs : Values.block) (sofs : Integers.Ptrofs.int) (n : BinNums.Z)
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_vars f) (@nil (prod AST.ident Ctypes.type)))
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_params f)
+                (@cons (prod AST.ident Ctypes.type)
+                   (@pair AST.ident Ctypes.type _dst (Ctypesdefs.tptr (Ctypes.Tstruct _frameItem Ctypes.noattr)))
+                   (@cons (prod AST.ident Ctypes.type)
+                      (@pair AST.ident Ctypes.type _src (Ctypesdefs.tptr (Ctypes.Tstruct _frameItem Ctypes.noattr)))
+                      (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type _n Ctypesdefs.tulong)
+                         (@nil (prod AST.ident Ctypes.type))))))
+         (_ : @Coqlib.list_disjoint AST.ident
+                (@cons AST.ident _dst (@cons AST.ident _src (@cons AST.ident _n (@nil AST.ident))))
+                (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type) (Clight.fn_temps f))),
+       Clight.function_entry2 ge0 f
+         (@cons Values.val (Values.Vptr bd dofs)
+            (@cons Values.val (Values.Vptr bs sofs)
+               (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) m Clight.empty_env
+         (copy_frame_env f bd dofs bs sofs n) m
+copyBits_entry
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block)
+         (sofs : Integers.Ptrofs.int) (n : BinNums.Z),
+       Clight.function_entry2 ge0 f_simplicity_copyBits
+         (@cons Values.val (Values.Vptr bd dofs)
+            (@cons Values.val (Values.Vptr bs sofs)
+               (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) m Clight.empty_env
+         (copy_frame_env f_simplicity_copyBits bd dofs bs sofs n) m
+eval_copyBits_zero
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block)
+         (sofs : Integers.Ptrofs.int),
+       ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_copyBits)
+         (@cons Values.val (Values.Vptr bd dofs)
+            (@cons Values.val (Values.Vptr bs sofs)
+               (@cons Values.val (Values.Vlong Integers.Int64.zero) (@nil Values.val)))) Events.E0 m Values.Vundef
+symbol_copyBitsHelper
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge0) _copyBitsHelper)
+         (@Some Values.block block_copyBitsHelper)
+funct_copyBitsHelper
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv ge0)
+            (Values.Vptr block_copyBitsHelper Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f_copyBitsHelper))
+eval_copyBits_nonzero_composes
+     : forall (m mi mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sofs : Integers.Ptrofs.int) (cursor n : BinNums.Z) (_ : frame_base_valid base)
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n cursor))
+         (_ : BinInt.Z.le cursor Integers.Int64.max_unsigned)
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_copyBitsHelper)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vptr bs sofs)
+                      (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mi
+                Values.Vundef)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mi bd
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr cursor))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mi bd
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (Values.Vlong (Integers.Int64.repr (BinInt.Z.sub cursor n)))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_copyBits)
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr bs sofs)
+               (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf Values.Vundef
+eval_copyBits_nonzero_advances
+     : forall (m mi : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sofs : Integers.Ptrofs.int) (bw : Values.block) (edge cursor n : BinNums.Z) (_ : frame_base_valid base)
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n cursor))
+         (_ : BinInt.Z.le cursor Integers.Int64.max_unsigned)
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_copyBitsHelper)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vptr bs sofs)
+                      (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mi
+                Values.Vundef) (_ : frame_fields_at mi bd base bw edge cursor)
+         (_ : Memory.Mem.valid_access mi AST.Mint64 bd
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_copyBits)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs sofs)
+                     (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and (frame_fields_at mf bd base bw edge (BinInt.Z.sub cursor n))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bd))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk mi b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm mi b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block mi b), Memory.Mem.valid_block mf b)))))
+copy_helper_body_prefix
+     : @eq Clight.statement (Clight.fn_body f_copyBitsHelper)
+         (Clight.Ssequence copy_src_init
+            (Clight.Ssequence copy_dst_init
+               (Clight.Ssequence copy_src_shift_init (Clight.Ssequence copy_dst_shift_init copy_helper_tail))))
+copy_eval_field_lvalue
+     : forall (id : BinNums.positive) (field : AST.ident) (ty : Ctypes.type) (e : Clight.env)
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))))
+         (_ : or (and (@eq AST.ident field _edge) (@eq Ctypes.type ty (Ctypesdefs.tptr Ctypesdefs.tulong)))
+                (and (@eq AST.ident field _offset) (@eq Ctypes.type ty Ctypesdefs.tulong))),
+       Clight.eval_lvalue ge0 e le m (copy_field id field ty) bf
+         (Integers.Ptrofs.add (Integers.Ptrofs.repr base)
+            (Integers.Ptrofs.repr
+               match BinPos.Pos.eqb field _edge return BinNums.Z with
+               | true => BinNums.Z0
+               | false => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))
+               end)) Ctypes.Full
+copy_eval_edge
+     : forall (id : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (bf : Values.block) (base : BinNums.Z) (bw : Values.block) (edge : BinNums.Z) (_ : frame_base_valid base)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bf base)
+                (@Some Values.val (Values.Vptr bw (Integers.Ptrofs.repr edge)))),
+       Clight.eval_expr ge0 e le m (copy_field id _edge (Ctypesdefs.tptr Ctypesdefs.tulong))
+         (Values.Vptr bw (Integers.Ptrofs.repr edge))
+copy_eval_offset
+     : forall (id : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (bf : Values.block) (base cursor : BinNums.Z) (_ : frame_base_valid base)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bf
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr cursor)))),
+       Clight.eval_expr ge0 e le m (copy_field id _offset Ctypesdefs.tulong)
+         (Values.Vlong (Integers.Int64.repr cursor))
+copy_eval_word
+     : forall (id : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (bw : Values.block) (ofs : Integers.Ptrofs.int) (w : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le) (@Some Values.val (Values.Vptr bw ofs)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bw (Integers.Ptrofs.unsigned ofs))
+                (@Some Values.val (Values.Vlong w))),
+       Clight.eval_expr ge0 e le m
+         (Clight.Ederef (Clight.Etempvar id (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong)
+         (Values.Vlong w)
+exec_copy_src_init
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bs : Values.block)
+         (sbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (_ : frame_base_valid sbase)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src le)
+                (@Some Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))))
+         (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc) (BinInt.Z.le rc Integers.Int64.max_unsigned))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                         (BinInt.Z.div rc
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned)),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m copy_src_init Events.E0 (copy_src_env le bi edge rc) m
+         ClightBigstep.Out_normal
+exec_copy_dst_init
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bd : Values.block)
+         (base : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z) (_ : frame_base_valid base)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : frame_fields_at m bd base bw edge cursor)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) cursor) (BinInt.Z.le cursor Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 edge)
+         (_ : BinInt.Z.le (jet_write_layout.write_word_address edge cursor) Integers.Ptrofs.max_unsigned),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m copy_dst_init Events.E0 (copy_dst_env le bw edge cursor) m
+         ClightBigstep.Out_normal
+exec_copy_src_shift_init
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bs : Values.block)
+         (base : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (_ : frame_base_valid base)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src le)
+                (@Some Values.val (Values.Vptr bs (Integers.Ptrofs.repr base))))
+         (_ : frame_fields_at m bs base bi edge rc)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc) (BinInt.Z.le rc Integers.Int64.max_unsigned)),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m copy_src_shift_init Events.E0 (copy_src_shift_env le rc) m
+         ClightBigstep.Out_normal
+exec_copy_dst_shift_init
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bd : Values.block)
+         (base : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z) (_ : frame_base_valid base)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : frame_fields_at m bd base bw edge cursor)
+         (_ : and (BinInt.Z.le BinNums.Z0 cursor) (BinInt.Z.le cursor Integers.Int64.max_unsigned)),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m copy_dst_shift_init Events.E0 (copy_dst_shift_env le cursor) m
+         ClightBigstep.Out_normal
+copy_helper_entry
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block) (sbase n : BinNums.Z),
+       Clight.function_entry2 ge0 f_copyBitsHelper
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+               (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) m Clight.empty_env
+         (copy_frame_env f_copyBitsHelper bd (Integers.Ptrofs.repr base) bs (Integers.Ptrofs.repr sbase) n) m
+eval_copy_helper_prefix_composes
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (bw : Values.block)
+         (outedge cursor n : BinNums.Z) (le' : Clight.temp_env) (out : ClightBigstep.outcome)
+         (_ : frame_base_valid sbase) (_ : frame_base_valid base) (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : frame_fields_at m bd base bw outedge cursor)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc) (BinInt.Z.le rc Integers.Int64.max_unsigned))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) cursor) (BinInt.Z.le cursor Integers.Int64.max_unsigned))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                         (BinInt.Z.div rc
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned)) (_ : BinInt.Z.le BinNums.Z0 outedge)
+         (_ : BinInt.Z.le (jet_write_layout.write_word_address outedge cursor) Integers.Ptrofs.max_unsigned)
+         (_ : ClightBigstep.Clight2.exec_stmt ge0 Clight.empty_env
+                (copy_helper_env bd base bs sbase n bi edge rc bw outedge cursor) m copy_helper_tail Events.E0 le' mf
+                out)
+         (_ : or (@eq ClightBigstep.outcome out ClightBigstep.Out_normal)
+                (@eq ClightBigstep.outcome out (ClightBigstep.Out_return (@None (prod Values.val Ctypes.type))))),
+       ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_copyBitsHelper)
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+               (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf Values.Vundef
+copy_partial_shape
+     : @eq Clight.statement copy_partial
+         (Clight.Ssequence copy_clear_stmt
+            (Clight.Ssequence
+               (Clight.Sifthenelse
+                  (Clight.Ebinop Cop.Olt (Clight.Etempvar _src_shift Ctypesdefs.tulong)
+                     (Clight.Etempvar _dst_shift Ctypesdefs.tulong) Ctypesdefs.tint) copy_partial_left Clight.Sskip)
+               copy_partial_right))
+copy_partial_left_shape
+     : @eq Clight.statement copy_partial_left
+         (Clight.Ssequence copy_left_fill
+            (Clight.Ssequence
+               (Clight.Sifthenelse
+                  (Clight.Ebinop Cop.Ole (Clight.Etempvar _n Ctypesdefs.tulong)
+                     (Clight.Etempvar _src_shift Ctypesdefs.tulong) Ctypesdefs.tint)
+                  (Clight.Sreturn (@None Clight.expr)) Clight.Sskip) copy_left_after_return))
+copy_helper_tail_shape
+     : @eq Clight.statement copy_helper_tail
+         (Clight.Ssequence
+            (Clight.Sifthenelse (Clight.Etempvar _dst_shift Ctypesdefs.tulong) copy_partial Clight.Sskip)
+            copy_tail_after_partial)
+exec_copy_clear
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bw : Values.block)
+         (ofs : Integers.Ptrofs.int) (ds : BinNums.Z) (old : Integers.Int64.int)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_ptr le) (@Some Values.val (Values.Vptr bw ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ds))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bw (Integers.Ptrofs.unsigned ofs))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bw (Integers.Ptrofs.unsigned ofs)
+                   (Values.Vlong (jet_word_bits.clear_low ds old))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt ge0 Clight.empty_env le m copy_clear_stmt Events.E0
+         (copy_clear_env le ds old) mf ClightBigstep.Out_normal
+exec_copy_left_fill
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bi : Values.block)
+         (src_ofs : Integers.Ptrofs.int) (bw : Values.block) (dst_ofs : Integers.Ptrofs.int)
+         (ss ds : BinNums.Z) (old source : Integers.Int64.int)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src_ptr le)
+                (@Some Values.val (Values.Vptr bi src_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_ptr le)
+                (@Some Values.val (Values.Vptr bw dst_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ss))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ds))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bi (Integers.Ptrofs.unsigned src_ofs))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs))
+                (@Some Values.val (Values.Vlong (jet_word_bits.clear_low ds old))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (copy_left_value ss ds old source))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt ge0 Clight.empty_env le m copy_left_fill Events.E0
+         (copy_left_env le ss ds old source) mf ClightBigstep.Out_normal
+exec_copy_tail_short_left
+     : forall (le : Maps.PTree.tree Values.val) (m mc mf : Memory.Mem.mem) (bi : Values.block)
+         (src_ofs : Integers.Ptrofs.int) (bw : Values.block) (dst_ofs : Integers.Ptrofs.int)
+         (ss ds n : BinNums.Z) (old source : Integers.Int64.int)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n ss))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src_ptr le)
+                (@Some Values.val (Values.Vptr bi src_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_ptr le)
+                (@Some Values.val (Values.Vptr bw dst_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ss))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ds))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _n le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr n))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_word_bits.clear_low ds old))) (@Some Memory.Mem.mem mc))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mc bi (Integers.Ptrofs.unsigned src_ofs))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mc bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (copy_left_value ss ds old source))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt ge0 Clight.empty_env le m copy_helper_tail Events.E0
+         (copy_left_env (copy_clear_env le ds old) ss ds old source) mf
+         (ClightBigstep.Out_return (@None (prod Values.val Ctypes.type)))
+eval_copy_helper_partial_from_tail
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (bw : Values.block)
+         (outedge cursor n : BinNums.Z) (old source payload : Integers.Int64.int) (_ : frame_base_valid sbase)
+         (_ : frame_base_valid base) (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : frame_fields_at m bd base bw outedge cursor)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc) (BinInt.Z.le rc Integers.Int64.max_unsigned))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) cursor) (BinInt.Z.le cursor Integers.Int64.max_unsigned))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                         (BinInt.Z.div rc
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned)) (_ : BinInt.Z.le BinNums.Z0 outedge)
+         (_ : BinInt.Z.le (jet_write_layout.write_word_address outedge cursor) Integers.Ptrofs.max_unsigned)
+         (_ : not (@eq Values.block bd bw))
+         (_ : or (not (@eq Values.block bi bw))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add
+                         (BinInt.Z.sub edge
+                            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                               (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                                  (BinInt.Z.div rc
+                                     (BinNums.Zpos
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (jet_write_layout.write_word_address outedge cursor))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (BinInt.Z.sub edge
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                               (BinInt.Z.div rc
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bi
+                   (BinInt.Z.sub edge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                            (BinInt.Z.div rc
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bw (jet_write_layout.write_word_address outedge cursor))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : Memory.Mem.valid_access m AST.Mint64 bw (jet_write_layout.write_word_address outedge cursor)
+                Memtype.Writable)
+         (_ : forall (mc mf : Memory.Mem.mem)
+                (_ : @eq (option Values.val)
+                       (Memory.Mem.load AST.Mint64 mc bi
+                          (BinInt.Z.sub edge
+                             (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                                   (BinInt.Z.div rc
+                                      (BinNums.Zpos
+                                         (BinNums.xO
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                       (@Some Values.val (Values.Vlong source)))
+                (_ : @eq (option Memory.Mem.mem)
+                       (Memory.Mem.store AST.Mint64 m bw (jet_write_layout.write_word_address outedge cursor)
+                          (Values.Vlong
+                             (jet_word_bits.clear_low
+                                (BinInt.Z.modulo cursor
+                                   (BinNums.Zpos
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                old))) (@Some Memory.Mem.mem mc))
+                (_ : @eq (option Memory.Mem.mem)
+                       (Memory.Mem.store AST.Mint64 mc bw (jet_write_layout.write_word_address outedge cursor)
+                          (Values.Vlong payload)) (@Some Memory.Mem.mem mf)),
+              @ex Clight.temp_env
+                (fun le' : Clight.temp_env =>
+                 @ex ClightBigstep.outcome
+                   (fun out : ClightBigstep.outcome =>
+                    and
+                      (ClightBigstep.Clight2.exec_stmt ge0 Clight.empty_env
+                         (copy_helper_env bd base bs sbase n bi edge rc bw outedge cursor) m copy_helper_tail Events.E0
+                         le' mf out)
+                      (or (@eq ClightBigstep.outcome out ClightBigstep.Out_normal)
+                         (@eq ClightBigstep.outcome out
+                            (ClightBigstep.Out_return (@None (prod Values.val Ctypes.type)))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_copyBitsHelper)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf bw (jet_write_layout.write_word_address outedge cursor))
+                  (@Some Values.val (Values.Vlong payload)))
+               (and (frame_fields_at mf bd base bw outedge cursor)
+                  (and
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (jet_write_layout.write_word_address outedge cursor))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                     (and
+                        (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                           (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                         Memory.Mem.perm mf b ofs kind p)
+                        (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b))))))
+eval_copy_helper_short_left
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (bw : Values.block)
+         (outedge cursor n : BinNums.Z) (old source : Integers.Int64.int) (_ : frame_base_valid sbase)
+         (_ : frame_base_valid base) (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : frame_fields_at m bd base bw outedge cursor)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc) (BinInt.Z.le rc Integers.Int64.max_unsigned))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) cursor) (BinInt.Z.le cursor Integers.Int64.max_unsigned))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                         (BinInt.Z.div rc
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned)) (_ : BinInt.Z.le BinNums.Z0 outedge)
+         (_ : BinInt.Z.le (jet_write_layout.write_word_address outedge cursor) Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.sub
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                   (BinInt.Z.modulo rc
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                (BinInt.Z.modulo cursor
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n)
+                (BinInt.Z.le n
+                   (BinInt.Z.sub
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (BinInt.Z.modulo rc
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : not (@eq Values.block bd bw))
+         (_ : or (not (@eq Values.block bi bw))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add
+                         (BinInt.Z.sub edge
+                            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                               (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                                  (BinInt.Z.div rc
+                                     (BinNums.Zpos
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (jet_write_layout.write_word_address outedge cursor))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (BinInt.Z.sub edge
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                               (BinInt.Z.div rc
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bi
+                   (BinInt.Z.sub edge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                            (BinInt.Z.div rc
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bw (jet_write_layout.write_word_address outedge cursor))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : Memory.Mem.valid_access m AST.Mint64 bw (jet_write_layout.write_word_address outedge cursor)
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_copyBitsHelper)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf bw (jet_write_layout.write_word_address outedge cursor))
+                  (@Some Values.val
+                     (Values.Vlong
+                        (copy_left_value
+                           (BinInt.Z.sub
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                              (BinInt.Z.modulo rc
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           (BinInt.Z.modulo cursor
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) old
+                           source))))
+               (and (frame_fields_at mf bd base bw outedge cursor)
+                  (and
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (jet_write_layout.write_word_address outedge cursor))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                     (and
+                        (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                           (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                         Memory.Mem.perm mf b ofs kind p)
+                        (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b))))))
+copy_partial_right_shape
+     : @eq Clight.statement copy_partial_right
+         (Clight.Ssequence copy_right_fill
+            (Clight.Ssequence
+               (Clight.Sifthenelse
+                  (Clight.Ebinop Cop.Ole (Clight.Etempvar _n Ctypesdefs.tulong)
+                     (Clight.Etempvar _dst_shift Ctypesdefs.tulong) Ctypesdefs.tint)
+                  (Clight.Sreturn (@None Clight.expr)) Clight.Sskip) copy_right_after_return))
+exec_copy_right_fill
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bi : Values.block)
+         (src_ofs : Integers.Ptrofs.int) (bw : Values.block) (dst_ofs : Integers.Ptrofs.int)
+         (ss ds : BinNums.Z) (old source : Integers.Int64.int)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src_ptr le)
+                (@Some Values.val (Values.Vptr bi src_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_ptr le)
+                (@Some Values.val (Values.Vptr bw dst_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ss))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ds))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bi (Integers.Ptrofs.unsigned src_ofs))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs))
+                (@Some Values.val (Values.Vlong (jet_word_bits.clear_low ds old))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (copy_right_value ss ds old source))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt ge0 Clight.empty_env le m copy_right_fill Events.E0
+         (copy_right_env le ss ds old source) mf ClightBigstep.Out_normal
+exec_copy_tail_short_right
+     : forall (le : Maps.PTree.tree Values.val) (m mc mf : Memory.Mem.mem) (bi : Values.block)
+         (src_ofs : Integers.Ptrofs.int) (bw : Values.block) (dst_ofs : Integers.Ptrofs.int)
+         (ss ds n : BinNums.Z) (old source : Integers.Int64.int)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n ds))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src_ptr le)
+                (@Some Values.val (Values.Vptr bi src_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_ptr le)
+                (@Some Values.val (Values.Vptr bw dst_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _src_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ss))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _dst_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ds))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _n le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr n))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_word_bits.clear_low ds old))) (@Some Memory.Mem.mem mc))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mc bi (Integers.Ptrofs.unsigned src_ofs))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mc bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (copy_right_value ss ds old source))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt ge0 Clight.empty_env le m copy_helper_tail Events.E0
+         (copy_right_env (copy_clear_env le ds old) ss ds old source) mf
+         (ClightBigstep.Out_return (@None (prod Values.val Ctypes.type)))
+eval_copy_helper_short_right
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (bw : Values.block)
+         (outedge cursor n : BinNums.Z) (old source : Integers.Int64.int) (_ : frame_base_valid sbase)
+         (_ : frame_base_valid base) (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : frame_fields_at m bd base bw outedge cursor)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc) (BinInt.Z.le rc Integers.Int64.max_unsigned))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) cursor) (BinInt.Z.le cursor Integers.Int64.max_unsigned))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                         (BinInt.Z.div rc
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned)) (_ : BinInt.Z.le BinNums.Z0 outedge)
+         (_ : BinInt.Z.le (jet_write_layout.write_word_address outedge cursor) Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.lt BinNums.Z0
+                (BinInt.Z.modulo cursor
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : BinInt.Z.le
+                (BinInt.Z.modulo cursor
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (BinInt.Z.sub
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                   (BinInt.Z.modulo rc
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n)
+                (BinInt.Z.le n
+                   (BinInt.Z.modulo cursor
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : not (@eq Values.block bd bw))
+         (_ : or (not (@eq Values.block bi bw))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add
+                         (BinInt.Z.sub edge
+                            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                               (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                                  (BinInt.Z.div rc
+                                     (BinNums.Zpos
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (jet_write_layout.write_word_address outedge cursor))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (BinInt.Z.sub edge
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                               (BinInt.Z.div rc
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bi
+                   (BinInt.Z.sub edge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                            (BinInt.Z.div rc
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bw (jet_write_layout.write_word_address outedge cursor))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : Memory.Mem.valid_access m AST.Mint64 bw (jet_write_layout.write_word_address outedge cursor)
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_copyBitsHelper)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf bw (jet_write_layout.write_word_address outedge cursor))
+                  (@Some Values.val
+                     (Values.Vlong
+                        (copy_right_value
+                           (BinInt.Z.sub
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                              (BinInt.Z.modulo rc
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           (BinInt.Z.modulo cursor
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) old
+                           source))))
+               (and (frame_fields_at mf bd base bw outedge cursor)
+                  (and
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (jet_write_layout.write_word_address outedge cursor))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                     (and
+                        (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                           (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                         Memory.Mem.perm mf b ofs kind p)
+                        (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b))))))
+copy_left_value_bits
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (copy_left_value ss ds old source) i)
+         match Coqlib.zlt i (BinInt.Z.sub ds ss) return bool with
+         | left _ => false
+         | right _ =>
+             match Coqlib.zlt i ds return bool with
+             | left _ => Integers.Int64.testbit source (BinInt.Z.sub i (BinInt.Z.sub ds ss))
+             | right _ => Integers.Int64.testbit old i
+             end
+         end
+copy_right_value_bits
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (copy_right_value ss ds old source) i)
+         match Coqlib.zlt i ds return bool with
+         | left _ => Integers.Int64.testbit source (BinInt.Z.add i (BinInt.Z.sub ss ds))
+         | right _ => Integers.Int64.testbit old i
+         end
+copy_left_copied_bit
+     : forall (ss ds n : BinNums.Z) (old source : Integers.Int64.int) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n ss)) (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j n)),
+       @eq bool
+         (Integers.Int64.testbit (copy_left_value ss ds old source)
+            (BinInt.Z.sub (BinInt.Z.sub ds (BinNums.Zpos BinNums.xH)) j))
+         (Integers.Int64.testbit source (BinInt.Z.sub (BinInt.Z.sub ss (BinNums.Zpos BinNums.xH)) j))
+copy_right_copied_bit
+     : forall (ss ds n : BinNums.Z) (old source : Integers.Int64.int) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n ds)) (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j n)),
+       @eq bool
+         (Integers.Int64.testbit (copy_right_value ss ds old source)
+            (BinInt.Z.sub (BinInt.Z.sub ds (BinNums.Zpos BinNums.xH)) j))
+         (Integers.Int64.testbit source (BinInt.Z.sub (BinInt.Z.sub ss (BinNums.Zpos BinNums.xH)) j))
+copy_left_existing_bit
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le ds i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (copy_left_value ss ds old source) i) (Integers.Int64.testbit old i)
+copy_right_existing_bit
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le ds i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (copy_right_value ss ds old source) i) (Integers.Int64.testbit old i)
+copy_short_copied_bit
+     : forall (ss ds n : BinNums.Z) (old source : Integers.Int64.int) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n ss)) (_ : BinInt.Z.le n ds)
+         (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j n)),
+       @eq bool
+         (Integers.Int64.testbit (copy_short_value ss ds old source)
+            (BinInt.Z.sub (BinInt.Z.sub ds (BinNums.Zpos BinNums.xH)) j))
+         (Integers.Int64.testbit source (BinInt.Z.sub (BinInt.Z.sub ss (BinNums.Zpos BinNums.xH)) j))
+copy_short_existing_bit
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (copy_short_value ss ds old source) i) (Integers.Int64.testbit old i)
+eval_copy_helper_short
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (bw : Values.block)
+         (outedge cursor n : BinNums.Z) (old source : Integers.Int64.int) (_ : frame_base_valid sbase)
+         (_ : frame_base_valid base) (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : frame_fields_at m bd base bw outedge cursor)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc) (BinInt.Z.le rc Integers.Int64.max_unsigned))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) cursor) (BinInt.Z.le cursor Integers.Int64.max_unsigned))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                         (BinInt.Z.div rc
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned)) (_ : BinInt.Z.le BinNums.Z0 outedge)
+         (_ : BinInt.Z.le (jet_write_layout.write_word_address outedge cursor) Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.lt BinNums.Z0
+                (BinInt.Z.modulo cursor
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n)
+                (BinInt.Z.le n
+                   (BinInt.Z.sub
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (BinInt.Z.modulo rc
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : BinInt.Z.le n
+                (BinInt.Z.modulo cursor
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : not (@eq Values.block bd bw))
+         (_ : or (not (@eq Values.block bi bw))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add
+                         (BinInt.Z.sub edge
+                            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                               (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                                  (BinInt.Z.div rc
+                                     (BinNums.Zpos
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (jet_write_layout.write_word_address outedge cursor))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (BinInt.Z.sub edge
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                               (BinInt.Z.div rc
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bi
+                   (BinInt.Z.sub edge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                            (BinInt.Z.div rc
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bw (jet_write_layout.write_word_address outedge cursor))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : Memory.Mem.valid_access m AST.Mint64 bw (jet_write_layout.write_word_address outedge cursor)
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_copyBitsHelper)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf bw (jet_write_layout.write_word_address outedge cursor))
+                  (@Some Values.val
+                     (Values.Vlong
+                        (copy_short_value
+                           (BinInt.Z.sub
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                              (BinInt.Z.modulo rc
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           (BinInt.Z.modulo cursor
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) old
+                           source))))
+               (and (frame_fields_at mf bd base bw outedge cursor)
+                  (and
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (jet_write_layout.write_word_address outedge cursor))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                     (and
+                        (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                           (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                         Memory.Mem.perm mf b ofs kind p)
+                        (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b))))))
+eval_copyBits_short
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (bw : Values.block)
+         (outedge cursor n : BinNums.Z) (old source : Integers.Int64.int) (_ : frame_base_valid sbase)
+         (_ : frame_base_valid base) (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : frame_fields_at m bd base bw outedge cursor)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc) (BinInt.Z.le rc Integers.Int64.max_unsigned))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) cursor) (BinInt.Z.le cursor Integers.Int64.max_unsigned))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                         (BinInt.Z.div rc
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned)) (_ : BinInt.Z.le BinNums.Z0 outedge)
+         (_ : BinInt.Z.le (jet_write_layout.write_word_address outedge cursor) Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.lt BinNums.Z0
+                (BinInt.Z.modulo cursor
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n)
+                (BinInt.Z.le n
+                   (BinInt.Z.sub
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (BinInt.Z.modulo rc
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : BinInt.Z.le n
+                (BinInt.Z.modulo cursor
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : not (@eq Values.block bd bw))
+         (_ : or (not (@eq Values.block bi bw))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add
+                         (BinInt.Z.sub edge
+                            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                               (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                                  (BinInt.Z.div rc
+                                     (BinNums.Zpos
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (jet_write_layout.write_word_address outedge cursor))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (BinInt.Z.sub edge
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                               (BinInt.Z.div rc
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bi
+                   (BinInt.Z.sub edge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                            (BinInt.Z.div rc
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bw (jet_write_layout.write_word_address outedge cursor))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : Memory.Mem.valid_access m AST.Mint64 bw (jet_write_layout.write_word_address outedge cursor)
+                Memtype.Writable)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bd
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_copyBits)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf bw (jet_write_layout.write_word_address outedge cursor))
+                  (@Some Values.val
+                     (Values.Vlong
+                        (copy_short_value
+                           (BinInt.Z.sub
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                              (BinInt.Z.modulo rc
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           (BinInt.Z.modulo cursor
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) old
+                           source))))
+               (and (frame_fields_at mf bd base bw outedge (BinInt.Z.sub cursor n))
+                  (and
+                     (loads_outside_ranges m mf bd
+                        (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                        (BinInt.Z.add base
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) bw
+                        (jet_write_layout.write_word_address outedge cursor)
+                        (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     (and
+                        (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                           (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                         Memory.Mem.perm mf b ofs kind p)
+                        (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b))))))
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -12960,3 +14052,496 @@ forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinN
      : forall (_ : Clight.function) (A B : Ty.Ty) (_ : forall _ : Ty.tySem A, Ty.tySem B), Prop
 
 Arguments jet_separated_local_spec f (A B)%ty_scope spec%function_scope
+copy_frame_env =
+fun (f : Clight.function) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block)
+  (sofs : Integers.Ptrofs.int) (n : BinNums.Z) =>
+@Maps.PTree.set Values.val _n (Values.Vlong (Integers.Int64.repr n))
+  (@Maps.PTree.set Values.val _src (Values.Vptr bs sofs)
+     (@Maps.PTree.set Values.val _dst (Values.Vptr bd dofs) (Clight.create_undef_temps (Clight.fn_temps f))))
+     : forall (_ : Clight.function) (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Values.block)
+         (_ : Integers.Ptrofs.int) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments copy_frame_env f bd dofs bs sofs n%Z_scope
+block_copyBitsHelper = jet_symbol_block _copyBitsHelper
+     : Values.block
+copy_field =
+fun (id field : AST.ident) (ty : Ctypes.type) =>
+Clight.Efield
+  (Clight.Ederef (Clight.Etempvar id (Ctypesdefs.tptr (Ctypes.Tstruct _frameItem Ctypes.noattr)))
+     (Ctypes.Tstruct _frameItem Ctypes.noattr)) field ty
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : Ctypes.type), Clight.expr
+
+Arguments copy_field id field ty
+copy_src_init =
+Clight.Ssequence (Clight.Sset _t'17 (copy_field _src _edge (Ctypesdefs.tptr Ctypesdefs.tulong)))
+  (Clight.Ssequence (Clight.Sset _t'18 (copy_field _src _offset Ctypesdefs.tulong))
+     (Clight.Sset _src_ptr
+        (Clight.Ebinop Cop.Osub
+           (Clight.Ebinop Cop.Osub (Clight.Etempvar _t'17 (Ctypesdefs.tptr Ctypesdefs.tulong))
+              (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tulong))
+           (Clight.Ebinop Cop.Odiv (Clight.Etempvar _t'18 Ctypesdefs.tulong) jet_frame_constants.generated_uword_bits
+              Ctypesdefs.tulong) (Ctypesdefs.tptr Ctypesdefs.tulong))))
+     : Clight.statement
+copy_dst_init =
+Clight.Ssequence (Clight.Sset _t'15 (copy_field _dst _edge (Ctypesdefs.tptr Ctypesdefs.tulong)))
+  (Clight.Ssequence (Clight.Sset _t'16 (copy_field _dst _offset Ctypesdefs.tulong))
+     (Clight.Sset _dst_ptr
+        (Clight.Ebinop Cop.Oadd (Clight.Etempvar _t'15 (Ctypesdefs.tptr Ctypesdefs.tulong))
+           (Clight.Ebinop Cop.Odiv
+              (Clight.Ebinop Cop.Osub (Clight.Etempvar _t'16 Ctypesdefs.tulong)
+                 (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tulong)
+              jet_frame_constants.generated_uword_bits Ctypesdefs.tulong) (Ctypesdefs.tptr Ctypesdefs.tulong))))
+     : Clight.statement
+copy_src_shift_init =
+Clight.Ssequence (Clight.Sset _t'14 (copy_field _src _offset Ctypesdefs.tulong))
+  (Clight.Sset _src_shift
+     (Clight.Ebinop Cop.Osub jet_frame_constants.generated_uword_bits
+        (Clight.Ebinop Cop.Omod (Clight.Etempvar _t'14 Ctypesdefs.tulong) jet_frame_constants.generated_uword_bits
+           Ctypesdefs.tulong) Ctypesdefs.tulong))
+     : Clight.statement
+copy_dst_shift_init =
+Clight.Ssequence (Clight.Sset _t'13 (copy_field _dst _offset Ctypesdefs.tulong))
+  (Clight.Sset _dst_shift
+     (Clight.Ebinop Cop.Omod (Clight.Etempvar _t'13 Ctypesdefs.tulong) jet_frame_constants.generated_uword_bits
+        Ctypesdefs.tulong))
+     : Clight.statement
+copy_helper_tail =
+match Clight.fn_body f_copyBitsHelper return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ s4 =>
+            match s4 return Clight.statement with
+            | Clight.Sskip => Clight.Sskip
+            | Clight.Sassign _ _ => Clight.Sskip
+            | Clight.Sset _ _ => Clight.Sskip
+            | Clight.Scall _ _ _ => Clight.Sskip
+            | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+            | Clight.Ssequence _ tail => tail
+            | Clight.Sifthenelse _ _ _ => Clight.Sskip
+            | Clight.Sloop _ _ => Clight.Sskip
+            | Clight.Sbreak => Clight.Sskip
+            | Clight.Scontinue => Clight.Sskip
+            | Clight.Sreturn _ => Clight.Sskip
+            | Clight.Sswitch _ _ => Clight.Sskip
+            | Clight.Slabel _ _ => Clight.Sskip
+            | Clight.Sgoto _ => Clight.Sskip
+            end
+        | Clight.Sifthenelse _ _ _ => Clight.Sskip
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+copy_src_env =
+fun (le : Maps.PTree.tree Values.val) (bi : Values.block) (edge rc : BinNums.Z) =>
+@Maps.PTree.set Values.val _src_ptr
+  (Values.Vptr bi
+     (Integers.Ptrofs.repr
+        (BinInt.Z.sub edge
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+              (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                 (BinInt.Z.div rc
+                    (BinNums.Zpos
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))
+  (@Maps.PTree.set Values.val _t'18 (Values.Vlong (Integers.Int64.repr rc))
+     (@Maps.PTree.set Values.val _t'17 (Values.Vptr bi (Integers.Ptrofs.repr edge)) le))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z),
+       Maps.PTree.tree Values.val
+
+Arguments copy_src_env le bi (edge rc)%Z_scope
+copy_dst_env =
+fun (le : Maps.PTree.tree Values.val) (bw : Values.block) (outedge cursor : BinNums.Z) =>
+@Maps.PTree.set Values.val _dst_ptr
+  (Values.Vptr bw (Integers.Ptrofs.repr (jet_write_layout.write_word_address outedge cursor)))
+  (@Maps.PTree.set Values.val _t'16 (Values.Vlong (Integers.Int64.repr cursor))
+     (@Maps.PTree.set Values.val _t'15 (Values.Vptr bw (Integers.Ptrofs.repr outedge)) le))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z),
+       Maps.PTree.tree Values.val
+
+Arguments copy_dst_env le bw (outedge cursor)%Z_scope
+copy_src_shift_env =
+fun (le : Maps.PTree.tree Values.val) (rc : BinNums.Z) =>
+@Maps.PTree.set Values.val _src_shift
+  (Values.Vlong
+     (Integers.Int64.repr
+        (BinInt.Z.sub
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+           (BinInt.Z.modulo rc
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+  (@Maps.PTree.set Values.val _t'14 (Values.Vlong (Integers.Int64.repr rc)) le)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments copy_src_shift_env le rc%Z_scope
+copy_dst_shift_env =
+fun (le : Maps.PTree.tree Values.val) (cursor : BinNums.Z) =>
+@Maps.PTree.set Values.val _dst_shift
+  (Values.Vlong
+     (Integers.Int64.repr
+        (BinInt.Z.modulo cursor
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+  (@Maps.PTree.set Values.val _t'13 (Values.Vlong (Integers.Int64.repr cursor)) le)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments copy_dst_shift_env le cursor%Z_scope
+copy_helper_env =
+fun (bd : Values.block) (base : BinNums.Z) (bs : Values.block) (sbase n : BinNums.Z) (bi : Values.block)
+  (edge rc : BinNums.Z) (bw : Values.block) (outedge cursor : BinNums.Z) =>
+copy_dst_shift_env
+  (copy_src_shift_env
+     (copy_dst_env
+        (copy_src_env
+           (copy_frame_env f_copyBitsHelper bd (Integers.Ptrofs.repr base) bs (Integers.Ptrofs.repr sbase) n) bi edge
+           rc) bw outedge cursor) rc) cursor
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z)
+         (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments copy_helper_env bd base%Z_scope bs (sbase n)%Z_scope bi (edge rc)%Z_scope bw (outedge cursor)%Z_scope
+copy_word =
+fun id : AST.ident => Clight.Ederef (Clight.Etempvar id (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong
+     : forall _ : AST.ident, Clight.expr
+
+Arguments copy_word id
+copy_clear_stmt =
+Clight.Ssequence
+  (Clight.Ssequence (Clight.Sset _t'12 (copy_word _dst_ptr))
+     (Clight.Scall (@Some AST.ident _t'1)
+        (Clight.Evar _LSBclear
+           (Ctypes.Tfunction (Ctypes.Tcons Ctypesdefs.tulong (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil))
+              Ctypesdefs.tulong AST.cc_default))
+        (@cons Clight.expr (Clight.Etempvar _t'12 Ctypesdefs.tulong)
+           (@cons Clight.expr (Clight.Etempvar _dst_shift Ctypesdefs.tulong) (@nil Clight.expr)))))
+  (Clight.Sassign (copy_word _dst_ptr) (Clight.Etempvar _t'1 Ctypesdefs.tulong))
+     : Clight.statement
+copy_left_fill =
+Clight.Ssequence
+  (Clight.Ssequence (Clight.Sset _t'11 (copy_word _src_ptr))
+     (Clight.Scall (@Some AST.ident _t'2)
+        (Clight.Evar _LSBkeep
+           (Ctypes.Tfunction (Ctypes.Tcons Ctypesdefs.tulong (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil))
+              Ctypesdefs.tulong AST.cc_default))
+        (@cons Clight.expr (Clight.Etempvar _t'11 Ctypesdefs.tulong)
+           (@cons Clight.expr (Clight.Etempvar _src_shift Ctypesdefs.tulong) (@nil Clight.expr)))))
+  (Clight.Ssequence (Clight.Sset _t'10 (copy_word _dst_ptr))
+     (Clight.Sassign (copy_word _dst_ptr)
+        (Clight.Ebinop Cop.Oor (Clight.Etempvar _t'10 Ctypesdefs.tulong)
+           (Clight.Ecast
+              (Clight.Ebinop Cop.Oshl (Clight.Etempvar _t'2 Ctypesdefs.tulong)
+                 (Clight.Ebinop Cop.Osub (Clight.Etempvar _dst_shift Ctypesdefs.tulong)
+                    (Clight.Etempvar _src_shift Ctypesdefs.tulong) Ctypesdefs.tulong) Ctypesdefs.tulong)
+              Ctypesdefs.tulong) Ctypesdefs.tulong)))
+     : Clight.statement
+copy_partial =
+match copy_helper_tail return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s _ =>
+    match s return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ _ => Clight.Sskip
+    | Clight.Sifthenelse _ yes _ => yes
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+copy_partial_left =
+match copy_partial return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence s1 _ =>
+        match s1 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ _ => Clight.Sskip
+        | Clight.Sifthenelse _ yes _ => yes
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+copy_partial_right =
+match copy_partial return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ rest => rest
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+copy_left_after_return =
+match copy_partial_left return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ rest => rest
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+copy_tail_after_partial =
+match copy_helper_tail return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ rest => rest
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+copy_clear_env =
+fun (le : Maps.PTree.tree Values.val) (ds : BinNums.Z) (old : Integers.Int64.int) =>
+@Maps.PTree.set Values.val _t'1 (Values.Vlong (jet_word_bits.clear_low ds old))
+  (@Maps.PTree.set Values.val _t'12 (Values.Vlong old) le)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.Z) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments copy_clear_env le ds%Z_scope old
+copy_left_env =
+fun (le : Maps.PTree.tree Values.val) (ss ds : BinNums.Z) (old source : Integers.Int64.int) =>
+@Maps.PTree.set Values.val _t'10 (Values.Vlong (jet_word_bits.clear_low ds old))
+  (@Maps.PTree.set Values.val _t'2 (Values.Vlong (Integers.Int64.zero_ext ss source))
+     (@Maps.PTree.set Values.val _t'11 (Values.Vlong source) le))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments copy_left_env le (ss ds)%Z_scope old source
+copy_left_value =
+fun (ss ds : BinNums.Z) (old source : Integers.Int64.int) =>
+Integers.Int64.or (jet_word_bits.clear_low ds old)
+  (Integers.Int64.shl (Integers.Int64.zero_ext ss source) (Integers.Int64.repr (BinInt.Z.sub ds ss)))
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments copy_left_value (ss ds)%Z_scope old source
+copy_right_fill =
+Clight.Ssequence
+  (Clight.Ssequence (Clight.Sset _t'9 (copy_word _src_ptr))
+     (Clight.Scall (@Some AST.ident _t'3)
+        (Clight.Evar _LSBkeep
+           (Ctypes.Tfunction (Ctypes.Tcons Ctypesdefs.tulong (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil))
+              Ctypesdefs.tulong AST.cc_default))
+        (@cons Clight.expr
+           (Clight.Ecast
+              (Clight.Ebinop Cop.Oshr (Clight.Etempvar _t'9 Ctypesdefs.tulong)
+                 (Clight.Ebinop Cop.Osub (Clight.Etempvar _src_shift Ctypesdefs.tulong)
+                    (Clight.Etempvar _dst_shift Ctypesdefs.tulong) Ctypesdefs.tulong) Ctypesdefs.tulong)
+              Ctypesdefs.tulong) (@cons Clight.expr (Clight.Etempvar _dst_shift Ctypesdefs.tulong) (@nil Clight.expr)))))
+  (Clight.Ssequence (Clight.Sset _t'8 (copy_word _dst_ptr))
+     (Clight.Sassign (copy_word _dst_ptr)
+        (Clight.Ebinop Cop.Oor (Clight.Etempvar _t'8 Ctypesdefs.tulong) (Clight.Etempvar _t'3 Ctypesdefs.tulong)
+           Ctypesdefs.tulong)))
+     : Clight.statement
+copy_right_after_return =
+match copy_partial_right return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ rest => rest
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+copy_right_payload =
+fun (ss ds : BinNums.Z) (source : Integers.Int64.int) =>
+Integers.Int64.zero_ext ds (Integers.Int64.shru source (Integers.Int64.repr (BinInt.Z.sub ss ds)))
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments copy_right_payload (ss ds)%Z_scope source
+copy_right_value =
+fun (ss ds : BinNums.Z) (old source : Integers.Int64.int) =>
+Integers.Int64.or (jet_word_bits.clear_low ds old) (copy_right_payload ss ds source)
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments copy_right_value (ss ds)%Z_scope old source
+copy_right_env =
+fun (le : Maps.PTree.tree Values.val) (ss ds : BinNums.Z) (old source : Integers.Int64.int) =>
+@Maps.PTree.set Values.val _t'8 (Values.Vlong (jet_word_bits.clear_low ds old))
+  (@Maps.PTree.set Values.val _t'3 (Values.Vlong (copy_right_payload ss ds source))
+     (@Maps.PTree.set Values.val _t'9 (Values.Vlong source) le))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments copy_right_env le (ss ds)%Z_scope old source
+copy_short_value =
+fun (ss ds : BinNums.Z) (old source : Integers.Int64.int) =>
+match Coqlib.zlt ss ds return Integers.Int64.int with
+| left _ => copy_left_value ss ds old source
+| right _ => copy_right_value ss ds old source
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments copy_short_value (ss ds)%Z_scope old source
