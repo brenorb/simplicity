@@ -20,10 +20,11 @@ low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
 There are 331 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
-audit `24374` covers 198 entries, including the four divides proofs.
-Four further div_mod whole-call proofs pass independent source/kernel checks
-and are registered in running audit `64579`, together with the 96/64 helper
-infrastructure. The helper lemmas do not establish DivMod128_64 coverage.
+audit `64579` covers all 202 entries, including the four div_mod whole-call proofs,
+and the initial 96/64 helper infrastructure. All gates, negative fixtures and
+pinned AST regeneration passed on 306 modules / 1469 results (588 closed).
+Earlier snapshots and the 15 inherited kernel axioms are unchanged.
+The helper lemmas do not establish DivMod128_64 coverage.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -987,14 +988,13 @@ tree otherwise contains only Coq files.
    write, and recover the complete literal div_mod pair from its checked
    projections. All zero divisors and initial frame/layout guarantees remain.
    They are registered with four coverage entries. Expanded audit `64579`
-   is running against accepted baseline `c27d813`: freeze registered proof
-   sources/manifests/public lists and poll the same handle. The audit also
-   includes six new 96/64 helper modules (12 modules / 48 results / 25 definitions
-   added in total). Expected totals: 306 modules / 1469 results. Accept snapshots
-   only after terminal exit 0, all negative fixtures and pinned AST regeneration;
-   remove only these 12 modules' additions to reproduce the accepted baseline.
+   exited 0 through all gates, negative fixtures and pinned AST regeneration
+   against accepted baseline `c27d813`. The audit also includes six new 96/64
+   helper modules (12 modules / 48 results / 25 definitions added in total):
+   306 modules / 1469 results, 588 closed. Removing only these 12 modules'
+   additions reproduces the accepted baseline byte-for-byte.
    `exec_divmod8_choose` starts the new result contract block; `divmod8_choose`
-   starts the new definition block. Preserve all 15 inherited kernel axioms.
+   starts the new definition block. All 15 inherited kernel axioms are unchanged.
    **Next: DivMod128_64 and its div_mod_96_64 helper.** The canonical
    numeric bridge is now proved; do not restart normalization or replace
    the actual program with division_numeric. Reuse division_word_representation

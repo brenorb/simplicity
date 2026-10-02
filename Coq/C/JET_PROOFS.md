@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Fully audited Coq proofs that the generated CompCert Clight of 198 jets of the C library
+Fully audited Coq proofs that the generated CompCert Clight of 202 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -18,10 +18,11 @@ Four `divides_8/16/32/64` proofs pass current-source compilation,
 kernel and assumption checks and are registered (198 entries). Expanded
 integrated audit `24374` passed all gates, negative fixtures and pinned AST
 regeneration. Four `div_mod_8/16/32/64` proofs also pass independent checks,
-and are registered (202 entries), with expanded audit `64579` running. They
+and are registered (202 entries). Expanded audit `64579` passed all gates,
+negative fixtures and pinned AST regeneration on 306 modules / 1469 results
+(588 closed). Earlier snapshots and the 15 inherited kernel axioms are unchanged. They
 execute both ordered writers and preserve the first output across the second,
-including arbitrary valid cursors and crossings. The div_mod entries are not
-yet included in the fully integrated 198-entry count above. Checked 96/64
+including arbitrary valid cursors and crossings. Checked 96/64
 correction helper lemmas join this audit but do not establish a whole helper
 call or DivMod128_64 jet proof. The every-jet goal remains unfinished.
 
@@ -53,6 +54,7 @@ call or DivMod128_64 jet proof. The every-jet goal remains unfinished.
 | `full_multiply_8/16/32` | `Word.fullMultiplier`, the canonical four-input `Programs.Arith.full_multiply wordN` |
 | `divide/modulo_8/16/32/64` | Projections of the literal recursive `Programs.Arith.div_mod wordN`, including its zero-divisor branch |
 | `divides_8/16/32/64` | Swapped inputs, canonical modulo, then canonical is_zero, including zero divisors |
+| `div_mod_8/16/32/64` | Literal recursive `Programs.Arith.div_mod wordN`, with ordered quotient/remainder output and its zero-divisor branch |
 | `parse_lock` | Literal `Programs.TimeLock.parseLock`, including the canonical 500000000 constant and subtraction-borrow branch |
 | `parse_sequence` | Literal `Programs.TimeLock.parseSequence`: bit31 disables the result; otherwise bit22 selects the low 16-bit payload branch |
 | `sha_256_iv` | Literal `Programs.Sha256.Lib.iv`: canonical scribe of the 256-bit initial register constant |
