@@ -437,6 +437,13 @@ tree otherwise contains only Coq files.
    framing. Aligned sources (`src_shift = 64`) are supported. The reusable
    `jet_copyBits_two_words_right_exec.v` prefix/loop composition also supports
    the remaining second-loop-return case (`dst_shift < src_shift < n`).
+   **Destination-only crossing: logical wrapper contract completed.**
+   `jet_copyBits_two_words_right_short_cells.v` derives the actual helper and
+   wrapper calls from logical initial frames and whole-buffer separation,
+   for `0 < dst_shift < n <= src_shift`. It proves equal output cells,
+   preserved prefix, updated cursor fields and two-word/cursor framing.
+   Undefined cells and initially aligned sources are supported; no unused
+   next-source-word premise is imposed. This remains shared helper progress.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

@@ -1042,3 +1042,18 @@ the earlier right-advance module) to the snapshots: 590 audited results,
 assumption sets and the inherited kernel axiom allowlist are unchanged.
 Source/inventory checks, kernel audit, negative tests and regenerated AST
 comparison all passed. Later right-case modules remain outside that run.
+
+## Destination-only crossing: logical wrapper contract
+
+`jet_copyBits_two_words_right_short_cells.v:eval_copyBits_two_right_short_layout`
+derives the source word, both output accesses and required word protection
+from logical cells, writable frames and whole-buffer separation. It proves
+the actual wrapper call, equal output cells (including undefined cells),
+prefix/cursor observations and two-word/cursor load/permission/block framing.
+It covers initially aligned sources without requiring a nonexistent next
+input word or a library call.
+
+Explicit compilation and direct kernel checking finished with exit 0,
+unchanged inherited library axioms and no unsafe kernel features. Both build
+manifests include this module. It is later than the 109-module public audit
+and adds no public jet coverage.
