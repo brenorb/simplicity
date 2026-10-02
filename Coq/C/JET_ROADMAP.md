@@ -698,6 +698,14 @@ tree otherwise contains only Coq files.
    is ready. `jet_rotate_count_exec.v` handles the actual promoted signed
    remainder and uchar cast: with a nonnegative byte carrier and positive
    width, C's signed remainder equals the required nonnegative modulus.
+   The count adapter also executes the right-rotation `(bits-amt)%bits`
+   expression, retaining the tint subtraction/remainder and final uchar cast.
+   Its current source compiled and passed a fresh combined kernel check with
+   both helpers. Reader/helper calls retain the existing six assumptions;
+   count-expression proofs use only the four inherited logical assumptions,
+   and the unsigned reverse-count bridge is closed. All three modules are
+   staged outside the public lists/manifests pending the complete consumer;
+   no rotation jet is counted yet.
    Next compose the actual left_rotate_32 entry/copy, read8/modulo, read32,
    scalar helper, write32, return and free from initial frames. Its exact
    canonical target is CoreJets' `Prog.left_rotate word8 word32`, not merely
@@ -706,8 +714,8 @@ tree otherwise contains only Coq files.
    vectorPromote recursion). Existing `Word.rotate_const_correct_word` and
    flatten/VectorPromote lemmas can support the symbolic bridge, but the
    variable-control canonical program itself must be retained. Then reuse
-   the family for left_rotate_64 and right variants, whose `(bits-amt)%bits`
-   conversion must be executed explicitly. Do not assume an intermediate
+   the family for left_rotate_64 and right variants, reusing the checked
+   reverse-count expression. Do not assume an intermediate
    helper call or successful writer in the final local spec.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.

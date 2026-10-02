@@ -1479,3 +1479,14 @@ axioms are unchanged, with no type-in-type, unsafe recursion or assumed
 positivity. Negative tests and pinned AST regeneration passed. The separate
 regression build exited 0. Coverage is 162/533, with 371 missing; this is
 not completion or a new clean Nix/remote check.
+
+Staged rotation support (`jet_read8_wide_sequence.v`,
+`jet_rotate_wide_helper.v`, `jet_rotate_count_exec.v`) is not part of that
+188-module audit and adds no jet coverage. Each source compiled explicitly;
+a fresh combined `--coqchk -silent -o` on all three exited 0 with no unsafe
+recursion, assumed positivity or type-in-type. Individual `Print Assumptions`
+checks show the existing six assumptions for mixed-reader/helper execution,
+the four inherited logical assumptions for count-expression execution, and
+no assumptions for the unsigned reverse-count bridge. The count proofs retain
+the actual signed modulo and uchar casts for both initial and reversed counts.
+Finish the canonical variable-rotation consumer before registering coverage.
