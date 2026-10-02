@@ -640,6 +640,24 @@ tree otherwise contains only Coq files.
    order, and literal rightmost/right-padding program. Then extend the
    reader/writer adapters to 16/32-bit inputs. These bodies do not use copyBits;
    do not introduce its external memcpy gap into their proofs.
+   **Staged right-extension support, no new jet coverage.**
+   `jet_right_extend_word8_loop.v` matches and executes the actual mirrored
+   `_lsb` fill loops and the low-bit AND/Boolean cast. It reuses the checked
+   1/3/7 bounds and index-step evaluation, but retains an INTERNAL writer-run
+   premise. `jet_int32_bit_mask.v` supplies symbolic isolated-bit masks;
+   `jet_right_extend_word_spec.v` retains literal rightmost/right-padding
+   terms and proves the low-bit and sequence-encoding bridges. All three
+   staged files explicitly compiled and passed independent kernel checks;
+   the mask and canonical bridges are closed. They are not yet in the project
+   manifests or public snapshots and are not part of the 174-module audit.
+   Next prove the complete right-extension entry/body/return/free adapter:
+   read and normalize once, set `_lsb`, WRITE THE PAYLOAD FIRST, then initialize
+   `_i` and run the fill loop. Split `write8_sequence_run` for
+   `[payload] ++ repeat fill count` to derive both intermediate executions.
+   Reuse the initial-only left-extension lifecycle with the right canonical
+   bridge, discharge every run/free premise, then register/audit the three
+   consumers and these helpers. Do not claim C jet equivalence from the pure
+   sequence bridge or the conditional loop proof alone.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
