@@ -581,3 +581,23 @@ results (62 closed), and 438 declarations still lack complete proofs. The
 regression target also finished with exit 0. Normal assumption and contract
 comparison gates also passed at 347 results (62 closed), without rewriting
 snapshots. The completed clean Nix run certifies a separate 91-jet snapshot.
+
+## Borrow-input subtraction at all arithmetic widths
+
+`full_subtract_8/16/32/64` now have complete C-call proofs against the literal
+canonical `full_subtract_word_spec` composition, for both input borrow bits.
+The shared representation bridge includes the endpoint `delta = -word_modulus n`.
+Both carrier subtractions are handled modularly, and the false first comparison
+establishes a non-wrapping intermediate for the second borrow comparison.
+The execution adapters follow the actual conditional assigning `_t'4` and
+retain unsigned byte comparisons and mixed uint/ulong wide comparisons.
+The initial-only layout contracts derive all three reads, both writers and
+cleanup, with arbitrary valid cursors, crossings and memory framing.
+
+The integrated check with exact AST regeneration finished with exit 0 at
+99/533 and 73 public modules, including negative tests. Reviewed snapshots add
+23 audited results (ten closed) and 580 contract lines only; existing contracts,
+axiom sets and the inherited library-level axiom list are unchanged. There are
+370 audited results (72 closed). The regression target passed and the
+completeness gate intentionally fails with 434 missing declarations. Normal
+comparison gates are running; the clean Nix result certifies only 91 jets.

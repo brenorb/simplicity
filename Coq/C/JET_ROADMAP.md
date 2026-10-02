@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 95 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement at 8/16/32/64 bits,
+There are 99 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, and eq at 1/8/16/32/64 bits.
-There are 438 declarations without coverage
+There are 434 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -186,10 +186,12 @@ tree otherwise contains only Coq files.
    two-writer output, and reuse subtraction's modulus reduction for `x-z`.
    Its checked canonical numeric bridge is `full_subtract_word_spec_numeric`
    with second word zero; both borrow values are covered.
-   **Next: full_subtract at 8/16/32/64 bits.** Its canonical program and
-   parametricity already exist in `jet_subtract_spec.v`, but those helper
-   results are not additional C coverage. Derive actual borrow and modular
-   payload values before reusing the three-reader sequencing.
+   **full_subtract_8/16/32/64 completed.** `jet_full_subtract_word.v` supplies
+   the symbolic borrow and two-subtraction modular payload bridge; byte and
+   width-shared execution/layout modules reuse full-add's three-reader frame
+   lifecycle and derive all intermediate calls and cleanup from initial-only
+   contracts. They export four named canonical local specs, contexts and
+   call-boundary guarantees. These are complete C proofs, not just helper results.
    full_subtract has a generated short-circuit conditional assigning `_t'4`;
    do not treat it as a single expression. The first test is `1U*x < 1U*y`,
    also unsigned in the byte body, followed only when false by
@@ -200,6 +202,16 @@ tree otherwise contains only Coq files.
    For its representation bridge, allow the endpoint `delta = -word_modulus n`
    (`0 - max_word - true`); `borrow_mod_balance` already covers that inclusive
    lower bound. A strict lower bound would incorrectly discard a valid input.
+   **Next: is_zero/is_one and lt/le at all four arithmetic widths.**
+   `Programs.Arith.lt` projects the borrow from canonical subtract;
+   `le` negates lt on swapped inputs. Reuse the signed balance to connect these
+   exact programs to the actual C comparisons, then the two-reader equality
+   sequencing and total bit writer. Byte comparisons are signed after promotion
+   (justify with byte bounds); wide comparisons are unsigned.
+   is_zero is canonical `not (some wordN)`, whereas is_one composes canonical
+   decrement and is_zero on the resulting payload. Reuse the symbolic some
+   and decrement bridges and the one-reader predicate lifecycle; do not replace
+   either canonical specification with an independently chosen numeric test.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

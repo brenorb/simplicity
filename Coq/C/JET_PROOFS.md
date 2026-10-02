@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of ninety-five jets of the C library
+Coq proofs that the generated CompCert Clight of ninety-nine jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -23,6 +23,7 @@ expression in a local, explicitly described context.
 | `negate_8/16/32/64` | `negate_word_spec`, canonical zero minus the input word |
 | `decrement_8/16/32/64` | `decrement_word_spec`, the canonical true-borrow `full_decrement wordN` composition |
 | `full_decrement_8/16/32/64` | `full_decrement_word_spec`, the canonical borrow-input zero-subtrahend composition |
+| `full_subtract_8/16/32/64` | `full_subtract_word_spec`, the canonical complemented-input full-adder composition |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -165,8 +166,20 @@ including 64-bit wraparound and the byte's signed, promoted comparison.
 actual reads, the borrow-bit and payload writes, return and local cleanup from
 initial contracts. They export four named canonical local specs, context
 substitution and call-boundary guarantees with arbitrary valid cursors,
-crossings and unrelated output contents. Definitions and parametricity for
-borrow-input programs are shared preparation only, not additional C jet coverage.
+crossings and unrelated output contents.
+
+`jet_full_subtract_word.v` extends the bridge to both input borrow values,
+including the valid endpoint where the mathematical difference is minus the
+word modulus. Its carrier-modulo difference lemma handles both subtractions
+without assuming their machine intermediates are unbounded integers.
+`jet_full_subtract{8,_wide}_exec.v` executes the actual conditional assigning
+`_t'4`: first test `1U*x < 1U*y`, otherwise test `1U*x-y < 1U*z`.
+The false first test establishes non-wrapping intermediate subtraction for
+the second comparison. The byte comparisons are unsigned, unlike plain byte
+subtraction; the wide second comparison retains uint-to-ulong promotion.
+The shared layout adapters derive three reads, both writes and local cleanup
+from initial-only contracts, exporting four canonical local specs plus
+context and call-boundary guarantees.
 
 `jet_borrow_unary_word.v` reuses that signed balance and carrier-modulo bridge
 for canonical negation and decrement. It retains the generated nonzero/less-
@@ -292,6 +305,8 @@ and four `full_add{8,16,32,64}_local_spec` results, with byte and width-shared
 context and call-boundary guarantees.
 Borrow-input decrement likewise exports four named
 `full_decrement{8,16,32,64}_local_spec` results and the same guarantee layers.
+Borrow-input subtraction exports four named
+`full_subtract{8,16,32,64}_local_spec` results and the same guarantee layers.
 
 `jet_context.v:jet_context` combines `jet_local_spec` with
 `Translate.Naive.translate_correct`: for a parametric Simplicity expression `t`
@@ -373,6 +388,7 @@ and `constant_context_guarantees`, derived through these same generic results.
 | `full_increment_8/16/32/64` | byte/wide full-increment layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 | `full_add_8/16/32/64` | byte/wide full-add layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 | `full_decrement_8/16/32/64` | byte/wide full-decrement layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
+| `full_subtract_8/16/32/64` | byte/wide full-subtract layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 
 All 16-, 32- and 64-bit increment/add value theorems are proved from initial-memory
 contracts, including W16 (`eval_read16_layout_total` derives the reader's stores;
