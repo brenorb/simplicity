@@ -594,6 +594,17 @@ tree otherwise contains only Coq files.
    left_extend_1_N, retaining their actual shift/conditional expressions and
    proving their distinct canonical program bridges. Larger-input padding
    still uses copyBits and retains the documented external memcpy gap.
+   `jet_pad_bit_spec.v` now supplies those literal right-padding, high-padding
+   and left-extension terms, parametricity and byte/wide carrier bridges.
+   Explicit source compilation and fresh kernel checking passed; all seven
+   lemma assumptions are closed. Both project manifests include it, but this
+   post-audit module is not yet in public snapshots and adds no jet coverage.
+   For right padding, adapt the exact cast/shift/cast expression in the
+   generated body and prove its 7/15/31/63 shift guards. For extension, retain
+   the conditional _t'2 assignment: tint at 8/16, tuint at 32, tulong at 64.
+   Its exact wide payloads are 65535/4294967295/18446744073709551615, not an
+   assumed common untruncated argument. Reuse the checked readBit/writer and
+   frame lifecycle; do not infer actual C calls from these pure bridges.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical

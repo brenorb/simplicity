@@ -1315,3 +1315,15 @@ byte-identical AST regeneration passed. The optional regression build also
 finished with exit 0. The every-jet completeness gate intentionally exits 1:
 392 declared jets still lack proof entries. No clean Nix, other ABI/build or
 whole-evaluator claim is added.
+
+## Later checked next-family padding/extension bridges
+
+`jet_pad_bit_spec.v` was explicitly compiled from current source and freshly
+kernel checked with exit 0 after the latest integrated audit. All seven
+parametricity/byte/wide representation lemmas are closed under the global
+context. The canonical recursions and conditional composition are checked
+against Programs/Word.hs:129-152 and CoreJets' word1 catalog entries. Exact
+width-specific extension payloads are retained. Both project manifests include
+the module; it is not yet in public snapshots. These are bridges for upcoming
+right-padding/left-extension C consumers, not new implementation-to-spec
+proofs. Coverage remains 141/533.
