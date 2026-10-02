@@ -951,3 +951,18 @@ unchanged inherited library axioms and no unsafe kernel features. Both build
 manifests include the module. The roadmap records the exact still-unproved
 partial-destination continuation states, distinguishing temporary pointer
 updates from unchanged stored frame cursors.
+
+## Common right-fill continuation (internal, not an initial contract)
+
+`jet_copyBits_right_advance.v` proves the exact generated suffix shape, its
+three temporary updates and the actual right-fill continuation past the
+short-return test. The resulting source shift is allowed to be zero, so the
+future memcpy obligation is not excluded. Execution still assumes the fill's
+load/store facts; this is a reusable raw lemma, not a final helper or jet
+contract. The remaining two-word initial-only proof must derive those facts
+and execute the loop or appropriate library call.
+
+Explicit compilation and direct `coqchk -silent -o` finished with exit 0,
+the unchanged inherited library axiom set and no unsafe kernel features.
+Both build manifests include this later module; it is not in the 105-module
+public audit list yet. Public jet coverage remains 127/533.

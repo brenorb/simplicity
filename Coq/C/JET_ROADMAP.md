@@ -385,9 +385,15 @@ tree otherwise contains only Coq files.
    writable cursor. It supports shared cell blocks and arbitrary cursors;
    no distinct-cell-block premise or extra contextual assumption is needed.
    Reuse it for current/next source words and both destination words.
-   **Next concrete continuation decomposition (not yet proved).** For
+   **Common right-fill continuation completed (INTERNAL).**
+   `jet_copyBits_right_advance.v:exec_copy_right_continue` executes the actual
+   right fill, false short-return test, count/shift updates and destination
+   pointer decrement. It includes `ss = ds`, producing shift zero rather than
+   assuming this case away. Its load/store premises still need deriving from
+   initial frames and composing with the subsequent loop or external memcpy.
+   **Next concrete continuation decomposition (initial contracts unproved).** For
    initial shifts `ss < ds` and `ds < n <= 64`, reuse the actual left advance
-   and common right fill, then prove the three right-advance temporary updates.
+   and `exec_copy_right_continue` with source shift 64, then compose the loop.
    The next loop has count `n - ds`, source shift `64 - (ds - ss)`, decremented
    source and destination pointers. Its first return suffices because
    `n - ds <= 64 - (ds - ss)`. For `ds <= ss` and `ds < n <= 64`, the next loop
