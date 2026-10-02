@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of eighty-three jets of the C library
+Coq proofs that the generated CompCert Clight of ninety-one jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -20,6 +20,8 @@ expression in a local, explicitly described context.
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
 | `full_add_8/16/32/64` | `Word.fullAdder`, the canonical carry-input `Programs.Arith.full_add wordN` |
 | `subtract_8/16/32/64` | `subtract_word_spec`, the canonical `Programs.Arith.subtract wordN` composition |
+| `negate_8/16/32/64` | `negate_word_spec`, canonical zero minus the input word |
+| `decrement_8/16/32/64` | `decrement_word_spec`, the canonical true-borrow `full_decrement wordN` composition |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -153,8 +155,17 @@ actual reads, the borrow-bit and payload writes, return and local cleanup from
 initial contracts. They export four named canonical local specs, context
 substitution and call-boundary guarantees with arbitrary valid cursors,
 crossings and unrelated output contents. Definitions and parametricity for
-negate/decrement and borrow-input programs are shared preparation only, not
-additional C jet coverage.
+borrow-input programs are shared preparation only, not additional C jet coverage.
+
+`jet_borrow_unary_word.v` reuses that signed balance and carrier-modulo bridge
+for canonical negation and decrement. It retains the generated nonzero/less-
+than-one borrow tests, the byte's promoted comparisons and truncation, and the
+wide carrier's wrapping arithmetic. `jet_borrow_unary{8,_wide}_exec.v` and
+`jet_borrow_unary{8,_wide}_layout.v` share each carrier's actual body and
+initial-only memory proof across both operations, while exporting eight named
+canonical local specs. A single actual word read precedes both output writes;
+all cursor stores and local allocation/copy/free are discharged, with context
+substitution and deterministic call-boundary guarantees.
 
 For the actual generated function body (`f_simplicity_<jet>`), a complete
 `ClightBigstep.Clight2.eval_funcall` (parameters as temporaries,

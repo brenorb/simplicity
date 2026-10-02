@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 83 covered core jets: one/increment/add/full_increment/full_add/subtract at 8/16/32/64 bits,
+There are 91 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, and eq at 1/8/16/32/64 bits.
-There are 450 declarations without coverage
+There are 442 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -165,12 +165,36 @@ tree otherwise contains only Coq files.
    `Int64.ltu`. All four complete calls reuse two-reader sequencing and the
    total carry-plus-word writers, deriving allocations/stores/free from initial
    contracts and supporting arbitrary valid cursors and crossings.
-   **Next: negation, decrement and borrow-input variants.** The canonical
-   zero/constant-input programs and their parametricity already exist in
-   `jet_subtract_spec.v`, but those helper results are not additional C coverage.
-   Derive actual borrow and modular payload values before reusing the one- and
-   three-reader call/layout sequencing. full_subtract has another
-   generated short-circuit conditional; do not treat it as a single expression.
+   **negate_8/16/32/64 and decrement_8/16/32/64 completed.**
+   `jet_borrow_unary_word.v` shares the canonical zero/constant-input programs,
+   signed balance and carrier-modulo bridges across both operations. The
+   byte and wide execution/layout modules each share one-reader sequencing
+   and borrow-plus-word writing across negate/decrement, exporting eight
+   named local specs with initial-only frame contracts. Preserve the actual
+   comparisons (`x != 0` versus `x < 1`), byte promotions and truncation,
+   and the generated multiply-by-one inside negation or subtraction.
+   **Next: full_decrement and full_subtract at 8/16/32/64 bits.** Their canonical
+   programs and parametricity already exist in `jet_subtract_spec.v`, but those
+   helper results are not additional C coverage. Derive actual borrow and
+   modular payload values before reusing the two-/three-reader sequencing.
+   full_decrement reads a bit followed by a word and tests `1U*x < 1U*z`;
+   unlike plain byte decrement, its byte comparison is **unsigned** after the
+   generated multiply-by-one. Normalize the returned Boolean exactly and
+   retain the wide-versus-uint carrier conversion. Start from
+   `jet_full_increment{8,_wide}_layout.v` for its bit-plus-word input and
+   two-writer output, and reuse subtraction's modulus reduction for `x-z`.
+   Its canonical numeric bridge is `full_subtract_word_spec_numeric` with
+   second word zero; both borrow values are required.
+   full_subtract has a generated short-circuit conditional assigning `_t'4`;
+   do not treat it as a single expression. The first test is `1U*x < 1U*y`,
+   also unsigned in the byte body, followed only when false by
+   `1U*x-y < 1U*z`. That false-branch inequality establishes that `x-y` has
+   not wrapped before the second comparison. Its payload retains both
+   subtractions and final cast. Start from the checked full-add three-reader
+   and conditional sequencing, not the plain subtract body.
+   For its representation bridge, allow the endpoint `delta = -word_modulus n`
+   (`0 - max_word - true`); `borrow_mod_balance` already covers that inclusive
+   lower bound. A strict lower bound would incorrectly discard a valid input.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

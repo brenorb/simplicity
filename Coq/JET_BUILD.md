@@ -531,3 +531,22 @@ and the inherited axiom allowlist are unchanged. Normal comparison gates passed
 at 304 results (50 closed), and the regression target passed. The completeness
 gate intentionally fails with 450 missing declarations. The 79-jet clean Nix
 result does not certify this extension.
+
+## Shared negate/decrement calls at 8/16/32/64 bits
+
+All eight calls now reuse the canonical subtraction compositions and signed
+borrow/payload balance. One symbolic representation module handles both
+operations and both machine carriers; the byte/wide execution and memory
+modules each share their proof across negate and decrement. They preserve
+actual nonzero/less-than-one comparisons, multiply-by-one, unsigned negation,
+byte promotions and truncation, modular underflow, both writes and cleanup.
+Public contracts require only initial readable inputs and writable output
+frames at arbitrary valid cursors, with crossings and unrelated output bits.
+
+The integrated check with exact AST regeneration finished with exit 0 at
+91/533 and 67 public modules, including negative tests. Reviewed snapshots
+add 23 audited results (five closed) and 499 contract lines only; previous
+contracts, assumption sets and the inherited axiom allowlist are unchanged.
+There are 327 audited results (55 closed). The regression target passed; the
+completeness gate intentionally fails with 442 missing declarations. The
+79-jet clean Nix result does not certify these later proof extensions.
