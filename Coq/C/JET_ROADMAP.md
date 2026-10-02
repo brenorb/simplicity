@@ -866,8 +866,8 @@ tree otherwise contains only Coq files.
    negative tests and pinned AST regeneration. Earlier snapshots and inherited
    kernel axioms are unchanged. The bit read precedes the count/payload helpers, so the count
    begins at rc+1, payload at rc+5, and the final copied cursor is rc+21.
-   **32/64-bit zero-fill and fill-input shifts: complete and registered;
-   expanded audit running.** `jet_shift_byte_layout_machine.v` shares the
+   **32/64-bit zero-fill and fill-input shifts: complete and audited.**
+   `jet_shift_byte_layout_machine.v` shares the
    zero-fill initial-frame lifecycle; `jet_readBit8_wide_sequence.v` derives
    exact bit/read8/wide calls; `jet_shift_byte_with_layout_machine.v` shares
    the fill-input lifecycle. Reusing `byte_rotate_size` only selects W32/W64:
@@ -879,10 +879,11 @@ tree otherwise contains only Coq files.
    XOR bridges. All sources and fresh independent kernel checks passed.
    Named specs retain the existing six assumptions; value bridges are closed.
    Fifteen modules / 49 results / six definitions add eight coverage entries:
-   186/533 (347 missing). The last completed integrated audit covers 178;
-   poll expanded audit session `87578`, do not restart it. Registered sources,
-   manifests and public lists must remain frozen until it finishes. Compare
-   updated snapshots against `8ef795b` after removing only these new entries.
+   186/533 (347 missing). The expanded integrated audit (`87578`) exited 0
+   through all gates on 271 modules / 1244 results (436 closed), including
+   negative fixtures and pinned AST regeneration. Removing only these new
+   entries reproduces the `8ef795b` snapshots byte-for-byte; inherited kernel
+   axioms are unchanged. This completes the variable-shift family, not every jet.
    **Normalization lesson:** aggregate `cbn`/repeated rewriting is too slow
    for the fill64 tuple. Measured lazy reduction plus component-wise `f_equal2`
    solves the same four cases in 0.14s instead of 7s. The combined 1024-case

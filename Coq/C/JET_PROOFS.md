@@ -99,8 +99,10 @@ All eight 32/64-bit zero-fill/fill-input shift contracts compiled and passed
 fresh independent kernel checks. Named local specs retain the existing six
 assumptions; their machine-value bridges are closed. Fifteen modules / 49
 results / six definitions are registered, bringing entries to 186/533
-(347 remain). The expanded integrated audit is running; the last completed
-audit covers 178. General valid cursors/crossings, arbitrary output contents,
+(347 remain). The expanded integrated audit passed all gates on 271 modules /
+1244 results (436 closed), including negative tests and pinned AST regeneration.
+Earlier snapshots and inherited kernel axioms are unchanged. General valid
+cursors/crossings, arbitrary output contents,
 all byte counts (including counts >= width), and memory framing are retained.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no

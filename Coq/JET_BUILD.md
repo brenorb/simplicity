@@ -1676,12 +1676,12 @@ the default 10s limit, not during its tactics. Four separately checked
 Source checking uses the same 180s process deadline; no proof escape is used.
 
 Fifteen modules / 49 results / six definitions are registered, adding eight
-jets: 186/533 entries, 347 missing. The expanded integrated audit is running
-as session `87578`; poll that handle without starting another run. Freeze
-registered sources/manifests/public lists until it exits. The last complete
-audit covers 178 entries. Review the new snapshots against `8ef795b`, removing
-only the newly registered results/definitions; the kernel axiom list must
-remain unchanged. This remains progress toward, not completion of, every jet.
+jets: 186/533 entries, 347 missing. The expanded integrated audit (`87578`)
+exited 0 through all gates on 271 modules / 1244 results (436 closed), including
+negative fixtures and pinned AST regeneration. Removing only the newly
+registered 49 results / six definitions reproduces the `8ef795b` snapshots
+byte-for-byte. The inherited 15 kernel axioms are unchanged. This remains
+progress toward, not completion of, every jet.
 
 ## Division C-side execution and numeric bridges (2026-10-02)
 
