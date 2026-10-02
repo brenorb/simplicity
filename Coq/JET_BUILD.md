@@ -840,3 +840,22 @@ The actual aligned-source branch calls a separately declared
 memcpy proof cannot discharge that external call. A verified linking/model
 solution remains necessary before proving every projection layout; the C
 source and generated AST have not been replaced to assume away this case.
+
+## Aligned short-copy cells and integrated audit (not jet coverage)
+
+`jet_copyBits_aligned_short.v:eval_copyBits_aligned_short_layout` proves the
+complete actual wrapper call from logical input cells and `write_frame_at`
+when the destination is aligned, the source is partial and the positive count
+fits in its current word. It derives every helper/store/cursor obligation and
+proves equal output cells, prefix preservation, updated fields, unchanged loads
+outside the destination word/cursor field, and preserved permissions/blocks.
+Undefined cells and overlapping cell words are supported. This is an explicit
+branch contract, not a full projection-jet equivalence theorem.
+
+The integrated `check-jets.sh --update-expected --ast` run finished with exit 0
+on 100 audited modules, including the previously directly checked short-cell
+module. Assumptions now cover 548 results, 138 closed. The snapshot diff adds
+only 23 new results and seven helper definitions; previous contracts and
+assumption sets, and the inherited kernel axiom allowlist, are unchanged.
+Proof scanning, complete-inventory tests, kernel checking, negative tests and
+regenerated-AST comparison all passed. Public jet coverage remains 127/533.

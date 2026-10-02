@@ -321,6 +321,14 @@ tree otherwise contains only Coq files.
    initial writable access, with exact value, metadata, load, permission and
    block framing. This path reads the source before storing, so it needs no
    input/output word-separation premise. It is still helper infrastructure.
+   **Aligned short-copy frame cells completed.**
+   `jet_copyBits_aligned_short.v:eval_copyBits_aligned_short_layout` derives
+   the complete actual wrapper call from logical input cells and writable
+   output frames for that case. It proves the output cells, written prefix,
+   cursor update and memory framing, also for undefined cells. Its source
+   word is read before any store, so the theorem preserves the helper's
+   support for overlapping cell words. Source-word crossings and partial
+   destination continuations remain to be assembled.
    **Do not silently model plain memcpy as a builtin.** The generated global
    declaration at `jets.v`'s `_memcpy` entry is `EF_external "memcpy"`, not
    `EF_memcpy`. `Events.extcall_memcpy_sem` therefore does not prove that call.
