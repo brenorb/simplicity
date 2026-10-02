@@ -590,14 +590,18 @@ tree otherwise contains only Coq files.
    passed. The expanded integrated audit passed on 152 modules / 775 results
    (225 closed), including negative gates and byte-identical AST regeneration.
    All earlier type/assumption snapshots and kernel axioms are unchanged.
-   Coverage is 141/533. Next reuse this one-bit-to-word lifecycle for right_pad_low_1_N and
-   left_extend_1_N, retaining their actual shift/conditional expressions and
-   proving their distinct canonical program bridges. Larger-input padding
-   still uses copyBits and retains the documented external memcpy gap.
+   This milestone brought coverage to 141/533. The later right_pad_low_1_N
+   and left_extend_1_N consumers below reuse its lifecycle, retaining actual
+   shift/conditional expressions and distinct canonical program bridges.
+   The remaining high-padding one-bit variants also use copyBits and actual
+   writeBit loops; they are not arithmetic OR-expression adapters. Their
+   aligned copy path can call plain memcpy even at a zero byte count, so do
+   not count them from the restricted no-memcpy theorem. Larger-input padding
+   retains the same documented external memcpy gap.
    `jet_pad_bit_spec.v` now supplies those literal right-padding, high-padding
    and left-extension terms, parametricity and byte/wide carrier bridges.
    Explicit source compilation and fresh kernel checking passed; all seven
-   lemma assumptions are closed. Both project manifests include it, but this
+   lemma assumptions are closed. Both project manifests include it; this
    module is now in public snapshots but adds no jet coverage on its own.
    For right padding, adapt the exact cast/shift/cast expression in the
    generated body and prove its 7/15/31/63 shift guards. For extension, retain
