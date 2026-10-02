@@ -642,3 +642,22 @@ unchanged. Normal comparison gates passed at 427 results (93 closed), without
 rewriting snapshots. The regression target passed. The completeness gate
 intentionally fails with 418 missing declarations; this is progress, not
 completion. The clean Nix result still certifies only the 91-jet snapshot.
+
+## Minimum/maximum selection at all arithmetic widths
+
+`min_8/16/32/64` and `max_8/16/32/64` now have complete C-call proofs
+against the literal canonical le-and-input followed by conditional projections.
+The shared strict-selection bridge accounts for the C's `<` versus canonical
+`<=`, including equal inputs, using word-value injectivity. Byte/wide execution
+adapters follow the generated `_t'3` assignments and writer calls, retaining
+byte promotions and the uchar argument cast. All reads, writes, return and
+local cleanup are derived from initial-only arbitrary-layout contracts.
+
+The integrated check with exact AST regeneration finished with exit 0 at
+123/533 and 86 public modules, including negative tests. Reviewed snapshots
+add 25 audited results (seven closed) and 495 contract lines only; existing
+contracts, assumption sets and the inherited library-level axiom list are
+unchanged. Normal comparison gates passed at 452 results (100 closed), without
+rewriting snapshots. The regression target passed; the completeness gate
+intentionally fails with 410 missing declarations. The clean Nix result
+still certifies only the 91-jet snapshot.
