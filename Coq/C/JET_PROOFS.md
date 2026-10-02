@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 170 jets of the C library
+Coq proofs that the generated CompCert Clight of 172 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -46,6 +46,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `right_rotate_32/64` | `right_rotate_byte_spec`, literal variable-control `Programs.Word.right_rotate word8 wordN` |
 | `left_rotate_16`, `right_rotate_16` | `rotate16_spec`, literal canonical `Programs.Word.left/right_rotate word4 word16` |
 | `left_rotate_8`, `right_rotate_8` | `rotate8_spec`, literal canonical `Programs.Word.left/right_rotate word4 word8` |
+| `left_shift_8`, `right_shift_8` | `shift8_plain_spec`, literal `false &&& iden >>> Programs.Word.left/right_shift_with word4 word8` |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The wide left-rotation specs and shared helpers passed every integrated gate
@@ -60,8 +61,14 @@ including negative tests and pinned AST regeneration. The separate regression
 build passed. Older snapshots and the inherited kernel axioms are unchanged.
 Both byte-rotation contracts compiled and passed fresh kernel and individual
 assumption checks. Their nine modules / 31 results / 17 definitions are now
-registered, but the expanded integrated audit is pending; the completed audit
-above covers 168/533, not all 170 current entries.
+registered. Their expanded audit passed all gates on 225 modules / 1092 results
+(361 closed), including negative fixtures, pinned AST regeneration and the
+separate regression build. Earlier snapshots and the 15 inherited kernel axioms
+remain unchanged. This completed audit covers 170/533.
+The two byte zero-fill shifts also compiled and passed fresh kernel and
+individual assumption checks. Eight modules / 33 results / 24 definitions are
+registered; their expanded integrated audit is pending, so the latest completed
+audit does not yet cover all 172 current entries.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
@@ -79,7 +86,16 @@ rotate_16 consumers; reader helpers alone are not jet coverage. Byte-rotation
 sources also compile, with individual assumption checks retaining the existing
 six assumptions and a closed canonical/machine bridge. Their final dependency
 closure passed a fresh kernel check, with no unsafe recursion, assumed positivity
-or type-in-type, but is not yet included in the completed integrated audit.
+or type-in-type, and is included in the completed 225-module integrated audit.
+
+The zero-fill shift contracts derive the complete actual helper and wrapper
+execution, including out-of-range counts that select zero, both reads, writer
+and local cleanup. Their canonical programs consume remaining controls at
+SingleV, rather than the rotation base case. The control normal form enumerates
+16 control values only; payload bits remain symbolic. Signed right-shift
+promotion and every uchar conversion are retained in execution and bit proofs.
+The shared helper execution covers both fill flags, but the fill-input public
+wrappers and canonical bridge remain unproved and are not claimed as coverage.
 
 For `eq_256`, `jet_eq256_layout.v:eq256_local_spec` proves the complete actual
 C call against `equality_spec (Word 8)`. The proof derives the source-frame

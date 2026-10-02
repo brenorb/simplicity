@@ -1529,22 +1529,37 @@ left/right_rotate_8 local contracts. Individual assumption checks retain the
 existing six assumptions, and `rotate8_machine_denotes` is closed. The final
 independent kernel check exited 0 with no unsafe recursion, assumed positivity
 or type-in-type. Nine modules / 31 results / 17 definitions are registered;
-the expanded integrated audit is pending. Current entries are 170/533 (363
-missing), while the latest completed audit covers 168/533. They account explicitly for the signed
+the expanded integrated audit passed. That completed audit covers 170/533 (363
+missing). They account explicitly for the signed
 right-shift promotion, nibble count, payload cast, helper parameter conversions,
 writer cast and complete local-frame lifecycle.
 
-The expanded byte-rotation integrated audit was launched with the same command
-and is running in session `4716`; its 225-module kernel stage passed and it is
-checking assumptions. Poll that existing handle before starting another audit.
-While it is live, keep registered proof sources, manifests and audit lists
-unchanged. The previous completed audit remains the 216-module / 168-jet one.
+The expanded byte-rotation integrated audit (`4716`) exited 0 through every
+gate on 225 modules / 1092 results (361 closed). Removing the 31 added results
+and 17 definitions reproduces the 216-module assumptions and public contracts
+byte-for-byte. The inherited 15 kernel axioms are unchanged; no unsafe recursion,
+assumed positivity or type-in-type was introduced. Negative fixtures, pinned
+AST regeneration and the separate regression build passed. This is not
+completion or evidence of a clean Nix/remote run.
 
-`C/jet_shift8_expr.v` is an unregistered next-family source. Its explicit source
+`C/jet_shift8_expr.v` is now registered through zero-fill shift consumers. Its explicit source
 build passed, including exact equality to both generated helper body shapes
 and evaluation of their promoted shift, fill and count expressions. Its
 fresh independent kernel check also exited 0, without unsafe recursion, assumed
 positivity or type-in-type. This infrastructure alone does not prove a shift
-jet. The helper's pointer-parameter reader calls, fill/count control flow,
-writer, complete function boundary and
-canonical variable-control bridge still need to be composed and discharged.
+jet. `jet_shift8_helper_exec.v` now proves its complete helper calls for both
+fill flags through internal reader/writer contracts. The actual zero-fill
+wrapper execution and initial-only layout result compile and passed fresh
+independent kernel checks. Their canonical program adapters, symbolic machine
+bridge and both final local specs also compile and passed a fresh final kernel
+check; local specs retain the existing six assumptions and
+`shift8_machine_denotes` is closed. Eight modules / 33 results / 24 definitions
+are registered; entries are 172/533 (361 missing), while the latest completed
+integrated audit covers 170/533. The expanded zero-fill-shift audit is pending.
+
+Control normalization initially timed out at count 7 under direct conversion.
+Exposing the byte payload's product structure without case-splitting its bits,
+then simplifying before conversion, checks the whole normal form in under a
+second with the unchanged 10-second tactic limit. No payload enumeration or
+assumed helper result is used. Next derive the fill-input public wrappers and
+their canonical fill bridge before counting those jets, then extend widths.
