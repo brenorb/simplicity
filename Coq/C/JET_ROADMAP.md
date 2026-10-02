@@ -523,6 +523,27 @@ tree otherwise contains only Coq files.
    general. Canonical local/context/call-guarantee results are in the expanded
    133-module audit. This C declaration is core despite its BitcoinJet catalog
    constructor; it requires no application primitive or environment model.
+   **Next independent consumer: parse_sequence.** Three later helper modules
+   have explicit compilation, direct kernel checking and closed per-result
+   assumption checks, but are not in the 133-module public audit yet.
+   `jet_word_bit_spec.v` shares an index-parametric take/drop bit projection
+   and symbolic numeric bridge. `jet_int64_bit_mask.v` proves the top-bit
+   threshold and isolated-bit mask/nonzero bridges for the actual long carrier.
+   `jet_parse_sequence_spec.v` mirrors the literal canonical program and proves
+   its bit31/bit22 projection paths, payload decoding, actual carrier-to-program
+   bridge and both sum encodings. Disabled output is a false tag followed by
+   17 undefined cells; enabled output is a true tag, bit22 and the low 16 bits.
+   These 18 results are representation infrastructure, not added jet coverage.
+   Next prove the actual `f_skipBits` cursor decrement from initial writable
+   frame conditions: its PRODUCTION assertion loop has a constant-false guard.
+   Derive the cursor store, preserved edge/cell loads and framing, rather than
+   taking the store or helper execution as a final premise. Then execute
+   parse_sequence's actual read, first Boolean-returning writer, conditional
+   branch (second tag/write16 or skip17), true return and local cleanup.
+   On the skip branch derive physical existence of the undefined padding cells
+   from the initial writable output frame; do not require them to be zero.
+   Retain the actual shifted long masks and argument casts. Add these helper
+   results to the expanded type/assumption audit with the complete jet consumer.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical

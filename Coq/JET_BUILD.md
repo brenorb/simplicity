@@ -1190,3 +1190,18 @@ six assumptions; context/call guarantees retain their existing assumptions.
 Inventory/coverage tests, negative gates, byte-identical AST regeneration and
 a subsequent normal public-contract comparison passed. Coverage is 135/533,
 with 398 remaining. No newer clean Nix or remote CI result is claimed.
+
+## Later checked parse_sequence representation infrastructure
+
+`jet_word_bit_spec.v`, `jet_int64_bit_mask.v` and
+`jet_parse_sequence_spec.v` were explicitly compiled and independently kernel
+checked with exit 0, the same inherited library-level axiom list and no unsafe
+kernel features. All 18 new lemma assumption checks report closed under the
+global context. Both project manifests include these modules.
+
+They were added after the 133-module integrated audit and are not yet in its
+public type/assumption snapshots. They prove shared projection/mask facts,
+the literal canonical parse_sequence term's carrier bridge, and both output
+encodings, not the actual C call. Coverage stays 135/533. The actual skipBits
+contract, generated branch execution and complete jet lifecycle remain open;
+the roadmap records the next decomposition.
