@@ -1423,11 +1423,11 @@ command still exits 1. These are local checks, not new Nix or remote CI checks.
 
 Separately, the staged `jet_extend_word8_loop.v` explicitly compiled and
 passed an independent kernel check. It matches and executes the actual
-left_extend_8_16/32/64 fill loops, but its writer-run premise is internal and
-has not yet been derived by complete initial-only jet contracts. It is not
-in this 169-module audit or either project manifest/public snapshot; register
-it with its consumers before claiming their integrated verification. It adds
-no jet coverage. Its compilation command from the repository root is:
+left_extend_8_16/32/64 fill loops. At that milestone its writer-run premise
+was internal, not yet derived by complete initial-only jet contracts. It was
+not in the 169-module audit or either project manifest/public snapshot and
+added no jet coverage. It has since been registered with complete consumers
+as described in the roadmap. Its explicit compilation command is:
 
 ```sh
 env OPAMROOT=/Users/brenorb/.opam-simplicity-root opam exec --switch=simplicity -- \

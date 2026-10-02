@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 150 jets of the C library
+Coq proofs that the generated CompCert Clight of 153 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -38,6 +38,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `left_pad_low_1_8/16/32/64` | `left_pad_low_1_n`, the canonical `Programs.Word.left_pad_low word1 vectorN` recursion |
 | `right_pad_low_1_8/16/32/64` | `right_pad_low_1_n`, the canonical `Programs.Word.right_pad_low word1 vectorN` recursion |
 | `left_extend_1_8/16/32/64` | `left_extend_bit_spec`, the literal canonical conditional `Programs.Word.left_extend word1 vectorN` composition |
+| `left_extend_8_16/32/64` | `left_extend_word_spec 3 depth`, literal `leftmost &&& iden >>> cond left_pad_high left_pad_low` |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -93,6 +94,18 @@ the internal helper contracts and retain arbitrary valid cursors, crossings,
 unrelated output contents and memory framing. Context and call-boundary
 guarantees are included. The expanded 162-module integrated audit passed;
 the exact result and assumption counts are recorded in JET_BUILD.md.
+
+For `left_extend_8_16/32/64`, `jet_extend_word8_layout.v` proves the complete
+actual source-frame allocation/copy, read8, uchar cast, promoted signed shift
+by seven, Boolean cast, 1/3/7 fill writes, final payload write, true return and
+local free. `jet_write8_sequence.v` derives every actual writer call and all
+output/memory observations from the initial writable frame. No internal run
+premise remains in the final local specs. `jet_extend_word_spec.v` retains the
+literal padding/fill recursion and connects its encoding symbolically to the
+byte sequence, without enumerating inputs. Arbitrary valid cursors, crossings,
+unrelated output contents, prefix and memory framing are supported; no original
+input/output block-separation premise is added. Generic context and call-boundary
+guarantees are provided.
 
 For multiplication, `jet_multiply8_layout.v:multiply8_local_spec` and
 `jet_multiply_wide_layout.v:multiply16_local_spec` / `multiply32_local_spec`

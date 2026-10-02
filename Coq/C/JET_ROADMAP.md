@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 150 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 153 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8 at 16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 383 declarations without coverage
+There are 380 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -622,20 +622,24 @@ tree otherwise contains only Coq files.
    padding program. All four compile from current source and passed fresh
    independent kernel and local-spec assumption checks. Coverage entries
    are 149/533. Internal contracts are discharged, not left as final premises.
-   **Staged larger-input extension loop (not jet coverage).**
-   `jet_extend_word8_loop.v` was explicitly compiled and independently kernel
-   checked. Its shape theorem matches the actual left_extend_8_16/32/64 loop
-   fragments, including the quotient-minus-one bounds (1/3/7). Its run theorem
-   executes the actual conditional 255/0 assignment, uchar writer cast/call,
-   index increment and loop exit, preserving every other temporary. The run
-   premise records actual writer calls and is INTERNAL: next derive it using
-   `write_frame_at_after_slice` and the total byte writer, compose the actual
-   source copy/read8/MSB cast/final payload write/cleanup, and connect the
-   resulting sequence to the literal canonical left-extension program.
-   This staged file is not yet in either project manifest or public snapshot;
-   register and audit it with its initial-only consumers. Do not count these
-   three jets from the loop proof, assume the run premise, or reuse copyBits
-   for these bodies: their C implementations read once then write repeatedly.
+   **Larger-input extension consumers completed.**
+   `jet_extend_word8_layout.v` completes left_extend_8_16/32/64. The shared
+   loop matches the actual quotient-minus-one bounds (1/3/7), conditional
+   255/0 assignment, uchar writer call, increment and exit. The full adapter
+   retains source copy, read8/uchar assignment, promoted signed shift/MSB
+   Boolean cast, final payload write, true return and free. The initial-only
+   `jet_write8_sequence.v` derives the run premise, output cells, prefix and
+   memory framing. The generic canonical `left_extend_word_spec` retains
+   the literal leftmost/conditional padding program and supplies a symbolic
+   MSB/encoding bridge. All intermediate contracts are discharged in the
+   three local specs, without output initialization or original input/output
+   separation. Source compilation, independent kernel and individual
+   assumption checks passed; both manifests and public lists include all five
+   modules. Coverage is 153/533. Next adapt the sequence/lifecycle to
+   right_extend_8_N: retain its low-bit AND/Boolean cast, payload-before-fill
+   order, and literal rightmost/right-padding program. Then extend the
+   reader/writer adapters to 16/32-bit inputs. These bodies do not use copyBits;
+   do not introduce its external memcpy gap into their proofs.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
