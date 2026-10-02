@@ -1841,3 +1841,33 @@ the checked generic canonical bridges; no normalization or arithmetic induction
 needs to be repeated. For the seen convertible-type rewrite mismatch, capture
 the literal call/guard from the goal and use exact checked contracts, rather
 than unfolding large word functions. The every-jet goal remains active.
+
+## Divides and ordered div_mod C consumers (2026-10-02)
+
+The six divides modules compile from current source; fresh kernel checks
+`70444` (pure/scalar bridges), `64738` (byte execution), `91259` (byte local
+contract) and `41685` (shared wide consumer) passed. The five numeric bridges
+are closed. Four local specs and contexts retain only the inherited six
+assumptions; guarantees add only the two existing Events properties. Explicit
+escape-hatch scans pass. All zero divisors are covered according to the actual
+canonical program, not the conflicting nearby Haskell comment.
+
+Six modules / 26 results / 16 definitions and four coverage entries are
+registered: 198/533, 335 missing. Integrated audit `24374` is running against
+the accepted `f15a9a6` baseline; freeze registered sources/manifests/public
+lists and poll the same handle. Expected totals: 294 modules / 1421 results,
+566 closed. Accept only after terminal exit 0, all negative fixtures and pinned
+AST regeneration, and an additions-only baseline review. The last completed
+integrated audit remains `28051` (194 entries).
+
+Six unregistered div_mod modules compile and pass explicit scans/assumption
+checks: `jet_divmod_expr.v`, `jet_divmod_representation.v`, byte/wide execution
+and byte/wide layout consumers. Fresh kernels `28975`, `75385`, `8206` passed
+after current-source coqc. The pair representation is closed; C contracts keep
+the inherited assumptions. Actual C writes quotient then remainder. Reuse
+`write8_sequence_run_layout` / `write_wide_sequence_run_layout` to derive both
+calls and memory framing; do not assume either intermediate call. Register
+four div_mod entries after audit `24374` terminates, then run the expanded audit.
+The next harder jet is DivMod128_64 with its correction-loop helper. In the
+pinned LP64 Clight, uint_fast32_t locals/parameters are **tulong**, not tuint;
+their 32-bit logical bounds must follow from readers/loop invariants.

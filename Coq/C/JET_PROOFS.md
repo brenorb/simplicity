@@ -14,6 +14,14 @@ and crossings, existing output bits and memory framing are retained. The expande
 integrated audit `28051` passed all gates, negative fixtures and pinned AST
 regeneration. This is not a claim that the every-jet goal is complete.
 
+Four further `divides_8/16/32/64` proofs pass current-source compilation,
+kernel and assumption checks and are registered (198 entries), with expanded
+integrated audit `24374` running. Four `div_mod_8/16/32/64` proofs also pass
+independent checks, but remain unregistered until that audit terminates. They
+execute both ordered writers and preserve the first output across the second,
+including arbitrary valid cursors and crossings. Neither pending group is
+included in the fully integrated 194-entry count above.
+
 | Jet | Simplicity specification |
 | --- | --- |
 | `verify` | Literal `Programs.Bit.verify`: `iden &&& unit >>> assertr cmrFail0 oh`, in option/assertion semantics |
