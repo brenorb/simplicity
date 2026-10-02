@@ -904,3 +904,18 @@ or changes, and the inherited kernel axiom allowlist is unchanged. The source
 build, proof/inventory checks, kernel audit, negative gate tests and regenerated
 AST comparison all passed. This audit still establishes no new public jet
 equivalence beyond the existing 127 entries.
+
+## Input crossing inside a partial output word: actual helper call
+
+`jet_copyBits_partial_crossing.v:eval_copy_helper_partial_cross` derives the
+complete actual helper call for `src_shift < n <= dst_shift`: destination
+clear, left fill, count/shift/source-pointer updates, right fill and return.
+All three stores follow from initial writable access; the source reads after
+those stores follow from initial separation for both source words. The result
+gives the exact word, unchanged frame fields and memory framing. Internal raw
+transition lemmas preserve the actual AST and are reusable by longer paths.
+
+Explicit source compilation and direct `coqchk -silent -o` finished with exit
+0, the unchanged inherited library axiom set and no unsafe kernel features.
+Both build manifests include this later module; it was not part of the
+102-module integrated audit. This helper theorem adds no public jet coverage.

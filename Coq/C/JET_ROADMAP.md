@@ -358,6 +358,16 @@ tree otherwise contains only Coq files.
    only when the input crosses; undefined cells are supported. Partial
    destination continuations and the external memcpy model remain outstanding.
    This is shared helper infrastructure, not additional public jet coverage.
+   **Source crossing inside a partial destination word completed.**
+   `jet_copyBits_partial_crossing.v:eval_copy_helper_partial_cross` executes
+   the actual clear, left fill, four temporary updates (including decrementing
+   the source pointer), common right fill and second short return when
+   `src_shift < n <= dst_shift`. Its initial-only contract derives all three
+   stores and both post-store source reads from writable access and initial
+   word separation. It proves the exact joined partial word, unchanged frame
+   fields and outside-word load/permission/block framing. The raw left-advance
+   and right-return lemmas are reusable for remaining continuations; they are
+   INTERNAL and not additional jet-equivalence results.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.
