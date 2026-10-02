@@ -1767,11 +1767,11 @@ closed, without REPL errors. Explicit static scans pass. Source commits are
 observations, not new C jet coverage.
 
 Both manifests and public lists register the two modules. Expanded audit
-`13659` is running against baseline `ef3ec4d`; poll the same handle and freeze
-registered sources/manifests/lists. Snapshot review must remove only these
-38 results / ten definitions and preserve inherited kernel axioms. The last
-completed integrated audit remains `76184`: 280 modules / 1289 results,
-471 closed. Coverage remains 186/533, and the every-jet goal is active.
+`13659` exited 0 through all gates, negative fixtures and pinned AST regeneration:
+282 modules / 1327 results (509 closed). Removing only these two modules'
+38 results / ten definitions reproduces baseline `ef3ec4d` snapshots byte-for-byte;
+the 15 inherited kernel axioms are unchanged. Coverage remains 186/533,
+and the every-jet goal is active.
 
 ## Literal canonical recursive division core (2026-10-02)
 
@@ -1791,8 +1791,8 @@ actual conditions for every positive divisor. No wider payloads are enumerated.
 
 Current-source coqc exited 0, fresh kernel check `79062` exited 0, and explicit
 static scanning passes. All 21 results / ten definitions are closed under the
-global context, with no REPL errors. This module is UNREGISTERED during the
-frozen normalization audit `13659`; it must be registered and included in
+global context, with no REPL errors. This module is still UNREGISTERED; the
+normalization audit `13659` has completed, so it may be registered and included in
 a subsequent integrated audit before claiming public-audit coverage. It adds
 no C jet entries. The remaining obligations are numerical correctness of
 the recursive div3n2n approximation/overflow/two correction rounds and the

@@ -933,9 +933,10 @@ tree otherwise contains only Coq files.
    prepends the canonical zero word and derives the required bounds for every
    nonzero divisor. Both sources and fresh kernel checks pass; all 38 new
    results / ten definitions are closed. They are registered without coverage
-   additions. Expanded audit `13659` is running against `ef3ec4d`; poll it and
-   freeze registered sources/manifests/lists. Remove only these two modules'
-   entries when reviewing snapshots; inherited axioms must remain unchanged.
+   additions. Expanded audit `13659` exited 0 through all gates, negative
+   fixtures and pinned AST regeneration: 282 modules / 1327 results (509 closed).
+   Removing only these two modules' entries reproduces the `ef3ec4d` snapshots
+   byte-for-byte; the 15 inherited kernel axioms are unchanged.
    **Canonical division core translated, numerical recursion still open.**
    `jet_division_core_spec.v` mirrors div3n2n (over a smaller div2n1n call),
    div2n1n, div_mod, divide, modulo and divides. Its programs are parametric;
@@ -943,8 +944,8 @@ tree otherwise contains only Coq files.
    guard observations and acceptance of normalized plain inputs are checked.
    Current-source compilation, fresh kernel check `79062`, static scan and
    all 21 result / ten definition assumption checks pass; every declaration
-   is closed. This module is intentionally UNREGISTERED while audit `13659`
-   runs; register it only after that frozen audit completes. It adds no coverage.
+   is closed. This module is still UNREGISTERED; audit `13659` has now completed,
+   so it may be registered for the next integrated audit. It adds no coverage.
    **Next: numerical div3n2n/div2n1n recursion**, then div_mod/divides consumers.
    Reuse the literal programs and normalization adapters, not division_numeric
    as a replacement for the specification.
