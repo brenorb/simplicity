@@ -1302,6 +1302,16 @@ the representation bridges are closed. The exact catalog padding recursion
 is reused, not replaced with a numerical specification. Each call derives
 readBit, payload casts, its writer and the full frame lifecycle from initial
 memory, allowing arbitrary output contents and valid cursor crossings.
-The four entries bring the ledger to 141/533 (392 remaining); the expanded
-integrated audit is pending. Both project manifests and public audit lists
-include these modules.
+The four entries bring the ledger to 141/533 (392 remaining). Both project
+manifests and public audit lists include these modules.
+
+The expanded `check-jets.sh --update-expected --ast` completed with exit 0:
+152 modules, 775 results (225 closed), adding 18 results and three definitions.
+Removing those additions reproduces all preceding public contract/assumption
+snapshots byte-for-byte; the inherited kernel axiom list is unchanged.
+Static/inventory/coverage checks, full build/kernel checking, per-result
+assumptions, contracts, impossible-premise/lexical negative gates and
+byte-identical AST regeneration passed. The optional regression build also
+finished with exit 0. The every-jet completeness gate intentionally exits 1:
+392 declared jets still lack proof entries. No clean Nix, other ABI/build or
+whole-evaluator claim is added.

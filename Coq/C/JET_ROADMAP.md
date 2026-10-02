@@ -587,9 +587,10 @@ tree otherwise contains only Coq files.
    casts, writers, allocation/copy/cleanup and all memory effects are derived
    from initial-only contracts, without cursor/output-content restrictions.
    Source compilation, fresh kernel checking and individual assumption checks
-   passed. The expanded integrated audit is pending. Coverage entries are
-   141/533; do not infer this later audit's success from the preceding SHA IV
-   run. Next reuse this one-bit-to-word lifecycle for right_pad_low_1_N and
+   passed. The expanded integrated audit passed on 152 modules / 775 results
+   (225 closed), including negative gates and byte-identical AST regeneration.
+   All earlier type/assumption snapshots and kernel axioms are unchanged.
+   Coverage is 141/533. Next reuse this one-bit-to-word lifecycle for right_pad_low_1_N and
    left_extend_1_N, retaining their actual shift/conditional expressions and
    proving their distinct canonical program bridges. Larger-input padding
    still uses copyBits and retains the documented external memcpy gap.
