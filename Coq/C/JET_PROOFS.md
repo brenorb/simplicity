@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of seventy-one jets of the C library
+Coq proofs that the generated CompCert Clight of seventy-two jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -16,6 +16,7 @@ expression in a local, explicitly described context.
 | `eq_1/8/16/32/64` | `equality_spec`, the exact Unit/Sum/Prod recursion of `Programs.Generic.eq` |
 | `one_8`, `one_16`, `one_32`, `one_64` | `true >>> left_pad_low word1 wordN` |
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
+| `full_increment_8` | `full_increment_word_spec`, the canonical carry-input `Programs.Arith.full_increment word8` |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
@@ -98,6 +99,16 @@ argument conversion. The bit adapter reuses two actual readBit calls and
 their Boolean casts, without adding fictitious branches or temporaries.
 Both export the same canonical, context and call-boundary results.
 The specification bridge alone is not counted as jet coverage.
+
+For carry-input increment, `jet_full_increment8_word.v` reuses the existing
+canonical full-increment program and byte-adder representation, carry and
+modulo lemmas. It supplies a width-generic numeric lemma and a symbolic byte
+bridge. `jet_full_increment8_exec.v` executes the actual Boolean/uchar reads,
+promotions, comparison, multiply-by-one, casts and both writes. The layout
+module derives these calls and local cleanup from initial nine-bit input and
+output contracts, with arbitrary valid cursors and unrelated bits. Its public
+results include both input carry values, canonical output encoding, represented
+context substitution and deterministic call-boundary guarantees.
 
 For the actual generated function body (`f_simplicity_<jet>`), a complete
 `ClightBigstep.Clight2.eval_funcall` (parameters as temporaries,

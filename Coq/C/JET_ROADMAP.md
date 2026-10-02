@@ -15,9 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 71 covered core jets: one/increment/add at 8/16/32/64 bits,
+There are 72 covered core jets: one/increment/add at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
-all at 8/16/32/64 bits, and eq at 1/8/16/32/64 bits. There are 462 declarations without coverage
+all at 8/16/32/64 bits, eq at 1/8/16/32/64 bits, and full_increment_8.
+There are 461 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -128,6 +129,18 @@ tree otherwise contains only Coq files.
    should reuse the increment/add machine-value, carry and word-modulo facts.
    Keep width-independent arithmetic separate from generated-body adapters.
    Afterwards tackle shifts/rotates, multiplication, division and larger widths.
+   **full_increment_8 completed.** Reuse the existing literal canonical
+   `full_increment_word_spec` and its parametricity, not a new numeric spec.
+   `jet_full_increment8_word.v` proves its width-generic numeric bridge and
+   reuses byte-adder carry/modulo lemmas without enumerating words. The actual
+   call proof composes a bit reader, a byte reader, carry-plus-byte output
+   and local cleanup. Next extend full_increment to 16/32/64 with the shared
+   wide reader and carry writer. Reuse add_16/32/64 representation/overflow
+   lemmas, but preserve the generated mixed carrier operations: the 16/32-bit
+   carry subtraction occurs in uint before comparison with ulong, whereas
+   64-bit subtraction and sum use ulong. Do not assume the 64-bit sum is the
+   unbounded sum; reuse its existing wraparound bridge. Then add full_add
+   using a carry-bit read followed by the two existing word reads.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

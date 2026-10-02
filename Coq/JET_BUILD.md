@@ -433,3 +433,24 @@ The earlier clean Nix run also finished successfully at 66/533: the proof
 build took 4 min 58 s and checks took 9 min 37 s. Its result is
 `/nix/store/9wyvl6bmcqbbpwqr0vl7apqgznw50bvp-Simplicity-coq-jets-0.0.0`.
 It certifies the predicate extension, not these later equality additions.
+
+### Carry-input byte increment (2026-10-01)
+
+`full_increment_8` has a complete C-call proof against the existing canonical
+`full_increment_word_spec` composition, for both input carry bits. The new
+numeric bridge is generic in width; the byte bridge reuses existing adder
+representation, overflow and modulo lemmas. The execution proof retains the
+actual C promotions, multiply-by-one, Boolean and byte casts. The layout proof
+derives the real bit and byte reads, both writes and allocation/copy/free from
+initial-only non-wrapping contracts, including crossings and unrelated bits.
+
+The integrated check with exact AST regeneration passed at 72/533 with
+54 public modules. Reviewed snapshots add seven audited results (two closed)
+and 241 contract lines only, without changing previous contracts, assumption
+sets or the inherited axiom allowlist. Negative tests passed. Normal audit
+comparisons passed at 252 results (32 closed), and the regression target passed.
+There are 461 declarations without proof entries; the completeness check still
+fails as intended. A fresh Nix build for this 72-jet state is running; its
+derivation is `/nix/store/s5c4wp8gy6ridzgcram2zcfmdrxz51zv-Simplicity-coq-jets-0.0.0.drv`
+and source is `/nix/store/g0px66r68291v1cgsxyxrn6q51ws82gd-source`. This is
+pending verification, not a completed clean-build claim.
