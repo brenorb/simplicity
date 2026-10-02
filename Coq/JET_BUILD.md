@@ -1952,3 +1952,18 @@ lemmas are closed. Public execution/context retain only inherited assumptions.
 Fresh kernels passed (`17745`, `1861`, `29082`, `81459`, `62488`, `69092`).
 These sources are committed locally but must not be registered while audit
 `54062` is live. Register and expand the audit after accepting that run.
+
+Three new, unregistered buffer/context-initialization support modules also
+compile and pass fresh kernels (`47693`, `73135`, `50275`).
+`jet_buffer_empty_spec.v` ports the literal SingleB/DoubleB bufferEmpty recursion,
+with symbolic empty-buffer values and encodings. `jet_sha256_ctx8_init_spec.v`
+ports literal buffer63Empty &&& (zero word64 &&& iv), preserving the 830-cell
+context type. Both modules' results are closed. `jet_empty_buffer_segment.v`
+derives each actual false writeBit and skipBits from initial writable output,
+preserving padding contents and deriving writable continuation; it retains
+only inherited assumptions. Its two results and the canonical modules' eleven
+results add no public coverage. The real write_buffer8 loop, SHA initializer,
+struct copies/context writer and public lifecycle remain to be executed.
+Together with the six fullMultiply64 modules these nine modules have 29 results /
+19 definitions to register after audit `54062` completes (341 modules / 1588
+results expected). Only full_multiply64_local_spec adds a public entry.
