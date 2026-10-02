@@ -878,3 +878,29 @@ The initial-only theorem inherits the same six assumptions as the other
 execution helpers. Both build manifests include it. This later module was not
 part of the preceding 100-module integrated run. Normal comparisons for that
 run subsequently passed on 548 audited results, 138 closed.
+
+## Partial source and aligned destination: logical crossing contract
+
+`jet_copyBits_aligned_crossing.v` derives current/next source loads and bounds
+from logical cells, executes the actual crossing helper and wrapper, and
+proves equal output cells, prefix preservation, cursor update and memory
+framing. Its unified `eval_copyBits_aligned_partial_source_layout` covers every
+positive count up to 64 for a partial source and aligned destination. Next-word
+separation is needed only for a crossing, and undefined cells are supported.
+There are no intermediate execution or store premises in either layout theorem.
+
+Explicit source compilation and direct `coqchk -silent -o` finished with exit
+0, the unchanged inherited library axiom set and no unsafe kernel features.
+Both initial-only layout theorems inherit the same six assumptions as the
+other execution helpers. Both build manifests include this module; it was not
+part of the preceding 100-module integrated run. Public coverage remains
+127/533. Partial-destination continuations and the plain external memcpy model
+remain outstanding; no C source or generated AST has been changed.
+
+The subsequent integrated `check-jets.sh --update-expected --ast` run finished
+with exit 0 on 102 audited modules. The two crossing modules add 13 results
+and four helper definitions to the snapshots; prior records have no deletions
+or changes, and the inherited kernel axiom allowlist is unchanged. The source
+build, proof/inventory checks, kernel audit, negative gate tests and regenerated
+AST comparison all passed. This audit still establishes no new public jet
+equivalence beyond the existing 127 entries.

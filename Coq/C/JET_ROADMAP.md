@@ -348,6 +348,16 @@ tree otherwise contains only Coq files.
    blocks. The reusable loop-selection lemma also applies after a partial-word
    prefix. This is a single-iteration branch contract, not a general memcpy or
    public jet proof.
+   **All partial-source/aligned-destination copies up to 64 bits completed.**
+   `jet_copyBits_aligned_crossing.v` derives both source-word loads and address
+   bounds from logical input cells, executes the crossing helper and wrapper,
+   and proves equal output cells, written-prefix preservation, cursor update
+   and memory framing. Its unified initial-only
+   `eval_copyBits_aligned_partial_source_layout` combines both loop returns
+   for every `0 < n <= 64` at those cursors. Next-word separation is required
+   only when the input crosses; undefined cells are supported. Partial
+   destination continuations and the external memcpy model remain outstanding.
+   This is shared helper infrastructure, not additional public jet coverage.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.
