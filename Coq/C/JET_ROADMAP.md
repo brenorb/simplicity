@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 156 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 162 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 377 declarations without coverage
+There are 371 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -659,8 +659,28 @@ tree otherwise contains only Coq files.
    The expanded audit passed every gate on 179 modules / 918 results
    (275 closed); older contracts/assumptions remain byte-identical after
    removing the 23 results / 11 definitions added by this family. Continue
-   with 16/32-bit extension inputs. Do not claim equivalence
+   with the expanded wide-extension audit below. Do not claim equivalence
    from only the pure sequence bridge or conditional loop proof.
+   **Wide extension inputs completed, integrated audit pending.**
+   `jet_write_wide_sequence.v` derives successive actual wide-writer calls,
+   encoded output, cursor changes, prefix and memory framing from initial
+   permissions. The left/right `jet_*extend_wide_{loop,exec,spec,layout}.v`
+   adapters cover 16_32, 16_64 and 32_64: read once into the exact unsigned-long
+   carrier, evaluate the actual MSB shift or LSB mask/Boolean cast, use the
+   checked signed-int/unsigned-int fill casts, execute the finite writer loop,
+   return true and free the copied source frame. Left writes fill before the
+   payload; right writes payload before fill. Canonical bridges reuse the
+   width/depth-generic padding programs and symbolic top/low-bit facts.
+   No payload enumeration or original input/output separation is needed;
+   valid arbitrary cursors, crossings and unrelated output bits are retained.
+   All six exact local specs compiled, passed fresh independent kernel checks
+   and retain only the existing six assumptions. Pure bridges are closed.
+   Nine modules / 44 results / 28 definitions are registered, bringing coverage
+   to 162/533 (371 missing). Finish their expanded integrated audit and compare
+   older assumptions/contracts unchanged before accepting its snapshots.
+   This completes the declared left/right extension family; other padding and
+   shift families still require their own actual C proofs, including the
+   unresolved external-copy contract where those bodies call memcpy.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical

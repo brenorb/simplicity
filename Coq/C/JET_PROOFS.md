@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 156 jets of the C library
+Coq proofs that the generated CompCert Clight of 162 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -40,8 +40,13 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `left_extend_1_8/16/32/64` | `left_extend_bit_spec`, the literal canonical conditional `Programs.Word.left_extend word1 vectorN` composition |
 | `left_extend_8_16/32/64` | `left_extend_word_spec 3 depth`, literal `leftmost &&& iden >>> cond left_pad_high left_pad_low` |
 | `right_extend_8_16/32/64` | `right_extend_word_spec 3 depth`, literal `rightmost &&& iden >>> cond right_pad_high right_pad_low` |
+| `left_extend_16_32/16_64/32_64` | `left_extend_word_spec input_log depth`, the same canonical recursion at larger input widths |
+| `right_extend_16_32/16_64/32_64` | `right_extend_word_spec input_log depth`, retaining payload-before-fill ordering |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
+The six wide-input extension specs compiled and passed fresh independent kernel
+checks and individual assumption checks. Their expanded integrated audit is
+pending; the last completed integrated audit covers the preceding 156 jets.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
