@@ -680,3 +680,18 @@ unchanged. Normal comparison gates passed at 476 results (106 closed), without
 rewriting snapshots. The regression target passed; the completeness gate
 intentionally fails with 406 missing declarations. The clean Nix result
 still certifies only the earlier immutable 91-jet snapshot.
+
+## Non-wrapping forwardBits helper
+
+`jet_forwardBits_layout.v` proves the complete generated `forwardBits` call
+from initial frame fields, writable cursor access and non-negative,
+non-wrapping cursor arithmetic. It derives the actual store, updated frame
+fields, preservation outside the cursor field, permissions and valid blocks.
+The helper is included in both project manifests but does not add jet coverage.
+
+An explicit source compilation and direct `coqchk` both finished with exit 0.
+The checker reports no type-in-type, unsafe (co)fixpoints or assumed positivity;
+its library-level axioms are a subset of the existing allowlist. The complete
+helper theorem's `Print Assumptions` reports only the existing six inherited
+axioms (classical choice, classical logic, functional extensionality and the
+CompCert external/inline-assembly semantics), not a new correctness axiom.

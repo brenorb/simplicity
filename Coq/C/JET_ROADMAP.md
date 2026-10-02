@@ -233,7 +233,11 @@ tree otherwise contains only Coq files.
    internal expression premises. Three-reader layout adapters reuse minmax's
    exact input-value decoding and export four named canonical local specs,
    contextual substitutions and deterministic call guarantees.
-   **Next: shared copyBits/forwardBits contracts and leftmost/rightmost
+   **forwardBits cursor helper completed.** `jet_forwardBits_layout.v` executes
+   the actual generated function and derives its cursor store and preservation
+   from initial frame fields, writable cursor access and a non-wrapping bound.
+   It is shared infrastructure, not another public jet equivalence proof.
+   **Next: shared copyBits contracts and leftmost/rightmost
    projections**, then shifts/rotates, multiplication and division. Inspection
    of the actual generated bodies shows that these projections call
    `simplicity_copyBits`, not the existing word readers/writers. Rightmost first
@@ -245,6 +249,13 @@ tree otherwise contains only Coq files.
    catalog. All 36 projection declarations, including 2/4-bit outputs, remain
    in scope; copyBits handles these widths without invented public writers.
    Its verified contract should also support padding and full-shift families.
+   **Check separation before copying.** `copyBitsHelper` clears destination
+   bits before reading the source in its partial-word branch, and its aligned
+   branch uses `memcpy`. Unlike read-all-inputs-before-writing arithmetic jets,
+   its proof must not assume that arbitrary overlapping buffers are supported.
+   The evaluator's represented caller already supplies `bm_separated` ranges.
+   Derive a suitable copy contract from those invariants, preserving all valid
+   caller layouts and keeping existing stronger arithmetic contracts unchanged.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.
