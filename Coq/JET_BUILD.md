@@ -1034,3 +1034,11 @@ Explicit compilation and direct `coqchk -silent -o` finished with exit 0,
 unchanged inherited library axioms and no unsafe kernel features. Both build
 manifests include these later modules; they are not in the 109-module public
 audit set currently being checked. This adds no public jet coverage.
+
+The 109-module integrated `check-jets.sh --update-expected --ast` run has now
+finished with exit 0. It adds 11 results and two helper definitions (including
+the earlier right-advance module) to the snapshots: 590 audited results,
+153 closed. The reviewed diffs contain only additions; previous contracts,
+assumption sets and the inherited kernel axiom allowlist are unchanged.
+Source/inventory checks, kernel audit, negative tests and regenerated AST
+comparison all passed. Later right-case modules remain outside that run.
