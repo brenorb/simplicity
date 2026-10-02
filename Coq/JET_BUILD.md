@@ -1936,3 +1936,19 @@ and pinned AST regeneration; then filter the ten new modules and their contract
 blocks to compare prior assumptions/contracts exactly, and verify unchanged
 global kernel axioms. New unregistered accumulator proof modules may be developed
 independently while this audit runs.
+
+## Independently checked fullMultiply64 consumer (2026-10-02)
+
+Six new, unregistered modules derive the complete actual full_multiply_64 call:
+`jet_u128_accum_{value,layout}.v`, `jet_full_multiply64_{spec,exec,layout}.v` and
+`jet_read_wide_quad_layout.v`. The accumulator proves its wrapped-low comparison,
+both actual stores and updated-low reload. The pure canonical bridge derives
+both fit bounds from Word.fullMultiplier's output range. The public local spec
+derives two fresh locals, source copy, four actual readers, multiplication,
+two accumulations, write128, true return and cleanup from original general
+frame contracts. No fixed cursors, non-crossing or output-zero premise is added.
+All source checks/scans passed; both value lemmas and both canonical bridge
+lemmas are closed. Public execution/context retain only inherited assumptions.
+Fresh kernels passed (`17745`, `1861`, `29082`, `81459`, `62488`, `69092`).
+These sources are committed locally but must not be registered while audit
+`54062` is live. Register and expand the audit after accepting that run.

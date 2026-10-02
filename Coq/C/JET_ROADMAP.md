@@ -1115,10 +1115,18 @@ tree otherwise contains only Coq files.
    and only inherited assumptions. Their 39 results / 27 definitions
    and named public entry are registered (204/533, 329 missing); run the expanded audit (332 modules /
    1559 results). Only the complete public theorem counts as added coverage.
-   Next: full_multiply_64's two actual u128_accum_u64 calls. Reuse the checked
-   fields/getters/writer and two-local lifecycle; derive each carry from the
-   wrapped low sum, bound the high sum from the canonical fullMultiplier range,
-   and discharge four readers and all helper calls from original frames.
+   **full_multiply_64 now independently checked, not yet registered.** Six
+   new modules prove the low-word carry/balance, both actual accumulator stores
+   and intervening reloads, a width-generic initial-only four-reader sequence,
+   the actual body adapter, canonical fullMultiplier64 representation and
+   complete public full_multiply64_local_spec/context/guarantees. All initial
+   frame generality is retained; no intermediate execution is assumed by the
+   public theorem. Source checks, scans, pure closed-assumption checks, inherited
+   execution assumptions and fresh kernels passed (`17745`, `1861`, `29082`,
+   `81459`, `62488`, `69092`). Register these six modules only after frozen
+   multiply64 audit `54062` finishes; include every new result/definition and
+   the named public entry, then run their expanded audit. Helpers alone do not
+   count as coverage. The canonical output range bounds both accumulations.
    Avoid vm_compute in an open memory context; compute only closed identifier
    lists/AST metadata, and isolate unrelated nonlinear hypotheses before nia.
    Subsequent div_mod calls require two writers with intermediate memory;
