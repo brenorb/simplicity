@@ -6,6 +6,14 @@ The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
 canonical option/assertion semantics, covering success and failure with no output.
 
+Eight additional `divide/modulo_8/16/32/64` proofs are now compiled and independently
+kernel-checked in `jet_division_layout.v`, and registered (194/533 entries).
+Their canonical bridges prove the literal recursive Programs.Arith programs,
+not a replacement numeric specification. Zero divisors, arbitrary valid cursors
+and crossings, existing output bits and memory framing are retained. The expanded
+integrated audit `28051` is running; the 186-entry claim above is the latest
+fully completed integrated audit, not a claim that the every-jet goal is complete.
+
 | Jet | Simplicity specification |
 | --- | --- |
 | `verify` | Literal `Programs.Bit.verify`: `iden &&& unit >>> assertr cmrFail0 oh`, in option/assertion semantics |

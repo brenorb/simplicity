@@ -15,11 +15,14 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 186 registered covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 194 registered core proof entries: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 347 declarations without coverage
-entries, including all Bitcoin and Elements jets. Coverage is for the pinned
+There are 339 declarations without coverage
+entries, including all Bitcoin and Elements jets. The latest completed integrated
+audit covers 186 entries; the eight new divide/modulo proofs pass independent
+source and kernel checks and are included in running audit `28051`.
+Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
 Two core declarations are not registered in either application catalog:
@@ -937,26 +940,38 @@ tree otherwise contains only Coq files.
    fixtures and pinned AST regeneration: 282 modules / 1327 results (509 closed).
    Removing only these two modules' entries reproduces the `ef3ec4d` snapshots
    byte-for-byte; the 15 inherited kernel axioms are unchanged.
-   **Canonical division core translated, numerical recursion still open.**
-   `jet_division_core_spec.v` mirrors div3n2n (over a smaller div2n1n call),
-   div2n1n, div_mod, divide, modulo and divides. Its programs are parametric;
-   bit-sized division, the zero-divisor div_mod branch, generic msb/high-half
-   guard observations and acceptance of normalized plain inputs are checked.
-   Current-source compilation, fresh kernel check `79062`, static scan and
-   all 21 result / ten definition assumption checks pass; every declaration
-   is closed. This module is still UNREGISTERED; audit `13659` has now completed,
-   so it may be registered for the next integrated audit. It adds no coverage.
-   **Next: numerical div3n2n/div2n1n recursion**, then div_mod/divides consumers.
-   Reuse the literal programs and normalization adapters, not division_numeric
-   as a replacement for the specification.
-   Reuse the existing canonical arithmetic/borrow/multiplication bridges and
-   Word full_left/right_shift1 for normalization. The msb condition is now
-   discharged; prove the approximation/correction cases and mutual numeric induction;
-   characterize quotient/remainder by Euclidean uniqueness for nonzero
-   divisors. Prove the zero case directly from the program. Only then connect
-   that checked canonical bridge to eval_division8_layout_machine and
-   eval_wide_division_layout_machine, and export named local/context/guarantee
-   contracts. Do not replace the recursive program with division_numeric.
+   **Canonical division recursion and eight C consumers are checked.**
+   `jet_division_core_spec.v` retains the literal Programs.Arith programs,
+   with named approximation/body/loop0/loop1/loop2 components. The new
+   `jet_division_correction_spec.v` proves the actual corrections and overflow
+   bypass; `jet_division_approx_spec.v` proves both approximation branches and
+   residual bounds from the smaller-call contract. `jet_division_recursive_spec.v`
+   discharges that contract by symbolic induction for every width and both
+   successive div3n2n calls. `jet_division_result_spec.v` connects pre/core/post
+   through common scaling and Euclidean uniqueness, including zero divisors
+   and the invalid div2n1n all-ones fallback. No wider payload enumeration or
+   division identity is assumed. These canonical bridges are closed.
+   `jet_division_layout.v` exports named C divide/modulo local specs at
+   8/16/32/64 bits, plus shared context and call-boundary guarantees. Its
+   initial-frame execution consumers retain arbitrary cursors/crossings,
+   initial output contents and memory framing. Current-source coqc, explicit
+   static/assumption checks and fresh kernel check `47007` passed. Local/context
+   results retain the existing six assumptions; guarantees add only the
+   existing two Events property assumptions. All six modules / 68 results /
+   21 definitions and eight coverage entries are registered. Expanded audit
+   `28051` is running against `c5e084d`; poll it and freeze registered proof
+   sources/manifests/public lists. Expected totals: 288 modules / 1395 results,
+   561 closed. Review additions only and preserve all inherited kernel axioms.
+   **Next: div_mod/divides C consumers and DivMod128_64.** The canonical
+   numeric bridge is now proved; do not restart normalization or replace
+   the actual program with division_numeric. Reuse division_word_representation
+   and div_mod_word_numeric, plus the existing reader/writer/frame contracts.
+   A recurring Coq pitfall is convertible-but-differently-annotated function
+   arguments in rewrites: the recursive/result proofs capture the literal
+   call or guard from the goal, then use explicit exact contracts. Normalize
+   only projections/types; do not unfold recursive arithmetic to repair this.
+   For positivity, use direct sum/product lemmas rather than nia over a large
+   context containing unrelated cubic equations.
    Subsequent div_mod calls require two writers with intermediate memory;
    divides swaps operands and writes one bit. A source-comment trap: the
    Haskell divides documentation says divides(0,y) is True, but its actual

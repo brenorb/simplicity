@@ -1799,3 +1799,46 @@ the recursive div3n2n approximation/overflow/two correction rounds and the
 two div3n2n calls in div2n1n, followed by the generic div_mod bridge and actual
 C-call consumers. Preserve the invalid all-ones fallback in the div2n1n result:
 it also specifies CoreJets DivMod128_64, not only an internal normalized call.
+
+## Checked recursive division and eight C consumers (2026-10-02)
+
+The previously open approximation, overflow and correction obligations are now
+proved in `jet_division_correction_spec.v` and `jet_division_approx_spec.v`.
+The recursive contract is discharged for every word depth in
+`jet_division_recursive_spec.v`; both wider calls satisfy their input bounds.
+`jet_division_result_spec.v` combines this core with checked pre/post scaling,
+Euclidean uniqueness and the zero-divisor branch. Its representation theorem
+connects the existing C numeric observations to the actual canonical divide
+and modulo programs. `div2n1n_invalid_result` preserves the all-ones fallback.
+
+All current sources compile. Fresh kernel checks passed for the corrected
+sources: core `89391`, correction `17792`, approximation `76065`, recursion
+`19723`, public numeric/representation bridge `34412`, and the complete C-call
+consumers `47007`. Earlier approximation check `43094` was on an older compiled
+artifact and is NOT evidence for the completed builder theorem; `76065` is its
+replacement after current-source coqc exited 0. Explicit scans and assumption
+checks pass: canonical helpers are closed, C local/context results retain the
+six existing assumptions, and guarantees add only the two existing Events
+property assumptions. No admits, new axioms or proof escapes were introduced.
+
+`jet_division_layout.v` proves actual divide/modulo at 8/16/32/64 bits from
+initial frames, not post-read states. Arbitrary valid input/output cursors,
+word-boundary crossings, pre-existing output contents, zero divisors and exact
+memory framing are retained. Public local specs, contextual replacement and
+call-boundary guarantees are exported.
+
+Six modules / 68 results / 21 definitions and eight new coverage entries are
+registered. Coverage bookkeeping is 194/533 (339 missing); the last completed
+integrated audit `13659` still covers 186 entries. Expanded audit `28051` is
+running against baseline `c5e084d`; poll the same handle and freeze registered
+proof sources/manifests/public lists. Expected totals are 288 modules / 1395
+results (561 closed). Accept updated snapshots only after all gates, negative
+fixtures and pinned AST regeneration finish, removing only the six new modules'
+entries to verify the baseline and preserving all 15 inherited kernel axioms.
+
+Next: actual div_mod calls (two writers), divides calls (swapped operands and
+one-bit output), then DivMod128_64 (including invalid input behavior). Reuse
+the checked generic canonical bridges; no normalization or arithmetic induction
+needs to be repeated. For the seen convertible-type rewrite mismatch, capture
+the literal call/guard from the goal and use exact checked contracts, rather
+than unfolding large word functions. The every-jet goal remains active.
