@@ -1971,3 +1971,24 @@ After accepting multiply64 audit `54062` at `87d0082`, these nine modules /
 29 results / 19 definitions and the full_multiply64 public entry are registered
 (205/533, 328 remaining). Run the expanded 341-module / 1588-result audit against
 that accepted baseline. No SHA context jet is counted by these support modules.
+
+Expanded integration audit is running as session `52561`, accepted baseline
+`87d0082`. Freeze all registered sources, manifests and public lists until its
+terminal result. Expect 341 modules / 1588 results. After terminal exit 0 through
+all gates/negative fixtures/AST, remove the nine new modules from assumptions;
+remove theorem blocks beginning at `u128_accum_low_balance` until `frame_fields =`
+and definition blocks beginning at `u128_accum_lo =` from contracts. Those filtered
+files must reproduce `87d0082` byte-for-byte, with unchanged global kernel axioms.
+Do not accept snapshots early or restart a live audit. New unregistered actual
+buffer-loop/initializer consumers may be developed while this run finishes.
+
+Next bounded consumer: actual write_buffer8 with len=0 and n=5. Its two
+PRODUCTION assertion guards are constant false; i starts at 32, writes six false
+tags with skip counts 256/128/64/32/16/8 and halves down to zero. Reuse the checked
+segment continuation/preservation, retaining both actual calls and every loop
+comparison/update. Then execute sha256_init's iv initialization, compound-field
+stores and actual struct-return copy, compose write_sha256_context's buffer,
+write64 and write32s calls with protected context reloads, and derive every public
+local allocation/copy/free. The canonical context output is 830 cells, including
+510 buffer cells with arbitrary absent-payload contents. Do not count the
+canonical bridge or conditional loop adapter as a completed public jet.
