@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 149 jets of the C library
+Coq proofs that the generated CompCert Clight of 150 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -15,7 +15,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `and/or/xor_1/8/16/32/64` | `binary_word_spec`, the exact `Prog.bitwise_bin` recursion with the canonical bit operations |
 | `maj/xor_xor/ch_1/8/16/32/64` | `ternary_word_spec`, the existing `Word.bitwiseTri` recursion with `Bit.maj` / `Bit.xor3` / `Bit.ch` |
 | `some_1/8/16/32/64`, `all_8/16/32/64` | `predicate_spec`, the exact recursive `Prog.some` / `Prog.all` programs |
-| `eq_1/8/16/32/64` | `equality_spec`, the exact Unit/Sum/Prod recursion of `Programs.Generic.eq` |
+| `eq_1/8/16/32/64/256` | `equality_spec`, the exact Unit/Sum/Prod recursion of `Programs.Generic.eq` |
 | `one_8`, `one_16`, `one_32`, `one_64` | `true >>> left_pad_low word1 wordN` |
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `full_increment_8/16/32/64` | `full_increment_word_spec`, the canonical carry-input `Programs.Arith.full_increment wordN` |
@@ -44,6 +44,17 @@ The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
 continuation plan are in [JET_ROADMAP.md](JET_ROADMAP.md).
+
+For `eq_256`, `jet_eq256_layout.v:eq256_local_spec` proves the complete actual
+C call against `equality_spec (Word 8)`. The proof derives the source-frame
+and 16-word-array allocations, source copy, all 16 read32 calls/stores,
+eight-step comparison loop (including early return), bit write and both local
+frees from initial frames. The canonical chunk/injectivity bridge is symbolic,
+not exhaustive enumeration. Valid arbitrary input/output cursors, crossings,
+unrelated output bits, prefix preservation and memory framing are retained;
+no input/output block-separation premise is added. Context substitution and
+call-boundary guarantees reuse the generic results. The internal execution
+contracts do not remain assumptions of the final local spec.
 
 For `sha_256_iv`, `jet_sha256_iv_layout.v:sha256_iv_local_spec` proves the
 complete actual C call, including source-frame and array allocation, source
