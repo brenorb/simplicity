@@ -1253,3 +1253,20 @@ Both project manifests include these modules; they are not yet in the public
 type/assumption snapshots. The enclosing sha_256_iv jet remains unproved until
 the actual write32s loop and full allocation/copy/free lifecycle are composed.
 Coverage remains 136/533.
+
+## Later checked write32s serialization infrastructure
+
+`jet_output_sequence_step.v`, `jet_write32s_exec.v` and
+`jet_write32s_layout.v` were explicitly compiled from current source; fresh
+kernel checking of the layout module and its dependency closure finished with
+exit 0 and no unsafe kernel features. The two representation lemmas are
+closed; the four memory-composition lemmas use the existing four classical
+library assumptions, and the loop/layout contracts retain the existing six
+Coq/CompCert assumptions. Both project manifests include the modules. They
+are not yet in the public type/assumption snapshots.
+
+The complete write32s helper contract derives every load and writer call from
+initial array values and writable-frame permissions. It proves serialized
+cells, prefix/cursor/framing and permission/block preservation for arbitrary
+initial output contents and valid crossings. This is helper progress, not
+yet the enclosing sha_256_iv jet proof; coverage remains 136/533.

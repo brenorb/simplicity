@@ -564,7 +564,12 @@ tree otherwise contains only Coq files.
    permission/block preservation derived. Its exact canonical scribe constant
    is checked against both Digest.sha256_iv and the serialized eight words.
    These modules have explicit compilation and fresh kernel checks, but are
-   not in the public snapshots yet and add no jet coverage. Next compose
+   not in the public snapshots yet and add no jet coverage. The checked
+   `jet_output_sequence_step.v` supplies slice-write continuation and prefix/
+   cell preservation for successive writes. `jet_write32s_exec.v` executes the
+   actual pointer/count loop; `jet_write32s_layout.v` derives its complete
+   helper contract from the initial array and writable frame, retaining
+   arbitrary output contents, cursor crossings and memory framing. Next compose
    repeated write32 calls under general output-frame contracts, execute the
    actual write32s pointer/count loop, then derive the jet's two local
    allocations, source copy, array initialization, write loop and cleanup.
