@@ -574,8 +574,10 @@ tree otherwise contains only Coq files.
    against the canonical scribe term, including both allocations, source
    copy, actual array initializer/write loop and both local frees. It exports
    context and call-boundary guarantees. Coverage is now 137/533. The expanded
-   public type/assumption audit is pending; do not infer its success from the
-   individual compiler/kernel checks. Reuse the array read/write sequencing
+   integrated audit passed on 148 modules / 757 results (222 closed), including
+   negative gates and byte-identical AST regeneration. Removing the additions
+   reproduces all prior contract/assumption snapshots exactly; kernel axioms
+   are unchanged. Reuse the array read/write sequencing
    for subsequent hash jets; compression still needs its own verified bridge.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.

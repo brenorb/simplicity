@@ -1270,3 +1270,25 @@ initial array values and writable-frame permissions. It proves serialized
 cells, prefix/cursor/framing and permission/block preservation for arbitrary
 initial output contents and valid crossings. This is helper progress, not
 yet the enclosing sha_256_iv jet proof; coverage remains 136/533.
+
+## Complete sha_256_iv jet verification (2026-10-02)
+
+`jet_sha256_iv_exec.v` and `jet_sha256_iv_layout.v` were explicitly compiled
+from current source and freshly independently kernel checked with exit 0.
+`sha256_iv_local_spec` proves the actual complete jet against the canonical
+Programs.Sha256.Lib.iv scribe term. Both allocations, source copy, all eight
+initializer stores, the actual write32s loop, true return and both frees are
+derived from initial permissions. Arbitrary valid cursor crossings and
+output contents are retained; prefix, cursor and memory framing are proved.
+The local spec and context retain six inherited assumptions; the call-boundary
+guarantees retain the existing eight-assumption list.
+
+The complete `check-jets.sh --update-expected --ast` finished with exit 0:
+148 public-audit modules, 757 results (222 closed). The snapshots add 38
+results and 16 definitions, including the preceding full-shift and array
+infrastructure. Removing those additions reproduces all previous contract
+and assumption snapshots byte-for-byte. The kernel axiom list is unchanged,
+with no unsafe kernel features. Inventory/coverage tests, impossible-premise
+and lexical negative gates, and byte-identical AST regeneration all passed.
+Coverage is 137/533, with 396 remaining. No newer clean Nix, remote CI,
+other ABI/build, compression or whole-evaluator result is claimed.
