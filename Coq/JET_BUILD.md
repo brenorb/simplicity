@@ -819,3 +819,24 @@ The normal assumption/contract comparisons subsequently finished with exit 0
 (525 audited results, 128 closed), as did the regression build and the ordinary
 build after registering the cell module. The completion-mode coverage check
 still exits 1 intentionally: 406 declared jets have no equivalence proof yet.
+
+## Aligned destination: the first loop return (not jet coverage)
+
+`jet_copyBits_loop_exec.v` proves the actual generated loop's initial fill and
+short return, including its `Sskip` prefix and `Sloop` return semantics. The
+initial-only `eval_copy_helper_aligned_short` derives a complete helper call
+when the destination is aligned, the source is partial and the count fits in
+the source word. It derives its single store from writable access and proves
+the exact resulting word, destination fields and memory framing. Since its
+source read precedes the store, no cell-word separation premise is needed.
+
+Explicit source compilation and direct `coqchk -silent -o` finished with exit
+0, the unchanged inherited library axiom set and no unsafe kernel features.
+Both build manifests include the module. This direct check is not part of the
+preceding 97-module integrated run and adds no public jet coverage.
+
+The actual aligned-source branch calls a separately declared
+`EF_external "memcpy"`; it is not the CompCert `EF_memcpy` builtin. A builtin
+memcpy proof cannot discharge that external call. A verified linking/model
+solution remains necessary before proving every projection layout; the C
+source and generated AST have not been replaced to assume away this case.

@@ -314,6 +314,22 @@ tree otherwise contains only Coq files.
    one word. Prove these actual branches and pointer transitions next. A
    multi-iteration helper contract remains a later requirement for consumers
    that copy larger counts; do not count short-return results as full jets.
+   **Aligned destination, first loop return completed.**
+   `jet_copyBits_loop_exec.v` proves the actual loop fill and first return,
+   then the complete helper call for `dst_shift = 0`, `1 <= src_shift <= 63`
+   and `0 < n <= src_shift`. Its single destination store is derived from
+   initial writable access, with exact value, metadata, load, permission and
+   block framing. This path reads the source before storing, so it needs no
+   input/output word-separation premise. It is still helper infrastructure.
+   **Do not silently model plain memcpy as a builtin.** The generated global
+   declaration at `jets.v`'s `_memcpy` entry is `EF_external "memcpy"`, not
+   `EF_memcpy`. `Events.extcall_memcpy_sem` therefore does not prove that call.
+   No C memcpy implementation was found in the pinned CompCert runtime.
+   The fully aligned path needs an explicit verified linking/model solution;
+   neither an assumed external execution nor a new memcpy axiom may be hidden
+   in a final jet contract. Keep this obligation visible while completing the
+   loop and other non-memcpy branches. No jet is complete by excluding this
+   valid input/layout case, and the existing C source/AST has not been changed.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.
