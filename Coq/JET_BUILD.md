@@ -1923,6 +1923,7 @@ Ten new multiply64/uint128 modules independently compile, pass scans/assumption
 checks and fresh kernels (`59569`, `89699`, `32146`, `34160`, `52025`, `20300`,
 `21748`, `99795`, `43991`, `98186`). They include the complete multiply64_local_spec,
 context/guarantees and every real helper/store/getter/writer/local-lifecycle
-operation. Register 39 results / 27 definitions and the public entry, then audit
+operation. Their 39 results / 27 definitions and public entry are now registered
+(204/533, 329 remaining); audit
 the expanded 332 modules / 1559 results. None of the private helper facts counts
 as a public jet. Continue with the two u128_accum_u64 calls for full_multiply_64.

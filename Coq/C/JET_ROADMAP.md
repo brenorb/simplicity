@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 203 registered core proof entries: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides/div_mod at 8/16/32/64 bits,
+There are 204 registered core proof entries: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides/div_mod at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
-all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8/16/32 bits, and div_mod_128_64.
-There are 330 declarations without coverage
+all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply at 8/16/32/64 bits, full_multiply at 8/16/32 bits, and div_mod_128_64.
+There are 329 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
 audit `39496` covers all 203 entries, including the complete DivMod128_64 public
 contract and all supporting allocation/copy/read/helper/write/free proofs.
@@ -27,7 +27,7 @@ All gates, negative fixtures and pinned AST regeneration passed on 322 modules /
 Earlier snapshots and the 15 inherited kernel axioms are unchanged.
 The complete public DivMod128_64 theorem is integrated and audited. The complete
 multiply_64 public contract independently passes current-source coqc, scans,
-assumption checks and a fresh kernel; it awaits registration and expanded auditing.
+assumption checks and a fresh kernel; it is registered and awaits expanded auditing.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -1103,7 +1103,7 @@ tree otherwise contains only Coq files.
    contract blocks reproduces accepted `cd7d4ee` byte-for-byte; all 15 inherited
    kernel axioms remain unchanged. Accept these snapshots. This establishes
    audited DivMod128_64 coverage, not completion of the every-jet goal.
-   **multiply_64 now independently checked.** Ten new, not-yet-registered
+   **multiply_64 now independently checked and registered.** Ten new
    modules prove the actual 32-limb umul128 algorithm and machine operations,
    complete secp256k1_umul128/u128_mul calls, actual lo/hi struct fields and
    getters, write128's getter/writer/getter/writer order, the literal canonical
@@ -1112,8 +1112,8 @@ tree otherwise contains only Coq files.
    arbitrary original frames/cursors/crossings/output bits remain supported.
    Fresh kernels passed for all modules (`59569`, `89699`, `32146`, `34160`,
    `52025`, `20300`, `21748`, `99795`, `43991`, `98186`), with explicit scans
-   and only inherited assumptions. Register their 39 results / 27 definitions
-   and the named public entry, then run the expanded audit (332 modules /
+   and only inherited assumptions. Their 39 results / 27 definitions
+   and named public entry are registered (204/533, 329 missing); run the expanded audit (332 modules /
    1559 results). Only the complete public theorem counts as added coverage.
    Next: full_multiply_64's two actual u128_accum_u64 calls. Reuse the checked
    fields/getters/writer and two-local lifecycle; derive each carry from the

@@ -46,7 +46,8 @@ The four modules / nine results / four definitions and public coverage entry are
 now integrated and audited (203/533, 330 remaining), with older snapshots and
 all inherited kernel axioms unchanged. The complete multiply_64 proof and its
 shared uint128 infrastructure also pass independent current-source/kernel checks;
-they await registration and expanded auditing. The concrete path is recorded
+they are registered and await expanded auditing (204/533 registered, 329 remaining;
+203/533 integrated and audited). The concrete path is recorded
 in [JET_ROADMAP.md](JET_ROADMAP.md).
 
 | Jet | Simplicity specification |
@@ -74,7 +75,7 @@ in [JET_ROADMAP.md](JET_ROADMAP.md).
 | `is_zero/is_one_8/16/32/64` | `is_zero_word_spec` / `is_one_word_spec`, canonical negated-some and decrement-payload-zero compositions |
 | `min/max_8/16/32/64` | `minmax_word_spec`, canonical le-and-input followed by conditional projections |
 | `median_8/16/32/64` | `median_word_spec`, the literal canonical nested min/max composition |
-| `multiply_8/16/32` | `multiply_word_spec`, literal canonical `iden &&& (unit >>> zero word2N) >>> full_multiply wordN` |
+| `multiply_8/16/32/64` | `multiply_word_spec`, literal canonical `iden &&& (unit >>> zero word2N) >>> full_multiply wordN` |
 | `full_multiply_8/16/32` | `Word.fullMultiplier`, the canonical four-input `Programs.Arith.full_multiply wordN` |
 | `divide/modulo_8/16/32/64` | Projections of the literal recursive `Programs.Arith.div_mod wordN`, including its zero-divisor branch |
 | `divides_8/16/32/64` | Swapped inputs, canonical modulo, then canonical is_zero, including zero divisors |
@@ -281,7 +282,11 @@ call-boundary guarantees reuse the existing generic theorems.
 `jet_multiply_spec.v` shares the symbolic carrier bridge across all three
 widths. The byte adapter preserves the actual unsigned byte-to-long casts;
 the wide adapter selects separate input-reader and output-writer widths.
-`multiply_64` uses uint128 helpers and is not covered by these results.
+`multiply_64` is separately proved by `jet_multiply64_layout.v:multiply64_local_spec`.
+Its initial-only execution derives the actual limb multiplication, uint128 field
+stores/getters, ordered write128 calls, and two fresh locals' copy/cleanup. It
+has the same general frame contracts and literal canonical bridge; the shared
+uint128 infrastructure supports subsequent 64-bit full multiplication.
 
 For full multiplication, `jet_full_multiply8_layout.v:full_multiply8_local_spec`
 and `jet_full_multiply_wide_layout.v:full_multiply16_local_spec` /
