@@ -47,6 +47,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `left_rotate_16`, `right_rotate_16` | `rotate16_spec`, literal canonical `Programs.Word.left/right_rotate word4 word16` |
 | `left_rotate_8`, `right_rotate_8` | `rotate8_spec`, literal canonical `Programs.Word.left/right_rotate word4 word8` |
 | `left_shift_8`, `right_shift_8` | `shift8_plain_spec`, literal `false &&& iden >>> Programs.Word.left/right_shift_with word4 word8` |
+| `left_shift_with_8`, `right_shift_with_8` | `shift8_with_spec`, literal `Programs.Word.left/right_shift_with word4 word8` with an input fill bit |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The wide left-rotation specs and shared helpers passed every integrated gate
@@ -71,6 +72,10 @@ registered; their expanded integrated audit passed all gates on 233 modules /
 1125 results, including negative tests and pinned AST regeneration. Removing
 the added results and definitions reproduces the earlier snapshots byte-for-byte.
 The latest completed audit covers all 172 current entries (361 jets remain).
+Both fill-input byte shifts have now compiled and passed fresh kernel and
+individual assumption checks. Eight additional modules / 23 results / five
+definitions are registered, bringing coverage entries to 174/533 (359 remain).
+Their expanded integrated audit is pending; the last completed audit covers 172.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
@@ -96,6 +101,13 @@ and local cleanup. Their canonical programs consume remaining controls at
 SingleV, rather than the rotation base case. The control normal form enumerates
 16 control values only; payload bits remain symbolic. Signed right-shift
 promotion and every uchar conversion are retained in execution and bit proofs.
+The fill-input contracts additionally derive the actual readBit and Boolean
+cast before the helper. Shared exact carrier lemmas connect both XOR toggles
+to canonical complement, including counts >=8. All three reads, memory
+preservation and local cleanup are derived from initial frames. The canonical
+complement normal form splits only fill/control values and payload product
+structure, not payload bit values. The final local specs retain the existing
+six assumptions; both payload and decoded specification bridges are closed.
 The shared helper execution covers both fill flags, but the fill-input public
 wrappers and canonical bridge remain unproved and are not claimed as coverage.
 

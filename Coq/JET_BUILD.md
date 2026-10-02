@@ -1568,10 +1568,24 @@ second with the unchanged 10-second tactic limit. No payload enumeration or
 assumed helper result is used. Next derive the fill-input public wrappers and
 their canonical fill bridge before counting those jets, then extend widths.
 
-`C/jet_shift8_fill_word.v` is unregistered follow-on infrastructure. Its source
+`C/jet_shift8_fill_word.v` is now registered through fill-input consumers. Its source
 compiles complement involution and the actual fill-XOR's exact bit and unsigned
 representation bridge; its fresh independent kernel check exited 0, with no
 unsafe recursion, assumed positivity or type-in-type. Individual representation
 and involution assumption checks are closed. It is not a
-fill-input jet proof. The canonical fill-program bridge, wrapper readBit call,
-mixed cursor sequencing, initial-frame derivation and final contracts remain.
+fill-input jet proof by itself.
+
+Both complete fill-controlled byte shift contracts are now checked in
+`C/jet_shift8_with_layout.v`. Their literal canonical fill-program normalization,
+exact carrier representation, actual wrapper readBit/cast/helper calls, mixed
+13-bit reader sequencing, arbitrary valid output frame and local cleanup are
+proved. Every new source compiled; a fresh final independent kernel check
+exited 0 with no unsafe recursion, assumed positivity or type-in-type.
+The named local specs retain the existing six assumptions. Both exact payload
+and decoded canonical bridges are closed. Eight modules / 23 results / five
+definitions are registered; coverage entries are 174/533 (359 missing).
+The expanded integrated audit is pending; the last completed audit covers 172.
+When reviewing updated snapshots, remove only these eight modules' added
+results/definitions and compare against the completed 233-module baseline
+at `b557293`. Next inspect the 16-bit helper's Vlong payload, unsigned
+right-shift and read4/read16/write16 calls before extending widths.
