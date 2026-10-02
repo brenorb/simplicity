@@ -427,6 +427,16 @@ tree otherwise contains only Coq files.
    store premise remains. The general crossing-position/address lemmas also
    apply to the other partial-destination continuation. This is not a full
    projection-jet proof; no jet is counted by omitting remaining layouts.
+   **Destination-only crossing: actual helper completed.**
+   `jet_copyBits_two_words_right_short.v:eval_copy_helper_two_right_short`
+   derives the complete actual helper call and all three stores when
+   `0 < dst_shift < n <= src_shift`. It preserves the repeated current-source
+   read using initial separation from the first destination word, executes
+   the actual right-prefix/temporary advance and first loop return, and
+   proves exact values in both destination words plus metadata and memory
+   framing. Aligned sources (`src_shift = 64`) are supported. The reusable
+   `jet_copyBits_two_words_right_exec.v` prefix/loop composition also supports
+   the remaining second-loop-return case (`dst_shift < src_shift < n`).
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

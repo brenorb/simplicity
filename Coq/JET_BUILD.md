@@ -1019,3 +1019,18 @@ Both build manifests include the module. The initial helper and layout
 theorems inherit the same six assumptions as previous execution helpers.
 These later modules are not part of the preceding 105-module integrated run.
 Public coverage remains 127/533; remaining layouts must still be handled.
+
+## Destination-only word crossing: actual initial helper call
+
+`jet_copyBits_two_words_right_exec.v` executes the actual clear/right partial
+prefix and temporary advance before a supplied actual loop. The initial-only
+`jet_copyBits_two_words_right_short.v:eval_copy_helper_two_right_short`
+derives that loop and all three stores for `0 < dst_shift < n <= src_shift`.
+It preserves the source read across the preceding stores using initial word
+separation, including initially aligned sources. It proves both exact words,
+unchanged destination fields and framing outside the two-word interval.
+
+Explicit compilation and direct `coqchk -silent -o` finished with exit 0,
+unchanged inherited library axioms and no unsafe kernel features. Both build
+manifests include these later modules; they are not in the 109-module public
+audit set currently being checked. This adds no public jet coverage.
