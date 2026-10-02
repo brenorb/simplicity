@@ -256,6 +256,17 @@ tree otherwise contains only Coq files.
    The evaluator's represented caller already supplies `bm_separated` ranges.
    Derive a suitable copy contract from those invariants, preserving all valid
    caller layouts and keeping existing stronger arithmetic contracts unchanged.
+   **Separated-call interface completed.** `jet_context_separated.v` defines
+   an initial-only `jet_separated_local_spec` with the same output and framing
+   observations as `jet_local_spec`. Its additional buffer-separation predicate
+   is derived formally from `bm_rep` / `bm_separated`, including shared cell
+   blocks and arbitrary caller cursors. `jet_context_separated` therefore has
+   the same represented-caller premises and replacement conclusion as
+   `jet_context`; no stronger contextual premise is added. Existing arithmetic
+   results imply the new local interface, but retain their stronger originals.
+   This is an interface proof, not a copyBits implementation proof or added
+   coverage. Extend the inventory's accepted theorem shapes and negative tests
+   explicitly when the first complete projection theorem uses this interface.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

@@ -695,3 +695,31 @@ its library-level axioms are a subset of the existing allowlist. The complete
 helper theorem's `Print Assumptions` reports only the existing six inherited
 axioms (classical choice, classical logic, functional extensionality and the
 CompCert external/inline-assembly semantics), not a new correctness axiom.
+
+## Streaming-jet separation interface
+
+`jet_context_separated.v` supplies an initial-only local interface for streaming
+jets, whose C implementations may write before consuming all input. Its buffer
+separation follows formally from the existing represented-caller invariants;
+the contextual replacement theorem has the same premises and conclusion as
+`jet_context`. Shared input/output cell blocks remain permitted. Existing
+arithmetic contracts and proofs are unchanged and imply the new interface.
+This supplies infrastructure only: coverage remains 127/533, with 406 missing.
+
+Explicit source compilation and direct `coqchk` passed. The integrated run has
+passed kernel checking on 92 public modules and generated reviewed assumption
+and contract snapshots; its negative tests and AST comparison are still running.
+The nine added audited results include four closed proofs and use only inherited
+axioms. Existing per-result assumption sets and the library-level allowlist are
+unchanged. Loading the generated AST as a contract-definition module also changes
+the printer's `jets.` qualifications and line wrapping; comparison after those
+printing differences confirms that existing contract contents are unchanged.
+Normal snapshot-comparison gates are running separately, without update mode.
+
+The clean Nix build started from immutable source
+`/nix/store/mm52rc5c1msa381k0wifrqgj0v8rk979-source` and derivation
+`/nix/store/j0s7vnj4mqq6cjjq05r5gzy72dqf3fdv-Simplicity-coq-jets-0.0.0.drv`.
+It contains the 127-jet median proofs and forwardBits helper, not the subsequent
+separated-call interface. Compilation, kernel checking on 90 public modules,
+and normal assumption/contract comparisons passed; negative tests are still
+running. Do not call this clean build successful until it finishes with exit 0.
