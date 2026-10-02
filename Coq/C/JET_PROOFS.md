@@ -36,9 +36,12 @@ The 128/64 canonical/guard bridges, two actual helper calls, complete public
 call-composition rules, initial-only four-reader sequence, permission-derived
 four-local cleanup and mixed-width writer sequence also pass independent
 current-source/kernel checks. Their eight modules / 27 results / 19 definitions
-are registered in running audit `97656`. They are infrastructure: the public
-initial-only DivMod128_64 theorem is still outstanding, and coverage remains
-202/533. The concrete integration path and frozen audit baseline are recorded
+passed integrated audit `97656`, including all gates, negative fixtures and exact
+pinned AST regeneration: 318 modules / 1511 results (607 closed). Earlier
+snapshots and inherited axioms are unchanged. Four new initial-only integration
+modules, including `divmod128_local_spec`, independently compile and pass fresh
+kernel checks; they await registration and expanded integration auditing.
+Registered coverage remains 202/533. The concrete integration path is recorded
 in [JET_ROADMAP.md](JET_ROADMAP.md).
 
 | Jet | Simplicity specification |

@@ -20,9 +20,10 @@ low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
 There are 331 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
-audit `4478` covers all 202 entries, including the four div_mod whole-call proofs,
-and the complete 96/64 helper. All gates, negative fixtures and pinned AST
-regeneration passed on 310 modules / 1484 results (595 closed).
+audit `97656` covers all 202 entries, including the four div_mod whole-call proofs,
+the complete 96/64 helper and the checked 128/64 integration infrastructure.
+All gates, negative fixtures and pinned AST regeneration passed on 318 modules /
+1511 results (607 closed).
 Earlier snapshots and the 15 inherited kernel axioms are unchanged.
 The helper lemmas do not establish DivMod128_64 coverage.
 Coverage is for the pinned
@@ -1076,28 +1077,24 @@ tree otherwise contains only Coq files.
    these eight modules (`31794`, `97721`, `39701`, `65271`, `25207`, `15804`,
    `89177`, and `20250` for the strengthened mixed run). Eight modules /
    27 results / 19 definitions are registered, without a coverage addition.
-   Expanded audit `97656` is running against accepted baseline `b59bef9`;
-   freeze registered proof sources, manifests and public lists and poll that
-   same handle. Expected totals: 318 modules / 1511 results. Accept snapshots
-   only after terminal exit 0, negative fixtures and pinned AST regeneration.
-   Removing assumptions for the eight modules and the new contract blocks
-   (results start at wide_mixed_bits_nonnegative, definitions at wide_mixed_bits)
-   must reproduce both baseline snapshots byte-for-byte. All inherited kernel
-   axioms must remain unchanged. Develop the next initial-only consumer in
-   a new, unregistered module while this audit runs.
-   **Next concrete proof:** allocate the four locals, prove freshness and
-   preserve original frame/data loads and permissions; copy the source frame;
-   apply eval_divmod128_readers; retain freeable permissions for all locals.
-   Split only the actual divmod128_guard. In the valid branch apply
-   eval_divmod128_helpers to the three writable fresh slots, then the mixed
-   writer theorem on [(W32,qh);(W32,ql);(W64,r)]. Its per-step preservation
-   discharges the intermediate ql/r reloads in exec_divmod128_valid_composes.
-   Use the valid canonical representation bridge for the output cells.
-   In the invalid branch use two W64 all-ones writers and the checked invalid
-   canonical bridge. Apply free_divmod128_locals, preserving existing output
-   and old memory outside the permitted frame/output ranges, and feed the
-   derived branch/free premises into eval_divmod128_composes. Then export the
-   named initial-only local spec, context and guarantees; only then add coverage.
+   Expanded audit `97656` completed with terminal exit 0, all gates, negative
+   fixtures and exact pinned AST regeneration: 318 modules / 1511 results
+   (607 closed). Removing assumptions for the eight modules and the new contract
+   blocks (results start at wide_mixed_bits_nonnegative, definitions at
+   wide_mixed_bits) reproduces accepted `b59bef9` byte-for-byte; the 15 inherited
+   kernel axioms are unchanged. The snapshots are accepted.
+   **Initial-only integration now checked independently.** The new, not-yet-
+   registered modules `jet_divmod128_allocate.v`, `jet_divmod128_branch_layout.v`,
+   `jet_divmod128_initial.v` and `jet_divmod128_layout.v` derive all four fresh
+   allocations, source copy, four readers, both helper/writer branches and
+   actual local cleanup from initial frames. `divmod128_local_spec` is the
+   complete public C-to-canonical-div2n1n theorem; context replacement and both
+   call-boundary guarantee exports also compile. Fresh kernels `18978`, `19483`,
+   `63010`, `64639` passed, with explicit scans and only inherited assumptions.
+   No zero-output, fixed-cursor or non-crossing premise was introduced.
+   Register these four modules / nine results / four definitions and the named
+   public coverage entry, then run the expanded integrated audit before accepting
+   its snapshots. Until that registration, inventory coverage remains 202/533.
    Subsequent div_mod calls require two writers with intermediate memory;
    divides swaps operands and writes one bit. A source-comment trap: the
    Haskell divides documentation says divides(0,y) is True, but its actual

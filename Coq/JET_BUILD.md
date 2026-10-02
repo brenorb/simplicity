@@ -1898,3 +1898,19 @@ Next: the memory-aware actual `f_div_mod_96_64` call, then the public
 and branch-specific execution plan; none of these helper results is a new
 jet coverage entry. Canonical DivMod128_64 uses `div2n1n_word_spec 6`, not the
 ordinary div_mod program. No canonical division induction needs restarting.
+
+## Accepted 128/64 infrastructure audit and checked public consumer (2026-10-02)
+
+Integrated audit `97656` completed with terminal exit 0: all gates, negative
+fixtures and exact pinned AST regeneration passed on 318 modules / 1511 results
+(607 closed). Filtering the eight newly registered modules and their contract
+blocks reproduces accepted `b59bef9` byte-for-byte, and all 15 inherited kernel
+axioms remain unchanged. Accept the assumption/contract snapshots.
+
+The independently checked `jet_divmod128_{allocate,branch_layout,initial,layout}.v`
+consumer chain now derives the complete public jet from original frame contracts.
+Current-source coqc, explicit scans/assumption checks and fresh kernels passed
+(`18978`, `19483`, `63010`, `64639`). Its local spec, canonical context replacement
+and both guarantees have no intermediate execution premises. Register these
+four modules / nine results / four definitions plus the public coverage entry
+and expand the audit next. Registered coverage at this checkpoint is 202/533.
