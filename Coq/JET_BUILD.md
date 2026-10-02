@@ -1645,7 +1645,9 @@ cursors/crossings, unrelated output contents and memory framing. Fresh source
 and independent kernel checks passed; the named local specs retain the same
 six inherited assumptions, and canonical machine/payload bridges are closed.
 Seven modules / 20 results / five definitions are registered, bringing entries
-to 178/533 (355 missing). The expanded integrated audit is pending; the last
-completed audit covers 176. Compare updated snapshots against `5f45b8c` after
-removing only these new results/definitions. Next use read8-controlled wide
+to 178/533 (355 missing). The expanded integrated audit (`79864`) exited 0
+through every gate on 256 modules / 1195 results (414 closed), including
+negative fixtures and pinned AST regeneration. Removing only these 20 results
+and five definitions reproduces the `5f45b8c` snapshots byte-for-byte. The
+inherited 15 kernel axioms are unchanged. Next use read8-controlled wide
 sequences and the checked generic helper for 32/64-bit shifts.

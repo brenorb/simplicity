@@ -90,7 +90,9 @@ the 15 inherited kernel axioms are unchanged. This completed audit covers 176.
 Both fill-input 16-bit local specs compiled and passed fresh kernel and
 individual assumption checks. Seven modules / 20 results / five definitions
 are registered, bringing entries to 178/533 (355 remain). Their expanded
-integrated audit is pending; the last completed audit covers 176.
+integrated audit passed every gate on 256 modules / 1195 results (414 closed),
+including negative tests and pinned AST regeneration. Earlier snapshots and
+the 15 inherited kernel axioms are unchanged. This completed audit covers 178.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and

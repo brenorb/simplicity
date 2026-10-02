@@ -836,7 +836,7 @@ tree otherwise contains only Coq files.
    to 176/533 (357 missing). Their expanded audit passed every gate on 249
    modules / 1175 results (404 closed), including negative tests and pinned AST
    regeneration. Earlier snapshots and inherited kernel axioms are unchanged.
-   **Fill-controlled 16-bit shifts: complete canonical contracts; expanded audit pending.** Reuse the
+   **Fill-controlled 16-bit shifts: complete canonical contracts; integrated audit passed.** Reuse the
    complete helper with the bit-read flag, derive a bit/read4/read16 sequence
    from initial frames and inspect both fill toggles. Unlike the byte helper,
    wide left shifts can retain upper bits until writing: prove the second
@@ -862,7 +862,9 @@ tree otherwise contains only Coq files.
    check passed; named local specs retain the existing six assumptions and
    value bridges are closed. Seven modules / 20 results / five definitions are
    registered, bringing entries to 178/533 (355 missing). Their expanded audit
-   is pending; the last completed audit covers 176. The bit read precedes the count/payload helpers, so the count
+   passed every gate on 256 modules / 1195 results (414 closed), including
+   negative tests and pinned AST regeneration. Earlier snapshots and inherited
+   kernel axioms are unchanged. The bit read precedes the count/payload helpers, so the count
    begins at rc+1, payload at rc+5, and the final copied cursor is rc+21.
    **Next: 32/64-bit zero-fill shifts, then their fill-input variants.** Reuse
    `jet_shift_wide_exec.v`, `jet_read8_wide_sequence.v` and the checked generic
