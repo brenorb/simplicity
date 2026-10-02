@@ -1433,3 +1433,31 @@ as described in the roadmap. Its explicit compilation command is:
 env OPAMROOT=/Users/brenorb/.opam-simplicity-root opam exec --switch=simplicity -- \
   bash Coq/build-jets.sh --coqc C/jet_extend_word8_loop.v
 ```
+
+## Complete left_extend_8 family audit (2026-10-02)
+
+`jet_extend_word8_layout.v` completes the three actual left_extend_8_16/32/64
+calls, deriving source allocation/copy, read8/uchar normalization, promoted
+signed MSB shift and Boolean cast, fill writes, final payload write and free
+from initial frames. `jet_write8_sequence.v` discharges the actual writer-run
+premise with canonical cells, prefix and memory preservation. The symbolic
+canonical padding/fill/MSB bridges enumerate no input words. Arbitrary valid
+cursors, crossings and unrelated output contents are supported without an
+original input/output separation requirement. Context/call guarantees reuse
+the generic results. Fresh independent kernel and individual assumption
+checks exited 0; all three local specs retain the existing six assumptions.
+
+The expanded `JOBS=12 check-jets.sh --update-expected --ast` run exited 0
+through every gate: 174 modules, 895 results (265 closed), adding 30 results
+and 21 definitions. Removing those additions reproduces all previous theorem
+types, definitions and assumption snapshots byte-for-byte. The inherited 15
+library-level kernel axioms remain unchanged, with no type-in-type, unsafe
+recursion or assumed positivity. Negative escape/impossible-premise tests and
+pinned AST regeneration passed. The separate regression build exited 0.
+This audit covers 153/533 jets, with 380 remaining; it does not establish
+completion, a new clean Nix run or any remote CI result.
+
+The mirrored right-extension source modules and initial-only local specs also
+compiled and passed fresh independent kernel/individual assumption checks.
+Their registration and expanded integrated audit are the next verification
+step; they are not part of the 174-module result above.
