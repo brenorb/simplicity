@@ -368,6 +368,16 @@ tree otherwise contains only Coq files.
    fields and outside-word load/permission/block framing. The raw left-advance
    and right-return lemmas are reusable for remaining continuations; they are
    INTERNAL and not additional jet-equivalence results.
+   **Every copy fitting the partial destination word: logical contract.**
+   `jet_copyBits_partial_crossing_cells.v:eval_copyBits_partial_word_layout`
+   combines the crossing path with the previously checked short path. Its
+   initial-only contract covers every `0 < n <= cursor mod 64`, deriving source
+   loads/bounds from logical cells and stores/cursor updates from writable
+   output frames. It proves equal cells (including undefined cells), preserved
+   written prefix and memory framing. Next-source-word separation is needed
+   only if the source crosses. Together with the aligned-destination contract,
+   the remaining non-memcpy cases are copies continuing past a partial output
+   word; do not invoke a second helper on fictitiously updated frame fields.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

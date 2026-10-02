@@ -919,3 +919,20 @@ Explicit source compilation and direct `coqchk -silent -o` finished with exit
 0, the unchanged inherited library axiom set and no unsafe kernel features.
 Both build manifests include this later module; it was not part of the
 102-module integrated audit. This helper theorem adds no public jet coverage.
+
+## Partial output word: unified initial-only logical contract
+
+`jet_copyBits_partial_crossing_cells.v` proves the exact bit/cell observations
+of the crossing word, including preservation of previously written bits.
+`eval_copyBits_partial_cross_layout` derives both input loads/bounds from
+logical cells and the complete helper/wrapper call from initial writable
+frames. `eval_copyBits_partial_word_layout` combines it with the short path,
+covering every `0 < n <= cursor mod 64`. Undefined cells are supported and
+next-word separation is required only when the source crosses.
+
+Explicit source compilation and direct `coqchk -silent -o` finished with exit
+0, unchanged inherited library axioms and no unsafe kernel features. Both
+build manifests include this module. These later partial-word modules were
+not part of the 102-module integrated audit. They add no public jet coverage:
+continuing past a partial destination word and the external memcpy model
+still need proofs before a general projection equivalence can be claimed.
