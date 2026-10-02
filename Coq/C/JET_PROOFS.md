@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 162 jets of the C library
+Coq proofs that the generated CompCert Clight of 166 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -42,15 +42,30 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `right_extend_8_16/32/64` | `right_extend_word_spec 3 depth`, literal `rightmost &&& iden >>> cond right_pad_high right_pad_low` |
 | `left_extend_16_32/16_64/32_64` | `left_extend_word_spec input_log depth`, the same canonical recursion at larger input widths |
 | `right_extend_16_32/16_64/32_64` | `right_extend_word_spec input_log depth`, retaining payload-before-fill ordering |
+| `left_rotate_32/64` | `left_rotate_byte_spec`, literal variable-control `Programs.Word.left_rotate word8 wordN` |
+| `right_rotate_32/64` | `right_rotate_byte_spec`, literal variable-control `Programs.Word.right_rotate word8 wordN` |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
-The six wide-input extension specs passed fresh independent kernel and individual
-assumption checks, then every integrated gate on 188 modules / 962 results
-(287 closed), including negative tests and exact pinned AST regeneration.
+The wide left-rotation specs and shared helpers passed every integrated gate
+on 197 modules / 1004 results (315 closed), including negative tests and exact
+pinned AST regeneration. The right-rotation specs compiled and passed fresh
+kernel checks. Their expanded audit passed every gate on 203 modules / 1024
+results (326 closed), including negative tests and pinned AST regeneration.
+All older snapshots and the inherited 15 kernel axioms remain unchanged.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
 continuation plan are in [JET_ROADMAP.md](JET_ROADMAP.md).
+
+For the four rotations, the local specs derive both reader calls, the actual
+promoted count arithmetic, complete scalar helper call, writer and cleanup
+from initial frames. Valid arbitrary cursors and crossings, existing output
+bits and memory framing are retained. The specification is the literal
+variable-control Simplicity program, not a constant-rotation substitute.
+Only control bits are case-split in normalization; payload bridges are symbolic.
+The right family reuses the scalar bit theorem and the checked reversed-count
+argument. Six additional checked read4 modules are staged for smaller-width
+consumers; they are not registered as public jet coverage.
 
 For `eq_256`, `jet_eq256_layout.v:eq256_local_spec` proves the complete actual
 C call against `equality_spec (Word 8)`. The proof derives the source-frame

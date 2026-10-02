@@ -1480,13 +1480,36 @@ positivity. Negative tests and pinned AST regeneration passed. The separate
 regression build exited 0. Coverage is 162/533, with 371 missing; this is
 not completion or a new clean Nix/remote check.
 
-Staged rotation support (`jet_read8_wide_sequence.v`,
-`jet_rotate_wide_helper.v`, `jet_rotate_count_exec.v`) is not part of that
-188-module audit and adds no jet coverage. Each source compiled explicitly;
-a fresh combined `--coqchk -silent -o` on all three exited 0 with no unsafe
-recursion, assumed positivity or type-in-type. Individual `Print Assumptions`
-checks show the existing six assumptions for mixed-reader/helper execution,
-the four inherited logical assumptions for count-expression execution, and
-no assumptions for the unsigned reverse-count bridge. The count proofs retain
-the actual signed modulo and uchar casts for both initial and reversed counts.
-Finish the canonical variable-rotation consumer before registering coverage.
+The left_rotate_32/64 canonical consumers now include that shared reader,
+helper and count infrastructure. Their source builds and fresh kernels passed.
+The expanded `JOBS=12 check-jets.sh --update-expected --ast` run exited 0
+through all gates on 197 modules / 1004 results (315 closed), adding 42
+results / 23 definitions. Removing just these additions reproduces the older
+assumption and contract snapshots byte-for-byte. The 15 inherited kernel axioms
+remain unchanged, with no type-in-type, unsafe recursion or assumed positivity.
+Negative escape/impossible-premise tests, pinned AST regeneration and the
+separate regression build passed. That completed audit covers 164/533 jets.
+
+The right_rotate_32/64 canonical consumers also compiled and passed fresh
+kernel and individual assumption checks. Their six registered modules add
+20 results / 9 definitions, bringing registered coverage to 166/533 (367
+remaining). The expanded `JOBS=12 check-jets.sh --update-expected --ast`
+run exited 0 through every gate on 203 modules / 1024 results (326 closed),
+including negative fixtures and exact pinned AST regeneration. Removing the
+right-family additions reproduces all older assumption and contract snapshots
+exactly. The inherited 15 kernel axioms remain unchanged, with no unsafe
+recursion, assumed positivity or type-in-type. Pure canonical/machine bridges
+are closed; final local specs retain the existing six assumptions. The separate
+regression build passed. This is not completion or a new clean Nix/remote check.
+
+Six staged nibble-reader modules (`jet_read4_layout.v`,
+`jet_read4_crossing_layout.v`, `jet_read4_layout_total.v`, `jet_read4_word.v`,
+`jet_read4_input_word.v`, `jet_read4_wide_sequence.v`) compiled explicitly.
+Fresh `--coqchk -silent -o C.jet_read4_input_word` and
+`--coqchk -silent -o C.jet_read4_wide_sequence` runs exited 0 on their current dependency closure without
+unsafe recursion, assumed positivity or type-in-type. They derive actual
+read4 execution, exact unsigned Word4 interpretation and cursor/memory
+observations from initial frames, including all crossing cases and a shared
+read4-plus-wide reader pipeline with exact carriers. They are
+outside the public manifests/audit until smaller-width consumers are ready,
+and add no jet coverage by themselves.
