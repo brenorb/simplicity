@@ -470,6 +470,18 @@ tree otherwise contains only Coq files.
    jet boundaries (including by-value source copies, forwardBits and frees)
    with the canonical programs. Do not add restricted-layout projection
    entries to coverage while that branch remains missing.
+   **Canonical projection cells and input slices checked separately.**
+   `jet_projection_cells.v:encode_leftmost` / `encode_rightmost` prove the
+   exact existing canonical terms encode to the appropriate prefix/suffix,
+   generically for all vector depths and output types (including sum padding).
+   The frame lemmas derive those input-cell observations from the original
+   full encoding, with the rightmost cursor advanced by the skipped length.
+   `projection_buffers_slice` derives the smaller read-buffer separation from
+   the original input count, also after skipping. No external execution or
+   extra layout restriction is assumed. These are representation obligations,
+   not C jet execution proofs or coverage. Explicit compilation and direct
+   kernel checking passed; add their eight results to the next expanded public
+   assumption/type audit when composing the final projection calls.
    **multiply_8/16/32 completed independently of the library-copy gap.**
    `jet_multiply_spec.v` defines the literal canonical Haskell composition
    with a doubled-width zero input and the existing `Word.fullMultiplier`.
@@ -489,6 +501,15 @@ tree otherwise contains only Coq files.
    range bounds the entire sum below the carrier modulus. Do not assume the
    product/sum fits without deriving that fact. Extend the checked sequencing
    to the fourth reader while retaining the nested input product encoding.
+   **Shared four-input bridge checked.** `jet_full_multiply_word.v` supplies
+   `full_multiply_int64_denotes`, covering the actual left-associated carrier
+   `x * y + z + w`. Each intermediate product/sum is bounded from the canonical
+   output range and nonnegative remaining operands before removing its modulus.
+   `frame_input_word_quad_encode` derives four logical input observations at
+   successive word offsets from the exact nested-pair encoding. Both compile
+   and pass direct kernel checking; they do not yet prove a C jet call. Add
+   these two results to the next expanded audit alongside the four-reader
+   execution/layout modules.
    `multiply_64` and `full_multiply_64` instead execute actual uint128 helpers
    and require separate adapters; do not force them into the scalar bodies.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`

@@ -1127,3 +1127,15 @@ as did the optional regression target. Coverage is now 130/533, with 403
 remaining; `jet-coverage.py --require-complete` still fails as intended.
 The earlier clean Nix reproduction covers its recorded 127-jet revision, not
 these later modules. No newer clean Nix or remote CI run is claimed.
+
+## Later checked representation infrastructure
+
+`jet_projection_cells.v` and `jet_full_multiply_word.v` were explicitly
+compiled and directly kernel checked with exit 0, unchanged inherited library
+axioms and no unsafe kernel features. Both build manifests include them.
+The projection size/encoding/buffer-slice lemmas and full-multiply carrier
+bridge are closed; logical input-cell slicing/encoding lemmas inherit the
+existing four classical Coq assumptions through the encoding layer.
+These two modules were added after the 120-module integrated run. Their ten
+results are not yet in its public assumption/type snapshots. They add no
+public jet coverage and still need the final jet execution consumers.
