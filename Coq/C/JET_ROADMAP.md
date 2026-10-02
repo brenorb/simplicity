@@ -275,6 +275,16 @@ tree otherwise contains only Coq files.
    actual `copyBitsHelper` execution and its post-helper cursor facts remain
    premises to discharge from initial frame conditions. Prove its partial-word,
    aligned memcpy and loop branches before adding any projection coverage.
+   **First copy-helper return branch completed.**
+   `jet_copyBits_helper_exec.v` derives all four generated pointer/shift
+   initializations and executes the complete helper call when
+   `0 < n <= src_shift < dst_shift` (a partial destination word). Its
+   initial-only theorem derives both stores from writable access and the
+   intervening source load from word separation; the destination frame fields,
+   outside-word loads, permissions and valid blocks are preserved. No
+   intermediate execution/store premise remains in that theorem. Other
+   partial-word branches, crossings, aligned memcpy and the loop are still
+   outstanding, so this adds no projection coverage.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

@@ -743,3 +743,23 @@ axioms beyond the inherited allowlist. The module is registered in both build
 manifests; the preceding 92-module integrated run does not certify this later
 addition. The next complete projection proof must discharge the helper's actual
 partial-word stores, aligned memcpy/loop behavior and preservation obligations.
+
+## First copyBitsHelper return branch (not jet coverage)
+
+`jet_copyBits_helper_exec.v` proves the actual generated initialization prefix
+and the complete helper call for `0 < n <= src_shift < dst_shift`. The final
+theorem `eval_copy_helper_short_left` has only initial-state premises: frame
+fields and non-wrapping bounds, separated source/destination word loads, and
+writable destination access. It derives both stores and source-load preservation
+after clearing the destination. It proves the exact resulting word, preservation
+of the output frame fields, outside-word loads, permissions and valid blocks.
+Output contents need not be zero-initialized.
+
+Explicit source compilation and direct `coqchk` finished with exit 0. Its
+assumptions are the same six inherited library-level assumptions as the
+existing execution helpers; no new axioms or proof escapes were introduced.
+It is registered in both build manifests, but is not a public jet theorem and
+does not increase the 127-jet coverage. Other partial-word paths, crossings,
+aligned memcpy and loop behavior remain to be proved and composed with the
+wrapper before adding projection coverage. The clean Nix build above predates
+this module and does not certify it.
