@@ -1072,6 +1072,19 @@ tree otherwise contains only Coq files.
    `jet_write_wide_mixed_sequence.v` derives varying-width writers from one
    initial frame. Its run exposes protected local-load preservation at EVERY
    intermediate call, needed because C reloads ql and r between writes.
+   Current-source compilation, explicit scans and fresh kernels passed for
+   these eight modules (`31794`, `97721`, `39701`, `65271`, `25207`, `15804`,
+   `89177`, and `20250` for the strengthened mixed run). Eight modules /
+   27 results / 19 definitions are registered, without a coverage addition.
+   Expanded audit `97656` is running against accepted baseline `b59bef9`;
+   freeze registered proof sources, manifests and public lists and poll that
+   same handle. Expected totals: 318 modules / 1511 results. Accept snapshots
+   only after terminal exit 0, negative fixtures and pinned AST regeneration.
+   Removing assumptions for the eight modules and the new contract blocks
+   (results start at wide_mixed_bits_nonnegative, definitions at wide_mixed_bits)
+   must reproduce both baseline snapshots byte-for-byte. All inherited kernel
+   axioms must remain unchanged. Develop the next initial-only consumer in
+   a new, unregistered module while this audit runs.
    **Next concrete proof:** allocate the four locals, prove freshness and
    preserve original frame/data loads and permissions; copy the source frame;
    apply eval_divmod128_readers; retain freeable permissions for all locals.

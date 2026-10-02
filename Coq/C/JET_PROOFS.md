@@ -32,6 +32,15 @@ store, actual loop execution and framing from valid inputs and writable output
 slots. It is a helper, not a DivMod128_64 jet proof or coverage entry.
 The every-jet goal remains unfinished.
 
+The 128/64 canonical/guard bridges, two actual helper calls, complete public
+call-composition rules, initial-only four-reader sequence, permission-derived
+four-local cleanup and mixed-width writer sequence also pass independent
+current-source/kernel checks. Their eight modules / 27 results / 19 definitions
+are registered in running audit `97656`. They are infrastructure: the public
+initial-only DivMod128_64 theorem is still outstanding, and coverage remains
+202/533. The concrete integration path and frozen audit baseline are recorded
+in [JET_ROADMAP.md](JET_ROADMAP.md).
+
 | Jet | Simplicity specification |
 | --- | --- |
 | `verify` | Literal `Programs.Bit.verify`: `iden &&& unit >>> assertr cmrFail0 oh`, in option/assertion semantics |
