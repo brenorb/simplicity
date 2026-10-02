@@ -1616,3 +1616,23 @@ results/definitions. The last completed audit covers 174/533.
 Next add fill-controlled 16-bit consumers with a mixed bit/read4/read16
 initial-state sequence and low-bit (not false exact truncated-carrier) XOR
 bridges, then extend 32/64-bit read8-controlled consumers.
+
+The expanded zero-fill 16-bit audit is live in session `51103`. The 249-module
+kernel stage passed; the assumption gate is running. Poll the same handle and
+keep registered proof sources, manifests and public lists frozen until terminal
+completion. Do not restart because an observation is quiet. The baseline for
+its 27 added results / 21 definitions is `c3c8548`.
+
+Four unregistered fill-consumer helpers are ready: `jet_shift_wide_fill_word.v`,
+`jet_shift16_with_spec.v`, `jet_readBit4_wide_sequence.v` and
+`jet_shift16_with_word.v`. Every source compiled and each fresh independent
+kernel check exited 0 with no unsafe recursion, assumed positivity or
+type-in-type. Individual canonical-normal-form and carrier/value bridge
+assumption checks are closed. Reader sequencing derives exact values, the
+non-wrapping 1+4+width cursor and memory/perms from initial frames, not assumed
+reader executions. The low-bit bridge handles the final XOR without falsely
+requiring a truncated intermediate left-shift carrier. Use explicit WordToZ
+normal forms when rewriting the nested complement: the outer canonical
+complement is observed at j, not the potentially out-of-range j-shift index
+of the complemented input. Final fill-input jet wrappers and their initial
+21-bit W16 frame composition still remain; no additional coverage is claimed.

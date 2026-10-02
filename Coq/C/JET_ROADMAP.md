@@ -845,6 +845,18 @@ tree otherwise contains only Coq files.
    controls in the canonical program. Extend the canonical normalization
    structurally if exhaustive control normalization becomes expensive; do
    not enumerate payload values or replace the program by a mathematical spec.
+   Four unregistered fill-consumer modules now compile and passed fresh kernel
+   checks: `jet_shift_wide_fill_word.v` supplies the exact initial complement
+   carrier and arbitrary-carrier low-bit XOR fact; `jet_shift16_with_spec.v`
+   retains the literal fill program and normalizes only fill/control values;
+   `jet_readBit4_wide_sequence.v` derives the bit/read4/wide reader sequence
+   from initial frames; `jet_shift16_with_word.v` proves low-bit and decoded
+   payload equivalence. Its value bridges and the fill normal form are closed.
+   These helpers add no coverage. Next adapt the actual fill wrappers from
+   `jet_shift8_with_exec.v` using the checked wide helper, then compose the
+   21-bit initial input/frame lifecycle for W16 and export named canonical
+   local specs. The bit read precedes the count/payload helpers, so the count
+   begins at rc+1, payload at rc+5, and the final copied cursor is rc+21.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
