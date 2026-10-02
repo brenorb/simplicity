@@ -1095,3 +1095,15 @@ The external model and final canonical jet calls remain outstanding.
 Explicit compilation and direct `coqchk -silent -o` finished with exit 0,
 unchanged inherited library axioms and no unsafe kernel features. Both build
 manifests include this later module; it is not in the 109-module audit.
+
+## Expanded small-copy audit (2026-10-02)
+
+The complete `check-jets.sh --update-expected --ast` run finished with exit 0
+on 115 public-audit modules: 605 audited results, 157 closed. It includes the
+right-case branch modules, their logical wrapper contracts and the unified
+positive small-copy contract excluding the two actual external memcpy paths.
+The reviewed snapshots add only 15 results and two helper definitions;
+previous theorem contracts, assumption sets and the inherited kernel axiom
+allowlist are unchanged. Negative tests and byte-identical AST regeneration
+passed; the subsequent normal public-contract comparison also passed.
+Public coverage remains 127/533: these are helper results, not new jets.
