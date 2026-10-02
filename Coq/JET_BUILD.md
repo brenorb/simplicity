@@ -1001,3 +1001,21 @@ the unchanged inherited library axiom set and no unsafe kernel features.
 Both build manifests include these modules. These later modules were not in
 the 105-module integrated public audit. They are helper progress only; the
 other partial-destination continuation and external memcpy model remain.
+
+## Both crossings: initial-only logical wrapper contract for the left case
+
+`jet_copyBits_two_words_left_cells.v:eval_copyBits_two_left_layout` derives
+the source loads/bounds, destination accesses and word protections from
+logical cells, `write_frame_at` and existing whole-buffer separation. It
+executes the actual helper/wrapper and proves equal output cells, including
+undefined cells, prefix preservation, cursor update and framing outside the
+two-word output interval and cursor field. Crossing-position/address lemmas
+are reusable for the other partial-destination branch. No execution/store
+premise remains in this layout theorem.
+
+Explicit compilation and direct `coqchk -silent -o` finished with exit 0,
+the unchanged inherited library axiom set and no unsafe kernel features.
+Both build manifests include the module. The initial helper and layout
+theorems inherit the same six assumptions as previous execution helpers.
+These later modules are not part of the preceding 105-module integrated run.
+Public coverage remains 127/533; remaining layouts must still be handled.

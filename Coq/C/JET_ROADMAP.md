@@ -416,6 +416,17 @@ tree otherwise contains only Coq files.
    `jet_copyBits_two_words_left_exec.v`; no second helper call or changed
    stored cursor is fabricated. The `ds < ss` continuation and plain external
    memcpy branch remain outstanding, and this adds no public jet coverage.
+   **Both crossings: logical wrapper contract completed for that case.**
+   `jet_copyBits_two_words_left_cells.v:eval_copyBits_two_left_layout` derives
+   both source loads/bounds and both destination accesses from logical input
+   cells and `write_frame_at`. Word protections follow from the existing
+   whole-buffer separation predicate. It executes the actual helper and
+   cursor-update wrapper, proving equal cells (including undefined cells),
+   prefix preservation, updated metadata and two-word/cursor memory framing.
+   It covers `src_shift < dst_shift < n <= 64`; no intermediate execution or
+   store premise remains. The general crossing-position/address lemmas also
+   apply to the other partial-destination continuation. This is not a full
+   projection-jet proof; no jet is counted by omitting remaining layouts.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.
