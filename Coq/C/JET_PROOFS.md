@@ -67,8 +67,10 @@ separate regression build. Earlier snapshots and the 15 inherited kernel axioms
 remain unchanged. This completed audit covers 170/533.
 The two byte zero-fill shifts also compiled and passed fresh kernel and
 individual assumption checks. Eight modules / 33 results / 24 definitions are
-registered; their expanded integrated audit is pending, so the latest completed
-audit does not yet cover all 172 current entries.
+registered; their expanded integrated audit passed all gates on 233 modules /
+1125 results, including negative tests and pinned AST regeneration. Removing
+the added results and definitions reproduces the earlier snapshots byte-for-byte.
+The latest completed audit covers all 172 current entries (361 jets remain).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and

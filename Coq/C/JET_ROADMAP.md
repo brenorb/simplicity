@@ -754,7 +754,7 @@ tree otherwise contains only Coq files.
    step; normalization splits only the 16 control values, never the payload.
    No helper execution, writer or output-value premise remains in the final
    local contracts. Do not count reader/helper lemmas as jets or weaken frames.
-   **Zero-fill byte shifts: complete canonical contracts; audit pending.** Reuse the exact nibble/byte-control reader sequences
+   **Zero-fill byte shifts: complete canonical contracts; integrated audit passed.** Reuse the exact nibble/byte-control reader sequences
    and frame lifecycle, but inspect each helper's out-of-range count branch.
    Shift semantics are not rotation modulo semantics. Preserve signed/unsigned
    promotions, optional fill inputs and canonical final SingleV behavior; prove
@@ -783,7 +783,8 @@ tree otherwise contains only Coq files.
    specs passed fresh kernel and individual assumption checks (existing six
    assumptions; pure bridge closed). Eight modules / 33 results / 24 definitions
    are registered, bringing entries to 172/533 (361 missing); their expanded
-   integrated audit is pending, while the latest completed audit covers 170.
+   integrated audit passed all gates on 233 modules / 1125 results, including
+   negative tests and pinned AST regeneration. Earlier snapshots are unchanged.
    **Next: fill-controlled byte shifts, then 16/32/64 scalar shifts.** Reuse
    the complete helper execution with a flag from readBit and the exact mixed
    reader sequence after that bit. Prove a separate canonical fill bridge;

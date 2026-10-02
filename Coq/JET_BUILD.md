@@ -1554,14 +1554,12 @@ independent kernel checks. Their canonical program adapters, symbolic machine
 bridge and both final local specs also compile and passed a fresh final kernel
 check; local specs retain the existing six assumptions and
 `shift8_machine_denotes` is closed. Eight modules / 33 results / 24 definitions
-are registered; entries are 172/533 (361 missing), while the latest completed
-integrated audit covers 170/533. The expanded zero-fill-shift audit is pending.
-That run is live in session `88262`; the 233-module kernel stage passed and
-the assumption gate is running. Poll the same handle; do not restart solely
-because it is quiet. Freeze registered sources, manifests and public lists
-until terminal completion. When snapshots update, remove only these eight
-new modules' 33 results / 24 definitions and compare against the 225-module
-baseline before committing the changes.
+are registered; entries are 172/533 (361 missing). The expanded zero-fill-shift
+audit (`88262`) exited 0 through all gates on 233 modules / 1125 results.
+Negative fixtures and pinned AST regeneration passed. Removing the eight new
+modules' 33 results / 24 definitions reproduces the 225-module assumption and
+contract snapshots byte-for-byte. This completed audit covers all 172 entries;
+it does not complete the every-jet goal.
 
 Control normalization initially timed out at count 7 under direct conversion.
 Exposing the byte payload's product structure without case-splitting its bits,
