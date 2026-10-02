@@ -225,3 +225,49 @@ Proof.
   intros Hzero. rewrite is_zero_word_spec_numeric in Hzero.
   apply Z.eqb_eq in Hzero. apply division_leftmost_zero_bound; exact Hzero.
 Qed.
+
+Lemma vector_leftmost_nonzero_bound (T : ToZ.type) m
+    (v : Ty.tySem (Vector T (S m))) :
+  0 < @toZ T (@Word.leftmost T (S m) Alg.CoreFunSem v) ->
+  two_power_nat (vector_bits T (S m)) <=
+    vector_value T (S m) v * two_power_nat (ToZ.Theory.bitSize T).
+Proof.
+  revert v. induction m as [|m IH]; intros [hi lo] Hnonzero.
+  - change (0 < @toZ T hi) in Hnonzero.
+    pose proof (vector_value_range T 0%nat lo) as HL.
+    pose proof (vector_modulus_positive T 0%nat) as HB.
+    change (0 <= @toZ T lo < two_power_nat (ToZ.Theory.bitSize T)) in HL.
+    change (0 < two_power_nat (ToZ.Theory.bitSize T)) in HB.
+    cbn [vector_value vector_bits fst snd]. rewrite two_power_nat_plus. nia.
+  - change (0 < @toZ T (@Word.leftmost T (S m) Alg.CoreFunSem hi)) in Hnonzero.
+    pose proof (IH hi Hnonzero) as HH.
+    pose proof (vector_value_range T (S m) lo) as HL.
+    pose proof (vector_modulus_positive T (S m)) as HM.
+    pose proof (vector_modulus_positive T 0%nat) as HB.
+    change (0 < two_power_nat (ToZ.Theory.bitSize T)) in HB.
+    change (two_power_nat (vector_bits T (S m) + vector_bits T (S m)) <=
+      (vector_value T (S m) hi * two_power_nat (vector_bits T (S m)) +
+        vector_value T (S m) lo) * two_power_nat (ToZ.Theory.bitSize T)).
+    rewrite two_power_nat_plus. nia.
+Qed.
+
+Lemma division_nonzero_guard_bound n m (b : Ty.tySem (Word (S m+n))) :
+  Bit.toBool (@is_zero_word_spec n Alg.CoreFunSem
+    (@division_leftmost_block n (S m) Alg.CoreFunSem b)) = Datatypes.false ->
+  word_modulus (S m+n) <= @toZ (WordToZ (S m+n)) b * word_modulus n.
+Proof.
+  intros Hnonzero. rewrite is_zero_word_spec_numeric in Hnonzero.
+  apply Z.eqb_neq in Hnonzero.
+  pose proof (word_value_bounds n (@division_leftmost_block n (S m) Alg.CoreFunSem b)) as Hhead.
+  set (v := eq_rect _ Ty.tySem b _ (eq_sym (vector_word_eq n (S m)))).
+  assert (HS : @division_leftmost_block n (S m) Alg.CoreFunSem
+      (eq_rect _ Ty.tySem v _ (vector_word_eq n (S m))) =
+      @Word.leftmost (Word n) (S m) Alg.CoreFunSem v).
+  { unfold division_leftmost_block. apply cast_projection_core. }
+  unfold v in HS at 1. rewrite cast_value_inverse in HS.
+  pose proof (f_equal (@toZ (WordToZ n)) HS) as Hobs.
+  assert (HP : 0 < @toZ (WordToZ n) (@Word.leftmost (Word n) (S m) Alg.CoreFunSem v)) by lia.
+  pose proof (vector_leftmost_nonzero_bound (WordToZ n) m v HP) as Hbound.
+  rewrite <- vector_word_value, vector_word_bits in Hbound.
+  unfold v in Hbound at 1. rewrite cast_value_inverse in Hbound. exact Hbound.
+Qed.
