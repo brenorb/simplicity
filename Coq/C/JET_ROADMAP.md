@@ -638,6 +638,18 @@ tree otherwise contains only Coq files.
    extending their environment and failure-memory observations as needed.
 5. **Hashing, secp256k1 and application primitives.** Reuse the library and
    existing cryptographic verification lemmas where they actually apply.
+   `jet_read32s_exec.v` proves the actual pointer/count loop, and
+   `jet_read32s_layout.v:eval_read32s_layout` derives every reader call,
+   exact array value, store and cursor update from initial input/permissions.
+   `jet_word32_chunks.v` converts canonical word encodings to those per-chunk
+   input predicates, with symbolic length and injectivity proofs. Source
+   compilation and fresh independent kernel checks passed; the expanded
+   integrated audit is running.
+   These helpers add no coverage. Next use them for `eq_256`: derive fresh
+   source/16-word-array allocation and cleanup, execute the actual eight
+   comparisons with early return, connect their result to `equality_spec
+   (Word 8)`, and discharge all helper contracts in its initial-only local
+   spec. Do not replace the actual loop with a numerical equality assertion.
    `Simplicity/SHA256.v:hashBlock_correct` connects a Simplicity term to VST's
    functional SHA model, not the full generated C jet call; it is support for
    a future C-to-Simplicity proof, not an additional covered jet. Likewise,

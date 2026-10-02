@@ -1369,3 +1369,18 @@ positivity. All eight local specs retain only the existing six assumptions.
 The separate regression build also exited 0. Coverage is 149/533, with 384
 remaining; the completeness gate is intentionally not satisfied. These are
 local checks, not a new clean Nix or remote CI result.
+
+## Later checked read32s and canonical chunk infrastructure
+
+`jet_read32s_exec.v`, `jet_read32s_layout.v` and `jet_word32_chunks.v`
+compile from current source and were independently kernel checked with exit
+0 and no unsafe proofs. The complete reader call theorem retains the existing
+six Coq/CompCert assumptions. The initial-only array-reader contract derives every actual
+read32 call and Mint32 store, exact canonical uint32 values, final cursor,
+permissions/blocks and loads outside the frame-cursor and array ranges.
+No output initialization or cursor-alignment restriction is assumed.
+Canonical word chunks supply lengths, encoding equality, injectivity and
+per-chunk frame inputs without enumerating word values. These are helper
+results, not `eq_256` or hash jet equivalence. Both project manifests and
+public result/definition lists include them; the expanded integrated audit
+is running. Coverage remains 149/533 (384 remaining).
