@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 79 covered core jets: one/increment/add/full_increment/full_add at 8/16/32/64 bits,
+There are 83 covered core jets: one/increment/add/full_increment/full_add/subtract at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, and eq at 1/8/16/32/64 bits.
-There are 454 declarations without coverage
+There are 450 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -153,14 +153,23 @@ tree otherwise contains only Coq files.
    the intermediate sum is exact and the increment threshold applies. The
    payload proof is modular at 64 bits. All three widths share one complete
    layout proof consuming `1 + 2 * width` bits and producing `1 + width` bits.
-   **Next: subtraction, negation, decrement and borrow-input variants.** Mirror
+   **subtract_8/16/32/64 completed.** `jet_subtract_spec.v` mirrors
    canonical `Programs.Arith.full_subtract`: complement the second word,
    invert the input borrow, run full_add, then invert its output carry.
-   Build the remaining canonical programs by their actual zero/constant-input
-   compositions. Reuse the checked full-adder numeric bridge and complement
-   representation lemmas; these are intermediate bridges, not extra covered jets.
-   Derive the C borrow and modular payload separately before reusing the one-,
-   two- and three-reader call/layout sequencing. full_subtract has another
+   `subtract_word_spec` fixes its input borrow to false. The shared signed
+   borrow/payload balance is injective; a modular representation bridge reuses
+   `Word.fullAdder_correct` and complement's numeric identity. Machine carrier
+   reduction uses `Znumtheory.Zmod_div_mod`, including wrapping 64-bit
+   subtraction. The byte borrow comparison is signed `Int.lt` after integer
+   promotion, justified by the operands' byte ranges; wide comparison is
+   `Int64.ltu`. All four complete calls reuse two-reader sequencing and the
+   total carry-plus-word writers, deriving allocations/stores/free from initial
+   contracts and supporting arbitrary valid cursors and crossings.
+   **Next: negation, decrement and borrow-input variants.** The canonical
+   zero/constant-input programs and their parametricity already exist in
+   `jet_subtract_spec.v`, but those helper results are not additional C coverage.
+   Derive actual borrow and modular payload values before reusing the one- and
+   three-reader call/layout sequencing. full_subtract has another
    generated short-circuit conditional; do not treat it as a single expression.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,

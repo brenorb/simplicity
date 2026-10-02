@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of seventy-nine jets of the C library
+Coq proofs that the generated CompCert Clight of eighty-three jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -19,6 +19,7 @@ expression in a local, explicitly described context.
 | `full_increment_8/16/32/64` | `full_increment_word_spec`, the canonical carry-input `Programs.Arith.full_increment wordN` |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
 | `full_add_8/16/32/64` | `Word.fullAdder`, the canonical carry-input `Programs.Arith.full_add wordN` |
+| `subtract_8/16/32/64` | `subtract_word_spec`, the canonical `Programs.Arith.subtract wordN` composition |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -138,6 +139,22 @@ uint subtraction in the 16/32-bit carry expressions before promotion to ulong;
 module derives the bit reader, exact wide reader, both writers and local cleanup
 from initial-only contracts, and exports three named canonical local specs,
 context substitution and call-boundary guarantees.
+
+For subtraction, `jet_subtract_spec.v` mirrors the actual canonical
+`Programs.Arith.full_subtract` composition: complement the second word, invert
+the input borrow, run `Word.fullAdder`, then invert the output carry.
+`subtract_word_spec` supplies its constant-false input borrow. A signed
+borrow/payload balance and word-modulus lemmas connect the actual C values to
+this program, rather than replacing it with an independently chosen numeric
+specification. `jet_subtract_word.v` handles both carriers symbolically,
+including 64-bit wraparound and the byte's signed, promoted comparison.
+`jet_subtract{8,_wide}_exec.v` and `jet_subtract{8,_wide}_layout.v` derive two
+actual reads, the borrow-bit and payload writes, return and local cleanup from
+initial contracts. They export four named canonical local specs, context
+substitution and call-boundary guarantees with arbitrary valid cursors,
+crossings and unrelated output contents. Definitions and parametricity for
+negate/decrement and borrow-input programs are shared preparation only, not
+additional C jet coverage.
 
 For the actual generated function body (`f_simplicity_<jet>`), a complete
 `ClightBigstep.Clight2.eval_funcall` (parameters as temporaries,

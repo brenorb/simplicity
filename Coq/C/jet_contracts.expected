@@ -5236,6 +5236,407 @@ wide_full_add_context_guarantees
             (silent_call_guarantees (Clight.globalenv jets.prog) (@Ctypes.Internal Clight.function (wide_full_add s))
                (jet_args env L) m (Values.Vint Integers.Int.one) mf)
             (and (bm_rep mf L s1) (runProgram (@wide_full_add_spec s Naive.translate) (Running s0) (Running s1))))
+full_subtract_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @full_subtract_word_spec term n)
+subtract_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @subtract_word_spec term n)
+negate_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @negate_word_spec term n)
+full_decrement_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @full_decrement_word_spec term n)
+decrement_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @decrement_word_spec term n)
+complement_spec_numeric
+     : forall (n : nat) (x : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ n) (@complement_spec n Alg.CoreFunSem x))
+         (BinInt.Z.sub (BinInt.Z.sub (word_modulus n) (BinNums.Zpos BinNums.xH))
+            (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+borrow_word_balance_injective
+     : forall (n : nat) (a b : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)))
+         (_ : @eq BinNums.Z (borrow_word_balance n a) (borrow_word_balance n b)),
+       @eq (Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))) a b
+full_subtract_word_spec_numeric
+     : forall (n : nat) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (x y : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z
+         (borrow_word_balance n
+            (@full_subtract_word_spec Alg.CoreFunSem n
+               (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) c
+                  (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))))
+         (BinInt.Z.sub
+            (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+            (@Word.ToZ.Theory.toZ Word.BitToZ c))
+subtract_word_spec_numeric
+     : forall (n : nat) (x y : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z
+         (borrow_word_balance n
+            (@subtract_word_spec Alg.CoreFunSem n (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+         (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+subtract_representation_matches
+     : forall (n : nat) (x y payload : Ty.tySem (Word.Word n))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ n) payload)
+                (BinInt.Z.modulo
+                   (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+                   (word_modulus n))),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word n)))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word n))
+            match
+              BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)
+              return (sum unit unit)
+            with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end payload)
+         (@subtract_word_spec Alg.CoreFunSem n (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))
+subtract8_values_denote_spec
+     : forall left right : Integers.Int64.int,
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S O))))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S O)))))
+            match
+              subtract8_borrow (jet_read8.read8_result left) (jet_read8.read8_result right) return (sum unit unit)
+            with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (decode_word8
+               (Integers.Int64.repr
+                  (Integers.Int.unsigned
+                     (subtract8_payload (jet_read8.read8_result left) (jet_read8.read8_result right))))))
+         (@subtract_word_spec Alg.CoreFunSem (S (S (S O)))
+            (@pair (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Word (S (S (S O)))))
+               (decode_word8 left) (decode_word8 right)))
+wide_subtract_values_denote_input
+     : forall (s : wide_size) (x y : Ty.tySem (Word.Word (wide_log s))) (r t : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (wide_log s)) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned t) (@Word.ToZ.Theory.toZ (Word.WordToZ (wide_log s)) y)),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (wide_log s))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (wide_log s)))
+            match wide_subtract_borrow r t return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end (decode_wide s (Integers.Int64.zero_ext (wide_bits s) (wide_subtract_payload r t))))
+         (@subtract_word_spec Alg.CoreFunSem (wide_log s)
+            (@pair (Ty.tySem (Word.Word (wide_log s))) (Ty.tySem (Word.Word (wide_log s))) x y))
+eval_subtract8_layout_matches_spec
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge : BinNums.Z)
+         (x y : Ty.tySem (Word.Word (S (S (S O))))) (cursor rc : BinNums.Z) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge rc) (_ : byte_slice_at m bi edge rc x)
+         (_ : byte_slice_at m bi edge
+                (BinInt.Z.add rc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) y)
+         (_ : write_frame_at m bd dbase bw outedge cursor
+                (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function jets.f_simplicity_subtract_8)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))
+                     (@subtract_word_spec Alg.CoreFunSem (S (S (S O)))
+                        (@pair (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Word (S (S (S O))))) x y))))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+subtract8_local_spec
+     : jet_local_spec jets.f_simplicity_subtract_8 (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) =>
+          @subtract_word_spec Alg.CoreFunSem (S (S (S O))) xy)
+subtract8_context
+     : @jet_context_for jets.f_simplicity_subtract_8 (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))
+         (fun term : Alg.Core.Algebra => @subtract_word_spec term (S (S (S O))))
+subtract8_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat (bitSize (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))))))
+                Integers.Int64.max_unsigned)
+         (_ : frame_input_cells_at m bi edge read_cursor
+                (@encode (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) a))
+         (_ : write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_subtract_8)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))
+                     (@subtract_word_spec Alg.CoreFunSem (S (S (S O))) a)))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+subtract8_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : bm_layout) (ctx : Context)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))),
+       let s0 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) a)
+              (newWriteFrame (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))))) in
+       let s1 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) a)
+              (fullWriteFrame
+                 (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))
+                    (@subtract_word_spec Alg.CoreFunSem (S (S (S O))) a)))) in
+       forall (_ : bm_rep m L s0) (_ : bm_separated L s0) (_ : active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_subtract_8) (jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (bm_rep mf L s1)
+               (runProgram (@subtract_word_spec Naive.translate (S (S (S O)))) (Running s0) (Running s1))))
+eval_wide_subtract_layout_matches_spec
+     : forall (env : Values.val) (s : wide_size) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge : BinNums.Z)
+         (x y : Ty.tySem (Word.Word (wide_log s))) (cursor rc : BinNums.Z) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (wide_bits s)))))
+         (_ : @frame_input_word_at (wide_log s) m bi edge rc x)
+         (_ : @frame_input_word_at (wide_log s) m bi edge (BinInt.Z.add rc (wide_bits s)) y)
+         (_ : write_frame_at m bd dbase bw outedge cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) (wide_bits s))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function (wide_subtract s))
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+                     (@subtract_word_spec Alg.CoreFunSem (wide_log s)
+                        (@pair (Ty.tySem (Word.Word (wide_log s))) (Ty.tySem (Word.Word (wide_log s))) x y))))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) (wide_bits s))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.add (BinNums.Zpos BinNums.xH) (wide_bits s)))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+wide_subtract_local_spec
+     : forall s : wide_size,
+       jet_local_spec (wide_subtract s) (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s)))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))) =>
+          @subtract_word_spec Alg.CoreFunSem (wide_log s) xy)
+subtract16_local_spec
+     : jet_local_spec jets.f_simplicity_subtract_16
+         (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) =>
+          @subtract_word_spec Alg.CoreFunSem (S (S (S (S O)))) xy)
+subtract32_local_spec
+     : jet_local_spec jets.f_simplicity_subtract_32
+         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) =>
+          @subtract_word_spec Alg.CoreFunSem (S (S (S (S (S O))))) xy)
+subtract64_local_spec
+     : jet_local_spec jets.f_simplicity_subtract_64
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+         (fun xy : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))) =>
+          @subtract_word_spec Alg.CoreFunSem (S (S (S (S (S (S O)))))) xy)
+wide_subtract_context
+     : forall s : wide_size,
+       @jet_context_for (wide_subtract s) (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s)))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+         (fun term : Alg.Core.Algebra => @subtract_word_spec term (wide_log s))
+wide_subtract_guarantees
+     : forall (s : wide_size) (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s)))) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat (bitSize (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))))))
+                Integers.Int64.max_unsigned)
+         (_ : frame_input_cells_at m bi edge read_cursor
+                (@encode (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))) a))
+         (_ : write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv jets.prog) (@Ctypes.Internal Clight.function (wide_subtract s))
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+                     (@subtract_word_spec Alg.CoreFunSem (wide_log s) a)))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+wide_subtract_context_guarantees
+     : forall (s : wide_size) (env : Values.val) (m : Memory.Mem.mem) (L : bm_layout) (ctx : Context)
+         (a : Ty.tySem (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s)))),
+       let s0 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))) a)
+              (newWriteFrame (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))))) in
+       let s1 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Ty.Prod (Word.Word (wide_log s)) (Word.Word (wide_log s))) a)
+              (fullWriteFrame
+                 (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+                    (@subtract_word_spec Alg.CoreFunSem (wide_log s) a)))) in
+       forall (_ : bm_rep m L s0) (_ : bm_separated L s0) (_ : active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv jets.prog) (@Ctypes.Internal Clight.function (wide_subtract s))
+               (jet_args env L) m (Values.Vint Integers.Int.one) mf)
+            (and (bm_rep mf L s1)
+               (runProgram (@subtract_word_spec Naive.translate (wide_log s)) (Running s0) (Running s1))))
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -8782,3 +9183,191 @@ Clight.Sifthenelse (wide_full_add_first_carry_expr s)
      : forall _ : wide_size, Clight.statement
 
 Arguments wide_full_add_choose s
+full_subtract_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n))) (Ty.Sum Ty.Unit Ty.Unit)
+     (Ty.Prod (Word.Word n) (Word.Word n)) term
+     (@Bit.not (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n))) term
+        (@AC.take (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit) term
+           (@AC.iden (Ty.Sum Ty.Unit Ty.Unit) term)))
+     (@AC.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Word.Word n) (Word.Word n))
+        term
+        (@AC.pair (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) (Word.Word n) term
+           (@AC.take (Word.Word n) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+           (@AC.comp (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) (Word.Word n) term
+              (@AC.drop (Word.Word n) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+              (@complement_spec n term)))))
+  (@AC.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+     (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+     (@Word.fullAdder n term)
+     (@AC.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) term
+        (@Bit.not (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+           (@AC.take (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) term
+              (@AC.iden (Ty.Sum Ty.Unit Ty.Unit) term)))
+        (@AC.drop (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))))
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments full_subtract_word_spec {term} n%nat_scope
+subtract_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)) term
+     (@Bit.false (Ty.Prod (Word.Word n) (Word.Word n)) term) (@AC.iden (Ty.Prod (Word.Word n) (Word.Word n)) term))
+  (@full_subtract_word_spec term n)
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments subtract_word_spec {term} n%nat_scope
+negate_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Word.Word n) (Word.Word n) (Word.Word n) term
+     (@AC.comp (Word.Word n) Ty.Unit (Word.Word n) term (@AC.unit (Word.Word n) term) (@Word.zero n term))
+     (@AC.iden (Word.Word n) term)) (@subtract_word_spec term n)
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments negate_word_spec {term} n%nat_scope
+full_decrement_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)
+     (Ty.Prod (Word.Word n) (Word.Word n)) term
+     (@AC.take (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) term
+        (@AC.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+     (@AC.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) (Word.Word n) (Word.Word n) term
+        (@AC.drop (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+        (@AC.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) Ty.Unit (Word.Word n) term
+           (@AC.unit (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term) (@Word.zero n term))))
+  (@full_subtract_word_spec term n)
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments full_decrement_word_spec {term} n%nat_scope
+decrement_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) term (@Bit.true (Word.Word n) term)
+     (@AC.iden (Word.Word n) term)) (@full_decrement_word_spec term n)
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments decrement_word_spec {term} n%nat_scope
+bit_complement =
+fun c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit) => @complement_spec O Alg.CoreFunSem c
+     : forall _ : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit), Ty.tySem (Word.Word O)
+
+Arguments bit_complement c
+borrow_word_balance =
+fun (n : nat) (z : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))) =>
+BinInt.Z.sub
+  (@Word.ToZ.Theory.toZ (Word.WordToZ n)
+     (@snd
+        (sum
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end) Ty.Unit)
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end) Ty.Unit))
+        ((fix tySem (X : Ty.Ty) : Set :=
+            match X return Set with
+            | Ty.Unit => unit
+            | Ty.Sum A B => sum (tySem A) (tySem B)
+            | Ty.Prod A B => prod (tySem A) (tySem B)
+            end) (Word.Word n)) z))
+  (BinInt.Z.mul (word_modulus n)
+     (@Word.ToZ.Theory.toZ Word.BitToZ
+        (@fst
+           (sum
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end) Ty.Unit)
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end) Ty.Unit))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end) (Word.Word n)) z)))
+     : forall (n : nat) (_ : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))), BinNums.Z
+
+Arguments borrow_word_balance n%nat_scope z
+subtract8_borrow =
+fun r t : Integers.Int.int => Integers.Int.lt (jet_add8.add8_u r) (jet_add8.add8_u t)
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int), bool
+
+Arguments subtract8_borrow r t
+subtract8_payload =
+fun r t : Integers.Int.int =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+  (Integers.Int.sub (Integers.Int.mul Integers.Int.one (jet_add8.add8_u r)) (jet_add8.add8_u t))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments subtract8_payload r t
+wide_subtract_borrow =
+fun r t : Integers.Int64.int => Integers.Int64.ltu r t
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments wide_subtract_borrow r t
+wide_subtract_payload =
+fun r t : Integers.Int64.int => Integers.Int64.sub r t
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments wide_subtract_payload r t
+subtract8_borrow_expr =
+Clight.Ebinop Cop.Olt (Clight.Etempvar jets._x Ctypesdefs.tuchar) (Clight.Etempvar jets._y Ctypesdefs.tuchar)
+  Ctypesdefs.tint
+     : Clight.expr
+subtract8_payload_expr =
+Clight.Ecast
+  (Clight.Ebinop Cop.Osub
+     (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+        (Clight.Etempvar jets._x Ctypesdefs.tuchar) Ctypesdefs.tuint) (Clight.Etempvar jets._y Ctypesdefs.tuchar)
+     Ctypesdefs.tuint) Ctypesdefs.tuchar
+     : Clight.expr
+wide_subtract =
+fun s : wide_size =>
+match s return Clight.function with
+| W16 => jets.f_simplicity_subtract_16
+| W32 => jets.f_simplicity_subtract_32
+| W64 => jets.f_simplicity_subtract_64
+end
+     : forall _ : wide_size, Clight.function
+
+Arguments wide_subtract s
+wide_subtract_borrow_expr =
+Clight.Ebinop Cop.Olt (Clight.Etempvar jets._x Ctypesdefs.tulong) (Clight.Etempvar jets._y Ctypesdefs.tulong)
+  Ctypesdefs.tint
+     : Clight.expr
+wide_subtract_payload_expr =
+Clight.Ecast
+  (Clight.Ebinop Cop.Osub
+     (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+        (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tulong) (Clight.Etempvar jets._y Ctypesdefs.tulong)
+     Ctypesdefs.tulong) Ctypesdefs.tulong
+     : Clight.expr

@@ -512,3 +512,22 @@ Build took 4m52s and check took 9m27s, including kernel checks on 60 public
 modules, 279 audited results (38 closed), contract comparison, negative tests
 and exact AST regeneration. This certifies the immutable 79-jet snapshot only;
 later subtraction work requires its own checks.
+
+## Complete subtraction calls at 8/16/32/64 bits
+
+The four `subtract` calls now target the literal canonical
+`Programs.Arith.subtract`/`full_subtract` compositions. The shared bridge
+uses the checked full-adder and complement results, a signed borrow/payload
+balance and carrier-to-word modulus reduction. Execution retains the byte's
+signed promoted comparison, the wide unsigned comparison, multiply-by-one,
+casts, both output writes and cleanup. The public contracts assume only the
+initial readable inputs and writable output frame, including arbitrary valid
+cursors, word crossings and unrelated output bits.
+
+The integrated check with exact AST regeneration finished with exit 0 at
+83/533 and 64 public modules. Reviewed snapshots add 25 audited results
+(12 closed) and 589 contract lines only; previous contracts, assumption sets
+and the inherited axiom allowlist are unchanged. Normal comparison gates passed
+at 304 results (50 closed), and the regression target passed. The completeness
+gate intentionally fails with 450 missing declarations. The 79-jet clean Nix
+result does not certify this extension.
