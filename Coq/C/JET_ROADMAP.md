@@ -903,9 +903,12 @@ tree otherwise contains only Coq files.
    divu/modu. Zero is branched away before arithmetic, returning quotient
    zero and remainder input. These are numerical machine observations, NOT
    canonical jet specifications. All eight divide/modulo jets remain uncovered.
-   These seven modules / 21 results / 19 definitions are not in manifests or
-   public snapshots yet: the running shift audit is frozen. Register them
-   only after it exits and its snapshots are reviewed; do not add coverage.
+   These seven modules / 21 results / 19 definitions are now registered in
+   both manifests and public lists, with NO coverage additions. Their expanded
+   helper audit is running as session `27757`; poll the same handle and keep
+   registered sources/manifests/lists frozen. The completed shift audit covers
+   186 entries. Compare new snapshots against `7e90c02` after removing only
+   these helper entries; inherited kernel axioms must remain unchanged.
    **Next: literal canonical division bridge**, then div_mod/divides consumers.
    Mirror Programs.Arith.div3n2n, div2n1n, divPreShift and divPostShift; retain
    the exact CoreJets div_mod program and its quotient/remainder projections.

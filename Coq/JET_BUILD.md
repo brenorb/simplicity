@@ -1705,9 +1705,12 @@ Reader/writer executions, allocation/copy/free and memory framing are derived
 from initial contracts; no internal executions are assumed by final frame
 theorems. The wide theorem shares W16/W32/W64 and the operation selector.
 
-The modules are currently unregistered (21 results / 19 definitions). Keep
-the running shift audit `87578` frozen; poll it, review its snapshots against
-`8ef795b`, then register these helpers without adding jet coverage. The next
-obligation is the literal Programs.Arith recursive division/normalization
-bridge, not another mathematical specification or assumed numeric identity.
-See JET_ROADMAP.md for the exact canonical dependency chain.
+The modules are now registered (21 results / 19 definitions) in both manifests
+and public audit lists, without adding coverage. The expanded helper audit is
+running as session `27757`; poll it rather than restarting, and freeze registered
+sources/manifests/lists. Its baseline is `7e90c02`: remove only these new helper
+entries to review snapshots, requiring inherited kernel axioms to stay unchanged.
+The prior complete shift audit covers 186/533 jets. The next proof obligation
+is the literal Programs.Arith recursive division/normalization bridge, not
+another mathematical specification or assumed numeric identity. See
+JET_ROADMAP.md for the exact canonical dependency chain.
