@@ -52,6 +52,12 @@ regeneration on 332 modules / 1559 results (632 closed). Coverage is now
 and inherited kernel axioms are unchanged. The concrete path is recorded
 in [JET_ROADMAP.md](JET_ROADMAP.md).
 
+The complete full_multiply64_local_spec also independently passes current-source
+and fresh kernel checks. It is now registered along with shared accumulation,
+four-reader and next SHA-context support (205/533 registered, 328 remaining),
+awaiting the expanded integrated audit. Pure buffer/context bridges and the
+false-tag/skip sequence are infrastructure only, not SHA context jet coverage.
+
 | Jet | Simplicity specification |
 | --- | --- |
 | `verify` | Literal `Programs.Bit.verify`: `iden &&& unit >>> assertr cmrFail0 oh`, in option/assertion semantics |
@@ -78,7 +84,7 @@ in [JET_ROADMAP.md](JET_ROADMAP.md).
 | `min/max_8/16/32/64` | `minmax_word_spec`, canonical le-and-input followed by conditional projections |
 | `median_8/16/32/64` | `median_word_spec`, the literal canonical nested min/max composition |
 | `multiply_8/16/32/64` | `multiply_word_spec`, literal canonical `iden &&& (unit >>> zero word2N) >>> full_multiply wordN` |
-| `full_multiply_8/16/32` | `Word.fullMultiplier`, the canonical four-input `Programs.Arith.full_multiply wordN` |
+| `full_multiply_8/16/32/64` | `Word.fullMultiplier`, the canonical four-input `Programs.Arith.full_multiply wordN` |
 | `divide/modulo_8/16/32/64` | Projections of the literal recursive `Programs.Arith.div_mod wordN`, including its zero-divisor branch |
 | `divides_8/16/32/64` | Swapped inputs, canonical modulo, then canonical is_zero, including zero divisors |
 | `div_mod_8/16/32/64` | Literal recursive `Programs.Arith.div_mod wordN`, with ordered quotient/remainder output and its zero-divisor branch |
@@ -298,7 +304,10 @@ The shared bridge in `jet_full_multiply_word.v` bounds every intermediate in
 the actual left-associated `x * y + z + w`, using the canonical output range
 and the nonnegative inputs. All four byte-to-long casts are retained; input
 and output widths are selected separately. The nested input encoding supplies
-four reads at successive word offsets. `full_multiply_64` is not covered.
+four reads at successive word offsets. `jet_full_multiply64_layout.v` separately
+proves full_multiply_64 using the actual uint128 multiplication and two accumulation
+calls, followed by write128 and cleanup. Its canonical range proves both high
+sums fit; both low-word carries come from the C helper's wrapped comparison.
 
 For `verify`, `jet_verify_layout.v:verify_local_spec` proves the complete
 actual C call against the literal canonical assertion program, including its

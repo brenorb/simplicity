@@ -1966,3 +1966,8 @@ struct copies/context writer and public lifecycle remain to be executed.
 Together with the six fullMultiply64 modules these nine modules have 29 results /
 19 definitions to register after audit `54062` completes (341 modules / 1588
 results expected). Only full_multiply64_local_spec adds a public entry.
+
+After accepting multiply64 audit `54062` at `87d0082`, these nine modules /
+29 results / 19 definitions and the full_multiply64 public entry are registered
+(205/533, 328 remaining). Run the expanded 341-module / 1588-result audit against
+that accepted baseline. No SHA context jet is counted by these support modules.
