@@ -2080,3 +2080,11 @@ modules, 26 results, 15 definitions and `sha256_ctx8_init_local_spec` as the exa
 public `simplicity_sha_256_ctx_8_init` entry, then run the expanded audit (359
 modules / 1649 results, 206/533 registered and 327 remaining). Only this public
 theorem adds coverage; all its private support remains infrastructure.
+
+Audit `45575` subsequently completed with terminal exit 0 through every gate,
+negative fixture and exact pinned AST regeneration (350 modules / 1623 results,
+667 closed). Both prescribed filters reproduce accepted `4ac1e5d` byte-for-byte,
+and the inherited global kernel axiom list is unchanged. Accept these helper
+snapshots; public coverage remains 205/533, with the completed context-init public
+theorem ready for registration. The registered sources/manifests are no longer
+frozen for this completed run.
