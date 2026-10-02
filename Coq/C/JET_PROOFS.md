@@ -44,9 +44,9 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `right_extend_16_32/16_64/32_64` | `right_extend_word_spec input_log depth`, retaining payload-before-fill ordering |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
-The six wide-input extension specs compiled and passed fresh independent kernel
-checks and individual assumption checks. Their expanded integrated audit is
-pending; the last completed integrated audit covers the preceding 156 jets.
+The six wide-input extension specs passed fresh independent kernel and individual
+assumption checks, then every integrated gate on 188 modules / 962 results
+(287 closed), including negative tests and exact pinned AST regeneration.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and

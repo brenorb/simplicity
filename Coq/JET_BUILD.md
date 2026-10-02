@@ -1467,3 +1467,15 @@ The inherited 15 library-level kernel axioms remain unchanged; no type-in-type,
 unsafe recursion or assumed positivity was introduced. Negative tests and
 pinned AST regeneration passed. Coverage is 156/533, with 377 remaining.
 This is not completion, a new clean Nix check or a remote CI result.
+
+The six wide-input extensions (left/right 16_32, 16_64 and 32_64) compiled
+and passed fresh independent kernel checks; their canonical local specs retain
+the existing six assumptions and their pure bridges are closed. The expanded
+`JOBS=12 check-jets.sh --update-expected --ast` run exited 0 through every
+gate on 188 modules / 962 results (287 closed), adding 44 results and 28
+definitions. Removing those additions reproduces both previous public
+assumption and contract snapshots byte-for-byte. The inherited 15 kernel
+axioms are unchanged, with no type-in-type, unsafe recursion or assumed
+positivity. Negative tests and pinned AST regeneration passed. The separate
+regression build exited 0. Coverage is 162/533, with 371 missing; this is
+not completion or a new clean Nix/remote check.

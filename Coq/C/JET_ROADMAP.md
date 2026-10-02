@@ -661,7 +661,7 @@ tree otherwise contains only Coq files.
    removing the 23 results / 11 definitions added by this family. Continue
    with the expanded wide-extension audit below. Do not claim equivalence
    from only the pure sequence bridge or conditional loop proof.
-   **Wide extension inputs completed, integrated audit pending.**
+   **Wide extension inputs completed and audited.**
    `jet_write_wide_sequence.v` derives successive actual wide-writer calls,
    encoded output, cursor changes, prefix and memory framing from initial
    permissions. The left/right `jet_*extend_wide_{loop,exec,spec,layout}.v`
@@ -676,11 +676,39 @@ tree otherwise contains only Coq files.
    All six exact local specs compiled, passed fresh independent kernel checks
    and retain only the existing six assumptions. Pure bridges are closed.
    Nine modules / 44 results / 28 definitions are registered, bringing coverage
-   to 162/533 (371 missing). Finish their expanded integrated audit and compare
-   older assumptions/contracts unchanged before accepting its snapshots.
+   to 162/533 (371 missing). Their expanded audit passed every gate on 188
+   modules / 962 results (287 closed), with all older assumptions/contracts
+   unchanged after removing the new declarations. The inherited 15 kernel
+   axioms are unchanged; negative tests, pinned AST regeneration and the
+   separate regression build passed.
    This completes the declared left/right extension family; other padding and
    shift families still require their own actual C proofs, including the
    unresolved external-copy contract where those bodies call memcpy.
+   **Next scalar shift/rotate milestone (not counted as coverage).** The
+   inspected scalar C shift/rotate macros do not call memcpy. At 32/64 bits
+   they read an 8-bit amount followed by the wide payload; the 8/16-bit jets
+   use read4, which still needs its own initial-only reader adapter.
+   `jet_read8_wide_sequence.v` derives both actual reader calls, exact unsigned
+   carriers, cast normalization, combined cursor and memory preservation from
+   initial frames, reusing the total readers. `jet_rotate_wide_helper.v`
+   executes the complete rotate_16/32/64 scalar helper calls with arbitrary
+   carrier values and bounded counts, including the zero branch that avoids
+   a shift by the full carrier width. Both compiled and passed fresh kernels;
+   they are staged outside the last completed integrated audit until a consumer
+   is ready. `jet_rotate_count_exec.v` handles the actual promoted signed
+   remainder and uchar cast: with a nonnegative byte carrier and positive
+   width, C's signed remainder equals the required nonnegative modulus.
+   Next compose the actual left_rotate_32 entry/copy, read8/modulo, read32,
+   scalar helper, write32, return and free from initial frames. Its exact
+   canonical target is CoreJets' `Prog.left_rotate word8 word32`, not merely
+   a numerical rotation or a constant-rotation specification. Mirror literal
+   Programs.Word.hs:285-294 (reverse itemsOf control bits, conditional rotate1,
+   vectorPromote recursion). Existing `Word.rotate_const_correct_word` and
+   flatten/VectorPromote lemmas can support the symbolic bridge, but the
+   variable-control canonical program itself must be retained. Then reuse
+   the family for left_rotate_64 and right variants, whose `(bits-amt)%bits`
+   conversion must be executed explicitly. Do not assume an intermediate
+   helper call or successful writer in the final local spec.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
