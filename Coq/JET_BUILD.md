@@ -1866,8 +1866,8 @@ and byte/wide layout consumers. Fresh kernels `28975`, `75385`, `8206` passed
 after current-source coqc. The pair representation is closed; C contracts keep
 the inherited assumptions. Actual C writes quotient then remainder. Reuse
 `write8_sequence_run_layout` / `write_wide_sequence_run_layout` to derive both
-calls and memory framing; do not assume either intermediate call. Register
-four div_mod entries (now registered) are included in the expanded audit below.
+calls and memory framing; do not assume either intermediate call. The four
+div_mod entries are registered and included in the expanded audit below.
 The next harder jet is DivMod128_64 with its correction-loop helper. In the
 pinned LP64 Clight, uint_fast32_t locals/parameters are **tulong**, not tuint;
 their 32-bit logical bounds must follow from readers/loop invariants.
