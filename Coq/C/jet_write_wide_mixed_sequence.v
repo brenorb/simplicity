@@ -1,4 +1,5 @@
 (** Initial-only sequencing of actual wide writers with varying widths.
+    Protected local loads are preserved at every intermediate call.
     In particular, DivMod128_64 writes 32, 32 and 64 bits, not two 64-bit calls. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events.
@@ -13,13 +14,14 @@ Set Default Timeout 10.
 
 Fixpoint wide_mixed_bits (xs : list (wide_size * int64)) : Z :=
   match xs with [] => 0 | (s,_) :: xs => wide_bits s + wide_mixed_bits xs end.
-Fixpoint write_wide_mixed_run bf base (xs : list (wide_size * int64)) m mf : Prop :=
+Fixpoint write_wide_mixed_run bf base bw (xs : list (wide_size * int64)) m mf : Prop :=
   match xs with
   | [] => m = mf
   | (s,x) :: xs => exists mi,
     Clight2.eval_funcall ge0 m (Internal (wide_writer s))
       [Vptr bf (Ptrofs.repr base); Vlong x] E0 mi Vundef /\
-    write_wide_mixed_run bf base xs mi mf
+    (forall chunk b ofs, b <> bf -> b <> bw -> Mem.load chunk mi b ofs = Mem.load chunk m b ofs) /\
+    write_wide_mixed_run bf base bw xs mi mf
   end.
 Definition wide_mixed_cells (xs : list (wide_size * int64)) :=
   concat (map (fun sx => encode (decode_wide (fst sx) (Int64.zero_ext (wide_bits (fst sx)) (snd sx)))) xs).
@@ -33,7 +35,7 @@ Qed.
 Theorem write_wide_mixed_run_layout m bf base bw edge cursor xs :
   write_frame_at m bf base bw edge cursor (wide_mixed_bits xs) ->
   exists mf,
-    write_wide_mixed_run bf base xs m mf /\
+    write_wide_mixed_run bf base bw xs m mf /\
     frame_output_cells_at mf bw edge cursor (wide_mixed_cells xs) /\
     write_prefix_at m mf bw edge cursor /\
     frame_fields_at mf bf base bw edge (cursor - wide_mixed_bits xs) /\
@@ -85,30 +87,34 @@ Proof.
     assert (HPrev : write_word_address edge (cursor - wide_bits s) <= write_word_address edge cursor).
     { unfold write_word_address. pose proof (Z.div_le_mono (cursor - wide_bits s - 1) (cursor - 1) 64
         ltac:(lia) ltac:(lia)); nia. }
-    exists mf. split; [exists mi; auto|]. split.
-    + change (frame_output_cells_at mf bw edge cursor
-        (encode (decode_wide s (Int64.zero_ext (wide_bits s) x)) ++ wide_mixed_cells xs)).
-      apply frame_output_cells_at_app. split; [exact HfirstFinal|].
-      rewrite (encode_word_length (wide_log s) (decode_wide s (Int64.zero_ext (wide_bits s) x))), <- wide_bits_pow.
-      exact Htail.
+    exists mf. split.
+    + exists mi. split; [exact Hwrite|]. split.
+      * intros chunk b ofs Hbf Hbw. apply Hmem; auto.
+      * exact Hrun.
     + split.
-      * eapply write_prefix_at_chain; [exact Hfw| |exact Hprefix|exact HPrefixTail|exact HMemTail].
-        cbn [wide_mixed_bits] in HC; lia.
+      * change (frame_output_cells_at mf bw edge cursor
+          (encode (decode_wide s (Int64.zero_ext (wide_bits s) x)) ++ wide_mixed_cells xs)).
+        apply frame_output_cells_at_app. split; [exact HfirstFinal|].
+        rewrite (encode_word_length (wide_log s) (decode_wide s (Int64.zero_ext (wide_bits s) x))), <- wide_bits_pow.
+        exact Htail.
       * split.
-        -- change (frame_fields_at mf bf base bw edge (cursor - (wide_bits s + wide_mixed_bits xs))).
-           replace (cursor - (wide_bits s + wide_mixed_bits xs)) with
-             (cursor - wide_bits s - wide_mixed_bits xs) by ring. exact HFieldsTail.
+        -- eapply write_prefix_at_chain; [exact Hfw| |exact Hprefix|exact HPrefixTail|exact HMemTail].
+           cbn [wide_mixed_bits] in HC; lia.
         -- split.
-           ++ intros chunk b ofs Hbf Hbw. rewrite HMemTail.
-              ** apply Hmem; [exact Hbf|]. destruct Hbw as [Hneq|[Hbefore|Hafter]];
-                   [left|right; left|right; right]; auto.
-                 change (ofs + size_chunk chunk <= slice_write_low (wide_bits s) edge cursor). nia.
-              ** exact Hbf.
-              ** replace (cursor - wide_bits s - wide_mixed_bits xs) with
-                   (cursor - wide_mixed_bits ((s,x) :: xs)) by (cbn [wide_mixed_bits]; ring).
-                 destruct Hbw as [Hneq|[Hbefore|Hafter]];
-                   [left|right; left|right; right]; auto; nia.
+           ++ change (frame_fields_at mf bf base bw edge (cursor - (wide_bits s + wide_mixed_bits xs))).
+              replace (cursor - (wide_bits s + wide_mixed_bits xs)) with
+                (cursor - wide_bits s - wide_mixed_bits xs) by ring. exact HFieldsTail.
            ++ split.
-              ** intros b ofs kind p HP. apply HPermTail, Hperm; exact HP.
-              ** intros b HV. apply HValidTail, Hvalid; exact HV.
+              ** intros chunk b ofs Hbf Hbw. rewrite HMemTail.
+                 --- apply Hmem; [exact Hbf|]. destruct Hbw as [Hneq|[Hbefore|Hafter]];
+                       [left|right; left|right; right]; auto.
+                     change (ofs + size_chunk chunk <= slice_write_low (wide_bits s) edge cursor). nia.
+                 --- exact Hbf.
+                 --- replace (cursor - wide_bits s - wide_mixed_bits xs) with
+                       (cursor - wide_mixed_bits ((s,x) :: xs)) by (cbn [wide_mixed_bits]; ring).
+                     destruct Hbw as [Hneq|[Hbefore|Hafter]];
+                       [left|right; left|right; right]; auto; nia.
+              ** split.
+                 --- intros b ofs kind p HP. apply HPermTail, Hperm; exact HP.
+                 --- intros b HV. apply HValidTail, Hvalid; exact HV.
 Qed.
