@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 107 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le at 8/16/32/64 bits,
+There are 115 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, and eq at 1/8/16/32/64 bits.
-There are 426 declarations without coverage
+There are 418 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -213,12 +213,19 @@ tree otherwise contains only Coq files.
    exact programs to the actual C comparisons; the adapters use two-reader
    sequencing and the total bit writer. Byte comparisons are signed after promotion
    (justify with byte bounds); wide comparisons are unsigned.
-   **Next: is_zero/is_one at all four arithmetic widths**, followed by min/max,
-   median, shifts/rotates, multiplication and division.
-   is_zero is canonical `not (some wordN)`, whereas is_one composes canonical
-   decrement and is_zero on the resulting payload. Reuse the symbolic some
-   and decrement bridges and the one-reader predicate lifecycle; do not replace
-   either canonical specification with an independently chosen numeric test.
+   **is_zero/is_one_8/16/32/64 completed.** `jet_test_value_spec.v` mirrors
+   canonical `not (some wordN)` and decrement followed by payload is_zero.
+   The width-independent numeric bridge reuses the some recursion and the
+   checked signed decrement balance; the modulus is at least two, excluding
+   a zero payload at zero input after wrapping. Shared byte/wide execution and
+   layout modules reuse the one-reader predicate lifecycle, with eight named
+   canonical local specs and contextual/call-boundary guarantees.
+   **Next: min/max at all four arithmetic widths**, followed by median,
+   shifts/rotates, multiplication and division. Canonical min/max use le and
+   conditional projections; the actual C uses a strict comparison. At equal
+   inputs either projection has the same value. Execute the generated `_t'3`
+   conditional assignment before the word writer, preserving the byte's
+   promoted tint intermediate and final uchar cast.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

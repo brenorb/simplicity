@@ -622,3 +622,23 @@ unchanged. Normal comparison gates passed at 399 results (83 closed), without
 rewriting snapshots. The regression target passed; the completeness gate
 intentionally fails with 426 missing declarations. The clean Nix result
 certifies only the earlier immutable 91-jet snapshot.
+
+## Zero/one tests at all arithmetic widths
+
+`is_zero_8/16/32/64` and `is_one_8/16/32/64` now have complete C-call
+proofs against their literal canonical compositions: negated some, and
+decrement followed by payload is_zero. A symbolic bridge reuses the some
+recursion and signed decrement balance, with a modulus-at-least-two bound to
+handle the wrapping zero input. Shared byte/wide execution and initial-only
+layout adapters retain the actual equality comparisons and promotions, and
+derive reads, bit writes, return and local cleanup. Public specs include
+arbitrary valid cursors, crossings and unrelated output bits.
+
+The integrated check with exact AST regeneration finished with exit 0 at
+115/533 and 83 public modules, including negative tests. Reviewed snapshots
+add 28 audited results (ten closed) and 423 contract lines only; previous
+contracts, assumption sets and the inherited library-level axiom list are
+unchanged. Normal comparison gates passed at 427 results (93 closed), without
+rewriting snapshots. The regression target passed. The completeness gate
+intentionally fails with 418 missing declarations; this is progress, not
+completion. The clean Nix result still certifies only the 91-jet snapshot.

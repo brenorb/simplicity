@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 107 jets of the C library
+Coq proofs that the generated CompCert Clight of 115 jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -25,6 +25,7 @@ expression in a local, explicitly described context.
 | `full_decrement_8/16/32/64` | `full_decrement_word_spec`, the canonical borrow-input zero-subtrahend composition |
 | `full_subtract_8/16/32/64` | `full_subtract_word_spec`, the canonical complemented-input full-adder composition |
 | `lt/le_8/16/32/64` | `lt_word_spec` / `le_word_spec`, the canonical subtract-borrow and negated swapped-lt compositions |
+| `is_zero/is_one_8/16/32/64` | `is_zero_word_spec` / `is_one_word_spec`, canonical negated-some and decrement-payload-zero compositions |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -191,6 +192,15 @@ byte promotion versus unsigned wide comparison, and derive entry, local-copy,
 read, bit-write, return and free from initial contracts. They export eight
 named canonical local specs with context and deterministic call guarantees;
 the numeric comparison helpers alone do not count as jet coverage.
+
+`jet_test_value_spec.v` mirrors canonical `is_zero` as negated `some`, and
+`is_one` as decrement followed by a zero test on its payload. Its symbolic
+bridge reuses the checked some recursion and decrement's signed borrow balance,
+including zero input wrapping to the maximum payload. Shared byte and wide
+execution/layout modules follow the actual comparison-to-zero/one bodies,
+derive the single reader and bit writer, and discharge return/local cleanup.
+All eight named local specs support arbitrary valid cursors, crossings and
+unrelated output bits, with context and deterministic call guarantees.
 
 `jet_borrow_unary_word.v` reuses that signed balance and carrier-modulo bridge
 for canonical negation and decrement. It retains the generated nonzero/less-
@@ -403,6 +413,7 @@ and `constant_context_guarantees`, derived through these same generic results.
 | `full_decrement_8/16/32/64` | byte/wide full-decrement layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 | `full_subtract_8/16/32/64` | byte/wide full-subtract layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 | `lt/le_8/16/32/64` | byte/wide ordering layout theorems | eight named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
+| `is_zero/is_one_8/16/32/64` | byte/wide test-value layout theorems | eight named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 
 All 16-, 32- and 64-bit increment/add value theorems are proved from initial-memory
 contracts, including W16 (`eval_read16_layout_total` derives the reader's stores;
