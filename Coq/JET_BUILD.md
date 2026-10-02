@@ -558,3 +558,22 @@ A clean Nix rebuild of the committed 91-jet snapshot is running. Its
 derivation is `/nix/store/kwj8jpi7jdl6vnjra63ym4ary6pdg4mf-Simplicity-coq-jets-0.0.0.drv`
 and immutable source is `/nix/store/11vh5glsfycx6nnkxhrji362pnlvm2hs-source`.
 This is pending verification, not a completed clean-build claim.
+
+## Borrow-input decrement at all arithmetic widths
+
+`full_decrement_8/16/32/64` now have checked complete C-call proofs against
+`full_decrement_word_spec`, with both input borrow values. The shared numeric
+bridge reuses `full_subtract_word_spec_numeric` at zero subtrahend and the
+checked subtraction carrier-modulo lemmas. Byte and width-shared execution
+adapters retain the unsigned multiply-by-one comparison and mixed uint/ulong
+promotion. The layout proofs derive every intermediate read, write and local
+cleanup from initial-only contracts, including arbitrary valid cursors,
+crossings and unrelated output bits.
+
+The integrated check with exact AST regeneration finished with exit 0 at
+95/533 and 70 public modules. The reviewed snapshots add 20 audited results
+(seven closed) and 447 contract lines only; existing contracts, axiom sets and
+the inherited library-level axiom list are unchanged. There are 347 audited
+results (62 closed), and 438 declarations still lack complete proofs. The
+regression target also finished with exit 0. Normal comparison gates are
+running; the earlier clean Nix run remains a separate 91-jet snapshot.

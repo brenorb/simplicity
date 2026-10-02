@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of ninety-one jets of the C library
+Coq proofs that the generated CompCert Clight of ninety-five jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -22,6 +22,7 @@ expression in a local, explicitly described context.
 | `subtract_8/16/32/64` | `subtract_word_spec`, the canonical `Programs.Arith.subtract wordN` composition |
 | `negate_8/16/32/64` | `negate_word_spec`, canonical zero minus the input word |
 | `decrement_8/16/32/64` | `decrement_word_spec`, the canonical true-borrow `full_decrement wordN` composition |
+| `full_decrement_8/16/32/64` | `full_decrement_word_spec`, the canonical borrow-input zero-subtrahend composition |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -122,6 +123,16 @@ the short-circuit carry and truncated payload without enumerating word inputs.
 three real reads, both output writes, return and local cleanup. The layout
 module derives these from initial 17-bit input and nine-bit output contracts,
 including arbitrary valid cursors, crossings and unrelated output bits.
+
+For borrow-input decrement, `jet_full_decrement_word.v` reuses subtraction's
+signed borrow/payload balance and carrier-modulo reduction, with the canonical
+`full_decrement_word_spec` composition already defined in `jet_subtract_spec.v`.
+Its byte and width-shared adapters follow the checked full-increment frame
+lifecycle, but execute the actual unsigned comparison `1U*x < 1U*z` and
+subtraction `1U*x-z`. The wide comparison promotes its uint borrow operand to
+ulong. Both input borrow values are covered; the initial-only contracts derive
+both readers, both writers and cleanup, with arbitrary valid cursors, crossings,
+unrelated output bits, canonical encodings and contextual/call-boundary results.
 
 `jet_full_add_wide_word.v` extends this bridge to 16/32/64 bits. It reuses the
 existing add overflow lemmas and carry-input increment threshold. The first
@@ -279,6 +290,8 @@ Predicates and equality likewise export their nine and five named local specs.
 Carry-input arithmetic exports four named `full_increment{8,16,32,64}_local_spec`
 and four `full_add{8,16,32,64}_local_spec` results, with byte and width-shared
 context and call-boundary guarantees.
+Borrow-input decrement likewise exports four named
+`full_decrement{8,16,32,64}_local_spec` results and the same guarantee layers.
 
 `jet_context.v:jet_context` combines `jet_local_spec` with
 `Translate.Naive.translate_correct`: for a parametric Simplicity expression `t`
@@ -359,6 +372,7 @@ and `constant_context_guarantees`, derived through these same generic results.
 | `add_16/32/64` | `eval_add{16,32,64}_layout_matches_spec` | `add{16,32,64}_local_spec`, `_context` | `add{16,32,64}_guarantees` |
 | `full_increment_8/16/32/64` | byte/wide full-increment layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 | `full_add_8/16/32/64` | byte/wide full-add layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
+| `full_decrement_8/16/32/64` | byte/wide full-decrement layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 
 All 16-, 32- and 64-bit increment/add value theorems are proved from initial-memory
 contracts, including W16 (`eval_read16_layout_total` derives the reader's stores;
