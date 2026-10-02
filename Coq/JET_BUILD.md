@@ -966,3 +966,20 @@ Explicit compilation and direct `coqchk -silent -o` finished with exit 0,
 the unchanged inherited library axiom set and no unsafe kernel features.
 Both build manifests include this later module; it is not in the 105-module
 public audit list yet. Public jet coverage remains 127/533.
+
+## Integrated audit of partial-word crossings and buffer protections
+
+The expanded `check-jets.sh --update-expected --ast` run finished with exit 0
+on 105 public-audit modules. It adds 18 audited results and three helper
+definitions: the partial-crossing helper, its cell contracts and the word
+separation bridge. There are now 579 audited results, 150 closed. Reviewed
+snapshot diffs contain only additions; all previous contracts/assumption sets
+and the inherited kernel axiom allowlist are unchanged. Source builds,
+proof/inventory checks, kernel checking, negative gate tests and regenerated
+AST comparison passed. The normal contract comparison also passed.
+
+The later right-advance module has separate compilation/kernel-check evidence
+as recorded above and is registered in both build manifests, but was not in
+this integrated public-audit set. The every-jet coverage check still exits 1:
+127/533 jets have proof entries and 406 remain missing. These copy contracts
+are verified intermediate progress, not additional individual jet equivalences.
