@@ -600,4 +600,6 @@ The integrated check with exact AST regeneration finished with exit 0 at
 axiom sets and the inherited library-level axiom list are unchanged. There are
 370 audited results (72 closed). The regression target passed and the
 completeness gate intentionally fails with 434 missing declarations. Normal
-comparison gates are running; the clean Nix result certifies only 91 jets.
+assumption and contract comparison gates also finished with exit 0 at 370
+results (72 closed), without rewriting snapshots. The clean Nix result
+certifies only 91 jets.
