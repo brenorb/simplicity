@@ -378,6 +378,26 @@ tree otherwise contains only Coq files.
    only if the source crosses. Together with the aligned-destination contract,
    the remaining non-memcpy cases are copies continuing past a partial output
    word; do not invoke a second helper on fictitiously updated frame fields.
+   **Whole-buffer separation now implies each accessed-word protection.**
+   `jet_copyBits_separation.v:copy_buffers_separated_words` derives the
+   store/load disjointness used above from `jet_copy_buffers_separated`, for
+   any input bit index within the input count and output bit index below the
+   writable cursor. It supports shared cell blocks and arbitrary cursors;
+   no distinct-cell-block premise or extra contextual assumption is needed.
+   Reuse it for current/next source words and both destination words.
+   **Next concrete continuation decomposition (not yet proved).** For
+   initial shifts `ss < ds` and `ds < n <= 64`, reuse the actual left advance
+   and common right fill, then prove the three right-advance temporary updates.
+   The next loop has count `n - ds`, source shift `64 - (ds - ss)`, decremented
+   source and destination pointers. Its first return suffices because
+   `n - ds <= 64 - (ds - ss)`. For `ds <= ss` and `ds < n <= 64`, the next loop
+   has count `n - ds`, shift `ss - ds` and a decremented destination pointer;
+   reuse its first return when `n <= ss`, second return otherwise. If
+   `ss = ds`, this is the plain external memcpy branch instead. Derive the
+   second destination word's access from `write_frame_at`, preserve required
+   source loads across every preceding store, and observe cells using the
+   corresponding logical cursor split. Execute the actual updated temporaries:
+   the helper has not changed either frame's stored cursor.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

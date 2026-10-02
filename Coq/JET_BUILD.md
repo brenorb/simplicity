@@ -936,3 +936,18 @@ build manifests include this module. These later partial-word modules were
 not part of the 102-module integrated audit. They add no public jet coverage:
 continuing past a partial destination word and the external memcpy model
 still need proofs before a general projection equivalence can be claimed.
+
+## Word protections derived from represented buffer separation
+
+`jet_copyBits_separation.v` proves source/destination word containment and
+`copy_buffers_separated_words`, which derives word-level store/load
+disjointness from the existing whole-buffer separation predicate. It applies
+at every in-range bit index and supports shared input/output cell blocks.
+This closes an interface obligation for future projection contracts without
+adding caller restrictions or public jet coverage.
+
+Explicit compilation and direct `coqchk -silent -o` finished with exit 0,
+unchanged inherited library axioms and no unsafe kernel features. Both build
+manifests include the module. The roadmap records the exact still-unproved
+partial-destination continuation states, distinguishing temporary pointer
+updates from unchanged stored frame cursors.
