@@ -338,6 +338,16 @@ tree otherwise contains only Coq files.
    in a final jet contract. Keep this obligation visible while completing the
    loop and other non-memcpy branches. No jet is complete by excluding this
    valid input/layout case, and the existing C source/AST has not been changed.
+   **Aligned destination, input-crossing loop return completed.**
+   `jet_copyBits_loop_crossing.v:eval_copy_helper_aligned_full` executes the
+   complete helper call for `dst_shift = 0`, `1 <= src_shift <= 63` and
+   `src_shift < n <= 64`. Both stores are derived from initial writable access.
+   Its next-source-word load after the first store is derived from initial
+   next-word/destination separation. The theorem proves the exact joined word,
+   unchanged destination fields and outside-word loads, permissions and valid
+   blocks. The reusable loop-selection lemma also applies after a partial-word
+   prefix. This is a single-iteration branch contract, not a general memcpy or
+   public jet proof.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

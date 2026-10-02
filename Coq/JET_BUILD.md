@@ -859,3 +859,22 @@ only 23 new results and seven helper definitions; previous contracts and
 assumption sets, and the inherited kernel axiom allowlist, are unchanged.
 Proof scanning, complete-inventory tests, kernel checking, negative tests and
 regenerated-AST comparison all passed. Public jet coverage remains 127/533.
+
+## Aligned destination: input-crossing loop return (not jet coverage)
+
+`jet_copyBits_loop_crossing.v:eval_copy_helper_aligned_full` proves the actual
+second return of the first loop iteration, for `src_shift < n <= 64` with an
+aligned destination and partial source. It derives both stores from initial
+writable access and preserves the next-source-word load after the first store
+using initial word separation. Its complete helper call includes the actual
+prefix, loop selection, both fill statements, return and function boundary.
+The postcondition gives the exact joined word and metadata/load/permission/block
+framing; no intermediate execution/store premise survives. It does not prove
+multi-iteration copying or the external memcpy branch.
+
+Explicit source compilation and direct `coqchk -silent -o` finished with exit
+0 and the unchanged library-level axiom set, with no unsafe kernel features.
+The initial-only theorem inherits the same six assumptions as the other
+execution helpers. Both build manifests include it. This later module was not
+part of the preceding 100-module integrated run. Normal comparisons for that
+run subsequently passed on 548 audited results, 138 closed.
