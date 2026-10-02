@@ -56,6 +56,24 @@ Proof.
     + apply Z.ltb_lt in HC. rewrite zlt_true by lia; reflexivity.
     + apply Z.ltb_ge in HC. rewrite zlt_false by lia; reflexivity.
 Qed.
+
+(** Both leading PRODUCTION assertion loops have this exact false guard;
+    the assertion body is unreachable, regardless of its statement. *)
+Lemma exec_buffer8_disabled_assert e le m assertion :
+  Clight2.exec_stmt ge0 e le m
+    (Sloop (Sifthenelse (Eunop Onotbool (Econst_int Int.one tint) tint) assertion Sskip) Sbreak)
+    E0 le m Out_normal.
+Proof.
+  eapply exec_Sloop_stop2 with (t1 := E0) (t2 := E0)
+    (le1 := le) (m1 := m) (out1 := Out_normal) (out2 := Out_break).
+  - eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := Datatypes.false).
+    + eapply eval_Eunop with (v1 := Vint Int.one); [apply eval_Econst_int|reflexivity].
+    + reflexivity.
+    + apply exec_Sskip.
+  - constructor.
+  - apply exec_Sbreak.
+  - constructor.
+Qed.
 Lemma eval_buffer8_empty_tag e le m j : 0 < j <= Int64.max_unsigned ->
   le!_i = Some (Vlong (Int64.repr j)) -> le!_len = Some (Vlong Int64.zero) ->
   eval_expr ge0 e le m buffer8_tag_expr (Vint Int.zero).
@@ -130,4 +148,16 @@ Proof.
       unfold Int64.divu. rewrite (Int64.unsigned_repr j ltac:(lia)).
       change (Int64.unsigned (Int64.repr 2)) with 2.
       reflexivity.
+Qed.
+
+Lemma exec_buffer8_empty_stop e le m : le!_i = Some (Vlong Int64.zero) ->
+  Clight2.exec_stmt ge0 e le m buffer8_actual_loop E0 le m Out_normal.
+Proof.
+  intros HI. rewrite buffer8_actual_loop_shape.
+  eapply exec_Sloop_stop1 with (out' := Out_break); [|constructor].
+  apply exec_Sseq_2; [|discriminate].
+  eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := Datatypes.false).
+  - exact (eval_buffer8_guard e le m 0 ltac:(change (0 <= 0 <= 18446744073709551615); lia) HI).
+  - reflexivity.
+  - apply exec_Sbreak.
 Qed.
