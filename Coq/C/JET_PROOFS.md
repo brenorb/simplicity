@@ -7,7 +7,7 @@ translation in a local, explicitly described context. `verify` instead uses
 canonical option/assertion semantics, covering success and failure with no output.
 
 The eight `divide/modulo_8/16/32/64` proofs are compiled and independently
-kernel-checked in `jet_division_layout.v`, and registered (194/533 entries).
+kernel-checked in `jet_division_layout.v`, and included in the audited count above.
 Their canonical bridges prove the literal recursive Programs.Arith programs,
 not a replacement numeric specification. Zero divisors, arbitrary valid cursors
 and crossings, existing output bits and memory framing are retained. The expanded
@@ -18,11 +18,12 @@ Four `divides_8/16/32/64` proofs pass current-source compilation,
 kernel and assumption checks and are registered (198 entries). Expanded
 integrated audit `24374` passed all gates, negative fixtures and pinned AST
 regeneration. Four `div_mod_8/16/32/64` proofs also pass independent checks,
-but remain unregistered pending the next expanded audit. They
+and are registered (202 entries), with expanded audit `64579` running. They
 execute both ordered writers and preserve the first output across the second,
-including arbitrary valid cursors and crossings. Neither pending group is
-included in the fully integrated 198-entry count above: divides are included,
-whereas div_mod are still pending registration.
+including arbitrary valid cursors and crossings. The div_mod entries are not
+yet included in the fully integrated 198-entry count above. Checked 96/64
+correction helper lemmas join this audit but do not establish a whole helper
+call or DivMod128_64 jet proof. The every-jet goal remains unfinished.
 
 | Jet | Simplicity specification |
 | --- | --- |

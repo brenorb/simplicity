@@ -1860,14 +1860,41 @@ contract blocks reproduces accepted `f15a9a6` byte-for-byte. All 15 inherited
 kernel axioms are unchanged. The reviewed snapshots are accepted; this is the
 latest completed integrated audit, covering 198 entries.
 
-Six unregistered div_mod modules compile and pass explicit scans/assumption
+Six div_mod modules compile and pass explicit scans/assumption
 checks: `jet_divmod_expr.v`, `jet_divmod_representation.v`, byte/wide execution
 and byte/wide layout consumers. Fresh kernels `28975`, `75385`, `8206` passed
 after current-source coqc. The pair representation is closed; C contracts keep
 the inherited assumptions. Actual C writes quotient then remainder. Reuse
 `write8_sequence_run_layout` / `write_wide_sequence_run_layout` to derive both
 calls and memory framing; do not assume either intermediate call. Register
-four div_mod entries now that audit `24374` has terminated, then run the expanded audit.
+four div_mod entries (now registered) are included in the expanded audit below.
 The next harder jet is DivMod128_64 with its correction-loop helper. In the
 pinned LP64 Clight, uint_fast32_t locals/parameters are **tulong**, not tuint;
 their 32-bit logical bounds must follow from readers/loop invariants.
+
+## 96/64 correction infrastructure and expanded div_mod audit (2026-10-02)
+
+The six `jet_divmod96_{arith,value,expr,init,step,loop}.v` modules pass
+current-source coqc, explicit escape-hatch scans and fresh kernels: numeric
+`63181`, scalar/guard execution `81516`, machine initialization `1580`, actual
+memory correction step `82032`, and loop composition `20160`. Explicit
+assumption checks find closed numeric/initialization facts and only inherited
+assumptions in C statement execution. The loop-take rule still requires a
+checked tail execution; the whole helper must discharge it with the proved
+two-correction bound and derive every store from permissions.
+
+Twelve modules / 48 results / 25 definitions and four div_mod coverage entries
+are registered. Inventory bookkeeping: 202/533, 331 missing. Full audit `64579`
+is running against accepted `c27d813`; freeze registered proof sources,
+manifests and public lists. Expected totals: 306 modules / 1469 results. Do not
+accept snapshots before terminal exit 0, all gates/negative fixtures and pinned
+AST regeneration. Removing only C.jet_divmod* assumptions and new result blocks
+from `exec_divmod8_choose` to `frame_fields`, plus definitions from
+`divmod8_choose` onward, should reproduce the baseline byte-for-byte. Retain all
+15 inherited kernel axioms. Last completed integrated audit: `24374`, 198 jets.
+
+Next: the memory-aware actual `f_div_mod_96_64` call, then the public
+`f_simplicity_div_mod_128_64` call. The roadmap records the precise invariant
+and branch-specific execution plan; none of these helper results is a new
+jet coverage entry. Canonical DivMod128_64 uses `div2n1n_word_spec 6`, not the
+ordinary div_mod program. No canonical division induction needs restarting.

@@ -15,14 +15,15 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 198 registered core proof entries: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides at 8/16/32/64 bits,
+There are 202 registered core proof entries: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides/div_mod at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 335 declarations without coverage
+There are 331 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
-audit `24374` covers all 198 entries, including the four divides proofs.
+audit `24374` covers 198 entries, including the four divides proofs.
 Four further div_mod whole-call proofs pass independent source/kernel checks
-and are next to be registered, together with the 96/64 helper infrastructure.
+and are registered in running audit `64579`, together with the 96/64 helper
+infrastructure. The helper lemmas do not establish DivMod128_64 coverage.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -978,15 +979,22 @@ tree otherwise contains only Coq files.
    pinned AST regeneration passed (294 modules / 1421 results, 568 closed).
    Removing just the six new modules' assumptions/contract blocks reproduces
    `f15a9a6` byte-for-byte; all 15 inherited kernel axioms are unchanged.
-   The six **unregistered** `jet_divmod{_expr,_representation,8_exec,_wide_exec,
+   The six `jet_divmod{_expr,_representation,8_exec,_wide_exec,
    8_layout,_wide_layout}.v` modules also pass current-source coqc, explicit
    static and assumption checks, plus fresh kernels `28975` (scalar execution),
    `75385` (byte consumer) and `8206` (wide consumer). They reuse the existing
    byte/wide sequence writers, preserving quotient output during the remainder
    write, and recover the complete literal div_mod pair from its checked
    projections. All zero divisors and initial frame/layout guarantees remain.
-   The four entries are now ready for registration and the expanded audit;
-   they do not yet increase inventory coverage.
+   They are registered with four coverage entries. Expanded audit `64579`
+   is running against accepted baseline `c27d813`: freeze registered proof
+   sources/manifests/public lists and poll the same handle. The audit also
+   includes six new 96/64 helper modules (12 modules / 48 results / 25 definitions
+   added in total). Expected totals: 306 modules / 1469 results. Accept snapshots
+   only after terminal exit 0, all negative fixtures and pinned AST regeneration;
+   remove only these 12 modules' additions to reproduce the accepted baseline.
+   `exec_divmod8_choose` starts the new result contract block; `divmod8_choose`
+   starts the new definition block. Preserve all 15 inherited kernel axioms.
    **Next: DivMod128_64 and its div_mod_96_64 helper.** The canonical
    numeric bridge is now proved; do not restart normalization or replace
    the actual program with division_numeric. Reuse division_word_representation
@@ -997,6 +1005,37 @@ tree otherwise contains only Coq files.
    only projections/types; do not unfold recursive arithmetic to repair this.
    For positivity, use direct sum/product lemmas rather than nia over a large
    context containing unrelated cubic equations.
+   **Checked 96/64 helper infrastructure, not yet a helper/jet proof.**
+   `jet_divmod96_arith.v` proves clipped-estimate residual bounds, exact guard,
+   safe corrections, two-correction termination bound and exit balance.
+   `jet_divmod96_value.v` connects CompCert shifts/masks, short-circuit comparison
+   and the final modular expression to exact unsigned observations.
+   `jet_divmod96_init.v` derives normalized divisor parts and the clipped
+   machine quotient's invariant. `jet_divmod96_expr.v` executes the actual
+   scalar trees and guard; `jet_divmod96_step.v` executes the quotient load/store
+   and rh/d updates. `jet_divmod96_loop.v` supplies exit and taken-iteration
+   composition rules. The latter's tail premise is NOT a termination proof;
+   discharge it with the arithmetic bound when proving the whole helper.
+   Current-source coqc, scans and fresh kernels passed (`63181`, `81516`, `1580`,
+   `82032`, `20160`). Pure numeric checks are closed; C executions retain only
+   inherited assumptions. No DivMod128_64 inventory entry has been added.
+   For the whole memory-aware helper, use B=2^32, D=bh*B+bl, N=ah*B+al,
+   q0=min(ah/bh,B-1), delta0=N-q0*D. Maintain q=q0-i, rh=ah-q*bh,
+   d=q*bl, delta=N-q*D=delta0+i*D, 0<=rh<=ah<2^64 and 0<=d<2^64.
+   The guard is equivalent to delta<0; its first test ensures the second
+   expression cannot overflow. Each taken body increments delta by D and
+   cannot underflow the quotient/difference or overflow rh. Unroll at most two
+   iterations, deriving every store from writable nonoverlapping **eight-byte**
+   output slots and preserving other memory. In pinned LP64 Clight,
+   uint_fast32_t is tulong; do not model the quotient slots as four-byte tuint.
+   Then compose the helper calls for ah*B+am and r1*B+al. Connect their combined
+   balance to **div2n1n_word_spec 6**, the CoreJets.DivMod128_64 target, using
+   normalized observation/injectivity; use div2n1n_invalid_result on the other
+   branch. The valid C branch has three actual writers (32,32,64), not two
+   64-bit calls; the invalid branch has two 64-bit all-ones writes. Derive four
+   readers, local allocations/free and branch-specific writers from initial
+   frames. Reuse arithmetic invariants rather than attempting lockstep execution
+   between the C loop and canonical correction combinators.
    Subsequent div_mod calls require two writers with intermediate memory;
    divides swaps operands and writes one bit. A source-comment trap: the
    Haskell divides documentation says divides(0,y) is True, but its actual
