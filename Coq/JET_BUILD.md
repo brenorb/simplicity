@@ -1618,7 +1618,10 @@ initial-state sequence and low-bit (not false exact truncated-carrier) XOR
 bridges, then extend 32/64-bit read8-controlled consumers.
 
 The expanded zero-fill 16-bit audit is live in session `51103`. The 249-module
-kernel stage passed; the assumption gate is running. Poll the same handle and
+kernel stage passed; snapshots updated and the negative gates are running.
+There are 1175 results (404 closed). Removing only the added 27 results /
+21 definitions reproduces the `c3c8548` snapshots byte-for-byte; the updated
+snapshots remain uncommitted until terminal success. Poll the same handle and
 keep registered proof sources, manifests and public lists frozen until terminal
 completion. Do not restart because an observation is quiet. The baseline for
 its 27 added results / 21 definitions is `c3c8548`.
