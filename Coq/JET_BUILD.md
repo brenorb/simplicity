@@ -1240,3 +1240,16 @@ the global context. Both project manifests include the module, but it is not
 yet in the public type/assumption snapshots. It supplies canonical serialized
 cell preservation for both full-shift directions, not a C-call proof; coverage
 remains 136/533. The actual copyBits external memcpy paths remain open.
+
+## Later checked sha256_iv initializer infrastructure
+
+`jet_uint32_array_init.v` and `jet_sha256_iv_init.v` were explicitly compiled
+and freshly kernel checked with exit 0 after the integrated 140-module audit.
+They prove the actual eight-store C initializer from initial permissions, with
+array values, framing and permission/block preservation. The canonical scribe
+constant's parametricity, register/digest and cell-encoding bridges are closed.
+The complete helper call retains only existing Coq/CompCert assumptions.
+Both project manifests include these modules; they are not yet in the public
+type/assumption snapshots. The enclosing sha_256_iv jet remains unproved until
+the actual write32s loop and full allocation/copy/free lifecycle are composed.
+Coverage remains 136/533.

@@ -556,6 +556,20 @@ tree otherwise contains only Coq files.
    the integrated audit, but is not in its public snapshots yet. This does
    not add full-shift jet coverage: actual copyBits paths, including the
    unspecified external memcpy paths, still require execution proofs.
+   **Next independent consumer: sha_256_iv.** The actual C helper initializes
+   eight uint32 words and the enclosing jet calls the actual write32s loop.
+   `jet_uint32_array_init.v` proves a reusable constant-array statement/store
+   contract from initial writable permissions. `jet_sha256_iv_init.v` applies
+   it to the actual f_sha256_iv function, with all eight stores, framing and
+   permission/block preservation derived. Its exact canonical scribe constant
+   is checked against both Digest.sha256_iv and the serialized eight words.
+   These modules have explicit compilation and fresh kernel checks, but are
+   not in the public snapshots yet and add no jet coverage. Next compose
+   repeated write32 calls under general output-frame contracts, execute the
+   actual write32s pointer/count loop, then derive the jet's two local
+   allocations, source copy, array initialization, write loop and cleanup.
+   Keep the arbitrary cursor/crossing/output-content contract; do not replace
+   the actual array writer with eight assumed writes or an aligned-only proof.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
