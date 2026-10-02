@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 130 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 133 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
-all at 8/16/32/64 bits, eq at 1/8/16/32/64 bits, and multiply at 8/16/32 bits.
-There are 403 declarations without coverage
+all at 8/16/32/64 bits, eq at 1/8/16/32/64 bits, and multiply/full_multiply at 8/16/32 bits.
+There are 400 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -480,8 +480,8 @@ tree otherwise contains only Coq files.
    the original input count, also after skipping. No external execution or
    extra layout restriction is assumed. These are representation obligations,
    not C jet execution proofs or coverage. Explicit compilation and direct
-   kernel checking passed; add their eight results to the next expanded public
-   assumption/type audit when composing the final projection calls.
+   kernel checking passed; their eight results are also in the expanded
+   126-module public assumption/type audit. Final projection calls remain open.
    **multiply_8/16/32 completed independently of the library-copy gap.**
    `jet_multiply_spec.v` defines the literal canonical Haskell composition
    with a doubled-width zero input and the existing `Word.fullMultiplier`.
@@ -493,23 +493,25 @@ tree otherwise contains only Coq files.
    allocation, store, reader, writer and free from initial contracts, exporting
    three named local specs, context substitution and call-boundary guarantees.
    Arbitrary valid cursors, crossings and unrelated output contents are covered.
-   **Next independent family: full_multiply_8/16/32.** Reuse
+   **full_multiply_8/16/32 completed independently.** Reuse
    `Word.fullMultiplier` directly: its base and recursive routing match the
    canonical `Programs.Arith.full_multiply`. Four actual readers feed
    `x * y + z + w`, then the doubled-width writer. The existing
    `fullMultiplier_correct` supplies the exact value and its canonical output
    range bounds the entire sum below the carrier modulus. Do not assume the
-   product/sum fits without deriving that fact. Extend the checked sequencing
-   to the fourth reader while retaining the nested input product encoding.
+   product/sum fits without deriving that fact. The checked execution/layout
+   modules extend sequencing to the fourth reader and retain the nested input
+   product encoding. They export three named canonical local specs, contexts
+   and call-boundary guarantees with arbitrary valid cursors and crossings.
    **Shared four-input bridge checked.** `jet_full_multiply_word.v` supplies
    `full_multiply_int64_denotes`, covering the actual left-associated carrier
    `x * y + z + w`. Each intermediate product/sum is bounded from the canonical
    output range and nonnegative remaining operands before removing its modulus.
    `frame_input_word_quad_encode` derives four logical input observations at
    successive word offsets from the exact nested-pair encoding. Both compile
-   and pass direct kernel checking; they do not yet prove a C jet call. Add
-   these two results to the next expanded audit alongside the four-reader
-   execution/layout modules.
+   and pass direct kernel checking. These two helper results and the four-reader
+   execution/layout consumers are in the expanded 126-module audit; only the
+   three named complete jet contracts count as added coverage.
    `multiply_64` and `full_multiply_64` instead execute actual uint128 helpers
    and require separate adapters; do not force them into the scalar bodies.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
@@ -518,6 +520,12 @@ tree otherwise contains only Coq files.
    The inventory's theorem-shape validation must be extended explicitly for
    that contract. Do not force partial specifications into a total function or
    assume away failures merely to reuse the current predicate.
+   Start with `verify`: its actual body copies the source frame, reads one bit
+   and returns that Boolean without a writer. Its canonical specification is
+   `Programs.Bit.verify` (`iden &&& unit >>> assertr cmrFail0 oh`), interpreted
+   in option/assertion semantics. Cover both true and false inputs, zero output
+   width, and preservation of all pre-existing memory loads. This is independent
+   of the unresolved external memcpy model.
 5. **Hashing, secp256k1 and application primitives.** Reuse the library and
    existing cryptographic verification lemmas where they actually apply.
    `Simplicity/SHA256.v:hashBlock_correct` connects a Simplicity term to VST's

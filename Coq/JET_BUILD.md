@@ -1137,5 +1137,22 @@ The projection size/encoding/buffer-slice lemmas and full-multiply carrier
 bridge are closed; logical input-cell slicing/encoding lemmas inherit the
 existing four classical Coq assumptions through the encoding layer.
 These two modules were added after the 120-module integrated run. Their ten
-results are not yet in its public assumption/type snapshots. They add no
-public jet coverage and still need the final jet execution consumers.
+results were not in that run's public assumption/type snapshots. They add no
+public jet coverage. The expanded run below audits them and the full-multiply
+jet execution consumers; final projection execution consumers remain open.
+
+## full_multiply_8/16/32 verification (2026-10-02)
+
+All four execution/layout modules were explicitly compiled and independently
+kernel checked with exit 0. The complete
+`check-jets.sh --update-expected --ast` run also finished with exit 0:
+126 public-audit modules, 661 audited results, 177 closed. The reviewed snapshots
+add only 31 results and 13 definitions, including the ten preceding helper
+results. All previous contracts and assumption sets, and the inherited kernel
+axiom allowlist, are unchanged. The three new local specs retain only the
+existing six Coq/CompCert assumptions; the shared carrier bridge is closed.
+Context/call guarantees retain the existing external-call-properties assumptions.
+
+Inventory/coverage tests, negative gate tests and byte-identical AST regeneration
+passed. Coverage is 133/533, with 400 remaining. The earlier clean Nix reproduction
+does not cover these later modules; no newer clean Nix or remote CI is claimed.

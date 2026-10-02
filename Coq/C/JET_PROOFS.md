@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 130 jets of the C library
+Coq proofs that the generated CompCert Clight of 133 jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -29,6 +29,7 @@ expression in a local, explicitly described context.
 | `min/max_8/16/32/64` | `minmax_word_spec`, canonical le-and-input followed by conditional projections |
 | `median_8/16/32/64` | `median_word_spec`, the literal canonical nested min/max composition |
 | `multiply_8/16/32` | `multiply_word_spec`, literal canonical `iden &&& (unit >>> zero word2N) >>> full_multiply wordN` |
+| `full_multiply_8/16/32` | `Word.fullMultiplier`, the canonical four-input `Programs.Arith.full_multiply wordN` |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -48,6 +49,16 @@ call-boundary guarantees reuse the existing generic theorems.
 widths. The byte adapter preserves the actual unsigned byte-to-long casts;
 the wide adapter selects separate input-reader and output-writer widths.
 `multiply_64` uses uint128 helpers and is not covered by these results.
+
+For full multiplication, `jet_full_multiply8_layout.v:full_multiply8_local_spec`
+and `jet_full_multiply_wide_layout.v:full_multiply16_local_spec` /
+`full_multiply32_local_spec` prove the actual four-reader calls against
+`Word.fullMultiplier`. They have the same generality and context/call guarantees.
+The shared bridge in `jet_full_multiply_word.v` bounds every intermediate in
+the actual left-associated `x * y + z + w`, using the canonical output range
+and the nonnegative inputs. All four byte-to-long casts are retained; input
+and output widths are selected separately. The nested input encoding supplies
+four reads at successive word offsets. `full_multiply_64` is not covered.
 
 ## What is proved
 
