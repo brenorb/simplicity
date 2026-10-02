@@ -1772,3 +1772,30 @@ registered sources/manifests/lists. Snapshot review must remove only these
 38 results / ten definitions and preserve inherited kernel axioms. The last
 completed integrated audit remains `76184`: 280 modules / 1289 results,
 471 closed. Coverage remains 186/533, and the every-jet goal is active.
+
+## Literal canonical recursive division core (2026-10-02)
+
+`jet_division_core_spec.v` mirrors Programs.Arith.div3n2n through a builder
+parameterized by its smaller div2n1n call, allowing structural recursion in
+`div2n1n_word_spec`. It retains the approximation's less/equal branches,
+overflow case and loop0/loop1/loop2 corrections. `div_mod_word_spec` uses
+the exact is_zero branch and pre/core/post composition from CoreJets;
+divide/modulo are projections and divides swaps its inputs before modulo.
+
+All programs have checked parametricity. The eight closed bit-input cases
+prove the actual base program's valid result and invalid all-ones fallback.
+The canonical zero-divisor branch returns (zero,input). Symbolic inductions
+prove the literal msb threshold and high-half comparison observations;
+`division_plain_input_guard` connects checked normalization to div2n1n's
+actual conditions for every positive divisor. No wider payloads are enumerated.
+
+Current-source coqc exited 0, fresh kernel check `79062` exited 0, and explicit
+static scanning passes. All 21 results / ten definitions are closed under the
+global context, with no REPL errors. This module is UNREGISTERED during the
+frozen normalization audit `13659`; it must be registered and included in
+a subsequent integrated audit before claiming public-audit coverage. It adds
+no C jet entries. The remaining obligations are numerical correctness of
+the recursive div3n2n approximation/overflow/two correction rounds and the
+two div3n2n calls in div2n1n, followed by the generic div_mod bridge and actual
+C-call consumers. Preserve the invalid all-ones fallback in the div2n1n result:
+it also specifies CoreJets DivMod128_64, not only an internal normalized call.

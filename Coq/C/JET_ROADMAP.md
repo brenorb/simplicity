@@ -936,13 +936,21 @@ tree otherwise contains only Coq files.
    additions. Expanded audit `13659` is running against `ef3ec4d`; poll it and
    freeze registered sources/manifests/lists. Remove only these two modules'
    entries when reviewing snapshots; inherited axioms must remain unchanged.
-   **Next: literal canonical division bridge**, then div_mod/divides consumers.
-   Mirror Programs.Arith.div3n2n and div2n1n; reuse the checked normalization
-   adapters and retain
-   the exact CoreJets div_mod program and its quotient/remainder projections.
+   **Canonical division core translated, numerical recursion still open.**
+   `jet_division_core_spec.v` mirrors div3n2n (over a smaller div2n1n call),
+   div2n1n, div_mod, divide, modulo and divides. Its programs are parametric;
+   bit-sized division, the zero-divisor div_mod branch, generic msb/high-half
+   guard observations and acceptance of normalized plain inputs are checked.
+   Current-source compilation, fresh kernel check `79062`, static scan and
+   all 21 result / ten definition assumption checks pass; every declaration
+   is closed. This module is intentionally UNREGISTERED while audit `13659`
+   runs; register it only after that frozen audit completes. It adds no coverage.
+   **Next: numerical div3n2n/div2n1n recursion**, then div_mod/divides consumers.
+   Reuse the literal programs and normalization adapters, not division_numeric
+   as a replacement for the specification.
    Reuse the existing canonical arithmetic/borrow/multiplication bridges and
-   Word full_left/right_shift1 for normalization. Connect the normalized
-   numeric bound to the literal msb condition and prove approximation/correction cases;
+   Word full_left/right_shift1 for normalization. The msb condition is now
+   discharged; prove the approximation/correction cases and mutual numeric induction;
    characterize quotient/remainder by Euclidean uniqueness for nonzero
    divisors. Prove the zero case directly from the program. Only then connect
    that checked canonical bridge to eval_division8_layout_machine and
