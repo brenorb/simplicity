@@ -4654,6 +4654,191 @@ full_increment8_context_guarantees
                (Values.Vint Integers.Int.one) mf)
             (and (bm_rep mf L s1)
                (runProgram (@full_increment_word_spec Naive.translate (S (S (S O)))) (Running s0) (Running s1))))
+full_increment_word_spec_zero
+     : forall (n : nat) (x : Ty.tySem (Word.Word n)),
+       @eq (Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)))
+         (@full_increment_word_spec Alg.CoreFunSem n
+            (@pair (sum unit unit) (Ty.tySem (Word.Word n)) (@inl unit unit tt) x))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word n)) (@inl unit unit tt) x)
+wide_full_increment_values_denote_input
+     : forall (s : wide_size) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (x : Ty.tySem (Word.Word (wide_log s)))
+         (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (wide_log s)) x)),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (wide_log s))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (wide_log s)))
+            match wide_full_increment_carry s (Bit.toBool c) r return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end (decode_wide s (Integers.Int64.zero_ext (wide_bits s) (wide_full_increment_payload (Bit.toBool c) r))))
+         (@full_increment_word_spec Alg.CoreFunSem (wide_log s)
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word (wide_log s))) c x))
+eval_wide_full_increment_layout_matches_spec
+     : forall (env : Values.val) (s : wide_size) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge : BinNums.Z)
+         (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (x : Ty.tySem (Word.Word (wide_log s))) (cursor rc : BinNums.Z)
+         (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned (BinInt.Z.add (BinNums.Zpos BinNums.xH) (wide_bits s)))))
+         (_ : frame_input_bit_at m bi edge rc (Bit.toBool c))
+         (_ : @frame_input_word_at (wide_log s) m bi edge (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)) x)
+         (_ : write_frame_at m bd dbase bw outedge cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) (wide_bits s))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function (wide_full_increment s))
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+                     (@full_increment_word_spec Alg.CoreFunSem (wide_log s)
+                        (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word (wide_log s))) c x))))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) (wide_bits s))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.add (BinNums.Zpos BinNums.xH) (wide_bits s)))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+wide_full_increment_local_spec
+     : forall s : wide_size,
+       jet_local_spec (wide_full_increment s) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+         (fun cx : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s))) =>
+          @full_increment_word_spec Alg.CoreFunSem (wide_log s) cx)
+full_increment16_local_spec
+     : jet_local_spec jets.f_simplicity_full_increment_16
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+         (fun cx : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O)))))) =>
+          @full_increment_word_spec Alg.CoreFunSem (S (S (S (S O)))) cx)
+full_increment32_local_spec
+     : jet_local_spec jets.f_simplicity_full_increment_32
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+         (fun cx : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O))))))) =>
+          @full_increment_word_spec Alg.CoreFunSem (S (S (S (S (S O))))) cx)
+full_increment64_local_spec
+     : jet_local_spec jets.f_simplicity_full_increment_64
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+         (fun cx : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))) =>
+          @full_increment_word_spec Alg.CoreFunSem (S (S (S (S (S (S O)))))) cx)
+wide_full_increment_context
+     : forall s : wide_size,
+       @jet_context_for (wide_full_increment s) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+         (fun term : Alg.Core.Algebra => @full_increment_word_spec term (wide_log s))
+wide_full_increment_guarantees
+     : forall (s : wide_size) (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s))))))
+                Integers.Int64.max_unsigned)
+         (_ : frame_input_cells_at m bi edge read_cursor
+                (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s))) a))
+         (_ : write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function (wide_full_increment s))
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+                     (@full_increment_word_spec Alg.CoreFunSem (wide_log s) a)))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+wide_full_increment_context_guarantees
+     : forall (s : wide_size) (env : Values.val) (m : Memory.Mem.mem) (L : bm_layout) (ctx : Context)
+         (a : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))),
+       let s0 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s))) a)
+              (newWriteFrame (bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))))) in
+       let s1 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s))) a)
+              (fullWriteFrame
+                 (@encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (wide_log s)))
+                    (@full_increment_word_spec Alg.CoreFunSem (wide_log s) a)))) in
+       forall (_ : bm_rep m L s0) (_ : bm_separated L s0) (_ : active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function (wide_full_increment s)) (jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (bm_rep mf L s1)
+               (runProgram (@full_increment_word_spec Naive.translate (wide_log s)) (Running s0) (Running s1))))
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -7939,4 +8124,122 @@ Clight.Ecast
      (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
         (Clight.Etempvar jets._x Ctypesdefs.tuchar) Ctypesdefs.tuint) (Clight.Etempvar jets._z Ctypesdefs.tbool)
      Ctypesdefs.tuint) Ctypesdefs.tuchar
+     : Clight.expr
+wide_full_increment_max =
+fun s : wide_size =>
+match s return BinNums.Z with
+| W16 =>
+    BinNums.Zpos
+      (BinNums.xI
+         (BinNums.xI
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))
+| W32 =>
+    BinNums.Zpos
+      (BinNums.xI
+         (BinNums.xI
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))))
+| W64 => Integers.Int64.max_unsigned
+end
+     : forall _ : wide_size, BinNums.Z
+
+Arguments wide_full_increment_max s
+wide_full_increment_carry =
+fun (s : wide_size) (cin : bool) (r : Integers.Int64.int) =>
+Integers.Int64.ltu (Integers.Int64.sub (Integers.Int64.repr (wide_full_increment_max s)) (bit_long cin)) r
+     : forall (_ : wide_size) (_ : bool) (_ : Integers.Int64.int), bool
+
+Arguments wide_full_increment_carry s cin%bool_scope r
+wide_full_increment_payload =
+fun (cin : bool) (r : Integers.Int64.int) => Integers.Int64.add r (bit_long cin)
+     : forall (_ : bool) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments wide_full_increment_payload cin%bool_scope r
+wide_full_increment =
+fun s : wide_size =>
+match s return Clight.function with
+| W16 => jets.f_simplicity_full_increment_16
+| W32 => jets.f_simplicity_full_increment_32
+| W64 => jets.f_simplicity_full_increment_64
+end
+     : forall _ : wide_size, Clight.function
+
+Arguments wide_full_increment s
+wide_full_increment_limit_expr =
+fun s : wide_size =>
+match s return Clight.expr with
+| W16 =>
+    Clight.Econst_int
+      (Integers.Int.repr
+         (BinNums.Zpos
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+      Ctypesdefs.tint
+| W32 => Clight.Econst_int Integers.Int.mone Ctypesdefs.tuint
+| W64 => Clight.Econst_long Integers.Int64.mone Ctypesdefs.tulong
+end
+     : forall _ : wide_size, Clight.expr
+
+Arguments wide_full_increment_limit_expr s
+wide_full_increment_limit_type =
+fun s : wide_size =>
+match s return Ctypes.type with
+| W16 => Ctypesdefs.tuint
+| W32 => Ctypesdefs.tuint
+| W64 => Ctypesdefs.tulong
+end
+     : forall _ : wide_size, Ctypes.type
+
+Arguments wide_full_increment_limit_type s
+wide_full_increment_sub_expr =
+fun s : wide_size =>
+Clight.Ebinop Cop.Osub
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint) (wide_full_increment_limit_expr s)
+     (wide_full_increment_limit_type s)) (Clight.Etempvar jets._z Ctypesdefs.tbool) (wide_full_increment_limit_type s)
+     : forall _ : wide_size, Clight.expr
+
+Arguments wide_full_increment_sub_expr s
+wide_full_increment_carry_expr =
+fun s : wide_size =>
+Clight.Ebinop Cop.Olt (wide_full_increment_sub_expr s) (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tint
+     : forall _ : wide_size, Clight.expr
+
+Arguments wide_full_increment_carry_expr s
+wide_full_increment_sum_expr =
+Clight.Ecast
+  (Clight.Ebinop Cop.Oadd
+     (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+        (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tulong) (Clight.Etempvar jets._z Ctypesdefs.tbool)
+     Ctypesdefs.tulong) Ctypesdefs.tulong
      : Clight.expr

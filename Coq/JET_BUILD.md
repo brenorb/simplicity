@@ -454,3 +454,17 @@ fails as intended. A fresh Nix build for this 72-jet state is running; its
 derivation is `/nix/store/s5c4wp8gy6ridzgcram2zcfmdrxz51zv-Simplicity-coq-jets-0.0.0.drv`
 and source is `/nix/store/g0px66r68291v1cgsxyxrn6q51ws82gd-source`. This is
 pending verification, not a completed clean-build claim.
+
+### Carry-input wide increments (2026-10-01)
+
+`full_increment_16/32/64` reuse the existing increment bridges for carry one
+and a shared canonical carry-zero identity. Their actual complete calls retain
+the mixed uint/ulong arithmetic, 64-bit wraparound and both output writes.
+All helper calls and local cleanup follow from initial-only frame contracts.
+
+The integrated check with exact AST regeneration passed at 75/533 and 56 public
+modules, including negative tests. Reviewed snapshots add ten audited results
+(two closed) and 303 contract lines only; previous contracts and assumption
+sets, and the inherited axiom allowlist, are unchanged. There are 262 audited
+results (34 closed) and 458 declarations without proof entries. This extension
+is not certified by the earlier clean Nix runs.
