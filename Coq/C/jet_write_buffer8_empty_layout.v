@@ -12,27 +12,28 @@ Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 
-Theorem buffer8_empty_calls_layout m bf base bw edge cursor xs :
-  buffer8_empty_chain xs -> write_frame_at m bf base bw edge cursor (buffer8_empty_bits xs) ->
+Theorem buffer8_empty_calls_layout m bf base bw edge cursor xs tail :
+  0 <= tail -> buffer8_empty_chain xs ->
+  write_frame_at m bf base bw edge cursor (buffer8_empty_bits xs + tail) ->
   exists mf,
     buffer8_empty_calls bf base xs m mf /\
     frame_output_cells_at mf bw edge cursor (buffer8_empty_output_cells xs) /\
     write_prefix_at m mf bw edge cursor /\
-    frame_fields_at mf bf base bw edge (cursor - buffer8_empty_bits xs) /\
+    write_frame_at mf bf base bw edge (cursor - buffer8_empty_bits xs) tail /\
     loads_outside_ranges m mf bf (base + 8) (base + 16)
       bw (edge + 8 * ((cursor - buffer8_empty_bits xs) / 64)) (write_word_address edge cursor + 8) /\
     (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
-  revert m cursor. induction xs as [|j xs IH]; intros m cursor Hchain HW.
+  intros Htail. revert m cursor. induction xs as [|j xs IH]; intros m cursor Hchain HW.
   - exists m. split; [reflexivity|]. split.
     + intros i c Hi. destruct i; discriminate.
     + split.
       * intros old HL. exists old. split; [exact HL|].
         unfold word_outside_eq; intros; reflexivity.
       * split.
-        -- change (frame_fields_at m bf base bw edge (cursor - 0)).
-           rewrite Z.sub_0_r. exact (proj1 (proj2 HW)).
+        -- change (write_frame_at m bf base bw edge (cursor - 0) tail).
+           rewrite Z.sub_0_r. exact HW.
         -- split; [unfold loads_outside_ranges; intros; reflexivity|]. split; auto.
   - destruct Hchain as [HJ [Hhalf Hchain]].
     pose proof (buffer8_empty_bits_nonnegative xs Hchain) as HtailBits.
@@ -40,15 +41,16 @@ Proof.
     set (width := 1 + 8 * j).
     assert (Hcount : Z.of_nat (Z.to_nat (8 * j)) = 8 * j) by (apply Z2Nat.id; lia).
     assert (HSegment : write_frame_at m bf base bw edge cursor
-      (1 + Z.of_nat (Z.to_nat (8 * j)) + buffer8_empty_bits xs)).
-    { rewrite Hcount. exact HW. }
+      (1 + Z.of_nat (Z.to_nat (8 * j)) + (buffer8_empty_bits xs + tail))).
+    { rewrite Hcount. replace (1 + 8 * j + (buffer8_empty_bits xs + tail)) with
+        (buffer8_empty_bits (j :: xs) + tail) by (cbn [buffer8_empty_bits]; ring). exact HW. }
     destruct (eval_empty_buffer_segment m bf base bw edge cursor (Z.to_nat (8 * j))
-      (buffer8_empty_bits xs) HtailBits HSegment)
+      (buffer8_empty_bits xs + tail) ltac:(lia) HSegment)
       as (mb & mi & HBit & HSkip & HHead & HPrefix & HWNext & HMem & HPerm & HValid).
     rewrite Hcount in HSkip, HWNext, HMem.
     change (loads_outside_ranges m mi bf (base + 8) (base + 16)
       bw (edge + 8 * ((cursor - width) / 64)) (write_word_address edge cursor + 8)) in HMem.
-    change (write_frame_at mi bf base bw edge (cursor - width) (buffer8_empty_bits xs)) in HWNext.
+    change (write_frame_at mi bf base bw edge (cursor - width) (buffer8_empty_bits xs + tail)) in HWNext.
     destruct (IH mi (cursor - width) Hchain HWNext)
       as (mf & HRun & HTail & HPrefixTail & HFieldsTail & HMemTail & HPermTail & HValidTail).
     assert (HHeadLength : Z.of_nat (@length BitMachine.Cell
@@ -76,7 +78,7 @@ Proof.
         -- eapply write_prefix_at_chain; [exact Hfw| |exact HPrefix|exact HPrefixTail|exact HMemTail].
            cbn [buffer8_empty_bits] in HC. unfold width; lia.
         -- split.
-           ++ change (frame_fields_at mf bf base bw edge (cursor - (1 + 8 * j + buffer8_empty_bits xs))).
+           ++ change (write_frame_at mf bf base bw edge (cursor - (1 + 8 * j + buffer8_empty_bits xs)) tail).
               replace (cursor - (1 + 8 * j + buffer8_empty_bits xs)) with
                 (cursor - width - buffer8_empty_bits xs) by (unfold width; ring). exact HFieldsTail.
            ++ split.
@@ -107,10 +109,10 @@ Theorem eval_write_buffer8_empty_layout m bf base bw edge cursor buf :
     (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
-  intros HW. destruct (buffer8_empty_calls_layout m bf base bw edge cursor buffer63_empty_counts
-    buffer63_empty_counts_chain HW)
+  intros HW. destruct (buffer8_empty_calls_layout m bf base bw edge cursor buffer63_empty_counts 0
+    ltac:(lia) buffer63_empty_counts_chain ltac:(rewrite Z.add_0_r; exact HW))
     as (mf & HRun & HCells & HPrefix & HFields & HMem & HPerm & HValid).
   exists mf. split; [apply eval_write_buffer8_empty_composes; exact HRun|].
   rewrite buffer63_empty_output_canonical in HCells. exact (conj HCells
-    (conj HPrefix (conj HFields (conj HMem (conj HPerm HValid))))).
+    (conj HPrefix (conj (proj1 (proj2 HFields)) (conj HMem (conj HPerm HValid))))).
 Qed.
