@@ -2036,3 +2036,14 @@ closed, and execution uses only inherited assumptions. These are helper proofs,
 not public SHA context coverage: actual initializer stores, struct-return/copy
 and enclosing allocation/free remain. The nine new modules have 35 results and
 27 definition/type entries for the next expanded audit (350 modules / 1623 results).
+
+Those nine modules / 35 results / 27 definitions/types are now registered;
+expanded integration audit `45575` is live against accepted `4ac1e5d`. Freeze
+registered sources/manifests/public lists until its terminal result. No new
+public jet is claimed (205/533 remains). After terminal exit 0 through all gates,
+negative fixtures and AST, filter the nine new module names from assumptions,
+the theorem contract blocks from `buffer8_actual_loop_shape` until `frame_fields =`,
+and definition/type blocks from `buffer8_actual_loop =` onward. The results must
+reproduce `4ac1e5d` byte-for-byte with unchanged inherited global kernel axioms.
+Develop the actual initializer/copy/public-lifecycle consumer in new unregistered
+modules while this audit runs; do not accept snapshots early.
