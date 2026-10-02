@@ -578,5 +578,6 @@ The integrated check with exact AST regeneration finished with exit 0 at
 (seven closed) and 447 contract lines only; existing contracts, axiom sets and
 the inherited library-level axiom list are unchanged. There are 347 audited
 results (62 closed), and 438 declarations still lack complete proofs. The
-regression target also finished with exit 0. Normal comparison gates are
-running; the completed clean Nix run certifies a separate 91-jet snapshot.
+regression target also finished with exit 0. Normal assumption and contract
+comparison gates also passed at 347 results (62 closed), without rewriting
+snapshots. The completed clean Nix run certifies a separate 91-jet snapshot.
