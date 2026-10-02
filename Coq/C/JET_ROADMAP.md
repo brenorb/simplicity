@@ -890,10 +890,37 @@ tree otherwise contains only Coq files.
    lemmas close it under the unchanged 10-second default. Do not increase
    timeouts blindly or enumerate payload values. Keep non-wrapping cursor
    bounds, >=width behavior and final SingleV controls intact.
-   **Next scalar candidate: div_mod_8, divide_8 and modulo_8**, then wider
-   instances with shared canonical arithmetic and frame lemmas. Inspect the
-   actual zero-divisor branch and canonical Programs.Arith terms before
-   choosing contracts; do not assume a nonzero divisor to make them pass.
+   **Division C-side infrastructure: checked, not jet coverage.** Seven new
+   modules (`jet_division_value.v`, `jet_division{8,_wide}_{expr,exec}.v`,
+   `jet_division{8,_wide}_layout_machine.v`) compile and passed fresh independent
+   kernel checks. The value/representation bridges are closed; both initial-
+   frame execution theorems retain the existing six assumptions. They derive
+   actual divide/modulo calls at 8/16/32/64 bits, arbitrary cursors/crossings,
+   output preservation and cleanup. The byte body uses promoted signed
+   Int.divs/mods; byte ranges exclude the signed-overflow guard and identify
+   Z.quot/rem with nonnegative Z.div/mod. Wide bodies use unsigned Int64
+   divu/modu. Zero is branched away before arithmetic, returning quotient
+   zero and remainder input. These are numerical machine observations, NOT
+   canonical jet specifications. All eight divide/modulo jets remain uncovered.
+   These seven modules / 21 results / 19 definitions are not in manifests or
+   public snapshots yet: the running shift audit is frozen. Register them
+   only after it exits and its snapshots are reviewed; do not add coverage.
+   **Next: literal canonical division bridge**, then div_mod/divides consumers.
+   Mirror Programs.Arith.div3n2n, div2n1n, divPreShift and divPostShift; retain
+   the exact CoreJets div_mod program and its quotient/remainder projections.
+   Reuse the existing canonical arithmetic/borrow/multiplication bridges and
+   Word full_left/right_shift1 for normalization. Prove normalization's
+   high-bit and numerator bounds and the approximation/correction cases;
+   characterize quotient/remainder by Euclidean uniqueness for nonzero
+   divisors. Prove the zero case directly from the program. Only then connect
+   that checked canonical bridge to eval_division8_layout_machine and
+   eval_wide_division_layout_machine, and export named local/context/guarantee
+   contracts. Do not replace the recursive program with division_numeric.
+   Subsequent div_mod calls require two writers with intermediate memory;
+   divides swaps operands and writes one bit. A source-comment trap: the
+   Haskell divides documentation says divides(0,y) is True, but its actual
+   modulo-plus-is_zero composition and the C branch test whether y is zero.
+   Follow the executable canonical program, not that prose claim.
    Static full-left/right-shift jets are a separate family: their fill input
    and shifted-out output are fixed-width words, not variable byte controls.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds

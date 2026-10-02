@@ -1682,3 +1682,32 @@ registered sources/manifests/public lists until it exits. The last complete
 audit covers 178 entries. Review the new snapshots against `8ef795b`, removing
 only the newly registered results/definitions; the kernel axiom list must
 remain unchanged. This remains progress toward, not completion of, every jet.
+
+## Division C-side execution and numeric bridges (2026-10-02)
+
+Seven later modules have current-source coqc exit 0 and fresh independent
+kernel checks: `jet_division_value.v`; `jet_division8_expr.v` and
+`jet_division8_exec.v`; `jet_division8_layout_machine.v`;
+`jet_division_wide_expr.v` and `jet_division_wide_exec.v`;
+`jet_division_wide_layout_machine.v`. The final frame checks were `28177`
+(byte) and `94879` (wide), checking their dependencies as well. Individual
+value and representation assumption checks are closed; the two initial-only
+frame theorems retain the same six inherited assumptions. Explicit static
+scanning of all seven sources passed.
+
+These theorems establish actual C calls and numeric machine output, not yet
+C-to-canonical-Simplicity equivalence. No coverage is added. The byte body
+uses signed division after promotion, but input-byte ranges exclude -1 and
+the MIN/-1 overflow guard. Z.quot/rem therefore coincide with Z.div/mod.
+Wide bodies use unsigned long division. Both zero/nonzero branches are
+executed, retaining quotient-zero/remainder-input behavior at divisor zero.
+Reader/writer executions, allocation/copy/free and memory framing are derived
+from initial contracts; no internal executions are assumed by final frame
+theorems. The wide theorem shares W16/W32/W64 and the operation selector.
+
+The modules are currently unregistered (21 results / 19 definitions). Keep
+the running shift audit `87578` frozen; poll it, review its snapshots against
+`8ef795b`, then register these helpers without adding jet coverage. The next
+obligation is the literal Programs.Arith recursive division/normalization
+bridge, not another mathematical specification or assumed numeric identity.
+See JET_ROADMAP.md for the exact canonical dependency chain.
