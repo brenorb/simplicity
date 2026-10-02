@@ -2094,3 +2094,13 @@ After accepting `45575` at `a77fcf0`, the nine complete context-init modules /
 (206/533, 327 remaining; 205 fully integrated so far). Run the expanded
 359-module / 1649-result audit against that accepted baseline. Helpers do not
 count separately, and no context add/finalize/compression result is claimed.
+
+Expanded context-init audit `94007` is live; accepted baseline is `a77fcf0`.
+Freeze registered sources, manifests and public lists until terminal completion.
+Expect 359 modules / 1649 results. After terminal exit 0 through every gate,
+negative fixture and AST, filter the nine new module names from assumptions;
+filter theorem blocks from `eval_sha_ctx_local_field` until `frame_fields =`
+and definition blocks from `sha_ctx_local_field =` onward. These must reproduce
+`a77fcf0` byte-for-byte, with the inherited kernel axiom list unchanged. Do not
+restart a live audit or accept its snapshots early. Continue new unregistered
+Buffer63 input/reader and present-chunk writer consumers while it runs.
