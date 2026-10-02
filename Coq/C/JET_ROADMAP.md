@@ -919,9 +919,10 @@ tree otherwise contains only Coq files.
    new axiom is needed for these transports: product equality is transparent.
    Both sources and fresh kernel checks pass; every new result/definition has
    a closed assumption check. The two modules / 24 results / six definitions
-   are registered without coverage additions. Integrated audit `76184` is
-   running against baseline `723ec34`; poll that handle and freeze registered
-   sources/manifests/lists. Remove only these entries when reviewing snapshots.
+   are registered without coverage additions. Integrated audit `76184` exited
+   0 through all gates, negative fixtures and pinned AST regeneration on
+   280 modules / 1289 results (471 closed). Removing only these entries
+   reproduces the `723ec34` snapshots byte-for-byte; kernel axioms are unchanged.
    **Next: literal canonical division bridge**, then div_mod/divides consumers.
    Mirror Programs.Arith.div3n2n, div2n1n, divPreShift and divPostShift; retain
    the exact CoreJets div_mod program and its quotient/remainder projections.

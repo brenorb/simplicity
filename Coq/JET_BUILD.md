@@ -1736,7 +1736,7 @@ eventual fixed-block full-shift jets; the latter still require actual copyBits
 calls, including its currently unproved external memcpy paths.
 
 Both manifests and public lists register these additions. Integrated audit
-`76184` is running against baseline `723ec34`; poll the same handle and keep
-registered sources/manifests/lists frozen until it is terminal. Snapshot review
-must remove only these 24 results / six definitions and preserve inherited
-kernel axioms. Coverage remains 186/533, not goal completion.
+`76184` exited 0 through all gates, negative fixtures and pinned AST regeneration
+on 280 modules / 1289 results (471 closed). Removing only these 24 results /
+six definitions reproduces the `723ec34` snapshots byte-for-byte. The inherited
+15 kernel axioms are unchanged. Coverage remains 186/533, not goal completion.
