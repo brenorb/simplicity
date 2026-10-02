@@ -34001,6 +34001,490 @@ multiply64_context
      : @jet_context_for f_simplicity_multiply_64
          (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
          (Word.Word (S (S (S (S (S (S (S O)))))))) (@multiply_word_spec (S (S (S (S (S (S O)))))))
+u128_accum_low_balance
+     : forall lo a : Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.add (Integers.Int64.unsigned (u128_accum_lo lo a))
+            (BinInt.Z.mul (Integers.Int64.unsigned (bit_long (u128_accum_carry lo a))) Integers.Int64.modulus))
+         (BinInt.Z.add (Integers.Int64.unsigned lo) (Integers.Int64.unsigned a))
+u128_accum_machine_observation
+     : forall (hi lo a : Integers.Int64.int)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add
+                   (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned hi) Integers.Int64.modulus)
+                      (Integers.Int64.unsigned lo)) (Integers.Int64.unsigned a))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z
+         (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned (u128_accum_hi hi lo a)) Integers.Int64.modulus)
+            (Integers.Int64.unsigned (u128_accum_lo lo a)))
+         (BinInt.Z.add
+            (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned hi) Integers.Int64.modulus)
+               (Integers.Int64.unsigned lo)) (Integers.Int64.unsigned a))
+u128_accum_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge0) _secp256k1_u128_accum_u64)
+         (@Some Values.block (jet_symbol_block _secp256k1_u128_accum_u64))
+u128_accum_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv ge0)
+            (Values.Vptr (jet_symbol_block _secp256k1_u128_accum_u64) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f_secp256k1_u128_accum_u64))
+eval_u128_accum_hi_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (hi lo a : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _t'1 le) (@Some Values.val (Values.Vlong hi)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _t'2 le)
+                (@Some Values.val (Values.Vlong (u128_accum_lo lo a))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _a le) (@Some Values.val (Values.Vlong a))),
+       Clight.eval_expr ge0 e le m u128_accum_hi_expr (Values.Vlong (u128_accum_hi hi lo a))
+eval_u128_accum_layout
+     : forall (m : Memory.Mem.mem) (br : Values.block) (base : BinNums.Z) (hi lo a : Integers.Int64.int)
+         (_ : frame_base_valid base) (_ : Memory.Mem.valid_access m AST.Mint64 br base Memtype.Writable)
+         (_ : Memory.Mem.valid_access m AST.Mint64 br
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m br base) (@Some Values.val (Values.Vlong lo)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m br
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vlong hi))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_secp256k1_u128_accum_u64)
+               (@cons Values.val (Values.Vptr br (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vlong a) (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (@eq (option Values.val) (Memory.Mem.load AST.Mint64 mf br base)
+                  (@Some Values.val (Values.Vlong (u128_accum_lo lo a))))
+               (and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf br
+                        (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     (@Some Values.val (Values.Vlong (u128_accum_hi hi lo a))))
+                  (and
+                     (forall (chunk : AST.memory_chunk) (bb : Values.block) (addr : BinNums.Z)
+                        (_ : or (not (@eq Values.block bb br))
+                               (or (BinInt.Z.le (BinInt.Z.add addr (Memdata.size_chunk chunk)) base)
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add base
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     addr))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf bb addr) (Memory.Mem.load chunk m bb addr))
+                     (and
+                        (forall (bb : Values.block) (addr : BinNums.Z) (kind : Memtype.perm_kind)
+                           (p : Memtype.permission) (_ : Memory.Mem.perm m bb addr kind p),
+                         Memory.Mem.perm mf bb addr kind p)
+                        (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m)))))))
+full_multiply64_machine_observation
+     : forall (a b u v : Integers.Int64.int)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add
+                   (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+                      (Integers.Int64.unsigned u)) (Integers.Int64.unsigned v))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z
+         (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned (full_multiply64_hi a b u v)) Integers.Int64.modulus)
+            (Integers.Int64.unsigned (full_multiply64_lo a b u v)))
+         (BinInt.Z.add
+            (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+               (Integers.Int64.unsigned u)) (Integers.Int64.unsigned v))
+full_multiply64_representation
+     : forall (x y z w : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (a b u v : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned a)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned b)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) y))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned u)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) z))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned v)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) w)),
+       @eq
+         (prod (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O))))))))))
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+               (Integers.Int64.unsigned (full_multiply64_hi a b u v)))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+               (Integers.Int64.unsigned (full_multiply64_lo a b u v))))
+         (@Word.fullMultiplier (S (S (S (S (S (S O)))))) Alg.CoreFunSem
+            (@pair
+               (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+               (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                  x y)
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                  z w)))
+call_frame_u128_mul
+     : forall (le : Maps.PTree.tree Values.val) (m mk : Memory.Mem.mem) (bl br : Values.block)
+         (a b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _x le) (@Some Values.val (Values.Vlong a)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _y le) (@Some Values.val (Values.Vlong b)))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_secp256k1_u128_mul)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vlong a) (@cons Values.val (Values.Vlong b) (@nil Values.val)))) Events.E0
+                mk Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt ge0 (e_frame_u128 bl br) le m frame_u128_mul_call Events.E0 le mk
+         ClightBigstep.Out_normal
+call_frame_u128_accum
+     : forall (id : BinNums.positive) (le : Maps.PTree.tree Values.val) (m mk : Memory.Mem.mem)
+         (bl br : Values.block) (a : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le) (@Some Values.val (Values.Vlong a)))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_secp256k1_u128_accum_u64)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vlong a) (@nil Values.val))) Events.E0 mk Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt ge0 (e_frame_u128 bl br) le m (frame_u128_accum_call id) Events.E0 le mk
+         ClightBigstep.Out_normal
+eval_full_multiply64_composes
+     : forall (env : Values.val) (m : Memory.Mem.mem) (ma mb : Memory.Mem.mem')
+         (mc mr1 mr2 mr3 mr4 mk mz mw me mf : Memory.Mem.mem) (bl br bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bytes : list Memdata.memval) (a b u v : Integers.Int64.int)
+         (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc ma BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block mb br))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes mb bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes mb bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mc (@Ctypes.Internal Clight.function f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr1
+                (Values.Vlong a))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mr1 (@Ctypes.Internal Clight.function f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr2
+                (Values.Vlong b))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mr2 (@Ctypes.Internal Clight.function f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr3
+                (Values.Vlong u))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mr3 (@Ctypes.Internal Clight.function f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr4
+                (Values.Vlong v))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mr4 (@Ctypes.Internal Clight.function f_secp256k1_u128_mul)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vlong a) (@cons Values.val (Values.Vlong b) (@nil Values.val)))) Events.E0
+                mk Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mk (@Ctypes.Internal Clight.function f_secp256k1_u128_accum_u64)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vlong u) (@nil Values.val))) Events.E0 mz Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mz (@Ctypes.Internal Clight.function f_secp256k1_u128_accum_u64)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vlong v) (@nil Values.val))) Events.E0 mw Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mw (@Ctypes.Internal Clight.function f_write128)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 me
+                Values.Vundef)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free_list me (Clight.blocks_of_env ge0 (e_frame_u128 bl br)))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_full_multiply_64)
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         Events.E0 mf (Values.Vint Integers.Int.one)
+eval_read_wide_quad_at
+     : forall (s : wide_size) (m : Memory.Mem.mem) (bl : Values.block) (base : BinNums.Z) (bi : Values.block)
+         (edge rc : BinNums.Z) (x y z w : Ty.tySem (Word.Word (wide_log s))) (_ : frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (wide_bits s)))))
+         (_ : frame_fields_at m bl base bi edge rc) (_ : @frame_input_word_at (wide_log s) m bi edge rc x)
+         (_ : @frame_input_word_at (wide_log s) m bi edge (BinInt.Z.add rc (wide_bits s)) y)
+         (_ : @frame_input_word_at (wide_log s) m bi edge
+                (BinInt.Z.add rc (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (wide_bits s))) z)
+         (_ : @frame_input_word_at (wide_log s) m bi edge
+                (BinInt.Z.add rc (BinInt.Z.mul (BinNums.Zpos (BinNums.xI BinNums.xH)) (wide_bits s))) w)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable)
+         (_ : not (@eq Values.block bl bi)),
+       @ex Memory.Mem.mem
+         (fun mr1 : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mr2 : Memory.Mem.mem =>
+             @ex Memory.Mem.mem
+               (fun mr3 : Memory.Mem.mem =>
+                @ex Memory.Mem.mem
+                  (fun mr4 : Memory.Mem.mem =>
+                   @ex Integers.Int64.int
+                     (fun a : Integers.Int64.int =>
+                      @ex Integers.Int64.int
+                        (fun b : Integers.Int64.int =>
+                         @ex Integers.Int64.int
+                           (fun u : Integers.Int64.int =>
+                            @ex Integers.Int64.int
+                              (fun v : Integers.Int64.int =>
+                               and
+                                 (ClightBigstep.Clight2.eval_funcall ge0 m
+                                    (@Ctypes.Internal Clight.function (wide_reader s))
+                                    (@cons Values.val (Values.Vptr bl (Integers.Ptrofs.repr base)) (@nil Values.val))
+                                    Events.E0 mr1 (Values.Vlong a))
+                                 (and
+                                    (ClightBigstep.Clight2.eval_funcall ge0 mr1
+                                       (@Ctypes.Internal Clight.function (wide_reader s))
+                                       (@cons Values.val (Values.Vptr bl (Integers.Ptrofs.repr base)) (@nil Values.val))
+                                       Events.E0 mr2 (Values.Vlong b))
+                                    (and
+                                       (ClightBigstep.Clight2.eval_funcall ge0 mr2
+                                          (@Ctypes.Internal Clight.function (wide_reader s))
+                                          (@cons Values.val (Values.Vptr bl (Integers.Ptrofs.repr base))
+                                             (@nil Values.val)) Events.E0 mr3 (Values.Vlong u))
+                                       (and
+                                          (ClightBigstep.Clight2.eval_funcall ge0 mr3
+                                             (@Ctypes.Internal Clight.function (wide_reader s))
+                                             (@cons Values.val (Values.Vptr bl (Integers.Ptrofs.repr base))
+                                                (@nil Values.val)) Events.E0 mr4 (Values.Vlong v))
+                                          (and
+                                             (@eq BinNums.Z (Integers.Int64.unsigned a)
+                                                (@Word.ToZ.Theory.toZ (Word.WordToZ (wide_log s)) x))
+                                             (and
+                                                (@eq BinNums.Z (Integers.Int64.unsigned b)
+                                                   (@Word.ToZ.Theory.toZ (Word.WordToZ (wide_log s)) y))
+                                                (and
+                                                   (@eq BinNums.Z (Integers.Int64.unsigned u)
+                                                      (@Word.ToZ.Theory.toZ (Word.WordToZ (wide_log s)) z))
+                                                   (and
+                                                      (@eq BinNums.Z (Integers.Int64.unsigned v)
+                                                         (@Word.ToZ.Theory.toZ (Word.WordToZ (...)) w))
+                                                      (and
+                                                         (frame_fields_at mr4 bl base bi edge (BinInt.Z.add rc (...)))
+                                                         (and (forall ... ... ... ..., @eq ... ... ...)
+                                                            (and (...) (...)))))))))))))))))))
+eval_full_multiply64_layout_matches_spec
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge : BinNums.Z)
+         (x y z w : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (cursor rc : BinNums.Z)
+         (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge rc)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : @frame_input_word_at (S (S (S (S (S (S O)))))) m bi edge rc x)
+         (_ : @frame_input_word_at (S (S (S (S (S (S O)))))) m bi edge
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) y)
+         (_ : @frame_input_word_at (S (S (S (S (S (S O)))))) m bi edge
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) z)
+         (_ : @frame_input_word_at (S (S (S (S (S (S O)))))) m bi edge
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))) w)
+         (_ : write_frame_at m bd dbase bw outedge cursor
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_full_multiply_64)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Word.Word (S (S (S (S (S (S (S O))))))))
+                     (@Word.fullMultiplier (S (S (S (S (S (S O)))))) Alg.CoreFunSem
+                        (@pair
+                           (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                              (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+                           (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                              (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+                           (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                              (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) x y)
+                           (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                              (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) z w)))))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                     (forall (chunk : AST.memory_chunk) (bb : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m bb)
+                        (_ : or (not (@eq Values.block bb bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block bb bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinNums.Zpos
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf bb ofs) (Memory.Mem.load chunk m bb ofs))))))
+full_multiply64_local_spec
+     : jet_local_spec f_simplicity_full_multiply_64
+         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+            (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+         (Word.Word (S (S (S (S (S (S (S O))))))))
+         (fun
+            input : Ty.tySem
+                      (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))) =>
+          @Word.fullMultiplier (S (S (S (S (S (S O)))))) Alg.CoreFunSem input)
+full_multiply64_spec_parametric
+     : @Alg.Core.Parametric
+         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+            (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+         (Word.Word (S (S (S (S (S (S (S O)))))))) (@Word.fullMultiplier (S (S (S (S (S (S O)))))))
+full_multiply64_context
+     : @jet_context_for f_simplicity_full_multiply_64
+         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+            (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+         (Word.Word (S (S (S (S (S (S (S O)))))))) (@Word.fullMultiplier (S (S (S (S (S (S O)))))))
+buffer_empty_spec_parametric
+     : forall (X : Ty.Ty) (depth : nat) (A : Ty.Ty),
+       @Alg.Core.Parametric A (buffer_type X depth) (@buffer_empty_spec X depth A)
+buffer_empty_spec_value
+     : forall (X : Ty.Ty) (depth : nat) (A : Ty.Ty) (a : Ty.tySem A),
+       @eq (Ty.tySem (buffer_type X depth)) (@buffer_empty_spec X depth A Alg.CoreFunSem a)
+         (buffer_empty_value X depth)
+encode_empty_sum
+     : forall X : Ty.Ty,
+       @eq (list Cell)
+         (@encode (Ty.Sum Ty.Unit X)
+            (@inl unit
+               ((fix tySem (X0 : Ty.Ty) : Set :=
+                   match X0 return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) X) tt))
+         (@cons (option bool) (@Some bool false) (@List.repeat (option bool) (@None bool) (bitSize X)))
+buffer_empty_value_cells
+     : forall (X : Ty.Ty) (depth : nat),
+       @eq (list Cell) (@encode (buffer_type X depth) (buffer_empty_value X depth)) (buffer_empty_cells X depth)
+buffer_empty_spec_cells
+     : forall (X : Ty.Ty) (depth : nat) (A : Ty.Ty) (a : Ty.tySem A),
+       @eq (list Cell) (@encode (buffer_type X depth) (@buffer_empty_spec X depth A Alg.CoreFunSem a))
+         (buffer_empty_cells X depth)
+buffer63_byte_cells_length
+     : @eq nat (@length Cell (buffer_empty_cells (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+sha256_ctx8_init_spec_parametric
+     : @Alg.Core.Parametric Ty.Unit sha256_ctx8_type (@sha256_ctx8_init_spec)
+sha256_ctx8_init_spec_value
+     : @eq (Ty.tySem sha256_ctx8_type) (@sha256_ctx8_init_spec Alg.CoreFunSem tt)
+         (@pair (Ty.tySem (buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+            (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+            (buffer_empty_value (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (@Word.zero (S (S (S (S (S (S O)))))) Alg.CoreFunSem tt) (@sha256_iv_spec Alg.CoreFunSem tt)))
+encode_ctx_product
+     : forall (A B : Ty.Ty) (a : Ty.tySem A) (b : Ty.tySem B),
+       @eq (list Cell) (@encode (Ty.Prod A B) (@pair (Ty.tySem A) (Ty.tySem B) a b))
+         (@app Cell (@encode A a) (@encode B b))
+sha256_ctx8_init_spec_cells
+     : @eq (list Cell) (@encode sha256_ctx8_type (@sha256_ctx8_init_spec Alg.CoreFunSem tt))
+         (@app Cell (buffer_empty_cells (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+            (@app Cell
+               (@encode (Word.Word (S (S (S (S (S (S O))))))) (@Word.zero (S (S (S (S (S (S O)))))) Alg.CoreFunSem tt))
+               (uint32_word_cells sha256_iv_words)))
+sha256_ctx8_type_bits
+     : @eq nat (bitSize sha256_ctx8_type)
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+write_frame_at_after_padding
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor n count : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 n) (_ : BinInt.Z.le BinNums.Z0 count)
+         (_ : write_frame_at m bf base bw edge cursor (BinInt.Z.add n count))
+         (_ : frame_fields_at mf bf base bw edge (BinInt.Z.sub cursor n))
+         (_ : forall (chunk : AST.memory_chunk) (bb : Values.block) (ofs : BinNums.Z)
+                (_ : or (not (@eq Values.block bb bf))
+                       (or
+                          (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                             (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                          (BinInt.Z.le
+                             (BinInt.Z.add base
+                                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs))),
+              @eq (option Values.val) (Memory.Mem.load chunk mf bb ofs) (Memory.Mem.load chunk m bb ofs))
+         (_ : forall (bb : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind) (p : Memtype.permission)
+                (_ : Memory.Mem.perm m bb ofs kind p), Memory.Mem.perm mf bb ofs kind p),
+       write_frame_at mf bf base bw edge (BinInt.Z.sub cursor n) count
+eval_empty_buffer_segment
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (count : nat) (tail : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 tail)
+         (_ : write_frame_at m bf base bw edge cursor
+                (BinInt.Z.add (BinInt.Z.add (BinNums.Zpos BinNums.xH) (BinInt.Z.of_nat count)) tail)),
+       @ex Memory.Mem.mem
+         (fun mb : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_writeBit)
+                  (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                     (@cons Values.val (Values.Vint Integers.Int.zero) (@nil Values.val))) Events.E0 mb
+                  (Values.Vint Integers.Int.zero))
+               (and
+                  (ClightBigstep.Clight2.eval_funcall ge0 mb (@Ctypes.Internal Clight.function f_skipBits)
+                     (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                        (@cons Values.val (Values.Vlong (Integers.Int64.repr (BinInt.Z.of_nat count)))
+                           (@nil Values.val))) Events.E0 mf Values.Vundef)
+                  (and
+                     (frame_output_cells_at mf bw edge cursor
+                        (@cons (option bool) (@Some bool false) (@List.repeat (option bool) (@None bool) count)))
+                     (and (write_prefix_at m mf bw edge cursor)
+                        (and
+                           (write_frame_at mf bf base bw edge
+                              (BinInt.Z.sub cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) (BinInt.Z.of_nat count)))
+                              tail)
+                           (and
+                              (loads_outside_ranges m mf bf
+                                 (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                 (BinInt.Z.add base
+                                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) bw
+                                 (BinInt.Z.add edge
+                                    (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                       (BinInt.Z.div
+                                          (BinInt.Z.sub cursor
+                                             (BinInt.Z.add (BinNums.Zpos BinNums.xH) (BinInt.Z.of_nat count)))
+                                          (BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                                 (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                              (and
+                                 (forall (bb : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                                    (p : Memtype.permission) (_ : Memory.Mem.perm m bb ofs kind p),
+                                  Memory.Mem.perm mf bb ofs kind p)
+                                 (forall (bb : Values.block) (_ : Memory.Mem.valid_block m bb),
+                                  Memory.Mem.valid_block mf bb)))))))))
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -48414,3 +48898,365 @@ multiply64_context_guarantees =
                (runProgram (@multiply_word_spec (S (S (S (S (S (S O)))))) Naive.translate) (Running s0) (Running s1))))
 
 Arguments multiply64_context_guarantees env m L ctx a _ _ _
+u128_accum_lo =
+fun lo a : Integers.Int64.int => Integers.Int64.add lo a
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments u128_accum_lo lo a
+u128_accum_carry =
+fun lo a : Integers.Int64.int => Integers.Int64.ltu (u128_accum_lo lo a) a
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments u128_accum_carry lo a
+u128_accum_hi =
+fun hi lo a : Integers.Int64.int => Integers.Int64.add hi (bit_long (u128_accum_carry lo a))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments u128_accum_hi hi lo a
+u128_accum_temps =
+fun (br : Values.block) (base : BinNums.Z) (a : Integers.Int64.int) =>
+@Maps.PTree.set Values.val _a (Values.Vlong a)
+  (@Maps.PTree.set Values.val _r (Values.Vptr br (Integers.Ptrofs.repr base))
+     (Clight.create_undef_temps (Clight.fn_temps f_secp256k1_u128_accum_u64)))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments u128_accum_temps br base%Z_scope a
+u128_accum_hi_expr =
+Clight.Ebinop Cop.Oadd (Clight.Etempvar _t'1 Ctypesdefs.tulong)
+  (Clight.Ebinop Cop.Olt (Clight.Etempvar _t'2 Ctypesdefs.tulong) (Clight.Etempvar _a Ctypesdefs.tulong)
+     Ctypesdefs.tint) Ctypesdefs.tulong
+     : Clight.expr
+full_multiply64_lo =
+fun a b u v : Integers.Int64.int => u128_accum_lo (u128_accum_lo (umul128_result_lo a b) u) v
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Integers.Int64.int
+
+Arguments full_multiply64_lo a b u v
+full_multiply64_hi =
+fun a b u v : Integers.Int64.int =>
+u128_accum_hi (u128_accum_hi (umul128_result_hi a b) (umul128_result_lo a b) u)
+  (u128_accum_lo (umul128_result_lo a b) u) v
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Integers.Int64.int
+
+Arguments full_multiply64_hi a b u v
+frame_u128_mul_call =
+Clight.Scall (@None AST.ident)
+  (Clight.Evar _secp256k1_u128_mul
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct _secp256k1_uint128 Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tulong (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil))) Ctypesdefs.tvoid
+        AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar _r (Ctypes.Tstruct _secp256k1_uint128 Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct _secp256k1_uint128 Ctypes.noattr)))
+     (@cons Clight.expr (Clight.Etempvar _x Ctypesdefs.tulong)
+        (@cons Clight.expr (Clight.Etempvar _y Ctypesdefs.tulong) (@nil Clight.expr))))
+     : Clight.statement
+frame_u128_accum_call =
+fun id : AST.ident =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar _secp256k1_u128_accum_u64
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct _secp256k1_uint128 Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar _r (Ctypes.Tstruct _secp256k1_uint128 Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct _secp256k1_uint128 Ctypes.noattr)))
+     (@cons Clight.expr (Clight.Etempvar id Ctypesdefs.tulong) (@nil Clight.expr)))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments frame_u128_accum_call id
+full_multiply64_temps =
+fun (env : Values.val) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) =>
+jet_arith8_layout_exec.le_arith8_layout env f_simplicity_full_multiply_64 bd (Integers.Ptrofs.repr dbase) bs
+  (Integers.Ptrofs.repr sbase)
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments full_multiply64_temps env bd dbase%Z_scope bs sbase%Z_scope
+full_multiply64_read_temps =
+fun (env : Values.val) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+  (a b u v : Integers.Int64.int) =>
+@Maps.PTree.set Values.val _w (Values.Vlong v)
+  (@Maps.PTree.set Values.val _t'4 (Values.Vlong v)
+     (@Maps.PTree.set Values.val _z (Values.Vlong u)
+        (@Maps.PTree.set Values.val _t'3 (Values.Vlong u)
+           (@Maps.PTree.set Values.val _y (Values.Vlong b)
+              (@Maps.PTree.set Values.val _t'2 (Values.Vlong b)
+                 (@Maps.PTree.set Values.val _x (Values.Vlong a)
+                    (@Maps.PTree.set Values.val _t'1 (Values.Vlong a) (full_multiply64_temps env bd dbase bs sbase))))))))
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments full_multiply64_read_temps env bd dbase%Z_scope bs sbase%Z_scope a b u v
+full_multiply64_guarantees =
+jet_local_spec_guarantees f_simplicity_full_multiply_64
+  (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+  (Word.Word (S (S (S (S (S (S (S O))))))))
+  (fun
+     input : Ty.tySem
+               (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))) =>
+   @Word.fullMultiplier (S (S (S (S (S (S O)))))) Alg.CoreFunSem input) full_multiply64_local_spec
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))))
+         (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat
+                      (bitSize
+                         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                            (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))))))
+                Integers.Int64.max_unsigned)
+         (_ : frame_input_cells_at m bi edge read_cursor
+                (@encode
+                   (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                      (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))) a))
+         (_ : write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (bitSize (Word.Word (S (S (S (S (S (S (S O))))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv prog)
+               (@Ctypes.Internal Clight.function f_simplicity_full_multiply_64)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode (Word.Word (S (S (S (S (S (S (S O))))))))
+                     ((fun
+                         input : Ty.tySem
+                                   (Ty.Prod
+                                      (Ty.Prod (Word.Word (S (S (S (S (S (S O)))))))
+                                         (Word.Word (S (S (S (S (S (S O))))))))
+                                      (Ty.Prod (Word.Word (S (S (S (S (S (S O)))))))
+                                         (Word.Word (S (S (S (S (S (S O))))))))) =>
+                       @Word.fullMultiplier (S (S (S (S (S (S O)))))) Alg.CoreFunSem input) a)))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.of_nat (bitSize (Word.Word (S (S (S (S (S (S (S O))))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat (bitSize (Word.Word (S (S (S (S (S (S ...))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+
+Arguments full_multiply64_guarantees env m bd dbase%Z_scope bs sbase%Z_scope bi bw
+  (edge outedge cursor read_cursor)%Z_scope a _ _ _ _ _ _ _
+full_multiply64_context_guarantees =
+@jet_context_guarantees
+  (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+  (Word.Word (S (S (S (S (S (S (S O)))))))) f_simplicity_full_multiply_64
+  (@Word.fullMultiplier (S (S (S (S (S (S O))))))) full_multiply64_spec_parametric full_multiply64_local_spec
+  (ZifyClasses.rew_iff_rev
+     (le (S O) (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))
+     (BinInt.Z.le (BinNums.Zpos BinNums.xH)
+        (BinNums.Zpos
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+     (ZifyClasses.mkrel nat BinNums.Z le BinInt.Z.of_nat BinInt.Z.le Znat.Nat2Z.inj_le (S O)
+        (BinNums.Zpos BinNums.xH) (@eq_refl BinNums.Z (BinNums.Zpos BinNums.xH))
+        (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))
+        (BinNums.Zpos
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (@eq_refl BinNums.Z
+           (BinNums.Zpos
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+     (let __arith :
+        BinInt.Z.le (BinNums.Zpos BinNums.xH)
+          (BinNums.Zpos
+             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) :=
+        let __wit : list ZMicromega.ZArithProof := @nil ZMicromega.ZArithProof in
+        let __varmap : VarMap.t BinNums.Z := @VarMap.Empty BinNums.Z in
+        let __ff : Tauto.BFormula (RingMicromega.Formula BinNums.Z) Tauto.isProp :=
+          @Tauto.A (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+            (@RingMicromega.Build_Formula BinNums.Z (@EnvRing.PEc BinNums.Z (BinNums.Zpos BinNums.xH))
+               RingMicromega.OpLe
+               (@EnvRing.PEc BinNums.Z
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) tt
+          in
+        ZMicromega.ZTautoChecker_sound __ff __wit
+          (@eq_refl bool true <: @eq bool (ZMicromega.ZTautoChecker __ff __wit) true)
+          (@VarMap.find BinNums.Z BinNums.Z0 __varmap) in
+      __arith)
+   <:
+   le (S O) (bitSize (Word.Word (S (S (S (S (S (S (S O))))))))))
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : bm_layout) (ctx : Context)
+         (a : Ty.tySem
+                (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                   (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))),
+       let s0 : RunState :=
+         fillContext ctx
+           (Build_LocalState
+              (@encode
+                 (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))) a)
+              (newWriteFrame (bitSize (Word.Word (S (S (S (S (S (S (S O))))))))))) in
+       let s1 : RunState :=
+         fillContext ctx
+           (Build_LocalState
+              (@encode
+                 (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))) a)
+              (fullWriteFrame
+                 (@encode (Word.Word (S (S (S (S (S (S (S O))))))))
+                    (@Word.fullMultiplier (S (S (S (S (S (S O)))))) Alg.CoreFunSem a)))) in
+       forall (_ : bm_rep m L s0) (_ : bm_separated L s0) (_ : active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv prog)
+               (@Ctypes.Internal Clight.function f_simplicity_full_multiply_64) (jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (bm_rep mf L s1)
+               (runProgram (@Word.fullMultiplier (S (S (S (S (S (S O)))))) Naive.translate) (Running s0) (Running s1))))
+
+Arguments full_multiply64_context_guarantees env m L ctx a _ _ _
+buffer_type =
+fix buffer_type (X : Ty.Ty) (depth : nat) {struct depth} : Ty.Ty :=
+  match depth return Ty.Ty with
+  | O => Ty.Sum Ty.Unit X
+  | S d => Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (buffer_type X d)
+  end
+     : forall (_ : Ty.Ty) (_ : nat), Ty.Ty
+
+Arguments buffer_type X%ty_scope depth%nat_scope
+buffer_empty_spec =
+fix buffer_empty_spec (X : Ty.Ty) (depth : nat) (A : Ty.Ty) (term : Alg.Core.Algebra) {struct depth} :
+    Alg.Core.domain term A (buffer_type X depth) :=
+  match depth as depth0 return (Alg.Core.domain term A (buffer_type X depth0)) with
+  | O => @jet_buffer_empty_spec.AC.injl A Ty.Unit X term (@jet_buffer_empty_spec.AC.unit A term)
+  | S d =>
+      @jet_buffer_empty_spec.AC.pair A (Ty.Sum Ty.Unit (Word.Vector X (S d))) (buffer_type X d) term
+        (@jet_buffer_empty_spec.AC.injl A Ty.Unit (Word.Vector X (S d)) term (@jet_buffer_empty_spec.AC.unit A term))
+        (buffer_empty_spec X d A term)
+  end
+     : forall (X : Ty.Ty) (depth : nat) (A : Ty.Ty) (term : Alg.Core.Algebra),
+       Alg.Core.domain term A (buffer_type X depth)
+
+Arguments buffer_empty_spec X%ty_scope depth%nat_scope A%ty_scope {term}
+buffer_empty_value =
+fix buffer_empty_value (X : Ty.Ty) (depth : nat) {struct depth} : Ty.tySem (buffer_type X depth) :=
+  match depth as depth0 return (Ty.tySem (buffer_type X depth0)) with
+  | O =>
+      @inl unit
+        ((fix tySem (X0 : Ty.Ty) : Set :=
+            match X0 return Set with
+            | Ty.Unit => unit
+            | Ty.Sum A B => sum (tySem A) (tySem B)
+            | Ty.Prod A B => prod (tySem A) (tySem B)
+            end) X) tt
+  | S d =>
+      @pair
+        (sum unit
+           (prod
+              ((fix tySem (X0 : Ty.Ty) : Set :=
+                  match X0 return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X0 : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X0
+                     | S n0 => Ty.Prod (Vector X0 n0) (Vector X0 n0)
+                     end) X d))
+              ((fix tySem (X0 : Ty.Ty) : Set :=
+                  match X0 return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X0 : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X0
+                     | S n0 => Ty.Prod (Vector X0 n0) (Vector X0 n0)
+                     end) X d)))) (Ty.tySem (buffer_type X d))
+        (@inl unit
+           (prod
+              ((fix tySem (X0 : Ty.Ty) : Set :=
+                  match X0 return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X0 : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X0
+                     | S n0 => Ty.Prod (Vector X0 n0) (Vector X0 n0)
+                     end) X d))
+              ((fix tySem (X0 : Ty.Ty) : Set :=
+                  match X0 return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X0 : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X0
+                     | S n0 => Ty.Prod (Vector X0 n0) (Vector X0 n0)
+                     end) X d))) tt) (buffer_empty_value X d)
+  end
+     : forall (X : Ty.Ty) (depth : nat), Ty.tySem (buffer_type X depth)
+
+Arguments buffer_empty_value X%ty_scope depth%nat_scope
+buffer_empty_cells =
+fix buffer_empty_cells (X : Ty.Ty) (depth : nat) {struct depth} : list Cell :=
+  match depth return (list Cell) with
+  | O => @cons (option bool) (@Some bool false) (@List.repeat (option bool) (@None bool) (bitSize X))
+  | S d =>
+      @app (option bool)
+        (@cons (option bool) (@Some bool false)
+           (@List.repeat (option bool) (@None bool) (bitSize (Word.Vector X (S d))))) (buffer_empty_cells X d)
+  end
+     : forall (_ : Ty.Ty) (_ : nat), list Cell
+
+Arguments buffer_empty_cells X%ty_scope depth%nat_scope
+sha256_ctx8_type =
+Ty.Prod (buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     : Ty.Ty
+sha256_ctx8_init_spec =
+fun term : Alg.Core.Algebra =>
+@jet_sha256_ctx8_init_spec.AC.pair Ty.Unit (buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+  (@buffer_empty_spec (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) Ty.Unit term)
+  (@jet_sha256_ctx8_init_spec.AC.pair Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) term (@Word.zero (S (S (S (S (S (S O)))))) term)
+     (@sha256_iv_spec term))
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term Ty.Unit sha256_ctx8_type
+
+Arguments sha256_ctx8_init_spec {term}

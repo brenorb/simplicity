@@ -54,8 +54,11 @@ in [JET_ROADMAP.md](JET_ROADMAP.md).
 
 The complete full_multiply64_local_spec also independently passes current-source
 and fresh kernel checks. It is now registered along with shared accumulation,
-four-reader and next SHA-context support (205/533 registered, 328 remaining),
-awaiting the expanded integrated audit. Pure buffer/context bridges and the
+four-reader and next SHA-context support. Expanded audit `52561` passed every
+gate, negative fixture and exact pinned AST regeneration (341 modules / 1588
+results); coverage is 205/533 integrated and audited, 328 remaining. Filtering
+the new entries reproduces accepted `87d0082` contracts/assumptions byte-for-byte,
+and the inherited kernel axioms are unchanged. Pure buffer/context bridges and the
 false-tag/skip sequence are infrastructure only, not SHA context jet coverage.
 
 | Jet | Simplicity specification |

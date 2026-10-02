@@ -1133,6 +1133,11 @@ tree otherwise contains only Coq files.
    results / 19 definitions and one public entry (205/533, 328 remaining).
    Run the expanded audit on 341 modules / 1588 results. Helpers alone do not
    count as coverage. The canonical output range bounds both accumulations.
+   Audit `52561` completed with terminal exit 0 through every gate, negative
+   fixture and exact pinned AST regeneration. Filtering the nine added modules
+   and their contract blocks reproduces accepted `87d0082` byte-for-byte;
+   the inherited kernel axiom list is unchanged. Accept the snapshots:
+   full_multiply_64 is integrated (205/533, 328 remaining).
    Avoid vm_compute in an open memory context; compute only closed identifier
    lists/AST metadata, and isolate unrelated nonlinear hypotheses before nia.
    Subsequent div_mod calls require two writers with intermediate memory;

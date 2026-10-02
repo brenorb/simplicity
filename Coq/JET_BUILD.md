@@ -1982,6 +1982,13 @@ files must reproduce `87d0082` byte-for-byte, with unchanged global kernel axiom
 Do not accept snapshots early or restart a live audit. New unregistered actual
 buffer-loop/initializer consumers may be developed while this run finishes.
 
+Audit `52561` subsequently completed with terminal exit 0 through all gates,
+negative fixtures and exact pinned AST regeneration (341 modules / 1588 results).
+Both prescribed filters reproduce accepted `87d0082` byte-for-byte, and all
+15 inherited global kernel axioms are unchanged. Accept these snapshots:
+full_multiply_64 is fully integrated (205/533, 328 remaining). Registered sources
+and manifests are no longer frozen for this completed run.
+
 Next bounded consumer: actual write_buffer8 with len=0 and n=5. Its two
 PRODUCTION assertion guards are constant false; i starts at 32, writes six false
 tags with skip counts 256/128/64/32/16/8 and halves down to zero. Reuse the checked
