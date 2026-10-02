@@ -554,10 +554,13 @@ completeness gate intentionally fails with 442 missing declarations. The
 Normal assumption and contract comparison gates also finished with exit 0 at
 327 results (55 closed), without rewriting the expected snapshots.
 
-A clean Nix rebuild of the committed 91-jet snapshot is running. Its
+A clean Nix rebuild of the committed 91-jet snapshot finished with exit 0. Its
 derivation is `/nix/store/kwj8jpi7jdl6vnjra63ym4ary6pdg4mf-Simplicity-coq-jets-0.0.0.drv`
 and immutable source is `/nix/store/11vh5glsfycx6nnkxhrji362pnlvm2hs-source`.
-This is pending verification, not a completed clean-build claim.
+The result is `/nix/store/iy1xh1fi775w9pdzh92bs56gq423457p-Simplicity-coq-jets-0.0.0`.
+The build phase took 5m18s and the check phase 12m31s. All integrated gates
+passed at 67 public modules and 327 audited results (55 closed). This certifies
+the immutable 91-jet snapshot, not the subsequent full-decrement extension.
 
 ## Borrow-input decrement at all arithmetic widths
 
@@ -576,4 +579,4 @@ The integrated check with exact AST regeneration finished with exit 0 at
 the inherited library-level axiom list are unchanged. There are 347 audited
 results (62 closed), and 438 declarations still lack complete proofs. The
 regression target also finished with exit 0. Normal comparison gates are
-running; the earlier clean Nix run remains a separate 91-jet snapshot.
+running; the completed clean Nix run certifies a separate 91-jet snapshot.
