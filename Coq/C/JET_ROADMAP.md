@@ -267,6 +267,14 @@ tree otherwise contains only Coq files.
    This is an interface proof, not a copyBits implementation proof or added
    coverage. Extend the inventory's accepted theorem shapes and negative tests
    explicitly when the first complete projection theorem uses this interface.
+   **copyBits wrapper composition completed.** `jet_copyBits_exec.v` executes
+   the actual wrapper's zero-count return without memory effects. For nonzero
+   counts, its INTERNAL composition theorem executes the helper call and cursor
+   update; the store/framing corollary derives the cursor store from the helper's
+   resulting fields and permissions. These are not complete copyBits contracts:
+   actual `copyBitsHelper` execution and its post-helper cursor facts remain
+   premises to discharge from initial frame conditions. Prove its partial-word,
+   aligned memcpy and loop branches before adding any projection coverage.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.

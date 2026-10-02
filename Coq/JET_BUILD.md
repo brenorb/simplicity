@@ -706,15 +706,17 @@ the contextual replacement theorem has the same premises and conclusion as
 arithmetic contracts and proofs are unchanged and imply the new interface.
 This supplies infrastructure only: coverage remains 127/533, with 406 missing.
 
-Explicit source compilation and direct `coqchk` passed. The integrated run has
-passed kernel checking on 92 public modules and generated reviewed assumption
-and contract snapshots; its negative tests and AST comparison are still running.
+Explicit source compilation and direct `coqchk` passed. The integrated run
+finished with exit 0, including kernel checking on 92 public modules, negative
+tests and exact AST regeneration. Its assumption and contract snapshots were
+reviewed before acceptance.
 The nine added audited results include four closed proofs and use only inherited
 axioms. Existing per-result assumption sets and the library-level allowlist are
 unchanged. Loading the generated AST as a contract-definition module also changes
 the printer's `jets.` qualifications and line wrapping; comparison after those
 printing differences confirms that existing contract contents are unchanged.
-Normal snapshot-comparison gates are running separately, without update mode.
+Normal snapshot-comparison gates also finished with exit 0 at 485 audited
+results (110 closed), without update mode.
 
 The clean Nix build started from immutable source
 `/nix/store/mm52rc5c1msa381k0wifrqgj0v8rk979-source` and derivation
@@ -723,3 +725,20 @@ It contains the 127-jet median proofs and forwardBits helper, not the subsequent
 separated-call interface. Compilation, kernel checking on 90 public modules,
 and normal assumption/contract comparisons passed; negative tests are still
 running. Do not call this clean build successful until it finishes with exit 0.
+
+## copyBits wrapper composition (not jet coverage)
+
+`jet_copyBits_exec.v` proves the actual wrapper's zero-count call without any
+memory effects. Its nonzero composition theorem includes function entry, the
+helper call, cursor read/store and return/free semantics. A further theorem
+derives the cursor store and its framing from fields and writable access in the
+helper's resulting memory. These INTERNAL results still require execution of
+`copyBitsHelper` and preservation of its destination cursor. They are not an
+initial-only copy contract and do not establish any projection jet equivalence.
+
+Explicit source compilation and direct `coqchk` finished with exit 0, with no
+type-in-type, unsafe (co)fixpoints or assumed positivity, and no library-level
+axioms beyond the inherited allowlist. The module is registered in both build
+manifests; the preceding 92-module integrated run does not certify this later
+addition. The next complete projection proof must discharge the helper's actual
+partial-word stores, aligned memcpy/loop behavior and preservation obligations.
