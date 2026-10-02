@@ -1292,3 +1292,16 @@ with no unsafe kernel features. Inventory/coverage tests, impossible-premise
 and lexical negative gates, and byte-identical AST regeneration all passed.
 Coverage is 137/533, with 396 remaining. No newer clean Nix, remote CI,
 other ABI/build, compression or whole-evaluator result is claimed.
+
+## Later checked one-bit left-padding family
+
+The four `jet_left_pad_bit{8,_wide}_{exec,layout}.v` modules were explicitly
+compiled and freshly kernel checked with exit 0 after the SHA IV integrated
+audit. All four canonical local specs retain the existing six assumptions;
+the representation bridges are closed. The exact catalog padding recursion
+is reused, not replaced with a numerical specification. Each call derives
+readBit, payload casts, its writer and the full frame lifecycle from initial
+memory, allowing arbitrary output contents and valid cursor crossings.
+The four entries bring the ledger to 141/533 (392 remaining); the expanded
+integrated audit is pending. Both project manifests and public audit lists
+include these modules.

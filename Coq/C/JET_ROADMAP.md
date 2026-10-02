@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 137 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 141 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1 at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 396 declarations without coverage
+There are 392 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -579,6 +579,20 @@ tree otherwise contains only Coq files.
    reproduces all prior contract/assumption snapshots exactly; kernel axioms
    are unchanged. Reuse the array read/write sequencing
    for subsequent hash jets; compression still needs its own verified bridge.
+   **Completed next padding consumer.** `jet_left_pad_bit_wide_exec.v` /
+   `jet_left_pad_bit_wide_layout.v` prove left_pad_low_1_16/32/64 with a shared
+   long-carrier adapter; `jet_left_pad_bit8_exec.v` /
+   `jet_left_pad_bit8_layout.v` handle the uchar variant. The specs reuse the
+   exact canonical recursion in `jet_spec.v`; actual readBit, Boolean/payload
+   casts, writers, allocation/copy/cleanup and all memory effects are derived
+   from initial-only contracts, without cursor/output-content restrictions.
+   Source compilation, fresh kernel checking and individual assumption checks
+   passed. The expanded integrated audit is pending. Coverage entries are
+   141/533; do not infer this later audit's success from the preceding SHA IV
+   run. Next reuse this one-bit-to-word lifecycle for right_pad_low_1_N and
+   left_extend_1_N, retaining their actual shift/conditional expressions and
+   proving their distinct canonical program bridges. Larger-input padding
+   still uses copyBits and retains the documented external memcpy gap.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
