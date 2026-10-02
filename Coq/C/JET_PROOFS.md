@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 141 jets of the C library
+Coq proofs that the generated CompCert Clight of 145 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -36,6 +36,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `parse_sequence` | Literal `Programs.TimeLock.parseSequence`: bit31 disables the result; otherwise bit22 selects the low 16-bit payload branch |
 | `sha_256_iv` | Literal `Programs.Sha256.Lib.iv`: canonical scribe of the 256-bit initial register constant |
 | `left_pad_low_1_8/16/32/64` | `left_pad_low_1_n`, the canonical `Programs.Word.left_pad_low word1 vectorN` recursion |
+| `right_pad_low_1_8/16/32/64` | `right_pad_low_1_n`, the canonical `Programs.Word.right_pad_low word1 vectorN` recursion |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -61,6 +62,15 @@ Programs/Word.hs:129-135. A shared adapter handles the three long-carrier
 widths; the byte adapter keeps its distinct uchar conversion. No zero-output
 or aligned-cursor restriction is added. Context and call-boundary guarantees
 are provided. The latest integrated-audit status is recorded in JET_BUILD.md.
+
+For `right_pad_low_1_8/16/32/64`, `jet_right_pad_bit*_layout.v` discharges
+both contracts of `jet_bit_word_layout.v`: an actual-body composition proof
+and an actual writer/canonical-output proof. The shared lifecycle derives
+allocation/copy/read/write/free and memory effects from initial frames. Its
+internal contracts are not assumptions of the four final local specs. The
+concrete adapters retain the actual 7/15/31/63 shifts, guard checks and casts;
+the byte expression promotes its uchar operand to tint before shifting.
+No cursor alignment or initial-output restriction is introduced.
 
 For multiplication, `jet_multiply8_layout.v:multiply8_local_spec` and
 `jet_multiply_wide_layout.v:multiply16_local_spec` / `multiply32_local_spec`

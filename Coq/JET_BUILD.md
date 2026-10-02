@@ -1327,3 +1327,15 @@ width-specific extension payloads are retained. Both project manifests include
 the module; it is not yet in public snapshots. These are bridges for upcoming
 right-padding/left-extension C consumers, not new implementation-to-spec
 proofs. Coverage remains 141/533.
+
+## Later checked complete right-padding family
+
+`jet_bit_word_layout.v` and `jet_right_pad_bit{8,_wide}_{exec,layout}.v`
+were explicitly compiled from current source and freshly kernel checked with
+exit 0. The shared lifecycle is internal; every concrete local spec discharges
+its actual-body and writer/canonical-output contracts. The four local specs
+retain only the existing six Coq/CompCert assumptions. Actual promotions,
+casts and 7/15/31/63 shift guards are proved. All frame generality is retained.
+Both project manifests, public audit lists and coverage entries include these
+modules, with the previously checked canonical padding/extension bridges.
+Coverage entries are 145/533 (388 remaining); integrated audit is pending.
