@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 153 jets of the C library
+Coq proofs that the generated CompCert Clight of 156 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -39,6 +39,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `right_pad_low_1_8/16/32/64` | `right_pad_low_1_n`, the canonical `Programs.Word.right_pad_low word1 vectorN` recursion |
 | `left_extend_1_8/16/32/64` | `left_extend_bit_spec`, the literal canonical conditional `Programs.Word.left_extend word1 vectorN` composition |
 | `left_extend_8_16/32/64` | `left_extend_word_spec 3 depth`, literal `leftmost &&& iden >>> cond left_pad_high left_pad_low` |
+| `right_extend_8_16/32/64` | `right_extend_word_spec 3 depth`, literal `rightmost &&& iden >>> cond right_pad_high right_pad_low` |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -106,6 +107,16 @@ byte sequence, without enumerating inputs. Arbitrary valid cursors, crossings,
 unrelated output contents, prefix and memory framing are supported; no original
 input/output block-separation premise is added. Generic context and call-boundary
 guarantees are provided.
+
+For `right_extend_8_16/32/64`, `jet_right_extend_word8_layout.v` reuses the
+same initial-only byte sequencing and lifecycle. Its actual C adapter retains
+the low-bit AND/Boolean cast, payload-first write, then 1/3/7 fill writes and
+cleanup. The rightmost/right-padding program and symbolic low-bit/encoding
+bridge retain the distinct canonical specification and order. All three
+final local specs compile and passed fresh kernel and individual assumption
+checks, with the same generality and inherited assumptions as the left jets.
+They are registered for the expanded integrated audit; the latest completed
+audit and any pending verification are recorded in JET_BUILD.md.
 
 For multiplication, `jet_multiply8_layout.v:multiply8_local_spec` and
 `jet_multiply_wide_layout.v:multiply16_local_spec` / `multiply32_local_spec`

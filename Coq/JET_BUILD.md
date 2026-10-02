@@ -1459,5 +1459,10 @@ completion, a new clean Nix run or any remote CI result.
 
 The mirrored right-extension source modules and initial-only local specs also
 compiled and passed fresh independent kernel/individual assumption checks.
-Their registration and expanded integrated audit are the next verification
-step; they are not part of the 174-module result above.
+They are not part of the 174-module result above. All five right-family
+modules have now been registered in both manifests and the public lists,
+adding 23 results and 11 definitions. Registered coverage is 156/533, with
+377 remaining. The expanded integrated audit must finish and its snapshot
+diffs be reviewed before claiming that combined audit passed. Fresh kernel
+checks already cover the right local specs, which retain the existing six
+assumptions; the closed mask/canonical bridges introduce none.

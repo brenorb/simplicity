@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 153 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8 at 16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
+There are 156 covered core jets: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 380 declarations without coverage
+There are 377 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -640,7 +640,7 @@ tree otherwise contains only Coq files.
    order, and literal rightmost/right-padding program. Then extend the
    reader/writer adapters to 16/32-bit inputs. These bodies do not use copyBits;
    do not introduce its external memcpy gap into their proofs.
-   **Right-extension proofs checked; registration/audit pending.**
+   **Right-extension proofs checked and registered; expanded audit pending.**
    `jet_right_extend_word8_loop.v` matches and executes the actual mirrored
    `_lsb` fill loops and the low-bit AND/Boolean cast. It reuses the checked
    1/3/7 bounds and index-step evaluation, but retains an INTERNAL writer-run
@@ -654,13 +654,12 @@ tree otherwise contains only Coq files.
    the existing byte sequence and lifecycle proofs. All five files compiled,
    and fresh independent kernel checks passed. Each of the three local specs
    retains only the existing six assumptions; mask/canonical bridges are
-   closed. The right jets are not yet in the 153-entry coverage inventory:
-   their five modules are outside both manifests/public snapshots and the
-   174-module audit. Next register all results/contracts and the three exact
-   right_extend_8_16/32/64 local specs, review the expanded snapshots and run
-   the integrated audit before counting them. Then continue with 16/32-bit
-   extension inputs. Do not claim equivalence from only the pure sequence
-   bridge or conditional loop proof.
+   closed. Their five modules are now in both manifests/public lists; the
+   three exact local specs bring registered coverage to 156/533 (377 remain).
+   They are outside the last completed 174-module audit: finish the expanded
+   audit and verify that older contracts/assumptions remain byte-identical.
+   Then continue with 16/32-bit extension inputs. Do not claim equivalence
+   from only the pure sequence bridge or conditional loop proof.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
