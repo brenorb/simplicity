@@ -1589,3 +1589,19 @@ When reviewing updated snapshots, remove only these eight modules' added
 results/definitions and compare against the completed 233-module baseline
 at `b557293`. Next inspect the 16-bit helper's Vlong payload, unsigned
 right-shift and read4/read16/write16 calls before extending widths.
+
+The expanded fill-input integrated audit is live in session `36618`. Its
+241-module kernel stage passed with the inherited axiom list unchanged;
+the assumption gate is running. Poll this handle and keep registered proof
+sources, manifests and public lists frozen until terminal completion. A quiet
+observation is not evidence that the run stopped. The expected snapshots have
+not yet been accepted or committed for this extension.
+
+`C/jet_shift_wide_expr.v` is unregistered follow-on infrastructure. It proves
+the exact generated shapes of all six 16/32/64-bit helpers and evaluates their
+scalar shifts, fill XORs and count comparisons, accounting for the three
+different mask-constant types and Int64 shifts with Vint counts. Its source
+compiled and fresh independent kernel check exited 0 with no unsafe recursion,
+assumed positivity or type-in-type. No complete wide helper execution or
+wider shift jet equivalence is claimed. Next compose actual count/payload
+readers and writers, reuse frame lifecycle, then prove canonical value bridges.

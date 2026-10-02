@@ -814,6 +814,12 @@ tree otherwise contains only Coq files.
    accounted for in reusable execution. Adapt actual ASTs while sharing
    canonical controls and reader/writer contracts; do not substitute a
    mathematical shift specification or merely rename the byte carrier.
+   `jet_shift_wide_expr.v` is checked, unregistered follow-on infrastructure:
+   exact body shapes for all six LP64 helpers and shared scalar, fill and
+   count expression evaluation. Source and fresh independent kernel checks
+   passed. The width-specific fill constants retain their actual C types:
+   signed int 65535, unsigned int -1, unsigned long -1. No wide helper call,
+   initial-frame consumer or wider shift jet coverage is claimed yet.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
