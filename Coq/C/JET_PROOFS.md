@@ -24,7 +24,13 @@ negative fixtures and pinned AST regeneration on 306 modules / 1469 results
 execute both ordered writers and preserve the first output across the second,
 including arbitrary valid cursors and crossings. Checked 96/64
 correction helper lemmas join this audit but do not establish a whole helper
-call or DivMod128_64 jet proof. The every-jet goal remains unfinished.
+call in that audit. The whole helper subsequently passed integrated audit
+`4478`: all gates, negative fixtures and pinned AST regeneration on 310 modules /
+1484 results (595 closed), with older snapshots and inherited kernel axioms
+unchanged. Its initial-only contract derives every initialization/correction/final
+store, actual loop execution and framing from valid inputs and writable output
+slots. It is a helper, not a DivMod128_64 jet proof or coverage entry.
+The every-jet goal remains unfinished.
 
 | Jet | Simplicity specification |
 | --- | --- |

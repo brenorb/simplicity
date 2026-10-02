@@ -32159,6 +32159,282 @@ exec_divmod96_loop_take
          (_ : ClightBigstep.Clight2.exec_stmt ge0 e (divmod96_next_env le q rh bh d bl) ms divmod96_loop_stmt Events.E0
                 lef mf ClightBigstep.Out_normal),
        ClightBigstep.Clight2.exec_stmt ge0 e le m divmod96_loop_stmt Events.E0 lef mf ClightBigstep.Out_normal
+divmod96_loop_inv_step
+     : forall (ah : BinNums.Z) (al bh bl q rh d : Integers.Int64.int) (_ : BinInt.Z.lt ah Integers.Int64.modulus)
+         (_ : and (BinInt.Z.lt BinNums.Z0 (Integers.Int64.unsigned bh))
+                (BinInt.Z.lt (Integers.Int64.unsigned bh) divmod96_radix))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned bl) divmod96_radix)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) divmod96_radix) (_ : divmod96_loop_inv ah al bh bl q rh d)
+         (_ : @eq bool (divmod96_guard rh al d) true),
+       and
+         (divmod96_loop_inv ah al bh bl (Integers.Int64.sub q Integers.Int64.one) (Integers.Int64.add rh bh)
+            (Integers.Int64.sub d bl))
+         (@eq BinNums.Z (divmod96_delta (Integers.Int64.add rh bh) al (Integers.Int64.sub d bl))
+            (BinInt.Z.add (divmod96_delta rh al d) (divmod96_denominator bh bl)))
+divmod96_loop_result_exit
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bq : Values.block)
+         (ofs : Integers.Ptrofs.int) (ah : BinNums.Z) (al bh bl q rh d : Integers.Int64.int)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned bl) divmod96_radix)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) divmod96_radix) (_ : divmod96_loop_env le bq ofs rh bh al d bl)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bq (Integers.Ptrofs.unsigned ofs))
+                (@Some Values.val (Values.Vlong q))) (_ : divmod96_loop_inv ah al bh bl q rh d)
+         (_ : @eq bool (divmod96_guard rh al d) false), divmod96_loop_result e le m bq ofs ah al bh bl
+eval_divmod96_loop_layout
+     : forall (fuel : nat) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (bq : Values.block) (ofs : Integers.Ptrofs.int) (ah : BinNums.Z) (al bh bl q rh d : Integers.Int64.int)
+         (_ : BinInt.Z.lt ah Integers.Int64.modulus)
+         (_ : and (BinInt.Z.lt BinNums.Z0 (Integers.Int64.unsigned bh))
+                (BinInt.Z.lt (Integers.Int64.unsigned bh) divmod96_radix))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned bl) divmod96_radix)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) divmod96_radix) (_ : divmod96_loop_env le bq ofs rh bh al d bl)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bq (Integers.Ptrofs.unsigned ofs))
+                (@Some Values.val (Values.Vlong q)))
+         (_ : Memory.Mem.valid_access m AST.Mint64 bq (Integers.Ptrofs.unsigned ofs) Memtype.Writable)
+         (_ : divmod96_loop_inv ah al bh bl q rh d)
+         (_ : BinInt.Z.le (BinInt.Z.mul (BinInt.Z.opp (BinInt.Z.of_nat fuel)) (divmod96_denominator bh bl))
+                (divmod96_delta rh al d)), divmod96_loop_result e le m bq ofs ah al bh bl
+eval_divmod96_estimate_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ah bh : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _ah le) (@Some Values.val (Values.Vlong ah)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _bh le) (@Some Values.val (Values.Vlong bh)))
+         (_ : @eq bool (Integers.Int64.eq bh Integers.Int64.zero) false),
+       Clight.eval_expr ge0 e le m
+         (Clight.Ebinop Cop.Odiv (Clight.Etempvar _ah Ctypesdefs.tulong) (Clight.Etempvar _bh Ctypesdefs.tulong)
+            Ctypesdefs.tulong) (Values.Vlong (Integers.Int64.divu ah bh))
+exec_divmod96_clamp_stmt
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ah bh : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _estQ le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.divu ah bh)))),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m divmod96_clamp_stmt Events.E0
+         (@Maps.PTree.set Values.val _t'1 (Values.Vlong (divmod96_clamp ah bh)) le) m ClightBigstep.Out_normal
+eval_divmod96_scaled_expr
+     : forall (idq idpart : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (q part : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val idq le) (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val idpart le) (@Some Values.val (Values.Vlong part))),
+       Clight.eval_expr ge0 e le m (divmod96_scaled_expr idq idpart)
+         (Values.Vlong (Integers.Int64.mul (Integers.Int64.mul Integers.Int64.one q) part))
+exec_divmod96_initialization
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m mi mf : Memory.Mem.mem)
+         (lef : Clight.temp_env) (suffix : Clight.statement) (out : ClightBigstep.outcome)
+         (bq : Values.block) (ofs : Integers.Ptrofs.int) (ah b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _q le) (@Some Values.val (Values.Vptr bq ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _ah le) (@Some Values.val (Values.Vlong ah)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _b le) (@Some Values.val (Values.Vlong b)))
+         (_ : @eq bool (Integers.Int64.eq (divmod96_high b) Integers.Int64.zero) false)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bq (Integers.Ptrofs.unsigned ofs)
+                   (Values.Vlong (divmod96_clamp ah (divmod96_high b)))) (@Some Memory.Mem.mem mi))
+         (_ : ClightBigstep.Clight2.exec_stmt ge0 e (divmod96_init_env le ah b) mi suffix Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m (divmod96_work suffix) Events.E0 lef mf out
+divmod96_initial_values
+     : forall (ah al b : Integers.Int64.int)
+         (_ : BinInt.Z.le Integers.Int64.modulus
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned b)))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned ah) (Integers.Int64.unsigned b))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) divmod96_radix),
+       let q : Integers.Int64.int := divmod96_clamp ah (divmod96_high b) in
+       and
+         (@eq BinNums.Z (Integers.Int64.unsigned (divmod96_initial_rh ah b))
+            (BinInt.Z.sub (Integers.Int64.unsigned ah)
+               (BinInt.Z.mul (Integers.Int64.unsigned q) (Integers.Int64.unsigned (divmod96_high b)))))
+         (@eq BinNums.Z (Integers.Int64.unsigned (divmod96_initial_d ah b))
+            (BinInt.Z.mul (Integers.Int64.unsigned q) (Integers.Int64.unsigned (divmod96_low b))))
+divmod96_initial_invariant
+     : forall (ah al b : Integers.Int64.int)
+         (_ : BinInt.Z.le Integers.Int64.modulus
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned b)))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned ah) (Integers.Int64.unsigned b))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) divmod96_radix),
+       and
+         (divmod96_loop_inv (Integers.Int64.unsigned ah) al (divmod96_high b) (divmod96_low b)
+            (divmod96_clamp ah (divmod96_high b)) (divmod96_initial_rh ah b) (divmod96_initial_d ah b))
+         (BinInt.Z.le
+            (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH))
+               (divmod96_denominator (divmod96_high b) (divmod96_low b)))
+            (divmod96_delta (divmod96_initial_rh ah b) al (divmod96_initial_d ah b)))
+divmod96_initial_loop_env
+     : forall (le : Maps.PTree.tree Values.val) (bq : Values.block) (ofs : Integers.Ptrofs.int)
+         (ah al b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _q le) (@Some Values.val (Values.Vptr bq ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _al le) (@Some Values.val (Values.Vlong al))),
+       divmod96_loop_env (divmod96_init_env le ah b) bq ofs (divmod96_initial_rh ah b) (divmod96_high b) al
+         (divmod96_initial_d ah b) (divmod96_low b)
+divmod96_initial_r_pointer
+     : forall (le : Maps.PTree.tree Values.val) (ah b : Integers.Int64.int),
+       @eq (option Values.val) (@Maps.PTree.get Values.val _r (divmod96_init_env le ah b))
+         (@Maps.PTree.get Values.val _r le)
+divmod96_body
+     : @eq Clight.statement (Clight.fn_body f_div_mod_96_64)
+         (Clight.Ssequence divmod96_debug_first
+            (Clight.Ssequence divmod96_debug_second
+               (divmod96_work (Clight.Ssequence divmod96_loop_stmt divmod96_final_stmt))))
+exec_divmod96_body
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bq : Values.block)
+         (qo : Integers.Ptrofs.int) (br : Values.block) (ro : Integers.Ptrofs.int) (ah al b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _q le) (@Some Values.val (Values.Vptr bq qo)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _r le) (@Some Values.val (Values.Vptr br ro)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _ah le) (@Some Values.val (Values.Vlong ah)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _al le) (@Some Values.val (Values.Vlong al)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _b le) (@Some Values.val (Values.Vlong b)))
+         (_ : BinInt.Z.le Integers.Int64.modulus
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned b)))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned ah) (Integers.Int64.unsigned b))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) divmod96_radix)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bq (Integers.Ptrofs.unsigned qo) Memtype.Writable)
+         (_ : Memory.Mem.valid_access m AST.Mint64 br (Integers.Ptrofs.unsigned ro) Memtype.Writable)
+         (_ : or (not (@eq Values.block bq br))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned qo)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned ro))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned ro)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned qo)))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Clight.temp_env
+            (fun lef : Clight.temp_env =>
+             @ex Integers.Int64.int
+               (fun qf : Integers.Int64.int =>
+                @ex Integers.Int64.int
+                  (fun rf : Integers.Int64.int =>
+                   and
+                     (ClightBigstep.Clight2.exec_stmt ge0 e le m (Clight.fn_body f_div_mod_96_64) Events.E0 lef mf
+                        ClightBigstep.Out_normal)
+                     (and
+                        (@eq (option Values.val) (Memory.Mem.load AST.Mint64 mf bq (Integers.Ptrofs.unsigned qo))
+                           (@Some Values.val (Values.Vlong qf)))
+                        (and
+                           (@eq (option Values.val) (Memory.Mem.load AST.Mint64 mf br (Integers.Ptrofs.unsigned ro))
+                              (@Some Values.val (Values.Vlong rf)))
+                           (and
+                              (and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned qf))
+                                 (BinInt.Z.lt (Integers.Int64.unsigned qf) divmod96_radix))
+                              (and
+                                 (and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned rf))
+                                    (BinInt.Z.lt (Integers.Int64.unsigned rf) (Integers.Int64.unsigned b)))
+                                 (and
+                                    (@eq BinNums.Z
+                                       (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned ah) divmod96_radix)
+                                          (Integers.Int64.unsigned al))
+                                       (BinInt.Z.add
+                                          (BinInt.Z.mul (Integers.Int64.unsigned qf) (Integers.Int64.unsigned b))
+                                          (Integers.Int64.unsigned rf)))
+                                    (and
+                                       (forall (chunk : AST.memory_chunk) (bb : Values.block)
+                                          (addr : BinNums.Z)
+                                          (_ : or (not (@eq Values.block bb bq))
+                                                 (or
+                                                    (BinInt.Z.le (BinInt.Z.add addr (Memdata.size_chunk chunk))
+                                                       (Integers.Ptrofs.unsigned qo))
+                                                    (BinInt.Z.le
+                                                       (BinInt.Z.add (Integers.Ptrofs.unsigned qo)
+                                                          (BinNums.Zpos
+                                                             (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) addr)))
+                                          (_ : or (not (@eq Values.block bb br))
+                                                 (or
+                                                    (BinInt.Z.le (BinInt.Z.add addr (Memdata.size_chunk chunk))
+                                                       (Integers.Ptrofs.unsigned ro))
+                                                    (BinInt.Z.le
+                                                       (BinInt.Z.add (Integers.Ptrofs.unsigned ro)
+                                                          (BinNums.Zpos
+                                                             (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) addr))),
+                                        @eq (option Values.val) (Memory.Mem.load chunk mf bb addr)
+                                          (Memory.Mem.load chunk m bb addr))
+                                       (and
+                                          (forall (bb : Values.block) (addr : BinNums.Z) (kind : Memtype.perm_kind)
+                                             (p : Memtype.permission) (_ : Memory.Mem.perm m bb addr kind p),
+                                           Memory.Mem.perm mf bb addr kind p)
+                                          (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m)))))))))))))
+divmod96_entry
+     : forall (m : Memory.Mem.mem) (bq : Values.block) (qo : Integers.Ptrofs.int) (br : Values.block)
+         (ro : Integers.Ptrofs.int) (ah al b : Integers.Int64.int),
+       Clight.function_entry2 ge0 f_div_mod_96_64
+         (@cons Values.val (Values.Vptr bq qo)
+            (@cons Values.val (Values.Vptr br ro)
+               (@cons Values.val (Values.Vlong ah)
+                  (@cons Values.val (Values.Vlong al) (@cons Values.val (Values.Vlong b) (@nil Values.val)))))) m
+         Clight.empty_env (divmod96_entry_env bq qo br ro ah al b) m
+eval_divmod96_layout
+     : forall (m : Memory.Mem.mem) (bq : Values.block) (qo : Integers.Ptrofs.int) (br : Values.block)
+         (ro : Integers.Ptrofs.int) (ah al b : Integers.Int64.int)
+         (_ : BinInt.Z.le Integers.Int64.modulus
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned b)))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned ah) (Integers.Int64.unsigned b))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) divmod96_radix)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bq (Integers.Ptrofs.unsigned qo) Memtype.Writable)
+         (_ : Memory.Mem.valid_access m AST.Mint64 br (Integers.Ptrofs.unsigned ro) Memtype.Writable)
+         (_ : or (not (@eq Values.block bq br))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned qo)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned ro))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned ro)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned qo)))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Integers.Int64.int
+            (fun qf : Integers.Int64.int =>
+             @ex Integers.Int64.int
+               (fun rf : Integers.Int64.int =>
+                and
+                  (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_div_mod_96_64)
+                     (@cons Values.val (Values.Vptr bq qo)
+                        (@cons Values.val (Values.Vptr br ro)
+                           (@cons Values.val (Values.Vlong ah)
+                              (@cons Values.val (Values.Vlong al) (@cons Values.val (Values.Vlong b) (@nil Values.val))))))
+                     Events.E0 mf Values.Vundef)
+                  (and
+                     (@eq (option Values.val) (Memory.Mem.load AST.Mint64 mf bq (Integers.Ptrofs.unsigned qo))
+                        (@Some Values.val (Values.Vlong qf)))
+                     (and
+                        (@eq (option Values.val) (Memory.Mem.load AST.Mint64 mf br (Integers.Ptrofs.unsigned ro))
+                           (@Some Values.val (Values.Vlong rf)))
+                        (and
+                           (and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned qf))
+                              (BinInt.Z.lt (Integers.Int64.unsigned qf) divmod96_radix))
+                           (and
+                              (and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned rf))
+                                 (BinInt.Z.lt (Integers.Int64.unsigned rf) (Integers.Int64.unsigned b)))
+                              (and
+                                 (@eq BinNums.Z
+                                    (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned ah) divmod96_radix)
+                                       (Integers.Int64.unsigned al))
+                                    (BinInt.Z.add
+                                       (BinInt.Z.mul (Integers.Int64.unsigned qf) (Integers.Int64.unsigned b))
+                                       (Integers.Int64.unsigned rf)))
+                                 (and
+                                    (forall (chunk : AST.memory_chunk) (bb : Values.block)
+                                       (addr : BinNums.Z)
+                                       (_ : or (not (@eq Values.block bb bq))
+                                              (or
+                                                 (BinInt.Z.le (BinInt.Z.add addr (Memdata.size_chunk chunk))
+                                                    (Integers.Ptrofs.unsigned qo))
+                                                 (BinInt.Z.le
+                                                    (BinInt.Z.add (Integers.Ptrofs.unsigned qo)
+                                                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                                    addr)))
+                                       (_ : or (not (@eq Values.block bb br))
+                                              (or
+                                                 (BinInt.Z.le (BinInt.Z.add addr (Memdata.size_chunk chunk))
+                                                    (Integers.Ptrofs.unsigned ro))
+                                                 (BinInt.Z.le
+                                                    (BinInt.Z.add (Integers.Ptrofs.unsigned ro)
+                                                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                                    addr))),
+                                     @eq (option Values.val) (Memory.Mem.load chunk mf bb addr)
+                                       (Memory.Mem.load chunk m bb addr))
+                                    (and
+                                       (forall (bb : Values.block) (addr : BinNums.Z) (kind : Memtype.perm_kind)
+                                          (p : Memtype.permission) (_ : Memory.Mem.perm m bb addr kind p),
+                                        Memory.Mem.perm mf bb addr kind p)
+                                       (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m))))))))))))
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -45482,3 +45758,247 @@ fun (le : Maps.PTree.tree Values.val) (q rh bh d bl : Integers.Int64.int) =>
          (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
 
 Arguments divmod96_next_env le q rh bh d bl
+divmod96_denominator =
+fun bh bl : Integers.Int64.int =>
+BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned bh) divmod96_radix) (Integers.Int64.unsigned bl)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), BinNums.Z
+
+Arguments divmod96_denominator bh bl
+divmod96_delta =
+fun rh al d : Integers.Int64.int =>
+BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul divmod96_radix (Integers.Int64.unsigned rh)) (Integers.Int64.unsigned al))
+  (Integers.Int64.unsigned d)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), BinNums.Z
+
+Arguments divmod96_delta rh al d
+divmod96_loop_inv =
+fun (ah : BinNums.Z) (al bh bl q rh d : Integers.Int64.int) =>
+and (and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned q)) (BinInt.Z.lt (Integers.Int64.unsigned q) divmod96_radix))
+  (and
+     (@eq BinNums.Z ah
+        (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned q) (Integers.Int64.unsigned bh))
+           (Integers.Int64.unsigned rh)))
+     (and
+        (@eq BinNums.Z (Integers.Int64.unsigned d)
+           (BinInt.Z.mul (Integers.Int64.unsigned q) (Integers.Int64.unsigned bl)))
+        (BinInt.Z.lt (divmod96_delta rh al d) (divmod96_denominator bh bl))))
+     : forall (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Prop
+
+Arguments divmod96_loop_inv ah%Z_scope al bh bl q rh d
+divmod96_loop_env =
+fun (le : Maps.PTree.tree Values.val) (bq : Values.block) (ofs : Integers.Ptrofs.int)
+  (rh bh al d bl : Integers.Int64.int) =>
+and (@eq (option Values.val) (@Maps.PTree.get Values.val _q le) (@Some Values.val (Values.Vptr bq ofs)))
+  (and (@eq (option Values.val) (@Maps.PTree.get Values.val _rh le) (@Some Values.val (Values.Vlong rh)))
+     (and (@eq (option Values.val) (@Maps.PTree.get Values.val _bh le) (@Some Values.val (Values.Vlong bh)))
+        (and (@eq (option Values.val) (@Maps.PTree.get Values.val _al le) (@Some Values.val (Values.Vlong al)))
+           (and (@eq (option Values.val) (@Maps.PTree.get Values.val _d le) (@Some Values.val (Values.Vlong d)))
+              (@eq (option Values.val) (@Maps.PTree.get Values.val _bl le) (@Some Values.val (Values.Vlong bl)))))))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Values.block) (_ : Integers.Ptrofs.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int), Prop
+
+Arguments divmod96_loop_env le bq ofs rh bh al d bl
+divmod96_loop_result =
+fun (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (bq : Values.block) (ofs : Integers.Ptrofs.int)
+  (ah : BinNums.Z) (al bh bl : Integers.Int64.int) =>
+@ex Memory.Mem.mem
+  (fun mf : Memory.Mem.mem =>
+   @ex Clight.temp_env
+     (fun lef : Clight.temp_env =>
+      @ex Integers.Int64.int
+        (fun qf : Integers.Int64.int =>
+         @ex Integers.Int64.int
+           (fun rhf : Integers.Int64.int =>
+            @ex Integers.Int64.int
+              (fun df : Integers.Int64.int =>
+               and
+                 (ClightBigstep.Clight2.exec_stmt ge0 e le m divmod96_loop_stmt Events.E0 lef mf
+                    ClightBigstep.Out_normal)
+                 (and (divmod96_loop_env lef bq ofs rhf bh al df bl)
+                    (and
+                       (@eq (option Values.val) (Memory.Mem.load AST.Mint64 mf bq (Integers.Ptrofs.unsigned ofs))
+                          (@Some Values.val (Values.Vlong qf)))
+                       (and (divmod96_loop_inv ah al bh bl qf rhf df)
+                          (and (BinInt.Z.le BinNums.Z0 (divmod96_delta rhf al df))
+                             (and
+                                (forall (id : AST.ident) (_ : not (@eq AST.ident id _t'2))
+                                   (_ : not (@eq AST.ident id _t'3)) (_ : not (@eq AST.ident id _rh))
+                                   (_ : not (@eq AST.ident id _d)),
+                                 @eq (option Values.val) (@Maps.PTree.get Values.val id lef)
+                                   (@Maps.PTree.get Values.val id le))
+                                (and
+                                   (forall (chunk : AST.memory_chunk) (b : Values.block) (addr : BinNums.Z)
+                                      (_ : or (not (@eq Values.block b bq))
+                                             (or
+                                                (BinInt.Z.le (BinInt.Z.add addr (Memdata.size_chunk chunk))
+                                                   (Integers.Ptrofs.unsigned ofs))
+                                                (BinInt.Z.le
+                                                   (BinInt.Z.add (Integers.Ptrofs.unsigned ofs)
+                                                      (BinNums.Zpos (BinNums.xO (BinNums.xO ...)))) addr))),
+                                    @eq (option Values.val) (Memory.Mem.load chunk mf b addr)
+                                      (Memory.Mem.load chunk m b addr))
+                                   (and
+                                      (forall (b : Values.block) (addr : BinNums.Z) (kind : Memtype.perm_kind)
+                                         (p : Memtype.permission) (_ : Memory.Mem.perm m b addr kind p),
+                                       Memory.Mem.perm mf b addr kind p)
+                                      (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m))))))))))))))
+     : forall (_ : Clight.env) (_ : Clight.temp_env) (_ : Memory.Mem.mem) (_ : Values.block)
+         (_ : Integers.Ptrofs.int) (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int), Prop
+
+Arguments divmod96_loop_result e le m bq ofs ah%Z_scope al bh bl
+divmod96_clamp_stmt =
+Clight.Sifthenelse
+  (Clight.Ebinop Cop.Ole (Clight.Etempvar _estQ Ctypesdefs.tulong)
+     (Clight.Econst_int Integers.Int.mone Ctypesdefs.tuint) Ctypesdefs.tint)
+  (Clight.Sset _t'1
+     (Clight.Ecast (Clight.Ecast (Clight.Etempvar _estQ Ctypesdefs.tulong) Ctypesdefs.tulong) Ctypesdefs.tulong))
+  (Clight.Sset _t'1 (Clight.Ecast (Clight.Econst_int Integers.Int.mone Ctypesdefs.tuint) Ctypesdefs.tulong))
+     : Clight.statement
+divmod96_scaled_expr =
+fun idq idpart : AST.ident =>
+Clight.Ebinop Cop.Omul
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint) (Clight.Etempvar idq Ctypesdefs.tulong)
+     Ctypesdefs.tulong) (Clight.Etempvar idpart Ctypesdefs.tulong) Ctypesdefs.tulong
+     : forall (_ : AST.ident) (_ : AST.ident), Clight.expr
+
+Arguments divmod96_scaled_expr idq idpart
+divmod96_work =
+fun suffix : Clight.statement =>
+Clight.Ssequence
+  (Clight.Sset _bh
+     (Clight.Ebinop Cop.Oshr (Clight.Etempvar _b Ctypesdefs.tulong)
+        (Clight.Econst_int
+           (Integers.Int.repr
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+           Ctypesdefs.tint) Ctypesdefs.tulong))
+  (Clight.Ssequence
+     (Clight.Sset _bl
+        (Clight.Ebinop Cop.Oand (Clight.Etempvar _b Ctypesdefs.tulong)
+           (Clight.Econst_int Integers.Int.mone Ctypesdefs.tuint) Ctypesdefs.tulong))
+     (Clight.Ssequence
+        (Clight.Sset _estQ
+           (Clight.Ebinop Cop.Odiv (Clight.Etempvar _ah Ctypesdefs.tulong) (Clight.Etempvar _bh Ctypesdefs.tulong)
+              Ctypesdefs.tulong))
+        (Clight.Ssequence
+           (Clight.Ssequence divmod96_clamp_stmt
+              (Clight.Sassign
+                 (Clight.Ederef (Clight.Etempvar _q (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong)
+                 (Clight.Etempvar _t'1 Ctypesdefs.tulong)))
+           (Clight.Ssequence
+              (Clight.Ssequence
+                 (Clight.Sset _t'5
+                    (Clight.Ederef (Clight.Etempvar _q (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong))
+                 (Clight.Sset _rh
+                    (Clight.Ebinop Cop.Osub (Clight.Etempvar _ah Ctypesdefs.tulong) (divmod96_scaled_expr _t'5 _bh)
+                       Ctypesdefs.tulong)))
+              (Clight.Ssequence
+                 (Clight.Ssequence
+                    (Clight.Sset _t'4
+                       (Clight.Ederef (Clight.Etempvar _q (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong))
+                    (Clight.Sset _d (divmod96_scaled_expr _t'4 _bl))) suffix)))))
+     : forall _ : Clight.statement, Clight.statement
+
+Arguments divmod96_work suffix
+divmod96_initial_rh =
+fun ah b : Integers.Int64.int =>
+let q : Integers.Int64.int := divmod96_clamp ah (divmod96_high b) in
+Integers.Int64.sub ah (Integers.Int64.mul (Integers.Int64.mul Integers.Int64.one q) (divmod96_high b))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments divmod96_initial_rh ah b
+divmod96_initial_d =
+fun ah b : Integers.Int64.int =>
+let q : Integers.Int64.int := divmod96_clamp ah (divmod96_high b) in
+Integers.Int64.mul (Integers.Int64.mul Integers.Int64.one q) (divmod96_low b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments divmod96_initial_d ah b
+divmod96_init_env =
+fun (le : Maps.PTree.tree Values.val) (ah b : Integers.Int64.int) =>
+let bh : Integers.Int64.int := divmod96_high b in
+let bl : Integers.Int64.int := divmod96_low b in
+let q : Integers.Int64.int := divmod96_clamp ah bh in
+@Maps.PTree.set Values.val _d (Values.Vlong (divmod96_initial_d ah b))
+  (@Maps.PTree.set Values.val _t'4 (Values.Vlong q)
+     (@Maps.PTree.set Values.val _rh (Values.Vlong (divmod96_initial_rh ah b))
+        (@Maps.PTree.set Values.val _t'5 (Values.Vlong q)
+           (@Maps.PTree.set Values.val _t'1 (Values.Vlong q)
+              (@Maps.PTree.set Values.val _estQ (Values.Vlong (Integers.Int64.divu ah bh))
+                 (@Maps.PTree.set Values.val _bl (Values.Vlong bl)
+                    (@Maps.PTree.set Values.val _bh (Values.Vlong bh) le)))))))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments divmod96_init_env le ah b
+divmod96_final_stmt =
+Clight.Sassign (Clight.Ederef (Clight.Etempvar _r (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong)
+  divmod96_final_expr
+     : Clight.statement
+divmod96_debug_first =
+match Clight.fn_body f_div_mod_96_64 return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s _ => s
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+divmod96_debug_second =
+match Clight.fn_body f_div_mod_96_64 return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s1 =>
+    match s1 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence s _ => s
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+divmod96_entry_env =
+fun (bq : Values.block) (qo : Integers.Ptrofs.int) (br : Values.block) (ro : Integers.Ptrofs.int)
+  (ah al b : Integers.Int64.int) =>
+@Maps.PTree.set Values.val _b (Values.Vlong b)
+  (@Maps.PTree.set Values.val _al (Values.Vlong al)
+     (@Maps.PTree.set Values.val _ah (Values.Vlong ah)
+        (@Maps.PTree.set Values.val _r (Values.Vptr br ro)
+           (@Maps.PTree.set Values.val _q (Values.Vptr bq qo)
+              (Clight.create_undef_temps (Clight.fn_temps f_div_mod_96_64))))))
+     : forall (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Values.block) (_ : Integers.Ptrofs.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments divmod96_entry_env bq qo br ro ah al b

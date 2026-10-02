@@ -20,9 +20,9 @@ low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
 There are 331 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
-audit `64579` covers all 202 entries, including the four div_mod whole-call proofs,
-and the initial 96/64 helper infrastructure. All gates, negative fixtures and
-pinned AST regeneration passed on 306 modules / 1469 results (588 closed).
+audit `4478` covers all 202 entries, including the four div_mod whole-call proofs,
+and the complete 96/64 helper. All gates, negative fixtures and pinned AST
+regeneration passed on 310 modules / 1484 results (595 closed).
 Earlier snapshots and the 15 inherited kernel axioms are unchanged.
 The helper lemmas do not establish DivMod128_64 coverage.
 Coverage is for the pinned
@@ -1005,7 +1005,7 @@ tree otherwise contains only Coq files.
    only projections/types; do not unfold recursive arithmetic to repair this.
    For positivity, use direct sum/product lemmas rather than nia over a large
    context containing unrelated cubic equations.
-   **Checked 96/64 helper infrastructure, not yet a helper/jet proof.**
+   **Complete 96/64 helper, not yet DivMod128_64 jet coverage.**
    `jet_divmod96_arith.v` proves clipped-estimate residual bounds, exact guard,
    safe corrections, two-correction termination bound and exit balance.
    `jet_divmod96_value.v` connects CompCert shifts/masks, short-circuit comparison
@@ -1014,18 +1014,32 @@ tree otherwise contains only Coq files.
    machine quotient's invariant. `jet_divmod96_expr.v` executes the actual
    scalar trees and guard; `jet_divmod96_step.v` executes the quotient load/store
    and rh/d updates. `jet_divmod96_loop.v` supplies exit and taken-iteration
-   composition rules. The latter's tail premise is NOT a termination proof;
-   discharge it with the arithmetic bound when proving the whole helper.
+   composition rules. Their store and recursive-tail premises are discharged
+   by `jet_divmod96_loop_layout.v`: fuel induction on the exact machine
+   invariant gives actual loop execution, unchanged unrelated temporaries,
+   framing, permissions and nextblock. `jet_divmod96_init_exec.v` executes
+   the literal LP64 initialization, including its casts and multiply-by-one.
+   `jet_divmod96_init_layout.v` establishes the exact initial machine values
+   and invariant. `jet_divmod96_layout.v` proves whole function entry/body/free
+   and the final remainder store from normalized inputs and writable,
+   nonoverlapping eight-byte output slots. It needs neither initial output
+   loads nor a supplied store/loop/call execution premise.
    Current-source coqc, scans and fresh kernels passed (`63181`, `81516`, `1580`,
    `82032`, `20160`). Pure numeric checks are closed; C executions retain only
-   inherited assumptions. No DivMod128_64 inventory entry has been added.
+   inherited assumptions. The four whole-helper modules pass fresh kernels
+   (`20675`, `97397`, `27636`, `71368`). Integrated audit `4478` exited 0
+   through all gates, negative fixtures and pinned AST regeneration against
+   accepted baseline `35d87e1`: four modules / 15 results / 15 definitions
+   added, 310 modules / 1484 results (595 closed). Removing only those additions
+   reproduces both baseline snapshots byte-for-byte; all 15 inherited kernel
+   axioms are unchanged. No DivMod128_64 inventory entry has been added.
    For the whole memory-aware helper, use B=2^32, D=bh*B+bl, N=ah*B+al,
    q0=min(ah/bh,B-1), delta0=N-q0*D. Maintain q=q0-i, rh=ah-q*bh,
    d=q*bl, delta=N-q*D=delta0+i*D, 0<=rh<=ah<2^64 and 0<=d<2^64.
    The guard is equivalent to delta<0; its first test ensures the second
    expression cannot overflow. Each taken body increments delta by D and
    cannot underflow the quotient/difference or overflow rh. Unroll at most two
-   iterations, deriving every store from writable nonoverlapping **eight-byte**
+   iterations (already proved), deriving every store from writable nonoverlapping **eight-byte**
    output slots and preserving other memory. In pinned LP64 Clight,
    uint_fast32_t is tulong; do not model the quotient slots as four-byte tuint.
    Then compose the helper calls for ah*B+am and r1*B+al. Connect their combined
@@ -1036,6 +1050,41 @@ tree otherwise contains only Coq files.
    readers, local allocations/free and branch-specific writers from initial
    frames. Reuse arithmetic invariants rather than attempting lockstep execution
    between the C loop and canonical correction combinators.
+   **128/64 consumers already checked independently; initial-only integration remains.**
+   `jet_divmod128_helpers.v` derives both actual helper calls, protects the
+   high quotient during the second call and proves their combined balance.
+   `jet_divmod128_spec.v` connects valid machine results to the literal
+   div2n1n program by its checked Euclidean observation and word injectivity;
+   it also proves the canonical invalid-input all-ones result and exact guard
+   agreement. These canonical bridges are closed. `jet_divmod128_expr.v`
+   executes the actual short-circuit guard and derives both helper preconditions.
+   `jet_divmod128_entry.v` executes the four allocations, source-copy/reader
+   boundaries, local reloads and both static helper call boundaries without
+   hardcoded symbol blocks. `jet_divmod128_exec.v` checks the complete generated
+   body outline by reflexivity, executes both branch compositions and composes
+   all four reads, guard, branch, return and local free into the public call.
+   Its intermediate call/free/branch premises must still be discharged; it
+   is NOT an initial-only public contract or inventory entry.
+   `jet_divmod128_readers.v` now derives the actual 64/32/32/64 reader sequence
+   from four initial words, with exact values, crossings, framing and permissions.
+   `jet_divmod128_free.v` derives cleanup from freeable permissions in the
+   actual blocks_of_env order: source(16), qh(8), ql(8), r(8).
+   `jet_write_wide_mixed_sequence.v` derives varying-width writers from one
+   initial frame. Its run exposes protected local-load preservation at EVERY
+   intermediate call, needed because C reloads ql and r between writes.
+   **Next concrete proof:** allocate the four locals, prove freshness and
+   preserve original frame/data loads and permissions; copy the source frame;
+   apply eval_divmod128_readers; retain freeable permissions for all locals.
+   Split only the actual divmod128_guard. In the valid branch apply
+   eval_divmod128_helpers to the three writable fresh slots, then the mixed
+   writer theorem on [(W32,qh);(W32,ql);(W64,r)]. Its per-step preservation
+   discharges the intermediate ql/r reloads in exec_divmod128_valid_composes.
+   Use the valid canonical representation bridge for the output cells.
+   In the invalid branch use two W64 all-ones writers and the checked invalid
+   canonical bridge. Apply free_divmod128_locals, preserving existing output
+   and old memory outside the permitted frame/output ranges, and feed the
+   derived branch/free premises into eval_divmod128_composes. Then export the
+   named initial-only local spec, context and guarantees; only then add coverage.
    Subsequent div_mod calls require two writers with intermediate memory;
    divides swaps operands and writes one bit. A source-comment trap: the
    Haskell divides documentation says divides(0,y) is True, but its actual
