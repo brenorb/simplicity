@@ -1853,12 +1853,12 @@ escape-hatch scans pass. All zero divisors are covered according to the actual
 canonical program, not the conflicting nearby Haskell comment.
 
 Six modules / 26 results / 16 definitions and four coverage entries are
-registered: 198/533, 335 missing. Integrated audit `24374` is running against
-the accepted `f15a9a6` baseline; freeze registered sources/manifests/public
-lists and poll the same handle. Expected totals: 294 modules / 1421 results,
-566 closed. Accept only after terminal exit 0, all negative fixtures and pinned
-AST regeneration, and an additions-only baseline review. The last completed
-integrated audit remains `28051` (194 entries).
+registered: 198/533, 335 missing. Integrated audit `24374` finished with exit 0:
+all gates, negative fixtures and pinned AST regeneration passed (294 modules /
+1421 results, 568 closed). Removing only the six new modules' assumptions and
+contract blocks reproduces accepted `f15a9a6` byte-for-byte. All 15 inherited
+kernel axioms are unchanged. The reviewed snapshots are accepted; this is the
+latest completed integrated audit, covering 198 entries.
 
 Six unregistered div_mod modules compile and pass explicit scans/assumption
 checks: `jet_divmod_expr.v`, `jet_divmod_representation.v`, byte/wide execution
@@ -1867,7 +1867,7 @@ after current-source coqc. The pair representation is closed; C contracts keep
 the inherited assumptions. Actual C writes quotient then remainder. Reuse
 `write8_sequence_run_layout` / `write_wide_sequence_run_layout` to derive both
 calls and memory framing; do not assume either intermediate call. Register
-four div_mod entries after audit `24374` terminates, then run the expanded audit.
+four div_mod entries now that audit `24374` has terminated, then run the expanded audit.
 The next harder jet is DivMod128_64 with its correction-loop helper. In the
 pinned LP64 Clight, uint_fast32_t locals/parameters are **tulong**, not tuint;
 their 32-bit logical bounds must follow from readers/loop invariants.

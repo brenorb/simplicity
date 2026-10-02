@@ -20,10 +20,9 @@ low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
 There are 335 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
-audit `28051` covers 194 entries, including the eight divide/modulo proofs.
-The four divides entries pass independent source/kernel checks and are in
-running expanded audit `24374`. Four further div_mod whole-call proofs pass
-independent checks but are not yet registered while this audit runs.
+audit `24374` covers all 198 entries, including the four divides proofs.
+Four further div_mod whole-call proofs pass independent source/kernel checks
+and are next to be registered, together with the 96/64 helper infrastructure.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -975,9 +974,10 @@ tree otherwise contains only Coq files.
    the five pure bridges are closed, local/context contracts retain only the
    inherited six assumptions, and guarantees retain the two Events properties.
    Six modules / 26 results / 16 definitions / four entries are registered.
-   Full audit `24374` is running against `f15a9a6`; freeze all registered
-   sources/manifests/public lists and poll it before accepting snapshots.
-   Expected totals: 294 modules / 1421 results, 566 closed.
+   Full audit `24374` finished with exit 0: all gates, negative fixtures and
+   pinned AST regeneration passed (294 modules / 1421 results, 568 closed).
+   Removing just the six new modules' assumptions/contract blocks reproduces
+   `f15a9a6` byte-for-byte; all 15 inherited kernel axioms are unchanged.
    The six **unregistered** `jet_divmod{_expr,_representation,8_exec,_wide_exec,
    8_layout,_wide_layout}.v` modules also pass current-source coqc, explicit
    static and assumption checks, plus fresh kernels `28975` (scalar execution),
@@ -985,8 +985,8 @@ tree otherwise contains only Coq files.
    byte/wide sequence writers, preserving quotient output during the remainder
    write, and recover the complete literal div_mod pair from its checked
    projections. All zero divisors and initial frame/layout guarantees remain.
-   Register these four entries only after `24374` terminates; they do not yet
-   increase inventory coverage.
+   The four entries are now ready for registration and the expanded audit;
+   they do not yet increase inventory coverage.
    **Next: DivMod128_64 and its div_mod_96_64 helper.** The canonical
    numeric bridge is now proved; do not restart normalization or replace
    the actual program with division_numeric. Reuse division_word_representation
