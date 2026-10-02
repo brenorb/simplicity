@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 123 jets of the C library
+Coq proofs that the generated CompCert Clight of 127 jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -27,6 +27,7 @@ expression in a local, explicitly described context.
 | `lt/le_8/16/32/64` | `lt_word_spec` / `le_word_spec`, the canonical subtract-borrow and negated swapped-lt compositions |
 | `is_zero/is_one_8/16/32/64` | `is_zero_word_spec` / `is_one_word_spec`, canonical negated-some and decrement-payload-zero compositions |
 | `min/max_8/16/32/64` | `minmax_word_spec`, canonical le-and-input followed by conditional projections |
+| `median_8/16/32/64` | `median_word_spec`, the literal canonical nested min/max composition |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -211,6 +212,15 @@ intermediate and uchar writer cast. The layout modules reuse the two-reader
 word-writer lifecycle and exact input-value decoding, deriving all reads,
 writes, entry, return and local cleanup from initial-only contracts. Eight
 named local specs have contextual and deterministic call guarantees.
+
+`jet_median_spec.v` mirrors the canonical nested min/max composition and
+connects it symbolically to the C's nested strict-comparison selection.
+`jet_median_control.v` shares the literal generated branch tree across byte
+and wide carriers, including every two/three-assignment leaf and identity
+cast. The byte/wide adapters discharge all comparison/cast premises, execute
+three readers and the word writer, and derive allocation, copying, return and
+free from initial-only layouts. Four named local specs include arbitrary valid
+cursors, crossings, memory framing, contexts and deterministic guarantees.
 
 `jet_borrow_unary_word.v` reuses that signed balance and carrier-modulo bridge
 for canonical negation and decrement. It retains the generated nonzero/less-
@@ -425,6 +435,7 @@ and `constant_context_guarantees`, derived through these same generic results.
 | `lt/le_8/16/32/64` | byte/wide ordering layout theorems | eight named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 | `is_zero/is_one_8/16/32/64` | byte/wide test-value layout theorems | eight named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 | `min/max_8/16/32/64` | byte/wide minmax layout theorems | eight named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
+| `median_8/16/32/64` | byte/wide median layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 
 All 16-, 32- and 64-bit increment/add value theorems are proved from initial-memory
 contracts, including W16 (`eval_read16_layout_total` derives the reader's stores;

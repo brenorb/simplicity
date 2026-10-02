@@ -661,3 +661,22 @@ unchanged. Normal comparison gates passed at 452 results (100 closed), without
 rewriting snapshots. The regression target passed; the completeness gate
 intentionally fails with 410 missing declarations. The clean Nix result
 still certifies only the 91-jet snapshot.
+
+## Median selection at all arithmetic widths
+
+`median_8/16/32/64` have complete C-call proofs against the literal canonical
+nested min/max composition. A shared symbolic bridge connects that composition
+to the C's five-comparison decision tree, including ties. The control adapter
+retains every generated identity cast; the byte and wide adapters discharge
+their actual promotions and casts. Initial-only layout contracts derive three
+readers, the writer, return and local cleanup, including arbitrary valid
+cursors, crossings and unrelated output contents.
+
+The integrated check with exact AST regeneration finished with exit 0 at
+127/533 and 90 public modules, including negative tests. Reviewed snapshots
+add 24 audited results (six closed) and 580 contract lines only; previous
+contracts, assumption sets and the inherited library-level axiom list are
+unchanged. Normal comparison gates passed at 476 results (106 closed), without
+rewriting snapshots. The regression target passed; the completeness gate
+intentionally fails with 406 missing declarations. The clean Nix result
+still certifies only the earlier immutable 91-jet snapshot.

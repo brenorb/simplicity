@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 123 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max at 8/16/32/64 bits,
+There are 127 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, and eq at 1/8/16/32/64 bits.
-There are 410 declarations without coverage
+There are 406 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -226,12 +226,25 @@ tree otherwise contains only Coq files.
    execute the `_t'3` conditional assignment before the word writer, preserving
    byte promotions and the final uchar cast. The initial-only layout proofs
    export eight named local specs, contexts and deterministic call guarantees.
-   **Next: median at all four arithmetic widths**, then shifts/rotates,
-   multiplication and division. Mirror the canonical nested min/max composition
-   and connect it to the C comparison tree. Reuse the three-reader lifecycle
-   and minmax's exact input-value decoding. The generated tree includes two or
-   three `_t'4` assignments per leaf; preserve all identity casts explicitly,
-   rather than treating the source C ternary expression as a single expression.
+   **median_8/16/32/64 completed.** The literal nested min/max composition is
+   bridged symbolically to the generated comparison tree. `jet_median_control.v`
+   shares the entire branch/cast proof across byte/wide carriers, including the
+   two/three `_t'4` assignments per leaf. Carrier adapters discharge all of its
+   internal expression premises. Three-reader layout adapters reuse minmax's
+   exact input-value decoding and export four named canonical local specs,
+   contextual substitutions and deterministic call guarantees.
+   **Next: shared copyBits/forwardBits contracts and leftmost/rightmost
+   projections**, then shifts/rotates, multiplication and division. Inspection
+   of the actual generated bodies shows that these projections call
+   `simplicity_copyBits`, not the existing word readers/writers. Rightmost first
+   calls `forwardBits` on the local source-frame copy. Prove these actual helpers
+   from initial frame contracts, including crossings and permitted memory
+   effects, rather than applying an arithmetic reader/writer adapter to a
+   different body. Reuse Coq Word's existing `leftmost`/`rightmost` and their
+   parametricity: their identity/take/drop vector recursion matches the Haskell
+   catalog. All 36 projection declarations, including 2/4-bit outputs, remain
+   in scope; copyBits handles these widths without invented public writers.
+   Its verified contract should also support padding and full-shift families.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.
