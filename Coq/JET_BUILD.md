@@ -1556,6 +1556,12 @@ check; local specs retain the existing six assumptions and
 `shift8_machine_denotes` is closed. Eight modules / 33 results / 24 definitions
 are registered; entries are 172/533 (361 missing), while the latest completed
 integrated audit covers 170/533. The expanded zero-fill-shift audit is pending.
+That run is live in session `88262`; the 233-module kernel stage passed and
+the assumption gate is running. Poll the same handle; do not restart solely
+because it is quiet. Freeze registered sources, manifests and public lists
+until terminal completion. When snapshots update, remove only these eight
+new modules' 33 results / 24 definitions and compare against the 225-module
+baseline before committing the changes.
 
 Control normalization initially timed out at count 7 under direct conversion.
 Exposing the byte payload's product structure without case-splitting its bits,
@@ -1563,3 +1569,11 @@ then simplifying before conversion, checks the whole normal form in under a
 second with the unchanged 10-second tactic limit. No payload enumeration or
 assumed helper result is used. Next derive the fill-input public wrappers and
 their canonical fill bridge before counting those jets, then extend widths.
+
+`C/jet_shift8_fill_word.v` is unregistered follow-on infrastructure. Its source
+compiles complement involution and the actual fill-XOR's exact bit and unsigned
+representation bridge; its fresh independent kernel check exited 0, with no
+unsafe recursion, assumed positivity or type-in-type. Individual representation
+and involution assumption checks are closed. It is not a
+fill-input jet proof. The canonical fill-program bridge, wrapper readBit call,
+mixed cursor sequencing, initial-frame derivation and final contracts remain.

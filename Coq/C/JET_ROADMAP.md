@@ -741,7 +741,7 @@ tree otherwise contains only Coq files.
    `jet_rotate8_*.v` and `jet_read4_byte_sequence.v` compile end-to-end source
    proofs and passed a fresh final independent kernel check. Individual local
    specs retain the existing six assumptions and the pure machine/canonical
-   bridge is closed. Nine modules / 31 results / 17 definitions are registered,
+   bridge is closed. Nine modules / 31 results / 17 definitions are registered.
    Their expanded audit passed all gates on 225 modules / 1092 results (361
    closed). Removing the 31 added results / 17 definitions reproduces the
    previous assumptions and public contracts byte-for-byte; the inherited
@@ -791,6 +791,12 @@ tree otherwise contains only Coq files.
    the bit/nibble/byte cursor sum non-wrapping. Wider C helpers have different
    carriers/promotions; adapt actual ASTs while sharing canonical controls and
    reader/writer contracts, not a substituted mathematical shift specification.
+   The unregistered `jet_shift8_fill_word.v` supplies complement involution,
+   exact low-byte fill-XOR bits and exact unsigned representation of the
+   complemented canonical word. Its source and fresh independent kernel check
+   passed; the checked representation and involution results are closed.
+   These value lemmas prepare fill-input
+   proofs but add no coverage by themselves.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
