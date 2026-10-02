@@ -1383,4 +1383,16 @@ Canonical word chunks supply lengths, encoding equality, injectivity and
 per-chunk frame inputs without enumerating word values. These are helper
 results, not `eq_256` or hash jet equivalence. Both project manifests and
 public result/definition lists include them; the expanded integrated audit
-is running. Coverage remains 149/533 (384 remaining).
+passed as recorded below. Coverage remains 149/533 (384 remaining).
+
+## Integrated array-reader/chunk audit (2026-10-02)
+
+The expanded `JOBS=12 check-jets.sh --update-expected --ast` run exited 0
+through all static/inventory/coverage, build, kernel, assumption, contract,
+negative-test and AST gates: 165 modules, 843 results (246 closed), adding
+14 results and eight definitions. Removing those additions reproduces the
+previous contract/assumption snapshots byte-for-byte. The inherited 15
+library-level kernel axioms are unchanged; no unsafe proofs were found.
+The separate regression build exited 0. These helper results add no jet
+coverage: 149/533 are proved, 384 remain, and `--require-complete` exits 1.
+No new clean Nix or remote CI result is claimed.

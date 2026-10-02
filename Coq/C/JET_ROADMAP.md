@@ -647,8 +647,8 @@ tree otherwise contains only Coq files.
    exact array value, store and cursor update from initial input/permissions.
    `jet_word32_chunks.v` converts canonical word encodings to those per-chunk
    input predicates, with symbolic length and injectivity proofs. Source
-   compilation and fresh independent kernel checks passed; the expanded
-   integrated audit is running.
+   compilation, fresh independent kernel checks and the expanded integrated
+   audit passed on 165 modules / 843 results (246 closed).
    These helpers add no coverage. Next use them for `eq_256`: derive fresh
    source/16-word-array allocation and cleanup, execute the actual eight
    comparisons with early return, connect their result to `equality_spec
