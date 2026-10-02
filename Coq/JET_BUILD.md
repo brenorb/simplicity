@@ -1396,3 +1396,40 @@ library-level kernel axioms are unchanged; no unsafe proofs were found.
 The separate regression build exited 0. These helper results add no jet
 coverage: 149/533 are proved, 384 remain, and `--require-complete` exits 1.
 No new clean Nix or remote CI result is claimed.
+
+## Complete eq_256 equivalence and integrated audit (2026-10-02)
+
+`jet_eq256_array.v`, `jet_eq256_loop.v`, `jet_eq256_exec.v` and
+`jet_eq256_layout.v` compile from current source. A fresh independent kernel
+check of the final module exited 0. `eq256_local_spec` proves the complete
+actual call against `equality_spec (Word 8)`, including both allocations,
+source copy, the 16-read/store array loop, eight comparisons with early
+return, actual writeBit call and both local frees. All internal execution,
+array and cleanup premises are derived from initial frames. The symbolic
+chunk/injectivity bridge retains the literal canonical Generic.eq program;
+no exhaustive enumeration, output-zero premise or input/output separation
+is used. Context and call-boundary guarantees reuse the generic theorems.
+
+The expanded `JOBS=12 check-jets.sh --update-expected --ast` run exited 0
+through static/inventory/coverage, build, kernel, assumption, contract,
+negative-test and AST gates: 169 modules, 865 public results (253 closed).
+The new snapshots add 22 results and 18 definitions. Removing just those
+entries reproduces all prior contract and assumption snapshots byte-for-byte.
+The inherited 15 library-level kernel axioms are unchanged; no type-in-type,
+unsafe recursion or assumed positivity was found. The final local spec keeps
+only the existing six Coq/CompCert assumptions. The separate regression
+build exited 0. Coverage is 150/533, with 383 remaining; the completeness
+command still exits 1. These are local checks, not new Nix or remote CI checks.
+
+Separately, the staged `jet_extend_word8_loop.v` explicitly compiled and
+passed an independent kernel check. It matches and executes the actual
+left_extend_8_16/32/64 fill loops, but its writer-run premise is internal and
+has not yet been derived by complete initial-only jet contracts. It is not
+in this 169-module audit or either project manifest/public snapshot; register
+it with its consumers before claiming their integrated verification. It adds
+no jet coverage. Its compilation command from the repository root is:
+
+```sh
+env OPAMROOT=/Users/brenorb/.opam-simplicity-root opam exec --switch=simplicity -- \
+  bash Coq/build-jets.sh --coqc C/jet_extend_word8_loop.v
+```
