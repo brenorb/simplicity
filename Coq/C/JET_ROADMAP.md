@@ -622,6 +622,20 @@ tree otherwise contains only Coq files.
    padding program. All four compile from current source and passed fresh
    independent kernel and local-spec assumption checks. Coverage entries
    are 149/533. Internal contracts are discharged, not left as final premises.
+   **Staged larger-input extension loop (not jet coverage).**
+   `jet_extend_word8_loop.v` was explicitly compiled and independently kernel
+   checked. Its shape theorem matches the actual left_extend_8_16/32/64 loop
+   fragments, including the quotient-minus-one bounds (1/3/7). Its run theorem
+   executes the actual conditional 255/0 assignment, uchar writer cast/call,
+   index increment and loop exit, preserving every other temporary. The run
+   premise records actual writer calls and is INTERNAL: next derive it using
+   `write_frame_at_after_slice` and the total byte writer, compose the actual
+   source copy/read8/MSB cast/final payload write/cleanup, and connect the
+   resulting sequence to the literal canonical left-extension program.
+   This staged file is not yet in either project manifest or public snapshot;
+   register and audit it with its initial-only consumers. Do not count these
+   three jets from the loop proof, assume the run premise, or reuse copyBits
+   for these bodies: their C implementations read once then write repeatedly.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
    It determines the return value on every input, retains successful canonical
