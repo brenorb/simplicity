@@ -534,10 +534,15 @@ tree otherwise contains only Coq files.
    bridge and both sum encodings. Disabled output is a false tag followed by
    17 undefined cells; enabled output is a true tag, bit22 and the low 16 bits.
    These 18 results are representation infrastructure, not added jet coverage.
-   Next prove the actual `f_skipBits` cursor decrement from initial writable
-   frame conditions: its PRODUCTION assertion loop has a constant-false guard.
-   Derive the cursor store, preserved edge/cell loads and framing, rather than
-   taking the store or helper execution as a final premise. Then execute
+   `jet_skipBits_layout.v` now proves the actual `f_skipBits` cursor decrement
+   from initial writable frame conditions, including its PRODUCTION
+   assertion loop with a constant-false guard. The initial-only contract
+   derives the cursor store and preserves every load outside that field,
+   permissions and valid blocks. Its padding contract establishes physical
+   existence of arbitrary skipped cells and preserves the output prefix;
+   it does not require zero contents. This module has explicit compilation,
+   fresh kernel checking and per-result assumption inspection (only existing
+   inherited assumptions), but is not in the public audit yet. Then execute
    parse_sequence's actual read, first Boolean-returning writer, conditional
    branch (second tag/write16 or skip17), true return and local cleanup.
    On the skip branch derive physical existence of the undefined padding cells
