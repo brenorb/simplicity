@@ -485,3 +485,21 @@ modules, including negative tests. Reviewed snapshots add seven audited results
 and the inherited axiom allowlist are unchanged. There are 269 audited results
 (36 closed), and 457 declarations without proof entries. The completeness gate
 still fails as intended. The 72-jet clean Nix result does not certify this extension.
+
+### Carry-input wide addition (2026-10-01)
+
+`full_add_16/32/64` now share a complete C-call proof against canonical
+`Word.fullAdder`. The symbolic bridge reuses the existing add overflow lemmas
+and increment threshold while retaining the wrapping 64-bit intermediate sum.
+The execution adapters preserve the generated short-circuit carry branch and
+the mixed uint/ulong subtraction. All readers, both writers and local cleanup
+are derived from initial-only contracts for `1 + 2 * width` input bits and
+`1 + width` output bits, with arbitrary valid cursors and memory framing.
+
+The integrated check with exact AST regeneration passed at 79/533 and 60 public
+modules, including negative tests. Reviewed snapshots add ten audited results
+(two closed) and 279 contract lines only; previous contracts, assumption sets
+and the inherited axiom allowlist are unchanged. Normal comparison gates passed
+at 279 results (38 closed), and the regression target passed. There are 454
+declarations without proof entries; the completeness gate still fails as
+intended. The earlier 72-jet clean Nix result does not certify this extension.

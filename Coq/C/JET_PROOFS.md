@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of seventy-six jets of the C library
+Coq proofs that the generated CompCert Clight of seventy-nine jets of the C library
 (`C/jets.c`, `C/frame.c`) computes what the corresponding Simplicity expression
 computes, and that a call can replace the Bit Machine translation of that
 expression in a local, explicitly described context.
@@ -18,7 +18,7 @@ expression in a local, explicitly described context.
 | `increment_8`, `_16`, `_32`, `_64` | `true &&& iden >>> full_increment wordN` (`increment_word_spec`) |
 | `full_increment_8/16/32/64` | `full_increment_word_spec`, the canonical carry-input `Programs.Arith.full_increment wordN` |
 | `add_8`, `_16`, `_32`, `_64` | `Word.adder` (`false &&& iden >>> full_add wordN`) |
-| `full_add_8` | `Word.fullAdder`, the canonical carry-input `Programs.Arith.full_add word8` |
+| `full_add_8/16/32/64` | `Word.fullAdder`, the canonical carry-input `Programs.Arith.full_add wordN` |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -119,6 +119,16 @@ the short-circuit carry and truncated payload without enumerating word inputs.
 three real reads, both output writes, return and local cleanup. The layout
 module derives these from initial 17-bit input and nine-bit output contracts,
 including arbitrary valid cursors, crossings and unrelated output bits.
+
+`jet_full_add_wide_word.v` extends this bridge to 16/32/64 bits. It reuses the
+existing add overflow lemmas and carry-input increment threshold. The first
+carry branch protects the second comparison from the wrapping 64-bit sum;
+the payload proof retains modular arithmetic rather than assuming an unbounded
+machine sum. `jet_full_add_wide_exec.v` executes both actual conditional branches
+and reuses the increment's mixed uint/ulong subtraction adapter. The shared
+layout proof derives all three reads, both writes and local cleanup from
+initial contracts consuming `1 + 2 * width` input bits and writing `1 + width`
+output bits, with the same cursor, encoding and memory-framing guarantees.
 
 `jet_full_increment_wide_word.v` extends this bridge to 16/32/64 bits by
 reusing the verified increment bridges for carry one and proving the canonical
@@ -236,6 +246,11 @@ with `binary1`, `binary8` and `wide_binary` context and guarantee results
 parameterized by the operation (and wide size where applicable).
 Ternary exports nine named `{maj,xor_xor,ch}{16,32,64}_local_spec` theorems,
 with shared `wide_ternary_context` and local/contextual guarantees.
+Its byte and bit adapters export the other six named ternary local specs.
+Predicates and equality likewise export their nine and five named local specs.
+Carry-input arithmetic exports four named `full_increment{8,16,32,64}_local_spec`
+and four `full_add{8,16,32,64}_local_spec` results, with byte and width-shared
+context and call-boundary guarantees.
 
 `jet_context.v:jet_context` combines `jet_local_spec` with
 `Translate.Naive.translate_correct`: for a parametric Simplicity expression `t`
@@ -305,12 +320,17 @@ and `constant_context_guarantees`, derived through these same generic results.
 | `complement_1/8/16/32/64` | bit/byte/wide layout theorems | five named local specs; bit/byte/wide contexts | bit/byte/wide local and contextual guarantees |
 | `and/or/xor_1/8/16/32/64` | `eval_binary1_layout_matches_spec`, `eval_binary8_layout_matches_spec`, `eval_wide_binary_layout_matches_spec` | fifteen named local specs; bit/byte/wide contexts | bit/byte/wide local and contextual guarantees |
 | `maj/xor_xor/ch_16/32/64` | `eval_wide_ternary_layout_matches_spec` | nine named local specs; `wide_ternary_context` | `wide_ternary_guarantees`, `wide_ternary_context_guarantees` |
+| `maj/xor_xor/ch_1/8` | bit/byte ternary layout theorems | six named local specs; bit/byte contexts | bit/byte local and contextual guarantees |
+| `some_1/8/16/32/64`, `all_8/16/32/64` | bit/byte/wide predicate layout theorems | nine named local specs; bit/byte/wide contexts | bit/byte/wide local and contextual guarantees |
+| `eq_1/8/16/32/64` | bit/byte/wide equality layout theorems | five named local specs; bit/byte/wide contexts | bit/byte/wide local and contextual guarantees |
 | `one_8` | `eval_one8_layout_matches_spec` | `one8_local_spec`, `one8_context` | `one8_guarantees` |
 | `one_16/32/64` | `eval_one_wide_layout_matches_spec W16/W32/W64` | `one{16,32,64}_local_spec`, `_context` | `one{16,32,64}_guarantees` |
 | `increment_8` | `eval_increment8_layout_matches_spec` | `increment8_local_spec`, `increment8_context` | `increment8_guarantees` |
 | `add_8` | `eval_add8_layout_matches_spec` | `add8_local_spec`, `add8_context` | `add8_guarantees` |
 | `increment_16/32/64` | `eval_increment{16,32,64}_layout_matches_spec` | `increment{16,32,64}_local_spec`, `_context` | `increment{16,32,64}_guarantees` |
 | `add_16/32/64` | `eval_add{16,32,64}_layout_matches_spec` | `add{16,32,64}_local_spec`, `_context` | `add{16,32,64}_guarantees` |
+| `full_increment_8/16/32/64` | byte/wide full-increment layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
+| `full_add_8/16/32/64` | byte/wide full-add layout theorems | four named local specs; byte/wide contexts | byte/wide local and contextual guarantees |
 
 All 16-, 32- and 64-bit increment/add value theorems are proved from initial-memory
 contracts, including W16 (`eval_read16_layout_total` derives the reader's stores;
@@ -470,6 +490,9 @@ retained in `Coq/_CoqProject.jets-regression`, built explicitly with
   (shared canonical increment program), `jet_wide_spec.v`,
   `jet_increment8_spec.v`, `jet_add8_word.v`, `jet_increment_wide_word.v`,
   `jet_increment{32,64}_wide_word.v`, `jet_add{16,32,64}_wide_word.v`.
+  Carry-input bridges use `jet_full_increment8_word.v`,
+  `jet_full_increment_wide_word.v`, `jet_full_add8_word.v` and
+  `jet_full_add_wide_word.v`.
 * Complete jet calls: `jet_one8_layout*.v`, `jet_one_wide_layout*.v`,
   `jet_increment8_*.v`, `jet_add8_*.v`, `jet_increment{16,32,64}_layout*.v`,
   `jet_add{16,32,64}_layout*.v`, `jet_arith8_layout_exec.v`.
@@ -477,6 +500,11 @@ retained in `Coq/_CoqProject.jets-regression`, built explicitly with
   `jet_complement{1,8}_*.v`, `jet_complement_wide_*.v`,
   `jet_binary{1,8}_*.v` and `jet_binary_wide_*.v`.
   `jet_ternary_wide_{exec,layout}.v` supplies the three-reader wide calls.
+  Predicate, equality and carry-input arithmetic calls use
+  `jet_predicate{1,8,_wide}_{exec,layout}.v`,
+  `jet_equality{1,8,_wide}_{exec,layout}.v`,
+  `jet_full_increment{8,_wide}_{exec,layout}.v` and
+  `jet_full_add{8,_wide}_{exec,layout}.v`.
 * Representation, context and execution: `jet_encoding.v`, `jet_bitmachine_rep.v`,
   `jet_context.v`, `jet_canonical.v`, `jet_layout_witness.v`,
   `jet_clight_determinism.v`, `jet_guarantees.v`.

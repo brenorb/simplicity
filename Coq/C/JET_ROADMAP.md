@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 76 covered core jets: one/increment/add/full_increment at 8/16/32/64 bits,
+There are 79 covered core jets: one/increment/add/full_increment/full_add at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
-all at 8/16/32/64 bits, eq at 1/8/16/32/64 bits, and full_add_8.
-There are 457 declarations without coverage
+all at 8/16/32/64 bits, and eq at 1/8/16/32/64 bits.
+There are 454 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -140,15 +140,28 @@ tree otherwise contains only Coq files.
    generated mixed carrier operations: the 16/32-bit
    carry subtraction occurs in uint before comparison with ulong, whereas
    64-bit subtraction and sum use ulong. Do not assume the 64-bit sum is the
-   unbounded sum; reuse its existing wraparound bridge. **full_add_8 completed**
+   unbounded sum; reuse its existing wraparound bridge. **full_add_8/16/32/64 completed**
    using a carry-bit read followed by the two existing word reads. Its generated carry
    is a short-circuit conditional assigning `_t'4`, not a single expression.
    Execute that branch explicitly before composing the carry and word writers.
    The byte proof reuses `add8_u_range`, `read8_result_unsigned` and
    `decode_word8_of_int`, connects the actual carry and payload to canonical
    `Word.fullAdder`, and derives all three reads and local cleanup from initial
-   17-bit input contracts. Next extend this structure to 16/32/64, preserving
-   the mixed uint/ulong second comparison and wrapping 64-bit intermediate sum.
+   17-bit input contracts. The wide extension preserves the mixed uint/ulong
+   second comparison and wrapping 64-bit intermediate sum. Its shared first
+   carry lemma reuses the existing add bridges; when that carry is false,
+   the intermediate sum is exact and the increment threshold applies. The
+   payload proof is modular at 64 bits. All three widths share one complete
+   layout proof consuming `1 + 2 * width` bits and producing `1 + width` bits.
+   **Next: subtraction, negation, decrement and borrow-input variants.** Mirror
+   canonical `Programs.Arith.full_subtract`: complement the second word,
+   invert the input borrow, run full_add, then invert its output carry.
+   Build the remaining canonical programs by their actual zero/constant-input
+   compositions. Reuse the checked full-adder numeric bridge and complement
+   representation lemmas; these are intermediate bridges, not extra covered jets.
+   Derive the C borrow and modular payload separately before reusing the one-,
+   two- and three-reader call/layout sequencing. full_subtract has another
+   generated short-circuit conditional; do not treat it as a single expression.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.
