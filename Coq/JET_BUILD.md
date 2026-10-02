@@ -1623,7 +1623,7 @@ regeneration passed. Removing only the added 27 results / 21 definitions
 reproduces the `c3c8548` snapshots byte-for-byte. The inherited 15 kernel axioms
 are unchanged. This is not completion of the every-jet goal.
 
-Four unregistered fill-consumer helpers are ready: `jet_shift_wide_fill_word.v`,
+Four fill-consumer helpers are now registered: `jet_shift_wide_fill_word.v`,
 `jet_shift16_with_spec.v`, `jet_readBit4_wide_sequence.v` and
 `jet_shift16_with_word.v`. Every source compiled and each fresh independent
 kernel check exited 0 with no unsafe recursion, assumed positivity or
@@ -1634,5 +1634,18 @@ reader executions. The low-bit bridge handles the final XOR without falsely
 requiring a truncated intermediate left-shift carrier. Use explicit WordToZ
 normal forms when rewriting the nested complement: the outer canonical
 complement is observed at j, not the potentially out-of-range j-shift index
-of the complemented input. Final fill-input jet wrappers and their initial
-21-bit W16 frame composition still remain; no additional coverage is claimed.
+of the complemented input.
+
+Both complete fill-controlled 16-bit local specs now compile in
+`jet_shift16_with_layout.v`. `jet_shift_wide_with_exec.v` executes all six
+actual fill-controlled wrappers through internal calls; the W16 initial-frame
+result in `jet_shift16_with_layout_machine.v` discharges all three reads,
+helper execution, writing and cleanup. The final specs retain arbitrary valid
+cursors/crossings, unrelated output contents and memory framing. Fresh source
+and independent kernel checks passed; the named local specs retain the same
+six inherited assumptions, and canonical machine/payload bridges are closed.
+Seven modules / 20 results / five definitions are registered, bringing entries
+to 178/533 (355 missing). The expanded integrated audit is pending; the last
+completed audit covers 176. Compare updated snapshots against `5f45b8c` after
+removing only these new results/definitions. Next use read8-controlled wide
+sequences and the checked generic helper for 32/64-bit shifts.

@@ -49,6 +49,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `left_shift_8`, `right_shift_8` | `shift8_plain_spec`, literal `false &&& iden >>> Programs.Word.left/right_shift_with word4 word8` |
 | `left_shift_with_8`, `right_shift_with_8` | `shift8_with_spec`, literal `Programs.Word.left/right_shift_with word4 word8` with an input fill bit |
 | `left_shift_16`, `right_shift_16` | `shift16_plain_spec`, literal `Programs.Word.left/right_shift word4 word16` |
+| `left_shift_with_16`, `right_shift_with_16` | `shift16_with_spec`, literal `Programs.Word.left/right_shift_with word4 word16` with an input fill bit |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The wide left-rotation specs and shared helpers passed every integrated gate
@@ -86,6 +87,10 @@ are registered, bringing entries to 176/533 (357 remain). Their expanded
 integrated audit passed every gate on 249 modules / 1175 results (404 closed),
 including negative tests and pinned AST regeneration. Earlier snapshots and
 the 15 inherited kernel axioms are unchanged. This completed audit covers 176.
+Both fill-input 16-bit local specs compiled and passed fresh kernel and
+individual assumption checks. Seven modules / 20 results / five definitions
+are registered, bringing entries to 178/533 (355 remain). Their expanded
+integrated audit is pending; the last completed audit covers 176.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and
@@ -125,6 +130,12 @@ and both fill flags, but only the named 16-bit zero-fill consumers count as
 additional jets. Their canonical bridge case-splits 16 controls only; payload
 bits remain symbolic. The generic low-bit count-branch bridge also handles
 oversized counts without reducing them modulo the word width.
+The 16-bit fill-input contracts derive all three reads and the 21-bit copied
+cursor advance, actual Boolean cast/helper call, arbitrary output-frame writer
+and cleanup. The initial fill XOR has exact canonical complement representation;
+the final XOR uses a low-bit bridge since wide left shifts need not truncate
+their carrier. Both named local specs retain the existing six assumptions;
+the carrier/payload and decoded canonical bridges are closed.
 The shared helper execution covers both fill flags, but the fill-input public
 wrappers and canonical bridge remain unproved and are not claimed as coverage.
 
