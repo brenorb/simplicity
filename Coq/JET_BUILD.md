@@ -1459,10 +1459,11 @@ completion, a new clean Nix run or any remote CI result.
 
 The mirrored right-extension source modules and initial-only local specs also
 compiled and passed fresh independent kernel/individual assumption checks.
-They are not part of the 174-module result above. All five right-family
-modules have now been registered in both manifests and the public lists,
-adding 23 results and 11 definitions. Registered coverage is 156/533, with
-377 remaining. The expanded integrated audit must finish and its snapshot
-diffs be reviewed before claiming that combined audit passed. Fresh kernel
-checks already cover the right local specs, which retain the existing six
-assumptions; the closed mask/canonical bridges introduce none.
+The expanded `JOBS=12 check-jets.sh --update-expected --ast` run exited 0
+through every gate: 179 modules, 918 results (275 closed). The five registered
+right-family modules add 23 results and 11 definitions. Removing just these
+additions reproduces the previous assumption and contract snapshots exactly.
+The inherited 15 library-level kernel axioms remain unchanged; no type-in-type,
+unsafe recursion or assumed positivity was introduced. Negative tests and
+pinned AST regeneration passed. Coverage is 156/533, with 377 remaining.
+This is not completion, a new clean Nix check or a remote CI result.

@@ -656,9 +656,10 @@ tree otherwise contains only Coq files.
    retains only the existing six assumptions; mask/canonical bridges are
    closed. Their five modules are now in both manifests/public lists; the
    three exact local specs bring registered coverage to 156/533 (377 remain).
-   They are outside the last completed 174-module audit: finish the expanded
-   audit and verify that older contracts/assumptions remain byte-identical.
-   Then continue with 16/32-bit extension inputs. Do not claim equivalence
+   The expanded audit passed every gate on 179 modules / 918 results
+   (275 closed); older contracts/assumptions remain byte-identical after
+   removing the 23 results / 11 definitions added by this family. Continue
+   with 16/32-bit extension inputs. Do not claim equivalence
    from only the pure sequence bridge or conditional loop proof.
 4. **Failure-capable jets: first complete consumer.** `jet_partial.v` adds
    an initial-only `jet_partial_local_spec` tied to option/assertion semantics.
