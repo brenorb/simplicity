@@ -83,7 +83,9 @@ audit covers 174 entries (359 jets remain).
 Both zero-fill 16-bit shifts now compile and have passed fresh kernel and
 individual assumption checks. Their eight modules / 27 results / 21 definitions
 are registered, bringing entries to 176/533 (357 remain). Their expanded
-integrated audit is pending; the last completed audit covers 174.
+integrated audit passed every gate on 249 modules / 1175 results (404 closed),
+including negative tests and pinned AST regeneration. Earlier snapshots and
+the 15 inherited kernel axioms are unchanged. This completed audit covers 176.
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
 this document claims completed proofs only for the list above. It makes no
 whole-evaluator or machine-code correctness claim. The full inventory and

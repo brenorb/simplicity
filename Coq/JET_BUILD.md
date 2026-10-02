@@ -1610,21 +1610,18 @@ All eight sources compiled; fresh independent checks, including a final
 assumed positivity or type-in-type. Individual local-spec assumption checks
 retain the existing six assumptions; generic branch and decoded canonical
 bridges are closed. Eight modules / 27 results / 21 definitions are registered;
-entries are 176/533 (357 missing). The expanded integrated audit is pending.
-Compare updated snapshots against `c3c8548` after removing only these new
-results/definitions. The last completed audit covers 174/533.
+entries are 176/533 (357 missing). The expanded integrated audit passed.
+Removing the added results/definitions reproduces the `c3c8548` snapshots
+byte-for-byte. This completed audit covers 176/533.
 Next add fill-controlled 16-bit consumers with a mixed bit/read4/read16
 initial-state sequence and low-bit (not false exact truncated-carrier) XOR
 bridges, then extend 32/64-bit read8-controlled consumers.
 
-The expanded zero-fill 16-bit audit is live in session `51103`. The 249-module
-kernel stage passed; snapshots updated and the negative gates are running.
-There are 1175 results (404 closed). Removing only the added 27 results /
-21 definitions reproduces the `c3c8548` snapshots byte-for-byte; the updated
-snapshots remain uncommitted until terminal success. Poll the same handle and
-keep registered proof sources, manifests and public lists frozen until terminal
-completion. Do not restart because an observation is quiet. The baseline for
-its 27 added results / 21 definitions is `c3c8548`.
+The expanded zero-fill 16-bit audit (`51103`) exited 0 through every gate on
+249 modules / 1175 results (404 closed). Negative fixtures and pinned AST
+regeneration passed. Removing only the added 27 results / 21 definitions
+reproduces the `c3c8548` snapshots byte-for-byte. The inherited 15 kernel axioms
+are unchanged. This is not completion of the every-jet goal.
 
 Four unregistered fill-consumer helpers are ready: `jet_shift_wide_fill_word.v`,
 `jet_shift16_with_spec.v`, `jet_readBit4_wide_sequence.v` and

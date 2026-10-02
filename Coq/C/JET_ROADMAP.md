@@ -806,7 +806,7 @@ tree otherwise contains only Coq files.
    complemented canonical word. Its source and fresh independent kernel check
    passed; the checked representation and involution results are closed.
    These value lemmas support fill-input proofs but add no coverage by themselves.
-   **Zero-fill 16-bit shifts: complete canonical contracts; expanded audit pending.** The 16-bit
+   **Zero-fill 16-bit shifts: complete canonical contracts; integrated audit passed.** The 16-bit
    helper reads its count with read4, its payload with read16 into Vlong and
    writes through write16. There is no payload uchar cast. The right shift
    is unsigned Int64.shru, unlike the promoted signed Int.shr byte helper;
@@ -833,8 +833,9 @@ tree otherwise contains only Coq files.
    program. Both named specs in `jet_shift16_layout.v` passed fresh kernel and
    assumption checks (same six inherited assumptions; pure bridges closed).
    Eight modules / 27 results / 21 definitions are registered, bringing entries
-   to 176/533 (357 missing). Their expanded audit is pending; the last completed
-   audit covers 174.
+   to 176/533 (357 missing). Their expanded audit passed every gate on 249
+   modules / 1175 results (404 closed), including negative tests and pinned AST
+   regeneration. Earlier snapshots and inherited kernel axioms are unchanged.
    **Next: fill-controlled 16-bit shifts, then 32/64-bit shifts.** Reuse the
    complete helper with the bit-read flag, derive a bit/read4/read16 sequence
    from initial frames and inspect both fill toggles. Unlike the byte helper,
