@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Coq proofs that the generated CompCert Clight of 134 jets of the C library
+Coq proofs that the generated CompCert Clight of 135 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -32,6 +32,7 @@ canonical option/assertion semantics, covering success and failure with no outpu
 | `median_8/16/32/64` | `median_word_spec`, the literal canonical nested min/max composition |
 | `multiply_8/16/32` | `multiply_word_spec`, literal canonical `iden &&& (unit >>> zero word2N) >>> full_multiply wordN` |
 | `full_multiply_8/16/32` | `Word.fullMultiplier`, the canonical four-input `Programs.Arith.full_multiply wordN` |
+| `parse_lock` | Literal `Programs.TimeLock.parseLock`, including the canonical 500000000 constant and subtraction-borrow branch |
 
 Build and reproduction instructions are in [../JET_BUILD.md](../JET_BUILD.md).
 The every-jet goal includes the remaining core, Bitcoin and Elements jets;
@@ -72,6 +73,16 @@ pre-existing load is unchanged for either input bit. `verify_silent_guarantees`
 adds the existing deterministic small-step call-boundary guarantees for both
 return values. No success-only precondition is used. The current Core-only,
 positive-output context theorem is not applied to this zero-output assertion.
+
+For `parse_lock`, `jet_parse_lock_layout.v:parse_lock_local_spec` proves the
+complete generated call against `Programs.TimeLock.parseLock`. The shared
+canonical subtraction/borrow bridge determines the tag; the original 32-bit
+input is then written unchanged. `encode_equal_sum_word` bridges the sum
+encoding to the existing tag-plus-word writer observation. The proof derives
+the reader, both writes and local allocation/copy/free from initial contracts,
+supports all valid crossings and arbitrary unrelated output contents, and
+exports context substitution and deterministic call-boundary guarantees.
+`parse_sequence` is not covered by this result.
 
 ## What is proved
 

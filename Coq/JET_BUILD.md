@@ -1175,3 +1175,18 @@ rejecting helper and wrong-function entries. These tests, negative gates and
 byte-identical AST regeneration passed. Coverage is 134/533, with 399 remaining.
 No additional ABI/build, clean Nix, remote CI, or assertion Bit Machine context
 translation claim is made by this verification.
+
+## parse_lock verification (2026-10-02)
+
+The three timelock/specification/execution/layout modules were explicitly
+compiled and independently kernel checked with exit 0. The complete
+`check-jets.sh --update-expected --ast` run finished with exit 0:
+133 public-audit modules, 681 audited results, 184 closed. Reviewed snapshots
+add only 12 results and five definitions; all previous contracts, assumption
+sets and the kernel axiom allowlist are unchanged. The four new canonical
+specification/encoding bridges are closed. The local spec retains the existing
+six assumptions; context/call guarantees retain their existing assumptions.
+
+Inventory/coverage tests, negative gates, byte-identical AST regeneration and
+a subsequent normal public-contract comparison passed. Coverage is 135/533,
+with 398 remaining. No newer clean Nix or remote CI result is claimed.
