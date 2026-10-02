@@ -1992,3 +1992,25 @@ write64 and write32s calls with protected context reloads, and derive every publ
 local allocation/copy/free. The canonical context output is 830 cells, including
 510 buffer cells with arbitrary absent-payload contents. Do not count the
 canonical bridge or conditional loop adapter as a completed public jet.
+
+## Initial-only empty-buffer writer checked (2026-10-02)
+
+Five additional, unregistered modules now cover the actual empty-buffer helper:
+`jet_write_buffer8_empty_{exec,run,call,cells,layout}.v` (22 results / 18 definitions).
+The statement adapter executes both disabled production assertions, the actual
+initial shift, every loop comparison, false-tag call, skip call, unsigned halving,
+loop exit and normal return. The cell bridge is closed. The final
+`eval_write_buffer8_empty_layout` derives all six calls from an initial writable
+510-cell frame; it assumes no intermediate execution. It produces the literal
+canonical bufferEmpty encoding, preserves prefix bits and outside loads, updates
+the cursor, and preserves permissions/valid blocks at arbitrary valid crossings.
+Fresh kernels passed (`46774`, `18222`, `10826`, `84985`, `36948`), with clean
+scans, closed cell lemmas and only the six inherited execution assumptions.
+
+These modules stay unregistered while audit `52561` is live. They add no public
+coverage: the SHA context initializer, its struct-return copies, the context
+writer and enclosing public lifecycle still need complete execution. The actual
+pinned sha256_context field order is output (offset 0), counter (8), block (16),
+overflow (80), with total size 88; derive this metadata from the AST rather than
+assuming the block precedes the counter. Next compose bufferEmpty, write64 zero
+and write32s IV with protected context/array reloads.
