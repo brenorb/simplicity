@@ -983,3 +983,21 @@ as recorded above and is registered in both build manifests, but was not in
 this integrated public-audit set. The every-jet coverage check still exits 1:
 127/533 jets have proof entries and 406 remain missing. These copy contracts
 are verified intermediate progress, not additional individual jet equivalences.
+
+## Both word crossings, smaller source shift: complete initial helper call
+
+`jet_copyBits_two_words_left_exec.v` composes the actual clear/left/right
+partial fills and both temporary advances with the actual loop choice and
+first return. `jet_copyBits_two_words_left.v:eval_copy_helper_two_left`
+discharges all intermediate premises from initial memory: four stores follow
+from writable access to both destination words, and source reads follow from
+initial separation from the first destination word. The final store preserves
+the completed first word and the destination metadata. The theorem proves
+both exact word values and framing outside the two-word interval, preserving
+permissions and valid blocks. It covers `src_shift < dst_shift < n <= 64`.
+
+Explicit compilation and direct `coqchk -silent -o` finished with exit 0,
+the unchanged inherited library axiom set and no unsafe kernel features.
+Both build manifests include these modules. These later modules were not in
+the 105-module integrated public audit. They are helper progress only; the
+other partial-destination continuation and external memcpy model remain.

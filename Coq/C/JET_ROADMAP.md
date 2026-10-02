@@ -404,6 +404,18 @@ tree otherwise contains only Coq files.
    source loads across every preceding store, and observe cells using the
    corresponding logical cursor split. Execute the actual updated temporaries:
    the helper has not changed either frame's stored cursor.
+   **Both crossings, smaller initial source shift: actual helper completed.**
+   `jet_copyBits_two_words_left.v:eval_copy_helper_two_left` derives the four
+   stores from initial writable access to both destination words. Initial
+   source-word separation from the first destination word preserves every
+   source read after earlier stores; the final store needs no additional
+   separation from its already-read source. It executes the exact partial
+   prefix, updated temporaries, actual loop selection and first loop return.
+   It proves both exact output words, unchanged destination metadata and
+   framing outside the two-word interval. Raw statement composition lives in
+   `jet_copyBits_two_words_left_exec.v`; no second helper call or changed
+   stored cursor is fabricated. The `ds < ss` continuation and plain external
+   memcpy branch remain outstanding, and this adds no public jet coverage.
 4. **Failure-capable jets.** Extend the current success-only `jet_local_spec`
    infrastructure with a contract tied to the Simplicity assertion semantics,
    covering both return values and the permitted memory effects on failure.
