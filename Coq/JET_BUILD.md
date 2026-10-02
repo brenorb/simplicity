@@ -603,3 +603,22 @@ completeness gate intentionally fails with 434 missing declarations. Normal
 assumption and contract comparison gates also finished with exit 0 at 370
 results (72 closed), without rewriting snapshots. The clean Nix result
 certifies only 91 jets.
+
+## Shared lt/le comparisons at all arithmetic widths
+
+`lt_8/16/32/64` and `le_8/16/32/64` now have complete C-call proofs
+against the canonical subtraction-borrow and negated swapped-comparison
+programs. Shared specification lemmas connect their actual Simplicity
+compositions to numeric comparisons. Operation-parameterized execution and
+layout adapters retain signed byte promotions and unsigned wide comparisons,
+derive both readers and the bit writer, and discharge return and local cleanup
+from initial-only contracts at arbitrary valid cursors and word crossings.
+
+The integrated check with exact AST regeneration finished with exit 0 at
+107/533 and 78 public modules, including negative tests. Reviewed snapshots
+add 29 audited results (11 closed) and 483 contract lines only; existing
+contracts, assumption sets and the inherited library-level axiom list are
+unchanged. Normal comparison gates passed at 399 results (83 closed), without
+rewriting snapshots. The regression target passed; the completeness gate
+intentionally fails with 426 missing declarations. The clean Nix result
+certifies only the earlier immutable 91-jet snapshot.

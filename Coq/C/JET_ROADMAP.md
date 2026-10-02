@@ -15,10 +15,10 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 99 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract at 8/16/32/64 bits,
+There are 107 covered core jets: one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, and eq at 1/8/16/32/64 bits.
-There are 434 declarations without coverage
+There are 426 declarations without coverage
 entries, including all Bitcoin and Elements jets. Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -202,12 +202,19 @@ tree otherwise contains only Coq files.
    For its representation bridge, allow the endpoint `delta = -word_modulus n`
    (`0 - max_word - true`); `borrow_mod_balance` already covers that inclusive
    lower bound. A strict lower bound would incorrectly discard a valid input.
-   **Next: is_zero/is_one and lt/le at all four arithmetic widths.**
+   **lt/le_8/16/32/64 completed.** `jet_order_spec.v` mirrors the canonical
+   compositions and uses the subtraction balance sign for their symbolic
+   numeric bridges. Byte and width-shared execution/layout modules reuse
+   equality's two-reader lifecycle, parameterized by both operations. All
+   eight named local specs derive the complete calls from initial contracts,
+   with context substitution and call-boundary guarantees.
    `Programs.Arith.lt` projects the borrow from canonical subtract;
    `le` negates lt on swapped inputs. Reuse the signed balance to connect these
-   exact programs to the actual C comparisons, then the two-reader equality
-   sequencing and total bit writer. Byte comparisons are signed after promotion
+   exact programs to the actual C comparisons; the adapters use two-reader
+   sequencing and the total bit writer. Byte comparisons are signed after promotion
    (justify with byte bounds); wide comparisons are unsigned.
+   **Next: is_zero/is_one at all four arithmetic widths**, followed by min/max,
+   median, shifts/rotates, multiplication and division.
    is_zero is canonical `not (some wordN)`, whereas is_one composes canonical
    decrement and is_zero on the resulting payload. Reuse the symbolic some
    and decrement bridges and the one-reader predicate lifecycle; do not replace
