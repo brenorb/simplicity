@@ -1,9 +1,11 @@
 (** Canonical Buffer63 input decomposition, shared with present-chunk readers
     and writers. These representation facts do not add public jet coverage. *)
 From Coq Require Import List Lia ZArith.
+From compcert Require Import AST Memory.
 Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
 Require Import C.jet_buffer_empty_spec C.jet_encoding C.jet_input_layout.
 Import ListNotations.
+Import Values.
 Set Default Timeout 10.
 
 Fixpoint vector_values (X : Ty.Ty) (n : nat) : Ty.tySem (Vector X n) -> list (Ty.tySem X) :=
@@ -16,6 +18,16 @@ Lemma vector_values_length X n (x : Ty.tySem (Vector X n)) :
 Proof.
   induction n; [reflexivity|]. destruct x as [hi lo]. cbn [vector_values fst snd].
   rewrite app_length, (IHn hi), (IHn lo). cbn [Nat.pow]; lia.
+Qed.
+
+Lemma buffer_input_cells_preserved m mf bw edge cursor cells :
+  (forall ofs w, Mem.load Mint64 m bw ofs = Some (Vlong w) ->
+    Mem.load Mint64 mf bw ofs = Some (Vlong w)) ->
+  frame_input_cells_at m bw edge cursor cells -> frame_input_cells_at mf bw edge cursor cells.
+Proof.
+  intros HL HC i c Hi. specialize (HC i c Hi). destruct c as [bit|]; cbn [cell_matches] in HC |- *.
+  - eapply frame_input_bit_at_preserved; eauto.
+  - destruct HC as [bit HC]. exists bit. eapply frame_input_bit_at_preserved; eauto.
 Qed.
 Lemma encode_vector_values X n (x : Ty.tySem (Vector X n)) :
   encode x = concat (map (@encode X) (vector_values X n x)).

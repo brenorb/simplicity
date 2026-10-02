@@ -2104,3 +2104,38 @@ and definition blocks from `sha_ctx_local_field =` onward. These must reproduce
 `a77fcf0` byte-for-byte, with the inherited kernel axiom list unchanged. Do not
 restart a live audit or accept its snapshots early. Continue new unregistered
 Buffer63 input/reader and present-chunk writer consumers while it runs.
+
+## Byte-array and Buffer63 reader support checked (2026-10-02)
+
+Eight additional unregistered modules / 38 results / 20 definitions are checked:
+`jet_read8_input_word_total.v`, `jet_read8s_{exec,layout}.v`, `jet_buffer_input.v`,
+`jet_read_buffer8_{exec,present_layout,call,empty_layout}.v`.
+They prove symbolic byte reads at arbitrary crossings, the complete actual
+byte-array read/store loop from initial memory, canonical vector/chunk cell
+decomposition, actual reader branch/update execution, a total present-branch
+consumer, and the complete all-absent Buffer63 call. The last consumer derives
+the initial length store, six tag reads and forwardBits calls, every halving,
+loop termination and normal return, with arbitrary absent-payload contents.
+It does not require permissions for the unused output byte-array pointer.
+
+Source builds and explicit scans pass. Fresh independent kernels passed
+(`28198`, `78154`, `92789`, `27426`, `13104`, `18415`, `34314`); after moving
+the reusable cell-preservation fact to `jet_buffer_input.v`, dependencies were
+rebuilt and the fresh combined eight-module check `28720` passed. Inspected
+execution assumptions are the existing six, representation/memory facts use
+only the inherited memory assumptions, and the global 15-axiom list is unchanged.
+No proof escape or new axiom is introduced. Public coverage remains 206/533
+registered, 205 fully integrated while `94007` is live. These helpers add no
+coverage entries. Do not edit the registered manifest or accept the pending
+snapshots before the existing audit terminates successfully.
+
+After accepting `94007`, register all eight modules/results/definitions in
+dependency order for the next audit (367 modules / 1687 results; 206 public jets).
+The next total reader obligation is arbitrary absent/present Buffer63 mixtures,
+including preservation of previously written array bytes and unread input cells
+through the byte and length stores. The present-branch initial consumer and
+canonical chunk decomposition are ready; the complete empty call is not a
+substitute for the arbitrary-buffer result. Then extend the present writer and
+compose the actual context reader's overflow/failure behavior before new public
+context-add/finalize claims. Continue to honor the compression linking and plain
+external memcpy blockers recorded in `C/JET_ROADMAP.md`.

@@ -1205,11 +1205,32 @@ tree otherwise contains only Coq files.
    By_copy field preservation and size-parameterized four-local lifecycle
    lemmas avoid duplicating those obligations in later consumers. This is one
    public jet, not coverage for context add/finalize/compression.
-   **Next bounded SHA milestone:** derive read8s and read_buffer8 from initial
-   canonical Buffer63 cells, including both present and absent chunks, writable
-   byte-array stores, arbitrary padding and source cursor crossings. Reuse the
-   descending-count loop strategy, but retain the actual initial len store,
-   readBit calls, forwardBits calls and present-branch pointer/length updates.
+   **Byte-array and buffer reader support independently checked.**
+   `jet_read8_input_word_total.v` bridges logical byte input bits to the actual
+   byte reader symbolically, including crossings. `jet_read8s_{exec,layout}.v`
+   derives the complete actual byte-array loop, every read and byte store,
+   exact array observations, cursor advancement and memory/permission framing
+   from initial contracts. `jet_buffer_input.v` decomposes canonical balanced
+   vectors and Buffer63 encodings into absent/present chunks and supplies a
+   shared input-cell preservation lemma. The actual reader loop branches,
+   halving update, entry, initial len store and return are retained in
+   `jet_read_buffer8_{exec,call}.v`. Its present branch has an initial-only
+   consumer (`jet_read_buffer8_present_layout.v`), and the complete empty
+   Buffer63 call has an initial-only consumer
+   (`jet_read_buffer8_empty_layout.v`). The pointer is unused in the all-absent
+   case, so that consumer imposes no unused output-array permission assumption.
+   All eight modules / 38 results / 20 definitions pass source, scan, assumption
+   and fresh combined kernel checks (`28720`). They add no public jet coverage
+   and remain unregistered while context-init audit `94007` is live.
+   **Next bounded SHA milestone:** compose the same actual loop over arbitrary
+   canonical Buffer63 chunks. Preserve previous output bytes while storing the
+   next present chunk, and preserve the unread canonical cells through both
+   byte stores and the actual length store. Derive the initial len=0 store and
+   every branch call; a conditional loop adapter is not a total reader theorem.
+   Reuse the completed empty-loop induction for the guard/update/termination
+   structure, not its all-absent input restriction. Private array/frame/length
+   block separation must be derived from allocations in public consumers, not
+   imposed on the user's original input/output buffers.
    Extend write_buffer8 beyond its completed empty case in parallel. Then
    compose read_sha256_context's counter/array observations and overflow return.
    Its compression-count threshold is 2^55; invalid input is a required failure
