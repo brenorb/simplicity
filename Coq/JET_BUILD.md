@@ -550,3 +550,11 @@ contracts, assumption sets and the inherited axiom allowlist are unchanged.
 There are 327 audited results (55 closed). The regression target passed; the
 completeness gate intentionally fails with 442 missing declarations. The
 79-jet clean Nix result does not certify these later proof extensions.
+
+Normal assumption and contract comparison gates also finished with exit 0 at
+327 results (55 closed), without rewriting the expected snapshots.
+
+A clean Nix rebuild of the committed 91-jet snapshot is running. Its
+derivation is `/nix/store/kwj8jpi7jdl6vnjra63ym4ary6pdg4mf-Simplicity-coq-jets-0.0.0.drv`
+and immutable source is `/nix/store/11vh5glsfycx6nnkxhrji362pnlvm2hs-source`.
+This is pending verification, not a completed clean-build claim.
