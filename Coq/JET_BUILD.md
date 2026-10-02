@@ -794,3 +794,28 @@ including proof scanning, complete-inventory tests, build, 97-module kernel
 checking, assumption/contract updates, gate negative tests and regenerated-AST
 comparison. Snapshot review found only the new records/definitions; previous
 contracts and per-result assumption sets were not changed.
+
+## Short-copy frame cells (not jet coverage)
+
+`jet_copyBits_short_cells.v:eval_copyBits_short_layout` connects the actual
+wrapper to `frame_input_cells_at` / `frame_output_cells_at`. It derives the
+source word and address bounds from the logical input's first cell and the
+destination's access/store facts from `write_frame_at`. It proves equal output
+cells, preserved written prefix, updated frame fields and load/permission/block
+framing. Undefined input cells are supported without assuming their physical
+bit values. Its restrictions remain explicit: a positive count that fits in
+both current words, a partial destination word and separated source/destination
+word ranges. It is not a public projection equivalence proof.
+
+The source compiled with exit 0; direct `coqchk -silent -o` also finished with
+exit 0, the existing library-level axiom set and no unsafe kernel features.
+`Print Assumptions` on its eight results introduced no new assumptions; the
+complete layout execution result inherits the same six Coq/CompCert assumptions
+as the preceding helpers. Both build manifests include it. The 97-module
+integrated run above predates this later module; its checks are direct, not
+claimed as part of that run or the earlier clean Nix build.
+
+The normal assumption/contract comparisons subsequently finished with exit 0
+(525 audited results, 128 closed), as did the regression build and the ordinary
+build after registering the cell module. The completion-mode coverage check
+still exits 1 intentionally: 406 declared jets have no equivalence proof yet.

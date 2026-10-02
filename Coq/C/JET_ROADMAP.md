@@ -295,6 +295,16 @@ tree otherwise contains only Coq files.
    load/permission/block framing. `jet_copyBits_short_word.v` bridges both
    stored values symbolically to copied bits and preserved written bits.
    These results do not cover an initially aligned destination or a crossing.
+   **Short-copy frame-cell contract completed.**
+   `jet_copyBits_short_cells.v:eval_copyBits_short_layout` takes logical input
+   cells and the existing `write_frame_at` predicate. It derives the source
+   word and bounds from the first input cell, and destination stores/loads
+   from writable-frame access; there are no execution premises. It executes
+   the actual wrapper and proves the output cells equal the input cells,
+   including undefined cells, with `write_prefix_at`, updated fields and
+   memory framing. It retains the same explicit no-crossing restrictions and
+   initial word-separation premise. This is a helper contract, not equivalence
+   of any public jet to its canonical program.
    **Bound the next helper milestone by its consumers.** All 36 projection
    jets copy at most 32 bits. A helper contract for `0 < n <= 64`, at every
    valid cursor, suffices for them without narrowing any projection's input
