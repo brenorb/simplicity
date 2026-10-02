@@ -15,17 +15,19 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 202 registered core proof entries: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides/div_mod at 8/16/32/64 bits,
+There are 203 registered core proof entries: verify, parse_lock, parse_sequence, sha_256_iv; left_pad_low_1/right_pad_low_1/left_extend_1 at 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits; left/right_extend_16 at 32/64 bits and left/right_extend_32_64; left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits; one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides/div_mod at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
-all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, and multiply/full_multiply at 8/16/32 bits.
-There are 331 declarations without coverage
+all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8/16/32 bits, and div_mod_128_64.
+There are 330 declarations without coverage
 entries, including all Bitcoin and Elements jets. The latest completed integrated
 audit `97656` covers all 202 entries, including the four div_mod whole-call proofs,
 the complete 96/64 helper and the checked 128/64 integration infrastructure.
 All gates, negative fixtures and pinned AST regeneration passed on 318 modules /
 1511 results (607 closed).
 Earlier snapshots and the 15 inherited kernel axioms are unchanged.
-The helper lemmas do not establish DivMod128_64 coverage.
+The complete public DivMod128_64 theorem passes current-source coqc, scan,
+assumption and fresh kernel checks and is now registered; its expanded integrated
+audit is the next verification milestone, not yet an accepted baseline.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -1083,8 +1085,8 @@ tree otherwise contains only Coq files.
    blocks (results start at wide_mixed_bits_nonnegative, definitions at
    wide_mixed_bits) reproduces accepted `b59bef9` byte-for-byte; the 15 inherited
    kernel axioms are unchanged. The snapshots are accepted.
-   **Initial-only integration now checked independently.** The new, not-yet-
-   registered modules `jet_divmod128_allocate.v`, `jet_divmod128_branch_layout.v`,
+   **Initial-only integration now checked independently and registered.**
+   The modules `jet_divmod128_allocate.v`, `jet_divmod128_branch_layout.v`,
    `jet_divmod128_initial.v` and `jet_divmod128_layout.v` derive all four fresh
    allocations, source copy, four readers, both helper/writer branches and
    actual local cleanup from initial frames. `divmod128_local_spec` is the
@@ -1092,9 +1094,14 @@ tree otherwise contains only Coq files.
    call-boundary guarantee exports also compile. Fresh kernels `18978`, `19483`,
    `63010`, `64639` passed, with explicit scans and only inherited assumptions.
    No zero-output, fixed-cursor or non-crossing premise was introduced.
-   Register these four modules / nine results / four definitions and the named
-   public coverage entry, then run the expanded integrated audit before accepting
-   its snapshots. Until that registration, inventory coverage remains 202/533.
+   These four modules / nine results / four definitions and the named public
+   coverage entry are registered. Inventory bookkeeping is now 203/533, 330
+   missing; the complete expanded audit must pass before accepting its snapshots.
+   Expected totals: 322 modules / 1520 results. Baseline: accepted `cd7d4ee`.
+   Remove only these four modules' assumptions and their new contract blocks to
+   reproduce that baseline byte-for-byte, retaining the inherited kernel axioms.
+   Next executable family: multiply_64/full_multiply_64, using the actual
+   secp256k1_umul128/u128 helpers and write128, not invented scalar operations.
    Subsequent div_mod calls require two writers with intermediate memory;
    divides swaps operands and writes one bit. A source-comment trap: the
    Haskell divides documentation says divides(0,y) is True, but its actual

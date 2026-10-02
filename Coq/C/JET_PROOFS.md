@@ -41,12 +41,15 @@ pinned AST regeneration: 318 modules / 1511 results (607 closed). Earlier
 snapshots and inherited axioms are unchanged. Four new initial-only integration
 modules, including `divmod128_local_spec`, independently compile and pass fresh
 kernel checks; they await registration and expanded integration auditing.
-Registered coverage remains 202/533. The concrete integration path is recorded
+The four modules / nine results / four definitions and public coverage entry are
+now registered (203/533, 330 remaining); the expanded integration audit must pass
+before its snapshots become the accepted baseline. The concrete path is recorded
 in [JET_ROADMAP.md](JET_ROADMAP.md).
 
 | Jet | Simplicity specification |
 | --- | --- |
 | `verify` | Literal `Programs.Bit.verify`: `iden &&& unit >>> assertr cmrFail0 oh`, in option/assertion semantics |
+| `div_mod_128_64` | Literal `Prog.div2n1n word64`, including its invalid-input all-ones result; complete allocation/copy/read/helper/write/free execution |
 | `low_1/8/16/32/64` | `Word.zero` (the `Prog.zero wordN` specifications of CoreJets) |
 | `high_1/8/16/32/64` | `Word.fill Bit.true` (the `Prog.high wordN` specifications of CoreJets) |
 | `complement_1/8/16/32/64` | `complement_spec`, the exact recursive `Prog.complement wordN` program |
