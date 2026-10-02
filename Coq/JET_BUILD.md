@@ -2047,3 +2047,36 @@ and definition/type blocks from `buffer8_actual_loop =` onward. The results must
 reproduce `4ac1e5d` byte-for-byte with unchanged inherited global kernel axioms.
 Develop the actual initializer/copy/public-lifecycle consumer in new unregistered
 modules while this audit runs; do not accept snapshots early.
+
+## Complete public SHA256 context initialization checked (2026-10-02)
+
+Nine further unregistered modules (26 results / 15 definitions) now derive the
+complete actual `simplicity_sha_256_ctx_8_init` call against literal
+`buffer63Empty &&& (zero word64 &&& iv)`: `jet_sha256_init_zero_exec.v`,
+`jet_sha256_init_fields_layout.v`, `jet_struct_copy_loads.v`,
+`jet_sha256_init_{exec,layout}.v`, `jet_four_locals.v`, and
+`jet_sha256_ctx8_init_{exec,prepare,layout}.v`.
+The public theorem derives the caller's four allocations, source copy, nested
+initializer's fifth allocation, all 64 byte stores and other field stores,
+88-byte struct-return copy, second 88-byte caller copy, complete context writer,
+true return and every free. The actual caller cleanup order is context/source/
+IV/return-local, checked from `blocks_of_env`. General output cursors/crossings,
+arbitrary absent-payload contents and all permitted old-memory framing remain.
+No initializer, copy, writer or free execution is a public premise.
+
+All current sources/scans pass. Fresh kernels passed (`90811`, `36683`, `23100`,
+`83356`, `92056`, `66316`, `14240`, `37305`, `28479`). Public execution/context
+use only six inherited assumptions, call-boundary guarantees add the two inherited
+external-call properties, and generic memory-only copy/allocation facts use the
+existing four memory assumptions. No axiom allowlist is expanded. The struct
+copy is Clight's actual By_copy assignment, not an assumed external memcpy call.
+The skill's bounded statement templates and initial-only composition guided this
+proof; do not reduce the full open memory/program state.
+
+Commit these proofs locally, but keep them unregistered while audit `45575`
+is live. Public coverage stays 205/533 registered/audited, with one additional
+public jet independently checked. After accepting that run, register these nine
+modules, 26 results, 15 definitions and `sha256_ctx8_init_local_spec` as the exact
+public `simplicity_sha_256_ctx_8_init` entry, then run the expanded audit (359
+modules / 1649 results, 206/533 registered and 327 remaining). Only this public
+theorem adds coverage; all its private support remains infrastructure.
