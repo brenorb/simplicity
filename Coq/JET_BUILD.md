@@ -1230,3 +1230,13 @@ Inventory/coverage tests, negative gates and byte-identical AST regeneration
 passed; the optional regression build and subsequent normal public-contract
 comparison passed too. Coverage is 136/533, with 397 remaining. No newer clean
 Nix, remote CI, other ABI/build or whole-evaluator result is claimed.
+
+## Later checked full-shift encoding infrastructure
+
+`jet_full_shift_cells.v` was added after the integrated 140-module audit.
+Its two width/element-parametric encoding lemmas were explicitly compiled and
+freshly kernel checked with exit 0; both assumption checks report closed under
+the global context. Both project manifests include the module, but it is not
+yet in the public type/assumption snapshots. It supplies canonical serialized
+cell preservation for both full-shift directions, not a C-call proof; coverage
+remains 136/533. The actual copyBits external memcpy paths remain open.
