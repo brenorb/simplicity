@@ -2021,3 +2021,18 @@ pinned sha256_context field order is output (offset 0), counter (8), block (16),
 overflow (80), with total size 88; derive this metadata from the AST rather than
 assuming the block precedes the counter. Next compose bufferEmpty, write64 zero
 and write32s IV with protected context/array reloads.
+
+The empty-buffer sequence now also derives writable tail space, rather than
+only final fields (fresh kernel `58527`). Four further modules complete the
+initialized-context writer: `jet_sha256_context_fields.v`,
+`jet_write_sha256_context_empty_{exec,layout}.v`, and
+`jet_write64_then32s_layout.v`. The actual pinned field offsets/size are checked,
+every context reload is protected across the actual output calls, and
+`eval_write_sha256_context_empty_layout` derives the whole 830-cell canonical
+output from initial context/IV/frame observations. The shared 64-bit-plus-array
+writer retains general arrays and output crossings. Fresh kernels passed
+(`86717`, `36470`, `85875`, `83260`), scans are clean, the zero-word bridge is
+closed, and execution uses only inherited assumptions. These are helper proofs,
+not public SHA context coverage: actual initializer stores, struct-return/copy
+and enclosing allocation/free remain. The nine new modules have 35 results and
+27 definition/type entries for the next expanded audit (350 modules / 1623 results).
