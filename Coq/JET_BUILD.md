@@ -2410,3 +2410,36 @@ to leave undischarged. The unregistered module has 5 results / 2 definitions;
 source and explicit scan pass; fresh kernel `31575` returned terminal exit 0;
 assumptions `84802` retain only the inherited four initialization assumptions
 and six execution assumptions as appropriate. No public coverage is added.
+
+`jet_read_sha256_context_exec.v` now independently checks the actual full body
+and function-call composition (1 unregistered module / 10 results / 3 definitions).
+Closed selectors and metadata connect the generated buffer/count/state calls
+to their actual symbols and functions; call adapters preserve the real local
+address and temp updates. The full body composes those calls, the private len
+reload, actual counter store, output-pointer reload and either overflow return.
+The function boundary composes actual entry, that body, tbool conversion and
+derived local cleanup. These are INTERNAL adapters: their call and current
+memory premises must be derived by an initial-only consumer before claiming
+public coverage. Both count outcomes and arbitrary machine count/length values
+are retained. Current source, explicit scan and fresh kernel `72171` pass with
+terminal exit 0; assumptions `38284` retain only the six existing execution
+assumptions. The four unregistered reader modules total 25 results / 9 definitions.
+
+Next: derive `eval_sha256_read_context_composes` premises from the initial
+canonical 830-cell frame and private context/output representation. Split the
+cells into Buffer63 (510), count (64), state (256); apply the complete buffer,
+wide64 and word32-array readers in order, deriving every subsequent load and
+writable/Freeable permission via framing and store preservation. Initial
+readonly provenance establishes each writable destination's global separation;
+load framing then retains the exact global observation without assuming
+backwards permission preservation. `allocate_sha256_read_local` derives the
+actual private allocation and old-block separation. Preserve its Freeable
+permissions through all reads/stores and discharge cleanup through the checked
+function boundary. Afterwards add the canonical public callers/specification
+bridge; neither body nor helper-call adapters alone are public coverage.
+
+Live audit `58720` has now also passed its assumption and contract gates and
+generated snapshots. Both prescribed filters reproduce `dd2b9d7` byte-for-byte;
+inherited kernel axioms are unchanged. Negative fixtures and exact AST check
+remain live/unobserved; snapshots are NOT accepted yet. Do not restart that
+specific live run or modify its frozen registered inputs.

@@ -1323,6 +1323,19 @@ tree otherwise contains only Coq files.
    or canonical public equivalence. Compose those next; preserve readonly
    provenance explicitly, since forward permission preservation alone does
    not imply the absence of newly Writable permissions.
+   Those fragments now offer observation-only consumers, preserving the
+   stronger original provenance wrappers, so exact global loads can be carried
+   by the existing framing interfaces. `jet_sha256_read_local.v` derives actual
+   private allocation, entry, Freeable/writable permissions, separation and
+   cleanup (fresh kernel `31575`). `jet_read_sha256_context_exec.v` composes the
+   full actual body and function boundary (fresh kernel `72171`), but its
+   intermediate call/load/store premises are INTERNAL obligations. The four
+   unregistered reader modules have 25 results / 9 definitions. Next derive
+   those premises from initial 830-cell frames using the complete buffer/count/
+   state readers and memory framing; then prove literal canonical public specs.
+   Audit `58720` has passed assumption/contract gates and snapshot comparison,
+   but negative fixtures/AST completion are still unobserved. Keep its snapshots
+   pending and registered inputs frozen.
    Its compression-count threshold is 2^55; invalid input is a required failure
    case, not an assumption to remove from a public contract. The frame.c prose
    saying 838 output cells is stale: the actual canonical context has 830.
