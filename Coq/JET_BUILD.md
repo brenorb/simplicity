@@ -2635,3 +2635,16 @@ initial environment representation, actual field reads, writer execution in
 The Coq Version semantics uses signed 32-bit interpretation; show explicitly
 that the C unsigned carrier decodes to the same 32-bit word, including negative
 signed versions. Never assume the desired public output or writer call.
+
+`C/jet_bitcoin_env_read.v` derives both actual version-jet field expressions
+(`env->tx`, then `tx->version`) in `bitcoin_ge` from physical initial loads and
+nonwrapping pointer bounds. No desired expression value or execution is assumed;
+offsets come from the checked artifact metadata. Current source and explicit
+scan pass, fresh kernel `49499` and assumptions `2086` finish with terminal exit
+0. The two results / zero definitions retain the four inherited
+classical/extensionality assumptions, not external execution axioms or new
+assumptions. They remain unregistered and are not public jet coverage.
+Bridge audit `46115` has passed its 395-module kernel and updated the generated
+assumption/contract snapshots; its negative fixtures and AST stage have not yet
+finished. Do not accept those snapshots or modify registered proof inputs until
+the existing session returns terminal success.
