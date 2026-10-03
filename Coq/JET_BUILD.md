@@ -2691,3 +2691,10 @@ version wrapper's real entry, source struct copy, field reads, writer and free
 from initial representations, with no intermediate execution premises in the
 public theorem. Keep canonical writer/roundtrip modules independently checked
 but unregistered until audit `46115` finishes; avoid a concurrent integration.
+
+Expanded count/assertion integration `46115` completed with terminal exit 0:
+all 395 modules / 1804 results, assumption and contract gates, negative fixtures
+and exact pinned AST regeneration passed. Both prescribed snapshot filters
+reproduce `8f2f694` byte-for-byte and inherited kernel axioms are unchanged.
+Accept its snapshots; there are 753 closed results, still 206/533 public jets.
+The canonical writer/roundtrip and Bitcoin modules are outside these totals.

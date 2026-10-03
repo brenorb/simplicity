@@ -26,7 +26,7 @@ all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8
 There are 327 declarations without coverage entries, including all Bitcoin and
 Elements jets. The latest completed integration covers 206 public entries,
 including sha_256_ctx_8_init, DivMod128_64, multiply64 and fullMultiply64
-(392 modules / 1791 results, 741 closed). Audit `94007`'s build/kernel/assumption/
+(395 modules / 1804 results, 753 closed). Audit `94007`'s build/kernel/assumption/
 contract gates were observed passing; recovery `33472` completed its unobserved
 negative fixtures and exact pinned AST regeneration with terminal exit 0. The
 prescribed snapshot filters reproduce accepted `a77fcf0` byte-for-byte and the
@@ -54,6 +54,11 @@ The prescribed filters reproduce `5fffb98` byte-for-byte and inherited kernel
 axioms are unchanged. Its seven helper modules are accepted without adding public
 coverage. The literal count-assertion and reader-return bridge are independently
 checked but not yet included in these integrated totals.
+Count/assertion bridge audit `46115` has now passed every gate, negative fixture
+and exact pinned AST regeneration with terminal exit 0. Its snapshot filters
+reproduce `8f2f694` byte-for-byte, with unchanged inherited kernel axioms.
+Those three support modules are accepted in the totals above; canonical writer,
+roundtrip and Bitcoin groundwork remain independently checked but unregistered.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
