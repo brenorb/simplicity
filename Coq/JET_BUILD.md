@@ -2349,3 +2349,19 @@ module names from assumptions; remove contract theorem blocks beginning at
 `call_ctx8_buffer` until `frame_fields =`, and the appended definition block
 beginning at `sha256_max_counter_at =`, to reproduce `dd2b9d7` byte-for-byte.
 Check unchanged inherited kernel axioms before accepting generated snapshots.
+
+Context/provenance audit `58720` is live; durable log:
+`/tmp/jet-context-provenance-audit.8Z2vli/audit.log`. The build and 385-module
+kernel passed. Remaining gates and generated snapshots are not yet accepted;
+registered sources stay frozen. Accepted baseline for its filters is `dd2b9d7`.
+
+The actual context-reader overflow suffix is independently checked in
+`jet_read_sha256_overflow.v` (1 unregistered module / 5 results / 2 definitions).
+An exact AST suffix check connects the statement to the generated function.
+From writable overflow memory, temp observations and the initialized readonly
+global, it derives the actual comparison, byte store, reload and both return
+outcomes; it preserves the global invariant. Closed comparison bridges expose
+the exact unsigned 2^55 threshold without excluding invalid counts. Current
+source, explicit scan and fresh kernel `84510` pass with terminal exit 0.
+This is a suffix consumer, not whole function or public equivalence coverage;
+the reader's earlier calls, local allocation/free and canonical bridge remain.
