@@ -2892,3 +2892,14 @@ observations; it compiles and scans, fresh kernel `6588` exits 0. The field
 metadata premise is kept opaque during proof search; explicit initial loads
 determine allocation freshness, avoiding speculative unfolding of open metadata.
 These unregistered helpers are not additional public jets.
+
+`jet_bitcoin_locktime_local.v` instantiates the shared initial-memory execution
+for actual simplicity_bitcoin_lock_time, against literal primitive LockTime as
+specified in the Haskell catalog. It checks the actual interface/body/field,
+bridges the exact unsigned carrier to the primitive, and proves canonical
+encoded output with cursor/prefix/outside-load framing. Current source compiles
+and scans; fresh kernel `67871` finishes with exit 0. Primitive parametricity,
+interpretation and carrier bridge are closed; the direct C local theorem retains
+only the six inherited execution assumptions. This independent public proof
+remains unregistered during live version audit `9008`. Add it in a subsequent
+integration, not by modifying that run's registered inputs.
