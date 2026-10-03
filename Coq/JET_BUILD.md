@@ -2551,3 +2551,14 @@ unregistered module / 6 results / 0 definitions is a representation bridge for
 the existing general writer's length invariant and count recovery, not public
 jet coverage. Do not apply its nonwrapping conclusions on failed count inputs;
 the total reader assertion contract continues to cover those failure cases.
+
+Register the three independently checked count-assertion / counter-representation
+bridge modules (13 results / 3 definitions) for a separate full audit against
+accepted `8f2f694`: target 395 modules / 1804 results, still 206 public jets.
+Freeze registered sources/manifests/results/definitions during that audit.
+Only accept snapshots after all gates, negative fixtures and exact AST checks
+finish with terminal exit 0. Filter these three module names from assumptions;
+remove appended theorem blocks beginning at `sha256_count_check_parametric`
+until `frame_fields =`, and appended definitions beginning at
+`sha256_count_limit =`, to reproduce `8f2f694` exactly. Check unchanged inherited
+kernel axioms. These support contracts must not enter the public coverage table.
