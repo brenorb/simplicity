@@ -2450,3 +2450,14 @@ checks passed`. Both prescribed filters reproduce `dd2b9d7` byte-for-byte and
 inherited kernel axioms are unchanged. Accept 385 modules / 1761 results,
 729 closed; public coverage remains 206/533, 327 missing. The four unregistered
 reader modules remain independently checked and excluded from this audit.
+
+`jet_read_sha256_prefix_layout.v` now derives the actual buffer/count calls and
+counter store from initial canonical Buffer63 + Word64 + Word256 cells, with
+no helper-execution premises. It exposes the exact count carrier, reconstructed
+counter store, actual byte array, cursor +574, remaining state cells and load/
+permission/block framing. The private length slot and initial context contracts
+must still come from actual caller allocation. This unregistered module / 1
+result / 0 definitions passes current source, explicit scan and fresh kernel
+`13483` with terminal exit 0. Print Assumptions retains the six existing execution
+assumptions, no new axioms. It supports the initial-only full-reader consumer;
+it adds no public jet coverage.
