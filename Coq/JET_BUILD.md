@@ -2388,3 +2388,14 @@ initially established destination/global separation through load framing. The
 internal store adapters can be used without their stronger invariant wrappers.
 The public theorem must discharge whichever interface is chosen, including
 actual overflow failure, function return conversion and private-local cleanup.
+
+The two unregistered reader fragments now also export observation consumers.
+The counter consumer no longer requires an irrelevant global invariant; the
+overflow consumer uses the exact current global load and destination/global
+separation, preserving that load after its actual store. Stronger original
+provenance wrappers remain checked. This permits composition with the existing
+load-framing interfaces without inferring backwards permission preservation.
+Both current sources compile, explicit scans pass, fresh kernel `4982` returns
+terminal exit 0, and assumptions `78317` retain only the six existing execution
+assumptions. The two modules now have 10 results / 4 definitions; no public
+coverage and no change to the frozen live integration.

@@ -60,19 +60,18 @@ Proof.
     rewrite sha256_context_address by assumption; exact HS.
 Qed.
 
-Theorem exec_sha256_read_counter_from_memory e le m bc base bl count len :
+Theorem exec_sha256_read_counter_from_observation e le m bc base bl count len :
   0 <= base -> base + 88 <= Ptrofs.max_unsigned ->
   e!_len = Some (bl, tulong) -> Mem.load Mint64 m bl 0 = Some (Vlong len) ->
   le!_ctx = Some (Vptr bc (Ptrofs.repr base)) ->
   le!_compressionCount = Some (Vlong count) ->
-  Mem.valid_access m Mint64 bc (base + 8) Writable -> sha256_max_counter_at m ->
+  Mem.valid_access m Mint64 bc (base + 8) Writable ->
   exists mf lef,
     Clight2.exec_stmt ge0 e le m sha256_read_counter_stmt E0 lef mf Out_normal /\
     Mem.store Mint64 m bc (base + 8) (Vlong (sha256_read_counter count len)) = Some mf /\
-    Mem.load Mint64 mf bc (base + 8) = Some (Vlong (sha256_read_counter count len)) /\
-    sha256_max_counter_at mf.
+    Mem.load Mint64 mf bc (base + 8) = Some (Vlong (sha256_read_counter count len)).
 Proof.
-  intros HB HM HE HL HC HCount HW HGlobal.
+  intros HB HM HE HL HC HCount HW.
   destruct (Mem.valid_access_store m Mint64 bc (base + 8)
     (Vlong (sha256_read_counter count len)) HW) as [mf HS].
   set (lef := PTree.set _t'5 (Vlong len) le).
@@ -86,7 +85,24 @@ Proof.
         unfold lef; rewrite PTree.gso by discriminate; exact HC|
         unfold lef; rewrite PTree.gso by discriminate; exact HCount|
         unfold lef; apply PTree.gss|exact HS].
-  - split; [exact HS|]. split.
-    + rewrite (Mem.load_store_same _ _ _ _ _ _ HS); reflexivity.
-    + eapply sha256_max_counter_store; eauto.
+  - split; [exact HS|]. rewrite (Mem.load_store_same _ _ _ _ _ _ HS); reflexivity.
+Qed.
+
+Theorem exec_sha256_read_counter_from_memory e le m bc base bl count len :
+  0 <= base -> base + 88 <= Ptrofs.max_unsigned ->
+  e!_len = Some (bl, tulong) -> Mem.load Mint64 m bl 0 = Some (Vlong len) ->
+  le!_ctx = Some (Vptr bc (Ptrofs.repr base)) ->
+  le!_compressionCount = Some (Vlong count) ->
+  Mem.valid_access m Mint64 bc (base + 8) Writable -> sha256_max_counter_at m ->
+  exists mf lef,
+    Clight2.exec_stmt ge0 e le m sha256_read_counter_stmt E0 lef mf Out_normal /\
+    Mem.store Mint64 m bc (base + 8) (Vlong (sha256_read_counter count len)) = Some mf /\
+    Mem.load Mint64 mf bc (base + 8) = Some (Vlong (sha256_read_counter count len)) /\
+    sha256_max_counter_at mf.
+Proof.
+  intros HB HM HE HL HC HCount HW HGlobal.
+  destruct (exec_sha256_read_counter_from_observation e le m bc base bl count len
+    HB HM HE HL HC HCount HW) as (mf & lef & HExec & HS & HCounter).
+  exists mf, lef. split; [exact HExec|]. split; [exact HS|]. split; [exact HCounter|].
+  eapply sha256_max_counter_store; eauto.
 Qed.

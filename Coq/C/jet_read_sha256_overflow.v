@@ -76,6 +76,56 @@ Proof.
     rewrite sha256_context_address by assumption; exact HS.
 Qed.
 
+Theorem exec_sha256_read_overflow_from_observation e le m bc base count :
+  0 <= base -> base + 88 <= Ptrofs.max_unsigned ->
+  e!_sha256_max_counter = None ->
+  Mem.load Mint64 m (jet_symbol_block _sha256_max_counter) 0 =
+    Some (Vlong (Int64.repr 2305843009213693952)) ->
+  bc <> jet_symbol_block _sha256_max_counter ->
+  le!_ctx = Some (Vptr bc (Ptrofs.repr base)) ->
+  le!_compressionCount = Some (Vlong count) ->
+  Mem.valid_access m Mint8unsigned bc (base + 80) Writable ->
+  exists mf lef,
+    Clight2.exec_stmt ge0 e le m sha256_read_overflow_stmt E0 lef mf
+      (Out_return (Some (Vint (bit_int (negb (sha256_read_overflow count))), tint))) /\
+    Mem.store Mint8unsigned m bc (base + 80) (Vint (bit_int (sha256_read_overflow count))) = Some mf /\
+    Mem.load Mint8unsigned mf bc (base + 80) = Some (Vint (bit_int (sha256_read_overflow count))) /\
+    Mem.load Mint64 mf (jet_symbol_block _sha256_max_counter) 0 =
+      Some (Vlong (Int64.repr 2305843009213693952)).
+Proof.
+  intros HB HM HE HGlobal HOther HC HCount HW.
+  destruct (Mem.valid_access_store m Mint8unsigned bc (base + 80)
+    (Vint (bit_int (sha256_read_overflow count))) HW) as [mf HS].
+  set (le1 := PTree.set _t'3 (Vlong (Int64.repr 2305843009213693952)) le).
+  set (le2 := PTree.set _t'2 (Vint (bit_int (sha256_read_overflow count))) le1).
+  assert (HL : Mem.load Mint8unsigned mf bc (base + 80) =
+    Some (Vint (bit_int (sha256_read_overflow count)))).
+  { rewrite (Mem.load_store_same _ _ _ _ _ _ HS).
+    destruct (sha256_read_overflow count); reflexivity. }
+  exists mf, le2. split.
+  - unfold sha256_read_overflow_stmt.
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le1) (m1 := mf).
+    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le1) (m1 := m).
+      * apply exec_set. eapply eval_Elvalue.
+        -- apply eval_Evar_global; [exact HE|exact sha256_max_counter_symbol].
+        -- apply deref_loc_value with (chunk := Mint64); [reflexivity|exact HGlobal].
+      * eapply exec_sha256_read_overflow_store; [exact HB|exact HM|
+          unfold le1; rewrite PTree.gso by discriminate; exact HC|
+          unfold le1; rewrite PTree.gso by discriminate; exact HCount|
+          unfold le1; apply PTree.gss|exact HS].
+    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le2) (m1 := mf).
+      * apply exec_set. eapply eval_sha256_context_field with (chunk := Mint8unsigned);
+          [exact HB|exact HM|reflexivity|
+           unfold le1; rewrite PTree.gso by discriminate; exact HC|exact HL].
+      * apply exec_Sreturn_some. eapply eval_Eunop;
+          [apply eval_Etempvar; unfold le2; apply PTree.gss|].
+        destruct (sha256_read_overflow count); reflexivity.
+  - split; [exact HS|]. split; [exact HL|].
+    erewrite Mem.load_store_other; [exact HGlobal|exact HS|left; congruence].
+Qed.
+
+(** Stronger provenance wrapper; callers with load framing alone can instead
+    use the observation consumer after deriving separation in initial memory. *)
 Theorem exec_sha256_read_overflow_from_memory e le m bc base count :
   0 <= base -> base + 88 <= Ptrofs.max_unsigned ->
   e!_sha256_max_counter = None -> sha256_max_counter_at m ->
@@ -90,29 +140,9 @@ Theorem exec_sha256_read_overflow_from_memory e le m bc base count :
     sha256_max_counter_at mf.
 Proof.
   intros HB HM HE HGlobal HC HCount HW.
-  destruct (Mem.valid_access_store m Mint8unsigned bc (base + 80)
-    (Vint (bit_int (sha256_read_overflow count))) HW) as [mf HS].
-  set (le1 := PTree.set _t'3 (Vlong (Int64.repr 2305843009213693952)) le).
-  set (le2 := PTree.set _t'2 (Vint (bit_int (sha256_read_overflow count))) le1).
-  assert (HL : Mem.load Mint8unsigned mf bc (base + 80) =
-    Some (Vint (bit_int (sha256_read_overflow count)))).
-  { rewrite (Mem.load_store_same _ _ _ _ _ _ HS).
-    destruct (sha256_read_overflow count); reflexivity. }
-  exists mf, le2. split.
-  - unfold sha256_read_overflow_stmt.
-    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le1) (m1 := mf).
-    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le1) (m1 := m).
-      * apply exec_set. apply eval_sha256_max_counter; assumption.
-      * eapply exec_sha256_read_overflow_store; [exact HB|exact HM|
-          unfold le1; rewrite PTree.gso by discriminate; exact HC|
-          unfold le1; rewrite PTree.gso by discriminate; exact HCount|
-          unfold le1; apply PTree.gss|exact HS].
-    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le2) (m1 := mf).
-      * apply exec_set. eapply eval_sha256_context_field with (chunk := Mint8unsigned);
-          [exact HB|exact HM|reflexivity|
-           unfold le1; rewrite PTree.gso by discriminate; exact HC|exact HL].
-      * apply exec_Sreturn_some. eapply eval_Eunop;
-          [apply eval_Etempvar; unfold le2; apply PTree.gss|].
-        destruct (sha256_read_overflow count); reflexivity.
-  - split; [exact HS|]. split; [exact HL|]. eapply sha256_max_counter_store; eauto.
+  destruct (exec_sha256_read_overflow_from_observation e le m bc base count
+    HB HM HE (proj1 HGlobal) (sha256_max_counter_writable_other _ _ _ _ HGlobal HW)
+    HC HCount HW) as (mf & lef & HExec & HS & HL & HLimit).
+  exists mf, lef. split; [exact HExec|]. split; [exact HS|]. split; [exact HL|].
+  eapply sha256_max_counter_store; eauto.
 Qed.
