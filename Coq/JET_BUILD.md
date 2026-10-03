@@ -2586,3 +2586,28 @@ unregistered during audit `46115` and adds no public coverage. Before building
 further SHA internals, revisit the easier missing word-jet families (fixed full
 shifts, left/rightmost and padding) against their actual bodies and canonical
 specs; any actual memcpy dependency must be resolved, not axiomatized.
+
+`C/jet_sha256_context_roundtrip.v` now composes the complete actual reader and
+canonical writer from the initial caller memory, deriving the writer frame's
+preservation across all reader changes. On successful compression counts it
+returns success from both actual calls and produces the exact original canonical
+Buffer63 / Word64 / Word256 encoding. Output prefix, final output cursor, initial
+permissions and unrelated-memory framing across both calls are retained. Private
+context/state and destination separation is explicit; source and output data
+may share a block because all source cells are consumed before serialization.
+This is a pair of actual helper calls, not a generated public jet function and
+not a proof on invalid count inputs. The source compiles and passes explicit
+scans; fresh kernel `82878` and assumptions `63139` completed with terminal exit
+0, with only the six inherited execution assumptions. One unregistered result /
+0 definitions, no public coverage. Together with the canonical writer these
+two new modules total 4 results / 0 definitions, outside live audit `46115`.
+
+The easier-family inspection confirms that fixed full shifts, projections and
+high-padding variants call the actual `simplicity_copyBits`; its fully aligned
+path can invoke plain external memcpy even for a zero-byte copy. The existing
+restricted no-memcpy contract cannot prove these jets on all valid layouts.
+Do not turn it into public coverage by excluding aligned cursors. The existing
+Bitcoin Coq primitive `Version` and actual `bitcoinJets.c` version writer are
+another potentially small public target, but require their own faithful Clight
+artifact, environment representation and helper-code/global-environment linkage;
+do not reuse `ge0` merely because a writer's source text matches.
