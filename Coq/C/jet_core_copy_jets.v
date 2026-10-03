@@ -29,6 +29,25 @@ Proof.
 Qed.
 
 (** The copy phase: the actual call on a local source frame at cursor [rc]. *)
+Lemma core_copy_phase_call (Hmodel : memcpy_model) m1 bl bd dbase bw outedge cursor bi edge rc K cells :
+  frame_fields_at m1 bl 0 bi edge rc -> write_frame_at m1 bd dbase bw outedge cursor K ->
+  K = Z.of_nat (length cells) -> 0 < K <= 64 ->
+  jet_copy_buffers_separated bd bi bw edge outedge cursor rc K ->
+  frame_input_cells_at m1 bi edge rc cells ->
+  exists mf,
+    Clight2.eval_funcall ge0 m1 (Internal f_simplicity_copyBits)
+      [Vptr bd (Ptrofs.repr dbase); Vptr bl Ptrofs.zero; Vlong (Int64.repr K)] E0 mf Vundef /\
+    write_effect m1 mf bd dbase bw outedge cursor K cells.
+Proof.
+  intros HF HW Hlen HK Hsep Hin.
+  assert (HB0 : frame_base_valid 0) by (split; [lia|change (16 <= 18446744073709551615); lia]).
+  destruct (eval_copyBits_small_layout Hmodel m1 bd dbase bl 0 bi edge rc bw outedge cursor K cells
+    HB0 HF HW Hlen HK Hsep Hin) as (mf & Hcall & Hcells & Hprefix & Hfields & Hloads & Hperm & Hvalid).
+  exists mf. split.
+  - change (Ptrofs.repr 0) with Ptrofs.zero in Hcall. exact Hcall.
+  - split; [exact Hcells|]. split; [exact Hprefix|]. split; [exact Hfields|]. split; [exact Hloads|]. split; assumption.
+Qed.
+
 Lemma core_copy_phase (Hmodel : memcpy_model) m1 bl bd dbase bw outedge cursor bi edge rc K cells le :
   frame_fields_at m1 bl 0 bi edge rc -> write_frame_at m1 bd dbase bw outedge cursor K ->
   K = Z.of_nat (length cells) -> 0 < K <= 64 ->
@@ -40,13 +59,10 @@ Lemma core_copy_phase (Hmodel : memcpy_model) m1 bl bd dbase bw outedge cursor b
     write_effect m1 mf bd dbase bw outedge cursor K cells.
 Proof.
   intros HF HW Hlen HK Hsep Hin Hdst.
-  assert (HB0 : frame_base_valid 0) by (split; [lia|change (16 <= 18446744073709551615); lia]).
-  destruct (eval_copyBits_small_layout Hmodel m1 bd dbase bl 0 bi edge rc bw outedge cursor K cells
-    HB0 HF HW Hlen HK Hsep Hin) as (mf & Hcall & Hcells & Hprefix & Hfields & Hloads & Hperm & Hvalid).
-  exists mf. split.
-  - eapply exec_core_copy_call; [lia|exact Hdst|].
-    change (Ptrofs.repr 0) with Ptrofs.zero in Hcall. exact Hcall.
-  - split; [exact Hcells|]. split; [exact Hprefix|]. split; [exact Hfields|]. split; [exact Hloads|]. split; assumption.
+  destruct (core_copy_phase_call Hmodel m1 bl bd dbase bw outedge cursor bi edge rc K cells
+    HF HW Hlen HK Hsep Hin) as (mf & Hcall & Heff).
+  exists mf. split; [|exact Heff].
+  eapply exec_core_copy_call; [lia|exact Hdst|exact Hcall].
 Qed.
 
 Lemma core_local_frame_fields m ma mc bl bs sbase bytes bi edge rc :
@@ -79,19 +95,20 @@ Proof.
   eapply Mem.valid_access_alloc_same; [exact HA|lia|cbn; lia|]. exists 1; reflexivity.
 Qed.
 
-Theorem core_leftmost_jet (Hmodel : memcpy_model) f (A B : Ty) (spec : tySem A -> tySem B) :
-  core_wrapper_shape f (core_simple_rest (core_copy_call (Z.of_nat (bitSize B)))) ->
+Theorem core_leftmost_jet_e (Hmodel : memcpy_model) f (A B : Ty) (spec : tySem A -> tySem B) (arg : expr) :
+  core_wrapper_shape f (core_simple_rest (core_copy_call_e arg)) ->
+  typeof arg = tint -> (forall e le m, eval_expr ge0 e le m arg (Vint (Int.repr (Z.of_nat (bitSize B))))) ->
   0 < Z.of_nat (bitSize B) <= 64 -> (bitSize B <= bitSize A)%nat ->
   (forall a, encode (spec a) = firstn (bitSize B) (encode a)) ->
   jet_separated_local_spec f A B spec.
 Proof.
-  intros Hshape HK Hsize Hspec env m bd dbase bs sbase bi bw edge outedge cursor rc a
+  intros Hshape Hty Harg HK Hsize Hspec env m bd dbase bs sbase bi bw edge outedge cursor rc a
     HBase HAlign [HSedge HSoff] H0 Hmax Hin Hout Hsep.
   set (K := Z.of_nat (bitSize B)) in *.
   destruct (frame_loadbytes_at m bs sbase (Vptr bi (Ptrofs.repr edge)) (Vlong (Int64.repr rc))
     HSedge HSoff) as [bytes HBytes].
   assert (Hlen : K = Z.of_nat (length (encode (spec a)))) by (rewrite encode_length; reflexivity).
-  destruct (core_wrapper_layout_simple f (core_copy_call K) (encode (spec a)) env m bd dbase bs sbase bw
+  destruct (core_wrapper_layout_simple f (core_copy_call_e arg) (encode (spec a)) env m bd dbase bs sbase bw
     outedge cursor K bytes Hshape HBase HAlign HBytes ltac:(lia) Hout) as (mf & Hcall & HC & HP & HFl & HL).
   - intros ma mc bl HAlloc HStore HLP HPP HFrameC.
     pose proof (core_local_frame_fields m ma mc bl bs sbase bytes bi edge rc HAlloc HBytes HStore
@@ -102,9 +119,12 @@ Proof.
     assert (HSepC : jet_copy_buffers_separated bd bi bw edge outedge cursor rc K).
     { replace rc with (rc + 0) by lia. eapply projection_buffers_slice with (total := Z.of_nat (bitSize A));
         [replace (rc + 0) with rc by lia; exact Hsep|lia|lia|lia]. }
-    destruct (core_copy_phase Hmodel mc bl bd dbase bw outedge cursor bi edge rc K (encode (spec a))
-      (core_wrapper_temps f env bd dbase bs sbase) HLoc HFrameC Hlen ltac:(lia) HSepC HInC) as (mf & Hexec & Heff).
-    + unfold core_wrapper_temps. rewrite !PTree.gso by discriminate. apply PTree.gss.
+    destruct (core_copy_phase_call Hmodel mc bl bd dbase bw outedge cursor bi edge rc K (encode (spec a))
+      HLoc HFrameC Hlen ltac:(lia) HSepC HInC) as (mf & Hcallc & Heff).
+    assert (Hexec : Clight2.exec_stmt ge0 (core_src_locals bl) (core_wrapper_temps f env bd dbase bs sbase) mc
+      (core_copy_call_e arg) E0 (core_wrapper_temps f env bd dbase bs sbase) mf Out_normal).
+    { eapply exec_core_copy_call_e with (k := K); [lia|exact Hty|apply Harg| |exact Hcallc].
+      unfold core_wrapper_temps. rewrite !PTree.gso by discriminate. apply PTree.gss. }
     + destruct Heff as (HC & HP & HF & HL & HPm & HV).
       exists (core_wrapper_temps f env bd dbase bs sbase), mf.
       split; [exact Hexec|]. split; [exact HC|]. split; [exact HP|]. split; [exact HF|].
@@ -112,6 +132,19 @@ Proof.
       split; [exact HPm|exact HV].
   - exists mf. split; [exact Hcall|]. split; [exact HC|]. split; [exact HP|]. split; [exact HFl|].
     exact HL.
+Qed.
+
+
+Theorem core_leftmost_jet (Hmodel : memcpy_model) f (A B : Ty) (spec : tySem A -> tySem B) :
+  core_wrapper_shape f (core_simple_rest (core_copy_call (Z.of_nat (bitSize B)))) ->
+  0 < Z.of_nat (bitSize B) <= 64 -> (bitSize B <= bitSize A)%nat ->
+  (forall a, encode (spec a) = firstn (bitSize B) (encode a)) ->
+  jet_separated_local_spec f A B spec.
+Proof.
+  intros Hshape HK Hsize Hspec.
+  eapply core_leftmost_jet_e with (arg := Econst_int (Int.repr (Z.of_nat (bitSize B))) tint); try eassumption.
+  - reflexivity.
+  - intros e le m. apply eval_Econst_int.
 Qed.
 
 Theorem core_rightmost_jet (Hmodel : memcpy_model) f (A B : Ty) (spec : tySem A -> tySem B) (N M : Z) :

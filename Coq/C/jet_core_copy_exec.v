@@ -27,14 +27,16 @@ Lemma funct_forwardBits :
   Genv.find_funct (Clight.genv_genv ge0) (Vptr block_forwardBits Ptrofs.zero) = Some (Internal f_forwardBits).
 Proof. vm_compute; reflexivity. Qed.
 
-Definition core_copy_call (k : Z) : statement :=
+Definition core_copy_call_e (arg : expr) : statement :=
   Scall None
     (Evar _simplicity_copyBits (Tfunction
       (Tcons (tptr (Tstruct _frameItem noattr)) (Tcons (tptr (Tstruct _frameItem noattr)) (Tcons tulong Tnil)))
       tvoid cc_default))
     [Etempvar _dst (tptr (Tstruct _frameItem noattr));
      Eaddrof (Evar _src (Tstruct _frameItem noattr)) (tptr (Tstruct _frameItem noattr));
-     Econst_int (Int.repr k) tint].
+     arg].
+
+Definition core_copy_call (k : Z) : statement := core_copy_call_e (Econst_int (Int.repr k) tint).
 
 Definition core_forward_call (n m : Z) : statement :=
   Scall None
@@ -42,16 +44,18 @@ Definition core_forward_call (n m : Z) : statement :=
     [Eaddrof (Evar _src (Tstruct _frameItem noattr)) (tptr (Tstruct _frameItem noattr));
      Ebinop Osub (Econst_int (Int.repr n) tint) (Econst_int (Int.repr m) tint) tint].
 
-Lemma exec_core_copy_call bl le m m' bd dbase k :
-  0 <= k <= 1000 -> le!_dst = Some (Vptr bd (Ptrofs.repr dbase)) ->
+Lemma exec_core_copy_call_e bl le m m' bd dbase arg k :
+  0 <= k <= 1000 -> typeof arg = tint ->
+  eval_expr ge0 (core_src_locals bl) le m arg (Vint (Int.repr k)) ->
+  le!_dst = Some (Vptr bd (Ptrofs.repr dbase)) ->
   Clight2.eval_funcall ge0 m (Internal f_simplicity_copyBits)
     [Vptr bd (Ptrofs.repr dbase); Vptr bl Ptrofs.zero; Vlong (Int64.repr k)] E0 m' Vundef ->
-  Clight2.exec_stmt ge0 (core_src_locals bl) le m (core_copy_call k) E0 le m' Out_normal.
+  Clight2.exec_stmt ge0 (core_src_locals bl) le m (core_copy_call_e arg) E0 le m' Out_normal.
 Proof.
-  intros Hk HD Hcall.
+  intros Hk Hty Harg HD Hcall.
   assert (Hr : forall z, 0 <= z <= 1000 -> Int.min_signed <= z <= Int.max_signed)
     by (intros z Hz; change Int.min_signed with (-2147483648); change Int.max_signed with 2147483647; lia).
-  change (Clight2.exec_stmt ge0 (core_src_locals bl) le m (core_copy_call k) E0
+  change (Clight2.exec_stmt ge0 (core_src_locals bl) le m (core_copy_call_e arg) E0
     (set_opttemp None Vundef le) m' Out_normal).
   eapply exec_Scall with (vf := Vptr block_copyBits Ptrofs.zero) (f := Internal f_simplicity_copyBits)
     (vargs := [Vptr bd (Ptrofs.repr dbase); Vptr bl Ptrofs.zero; Vlong (Int64.repr k)]) (vres := Vundef).
@@ -66,12 +70,21 @@ Proof.
     + apply eval_Eaddrof. apply eval_Evar_local. reflexivity.
     + reflexivity.
     + eapply eval_Econs with (v1 := Vint (Int.repr k)).
-      * apply eval_Econst_int.
-      * simpl. unfold sem_cast. simpl. unfold cast_int_long. rewrite Int.signed_repr by (apply Hr; exact Hk). reflexivity.
+      * exact Harg.
+      * rewrite Hty. simpl. unfold sem_cast. simpl. unfold cast_int_long. rewrite Int.signed_repr by (apply Hr; exact Hk). reflexivity.
       * apply eval_Enil.
   - apply funct_copyBits.
   - reflexivity.
   - exact Hcall.
+Qed.
+
+Lemma exec_core_copy_call bl le m m' bd dbase k :
+  0 <= k <= 1000 -> le!_dst = Some (Vptr bd (Ptrofs.repr dbase)) ->
+  Clight2.eval_funcall ge0 m (Internal f_simplicity_copyBits)
+    [Vptr bd (Ptrofs.repr dbase); Vptr bl Ptrofs.zero; Vlong (Int64.repr k)] E0 m' Vundef ->
+  Clight2.exec_stmt ge0 (core_src_locals bl) le m (core_copy_call k) E0 le m' Out_normal.
+Proof.
+  intros Hk HD Hcall. eapply exec_core_copy_call_e; try eassumption; [reflexivity|apply eval_Econst_int].
 Qed.
 
 Lemma exec_core_forward_call bl le m m' n mm :
