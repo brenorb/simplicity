@@ -9,7 +9,7 @@ Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_frame_copy C.jet_frame
 Require Import C.jet_write_layout C.jet_output_layout C.jet_input_layout C.jet_encoding.
 Require Import C.jet_context_separated C.jet_projection_cells C.jet_forwardBits_layout.
 Require Import C.jet_bitcoin_effects C.jet_core_wrapper C.jet_core_copy_exec.
-Require Import C.jet_memcpy_model C.jet_copyBits_short_cells C.jet_copyBits_small_full.
+Require Import C.jet_bitmachine_rep C.jet_copyBits_separation C.jet_memcpy_model C.jet_copyBits_short_cells C.jet_copyBits_small_full.
 Import Values Mem Ctypes ListNotations Clightdefs.
 Local Open Scope Z_scope.
 Local Opaque ge0.
@@ -177,4 +177,42 @@ Proof.
            ++ split; [intros b ofs kind p H1; apply HPm; apply HPw; exact H1|
                       intros b H1; apply HV; apply HVw; exact H1].
   - exists mf. split; [exact Hcall|]. split; [exact HC|]. split; [exact HP|]. rewrite <- HM. split; [exact HFl|exact HL].
+Qed.
+
+Lemma core_input_cells_preserved_at m m2 bi edge rc cells :
+  (forall j w, 0 <= j < Z.of_nat (length cells) ->
+    Mem.load Mint64 m bi (edge - 8 * (1 + (rc + j) / 64)) = Some (Vlong w) ->
+    Mem.load Mint64 m2 bi (edge - 8 * (1 + (rc + j) / 64)) = Some (Vlong w)) ->
+  frame_input_cells_at m bi edge rc cells -> frame_input_cells_at m2 bi edge rc cells.
+Proof.
+  intros HP HI i c Hi.
+  assert (Hlt : (i < length cells)%nat) by (apply nth_error_Some; rewrite Hi; discriminate).
+  assert (HB : forall bit, frame_input_bit_at m bi edge (rc + Z.of_nat i) bit ->
+    frame_input_bit_at m2 bi edge (rc + Z.of_nat i) bit).
+  { intros bit [HQ [HE [w [HL HX]]]]. split; [exact HQ|]. split; [exact HE|].
+    exists w. split; [|exact HX]. apply (HP (Z.of_nat i) w ltac:(lia) HL). }
+  specialize (HI i c Hi). destruct c as [bit|]; cbn [cell_matches] in *.
+  - apply HB; exact HI.
+  - destruct HI as [bit Hbit]. exists bit. apply HB; exact Hbit.
+Qed.
+
+(** Input cells survive a write effect whose footprint lies inside the output
+    region, given the buffer separation. *)
+Lemma core_input_after_effect m m2 bd dbase bi bw edge outedge cursor rc N cells low :
+  jet_copy_buffers_separated bd bi bw edge outedge cursor rc N ->
+  0 <= rc -> Z.of_nat (length cells) <= N -> 1 <= cursor ->
+  outedge <= low -> write_word_address outedge cursor + 8 <= outedge + 8 * frame_words cursor ->
+  loads_outside_ranges m m2 bd (dbase + 8) (dbase + 16) bw low (write_word_address outedge cursor + 8) ->
+  frame_input_cells_at m bi edge rc cells -> frame_input_cells_at m2 bi edge rc cells.
+Proof.
+  intros [Hbd [Hbb|Hrange]] H0 Hlen Hc Hlow Hhigh Hloads Hin.
+  - eapply core_input_cells_preserved_at; [|exact Hin].
+    intros j w Hj HL. rewrite <- HL. apply Hloads; left; auto.
+  - eapply core_input_cells_preserved_at; [|exact Hin].
+    intros j w Hj HL. rewrite <- HL.
+    apply Hloads.
+    + left. auto.
+    + right. change (size_chunk Mint64) with 8.
+      destruct (copy_read_word_region edge rc N j H0 ltac:(lia)) as [Hrl Hrh].
+      unfold disjoint_ranges in Hrange. lia.
 Qed.
