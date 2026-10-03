@@ -2485,3 +2485,14 @@ Next integrate this support separately, then bridge the canonical context
 representation and failure condition into actual public callers. The mutable
 compression dispatch provenance remains a distinct obligation on compression
 paths, not something the now-complete reader establishes.
+
+Register the seven complete context-reader support modules / 30 results /
+9 definitions for a separate expanded audit against accepted `5fffb98`:
+392 modules / 1791 results, still 206 public jets. Freeze all registered
+sources/manifests/results/definitions while it runs. After terminal success
+for every gate, negative fixture and exact AST regeneration, filter the seven
+new module names from assumptions. Remove contract theorem blocks beginning
+at `sha256_read_counter_actual_stmt` until `frame_fields =`, and appended
+definition blocks beginning at `sha256_read_counter =`, to reproduce
+`5fffb98` byte-for-byte. Verify unchanged inherited kernel axioms before
+accepting generated snapshots. No helper belongs in the public coverage table.
