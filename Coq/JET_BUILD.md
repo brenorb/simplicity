@@ -2319,3 +2319,11 @@ no public coverage and are excluded from live `30018`. Next: actual context
 reader initialization, mixed reads, counter/overflow stores and returns,
 including the real initialized readonly max-counter global observation and
 private local cleanup.
+
+Expanded mixed-writer audit `30018` subsequently returned terminal exit 0:
+all gates, negative fixtures and exact pinned AST regeneration passed. The
+durable log ends with `all jet checks passed`. Both prescribed snapshot filters
+reproduce accepted `9cc50d6` byte-for-byte, and the inherited kernel axiom file
+is unchanged. Accept 381 modules / 1745 results, 724 closed, still 206/533 public
+jets and 327 missing. The two general context writer modules remain separately
+checked and unregistered pending their own expanded integration.
