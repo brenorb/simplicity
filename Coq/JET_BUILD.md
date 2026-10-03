@@ -2496,3 +2496,22 @@ at `sha256_read_counter_actual_stmt` until `frame_fields =`, and appended
 definition blocks beginning at `sha256_read_counter =`, to reproduce
 `5fffb98` byte-for-byte. Verify unchanged inherited kernel axioms before
 accepting generated snapshots. No helper belongs in the public coverage table.
+
+Expanded context-reader audit `69867` is live; durable log:
+`/tmp/jet-context-reader-audit.1TzvG1/audit.log`. Accepted comparison baseline
+is `5fffb98`. Static coverage and inventory tests, build and expanded 392-module
+kernel passed; remaining gates and snapshots are not yet accepted. Keep
+all registered sources/manifests/results/definitions frozen until terminal
+success. Public coverage is still 206/533, 327 missing.
+
+Canonical caller bridge source routing: SHA assert programs are in
+`Haskell/Core/Simplicity/Programs/Sha256.hs` (`mkLibAssert`, around lines 181-201),
+not a Coq Programs/Sha256 module. Their literal `verifyNumCompression` is
+`assert (ioh &&& (unit >>> scribe (toWord64 (2^55))) >>> lt word64)`.
+Use the already checked literal `lt_word_spec` and assertion machinery to port
+that exact composition, retaining its real pruned-branch hash and option failure
+semantics. The reader's actual machine threshold bridges must connect to this
+program, not substitute a numerical inequality for the canonical spec. Public
+add/finalize success paths still need concrete compression dispatch provenance
+and actual compression execution; do not count a guard or failure-only theorem
+as complete public jet coverage.
