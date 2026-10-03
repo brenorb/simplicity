@@ -2835,3 +2835,13 @@ before registering any Bitcoin coverage. Add only the concrete version local
 theorem as new coverage; helper results are not jets. Do not change registered
 inputs while audit `70050` is live or accept its snapshots without terminal
 success including negative fixtures and exact core AST regeneration.
+
+Audit-count clarification: accepted `c8cbaeb` has 395 distinct publicly checked
+result modules. Registering the four generic helper results additionally exposes
+three already-built support modules to the public kernel/contract gates, so
+`70050` actually checks 398 result modules / 1808 results (754 closed), not 395
+result modules. No new source module or jet coverage was added by that
+registration. Both prescribed snapshot filters have now been checked against
+`c8cbaeb` with exit 0, and inherited kernel axioms are unchanged; acceptance still
+awaits negative-fixture / exact-AST terminal success. Earlier prospective
+395-module counts in this log describe the plan, not the observed audit count.

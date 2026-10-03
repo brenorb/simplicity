@@ -59,6 +59,14 @@ and exact pinned AST regeneration with terminal exit 0. Its snapshot filters
 reproduce `8f2f694` byte-for-byte, with unchanged inherited kernel axioms.
 Those three support modules are accepted in the totals above; canonical writer,
 roundtrip and Bitcoin groundwork remain independently checked but unregistered.
+The Bitcoin version groundwork now includes a complete independently checked
+canonical local-contract theorem in `jet_bitcoin_version_local.v`: actual
+Bitcoin-program execution, initial-memory environment projection, allocation /
+source copy / writer / cleanup, and the encoded result of literal primitive
+Version. It is not yet included in the 206 audited coverage entries. Next
+register its concrete artifact and support modules, extend application-contract
+coverage validation with negative tests, and check exact Bitcoin AST regeneration
+in the integrated gate. Do not count helper modules as additional jets.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
