@@ -2940,3 +2940,15 @@ from initial observations and write-frame permissions, retaining arbitrary
 valid cursors/crossings/output contents and framing. Current sources compile
 and scan; fresh kernel `81317` finishes with exit 0. These unregistered execution
 helpers add no coverage and do not modify recovery `9432`'s frozen inputs.
+
+`jet_bitcoin_current_index_local.v` defines the literal canonical CurrentIndex
+primitive program from the Haskell catalog and proves actual current_index jet
+execution with its Translate.encode output. The environment projection reads
+only the used index field and relates its exact unsigned carrier to logical
+envIx; the word-modulus lemma closes serialization without adding a new range
+assumption. Primitive parametricity/interpretation and carrier bridge are closed.
+The direct C local theorem retains only the six inherited execution assumptions.
+Current source compiles and scans; fresh kernel `29027` finishes with exit 0.
+Keep its three-module / 10-result / 4-definition chain unregistered until live
+version recovery `9432` completes, then integrate alongside the checked
+getter32/lock-time chain in a separate snapshot/coverage audit.
