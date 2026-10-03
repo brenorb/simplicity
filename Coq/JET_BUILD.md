@@ -2234,3 +2234,13 @@ canonical word-array wrapper gives literal encoded bytes symbolically. Both
 sources compile, the explicit scan passes, fresh kernel `1327` returns exit 0,
 and Print Assumptions `93046` shows closed representation facts and only the
 existing six execution assumptions. No public coverage is added.
+
+The five independently checked mixed-reader/byte-writer consumer modules are
+now registered in dependency order (21 results / 6 definitions), without a
+coverage row. The next expanded audit has 374 modules / 1724 results, still
+206 public jets, against accepted reader-support baseline `0ddec7c`. Freeze
+these sources/manifests while the audit runs. After terminal all-gates success,
+filter the five new module names from assumptions. Remove theorem blocks from
+`buffer8_read_chunk_src` to `frame_fields =`, and definition blocks from
+`buffer8_read_chunk_temps =` onward, to reproduce `0ddec7c` byte-for-byte.
+Check unchanged inherited global axioms before accepting generated snapshots.
