@@ -2911,3 +2911,13 @@ OutputValue, not the older Coq NumInputs/NumOutputs primitives. Do not substitut
 those primitives or count a numeric-field bridge as public equivalence. A
 canonical-program port/interpretation is necessary there. CurrentIndex is a
 direct primitive and is the next simpler candidate after lock-time integration.
+
+Version audit `9008` terminated with exit 1 after successful build, kernel and
+assumption gates. Its contract loader treated the nested Bitcoin module as a
+physical library because the definition manifest used
+`Simplicity.Primitive.Bitcoin.Bitcoin sem`. Correct the two-column entry to
+`Simplicity.Primitive.Bitcoin Bitcoin.sem`: load the actual library, then print
+the nested semantic definition. No Coq proof/type changes are involved. Do not
+accept the partially updated assumption snapshot. Run a full gate recovery,
+including kernel/assumptions/contracts/negative fixtures/both AST checks; the
+already completed current-source build can be reused with --no-build.
