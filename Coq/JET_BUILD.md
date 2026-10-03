@@ -2801,3 +2801,15 @@ unrelated cached fields or no-alias assumptions are imposed. Current source
 compiles and scans; fresh kernel `5257` finishes with exit 0. The result retains
 the six inherited execution assumptions. It remains outside audited public
 coverage until canonical-program/encoding metadata and integration are checked.
+
+`C/jet_bitcoin_version_canonical.v` states the literal polymorphic primitive
+Version program, exactly as `specificationTransaction Version = primitive
+Prim.Version` in the Haskell catalog. Parametricity and its option/reader
+interpretation are closed. The initial-memory consumer proves actual C wrapper
+execution and Translate.encode output for that interpretation, plus framing.
+Current source compiles and scans; fresh kernel `39492` finishes with exit 0.
+The canonical C theorem retains only the six inherited execution assumptions.
+The real Bitcoin translation unit was freshly regenerated with the pinned
+CompCert/glibc configuration and compared byte-for-byte, terminal exit 0;
+checked temporary artifact ends in `simplicity-bitcoin-jets-check.8F7hNh/jets_bitcoin.v`.
+No Bitcoin coverage row is added before application-contract/integration gates.
