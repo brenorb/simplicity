@@ -2921,3 +2921,12 @@ the nested semantic definition. No Coq proof/type changes are involved. Do not
 accept the partially updated assumption snapshot. Run a full gate recovery,
 including kernel/assumptions/contracts/negative fixtures/both AST checks; the
 already completed current-source build can be reused with --no-build.
+
+Recovery is live as `9432`, durable log
+`/tmp/jet-bitcoin-version-recovery.A5RnNO/audit.log`. Proof sources and accepted
+comparison baseline `9c09d18` are unchanged; only the nested definition's loader
+metadata was corrected. The partial 1848-result assumption snapshot has 776
+closed results and filtering the 40 newly registered Bitcoin result names
+reproduces that baseline byte-for-byte; kernel axioms remain unchanged. These
+checks do not replace the recovery's pending terminal result. Registered inputs
+remain frozen. Independently checked getter32/lock-time modules are outside it.

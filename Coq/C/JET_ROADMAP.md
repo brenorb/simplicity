@@ -23,10 +23,12 @@ left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits
 one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides/div_mod at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8/16/32/64 bits, and div_mod_128_64.
-There are 327 declarations without coverage entries, including all Bitcoin and
-Elements jets. The latest completed integration covers 206 public entries,
+The accepted baseline leaves 327 declarations without audited coverage,
+including all Bitcoin and Elements jets. The pending version registration
+reduces the static bookkeeping gap to 326, but is not yet accepted. The latest
+completed integration covers 206 public entries,
 including sha_256_ctx_8_init, DivMod128_64, multiply64 and fullMultiply64
-(395 modules / 1804 results, 753 closed). Audit `94007`'s build/kernel/assumption/
+(398 result modules / 1808 results, 754 closed). Audit `94007`'s build/kernel/assumption/
 contract gates were observed passing; recovery `33472` completed its unobserved
 negative fixtures and exact pinned AST regeneration with terminal exit 0. The
 prescribed snapshot filters reproduce accepted `a77fcf0` byte-for-byte and the
@@ -72,9 +74,12 @@ Version. It is not yet included in the 206 audited coverage entries. Next
 register its concrete artifact and support modules, extend application-contract
 coverage validation with negative tests, and check exact Bitcoin AST regeneration
 in the integrated gate. Do not count helper modules as additional jets.
-Version integration `9008` now registers that chain (410 result modules / 1848
-results, static coverage 207/533); build/kernel checks passed, remaining gates
-and dual-AST terminal acceptance are pending. Keep registered inputs frozen.
+Version integration `9008` registers that chain (410 result modules / 1848
+results, static coverage 207/533); it passed build/kernel/assumption checks but
+terminated on a contract-manifest library-path error. That metadata path is
+fixed. Recovery `9432` is live, reusing the completed unchanged-source build and
+rerunning kernel/assumption/contract/negative/dual-AST gates. Terminal acceptance
+is pending. Keep registered inputs frozen and do not accept partial snapshots.
 The shared getter32 execution/initial-memory contracts and the actual lock-time
 jet's canonical local theorem are also independently kernel-checked, but remain
 unregistered until that audit finishes. Next add lock-time in its own audited
