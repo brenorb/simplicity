@@ -3029,3 +3029,17 @@ Coq's Zlength is an accumulator definition: rewrite `Zlength_correct` before
 using a `Z.of_nat (length ...)` bound rather than relying on conversion.
 These four modules remain unregistered support; actual C local theorems and
 full integration are still required for count-jet coverage.
+
+`jet_bitcoin_count_local.v` now proves both actual C count getters against
+the literal canonical firstFail programs. Closed checks establish each actual
+function body and transaction-field offset (448/456); a shared carrier bridge
+accounts for write32 truncation, and a shared local-contract adapter derives
+real allocation/source copy/field reads/write/free and Translate.encode output
+from the initial-memory projection and ordinary writable-frame contract.
+The direct public theorems discharge the adapter's semantic premise with the
+literal search-to-length bridges, not legacy NumInputs/NumOutputs primitives.
+Arbitrary valid cursors, crossings, output contents and framing are retained.
+Current source compiles/scans; fresh kernel `90757` finishes with exit 0.
+Both public theorems retain the six inherited execution assumptions only.
+This seven-module / 28-result / 12-definition chain is independently checked,
+but still unregistered; accepted coverage remains 209 until full integration.
