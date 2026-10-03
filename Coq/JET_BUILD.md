@@ -2399,3 +2399,14 @@ Both current sources compile, explicit scans pass, fresh kernel `4982` returns
 terminal exit 0, and assumptions `78317` retain only the six existing execution
 assumptions. The two modules now have 10 results / 4 definitions; no public
 coverage and no change to the frozen live integration.
+
+`jet_sha256_read_local.v` independently checks the actual 8-byte private local,
+function entry, fresh-block separation, writable/Freeable local permissions,
+old-block framing and readonly provenance. It derives cleanup from Freeable
+permissions and provides the real function-boundary adapter, including tbool
+return conversion for either result. Body execution and retention of Freeable
+permissions remain explicit INTERNAL adapter obligations, not public premises
+to leave undischarged. The unregistered module has 5 results / 2 definitions;
+source and explicit scan pass; fresh kernel `31575` returned terminal exit 0;
+assumptions `84802` retain only the inherited four initialization assumptions
+and six execution assumptions as appropriate. No public coverage is added.
