@@ -2327,3 +2327,15 @@ reproduce accepted `9cc50d6` byte-for-byte, and the inherited kernel axiom file
 is unchanged. Accept 381 modules / 1745 results, 724 closed, still 206/533 public
 jets and 327 missing. The two general context writer modules remain separately
 checked and unregistered pending their own expanded integration.
+
+Readonly max-counter provenance now independently compiles in
+`jet_readonly_int64.v` and `jet_sha256_max_counter.v` (2 modules / 11 results /
+1 definition). A generic CompCert initializer lemma avoids reducing the large
+generated environment in an open proof. Its actual program specialization
+derives the loaded limit and absence of Writable permissions. Allocation,
+stores and private-block frees preserve it; the actual Clight global expression
+is evaluated using that observation. Explicit scans and fresh kernel `82450`
+pass with terminal exit 0; Print Assumptions `29531` reports only four inherited
+classical/extensionality assumptions, no new axioms. This does not yet establish
+existence of the whole program's initial memory, context-reader execution, or
+any additional public jet. These modules remain unregistered for now.

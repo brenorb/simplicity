@@ -1291,9 +1291,9 @@ tree otherwise contains only Coq files.
    memory and writable continuation are retained. Both modules / 3 results /
    1 definition pass source, scans, assumptions and fresh kernels `99205`, `6681`.
    The seven new writer-support modules total 21 results / 4 definitions and
-   are registered for live expanded audit `30018` (381 modules / 1745 results),
-   against accepted `9cc50d6`. Its build and kernel passed; remaining gates and
-   pending snapshots are not yet accepted. They add no public coverage.
+   passed expanded audit `30018` (381 modules / 1745 results), against accepted
+   `9cc50d6`, with terminal exit 0. All gates, negative fixtures and exact AST
+   checks passed; snapshots are accepted. They add no public coverage.
    **General context writer independently checked.**
    `jet_write_sha256_context_{exec,layout}.v` derives the full actual helper
    from initial canonical buffer/state arrays and context fields. Arbitrary
