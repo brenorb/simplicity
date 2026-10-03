@@ -36,8 +36,8 @@ Definition indexed_ptr_cells {A} (elems : list A) (nbits : Z) (pcells : A -> lis
   | None => Some false :: repeat None (Z.to_nat nbits)
   end.
 
-Definition indexed_ptr_rep {A} (elems_of : Bitcoin.env -> list A) (elemrep : mem -> block -> Z -> A -> Prop)
-    (sz poff adelta cdelta : Z) (m : mem) (env : val) (environment : Bitcoin.env)
+Definition indexed_ptr_rep {E : Set} {A} (elems_of : E -> list A) (elemrep : mem -> block -> Z -> A -> Prop)
+    (sz poff adelta cdelta : Z) (m : mem) (env : val) (environment : E)
     (fp : list (block * Z * Z)) : Prop :=
   exists be ebase bt txbase bin inbase nI,
     env = Vptr be (Ptrofs.repr ebase) /\
@@ -270,7 +270,7 @@ Proof.
   exists le1, me. refine (conj HEx (conj c (conj p (conj fl (conj l (conj pm vv)))))).
 Qed.
 
-Theorem bitcoin_indexed_ptr_local {A} (elems_of : Bitcoin.env -> list A) (nbits : Z) (pcells : A -> list Cell)
+Theorem bitcoin_indexed_ptr_local {E : Set} {A} (elems_of : E -> list A) (nbits : Z) (pcells : A -> list Cell)
     (elemrep : mem -> block -> Z -> A -> Prop) (Bpay : Ty)
     (tp cp t3 t4 countfield arrfield sid cid : ident) (pt : type)
     (cdelta adelta sz poff psz : Z) (pexpr : expr) (cf f : function)
@@ -307,10 +307,10 @@ Theorem bitcoin_indexed_ptr_local {A} (elems_of : Bitcoin.env -> list A) (nbits 
       (bitcoin_indexed_rest tp cp countfield
         (bitcoin_indexed_then_ptr t3 t4 arrfield sid pexpr cid pt) (bitcoin_skip_stmt nbits)))
     (HB : Z.of_nat (bitSize (Ty.Sum Ty.Unit Bpay)) = 1 + nbits)
-    (spec : Ty.tySem Word32 -> Bitcoin.env -> option (Ty.tySem (Ty.Sum Ty.Unit Bpay)))
+    (spec : Ty.tySem Word32 -> E -> option (Ty.tySem (Ty.Sum Ty.Unit Bpay)))
     (Hsem : forall a environment, exists V, spec a environment = Some V /\
       encode V = indexed_ptr_cells (elems_of environment) nbits pcells a) :
-  application_jet_local_spec_sep f bitcoin_ge Bitcoin.env Word32 (Ty.Sum Ty.Unit Bpay)
+  application_jet_local_spec_sep f bitcoin_ge E Word32 (Ty.Sum Ty.Unit Bpay)
     (indexed_ptr_rep elems_of elemrep sz poff adelta cdelta) spec.
 Proof.
   intros environment env m bd dbase bs sbase bi bw edge outedge cursor read_cursor a fp
