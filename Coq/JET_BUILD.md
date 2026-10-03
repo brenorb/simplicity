@@ -3012,3 +3012,20 @@ syntactically, the explicit AssertionSem Reader instance; a targeted `change`
 exposes the latter. For the small base body only, lazy reduction of the pure
 monad combinators in both the equation and goal aligns class projections;
 do not apply this to open Clight memory or expand the loop/hash constants.
+
+`jet_bitcoin_count_canonical.v` now instantiates the literal firstFail programs
+with InputValue/OutputValue and proves their primitive parametricity and Reader
+search interpretation. Current source compiles/scans; fresh kernel `34323`
+finishes with exit 0. `jet_forWhile_search.v` proves all-Right and first-Left
+invariants by structural induction, with lexicographic high/low word ordering;
+fresh kernel `68195` finishes with exit 0. `jet_firstFail_list.v` applies those
+invariants to a bounded indexed-list primitive, proving its first failure is
+the encoded list length, without enumerating counters. Its generic result is
+closed. `jet_bitcoin_count_bridge.v` derives both literal count-program length
+results from Bitcoin's existing input/output list bounds. The bridge inherits
+only Reader functional extensionality, not a new axiom. All current sources
+compile/scan and combined fresh kernel `22648` finishes with exit 0.
+Coq's Zlength is an accumulator definition: rewrite `Zlength_correct` before
+using a `Z.of_nat (length ...)` bound rather than relying on conversion.
+These four modules remain unregistered support; actual C local theorems and
+full integration are still required for count-jet coverage.
