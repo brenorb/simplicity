@@ -2259,3 +2259,12 @@ the actual comparison, either branch, pointer/length updates and halving;
 its internal branch execution premises must be discharged by total consumers.
 Print Assumptions `40586`, `98671` adds no assumptions. These helpers add no
 public coverage and remain outside the live integrated audit.
+
+The actual mixed writer's initial-only chunk step and canonical tag-choice
+invariant now independently compile in `jet_write_buffer8_chunk_layout.v` and
+`jet_buffer_write_choices.v` (2 modules / 8 results / 2 definitions). Both pass
+explicit scans and fresh kernels `83151`, `63017`; the complete step retains
+the existing six execution assumptions (`99522`) and the three canonical
+choice facts are closed. The chunk step derives actual branch/halving execution;
+its pure tag invariant is established from the canonical remaining-byte length,
+not assumed helper behavior. The complete mixed loop/call remains next.

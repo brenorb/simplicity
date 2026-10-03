@@ -1267,9 +1267,16 @@ tree otherwise contains only Coq files.
    `jet_write_buffer8_exec.v` retains the actual length comparison, either
    branch, pointer/length updates and shared halving step. Internal branch
    adapters remain conditional until a total consumer derives their calls.
-   **Next bounded SHA milestone:** compose actual write_buffer8 mixed chunks,
-   derive the tag decision from canonical remaining lengths, and retain
-   arbitrary padding and framing. Then
+   `jet_write_buffer8_chunk_layout.v` now derives either actual complete chunk
+   step from initial arrays/frames and its length/tag invariant, including
+   payload/skip execution and pointer/length/halving updates (fresh kernel
+   `83151`). `jet_buffer_write_choices.v` derives that invariant from canonical
+   chunk capacities and the remaining present-byte length (fresh kernel
+   `63017`, all three facts closed). Together these two unregistered modules
+   have 8 results / 2 definitions; no public coverage is added.
+   **Next bounded SHA milestone:** compose the total mixed write_buffer8 loop,
+   its actual call boundary and writable continuation, retaining arbitrary
+   padding and framing. Then
    compose read_sha256_context's counter/array observations and overflow return.
    Its compression-count threshold is 2^55; invalid input is a required failure
    case, not an assumption to remove from a public contract. The frame.c prose
