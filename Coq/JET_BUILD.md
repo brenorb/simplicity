@@ -2977,3 +2977,16 @@ from assumptions. Remove newly appended result blocks beginning at
 new appended definitions starting at `bitcoin_getter32_body =` to reproduce
 the baseline snapshots byte-for-byte. Check unchanged inherited kernel axioms.
 Freeze registered sources/manifests while this audit runs.
+
+Getter integration `92847` completed all gates. Its durable log
+`/tmp/jet-bitcoin-getter-audit.r48fcu/audit.log` records build/kernel/assumptions/
+contracts/negative fixtures/both exact AST checks and ends with
+`all jet checks passed`. The completed session handle expired before the next
+poll, so its terminal exit code was not recovered; the final success marker
+is emitted only after all gates by the script running with `set -euo pipefail`.
+Filtering the six new module prefixes (with the theorem-name dot, not a space)
+removes exactly 21 assumption rows and reproduces `5bb660c` byte-for-byte.
+The prescribed contract filter also reproduces that baseline exactly, and
+the inherited kernel-axiom snapshot is unchanged. Accept 416 result modules /
+1869 results / 788 closed / 209 public jets. Three Bitcoin jets are covered;
+324 declarations remain. Registered inputs are unfrozen.

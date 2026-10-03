@@ -23,11 +23,11 @@ left/right_rotate, left/right_shift and left/right_shift_with at 8/16/32/64 bits
 one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decrement/full_subtract/lt/le/is_zero/is_one/min/max/median/divide/modulo/divides/div_mod at 8/16/32/64 bits,
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8/16/32/64 bits, and div_mod_128_64.
-The accepted baseline leaves 326 declarations without audited coverage,
-including 59 Bitcoin jets and all Elements jets. The latest completed
-integration covers 207 public entries,
+The accepted baseline leaves 324 declarations without audited coverage,
+including 57 Bitcoin jets and all Elements jets. The latest completed
+integration covers 209 public entries,
 including sha_256_ctx_8_init, DivMod128_64, multiply64 and fullMultiply64
-(410 result modules / 1848 results, 776 closed). Audit `94007`'s build/kernel/assumption/
+(416 result modules / 1869 results, 788 closed). Audit `94007`'s build/kernel/assumption/
 contract gates were observed passing; recovery `33472` completed its unobserved
 negative fixtures and exact pinned AST regeneration with terminal exit 0. The
 prescribed snapshot filters reproduce accepted `a77fcf0` byte-for-byte and the
@@ -80,9 +80,14 @@ terminal exit 0, reusing the completed unchanged-source build. Both actual
 snapshot filters reproduce `9c09d18` byte-for-byte; inherited kernel axioms are
 unchanged. The version jet is accepted as the first Bitcoin coverage entry.
 The shared getter32 execution/initial-memory contracts and the actual lock-time
-and CurrentIndex canonical local theorems are independently kernel-checked,
-but remain unregistered. Next integrate both with their support chain in a
-separate snapshot/coverage audit.
+and CurrentIndex canonical local theorems are registered and integrated.
+Audit `92847`'s durable log `/tmp/jet-bitcoin-getter-audit.r48fcu/audit.log`
+records every gate passing and the final `all jet checks passed` marker,
+including negative fixtures and both exact AST checks. The session handle had
+expired when subsequently polled; no terminal exit code was recovered from
+that handle. Both snapshot filters reproduce `5bb660c` byte-for-byte and
+inherited kernel axioms are unchanged. The accepted Bitcoin entries are
+version, lock-time and current-index; helper results add no coverage.
 
 Canonical-spec caution: NumInputs/NumOutputs are **not** direct primitives in
 the current Haskell jet catalog. `Programs.Transaction.lib` defines them as

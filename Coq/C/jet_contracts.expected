@@ -41972,6 +41972,412 @@ eval_bitcoin_tx_version
                   (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)))
                (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)) jets_bitcoin._version Ctypesdefs.tulong)
          (Values.Vlong version)
+function_entry2_same_interface
+     : forall (ge : Clight.genv) (f g : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (ma : Memory.Mem.mem)
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_vars g) (Clight.fn_vars f))
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_params g) (Clight.fn_params f))
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_temps g) (Clight.fn_temps f))
+         (_ : Clight.function_entry2 ge f args m e le ma), Clight.function_entry2 ge g args m e le ma
+bitcoin_version_getter32_body
+     : @eq Clight.statement (Clight.fn_body jets_bitcoin.f_simplicity_bitcoin_version)
+         (bitcoin_getter32_body jets_bitcoin._version)
+bitcoin_locktime_getter32_body
+     : @eq Clight.statement (Clight.fn_body jets_bitcoin.f_simplicity_bitcoin_lock_time)
+         (bitcoin_getter32_body jets_bitcoin._lockTime)
+bitcoin_tx_locktime_field
+     : match
+         @Maps.PTree.get Ctypes.composite jets_bitcoin._bitcoinTransaction (Clight.genv_cenv bitcoin_ge) return Prop
+       with
+       | Some co =>
+           @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+             (Ctypes.field_offset (Clight.genv_cenv bitcoin_ge) jets_bitcoin._lockTime (Ctypes.co_members co))
+             (@Errors.OK (prod BinNums.Z Ctypes.bitfield)
+                (@pair BinNums.Z Ctypes.bitfield
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                   Ctypes.Full))
+       | None => False
+       end
+eval_bitcoin_tx_u32_field
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bt : Values.block)
+         (base : BinNums.Z) (field : AST.ident) (delta : BinNums.Z) (value : Integers.Int64.int)
+         (_ : BinInt.Z.le BinNums.Z0 base) (_ : BinInt.Z.le BinNums.Z0 delta)
+         (_ : BinInt.Z.le (BinInt.Z.add base delta) Integers.Ptrofs.max_unsigned)
+         (_ : match
+                @Maps.PTree.get Ctypes.composite jets_bitcoin._bitcoinTransaction (Clight.genv_cenv bitcoin_ge)
+                return Prop
+              with
+              | Some co =>
+                  @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+                    (Ctypes.field_offset (Clight.genv_cenv bitcoin_ge) field (Ctypes.co_members co))
+                    (@Errors.OK (prod BinNums.Z Ctypes.bitfield) (@pair BinNums.Z Ctypes.bitfield delta Ctypes.Full))
+              | None => False
+              end)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._t'1 le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bt (BinInt.Z.add base delta))
+                (@Some Values.val (Values.Vlong value))),
+       Clight.eval_expr bitcoin_ge e le m
+         (Clight.Efield
+            (Clight.Ederef
+               (Clight.Etempvar jets_bitcoin._t'1
+                  (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)))
+               (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)) field Ctypesdefs.tulong)
+         (Values.Vlong value)
+eval_bitcoin_getter32_composes
+     : forall (f : Clight.function) (field : AST.ident) (delta : BinNums.Z) (m : Memory.Mem.mem)
+         (ma : Memory.Mem.mem') (mc me mf : Memory.Mem.mem) (bl bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+         (txbase : BinNums.Z) (value : Integers.Int64.int) (bytes : list Memdata.memval)
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_vars f)
+                (Clight.fn_vars jets_bitcoin.f_simplicity_bitcoin_version))
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_params f)
+                (Clight.fn_params jets_bitcoin.f_simplicity_bitcoin_version))
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_temps f)
+                (Clight.fn_temps jets_bitcoin.f_simplicity_bitcoin_version))
+         (_ : @eq Ctypes.type (Clight.fn_return f) Ctypesdefs.tbool)
+         (_ : @eq Clight.statement (Clight.fn_body f) (bitcoin_getter32_body field))
+         (_ : match
+                @Maps.PTree.get Ctypes.composite jets_bitcoin._bitcoinTransaction (Clight.genv_cenv bitcoin_ge)
+                return Prop
+              with
+              | Some co =>
+                  @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+                    (Ctypes.field_offset (Clight.genv_cenv bitcoin_ge) field (Ctypes.co_members co))
+                    (@Errors.OK (prod BinNums.Z Ctypes.bitfield) (@pair BinNums.Z Ctypes.bitfield delta Ctypes.Full))
+              | None => False
+              end) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : and (BinInt.Z.le BinNums.Z0 ebase) (BinInt.Z.le ebase Integers.Ptrofs.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 txbase) (_ : BinInt.Z.le BinNums.Z0 delta)
+         (_ : BinInt.Z.le (BinInt.Z.add txbase delta) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes ma bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes ma bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mc be ebase)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mc bt (BinInt.Z.add txbase delta))
+                (@Some Values.val (Values.Vlong value)))
+         (_ : ClightBigstep.Clight2.eval_funcall bitcoin_ge mc
+                (@Ctypes.Internal Clight.function jets_bitcoin.f_simplicity_write32)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong value) (@nil Values.val))) Events.E0 me Values.Vundef)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free me bl BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall bitcoin_ge m (@Ctypes.Internal Clight.function f)
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+               (@cons Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)) (@nil Values.val)))) Events.E0 mf
+         (Values.Vint Integers.Int.one)
+eval_bitcoin_getter32_layout
+     : forall (f : Clight.function) (field : AST.ident) (delta : BinNums.Z) (m : Memory.Mem.mem)
+         (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+         (txbase : BinNums.Z) (version : Integers.Int64.int) (bytes : list Memdata.memval)
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_vars f)
+                (Clight.fn_vars jets_bitcoin.f_simplicity_bitcoin_version))
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_params f)
+                (Clight.fn_params jets_bitcoin.f_simplicity_bitcoin_version))
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_temps f)
+                (Clight.fn_temps jets_bitcoin.f_simplicity_bitcoin_version))
+         (_ : @eq Ctypes.type (Clight.fn_return f) Ctypesdefs.tbool)
+         (_ : @eq Clight.statement (Clight.fn_body f) (bitcoin_getter32_body field))
+         (_ : match
+                @Maps.PTree.get Ctypes.composite jets_bitcoin._bitcoinTransaction (Clight.genv_cenv bitcoin_ge)
+                return Prop
+              with
+              | Some co =>
+                  @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+                    (Ctypes.field_offset (Clight.genv_cenv bitcoin_ge) field (Ctypes.co_members co))
+                    (@Errors.OK (prod BinNums.Z Ctypes.bitfield) (@pair BinNums.Z Ctypes.bitfield delta Ctypes.Full))
+              | None => False
+              end) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes m bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : and (BinInt.Z.le BinNums.Z0 ebase) (BinInt.Z.le ebase Integers.Ptrofs.max_unsigned))
+         (_ : BinInt.Z.le BinNums.Z0 txbase) (_ : BinInt.Z.le BinNums.Z0 delta)
+         (_ : BinInt.Z.le (BinInt.Z.add txbase delta) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m be ebase)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bt (BinInt.Z.add txbase delta))
+                (@Some Values.val (Values.Vlong version)))
+         (_ : write_frame_at m bd dbase bw edge cursor
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall bitcoin_ge m (@Ctypes.Internal Clight.function f)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)) (@nil Values.val)))) Events.E0 mf
+               (Values.Vint Integers.Int.one))
+            (and
+               (wide_output_at W32 mf bw edge cursor
+                  (decode_wide W32
+                     (Integers.Int64.zero_ext
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        version)))
+               (and (write_prefix_at m mf bw edge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw edge
+                        (BinInt.Z.sub cursor
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (slice_write_low
+                                        (BinNums.Zpos
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                        edge cursor))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+bitcoin_transaction_locktime_spec_parametric
+     : @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@bitcoin_transaction_locktime_spec)
+bitcoin_transaction_locktime_spec_sem
+     : forall environment : Bitcoin.Bitcoin.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@bitcoin_transaction_locktime_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt environment)
+         (@Bitcoin.Bitcoin.sem Ty.Unit (Word.Word (S (S (S (S (S O)))))) Bitcoin.Bitcoin.LockTime tt environment)
+bitcoin_locktime_carrier_matches_primitive
+     : forall (r : Integers.Int64.int) (environment : Bitcoin.Bitcoin.env)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r)
+                (Integers.Int.unsigned (Bitcoin.sigTxLock (Bitcoin.Bitcoin.envTx environment)))),
+       @eq (option (Ty.tySem (Word.Word (wide_log W32))))
+         (@Some (Ty.tySem (Word.Word (wide_log W32)))
+            (decode_wide W32
+               (Integers.Int64.zero_ext
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) r)))
+         (@Bitcoin.Bitcoin.sem Ty.Unit (Word.Word (S (S (S (S (S O)))))) Bitcoin.Bitcoin.LockTime tt environment)
+bitcoin_locktime_local_spec
+     : application_jet_local_spec jets_bitcoin.f_simplicity_bitcoin_lock_time bitcoin_ge Bitcoin.Bitcoin.env Ty.Unit
+         (Word.Word (S (S (S (S (S O)))))) bitcoin_locktime_env_rep
+         (fun (a : Ty.tySem Ty.Unit) (environment : Bitcoin.Bitcoin.env) =>
+          @bitcoin_transaction_locktime_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a environment)
+bitcoin_env_index_field
+     : match @Maps.PTree.get Ctypes.composite jets_bitcoin._txEnv (Clight.genv_cenv bitcoin_ge) return Prop with
+       | Some co =>
+           @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+             (Ctypes.field_offset (Clight.genv_cenv bitcoin_ge) jets_bitcoin._ix (Ctypes.co_members co))
+             (@Errors.OK (prod BinNums.Z Ctypes.bitfield)
+                (@pair BinNums.Z Ctypes.bitfield
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+                   Ctypes.Full))
+       | None => False
+       end
+eval_bitcoin_env_index
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (be : Values.block)
+         (base : BinNums.Z) (index : Integers.Int64.int) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m be
+                   (BinInt.Z.add base
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))
+                (@Some Values.val (Values.Vlong index))),
+       Clight.eval_expr bitcoin_ge e le m
+         (Clight.Efield
+            (Clight.Ederef
+               (Clight.Etempvar jets_bitcoin._env (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._txEnv Ctypes.noattr)))
+               (Ctypes.Tstruct jets_bitcoin._txEnv Ctypes.noattr)) jets_bitcoin._ix Ctypesdefs.tulong)
+         (Values.Vlong index)
+bitcoin_current_index_entry
+     : forall (env : Values.val) (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (bl bd : Values.block)
+         (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl)),
+       Clight.function_entry2 bitcoin_ge jets_bitcoin.f_simplicity_bitcoin_current_index
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         m (bitcoin_version_locals bl) (bitcoin_current_index_temps env bd dbase bs sbase) ma
+call_bitcoin_write32_arg
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (arg : Clight.expr)
+         (value : Integers.Int64.int) (_ : @eq Ctypes.type (Clight.typeof arg) Ctypesdefs.tulong)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_bitcoin._simplicity_write32 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : Clight.eval_expr bitcoin_ge e le m arg (Values.Vlong value))
+         (_ : ClightBigstep.Clight2.eval_funcall bitcoin_ge m
+                (@Ctypes.Internal Clight.function jets_bitcoin.f_simplicity_write32)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong value) (@nil Values.val))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt bitcoin_ge e le m
+         (Clight.Scall (@None AST.ident)
+            (Clight.Evar jets_bitcoin._simplicity_write32
+               (Ctypes.Tfunction
+                  (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr))
+                     (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+            (@cons Clight.expr
+               (Clight.Etempvar jets_bitcoin._dst
+                  (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr)))
+               (@cons Clight.expr arg (@nil Clight.expr)))) Events.E0 le mf ClightBigstep.Out_normal
+eval_bitcoin_current_index_composes
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (mc me mf : Memory.Mem.mem) (bl bd : Values.block)
+         (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) (be : Values.block) (ebase : BinNums.Z)
+         (index : Integers.Int64.int) (bytes : list Memdata.memval) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs)) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ebase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes ma bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes ma bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mc be
+                   (BinInt.Z.add ebase
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))
+                (@Some Values.val (Values.Vlong index)))
+         (_ : ClightBigstep.Clight2.eval_funcall bitcoin_ge mc
+                (@Ctypes.Internal Clight.function jets_bitcoin.f_simplicity_write32)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong index) (@nil Values.val))) Events.E0 me Values.Vundef)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free me bl BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall bitcoin_ge m
+         (@Ctypes.Internal Clight.function jets_bitcoin.f_simplicity_bitcoin_current_index)
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+               (@cons Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)) (@nil Values.val)))) Events.E0 mf
+         (Values.Vint Integers.Int.one)
+eval_bitcoin_current_index_layout
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block)
+         (sbase : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z) (be : Values.block)
+         (ebase : BinNums.Z) (index : Integers.Int64.int) (bytes : list Memdata.memval) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes m bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes)) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ebase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m be
+                   (BinInt.Z.add ebase
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))
+                (@Some Values.val (Values.Vlong index)))
+         (_ : write_frame_at m bd dbase bw edge cursor
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall bitcoin_ge m
+               (@Ctypes.Internal Clight.function jets_bitcoin.f_simplicity_bitcoin_current_index)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)) (@nil Values.val)))) Events.E0 mf
+               (Values.Vint Integers.Int.one))
+            (and
+               (wide_output_at W32 mf bw edge cursor
+                  (decode_wide W32
+                     (Integers.Int64.zero_ext
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        index)))
+               (and (write_prefix_at m mf bw edge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw edge
+                        (BinInt.Z.sub cursor
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (slice_write_low
+                                        (BinNums.Zpos
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                        edge cursor))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+bitcoin_transaction_current_index_spec_parametric
+     : @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@bitcoin_transaction_current_index_spec)
+bitcoin_transaction_current_index_spec_sem
+     : forall environment : Bitcoin.Bitcoin.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@bitcoin_transaction_current_index_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt environment)
+         (@Bitcoin.Bitcoin.sem Ty.Unit (Word.Word (S (S (S (S (S O)))))) Bitcoin.Bitcoin.CurrentIndex tt environment)
+bitcoin_current_index_carrier_matches_primitive
+     : forall (r : Integers.Int64.int) (environment : Bitcoin.Bitcoin.env)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (BinInt.Z.of_nat (Bitcoin.Bitcoin.envIx environment))),
+       @eq (option (Ty.tySem (Word.Word (wide_log W32))))
+         (@Some (Ty.tySem (Word.Word (wide_log W32)))
+            (decode_wide W32
+               (Integers.Int64.zero_ext
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) r)))
+         (@Bitcoin.Bitcoin.sem Ty.Unit (Word.Word (S (S (S (S (S O)))))) Bitcoin.Bitcoin.CurrentIndex tt environment)
+bitcoin_current_index_local_spec
+     : application_jet_local_spec jets_bitcoin.f_simplicity_bitcoin_current_index bitcoin_ge Bitcoin.Bitcoin.env
+         Ty.Unit (Word.Word (S (S (S (S (S O)))))) bitcoin_current_index_env_rep
+         (fun (a : Ty.tySem Ty.Unit) (environment : Bitcoin.Bitcoin.env) =>
+          @bitcoin_transaction_current_index_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a environment)
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -58755,3 +59161,136 @@ end a
      : forall (A B : Ty.Ty) (_ : Bitcoin.Bitcoin.t A B) (_ : Ty.tySem A) (_ : Bitcoin.Bitcoin.env), option (Ty.tySem B)
 
 Arguments Bitcoin.Bitcoin.sem {A B}%ty_scope p a e
+bitcoin_getter32_body =
+fun field : AST.ident =>
+Clight.Ssequence
+  (Clight.Sassign (Clight.Evar jets_bitcoin._src (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr))
+     (Clight.Etempvar jets_bitcoin._src (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr)))
+  (Clight.Ssequence
+     (Clight.Ssequence
+        (Clight.Sset jets_bitcoin._t'1
+           (Clight.Efield
+              (Clight.Ederef
+                 (Clight.Etempvar jets_bitcoin._env
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._txEnv Ctypes.noattr)))
+                 (Ctypes.Tstruct jets_bitcoin._txEnv Ctypes.noattr)) jets_bitcoin._tx
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr))))
+        (Clight.Ssequence
+           (Clight.Sset jets_bitcoin._t'2
+              (Clight.Efield
+                 (Clight.Ederef
+                    (Clight.Etempvar jets_bitcoin._t'1
+                       (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)))
+                    (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)) field Ctypesdefs.tulong))
+           (Clight.Scall (@None AST.ident)
+              (Clight.Evar jets_bitcoin._simplicity_write32
+                 (Ctypes.Tfunction
+                    (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr))
+                       (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+              (@cons Clight.expr
+                 (Clight.Etempvar jets_bitcoin._dst
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr)))
+                 (@cons Clight.expr (Clight.Etempvar jets_bitcoin._t'2 Ctypesdefs.tulong) (@nil Clight.expr))))))
+     (Clight.Sreturn
+        (@Some Clight.expr (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint))))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments bitcoin_getter32_body field
+bitcoin_transaction_locktime_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+  Bitcoin.Bitcoin.LockTime
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments bitcoin_transaction_locktime_spec {alg}
+bitcoin_locktime_env_rep =
+fun (m : Memory.Mem.mem) (env : Values.val) (environment : Bitcoin.Bitcoin.env) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun txbase : BinNums.Z =>
+            @ex Integers.Int64.int
+              (fun value : Integers.Int64.int =>
+               and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                 (and (and (BinInt.Z.le BinNums.Z0 ebase) (BinInt.Z.le ebase Integers.Ptrofs.max_unsigned))
+                    (and (BinInt.Z.le BinNums.Z0 txbase)
+                       (and
+                          (BinInt.Z.le
+                             (BinInt.Z.add txbase
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                             Integers.Ptrofs.max_unsigned)
+                          (and
+                             (@eq (option Values.val) (Memory.Mem.load AST.Mptr m be ebase)
+                                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+                             (and
+                                (@eq (option Values.val)
+                                   (Memory.Mem.load AST.Mint64 m bt
+                                      (BinInt.Z.add txbase
+                                         (BinNums.Zpos
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (...)))))))))
+                                   (@Some Values.val (Values.Vlong value)))
+                                (@eq BinNums.Z (Integers.Int64.unsigned value)
+                                   (Integers.Int.unsigned (Bitcoin.sigTxLock (Bitcoin.Bitcoin.envTx environment))))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : Bitcoin.Bitcoin.env), Prop
+
+Arguments bitcoin_locktime_env_rep m env environment
+bitcoin_current_index_temps =
+fun (env : Values.val) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_bitcoin._env env
+  (@Maps.PTree.set Values.val jets_bitcoin._src (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+     (@Maps.PTree.set Values.val jets_bitcoin._dst (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+        (Clight.create_undef_temps (Clight.fn_temps jets_bitcoin.f_simplicity_bitcoin_current_index))))
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments bitcoin_current_index_temps env bd dbase%Z_scope bs sbase%Z_scope
+bitcoin_current_index_ready =
+fun (env : Values.val) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+  (index : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets_bitcoin._t'1 (Values.Vlong index) (bitcoin_current_index_temps env bd dbase bs sbase)
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : Integers.Int64.int), Clight.temp_env
+
+Arguments bitcoin_current_index_ready env bd dbase%Z_scope bs sbase%Z_scope index
+bitcoin_transaction_current_index_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+  Bitcoin.Bitcoin.CurrentIndex
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments bitcoin_transaction_current_index_spec {alg}
+bitcoin_current_index_env_rep =
+fun (m : Memory.Mem.mem) (env : Values.val) (environment : Bitcoin.Bitcoin.env) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Integers.Int64.int
+        (fun index : Integers.Int64.int =>
+         and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+           (and (BinInt.Z.le BinNums.Z0 ebase)
+              (and
+                 (BinInt.Z.le
+                    (BinInt.Z.add ebase
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                    Integers.Ptrofs.max_unsigned)
+                 (and
+                    (@eq (option Values.val)
+                       (Memory.Mem.load AST.Mint64 m be
+                          (BinInt.Z.add ebase
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))
+                       (@Some Values.val (Values.Vlong index)))
+                    (@eq BinNums.Z (Integers.Int64.unsigned index)
+                       (BinInt.Z.of_nat (Bitcoin.Bitcoin.envIx environment)))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : Bitcoin.Bitcoin.env), Prop
+
+Arguments bitcoin_current_index_env_rep m env environment
