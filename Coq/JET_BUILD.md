@@ -2741,3 +2741,14 @@ explicit scan, and fresh kernel `84339` finishes with terminal exit 0. The
 subsequent full consumer rebuild `32133` is live at -j2; do not infer its success
 from the isolated checks. Original public types/assumptions still require
 comparison after the rebuild finishes.
+
+Consumer rebuild `32133` completed with terminal exit 0 at -j2 after the bounded
+rotation repair. Register the four independently checked ge-parametric word
+helper results for a separate integration against accepted `c8cbaeb`: same 395
+modules, now 1808 results. No definitions or public jets are added. After every
+gate, negative fixture and exact AST check finishes successfully, filter only
+the four new exact theorem names from assumptions and remove appended contract
+theorem blocks starting at `entry_clear_width_ge` until `frame_fields =` to
+reproduce the accepted baseline byte-for-byte. Check unchanged inherited kernel
+axioms. Do not accept new snapshots or change registered proof inputs while
+that audit runs.
