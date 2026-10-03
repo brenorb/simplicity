@@ -2339,3 +2339,13 @@ pass with terminal exit 0; Print Assumptions `29531` reports only four inherited
 classical/extensionality assumptions, no new axioms. This does not yet establish
 existence of the whole program's initial memory, context-reader execution, or
 any additional public jet. These modules remain unregistered for now.
+
+Register the two general context-writer modules and two readonly-initializer
+modules for a separate expanded audit against accepted `dd2b9d7`: 385 modules /
+1761 results / 1 added definition, no public coverage rows. Freeze all registered
+sources/manifests/results/definitions while it runs. After terminal success for
+every gate, negative fixture and exact AST regeneration, remove the four new
+module names from assumptions; remove contract theorem blocks beginning at
+`call_ctx8_buffer` until `frame_fields =`, and the appended definition block
+beginning at `sha256_max_counter_at =`, to reproduce `dd2b9d7` byte-for-byte.
+Check unchanged inherited kernel axioms before accepting generated snapshots.
