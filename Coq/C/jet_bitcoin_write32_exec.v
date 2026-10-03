@@ -75,6 +75,80 @@ Proof.
       vm_compute in H1, H2; congruence.
 Qed.
 
+Lemma eval_bitcoin_write32_crossing_raw m mh mo ml mf bf base bw edge cursor k oldhigh oldlow x :
+  frame_base_valid base -> 32 <= cursor <= Int64.max_unsigned ->
+  1 <= k < 32 -> write_word_shift cursor = k ->
+  0 <= edge -> 8 <= write_word_address edge cursor ->
+  write_word_address edge cursor + 8 <= Ptrofs.max_unsigned ->
+  frame_fields_at m bf base bw edge cursor ->
+  Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong oldhigh) ->
+  Mem.store Mint64 m bw (write_word_address edge cursor)
+    (Vlong (slice_high 32 k oldhigh x)) = Some mh ->
+  Mem.load Mint64 mh bf (base + 8) = Some (Vlong (Int64.repr cursor)) ->
+  Mem.store Mint64 mh bf (base + 8) (Vlong (Int64.repr (cursor - k))) = Some mo ->
+  Mem.load Mint64 mo bw (write_word_address edge cursor - 8) = Some (Vlong oldlow) ->
+  Mem.store Mint64 mo bw (write_word_address edge cursor - 8)
+    (Vlong (slice_low 32 k x)) = Some ml ->
+  Mem.load Mint64 ml bf (base + 8) = Some (Vlong (Int64.repr (cursor - k))) ->
+  Mem.store Mint64 ml bf (base + 8) (Vlong (Int64.repr (cursor - 32))) = Some mf ->
+  Clight2.eval_funcall bitcoin_ge m (Internal f_simplicity_write32)
+    [Vptr bf (Ptrofs.repr base); Vlong x] E0 mf Vundef.
+Proof.
+  intros HB HC HK HKdef HE HA0 HA [HF HO] HH SH HOh SO HL SL HOl SF.
+  pose proof (write_layout_index cursor ltac:(lia)) as [HQ [HK' [Hsub [Hdiv [Hmod Hwidth]]]]].
+  rewrite HKdef in Hwidth.
+  pose proof (write_layout_pointer edge ((cursor - 1) / 64) HQ HE
+    ltac:(unfold write_word_address in HA; lia)) as Hptr.
+  fold (write_word_address edge cursor) in Hptr.
+  assert (Haddr : Ptrofs.unsigned (Ptrofs.repr (write_word_address edge cursor)) =
+      write_word_address edge cursor) by (apply Ptrofs.unsigned_repr; lia).
+  assert (HaddrL : Ptrofs.unsigned (Ptrofs.repr (write_word_address edge cursor - 8)) =
+      write_word_address edge cursor - 8) by (apply Ptrofs.unsigned_repr; lia).
+  assert (HptrL : Ptrofs.sub (Ptrofs.repr (write_word_address edge cursor)) (Ptrofs.repr 8) =
+      Ptrofs.repr (write_word_address edge cursor - 8)).
+  { unfold Ptrofs.sub. rewrite Haddr. reflexivity. }
+  assert (HHp : Mem.load Mint64 m bw
+      (Ptrofs.unsigned (Ptrofs.repr (write_word_address edge cursor))) = Some (Vlong oldhigh))
+    by (rewrite Haddr; exact HH).
+  assert (HLp : Mem.load Mint64 mo bw
+      (Ptrofs.unsigned (Ptrofs.repr (write_word_address edge cursor - 8))) = Some (Vlong oldlow))
+    by (rewrite HaddrL; exact HL).
+  assert (SHp : Mem.store Mint64 m bw
+      (Ptrofs.unsigned (Ptrofs.repr (write_word_address edge cursor)))
+      (Vlong (slice_high 32 k oldhigh x)) = Some mh) by (rewrite Haddr; exact SH).
+  assert (SLp : Mem.store Mint64 mo bw
+      (Ptrofs.unsigned (Ptrofs.repr (write_word_address edge cursor - 8)))
+      (Vlong (slice_low 32 k x)) = Some ml) by (rewrite HaddrL; exact SL).
+  assert (Hcross : Int64.ltu (Int64.repr k) (Int64.repr 32) = true).
+  { unfold Int64.ltu. rewrite !cursor_unsigned by lia. rewrite zlt_true by lia; reflexivity. }
+  pose proof (cursor_sub 32 k ltac:(lia) ltac:(lia)) as Hremain.
+  pose proof (cursor_sub 64 (32 - k) ltac:(lia) ltac:(lia)) as Hshift_sub.
+  assert (Hshr : Int64.ltu (Int64.repr (32 - k)) Int64.iwordsize = true).
+  { unfold Int64.ltu. rewrite cursor_unsigned by lia.
+    change ((if zlt (32 - k) 64 then true else false) = true).
+    rewrite zlt_true by lia; reflexivity. }
+  assert (Hshift : Int64.ltu (Int64.repr (64 - (32 - k))) Int64.iwordsize = true).
+  { unfold Int64.ltu. rewrite cursor_unsigned by lia.
+    change ((if zlt (64 - (32 - k)) 64 then true else false) = true).
+    rewrite zlt_true by lia; reflexivity. }
+  assert (Hstop : Int64.ltu (Int64.repr 64) (Int64.repr (32 - k)) = false).
+  { unfold Int64.ltu. rewrite !cursor_unsigned by lia. rewrite zlt_false by lia; reflexivity. }
+  assert (Hfirst : Int64.sub (Int64.repr cursor) (Int64.repr k) = Int64.repr (cursor - k)).
+  { unfold Int64.sub. rewrite (Int64.unsigned_repr cursor) by lia.
+    rewrite cursor_unsigned by lia; reflexivity. }
+  assert (Hfinal : Int64.sub (Int64.repr (cursor - k)) (Int64.repr (32 - k)) =
+      Int64.repr (cursor - 32)).
+  { unfold Int64.sub. rewrite (Int64.unsigned_repr (cursor - k)) by lia.
+    rewrite cursor_unsigned by lia. f_equal; lia. }
+  unfold slice_high in SHp. unfold slice_low in SLp.
+  eapply eval_funcall_internal with (e := empty_env) (le1 := le_write_wide W32 bf base x)
+    (m1 := m) (m2 := mf) (out := Out_normal) (vres := Vundef).
+  - apply entry_bitcoin_write32.
+  - unfold f_simplicity_write32; cbn [fn_body]; bitcoin_writer_stmt.
+  - reflexivity.
+  - reflexivity.
+Qed.
+
 Lemma eval_bitcoin_write32_non_crossing_raw m mw mf bf base bw edge cursor old x :
   frame_base_valid base -> 32 <= cursor <= Int64.max_unsigned ->
   32 <= write_word_shift cursor -> 0 <= edge -> write_word_address edge cursor + 8 <= Ptrofs.max_unsigned ->

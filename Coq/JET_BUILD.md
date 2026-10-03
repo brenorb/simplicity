@@ -2766,3 +2766,17 @@ actual word-helper executions. Current source compiles, scans, and fresh kernel
 only the six inherited execution assumptions. These two unregistered results
 add no public coverage: intermediate store premises still need discharge from
 initial writable-frame contracts, and the crossing branch remains to be proved.
+
+Bitcoin writer follow-up: `eval_bitcoin_write32_crossing_raw` now proves the
+actual crossing branch; current full execution source compiles (session `39657`,
+exit 0), scans, and fresh kernel `27779` finishes with exit 0.
+`C/jet_bitcoin_write32_layout.v` discharges all intermediate store/load premises
+from `write_frame_at` in the initial memory. Its theorem covers both branches,
+arbitrary valid physical cursors, arbitrary existing output contents, decoded
+output, prefix preservation, final frame fields, loads outside modified ranges,
+permissions and valid blocks. Current source compiles and scans; fresh kernel
+`76325` finishes with exit 0. Both new execution results have exactly the six
+inherited execution assumptions (Print Assumptions checked, no new axioms).
+These unregistered helper results do not increase public coverage. Next connect
+the actual version wrapper's allocation, by-value struct copy, environment
+reads, checked writer call and local cleanup, then its literal primitive.
