@@ -2443,3 +2443,10 @@ generated snapshots. Both prescribed filters reproduce `dd2b9d7` byte-for-byte;
 inherited kernel axioms are unchanged. Negative fixtures and exact AST check
 remain live/unobserved; snapshots are NOT accepted yet. Do not restart that
 specific live run or modify its frozen registered inputs.
+
+Audit `58720` subsequently returned terminal exit 0: all gates, negative fixtures
+and exact pinned AST regeneration passed; its durable log ends with `all jet
+checks passed`. Both prescribed filters reproduce `dd2b9d7` byte-for-byte and
+inherited kernel axioms are unchanged. Accept 385 modules / 1761 results,
+729 closed; public coverage remains 206/533, 327 missing. The four unregistered
+reader modules remain independently checked and excluded from this audit.
