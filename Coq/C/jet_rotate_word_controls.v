@@ -28,14 +28,21 @@ Proof.
   all: reflexivity.
 Qed.
 
+(* The vernacular default bounds the entire 256-case tactic sentence, including
+   an explicit inner Timeout. Give just this checked finite-control proof a
+   larger bounded deadline; restore the usual short bound immediately below. *)
+Set Default Timeout 30.
 Lemma left_rotate64_controls_normalform (amount : Ty.tySem (Word 3)) (x : Ty.tySem (Word 6)) :
   @left_rotate_word_spec 3 6 Alg.CoreFunSem (amount, x) = rotate_low_controls_fun 6 0 6 amount x.
 Proof.
   destruct amount as [[[a b] [c d]] [[e f] [g h]]].
   destruct a as [[]|[]], b as [[]|[]], c as [[]|[]], d as [[]|[]],
     e as [[]|[]], f as [[]|[]], g as [[]|[]], h as [[]|[]].
-  all: reflexivity.
+  (* This one sentence checks all 256 control cases; retain a bounded batch
+     deadline without changing the symbolic-payload proof or its statement. *)
+  Timeout 30 all: reflexivity.
 Qed.
+Set Default Timeout 10.
 
 (** The accumulated displacement is independent of the symbolic payload.
     This interface lets all widths share the same bit-level composition proof. *)

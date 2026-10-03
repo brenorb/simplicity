@@ -2729,3 +2729,15 @@ coverage. Next reuse the existing writer arithmetic/memory lemmas and adapt its
 expression/call proof automation to these actual Bitcoin frame/global contracts;
 avoid a general all-expression transport that would incorrectly equate sizes of
 previously undefined types.
+
+Consumer rebuild timeout repair: the isolated 64-bit rotation normalization
+checks 256 finite control cases with a symbolic payload. Its `all: reflexivity`
+sentence hit the global 10-second bound even in isolation; adding an inner
+Timeout alone did not override that outer default. Scope Default Timeout 30 to
+this existing proof and restore 10 immediately after Qed. No statement, case or
+formal proof is removed or weakened. Current complete source compiles in the
+isolated timed run `50739` (26.707 s wall for the module, terminal exit 0), passes
+explicit scan, and fresh kernel `84339` finishes with terminal exit 0. The
+subsequent full consumer rebuild `32133` is live at -j2; do not infer its success
+from the isolated checks. Original public types/assumptions still require
+comparison after the rebuild finishes.
