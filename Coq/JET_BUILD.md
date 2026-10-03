@@ -2930,3 +2930,13 @@ closed results and filtering the 40 newly registered Bitcoin result names
 reproduces that baseline byte-for-byte; kernel axioms remain unchanged. These
 checks do not replace the recovery's pending terminal result. Registered inputs
 remain frozen. Independently checked getter32/lock-time modules are outside it.
+
+`jet_bitcoin_current_index_exec.v` checks the actual txEnv index field (offset
+48), physical field read, exact current-index entry/temp interface and genuine
+copy/read/write/free composition. Its generic expression-argument write32 call
+uses the actual Bitcoin symbol/function and can serve other wrappers.
+`jet_bitcoin_current_index_layout.v` derives all intermediate memory operations
+from initial observations and write-frame permissions, retaining arbitrary
+valid cursors/crossings/output contents and framing. Current sources compile
+and scan; fresh kernel `81317` finishes with exit 0. These unregistered execution
+helpers add no coverage and do not modify recovery `9432`'s frozen inputs.
