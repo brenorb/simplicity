@@ -2876,3 +2876,19 @@ the appended new definition blocks starting at `bitcoin_core_composite_ids =`
 to reproduce baseline snapshots byte-for-byte. Review actual printing names
 before applying those filters. Verify unchanged inherited kernel axioms. Freeze
 registered inputs during this expanded audit; do not accept static coverage alone.
+
+Version integration is live as `9008`, durable log
+`/tmp/jet-bitcoin-version-audit.8XOwuO/audit.log`, against `9c09d18`. Static,
+consumer build and 410-module kernel checks have passed; assumption / contract /
+negative / dual-AST terminal acceptance is pending. Registered inputs are frozen.
+
+`jet_bitcoin_getter32_exec.v` generalizes the checked actual wrapper structure:
+same-interface function entry, exact generated version/lock-time body checks,
+actual lock-time field metadata (472), generic checked physical field read,
+and actual copy/read/write/free composition. Current source compiles and scans;
+fresh kernel `71010` finishes with exit 0. `jet_bitcoin_getter32_layout.v`
+derives every intermediate premise from initial-memory frame/environment
+observations; it compiles and scans, fresh kernel `6588` exits 0. The field
+metadata premise is kept opaque during proof search; explicit initial loads
+determine allocation freshness, avoiding speculative unfolding of open metadata.
+These unregistered helpers are not additional public jets.
