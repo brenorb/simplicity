@@ -149,3 +149,28 @@ Proof.
     replace (inbase + sz * Int64.unsigned r + d1 + d2) with (inbase + sz * Int64.unsigned r + (d1 + d2)) by lia.
     exact HL.
 Qed.
+
+(** [&(xp[i]).field] for a struct-valued field. *)
+Lemma eval_bitcoin_elem_field_addr e le m t4 ip sid sz field fdelta sid1 b inbase r :
+  sizeof (Clight.genv_cenv bitcoin_ge) (Tstruct sid noattr) = sz ->
+  bitcoin_field_at sid field fdelta ->
+  le!t4 = Some (Vptr b (Ptrofs.repr inbase)) -> le!ip = Some (Vlong r) ->
+  0 <= inbase -> 0 < sz <= 1000 -> 0 <= fdelta ->
+  inbase + sz * Int64.unsigned r + fdelta <= Ptrofs.max_unsigned ->
+  inbase + sz * Int64.unsigned r + 1 <= Ptrofs.max_unsigned ->
+  eval_expr bitcoin_ge e le m
+    (Eaddrof (Efield (Ederef (Ebinop Oadd (Etempvar t4 (tptr (Tstruct sid noattr))) (Etempvar ip tulong)
+      (tptr (Tstruct sid noattr))) (Tstruct sid noattr)) field (Tstruct sid1 noattr))
+      (tptr (Tstruct sid1 noattr)))
+    (Vptr b (Ptrofs.repr (inbase + sz * Int64.unsigned r + fdelta))).
+Proof.
+  intros Hsz HF H4 HI HB HS Hd HM HM1.
+  assert (HR : 0 <= Int64.unsigned r) by (apply Int64.unsigned_range).
+  assert (HI' : le!ip = Some (Vlong (Int64.repr (Int64.unsigned r)))) by (rewrite Int64.repr_unsigned; exact HI).
+  assert (Hsr : 0 <= sz * Int64.unsigned r) by (apply Z.mul_nonneg_nonneg; [lia|exact HR]).
+  pose proof (eval_bitcoin_index e le m t4 ip sid sz b inbase (Int64.unsigned r) Hsz H4 HI' HB HS HR
+    ltac:(clear - HM1 Hsr; lia)) as HElem.
+  eapply eval_Eaddrof.
+  rewrite <- (bitcoin_ptr_add_repr (inbase + sz * Int64.unsigned r) fdelta) by (clear - HM Hd Hsr HB; lia).
+  eapply eval_bitcoin_field_lvalue; [reflexivity|exact HF|exact HElem].
+Qed.
