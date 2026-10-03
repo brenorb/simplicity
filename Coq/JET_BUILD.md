@@ -2562,3 +2562,11 @@ remove appended theorem blocks beginning at `sha256_count_check_parametric`
 until `frame_fields =`, and appended definitions beginning at
 `sha256_count_limit =`, to reproduce `8f2f694` exactly. Check unchanged inherited
 kernel axioms. These support contracts must not enter the public coverage table.
+
+Expanded bridge audit `46115` is live; durable log:
+`/tmp/jet-context-count-audit.teWxNO/audit.log`. Its accepted comparison baseline
+is `8f2f694`. No generated snapshots from this run are accepted yet. Keep the
+registered files frozen; continue only in new unregistered modules until its
+terminal result is observed. Next specialize the general actual context writer
+to the reader's recovered canonical count using the checked quotient/remainder
+bridge, then discharge actual caller allocations and canonical public programs.
