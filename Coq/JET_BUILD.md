@@ -2813,3 +2813,25 @@ The real Bitcoin translation unit was freshly regenerated with the pinned
 CompCert/glibc configuration and compared byte-for-byte, terminal exit 0;
 checked temporary artifact ends in `simplicity-bitcoin-jets-check.8F7hNh/jets_bitcoin.v`.
 No Bitcoin coverage row is added before application-contract/integration gates.
+
+`C/jet_application_contract.v` makes the canonical frame contract explicit for
+application jets: actual ge, logical primitive environment, initial physical
+environment representation, literal option/reader interpretation, actual call,
+encoded output and the same noninterference ranges as the core contract.
+It is a total successful-jet contract, not a contract for failing primitives.
+`C/jet_bitcoin_version_local.v` instantiates it for the actual version jet and
+literal canonical Version program, using only the physical environment fields
+actually read. No desired execution/result is an input hypothesis. Both sources
+compile and scan; fresh kernel `65803` finishes with exit 0. The direct local
+theorem has exactly the six inherited execution assumptions.
+
+Next integration must register the independently checked Bitcoin artifact and
+support/consumer modules, their result/definition snapshots, and the new
+application contract. Extend the coverage validator and its negative fixtures
+to recognize direct `application_jet_local_spec f_<exact C name>` statements;
+keep existing core/partial checks, unknown/duplicate/helper rejection and audited
+result requirements. Wire `check-bitcoin-jets-generation.sh` into the AST gate
+before registering any Bitcoin coverage. Add only the concrete version local
+theorem as new coverage; helper results are not jets. Do not change registered
+inputs while audit `70050` is live or accept its snapshots without terminal
+success including negative fixtures and exact core AST regeneration.
