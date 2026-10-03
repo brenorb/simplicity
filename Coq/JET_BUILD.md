@@ -3058,3 +3058,10 @@ at `for_while_program =`. Compare inherited kernel axioms unchanged. Freeze all
 registered sources/manifests during the integration. Capture an explicit exit
 status in its durable log so a completed session handle expiring cannot obscure
 the terminal result.
+
+The count-chain audit is live as `56863`, durable log
+`/tmp/jet-bitcoin-count-audit.p6PL1u/audit.log`. It runs the full consumer build
+and all gates with both AST checks, against snapshot baseline `cd7c838`.
+Do not accept partial snapshots or count 211 as integrated coverage until
+the final success marker and explicit exit status 0 are observed. Registered
+sources/manifests remain frozen. No pushes have been made.
