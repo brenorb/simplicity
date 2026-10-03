@@ -19,9 +19,22 @@ Set Default Timeout 10.
 Definition bitcoin_copy_stmt : statement :=
   Sassign (Evar _src (Tstruct _frameItem noattr)) (Etempvar _src (Tstruct _frameItem noattr)).
 
-Definition bitcoin_wrapper_body (mid : statement) : statement :=
-  Ssequence bitcoin_copy_stmt
-    (Ssequence mid (Sreturn (Some (Econst_int (Int.repr 1) tint)))).
+Definition bitcoin_simple_rest (mid : statement) : statement :=
+  Ssequence mid (Sreturn (Some (Econst_int (Int.repr 1) tint))).
+
+Definition bitcoin_wrapper_body (rest : statement) : statement :=
+  Ssequence bitcoin_copy_stmt rest.
+
+Definition bitcoin_returned_one : outcome := Out_return (Some (Vint Int.one, tint)).
+
+Lemma exec_bitcoin_simple_rest e le m mid le1 m1 :
+  Clight2.exec_stmt bitcoin_ge e le m mid E0 le1 m1 Out_normal ->
+  Clight2.exec_stmt bitcoin_ge e le m (bitcoin_simple_rest mid) E0 le1 m1 bitcoin_returned_one.
+Proof.
+  intros H. unfold bitcoin_simple_rest, bitcoin_returned_one.
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact H|].
+  apply exec_Sreturn_some, eval_Econst_int.
+Qed.
 
 Definition bitcoin_wrapper_params : list (ident * type) :=
   [(_dst, tptr (Tstruct _frameItem noattr)); (_src, Tstruct _frameItem noattr);
@@ -32,13 +45,13 @@ Definition bitcoin_wrapper_temps (f : function) env bd dbase bs sbase : temp_env
     (PTree.set _dst (Vptr bd (Ptrofs.repr dbase)) (create_undef_temps (fn_temps f)))).
 
 (** The generated wrapper shape.  Per-jet consumers establish it by computation. *)
-Definition bitcoin_wrapper_shape (f : function) (mid : statement) : Prop :=
+Definition bitcoin_wrapper_shape (f : function) (rest : statement) : Prop :=
   fn_return f = tbool /\ fn_vars f = [(_src, Tstruct _frameItem noattr)] /\
-  fn_params f = bitcoin_wrapper_params /\ fn_body f = bitcoin_wrapper_body mid /\
+  fn_params f = bitcoin_wrapper_params /\ fn_body f = bitcoin_wrapper_body rest /\
   list_disjoint [_dst; _src; _env] (map fst (fn_temps f)).
 
-Lemma bitcoin_wrapper_entry f mid env m ma bl bd dbase bs sbase :
-  bitcoin_wrapper_shape f mid -> Mem.alloc m 0 16 = (ma, bl) ->
+Lemma bitcoin_wrapper_entry f rest env m ma bl bd dbase bs sbase :
+  bitcoin_wrapper_shape f rest -> Mem.alloc m 0 16 = (ma, bl) ->
   function_entry2 bitcoin_ge f
     [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
     m (bitcoin_version_locals bl) (bitcoin_wrapper_temps f env bd dbase bs sbase) ma.
@@ -54,13 +67,13 @@ Proof.
   - rewrite HParams. reflexivity.
 Qed.
 
-Lemma bitcoin_wrapper_eval f mid env m ma mc me mf bl bd dbase bs sbase bytes le1 :
-  bitcoin_wrapper_shape f mid ->
+Lemma bitcoin_wrapper_eval f rest env m ma mc me mf bl bd dbase bs sbase bytes le1 :
+  bitcoin_wrapper_shape f rest ->
   frame_base_valid sbase -> (8 | sbase) -> bl <> bs ->
   Mem.alloc m 0 16 = (ma, bl) -> Mem.loadbytes ma bs sbase 16 = Some bytes ->
   Mem.storebytes ma bl 0 bytes = Some mc ->
   Clight2.exec_stmt bitcoin_ge (bitcoin_version_locals bl)
-    (bitcoin_wrapper_temps f env bd dbase bs sbase) mc mid E0 le1 me Out_normal ->
+    (bitcoin_wrapper_temps f env bd dbase bs sbase) mc rest E0 le1 me bitcoin_returned_one ->
   Mem.free me bl 0 16 = Some mf ->
   Clight2.eval_funcall bitcoin_ge m (Internal f)
     [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one).
@@ -77,9 +90,7 @@ Proof.
     + eapply exec_bitcoin_version_copy; [exact HB|exact HS|exact HD| |exact HL|exact SC].
       unfold bitcoin_wrapper_temps. rewrite PTree.gso by discriminate.
       apply PTree.gss.
-    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := me) (le1 := le1).
-      * exact HMid.
-      * apply exec_Sreturn_some, eval_Econst_int.
+    + exact HMid.
   - rewrite HRet. cbn; split; [discriminate|reflexivity].
   - change (Mem.free_list me [(bl,0,16)] = Some mf). cbn. rewrite HF; reflexivity.
 Qed.
@@ -97,8 +108,8 @@ Proof.
   - destruct HO as [bit Hbit]. exists bit. apply HB; exact Hbit.
 Qed.
 
-Theorem bitcoin_wrapper_layout f mid (cells : list Cell) env m bd dbase bs sbase bw edge cursor count bytes :
-  bitcoin_wrapper_shape f mid ->
+Theorem bitcoin_wrapper_layout f rest (cells : list Cell) env m bd dbase bs sbase bw edge cursor count bytes :
+  bitcoin_wrapper_shape f rest ->
   frame_base_valid sbase -> (8 | sbase) -> Mem.loadbytes m bs sbase 16 = Some bytes ->
   0 < count ->
   write_frame_at m bd dbase bw edge cursor count ->
@@ -109,7 +120,7 @@ Theorem bitcoin_wrapper_layout f mid (cells : list Cell) env m bd dbase bs sbase
      write_frame_at mc bd dbase bw edge cursor count ->
      exists le1 me,
        Clight2.exec_stmt bitcoin_ge (bitcoin_version_locals bl)
-         (bitcoin_wrapper_temps f env bd dbase bs sbase) mc mid E0 le1 me Out_normal /\
+         (bitcoin_wrapper_temps f env bd dbase bs sbase) mc rest E0 le1 me bitcoin_returned_one /\
        frame_output_cells_at me bw edge cursor cells /\
        write_prefix_at mc me bw edge cursor /\
        frame_fields_at me bd dbase bw edge (cursor - count) /\
@@ -187,4 +198,44 @@ Proof.
            rewrite Hmemory by assumption.
            erewrite Mem.load_storebytes_other; [|exact SC|auto].
            eapply Mem.load_alloc_unchanged; eauto.
+Qed.
+
+(** The common shape [copy; MID; return 1] with MID executing normally. *)
+Corollary bitcoin_wrapper_layout_simple f mid (cells : list Cell) env m bd dbase bs sbase bw edge cursor count bytes :
+  bitcoin_wrapper_shape f (bitcoin_simple_rest mid) ->
+  frame_base_valid sbase -> (8 | sbase) -> Mem.loadbytes m bs sbase 16 = Some bytes ->
+  0 < count ->
+  write_frame_at m bd dbase bw edge cursor count ->
+  (forall ma mc bl,
+     Mem.alloc m 0 16 = (ma, bl) -> Mem.storebytes ma bl 0 bytes = Some mc ->
+     (forall chunk b ofs v, Mem.load chunk m b ofs = Some v -> Mem.load chunk mc b ofs = Some v) ->
+     (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mc b ofs kind p) ->
+     write_frame_at mc bd dbase bw edge cursor count ->
+     exists le1 me,
+       Clight2.exec_stmt bitcoin_ge (bitcoin_version_locals bl)
+         (bitcoin_wrapper_temps f env bd dbase bs sbase) mc mid E0 le1 me Out_normal /\
+       frame_output_cells_at me bw edge cursor cells /\
+       write_prefix_at mc me bw edge cursor /\
+       frame_fields_at me bd dbase bw edge (cursor - count) /\
+       loads_outside_ranges mc me bd (dbase + 8) (dbase + 16) bw
+         (edge + 8 * ((cursor - count) / 64)) (write_word_address edge cursor + 8) /\
+       (forall b ofs kind p, Mem.perm mc b ofs kind p -> Mem.perm me b ofs kind p) /\
+       (forall b, Mem.valid_block mc b -> Mem.valid_block me b)) ->
+  exists mf,
+    Clight2.eval_funcall bitcoin_ge m (Internal f)
+      [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one) /\
+    frame_output_cells_at mf bw edge cursor cells /\
+    write_prefix_at m mf bw edge cursor /\
+    frame_fields_at mf bd dbase bw edge (cursor - count) /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      (b <> bd \/ ofs + size_chunk chunk <= dbase + 8 \/ dbase + 16 <= ofs) ->
+      (b <> bw \/ ofs + size_chunk chunk <= edge + 8 * ((cursor - count) / 64) \/
+        write_word_address edge cursor + 8 <= ofs) ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+Proof.
+  intros HShape HSb HSa HB HCount HFrame HMid.
+  eapply bitcoin_wrapper_layout; try eassumption.
+  intros ma mc bl HA HS HL HP HF.
+  destruct (HMid ma mc bl HA HS HL HP HF) as (le1 & me & HEx & R).
+  exists le1, me. split; [apply exec_bitcoin_simple_rest; exact HEx|exact R].
 Qed.

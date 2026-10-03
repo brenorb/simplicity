@@ -44,8 +44,8 @@ Proof.
 Qed.
 
 Lemma bitcoin_script_cmr_getter_body :
-  bitcoin_wrapper_shape f_simplicity_bitcoin_script_cmr
-    (bitcoin_hash_mid_write32s _taproot _bitcoinTapEnv _scriptCMR).
+  bitcoin_wrapper_shape f_simplicity_bitcoin_script_cmr (bitcoin_simple_rest
+    (bitcoin_hash_mid_write32s _taproot _bitcoinTapEnv _scriptCMR)).
 Proof.
   repeat split; try reflexivity.
   intros x y HX HY Hxy. cbn in HX, HY.
@@ -121,7 +121,7 @@ Proof.
     - exact bitcoin_tapEnv_scriptCMR.
     - exact (HLP _ _ _ _ HLoad).
     - exact HCall. }
-  destruct (bitcoin_wrapper_layout f_simplicity_bitcoin_script_cmr
+  destruct (bitcoin_wrapper_layout_simple f_simplicity_bitcoin_script_cmr
     (bitcoin_hash_mid_write32s _taproot _bitcoinTapEnv _scriptCMR)
     (hash_cells (hash256_reg hash)) (Vptr be (Ptrofs.repr ebase)) m bd dbase bs sbase bw outedge cursor 256 bytes
     bitcoin_script_cmr_getter_body HB HA HBytes ltac:(lia) HFrame

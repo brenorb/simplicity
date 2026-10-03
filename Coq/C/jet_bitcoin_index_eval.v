@@ -1,0 +1,82 @@
+(** Evaluation of indexed fields of arrays of Bitcoin environment
+    structures: pointer-plus-long arithmetic at the actual struct size. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Cop Clight Maps Memory Values Errors.
+Require Import C.jets_bitcoin C.jet_bitcoin_linkage C.jet_bitcoin_field_eval.
+Import Ctypes Values Mem ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Local Opaque bitcoin_ge.
+Set Default Timeout 30.
+
+Lemma bitcoin_ptr_index_repr base sz n :
+  0 <= base -> 0 < sz <= 1000 -> 0 <= n -> base + sz * n <= Ptrofs.max_unsigned ->
+  Ptrofs.add (Ptrofs.repr base) (Ptrofs.mul (Ptrofs.repr sz) (Ptrofs.of_int64 (Int64.repr n))) =
+    Ptrofs.repr (base + sz * n).
+Proof.
+  intros HB HS HN HM.
+  assert (Hmax : Ptrofs.max_unsigned = 18446744073709551615) by reflexivity.
+  rewrite Hmax in HM.
+  assert (Hn : n <= 18446744073709551615) by nia.
+  assert (Hsn : sz * n <= 18446744073709551615) by lia.
+  assert (Hsn0 : 0 <= sz * n) by nia.
+  unfold Ptrofs.of_int64. rewrite Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia).
+  unfold Ptrofs.mul, Ptrofs.add.
+  rewrite (Ptrofs.unsigned_repr sz) by (rewrite Hmax; lia).
+  rewrite (Ptrofs.unsigned_repr n) by (rewrite Hmax; lia).
+  rewrite (Ptrofs.unsigned_repr base) by (rewrite Hmax; lia).
+  rewrite (Ptrofs.unsigned_repr (sz * n)) by (rewrite Hmax; lia).
+  reflexivity.
+Qed.
+
+Lemma sem_add_ptr_long_sizeof ce S r ofs b sz m :
+  sizeof ce S = sz ->
+  sem_add ce (Vptr b ofs) (tptr S) (Vlong r) tulong m =
+    Some (Vptr b (Ptrofs.add ofs (Ptrofs.mul (Ptrofs.repr sz) (Ptrofs.of_int64 r)))).
+Proof. intros H. unfold sem_add. simpl. unfold sem_add_ptr_long. rewrite H. reflexivity. Qed.
+
+(** Dereference of [xp + ip] where [xp] is a pointer to [struct sid] and [ip : unsigned long] are temporaries. *)
+Lemma eval_bitcoin_index e le m xp ip sid sz b base r :
+  sizeof (Clight.genv_cenv bitcoin_ge) (Tstruct sid noattr) = sz ->
+  le!xp = Some (Vptr b (Ptrofs.repr base)) -> le!ip = Some (Vlong (Int64.repr r)) ->
+  0 <= base -> 0 < sz <= 1000 -> 0 <= r -> base + sz * r <= Ptrofs.max_unsigned ->
+  eval_expr bitcoin_ge e le m
+    (Ederef (Ebinop Oadd (Etempvar xp (tptr (Tstruct sid noattr))) (Etempvar ip tulong)
+      (tptr (Tstruct sid noattr))) (Tstruct sid noattr))
+    (Vptr b (Ptrofs.repr (base + sz * r))).
+Proof.
+  intros Hsz HX HI HB HS HR HM.
+  rewrite <- (bitcoin_ptr_index_repr base sz r HB HS HR HM).
+  eapply eval_Elvalue.
+  - apply eval_Ederef. eapply eval_Ebinop.
+    + apply eval_Etempvar; exact HX.
+    + apply eval_Etempvar; exact HI.
+    + cbn [typeof]. unfold sem_binary_operation.
+      rewrite (sem_add_ptr_long_sizeof (Clight.genv_cenv bitcoin_ge) (Tstruct sid noattr)
+        (Int64.repr r) (Ptrofs.repr base) b sz m Hsz). reflexivity.
+  - apply deref_loc_copy; reflexivity.
+Qed.
+
+Lemma bitcoin_sizeof_sigInput : sizeof (Clight.genv_cenv bitcoin_ge) (Tstruct _sigInput noattr) = 160.
+Proof. vm_compute; reflexivity. Qed.
+Lemma bitcoin_sizeof_sigOutput : sizeof (Clight.genv_cenv bitcoin_ge) (Tstruct _sigOutput noattr) = 40.
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma bitcoin_bitcoinTransaction_input : bitcoin_field_at _bitcoinTransaction _input 0.
+Proof. vm_compute; reflexivity. Qed.
+Lemma bitcoin_bitcoinTransaction_output : bitcoin_field_at _bitcoinTransaction _output 8.
+Proof. vm_compute; reflexivity. Qed.
+Lemma bitcoin_bitcoinTransaction_numInputs : bitcoin_field_at _bitcoinTransaction _numInputs 448.
+Proof. vm_compute; reflexivity. Qed.
+Lemma bitcoin_bitcoinTransaction_numOutputs : bitcoin_field_at _bitcoinTransaction _numOutputs 456.
+Proof. vm_compute; reflexivity. Qed.
+Lemma bitcoin_sigInput_txo : bitcoin_field_at _sigInput _txo 104.
+Proof. vm_compute; reflexivity. Qed.
+Lemma bitcoin_sigInput_sequence : bitcoin_field_at _sigInput _sequence 144.
+Proof. vm_compute; reflexivity. Qed.
+Lemma bitcoin_sigInput_prevOutpoint : bitcoin_field_at _sigInput _prevOutpoint 64.
+Proof. vm_compute; reflexivity. Qed.
+Lemma bitcoin_sigOutput_value : bitcoin_field_at _sigOutput _value 0.
+Proof. vm_compute; reflexivity. Qed.
+Lemma bitcoin_sigOutput_scriptPubKey : bitcoin_field_at _sigOutput _scriptPubKey 8.
+Proof. vm_compute; reflexivity. Qed.
