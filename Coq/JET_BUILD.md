@@ -2788,3 +2788,16 @@ Current source compiles, scans, and fresh kernel `48699` finishes with exit 0.
 This is internal composition, not yet a public initial-memory contract: its
 allocation, copied bytes, observations after copy, writer execution and free
 premises must all be derived by a consumer. It adds no public coverage.
+
+`C/jet_bitcoin_version_layout.v` now derives those premises from initial memory:
+it allocates/copies the real by-value frame local, preserves initial environment
+observations through that copy, obtains actual write32 execution from the total
+writer contract, and derives local Freeable permissions and successful cleanup.
+The actual version jet's output matches Bitcoin.sem Version, with arbitrary
+valid cursors/crossings/output contents and prefix/field/outside-load framing.
+Only the environment observations used by this jet are needed: the physical tx
+pointer and exact unsigned carrier equal to the logical 32-bit version; no
+unrelated cached fields or no-alias assumptions are imposed. Current source
+compiles and scans; fresh kernel `5257` finishes with exit 0. The result retains
+the six inherited execution assumptions. It remains outside audited public
+coverage until canonical-program/encoding metadata and integration are checked.
