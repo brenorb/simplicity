@@ -2611,3 +2611,27 @@ Bitcoin Coq primitive `Version` and actual `bitcoinJets.c` version writer are
 another potentially small public target, but require their own faithful Clight
 artifact, environment representation and helper-code/global-environment linkage;
 do not reuse `ge0` merely because a writer's source text matches.
+
+Bitcoin artifact groundwork: `C/jet_bitcoin_translation_unit.c` includes the
+actual frame/core/Bitcoin source files unchanged. `C/regenerate-bitcoin-jets.sh`
+uses the same pinned CompCert 3.14, glibc sysroot, Linux LP64 target and explicit
+PRODUCTION flags; its separate output is `C/jets_bitcoin.v`. The current artifact
+compiles (session `11179`, terminal exit 0) and a fresh
+`C/check-bitcoin-jets-generation.sh` run reproduces it exactly. The core artifact
+is untouched. Generation/check scripts require COMPCERT and JET_SYSROOT as
+documented for the core scripts, and are invoked with bash. The new translation
+unit supplies actual internal frame writer bodies, not invented replacements.
+
+`C/jet_bitcoin_linkage.v` derives the new program's actual write32 symbol/function,
+body equality with the core helper, frame-composite equality, and exact field
+offsets for env.tx (0) and transaction.version (464). Its six results / two
+definitions compile, pass explicit scans, are closed under the global context,
+and pass fresh kernel `40274` with terminal exit 0. These observations do not
+transport an old-ge execution to the new-ge execution. This artifact/support
+remains unregistered while bridge audit `46115` runs, and adds no public coverage.
+Next discharge the real version function's source-frame allocation/copy,
+initial environment representation, actual field reads, writer execution in
+`bitcoin_ge`, and cleanup against the canonical Bitcoin Version primitive.
+The Coq Version semantics uses signed 32-bit interpretation; show explicitly
+that the C unsigned carrier decodes to the same 32-bit word, including negative
+signed versions. Never assume the desired public output or writer call.
