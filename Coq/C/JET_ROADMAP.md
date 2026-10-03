@@ -72,6 +72,23 @@ Version. It is not yet included in the 206 audited coverage entries. Next
 register its concrete artifact and support modules, extend application-contract
 coverage validation with negative tests, and check exact Bitcoin AST regeneration
 in the integrated gate. Do not count helper modules as additional jets.
+Version integration `9008` now registers that chain (410 result modules / 1848
+results, static coverage 207/533); build/kernel checks passed, remaining gates
+and dual-AST terminal acceptance are pending. Keep registered inputs frozen.
+The shared getter32 execution/initial-memory contracts and the actual lock-time
+jet's canonical local theorem are also independently kernel-checked, but remain
+unregistered until that audit finishes. Next add lock-time in its own audited
+integration, then consider the direct primitive CurrentIndex getter.
+
+Canonical-spec caution: NumInputs/NumOutputs are **not** direct primitives in
+the current Haskell jet catalog. `Programs.Transaction.lib` defines them as
+`firstFail word32 (primitive InputValue/OutputValue)`. The older Coq Bitcoin
+primitive module still has NumInputs/NumOutputs constructors, but proving the C
+getters against those alone would not establish the requested literal-program
+equivalence. Port/check the actual firstFail programs and their environment
+interpretations before registering count-jet coverage. The C getters do share
+the getter32 wrapper, with checked field offsets 448/456, so their execution
+proofs can later reuse the same infrastructure.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 

@@ -2903,3 +2903,11 @@ interpretation and carrier bridge are closed; the direct C local theorem retains
 only the six inherited execution assumptions. This independent public proof
 remains unregistered during live version audit `9008`. Add it in a subsequent
 integration, not by modifying that run's registered inputs.
+
+Next-family fidelity check: the actual C num_inputs/num_outputs bodies match
+the same getter32 structure (physical field offsets computed as 448/456), but
+their canonical Haskell specifications are firstFail word32 over InputValue /
+OutputValue, not the older Coq NumInputs/NumOutputs primitives. Do not substitute
+those primitives or count a numeric-field bridge as public equivalence. A
+canonical-program port/interpretation is necessary there. CurrentIndex is a
+direct primitive and is the next simpler candidate after lock-time integration.
