@@ -127,8 +127,9 @@ Proof.
     bitcoin_script_cmr_getter_body HB HA HBytes ltac:(lia) HFrame
     (fun ma mc bl HAlloc HStore HLP HPP HFrameC =>
       match HMid ma mc bl HAlloc HStore HLP HPP HFrameC with
-      | ex_intro _ le1 (ex_intro _ me (conj HEx HEff)) =>
-          ex_intro _ le1 (ex_intro _ me (conj HEx HEff))
+      | ex_intro _ le1 (ex_intro _ me (conj HEx (conj HC (conj HP (conj HF (conj HL (conj HPm HV))))))) =>
+          ex_intro _ le1 (ex_intro _ me (conj HEx (conj HC (conj HP (conj HF
+            (conj (fun chunk b ofs _ H1 H2 => HL chunk b ofs H1 H2) (conj HPm HV)))))))
       end))
     as (mf & HCall & HCells & HPrefix & HFields & HMem).
   exists mf, (from_hash256 hash). split; [reflexivity|]. split; [exact HCall|].

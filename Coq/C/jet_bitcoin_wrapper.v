@@ -108,12 +108,8 @@ Proof.
   - destruct HO as [bit Hbit]. exists bit. apply HB; exact Hbit.
 Qed.
 
-Theorem bitcoin_wrapper_layout f rest (cells : list Cell) env m bd dbase bs sbase bw edge cursor count bytes :
-  bitcoin_wrapper_shape f rest ->
-  frame_base_valid sbase -> (8 | sbase) -> Mem.loadbytes m bs sbase 16 = Some bytes ->
-  0 < count ->
-  write_frame_at m bd dbase bw edge cursor count ->
-  (forall ma mc bl,
+Definition bitcoin_wrapper_mid f rest (cells : list Cell) env m bd dbase bs sbase bw edge cursor count bytes : Prop :=
+(forall ma mc bl,
      Mem.alloc m 0 16 = (ma, bl) -> Mem.storebytes ma bl 0 bytes = Some mc ->
      (forall chunk b ofs v, Mem.load chunk m b ofs = Some v -> Mem.load chunk mc b ofs = Some v) ->
      (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mc b ofs kind p) ->
@@ -124,10 +120,20 @@ Theorem bitcoin_wrapper_layout f rest (cells : list Cell) env m bd dbase bs sbas
        frame_output_cells_at me bw edge cursor cells /\
        write_prefix_at mc me bw edge cursor /\
        frame_fields_at me bd dbase bw edge (cursor - count) /\
-       loads_outside_ranges mc me bd (dbase + 8) (dbase + 16) bw
-         (edge + 8 * ((cursor - count) / 64)) (write_word_address edge cursor + 8) /\
+       (forall chunk b ofs, b <> bl ->
+         (b <> bd \/ ofs + size_chunk chunk <= dbase + 8 \/ dbase + 16 <= ofs) ->
+         (b <> bw \/ ofs + size_chunk chunk <= edge + 8 * ((cursor - count) / 64) \/
+           write_word_address edge cursor + 8 <= ofs) ->
+         Mem.load chunk me b ofs = Mem.load chunk mc b ofs) /\
        (forall b ofs kind p, Mem.perm mc b ofs kind p -> Mem.perm me b ofs kind p) /\
-       (forall b, Mem.valid_block mc b -> Mem.valid_block me b)) ->
+       (forall b, Mem.valid_block mc b -> Mem.valid_block me b)).
+
+Theorem bitcoin_wrapper_layout f rest (cells : list Cell) env m bd dbase bs sbase bw edge cursor count bytes :
+  bitcoin_wrapper_shape f rest ->
+  frame_base_valid sbase -> (8 | sbase) -> Mem.loadbytes m bs sbase 16 = Some bytes ->
+  0 < count ->
+  write_frame_at m bd dbase bw edge cursor count ->
+  bitcoin_wrapper_mid f rest cells env m bd dbase bs sbase bw edge cursor count bytes ->
   exists mf,
     Clight2.eval_funcall bitcoin_ge m (Internal f)
       [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one) /\
@@ -172,7 +178,7 @@ Proof.
     - intros chunk b ofs v _ HL. apply HBeforeLoad; exact HL.
     - exact HBeforePerm.
     - exact HFrame. }
-  destruct (HMid ma mc bl eq_refl SC HBeforeLoad HBeforePerm HFrameC)
+  destruct (HMid ma mc bl HA SC HBeforeLoad HBeforePerm HFrameC)
     as (le1 & me & HExec & Houtput & Hprefix & Hfields & Hmemory & Hperm & Hvalid).
   assert (PLE : Mem.range_perm me bl 0 16 Cur Freeable).
   { intros ofs Hrange. apply Hperm. eapply Mem.perm_storebytes_1; [exact SC|]. apply PL; exact Hrange. }
@@ -217,8 +223,11 @@ Corollary bitcoin_wrapper_layout_simple f mid (cells : list Cell) env m bd dbase
        frame_output_cells_at me bw edge cursor cells /\
        write_prefix_at mc me bw edge cursor /\
        frame_fields_at me bd dbase bw edge (cursor - count) /\
-       loads_outside_ranges mc me bd (dbase + 8) (dbase + 16) bw
-         (edge + 8 * ((cursor - count) / 64)) (write_word_address edge cursor + 8) /\
+       (forall chunk b ofs, b <> bl ->
+         (b <> bd \/ ofs + size_chunk chunk <= dbase + 8 \/ dbase + 16 <= ofs) ->
+         (b <> bw \/ ofs + size_chunk chunk <= edge + 8 * ((cursor - count) / 64) \/
+           write_word_address edge cursor + 8 <= ofs) ->
+         Mem.load chunk me b ofs = Mem.load chunk mc b ofs) /\
        (forall b ofs kind p, Mem.perm mc b ofs kind p -> Mem.perm me b ofs kind p) /\
        (forall b, Mem.valid_block mc b -> Mem.valid_block me b)) ->
   exists mf,
