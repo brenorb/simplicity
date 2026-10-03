@@ -2648,3 +2648,24 @@ Bridge audit `46115` has passed its 395-module kernel and updated the generated
 assumption/contract snapshots; its negative fixtures and AST stage have not yet
 finished. Do not accept those snapshots or modify registered proof inputs until
 the existing session returns terminal success.
+
+`C/jet_bitcoin_version_spec.v` connects the actual unsigned 64-bit carrier's
+32-bit writer decoding to `Bitcoin.sem Bitcoin.Version tt environment`, using
+the existing Coq Bitcoin primitive. It proves signed/unsigned 32-bit word
+equivalence explicitly, including negative signed versions, and assumes only
+the carrier's exact physical representation of the transaction version. The
+canonical Haskell catalogue is `Haskell/Simplicity/Bitcoin/Jets.hs:221`:
+`specificationTransaction Version = primitive Prim.Version`;
+`Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs:143` gives its interpretation.
+Both current results compile, scan, are closed under the global context, and
+fresh kernel `9705` finishes with terminal exit 0. This unregistered two-result /
+zero-definition representation bridge is not a public jet execution theorem.
+
+Writer transport routing: pinned CompCert `cfrontend/Ctypes.v` provides
+`sizeof_stable`, `alignof_stable` and `field_offset_stable` under composite-env
+extension for complete old types. The Bitcoin unit extends the old composites;
+the old incomplete txEnv becomes defined, so *universal* equality of sizeof for
+all old types would be false. Use completeness and the actual reachable frame
+helper expressions/types, plus concrete symbol/function preservation. Do not
+infer execution equality from helper-body equality alone or silently assume
+all-composite/environment equality.
