@@ -1221,7 +1221,18 @@ tree otherwise contains only Coq files.
    case, so that consumer imposes no unused output-array permission assumption.
    All eight modules / 38 results / 20 definitions pass source, scan, assumption
    and fresh combined kernel checks (`28720`). They add no public jet coverage
-   and remain unregistered while context-init audit `94007` is live.
+   and remain unregistered pending the context-init integration acceptance.
+   The old audit handle disappeared after its observed contract-gate success;
+   its final result was not recovered. Remaining negative/AST checks are being
+   rerun in `33472`, with a durable log at
+   `/tmp/jet-audit-recovery.qWC9in/remaining-gates.log`. Do not infer success from
+   the missing old handle or accept snapshots until those checks finish.
+   `jet_buffer_chunks.v` and `jet_read_buffer8_tag_layout.v` additionally prove
+   arbitrary canonical chunk capacities/widths, previous-byte array preservation
+   and the actual tag read for either branch, retaining exact payload cells.
+   Both pass source/scan/assumption and fresh kernel checks (`32751`, `8151`).
+   The ten unregistered support modules total 54 results / 28 definitions;
+   their next integration will have 369 modules / 1703 results, still 206 jets.
    **Next bounded SHA milestone:** compose the same actual loop over arbitrary
    canonical Buffer63 chunks. Preserve previous output bytes while storing the
    next present chunk, and preserve the unread canonical cells through both

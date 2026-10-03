@@ -2139,3 +2139,31 @@ substitute for the arbitrary-buffer result. Then extend the present writer and
 compose the actual context reader's overflow/failure behavior before new public
 context-add/finalize claims. Continue to honor the compression linking and plain
 external memcpy blockers recorded in `C/JET_ROADMAP.md`.
+
+## Context-init audit recovery and arbitrary-chunk contracts (2026-10-03)
+
+On continuation, `94007` returned an unknown process handle and its known shell
+PID 340 was absent. No matching audit/negative/AST process remained. The observed
+build, 359-module kernel, assumption and contract gates passed, but the old
+terminal result after the negative-test start is unavailable; do not invent a
+terminal pass. Registered proof sources and manifests remain byte-identical to
+registration commit `0ee0bc1`. The prescribed `a77fcf0` snapshot filters and
+unchanged global-axiom comparison were checked with exit 0.
+
+Recovery `33472` reruns only the unobserved negative tests and exact pinned AST
+regeneration. Its durable output is
+`/tmp/jet-audit-recovery.qWC9in/remaining-gates.log`; shell PID 36752, Python gate
+PID 36761 were observed live. Poll that exact handle, or inspect its live process
+and durable output if the tool handle expires. The success marker `remaining
+context-init audit checks passed` is printed only after both commands succeed
+under `set -e` (the outer logging pipeline uses `pipefail`). Accept pending
+snapshots only once this recovery succeeds; keep registered sources frozen.
+
+Two further unregistered modules now pass source, scan, assumptions and fresh
+kernels (`32751`, `8151`): `jet_buffer_chunks.v` shares exact chunk width/capacity,
+payload size and previous-byte array framing, and `jet_read_buffer8_tag_layout.v`
+derives the actual tag read for either canonical branch while preserving the
+payload cells. The support batch is now ten modules / 54 results / 28 definitions
+(next integration: 369 modules / 1703 results; no new public coverage). The next
+implementation obligation remains the total mixed-chunk loop and complete
+arbitrary Buffer63 reader, not a conditional call witness.
