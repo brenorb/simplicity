@@ -2861,3 +2861,18 @@ existing unknown/duplicate/helper/unaudited rejections still pass. Coverage is
 still 206 before adding a Bitcoin row. Shell syntax checks pass. The integrated
 --ast gate now freshly regenerates and compares both core and real Bitcoin
 artifacts; the new gate needs the forthcoming full integration terminal result.
+
+Register the checked Bitcoin version artifact/support/consumer chain and the
+application contract: 14 source modules, 40 results, 9 project definitions plus
+the canonical Bitcoin primitive semantics definition. The result gate expands
+from 398 to 410 modules and 1808 to 1848 results. The one new coverage row is
+the exact public version local theorem; static inventory now reports 207/533,
+but accept that integration only after every gate and both AST checks finish.
+Baseline is `9c09d18` (accepted snapshots from `73a49b0`). After terminal success,
+filter exactly the 40 new fully qualified result names from assumptions, remove
+the newly appended result blocks beginning at
+`bitcoin_core_composite_domain_checked` until `frame_fields =`, and truncate only
+the appended new definition blocks starting at `bitcoin_core_composite_ids =`
+to reproduce baseline snapshots byte-for-byte. Review actual printing names
+before applying those filters. Verify unchanged inherited kernel axioms. Freeze
+registered inputs during this expanded audit; do not accept static coverage alone.
