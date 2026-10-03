@@ -24,14 +24,13 @@ one/increment/add/full_increment/full_add/subtract/negate/decrement/full_decreme
 low/high/complement/and/or/xor/maj/xor_xor/ch/some at 1/8/16/32/64 bits,
 all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8/16/32/64 bits, and div_mod_128_64.
 There are 327 declarations without coverage entries, including all Bitcoin and
-Elements jets. The latest completed integrated audit `45575` covers 205 public
-entries, including DivMod128_64, multiply64 and fullMultiply64, plus the complete
-initialized-context writer infrastructure (350 modules / 1623 results, 667 closed).
-All gates, negative fixtures and pinned AST regeneration passed. Earlier
-snapshots and the 15 inherited kernel axioms are unchanged; accepted baseline
-is `a77fcf0`. The complete public sha_256_ctx_8_init theorem passes current-source,
-scan, assumption and fresh kernel checks; its nine additional modules are now
-registered for expanded integration (359 modules / 1649 results, 206 entries).
+Elements jets. The latest completed integration covers 206 public entries,
+including sha_256_ctx_8_init, DivMod128_64, multiply64 and fullMultiply64
+(359 modules / 1649 results, 676 closed). Audit `94007`'s build/kernel/assumption/
+contract gates were observed passing; recovery `33472` completed its unobserved
+negative fixtures and exact pinned AST regeneration with terminal exit 0. The
+prescribed snapshot filters reproduce accepted `a77fcf0` byte-for-byte and the
+15 inherited kernel axioms are unchanged. Accept the context-init snapshots.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -1221,12 +1220,14 @@ tree otherwise contains only Coq files.
    case, so that consumer imposes no unused output-array permission assumption.
    All eight modules / 38 results / 20 definitions pass source, scan, assumption
    and fresh combined kernel checks (`28720`). They add no public jet coverage
-   and remain unregistered pending the context-init integration acceptance.
+   and remained unregistered pending the context-init integration acceptance.
    The old audit handle disappeared after its observed contract-gate success;
    its final result was not recovered. Remaining negative/AST checks are being
    rerun in `33472`, with a durable log at
-   `/tmp/jet-audit-recovery.qWC9in/remaining-gates.log`. Do not infer success from
-   the missing old handle or accept snapshots until those checks finish.
+   `/tmp/jet-audit-recovery.qWC9in/remaining-gates.log`. That recovery subsequently
+   passed with terminal exit 0; prior snapshot filters and inherited axioms are
+   unchanged. Context-init integration is accepted, not inferred from the lost
+   handle. The support batch is now ready for registration.
    `jet_buffer_chunks.v` and `jet_read_buffer8_tag_layout.v` additionally prove
    arbitrary canonical chunk capacities/widths, previous-byte array preservation
    and the actual tag read for either branch, retaining exact payload cells.

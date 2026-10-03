@@ -65,8 +65,12 @@ Audit `45575` also passed every gate, negative fixture and exact AST regeneratio
 for the complete empty-buffer/context writer infrastructure (350 modules / 1623
 results, 667 closed), without changing older contracts or assumptions. The
 complete public `sha256_ctx8_init_local_spec` now passes current-source and fresh
-kernel checks and is registered for the next audit (206/533 registered, 327
-remaining; 205 fully integrated). It derives the actual caller/initializer
+kernel checks and is fully integrated (206/533, 327 remaining). Audit `94007`'s
+observed build/kernel/assumption/contract gates and recovery `33472`'s terminal
+negative/AST checks cover all gates (359 modules / 1649 results, 676 closed).
+Prior contracts and assumptions reproduce `a77fcf0` byte-for-byte under the
+documented filters; the 15 inherited kernel axioms are unchanged.
+It derives the actual caller/initializer
 allocations, stores, struct copies, writer and frees from initial frames; no
 intermediate execution is assumed. Its encoding is the literal 830-cell ctx8Init.
 

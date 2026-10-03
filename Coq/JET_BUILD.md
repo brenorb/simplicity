@@ -2167,3 +2167,13 @@ payload cells. The support batch is now ten modules / 54 results / 28 definition
 (next integration: 369 modules / 1703 results; no new public coverage). The next
 implementation obligation remains the total mixed-chunk loop and complete
 arbitrary Buffer63 reader, not a conditional call witness.
+
+Recovery `33472` subsequently returned terminal exit 0: the impossible-premise
+and escape-hatch negative fixtures behaved as required, exact pinned Clight
+regeneration matched, and the saved success marker is present. Combined with
+the observed `94007` build/kernel/assumption/contract gates, this completes
+context-init integration (359 modules / 1649 results, 676 closed; 206/533 jets,
+327 remaining). Both prescribed filters were rechecked against `a77fcf0` with
+exit 0 and the 15 inherited global axioms are unchanged. Accept the two pending
+snapshot files. The support batch may now be registered separately; it adds no
+public coverage and has not yet passed an integrated audit.

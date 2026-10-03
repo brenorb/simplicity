@@ -35041,6 +35041,581 @@ eval_write_sha256_context_empty_layout
                               (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
                             Memory.Mem.perm mf b ofs kind p)
                            (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))))
+eval_sha_ctx_local_field
+     : forall (k : sha256_context_slot) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (bc : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) ___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc (Ctypes.Tstruct _sha256_context Ctypes.noattr)))),
+       Clight.eval_lvalue ge0 e le m (sha_ctx_local_field k) bc (Integers.Ptrofs.repr (sha256_context_offset k))
+         Ctypes.Full
+exec_sha_ctx_zero_store
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (bc : Values.block) (i : nat)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) ___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc (Ctypes.Tstruct _sha256_context Ctypes.noattr))))
+         (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint8unsigned m bc
+                   (BinInt.Z.add (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (BinInt.Z.of_nat i)) (Values.Vint Integers.Int.zero)) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m (sha_ctx_zero_stmt i) Events.E0 le mf ClightBigstep.Out_normal
+exec_sha_ctx_zero_prefix
+     : forall (prefix : Clight.statement) (n : nat) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le0 : Clight.temp_env) (m mp : Memory.Mem.mem) (bc : Values.block)
+         (_ : le n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) ___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc (Ctypes.Tstruct _sha256_context Ctypes.noattr))))
+         (_ : ClightBigstep.Clight2.exec_stmt ge0 e le0 m prefix Events.E0 le0 mp ClightBigstep.Out_normal)
+         (_ : Memory.Mem.range_perm mp bc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt ge0 e le0 m (sha_ctx_zero_prefix prefix n) Events.E0 le0 mf
+               ClightBigstep.Out_normal)
+            (and
+               (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                  (_ : or (not (@eq Values.block b bc))
+                         (or
+                            (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                            (BinInt.Z.le
+                               (BinInt.Z.add
+                                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                  (BinInt.Z.of_nat n)) ofs))),
+                @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk mp b ofs))
+               (and
+                  (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind) (p : Memtype.permission)
+                     (_ : Memory.Mem.perm mp b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                  (forall (b : Values.block) (_ : Memory.Mem.valid_block mp b), Memory.Mem.valid_block mf b))))
+sha256_init_body_shape
+     : @eq Clight.statement (Clight.fn_body f_sha256_init)
+         (Clight.Ssequence
+            (Clight.Scall (@None AST.ident)
+               (Clight.Evar _sha256_iv
+                  (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuint) Ctypes.Tnil) Ctypesdefs.tvoid
+                     AST.cc_default))
+               (@cons Clight.expr (Clight.Etempvar _output (Ctypesdefs.tptr Ctypesdefs.tuint)) (@nil Clight.expr)))
+            (Clight.Ssequence
+               (Clight.Ssequence sha_ctx_fields_stmt
+                  (Clight.Sassign
+                     (Clight.Ederef
+                        (Clight.Etempvar __res (Ctypesdefs.tptr (Ctypes.Tstruct _sha256_context Ctypes.noattr)))
+                        (Ctypes.Tstruct _sha256_context Ctypes.noattr))
+                     (Clight.Evar ___compound (Ctypes.Tstruct _sha256_context Ctypes.noattr))))
+               (Clight.Sreturn (@None Clight.expr))))
+exec_sha_ctx_output_store
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (bc bi : Values.block) (input : Integers.Ptrofs.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) ___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc (Ctypes.Tstruct _sha256_context Ctypes.noattr))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _output le) (@Some Values.val (Values.Vptr bi input)))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.store AST.Mptr m bc BinNums.Z0 (Values.Vptr bi input))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m sha_ctx_output_stmt Events.E0 le mf ClightBigstep.Out_normal
+exec_sha_ctx_counter_store
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (bc : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) ___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc (Ctypes.Tstruct _sha256_context Ctypes.noattr))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                   (Values.Vlong Integers.Int64.zero)) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m sha_ctx_counter_stmt Events.E0 le mf ClightBigstep.Out_normal
+exec_sha_ctx_overflow_store
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (bc : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) ___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc (Ctypes.Tstruct _sha256_context Ctypes.noattr))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint8unsigned m bc
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                   (Values.Vint Integers.Int.zero)) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt ge0 e le m sha_ctx_overflow_stmt Events.E0 le mf ClightBigstep.Out_normal
+exec_sha_ctx_fields_layout
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bc bi : Values.block) (input : Integers.Ptrofs.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) ___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bc (Ctypes.Tstruct _sha256_context Ctypes.noattr))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val _output le) (@Some Values.val (Values.Vptr bi input)))
+         (_ : Memory.Mem.range_perm m bc BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and (ClightBigstep.Clight2.exec_stmt ge0 e le m sha_ctx_fields_stmt Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (@eq (option Values.val) (Memory.Mem.load AST.Mptr mf bc BinNums.Z0)
+                  (@Some Values.val (Values.Vptr bi input)))
+               (and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf bc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                     (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint8unsigned mf bc
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and
+                        (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                           (_ : or (not (@eq Values.block b bc))
+                                  (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) BinNums.Z0)
+                                     (BinInt.Z.le
+                                        (BinNums.Zpos
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))) ofs))),
+                         @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                        (and
+                           (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                            Memory.Mem.perm mf b ofs kind p)
+                           (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))))
+equal_loadbytes_parts
+     : forall (m1 m2 : Memory.Mem.mem) (b1 b2 : Values.block) (base1 base2 n1 n2 : BinNums.Z)
+         (bytes : list Memdata.memval) (_ : BinInt.Z.le BinNums.Z0 n1) (_ : BinInt.Z.le BinNums.Z0 n2)
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m1 b1 base1 (BinInt.Z.add n1 n2))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m2 b2 base2 (BinInt.Z.add n1 n2))
+                (@Some (list Memdata.memval) bytes)),
+       @ex (list Memdata.memval)
+         (fun front : list Memdata.memval =>
+          @ex (list Memdata.memval)
+            (fun tail : list Memdata.memval =>
+             and
+               (@eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m1 b1 base1 n1)
+                  (@Some (list Memdata.memval) front))
+               (and
+                  (@eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m2 b2 base2 n1)
+                     (@Some (list Memdata.memval) front))
+                  (and
+                     (@eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m1 b1 (BinInt.Z.add base1 n1) n2)
+                        (@Some (list Memdata.memval) tail))
+                     (@eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m2 b2 (BinInt.Z.add base2 n1) n2)
+                        (@Some (list Memdata.memval) tail))))))
+equal_loadbytes_field
+     : forall (chunk : AST.memory_chunk) (m1 m2 : Memory.Mem.mem) (b1 b2 : Values.block)
+         (base1 base2 n delta : BinNums.Z) (bytes : list Memdata.memval) (v : Values.val)
+         (_ : BinInt.Z.le BinNums.Z0 delta) (_ : BinInt.Z.le (BinInt.Z.add delta (Memdata.size_chunk chunk)) n)
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m1 b1 base1 n)
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m2 b2 base2 n)
+                (@Some (list Memdata.memval) bytes))
+         (_ : BinInt.Z.divide (Memdata.align_chunk chunk) (BinInt.Z.add base2 delta))
+         (_ : @eq (option Values.val) (Memory.Mem.load chunk m1 b1 (BinInt.Z.add base1 delta)) (@Some Values.val v)),
+       @eq (option Values.val) (Memory.Mem.load chunk m2 b2 (BinInt.Z.add base2 delta)) (@Some Values.val v)
+sha_init_entry
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (bc br bi : Values.block) (input : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block ma bc)),
+       Clight.function_entry2 ge0 f_sha256_init
+         (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr input)) (@nil Values.val))) m
+         (sha_init_env bc) (sha_init_temps br bi input) ma
+eval_sha256_init_composes
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (mi mz me mf : Memory.Mem.mem) (bc br bi : Values.block)
+         (input : BinNums.Z) (bytes : list Memdata.memval) (_ : not (@eq Values.block bc br))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block ma bc))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 ma (@Ctypes.Internal Clight.function f_sha256_iv)
+                (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr input)) (@nil Values.val)) Events.E0 mi
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.exec_stmt ge0 (sha_init_env bc) (sha_init_temps br bi input) mi sha_ctx_fields_stmt
+                Events.E0 (sha_init_temps br bi input) mz ClightBigstep.Out_normal)
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes mz bc BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes mz br BinNums.Z0 bytes) (@Some Memory.Mem.mem me))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free me bc BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_sha256_init)
+         (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+            (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr input)) (@nil Values.val))) Events.E0 mf
+         Values.Vundef
+eval_sha256_init_layout
+     : forall (m : Memory.Mem.mem) (br bi : Values.block) (input : BinNums.Z) (_ : not (@eq Values.block br bi))
+         (_ : BinInt.Z.le BinNums.Z0 input)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add input
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) input)
+         (_ : Memory.Mem.range_perm m br BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable)
+         (_ : Memory.Mem.range_perm m bi input
+                (BinInt.Z.add input
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_sha256_init)
+               (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr input)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (@eq (option Values.val) (Memory.Mem.load AST.Mptr mf br BinNums.Z0)
+                  (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr input))))
+               (and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf br (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                     (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+                  (and
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint8unsigned mf br
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (@Some Values.val (Values.Vint Integers.Int.zero)))
+                     (and (uint32_array_at mf bi input sha256_iv_words)
+                        (and
+                           (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                              (_ : Memory.Mem.valid_block m b)
+                              (_ : or (not (@eq Values.block b br))
+                                     (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) BinNums.Z0)
+                                        (BinInt.Z.le
+                                           (BinNums.Zpos
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                           ofs)))
+                              (_ : or (not (@eq Values.block b bi))
+                                     (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) input)
+                                        (BinInt.Z.le
+                                           (BinInt.Z.add input
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                           ofs))),
+                            @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                           (and
+                              (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                                 (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                               Memory.Mem.perm mf b ofs kind p)
+                              (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b))))))))
+allocate_four_locals
+     : forall (m : Memory.Mem.mem) (na nb nc nd : BinNums.Z),
+       @ex Memory.Mem.mem'
+         (fun ma : Memory.Mem.mem' =>
+          @ex Memory.Mem.mem'
+            (fun mb : Memory.Mem.mem' =>
+             @ex Memory.Mem.mem'
+               (fun mc : Memory.Mem.mem' =>
+                @ex Memory.Mem.mem'
+                  (fun md : Memory.Mem.mem' =>
+                   @ex Values.block
+                     (fun a : Values.block =>
+                      @ex Values.block
+                        (fun b : Values.block =>
+                         @ex Values.block
+                           (fun c : Values.block =>
+                            @ex Values.block
+                              (fun d : Values.block =>
+                               and
+                                 (@eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m BinNums.Z0 na)
+                                    (@pair Memory.Mem.mem' Values.block ma a))
+                                 (and
+                                    (@eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc ma BinNums.Z0 nb)
+                                       (@pair Memory.Mem.mem' Values.block mb b))
+                                    (and
+                                       (@eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc mb BinNums.Z0 nc)
+                                          (@pair Memory.Mem.mem' Values.block mc c))
+                                       (and
+                                          (@eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc mc BinNums.Z0 nd)
+                                             (@pair Memory.Mem.mem' Values.block md d))
+                                          (and (four_local_distinct a b c d)
+                                             (and (four_local_permissions md a na b nb c nc d nd)
+                                                (and
+                                                   (forall (x : Values.block) (_ : Memory.Mem.valid_block m x),
+                                                    and (not (@eq Values.block x a))
+                                                      (and (not (@eq Values.block x b)) (and (not ...) (not ...))))
+                                                   (and
+                                                      (forall (chunk : AST.memory_chunk) (x : Values.block)
+                                                         (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m x),
+                                                       @eq (option Values.val) (Memory.Mem.load chunk md x ofs)
+                                                         (Memory.Mem.load chunk m x ofs))
+                                                      (forall (x : Values.block) (ofs : BinNums.Z)
+                                                         (kind : Memtype.perm_kind) (p : Memtype.permission)
+                                                         (_ : Memory.Mem.perm m x ofs kind p),
+                                                       Memory.Mem.perm md x ofs kind p))))))))))))))))
+free_four_locals
+     : forall (m : Memory.Mem.mem) (a : Values.block) (na : BinNums.Z) (b : Values.block) (nb : BinNums.Z)
+         (c : Values.block) (nc : BinNums.Z) (d : Values.block) (nd : BinNums.Z) (_ : four_local_distinct a b c d)
+         (_ : four_local_permissions m a na b nb c nc d nd),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (Memory.Mem.free_list m
+                  (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                     (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z a BinNums.Z0) na)
+                     (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                        (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z b BinNums.Z0) nb)
+                        (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                           (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z c BinNums.Z0)
+                              nc)
+                           (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                              (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                 (@pair Values.block BinNums.Z d BinNums.Z0) nd)
+                              (@nil (prod (prod Values.block BinNums.Z) BinNums.Z))))))) (@Some Memory.Mem.mem mf))
+            (and
+               (forall (chunk : AST.memory_chunk) (x : Values.block) (ofs : BinNums.Z) (_ : not (@eq Values.block x a))
+                  (_ : not (@eq Values.block x b)) (_ : not (@eq Values.block x c)) (_ : not (@eq Values.block x d)),
+                @eq (option Values.val) (Memory.Mem.load chunk mf x ofs) (Memory.Mem.load chunk m x ofs))
+               (and
+                  (forall (x : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind) (p : Memtype.permission)
+                     (_ : not (@eq Values.block x a)) (_ : not (@eq Values.block x b)) (_ : not (@eq Values.block x c))
+                     (_ : not (@eq Values.block x d)) (_ : Memory.Mem.perm m x ofs kind p),
+                   Memory.Mem.perm mf x ofs kind p)
+                  (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m)))))
+ctx_init_entry
+     : forall (env : Values.val) (m : Memory.Mem.mem) (ma mb mc md : Memory.Mem.mem') (bl bi bc br bf : Values.block)
+         (base : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc ma BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block mb bi))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc mb BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block mc bc))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc mc BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block md br)),
+       Clight.function_entry2 ge0 f_simplicity_sha_256_ctx_8_init
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         m (ctx_init_env bl bi bc br) (ctx_init_temps env bf base bs sbase) md
+ctx_init_sha_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge0) _sha256_init)
+         (@Some Values.block (jet_symbol_block _sha256_init))
+ctx_init_sha_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv ge0)
+            (Values.Vptr (jet_symbol_block _sha256_init) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f_sha256_init))
+ctx_init_write_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge0)
+            _simplicity_write_sha256_context) (@Some Values.block (jet_symbol_block _simplicity_write_sha256_context))
+ctx_init_write_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv ge0)
+            (Values.Vptr (jet_symbol_block _simplicity_write_sha256_context) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f_simplicity_write_sha256_context))
+eval_sha256_ctx8_init_composes
+     : forall (env : Values.val) (m : Memory.Mem.mem) (ma mb mc md : Memory.Mem.mem') (ms mi mx me mf : Memory.Mem.mem)
+         (bl bi bc br bf : Values.block) (base : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (srcbytes ctxbytes : list Memdata.memval) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs)) (_ : not (@eq Values.block bc br))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc ma BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block mb bi))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc mb BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block mc bc))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc mc BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block md br))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes md bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) srcbytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes md bl BinNums.Z0 srcbytes) (@Some Memory.Mem.mem ms))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 ms (@Ctypes.Internal Clight.function f_sha256_init)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bi Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mi
+                Values.Vundef)
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes mi br BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@Some (list Memdata.memval) ctxbytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes mi bc BinNums.Z0 ctxbytes) (@Some Memory.Mem.mem mx))
+         (_ : ClightBigstep.Clight2.eval_funcall ge0 mx
+                (@Ctypes.Internal Clight.function f_simplicity_write_sha256_context)
+                (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vptr bc Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 me
+                (Values.Vint Integers.Int.one))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free_list me (Clight.blocks_of_env ge0 (ctx_init_env bl bi bc br)))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall ge0 m (@Ctypes.Internal Clight.function f_simplicity_sha_256_ctx_8_init)
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         Events.E0 mf (Values.Vint Integers.Int.one)
+prepare_sha256_ctx8_init
+     : forall (m : Memory.Mem.mem) (bs : Values.block) (sbase : BinNums.Z) (source : Values.block)
+         (edge rc : BinNums.Z) (_ : frame_fields_at m bs sbase source edge rc),
+       @ex Memory.Mem.mem'
+         (fun ma : Memory.Mem.mem' =>
+          @ex Memory.Mem.mem'
+            (fun mb : Memory.Mem.mem' =>
+             @ex Memory.Mem.mem'
+               (fun mc : Memory.Mem.mem' =>
+                @ex Memory.Mem.mem'
+                  (fun md : Memory.Mem.mem' =>
+                   @ex Memory.Mem.mem
+                     (fun ms : Memory.Mem.mem =>
+                      @ex Memory.Mem.mem
+                        (fun mi : Memory.Mem.mem =>
+                         @ex Memory.Mem.mem
+                           (fun mx : Memory.Mem.mem =>
+                            @ex Values.block
+                              (fun bl : Values.block =>
+                               @ex Values.block
+                                 (fun bi : Values.block =>
+                                  @ex Values.block
+                                    (fun bc : Values.block =>
+                                     @ex Values.block
+                                       (fun br : Values.block =>
+                                        @ex (list Memdata.memval)
+                                          (fun srcbytes : list Memdata.memval =>
+                                           @ex (list Memdata.memval)
+                                             (fun ctxbytes : list Memdata.memval =>
+                                              and
+                                                (@eq (prod Memory.Mem.mem' Values.block)
+                                                   (Memory.Mem.alloc m BinNums.Z0 (BinNums.Zpos ...))
+                                                   (@pair Memory.Mem.mem' Values.block ma bl))
+                                                (and
+                                                   (@eq (prod Memory.Mem.mem' Values.block)
+                                                      (Memory.Mem.alloc ma BinNums.Z0 ...)
+                                                      (@pair Memory.Mem.mem' Values.block mb bi))
+                                                   (and (@eq ... ... ...) (and ... ...))))))))))))))))
+ctx_init_blocks
+     : forall bl bi bc br : Values.block,
+       @eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) (Clight.blocks_of_env ge0 (ctx_init_env bl bi bc br))
+         (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+            (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bc BinNums.Z0)
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+               (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bl BinNums.Z0)
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+               (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                  (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bi BinNums.Z0)
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                     (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z br BinNums.Z0)
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (@nil (prod (prod Values.block BinNums.Z) BinNums.Z))))))
+eval_sha256_ctx8_init_layout_matches_spec
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (source bw : Values.block) (edge outedge cursor rc : BinNums.Z)
+         (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase source edge rc)
+         (_ : write_frame_at m bf base bw outedge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge0 m
+               (@Ctypes.Internal Clight.function f_simplicity_sha_256_ctx_8_init)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode sha256_ctx8_type (@sha256_ctx8_init_spec Alg.CoreFunSem tt)))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bf base bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bf))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add base
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add base
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinNums.Zpos
+                                                    (BinNums.xO
+                                                       (BinNums.xI
+                                                          (BinNums.xI
+                                                             (BinNums.xI
+                                                                (BinNums.xI
+                                                                   (BinNums.xI (BinNums.xO (BinNums.xO (...)))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+sha256_ctx8_init_local_spec
+     : jet_local_spec f_simplicity_sha_256_ctx_8_init Ty.Unit sha256_ctx8_type
+         (fun a : Ty.tySem Ty.Unit => @sha256_ctx8_init_spec Alg.CoreFunSem a)
+sha256_ctx8_init_context
+     : @jet_context_for f_simplicity_sha_256_ctx_8_init Ty.Unit sha256_ctx8_type (@sha256_ctx8_init_spec)
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -50228,3 +50803,215 @@ fun (bf : Values.block) (base : BinNums.Z) (bc : Values.block) (cbase : BinNums.
      : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Maps.PTree.tree Values.val
 
 Arguments ctx8_write_temps bf base%Z_scope bc cbase%Z_scope
+sha_ctx_local_field =
+fun k : sha256_context_slot =>
+Clight.Efield (Clight.Evar ___compound (Ctypes.Tstruct _sha256_context Ctypes.noattr)) (sha256_context_field k)
+  (sha256_context_field_type k)
+     : forall _ : sha256_context_slot, Clight.expr
+
+Arguments sha_ctx_local_field k
+sha_ctx_zero_stmt =
+fun i : nat =>
+Clight.Sassign
+  (Clight.Ederef
+     (Clight.Ebinop Cop.Oadd (sha_ctx_local_field CtxBlock)
+        (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat i)) Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuchar))
+     Ctypesdefs.tuchar) (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+     : forall _ : nat, Clight.statement
+
+Arguments sha_ctx_zero_stmt i%nat_scope
+sha_ctx_zero_prefix =
+fix sha_ctx_zero_prefix (prefix : Clight.statement) (n : nat) {struct n} : Clight.statement :=
+  match n return Clight.statement with
+  | O => prefix
+  | S n0 => Clight.Ssequence (sha_ctx_zero_prefix prefix n0) (sha_ctx_zero_stmt n0)
+  end
+     : forall (_ : Clight.statement) (_ : nat), Clight.statement
+
+Arguments sha_ctx_zero_prefix prefix n%nat_scope
+sha_ctx_output_stmt =
+Clight.Sassign (sha_ctx_local_field CtxOutput) (Clight.Etempvar _output (Ctypesdefs.tptr Ctypesdefs.tuint))
+     : Clight.statement
+sha_ctx_counter_stmt =
+Clight.Sassign (sha_ctx_local_field CtxCounter) (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+     : Clight.statement
+sha_ctx_overflow_stmt =
+Clight.Sassign (sha_ctx_local_field CtxOverflow) (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+     : Clight.statement
+sha_ctx_fields_stmt =
+Clight.Ssequence
+  (sha_ctx_zero_prefix (Clight.Ssequence sha_ctx_output_stmt sha_ctx_counter_stmt)
+     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))) sha_ctx_overflow_stmt
+     : Clight.statement
+sha_init_env =
+fun bc : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) ___compound
+  (@pair Values.block Ctypes.type bc (Ctypes.Tstruct _sha256_context Ctypes.noattr)) Clight.empty_env
+     : forall _ : Values.block, Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments sha_init_env bc
+sha_init_temps =
+fun (br bi : Values.block) (input : BinNums.Z) =>
+@Maps.PTree.set Values.val _output (Values.Vptr bi (Integers.Ptrofs.repr input))
+  (@Maps.PTree.set Values.val __res (Values.Vptr br Integers.Ptrofs.zero)
+     (Clight.create_undef_temps (Clight.fn_temps f_sha256_init)))
+     : forall (_ : Values.block) (_ : Values.block) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments sha_init_temps br bi input%Z_scope
+four_local_distinct =
+fun a b c d : Values.block =>
+and (not (@eq Values.block a b))
+  (and (not (@eq Values.block a c))
+     (and (not (@eq Values.block a d))
+        (and (not (@eq Values.block b c)) (and (not (@eq Values.block b d)) (not (@eq Values.block c d))))))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block), Prop
+
+Arguments four_local_distinct a b c d
+four_local_permissions =
+fun (m : Memory.Mem.mem) (a : Values.block) (na : BinNums.Z) (b : Values.block) (nb : BinNums.Z)
+  (c : Values.block) (nc : BinNums.Z) (d : Values.block) (nd : BinNums.Z) =>
+and (Memory.Mem.range_perm m a BinNums.Z0 na Memtype.Cur Memtype.Freeable)
+  (and (Memory.Mem.range_perm m b BinNums.Z0 nb Memtype.Cur Memtype.Freeable)
+     (and (Memory.Mem.range_perm m c BinNums.Z0 nc Memtype.Cur Memtype.Freeable)
+        (Memory.Mem.range_perm m d BinNums.Z0 nd Memtype.Cur Memtype.Freeable)))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments four_local_permissions m a na%Z_scope b nb%Z_scope c nc%Z_scope d nd%Z_scope
+ctx_init_env =
+fun bl bi bc br : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) __res
+  (@pair Values.block Ctypes.type br (Ctypes.Tstruct _sha256_context Ctypes.noattr))
+  (@Maps.PTree.set (prod Values.block Ctypes.type) _ctx
+     (@pair Values.block Ctypes.type bc (Ctypes.Tstruct _sha256_context Ctypes.noattr)) (sha256_iv_jet_env bl bi))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block),
+       Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments ctx_init_env bl bi bc br
+ctx_init_temps =
+fun (env : Values.val) (bf : Values.block) (base : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) =>
+jet_arith8_layout_exec.le_arith8_layout env f_simplicity_sha_256_ctx_8_init bf (Integers.Ptrofs.repr base) bs
+  (Integers.Ptrofs.repr sbase)
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments ctx_init_temps env bf base%Z_scope bs sbase%Z_scope
+sha256_ctx8_init_guarantees =
+jet_local_spec_guarantees f_simplicity_sha_256_ctx_8_init Ty.Unit sha256_ctx8_type
+  (fun a : Ty.tySem Ty.Unit => @sha256_ctx8_init_spec Alg.CoreFunSem a) sha256_ctx8_init_local_spec
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem Ty.Unit) (_ : frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (bitSize Ty.Unit))) Integers.Int64.max_unsigned)
+         (_ : frame_input_cells_at m bi edge read_cursor (@encode Ty.Unit a))
+         (_ : write_frame_at m bd dbase bw outedge cursor (BinInt.Z.of_nat (bitSize sha256_ctx8_type))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv prog)
+               (@Ctypes.Internal Clight.function f_simplicity_sha_256_ctx_8_init)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (frame_output_cells_at mf bw outedge cursor
+                  (@encode sha256_ctx8_type ((fun a0 : Ty.tySem Ty.Unit => @sha256_ctx8_init_spec Alg.CoreFunSem a0) a)))
+               (and (write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.of_nat (bitSize sha256_ctx8_type))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor (BinInt.Z.of_nat (bitSize sha256_ctx8_type)))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+
+Arguments sha256_ctx8_init_guarantees env m bd dbase%Z_scope bs sbase%Z_scope bi bw
+  (edge outedge cursor read_cursor)%Z_scope a _ _ _ _ _ _ _
+sha256_ctx8_init_context_guarantees =
+@jet_context_guarantees Ty.Unit sha256_ctx8_type f_simplicity_sha_256_ctx_8_init (@sha256_ctx8_init_spec)
+  sha256_ctx8_init_spec_parametric sha256_ctx8_init_local_spec
+  (ZifyClasses.rew_iff_rev
+     (le (S O) (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))
+     (BinInt.Z.le (BinNums.Zpos BinNums.xH)
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xI
+                 (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+     (ZifyClasses.mkrel nat BinNums.Z le BinInt.Z.of_nat BinInt.Z.le Znat.Nat2Z.inj_le (S O)
+        (BinNums.Zpos BinNums.xH) (@eq_refl BinNums.Z (BinNums.Zpos BinNums.xH))
+        (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xI
+                 (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+        (@eq_refl BinNums.Z
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))))
+     (let __arith :
+        BinInt.Z.le (BinNums.Zpos BinNums.xH)
+          (BinNums.Zpos
+             (BinNums.xO
+                (BinNums.xI
+                   (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))) :=
+        let __wit : list ZMicromega.ZArithProof := @nil ZMicromega.ZArithProof in
+        let __varmap : VarMap.t BinNums.Z := @VarMap.Empty BinNums.Z in
+        let __ff : Tauto.BFormula (RingMicromega.Formula BinNums.Z) Tauto.isProp :=
+          @Tauto.A (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+            (@RingMicromega.Build_Formula BinNums.Z (@EnvRing.PEc BinNums.Z (BinNums.Zpos BinNums.xH))
+               RingMicromega.OpLe
+               (@EnvRing.PEc BinNums.Z
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))))
+            tt in
+        ZMicromega.ZTautoChecker_sound __ff __wit
+          (@eq_refl bool true <: @eq bool (ZMicromega.ZTautoChecker __ff __wit) true)
+          (@VarMap.find BinNums.Z BinNums.Z0 __varmap) in
+      __arith)
+   <:
+   le (S O) (bitSize sha256_ctx8_type))
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : bm_layout) (ctx : Context) (a : Ty.tySem Ty.Unit),
+       let s0 : RunState :=
+         fillContext ctx (Build_LocalState (@encode Ty.Unit a) (newWriteFrame (bitSize sha256_ctx8_type))) in
+       let s1 : RunState :=
+         fillContext ctx
+           (Build_LocalState (@encode Ty.Unit a)
+              (fullWriteFrame (@encode sha256_ctx8_type (@sha256_ctx8_init_spec Alg.CoreFunSem a)))) in
+       forall (_ : bm_rep m L s0) (_ : bm_separated L s0) (_ : active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (silent_call_guarantees (Clight.globalenv prog)
+               (@Ctypes.Internal Clight.function f_simplicity_sha_256_ctx_8_init) (jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (bm_rep mf L s1) (runProgram (@sha256_ctx8_init_spec Naive.translate) (Running s0) (Running s1))))
+
+Arguments sha256_ctx8_init_context_guarantees env m L ctx a _ _ _
