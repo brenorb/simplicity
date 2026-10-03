@@ -2539,3 +2539,15 @@ exact pinned AST regeneration passed. Both prescribed snapshot filters reproduce
 closed results. Accept its generated assumption/contract snapshots separately;
 public coverage remains 206/533. The two newer assertion-bridge modules above
 are independently checked and do not belong to these integration totals.
+
+`C/jet_sha256_counter_representation.v` derives the actual reader counter's
+exact unsigned value, remainder modulo 64 and quotient by 64 for successful
+compression counts, without assuming any of these desired results. It also
+derives the canonical Buffer63 length bound and specializes all three machine
+facts to the reader's actual canonical byte-length carrier. The current source
+compiles, explicit proof scan passes, and fresh kernel `65990` completed with
+terminal exit 0. All six results are closed under the global context. This
+unregistered module / 6 results / 0 definitions is a representation bridge for
+the existing general writer's length invariant and count recovery, not public
+jet coverage. Do not apply its nonwrapping conclusions on failed count inputs;
+the total reader assertion contract continues to cover those failure cases.
