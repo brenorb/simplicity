@@ -59,6 +59,11 @@ and exact pinned AST regeneration with terminal exit 0. Its snapshot filters
 reproduce `8f2f694` byte-for-byte, with unchanged inherited kernel axioms.
 Those three support modules are accepted in the totals above; canonical writer,
 roundtrip and Bitcoin groundwork remain independently checked but unregistered.
+Ge-parametric helper integration `70050` subsequently passed every gate,
+negative fixture and exact core AST regeneration with terminal exit 0. It
+checks 398 result modules / 1808 results, 754 closed; both prescribed snapshot
+filters reproduce `c8cbaeb` byte-for-byte and inherited kernel axioms are
+unchanged. Public coverage remains 206 entries.
 The Bitcoin version groundwork now includes a complete independently checked
 canonical local-contract theorem in `jet_bitcoin_version_local.v`: actual
 Bitcoin-program execution, initial-memory environment projection, allocation /

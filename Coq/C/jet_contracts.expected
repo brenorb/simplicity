@@ -41272,6 +41272,54 @@ sha256_counter_buffer63_representation
             (@eq Integers.Int64.int
                (Integers.Int64.shru (sha256_read_counter count (Integers.Int64.repr len))
                   (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))))) count))
+entry_clear_width_ge
+     : forall (ge : Clight.genv) (m : Memory.Mem.mem) (w : Integers.Int64.int) (n : BinNums.Z),
+       Clight.function_entry2 ge f_LSBclear
+         (@cons Values.val (Values.Vlong w) (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))
+         m Clight.empty_env (le_clear_width w n) m
+eval_clear_width_ge
+     : forall (ge : Clight.genv) (m : Memory.Mem.mem) (w : Integers.Int64.int) (n : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function f_LSBclear)
+         (@cons Values.val (Values.Vlong w) (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))
+         Events.E0 m (Values.Vlong (jet_word_bits.clear_low n w))
+eval_keep_width_ge
+     : forall (ge : Clight.genv) (m : Memory.Mem.mem) (w : Integers.Int64.int) (n : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function f_LSBkeep)
+         (@cons Values.val (Values.Vlong w) (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))
+         Events.E0 m (Values.Vlong (Integers.Int64.zero_ext n w))
+call_word_helper_ge
+     : forall (ge : Clight.genv) (m : Memory.Mem.mem) (le : Clight.temp_env) (result fid : AST.ident)
+         (f : Clight.function) (b : Values.block) (a1 a2 : Clight.expr) (w n v : Integers.Int64.int)
+         (_ : @eq Ctypes.type (Clight.type_of_function f)
+                (Ctypes.Tfunction (Ctypes.Tcons Ctypesdefs.tulong (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil))
+                   Ctypesdefs.tulong AST.cc_default)) (_ : @eq Ctypes.type (Clight.typeof a1) Ctypesdefs.tulong)
+         (_ : @eq Ctypes.type (Clight.typeof a2) Ctypesdefs.tulong)
+         (_ : @eq (option Values.block)
+                (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) fid)
+                (@Some Values.block b))
+         (_ : @eq (option Clight.fundef)
+                (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv ge)
+                   (Values.Vptr b Integers.Ptrofs.zero))
+                (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+         (_ : Clight.eval_expr ge Clight.empty_env le m a1 (Values.Vlong w))
+         (_ : Clight.eval_expr ge Clight.empty_env le m a2 (Values.Vlong n))
+         (_ : ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function f)
+                (@cons Values.val (Values.Vlong w) (@cons Values.val (Values.Vlong n) (@nil Values.val))) Events.E0 m
+                (Values.Vlong v)),
+       ClightBigstep.Clight2.exec_stmt ge Clight.empty_env le m
+         (Clight.Scall (@Some AST.ident result)
+            (Clight.Evar fid
+               (Ctypes.Tfunction (Ctypes.Tcons Ctypesdefs.tulong (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil))
+                  Ctypesdefs.tulong AST.cc_default)) (@cons Clight.expr a1 (@cons Clight.expr a2 (@nil Clight.expr))))
+         Events.E0 (@Maps.PTree.set Values.val result (Values.Vlong v) le) m ClightBigstep.Out_normal
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and

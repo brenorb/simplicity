@@ -2845,3 +2845,10 @@ registration. Both prescribed snapshot filters have now been checked against
 `c8cbaeb` with exit 0, and inherited kernel axioms are unchanged; acceptance still
 awaits negative-fixture / exact-AST terminal success. Earlier prospective
 395-module counts in this log describe the plan, not the observed audit count.
+
+Integration `70050` completed with terminal exit 0: static / consumer build /
+kernel / assumption / contract gates, impossible-premise and proof-escape
+negative fixtures, and exact pinned core AST regeneration all passed. Both
+prescribed filters again reproduce `c8cbaeb` byte-for-byte; kernel axioms remain
+unchanged. Accept 398 result modules / 1808 results / 754 closed, still 206
+public jets. Its snapshots may now be committed and registered inputs unfrozen.
