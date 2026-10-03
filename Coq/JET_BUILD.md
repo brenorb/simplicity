@@ -2669,3 +2669,25 @@ all old types would be false. Use completeness and the actual reachable frame
 helper expressions/types, plus concrete symbol/function preservation. Do not
 infer execution equality from helper-body equality alone or silently assume
 all-composite/environment equality.
+
+`C/jet_bitcoin_composites.v` now checks the complete finite domain of the core
+composite environment and proves every existing composite lookup is preserved
+in the actual Bitcoin program. It derives general sizeof/field-offset stability
+for complete old types/members using the pinned CompCert lemmas; newly defined
+txEnv is not incorrectly treated as an old complete type. Its five results /
+one definition compile, pass explicit scans, are closed under the global
+context, and fresh kernel `75039` completes with terminal exit 0. Current
+Bitcoin artifact plus four support modules total 5 unregistered modules /
+15 results / 3 definitions (13 closed; two field-read lemmas retain only four
+inherited classical/extensionality assumptions). None is a public jet proof.
+
+Next focus on the actual writer execution transport, not further unrelated
+environment helpers. Its reachable frame helper bodies use complete old frame
+types, so reuse the checked composite extension plus concrete symbol/function
+preservation. Restrict the transport to those actual reachable expressions and
+functions; an arbitrary old expression could do pointer arithmetic on the
+previously undefined txEnv and would not preserve semantics. Then compose the
+version wrapper's real entry, source struct copy, field reads, writer and free
+from initial representations, with no intermediate execution premises in the
+public theorem. Keep canonical writer/roundtrip modules independently checked
+but unregistered until audit `46115` finishes; avoid a concurrent integration.
