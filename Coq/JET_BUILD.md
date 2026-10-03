@@ -2278,3 +2278,12 @@ initial shift and return. It preserves arbitrary padding/earlier output and
 writable continuation for remaining SHA-context fields. The seven unregistered
 writer-support modules total 21 results / 4 definitions. They are independently
 checked helpers, not public coverage and not part of live audit `13723`.
+
+Audit `13723` subsequently returned terminal exit 0: every gate, negative
+fixture and exact pinned AST regeneration passed; its durable log ends with
+`all jet checks passed`. The prescribed five-module assumption and contract
+filters reproduce accepted `0ddec7c` byte-for-byte, with unchanged inherited
+kernel axioms. Accept snapshots for 374 modules / 1724 results, 716 closed;
+public coverage remains 206/533, 327 missing. The seven independently checked
+mixed-writer support modules may now be registered for a separate expanded
+audit (381 modules / 1745 results; no public coverage row).

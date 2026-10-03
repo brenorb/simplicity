@@ -26,7 +26,7 @@ all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8
 There are 327 declarations without coverage entries, including all Bitcoin and
 Elements jets. The latest completed integration covers 206 public entries,
 including sha_256_ctx_8_init, DivMod128_64, multiply64 and fullMultiply64
-(369 modules / 1703 results, 706 closed). Audit `94007`'s build/kernel/assumption/
+(374 modules / 1724 results, 716 closed). Audit `94007`'s build/kernel/assumption/
 contract gates were observed passing; recovery `33472` completed its unobserved
 negative fixtures and exact pinned AST regeneration with terminal exit 0. The
 prescribed snapshot filters reproduce accepted `a77fcf0` byte-for-byte and the
@@ -34,7 +34,11 @@ prescribed snapshot filters reproduce accepted `a77fcf0` byte-for-byte and the
 subsequently passed all gates, negative fixtures and exact pinned AST regeneration
 with terminal exit 0. Its prescribed filters reproduce `b941abc` byte-for-byte;
 the inherited kernel axioms remain unchanged. The ten reader-support modules
-add no public coverage. Their snapshots are accepted.
+add no public coverage. Their snapshots are accepted. The complete mixed-reader
+and byte-writer consumers subsequently passed expanded audit `13723`, including
+all gates, negative fixtures and exact AST regeneration with terminal exit 0.
+Prescribed filters reproduce `0ddec7c` byte-for-byte; inherited axioms are
+unchanged. Accept these consumer snapshots without adding public coverage.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -1258,7 +1262,8 @@ tree otherwise contains only Coq files.
    symbolically. Both modules / 13 results / 5 definitions pass compilation,
    explicit scans, assumptions and fresh kernel `1327`; no new assumptions.
    The five complete mixed-reader/byte-writer modules are now registered for
-   expanded audit `13723` (374 modules / 1724 results) against `0ddec7c`.
+   expanded audit `13723` (374 modules / 1724 results, 716 closed) against
+   `0ddec7c`; all gates, negative fixtures and exact AST regeneration passed.
    Three further unregistered modules / 10 results / 1 definition pass source,
    scans, assumptions and fresh kernels (`31906`, `13689`):
    `jet_output_cells_step.v` recovers writable continuation after arbitrary
@@ -1282,7 +1287,8 @@ tree otherwise contains only Coq files.
    memory and writable continuation are retained. Both modules / 3 results /
    1 definition pass source, scans, assumptions and fresh kernels `99205`, `6681`.
    The seven new writer-support modules total 21 results / 4 definitions and
-   remain unregistered while audit `13723` runs. They add no public coverage.
+   remain unregistered until the successful `13723` snapshots are accepted.
+   They add no public coverage.
    **Next bounded SHA milestone:** compose the general context writer's buffer,
    compression count, state array and overflow return from initial context
    observations; also compose read_sha256_context's counter/array observations

@@ -79,8 +79,12 @@ The ten shared byte/Buffer63 reader-support modules passed expanded audit
 terminal exit 0 (369 modules / 1703 results, 706 closed). Filtering the new
 entries reproduces accepted `b941abc` contracts/assumptions byte-for-byte;
 the inherited kernel axioms are unchanged. These helpers add no public jets.
-The complete mixed-chunk Buffer63 reader additionally passes independent source,
-kernel and assumption checks and awaits its own integration.
+The complete mixed-chunk Buffer63 reader and total byte-array writer passed
+expanded audit `13723`, including all gates, negative fixtures and exact AST
+regeneration with terminal exit 0 (374 modules / 1724 results, 716 closed).
+Prescribed filters reproduce `0ddec7c` byte-for-byte; inherited axioms are
+unchanged. The complete mixed Buffer63 writer additionally passes independent
+source, kernel and assumption checks and awaits its own integration.
 
 | Jet | Simplicity specification |
 | --- | --- |
