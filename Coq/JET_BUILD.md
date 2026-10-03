@@ -2296,3 +2296,26 @@ seven new module names from assumptions. Remove theorem blocks from
 `output_cells_last_word` to `frame_fields =`, and definition blocks from
 `buffer8_write_present_temps =` onward, to reproduce `9cc50d6` byte-for-byte.
 Check unchanged inherited global axioms before accepting pending snapshots.
+
+Expanded mixed-writer audit `30018` is live; its durable log is
+`/tmp/jet-buffer-writer-audit.EHF7td/audit.log`. Its build and 381-module kernel
+passed, but remaining gates and snapshots are not yet accepted. Freeze all
+registered sources/manifests/results/definitions until terminal success. Poll
+that run, or inspect the live process/durable log if its handle expires; do not
+restart a verified live audit.
+
+Two additional unregistered modules / 5 results now derive the general actual
+SHA-context writer: `jet_write_sha256_context_exec.v` retains arbitrary counters
+and either overflow return; `jet_write_sha256_context_layout.v` discharges every
+intermediate buffer/count/state call and reload from initial context fields and
+canonical arrays. It gives the exact typed 830-cell output and memory framing,
+using shared word32 chunks and closed uint32 encoding bridges. Counter modulo
+64 equals canonical buffer length as an initial context-representation
+invariant; public consumers must derive that invariant from actual context
+construction, not assume helper execution. Both sources compile, explicit scans
+pass, fresh kernel `86693` checks both modules with terminal exit 0, and
+assumptions retain only the existing six execution axioms. These helpers add
+no public coverage and are excluded from live `30018`. Next: actual context
+reader initialization, mixed reads, counter/overflow stores and returns,
+including the real initialized readonly max-counter global observation and
+private local cleanup.

@@ -1252,7 +1252,7 @@ tree otherwise contains only Coq files.
    derives the full actual call, initial len=0 store and return. These three
    modules / 8 results / 1 definition pass current-source compilation, explicit
    scan, assumptions and fresh kernel checks (`18859`, `22733`, `92150`). They
-   remain unregistered while audit `51817` runs and add no public coverage.
+   are now integrated through audit `13723` and add no public coverage.
    Private array/frame/length block separation must still be derived from
    allocations in public consumers, not imposed on original input/output.
    `jet_write8s_{exec,layout}.v` additionally derives the actual byte-array writer
@@ -1264,7 +1264,7 @@ tree otherwise contains only Coq files.
    The five complete mixed-reader/byte-writer modules are now registered for
    expanded audit `13723` (374 modules / 1724 results, 716 closed) against
    `0ddec7c`; all gates, negative fixtures and exact AST regeneration passed.
-   Three further unregistered modules / 10 results / 1 definition pass source,
+   Three further modules / 10 results / 1 definition pass source,
    scans, assumptions and fresh kernels (`31906`, `13689`):
    `jet_output_cells_step.v` recovers writable continuation after arbitrary
    nonempty encoded cells, including the partially written boundary word;
@@ -1277,7 +1277,7 @@ tree otherwise contains only Coq files.
    payload/skip execution and pointer/length/halving updates (fresh kernel
    `83151`). `jet_buffer_write_choices.v` derives that invariant from canonical
    chunk capacities and the remaining present-byte length (fresh kernel
-   `63017`, all three facts closed). Together these two unregistered modules
+   `63017`, all three facts closed). Together these two modules
    have 8 results / 2 definitions; no public coverage is added.
    **Complete arbitrary Buffer63 writer independently checked.**
    `jet_write_buffer8_loop_layout.v` composes every mixed step and derives its
@@ -1287,12 +1287,24 @@ tree otherwise contains only Coq files.
    memory and writable continuation are retained. Both modules / 3 results /
    1 definition pass source, scans, assumptions and fresh kernels `99205`, `6681`.
    The seven new writer-support modules total 21 results / 4 definitions and
-   remain unregistered until the successful `13723` snapshots are accepted.
-   They add no public coverage.
-   **Next bounded SHA milestone:** compose the general context writer's buffer,
-   compression count, state array and overflow return from initial context
-   observations; also compose read_sha256_context's counter/array observations
-   and overflow return.
+   are registered for live expanded audit `30018` (381 modules / 1745 results),
+   against accepted `9cc50d6`. Its build and kernel passed; remaining gates and
+   pending snapshots are not yet accepted. They add no public coverage.
+   **General context writer independently checked.**
+   `jet_write_sha256_context_{exec,layout}.v` derives the full actual helper
+   from initial canonical buffer/state arrays and context fields. Arbitrary
+   counters and both overflow returns are covered; all intermediate calls and
+   reloads are discharged. Its output is the exact typed 830-cell encoding of
+   buffer, represented compression count and state. The counter/buffer
+   remainder condition is an initial representation invariant; public
+   consumers must derive it from actual context construction. Two unregistered
+   modules / 5 results pass source, scans, assumptions and fresh kernel `86693`
+   (including both modules); the two shared uint32 encoding bridges are closed.
+   **Next bounded SHA milestone:** compose read_sha256_context's actual buffer,
+   count and state reads, private len allocation/free, counter/overflow stores
+   and all overflow return cases. Derive the initialized readonly max-counter
+   global observation and its preservation rather than assuming its desired
+   loaded value as an unexplained public execution premise.
    Its compression-count threshold is 2^55; invalid input is a required failure
    case, not an assumption to remove from a public contract. The frame.c prose
    saying 838 output cells is stale: the actual canonical context has 830.
