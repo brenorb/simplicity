@@ -2952,3 +2952,16 @@ Current source compiles and scans; fresh kernel `29027` finishes with exit 0.
 Keep its three-module / 10-result / 4-definition chain unregistered until live
 version recovery `9432` completes, then integrate alongside the checked
 getter32/lock-time chain in a separate snapshot/coverage audit.
+
+Recovery `9432` completed with terminal exit 0. Its kernel, assumption, contract,
+negative fixtures and both exact pinned core/Bitcoin AST checks all passed;
+`9008` supplied the successful unchanged-source consumer build. Filtering all
+40 exact registered Bitcoin result names reproduces accepted `9c09d18`
+assumptions. The observed first appended result is
+`eval_bitcoin_write32_layout`, not the prospective
+`bitcoin_core_composite_domain_checked`: remove from that first header until
+`frame_fields =`, then truncate only appended definitions starting at
+`bitcoin_core_composite_ids =`. That corrected filter reproduces baseline
+contracts byte-for-byte, and inherited kernel axioms are unchanged. Accept
+410 result modules / 1848 results / 776 closed / 207 public jets, including the
+first Bitcoin jet, version. Registered inputs may now be unfrozen.
