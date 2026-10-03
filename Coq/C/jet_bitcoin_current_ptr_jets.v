@@ -20,8 +20,8 @@ Local Transparent Archi.ptr64.
 Local Opaque bitcoin_ge ge0.
 Set Default Timeout 60.
 
-Definition current_ptr_rep {A} (elems_of : Bitcoin.env -> list A) (elemrep : mem -> block -> Z -> A -> Prop)
-    (sz poff adelta cdelta : Z) (m : mem) (env : val) (environment : Bitcoin.env)
+Definition current_ptr_rep {EE : Set} {A} (elems_of : EE -> list A) (ix_of : EE -> nat) (elemrep : mem -> block -> Z -> A -> Prop)
+    (sz poff adelta cdelta : Z) (m : mem) (env : val) (environment : EE)
     (fp : list (block * Z * Z)) : Prop :=
   exists be ebase bt txbase bin inbase nI ixv,
     env = Vptr be (Ptrofs.repr ebase) /\
@@ -33,12 +33,12 @@ Definition current_ptr_rep {A} (elems_of : Bitcoin.env -> list A) (elemrep : mem
     Mem.load Mint64 m bt (txbase + cdelta) = Some (Vlong nI) /\
     Mem.load Mint64 m be (ebase + 48) = Some (Vlong ixv) /\
     Int64.unsigned nI = Z.of_nat (length (elems_of environment)) /\
-    Int64.unsigned ixv = Z.of_nat (Bitcoin.envIx environment) /\
+    Int64.unsigned ixv = Z.of_nat (ix_of environment) /\
     (forall j x, nth_error (elems_of environment) j = Some x ->
       elemrep m bin (inbase + sz * Z.of_nat j + poff) x) /\
     fp = [(bin, inbase, inbase + sz * Z.of_nat (length (elems_of environment)))].
 
-Theorem bitcoin_current_ptr_local {A} (elems_of : Bitcoin.env -> list A) (nbits : Z) (pcells : A -> list Cell)
+Theorem bitcoin_current_ptr_local {EE : Set} {A} (elems_of : EE -> list A) (ix_of : EE -> nat) (nbits : Z) (pcells : A -> list Cell)
     (elemrep : mem -> block -> Z -> A -> Prop) (Bpay : Ty)
     (t1 t2 t3 ta tb tc arrfield countfield sid cid : ident) (pt : type)
     (cdelta adelta sz poff psz : Z) (pexpr : expr) (cf f : function)
@@ -73,12 +73,12 @@ Theorem bitcoin_current_ptr_local {A} (elems_of : Bitcoin.env -> list A) (nbits 
     (Hshape : bitcoin_wrapper_shape f
       (bitcoin_current_ptr_rest t1 t2 t3 ta tb tc arrfield countfield sid pexpr cid pt))
     (HB : Z.of_nat (bitSize Bpay) = nbits)
-    (spec : Ty.tySem Ty.Unit -> Bitcoin.env -> option (Ty.tySem Bpay))
-    (Hsem : forall environment, exists x V, nth_error (elems_of environment) (Bitcoin.envIx environment) = Some x /\
+    (spec : Ty.tySem Ty.Unit -> EE -> option (Ty.tySem Bpay))
+    (Hsem : forall environment, exists x V, nth_error (elems_of environment) (ix_of environment) = Some x /\
       spec tt environment = Some V /\ encode V = pcells x)
     (Hlen : forall x, Z.of_nat (length (pcells x)) = nbits) :
-  application_jet_local_spec_sep f bitcoin_ge Bitcoin.env Ty.Unit Bpay
-    (current_ptr_rep elems_of elemrep sz poff adelta cdelta) spec.
+  application_jet_local_spec_sep f bitcoin_ge EE Ty.Unit Bpay
+    (current_ptr_rep elems_of ix_of elemrep sz poff adelta cdelta) spec.
 Proof.
   intros environment env m bd dbase bs sbase bi bw edge outedge cursor read_cursor [] fp
     (be & ebase & bt & txbase & bin & inbase & nI & ixv & HEnvVal & He0 & He1 & Ht0 & Ht1 & Hi0 & Hi1 &
@@ -92,14 +92,14 @@ Proof.
     (inbase + sz * Z.of_nat (length (elems_of environment))))
     by exact (HSep (bin, inbase, inbase + sz * Z.of_nat (length (elems_of environment))) ltac:(simpl; auto)).
   destruct (Hsem environment) as (x & V & Hnth & HVs & HVenc).
-  assert (Hix_lt : (Bitcoin.envIx environment < length (elems_of environment))%nat)
+  assert (Hix_lt : (ix_of environment < length (elems_of environment))%nat)
     by (apply nth_error_Some; rewrite Hnth; discriminate).
   assert (Hlt : Int64.ltu ixv nI = true).
   { unfold Int64.ltu. rewrite zlt_true; [reflexivity|]. rewrite Hixv, HnI. lia. }
   set (nn := Z.of_nat (length (elems_of environment))) in *.
   set (szn := sz * nn) in *.
   assert (Hm : sz * Int64.unsigned ixv + sz <= szn).
-  { subst szn. rewrite Hixv. assert (sz * (Z.of_nat (Bitcoin.envIx environment) + 1) <= sz * nn)
+  { subst szn. rewrite Hixv. assert (sz * (Z.of_nat (ix_of environment) + 1) <= sz * nn)
       by (apply Z.mul_le_mono_nonneg_l; subst nn; lia). lia. }
   assert (Hs0 : 0 <= sz * Int64.unsigned ixv) by (apply Z.mul_nonneg_nonneg; [lia|apply Int64.unsigned_range]).
   destruct (frame_loadbytes_at m bs sbase (Vptr bi (Ptrofs.repr edge))
@@ -167,10 +167,10 @@ Proof. repeat split; try reflexivity. apply bitcoin_current_ptr_disjoint. Qed.
 Theorem bitcoin_current_prev_outpoint_local_spec :
   application_jet_local_spec_sep f_simplicity_bitcoin_current_prev_outpoint bitcoin_ge Bitcoin.env Ty.Unit
     (Ty.Prod Word256 Word32)
-    (current_ptr_rep (fun e => sigTxIn (Bitcoin.envTx e)) outpoint_rep 160 64 0 448)
+    (current_ptr_rep (fun e => sigTxIn (Bitcoin.envTx e)) Bitcoin.envIx outpoint_rep 160 64 0 448)
     (fun a environment => @bitcoin_current_prev_outpoint_spec (PrimitivePrimSem option_Monad_Zero) a environment).
 Proof.
-  refine (bitcoin_current_ptr_local (fun e => sigTxIn (Bitcoin.envTx e)) 288 outpoint_pcells outpoint_rep
+  refine (bitcoin_current_ptr_local (fun e => sigTxIn (Bitcoin.envTx e)) Bitcoin.envIx 288 outpoint_pcells outpoint_rep
     (Ty.Prod Word256 Word32) _t'1 _t'2 _t'3 _t'4 _t'5 _t'6 _input _numInputs _sigInput _prevOutpoint
     (Tstruct _outpoint noattr) 448 0 160 64 40 bitcoin_current_prev_outpoint_pexpr f_prevOutpoint
     f_simplicity_bitcoin_current_prev_outpoint
