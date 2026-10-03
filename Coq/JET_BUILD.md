@@ -2714,3 +2714,18 @@ control proof's bounded 256-case reflexivity sentence. This is not an unresolved
 helper semantic obligation. An isolated bounded-step repair is being checked;
 do not claim a successful full consumer regression until its terminal result
 and a subsequent build have been observed.
+
+`C/jet_bitcoin_frame_access.v` checks the actual frame composite's edge/offset
+metadata and derives actual edge/offset reads, offset lvalues and word/offset
+assignments in bitcoin_ge, retaining nonwrapping addresses. Its six results
+compile and scan; frame observations retain only four inherited
+classical/extensionality assumptions. `C/jet_bitcoin_word_helpers.v` checks the
+actual Bitcoin program's LSBclear/LSBkeep symbols and internal bodies and applies
+the new generic execution proofs to those actual bodies. Its six results compile
+and scan; executions retain the six inherited execution assumptions. Fresh
+kernel `14801` checks both current modules with terminal exit 0; no new axioms.
+These two modules / 12 results / 0 definitions are unregistered and add no public
+coverage. Next reuse the existing writer arithmetic/memory lemmas and adapt its
+expression/call proof automation to these actual Bitcoin frame/global contracts;
+avoid a general all-expression transport that would incorrectly equate sizes of
+previously undefined types.
