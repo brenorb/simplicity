@@ -2570,3 +2570,19 @@ registered files frozen; continue only in new unregistered modules until its
 terminal result is observed. Next specialize the general actual context writer
 to the reader's recovered canonical count using the checked quotient/remainder
 bridge, then discharge actual caller allocations and canonical public programs.
+
+`C/jet_write_sha256_context_canonical.v` now derives the writer's modulo-64
+length invariant and decodes its shifted counter back to the exact canonical
+input count using the reader representation bridge. Its actual initial-memory
+writer theorem retains arbitrary output contents, cursor/crossing behavior,
+prefix preservation, unrelated-memory loads, permissions and block validity;
+both actual overflow returns remain covered. It does not assume a desired output
+or any helper execution. Count validity is explicit: it is a successful-reader
+serializer adapter, not a total public context jet proof. All three results
+compile and pass explicit scans; fresh kernel `12761` completed with terminal
+exit 0. Two decoding bridges are closed, and the execution consumer retains
+the six inherited execution assumptions, with no new axioms. This module is
+unregistered during audit `46115` and adds no public coverage. Before building
+further SHA internals, revisit the easier missing word-jet families (fixed full
+shifts, left/rightmost and padding) against their actual bodies and canonical
+specs; any actual memcpy dependency must be resolved, not axiomatized.
