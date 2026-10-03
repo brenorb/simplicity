@@ -115,7 +115,7 @@ Proof.
 Qed.
 
 Theorem core_rightmost_jet (Hmodel : memcpy_model) f (A B : Ty) (spec : tySem A -> tySem B) (N M : Z) :
-  core_wrapper_shape f (core_simple_rest (Ssequence (core_forward_call N M) (core_copy_call M))) ->
+  core_wrapper_shape f (Ssequence (core_forward_call N M) (core_simple_rest (core_copy_call M))) ->
   N = Z.of_nat (bitSize A) -> M = Z.of_nat (bitSize B) -> 0 < M <= 64 -> M <= N <= 1000 ->
   (forall a, encode (spec a) = skipn (Z.to_nat (N - M)) (encode a)) ->
   jet_separated_local_spec f A B spec.
@@ -127,10 +127,10 @@ Proof.
     HSedge HSoff) as [bytes HBytes].
   assert (Hlen : M = Z.of_nat (length (encode (spec a)))).
   { rewrite Hspec, skipn_length, encode_length. lia. }
-  destruct (core_wrapper_layout_simple f (Ssequence (core_forward_call N M) (core_copy_call M))
+  destruct (core_wrapper_layout f (Ssequence (core_forward_call N M) (core_simple_rest (core_copy_call M)))
     (encode (spec a)) env m bd dbase bs sbase bw outedge cursor M bytes Hshape HBase HAlign HBytes
     ltac:(lia) HoutM) as (mf & Hcall & HC & HP & HFl & HL).
-  - intros ma mc bl HAlloc HStore HLP HPP HFrameC.
+  - unfold core_wrapper_mid. intros ma mc bl HAlloc HStore HLP HPP HFrameC.
     pose proof (core_local_frame_fields m ma mc bl bs sbase bytes bi edge rc HAlloc HBytes HStore
       HSedge HSoff) as HLoc.
     pose proof (core_local_frame_writable m ma mc bl bytes HAlloc HStore) as HLocW.
@@ -167,7 +167,7 @@ Proof.
       * eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mw) (le1 := core_wrapper_temps f env bd dbase bs sbase).
         -- eapply exec_core_forward_call; [lia|lia|lia|].
            exact Hfwd.
-        -- exact Hexec.
+        -- apply exec_core_simple_rest. exact Hexec.
       * split; [exact HC|]. split.
         -- eapply write_prefix_at_preserved with (mr := mw) (me := mf); [|intros ofs w' HL'; exact HL'|exact HP].
            intros ofs w' HL'. rewrite HLw by (left; congruence). exact HL'.
