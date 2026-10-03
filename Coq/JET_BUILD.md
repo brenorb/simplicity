@@ -2185,3 +2185,14 @@ results; 206 public jets). Static and inventory regression checks pass. Run an
 expanded logged audit before accepting helper snapshots. Once running, freeze
 these registered sources/manifests until terminal success; new unregistered
 mixed-loop consumers may be developed independently.
+
+Expanded reader audit `51817` is live against accepted `b941abc`; its durable
+log is `/tmp/jet-reader-audit.NrBOUa/audit.log` (369 modules / 1703 results).
+Freeze registered sources/manifests/results/definitions until terminal success.
+After all gates, negative fixtures and exact AST regeneration pass, filter the
+ten new module names from assumptions. In the contract snapshot remove theorem
+blocks from `frame_input_word_at_bit8` until `frame_fields =`, and definition
+blocks from `read8s_run =` onward. These must reproduce `b941abc` byte-for-byte,
+with unchanged inherited global kernel axioms. Do not accept snapshots early or
+restart a verified live run. New unregistered chunk-step/loop consumers may be
+developed while this run continues.
