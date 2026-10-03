@@ -80,3 +80,30 @@ Lemma bitcoin_sigOutput_value : bitcoin_field_at _sigOutput _value 0.
 Proof. vm_compute; reflexivity. Qed.
 Lemma bitcoin_sigOutput_scriptPubKey : bitcoin_field_at _sigOutput _scriptPubKey 8.
 Proof. vm_compute; reflexivity. Qed.
+
+(** [(xp[i]).field] for a scalar 64-bit field at offset [fdelta]. *)
+Lemma eval_bitcoin_elem_field e le m t4 sid sz field fdelta b inbase r v :
+  sizeof (Clight.genv_cenv bitcoin_ge) (Tstruct sid noattr) = sz ->
+  bitcoin_field_at sid field fdelta ->
+  le!t4 = Some (Vptr b (Ptrofs.repr inbase)) -> le!_i = Some (Vlong r) ->
+  0 <= inbase -> 0 < sz <= 1000 -> 0 <= fdelta ->
+  inbase + sz * Int64.unsigned r + fdelta + 8 <= Ptrofs.max_unsigned ->
+  Mem.load Mint64 m b (inbase + sz * Int64.unsigned r + fdelta) = Some (Vlong v) ->
+  eval_expr bitcoin_ge e le m
+    (Efield (Ederef (Ebinop Oadd (Etempvar t4 (tptr (Tstruct sid noattr))) (Etempvar _i tulong)
+      (tptr (Tstruct sid noattr))) (Tstruct sid noattr)) field tulong) (Vlong v).
+Proof.
+  intros Hsz HF H4 HI HB HS Hd HM HL.
+  assert (HR : 0 <= Int64.unsigned r) by (apply Int64.unsigned_range).
+  assert (HI' : le!_i = Some (Vlong (Int64.repr (Int64.unsigned r)))) by (rewrite Int64.repr_unsigned; exact HI).
+  assert (Hsr : 0 <= sz * Int64.unsigned r) by (apply Z.mul_nonneg_nonneg; [lia|exact HR]).
+  pose proof (eval_bitcoin_index e le m t4 _i sid sz b inbase (Int64.unsigned r) Hsz H4 HI' HB HS HR
+    ltac:(clear - HM Hd Hsr; lia)) as HElem.
+  eapply eval_bitcoin_field_value with (sid := sid) (delta := fdelta) (chunk := Mint64).
+  - reflexivity.
+  - exact HF.
+  - reflexivity.
+  - exact HElem.
+  - rewrite bitcoin_ptr_add_repr by (clear - HM Hd Hsr HB; lia).
+    apply bitcoin_loadv_repr; [clear - HM Hd Hsr HB; lia|exact HL].
+Qed.
