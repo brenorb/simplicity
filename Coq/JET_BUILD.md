@@ -2287,3 +2287,12 @@ kernel axioms. Accept snapshots for 374 modules / 1724 results, 716 closed;
 public coverage remains 206/533, 327 missing. The seven independently checked
 mixed-writer support modules may now be registered for a separate expanded
 audit (381 modules / 1745 results; no public coverage row).
+
+The seven complete mixed-writer support modules / 21 results / 4 definitions
+are now registered in dependency order against accepted baseline `9cc50d6`.
+Run a logged expanded audit and freeze registered files until terminal success.
+After every gate, negative fixture and exact AST check succeeds, filter the
+seven new module names from assumptions. Remove theorem blocks from
+`output_cells_last_word` to `frame_fields =`, and definition blocks from
+`buffer8_write_present_temps =` onward, to reproduce `9cc50d6` byte-for-byte.
+Check unchanged inherited global axioms before accepting pending snapshots.
