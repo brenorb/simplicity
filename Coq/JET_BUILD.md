@@ -2990,3 +2990,25 @@ The prescribed contract filter also reproduces that baseline exactly, and
 the inherited kernel-axiom snapshot is unchanged. Accept 416 result modules /
 1869 results / 788 closed / 209 public jets. Three Bitcoin jets are covered;
 324 declarations remain. Registered inputs are unfrozen.
+
+Unregistered count-search support: `jet_forWhile_spec.v` ports the literal
+SingleV/DoubleV recursion from `Haskell/Core/Simplicity/Programs/Word.hs`.
+Its relational parametricity and pointwise operational extensionality results
+are closed; its Reader/option interpretation inherits only the existing Reader
+monad's functional-extensionality assumption. Current source compiles/scans,
+and fresh kernel `87020` finishes with exit 0. `jet_firstFail_spec.v` ports the
+literal firstFail body, routing and final assertl using the already checked
+canonical `assertion_cmr_fail0`, not an invented count primitive. It proves
+parametricity, body interpretation, final assertion behavior and complete
+structural search interpretation. Current source compiles/scans; fresh kernel
+`77602` finishes with exit 0. Parametricity results are closed; interpretation
+results inherit only the existing Reader functional-extensionality assumption.
+These two modules are not registered or public coverage. The numeric
+first-failure/list-length bridge and actual count-getter local proofs remain.
+Avoid evaluating the 2^32 loop: use structural recursion, pointwise body
+equivalence and a symbolic search invariant. Preserve the monad instance when
+rewriting: PrimitivePrimSem's Assertion projection is definitionally, but not
+syntactically, the explicit AssertionSem Reader instance; a targeted `change`
+exposes the latter. For the small base body only, lazy reduction of the pure
+monad combinators in both the equation and goal aligns class projections;
+do not apply this to open Clight memory or expand the loop/hash constants.
