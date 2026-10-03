@@ -2965,3 +2965,15 @@ assumptions. The observed first appended result is
 contracts byte-for-byte, and inherited kernel axioms are unchanged. Accept
 410 result modules / 1848 results / 776 closed / 207 public jets, including the
 first Bitcoin jet, version. Registered inputs may now be unfrozen.
+
+Register the independently checked getter32/lock-time/current-index chains:
+six source/result modules, 21 results, seven definitions, and two exact public
+local-theorem rows. Static gates pass: 209/533 entries, including three Bitcoin
+jets. This new integration is not accepted until all gates / negative fixtures /
+both exact AST checks complete. Baseline is `5bb660c`; prospective totals are
+416 result modules / 1869 results. Filter only the 21 new exact result names
+from assumptions. Remove newly appended result blocks beginning at
+`function_entry2_same_interface` until `frame_fields =`, then truncate only
+new appended definitions starting at `bitcoin_getter32_body =` to reproduce
+the baseline snapshots byte-for-byte. Check unchanged inherited kernel axioms.
+Freeze registered sources/manifests while this audit runs.
