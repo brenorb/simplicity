@@ -2780,3 +2780,11 @@ inherited execution assumptions (Print Assumptions checked, no new axioms).
 These unregistered helper results do not increase public coverage. Next connect
 the actual version wrapper's allocation, by-value struct copy, environment
 reads, checked writer call and local cleanup, then its literal primitive.
+
+`C/jet_bitcoin_version_exec.v` checks concrete version-wrapper entry, source
+frame By_copy assignment, the actual write32 call and a composition theorem
+including both actual environment field reads and freeing the allocated local.
+Current source compiles, scans, and fresh kernel `48699` finishes with exit 0.
+This is internal composition, not yet a public initial-memory contract: its
+allocation, copied bytes, observations after copy, writer execution and free
+premises must all be derived by a consumer. It adds no public coverage.
