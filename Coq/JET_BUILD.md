@@ -2752,3 +2752,17 @@ theorem blocks starting at `entry_clear_width_ge` until `frame_fields =` to
 reproduce the accepted baseline byte-for-byte. Check unchanged inherited kernel
 axioms. Do not accept new snapshots or change registered proof inputs while
 that audit runs.
+
+The ge-parametric integration is live as session `70050`, durable log
+`/tmp/jet-word-ge-audit.VjTBth/audit.log`, against `c8cbaeb` (395 registered
+modules / 1808 results). Static checks, consumer build and kernel check have
+passed; assumption gates and subsequent checks are not yet accepted. Registered
+inputs remain frozen pending the terminal result.
+
+`C/jet_bitcoin_write32_exec.v` proves actual Bitcoin-program write32 entry and
+the non-crossing execution branch, reusing checked Bitcoin frame accesses and
+actual word-helper executions. Current source compiles, scans, and fresh kernel
+`50461` finishes with terminal exit 0. Entry is closed; raw execution retains
+only the six inherited execution assumptions. These two unregistered results
+add no public coverage: intermediate store premises still need discharge from
+initial writable-frame contracts, and the crossing branch remains to be proved.
