@@ -166,3 +166,62 @@ Proof.
       * split; assumption.
   - exists mf. split; [exact Hcall|]. split; [exact HC|]. split; [exact HP|]. split; [exact HFl|exact HL].
 Qed.
+
+Theorem core_right_pad_jet (Hmodel : memcpy_model) f (A B : Ty) (spec : tySem A -> tySem B)
+    (c w Nn : Z) (cnt : expr) (stmt : statement) (pcells : list Cell) :
+  core_wrapper_shape f (Ssequence (core_copy_call Nn) (core_simple_rest (core_for_loop cnt stmt))) ->
+  Nn = Z.of_nat (bitSize A) -> Z.of_nat (bitSize B) = Nn + c * w -> 0 < Nn <= 64 -> 0 < w ->
+  1 <= c <= 1000 -> Z.of_nat (length pcells) = w -> typeof cnt = tint ->
+  (forall e le m', eval_expr ge0 e le m' cnt (Vint (Int.repr c))) ->
+  (forall bl le' m cur bd dbase bw edge, le'!_dst = Some (Vptr bd (Ptrofs.repr dbase)) ->
+    write_frame_at m bd dbase bw edge cur w ->
+    exists m', Clight2.exec_stmt ge0 (core_src_locals bl) le' m stmt E0 le' m' Out_normal /\
+      write_effect m m' bd dbase bw edge cur w pcells) ->
+  (forall a, encode (spec a) = encode a ++ rep_cells pcells (Z.to_nat c)) ->
+  jet_separated_local_spec f A B spec.
+Proof.
+  intros Hshape HN HM HNn Hw Hc Hpl Hty Hcnt Hwr Hspec env m bd dbase bs sbase bi bw edge outedge cursor rc a
+    HBase HAlign [HSedge HSoff] H0 Hmax Hin Hout Hsep.
+  destruct (frame_loadbytes_at m bs sbase (Vptr bi (Ptrofs.repr edge)) (Vlong (Int64.repr rc))
+    HSedge HSoff) as [bytes HBytes].
+  assert (Hrep : Z.of_nat (length (rep_cells pcells (Z.to_nat c))) = c * w).
+  { rewrite rep_cells_length, Nat2Z.inj_mul, Z2Nat.id by lia. rewrite Hpl. reflexivity. }
+  assert (Hlenenc : Z.of_nat (length (encode a)) = Nn) by (rewrite encode_length, HN; reflexivity).
+  destruct (core_wrapper_layout f (Ssequence (core_copy_call Nn) (core_simple_rest (core_for_loop cnt stmt)))
+    (encode (spec a)) env m bd dbase bs sbase bw outedge cursor (Z.of_nat (bitSize B)) bytes Hshape
+    HBase HAlign HBytes ltac:(nia) Hout) as (mf & Hcall & HC & HP & HFl & HL).
+  - unfold core_wrapper_mid. intros ma mc bl HAlloc HStore HLP HPP HFrameC.
+    pose proof (core_local_frame_fields m ma mc bl bs sbase bytes bi edge rc HAlloc HBytes HStore
+      HSedge HSoff) as HLoc.
+    assert (HInC : frame_input_cells_at mc bi edge rc (encode a)).
+    { eapply core_input_cells_load_preserved; [|exact Hin]. intros ofs w' HL. apply HLP. exact HL. }
+    assert (Hdst : (core_wrapper_temps f env bd dbase bs sbase)!_dst = Some (Vptr bd (Ptrofs.repr dbase)))
+      by (unfold core_wrapper_temps; rewrite !PTree.gso by discriminate; apply PTree.gss).
+    set (le0 := core_wrapper_temps f env bd dbase bs sbase) in *.
+    assert (HFc : write_frame_at mc bd dbase bw outedge cursor Nn).
+    { eapply write_frame_at_shorter; [|exact HFrameC]. nia. }
+    assert (HSepC : jet_copy_buffers_separated bd bi bw edge outedge cursor rc Nn)
+      by (rewrite HN; exact Hsep).
+    destruct (core_copy_phase Hmodel mc bl bd dbase bw outedge cursor bi edge rc Nn (encode a) le0
+      HLoc HFc ltac:(lia) HNn HSepC HInC Hdst) as (mk & Hexec1 & Heff1).
+    assert (HFloop : write_frame_at mk bd dbase bw outedge (cursor - Nn) (c * w)).
+    { eapply write_frame_at_after_effect with (m := mc) (cells := encode a);
+        [exact Hlenenc|nia| |exact Heff1].
+      replace (Nn + c * w) with (Z.of_nat (bitSize B)) by lia. exact HFrameC. }
+    destruct (core_pad_loop_phase (core_src_locals bl) le0 c w cnt stmt pcells mk bd dbase bw outedge
+      (cursor - Nn) (c * w) Hty (fun m' k _ => Hcnt _ _ _) ltac:(lia) Hpl Hw HFloop ltac:(nia) ltac:(lia) Hdst
+      (fun le' m cur Hd HF => Hwr bl le' m cur bd dbase bw outedge Hd HF)) as (ml & Hloop & Heff2).
+    assert (Heff : write_effect mc ml bd dbase bw outedge cursor (Nn + c * w)
+      (encode a ++ rep_cells pcells (Z.to_nat c))).
+    { eapply write_effect_seq with (m1 := mk) (n1 := Nn) (n2 := c * w); [exact Hlenenc|nia| | exact Heff1|exact Heff2].
+      replace (Nn + c * w) with (Z.of_nat (bitSize B)) by lia. exact HFrameC. }
+    exists (le_at le0 c), ml. split.
+    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mk) (le1 := le0); [exact Hexec1|].
+      apply exec_core_simple_rest. exact Hloop.
+    + rewrite <- Hspec in Heff. replace (Nn + c * w) with (Z.of_nat (bitSize B)) in Heff by lia.
+      destruct Heff as (O & P & F & L & Pm & V).
+      split; [exact O|]. split; [exact P|]. split; [exact F|]. split.
+      * intros chunk b ofs _ H1 H2. apply L; assumption.
+      * split; assumption.
+  - exists mf. split; [exact Hcall|]. split; [exact HC|]. split; [exact HP|]. split; [exact HFl|exact HL].
+Qed.
