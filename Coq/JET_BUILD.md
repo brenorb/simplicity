@@ -2698,3 +2698,19 @@ and exact pinned AST regeneration passed. Both prescribed snapshot filters
 reproduce `8f2f694` byte-for-byte and inherited kernel axioms are unchanged.
 Accept its snapshots; there are 753 closed results, still 206/533 public jets.
 The canonical writer/roundtrip and Bitcoin modules are outside these totals.
+
+Reuse word-helper execution across application global environments:
+`jet_LSBclear_width.v`, `jet_LSBkeep_width.v` and `jet_frame_access.v` now expose
+`entry_clear_width_ge`, `eval_clear_width_ge`, `eval_keep_width_ge` and
+`call_word_helper_ge`, proving the same actual bodies for an arbitrary Clight
+global environment. Existing core entry/execution/call theorem names and types
+are preserved as ge0 specializations; no original precondition is weakened or
+new assumption added. All three current sources compile and scan, fresh kernel
+`74978` completes with terminal exit 0, and the four new results retain only
+the six inherited execution assumptions. Register/audit these four additions
+separately later. The full consumer rebuild is not yet accepted: sessions
+`91747` (-j12), `54393` (-j2), and isolated `43957` fail on the unchanged rotation
+control proof's bounded 256-case reflexivity sentence. This is not an unresolved
+helper semantic obligation. An isolated bounded-step repair is being checked;
+do not claim a successful full consumer regression until its terminal result
+and a subsequent build have been observed.

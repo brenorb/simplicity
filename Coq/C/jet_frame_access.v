@@ -28,15 +28,18 @@ Lemma assign_frame_word_at m mf bw ofs w :
   assign_loc (prog_comp_env prog) tulong m bw ofs Full (Vlong w) mf.
 Proof. intros HS. eapply assign_loc_value; [reflexivity | exact HS]. Qed.
 
-Lemma call_word_helper m le result fid f b a1 a2 w n v :
+Section AnyGlobalEnvironment.
+Variable ge : Clight.genv.
+
+Lemma call_word_helper_ge m le result fid f b a1 a2 w n v :
   type_of_function f = Tfunction (Tcons tulong (Tcons tulong Tnil)) tulong cc_default ->
   typeof a1 = tulong -> typeof a2 = tulong ->
-  Genv.find_symbol (Clight.genv_genv ge0) fid = Some b ->
-  Genv.find_funct (Clight.genv_genv ge0) (Vptr b Ptrofs.zero) = Some (Internal f) ->
-  eval_expr ge0 empty_env le m a1 (Vlong w) ->
-  eval_expr ge0 empty_env le m a2 (Vlong n) ->
-  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f) [Vlong w; Vlong n] E0 m (Vlong v) ->
-  ClightBigstep.Clight2.exec_stmt ge0 empty_env le m
+  Genv.find_symbol (Clight.genv_genv ge) fid = Some b ->
+  Genv.find_funct (Clight.genv_genv ge) (Vptr b Ptrofs.zero) = Some (Internal f) ->
+  eval_expr ge empty_env le m a1 (Vlong w) ->
+  eval_expr ge empty_env le m a2 (Vlong n) ->
+  ClightBigstep.Clight2.eval_funcall ge m (Internal f) [Vlong w; Vlong n] E0 m (Vlong v) ->
+  ClightBigstep.Clight2.exec_stmt ge empty_env le m
     (Scall (Some result)
       (Evar fid (Tfunction (Tcons tulong (Tcons tulong Tnil)) tulong cc_default)) [a1; a2])
     E0 (PTree.set result (Vlong v) le) m Out_normal.
@@ -54,3 +57,18 @@ Proof.
   - exact HT.
   - exact HC.
 Qed.
+End AnyGlobalEnvironment.
+
+Lemma call_word_helper m le result fid f b a1 a2 w n v :
+  type_of_function f = Tfunction (Tcons tulong (Tcons tulong Tnil)) tulong cc_default ->
+  typeof a1 = tulong -> typeof a2 = tulong ->
+  Genv.find_symbol (Clight.genv_genv ge0) fid = Some b ->
+  Genv.find_funct (Clight.genv_genv ge0) (Vptr b Ptrofs.zero) = Some (Internal f) ->
+  eval_expr ge0 empty_env le m a1 (Vlong w) ->
+  eval_expr ge0 empty_env le m a2 (Vlong n) ->
+  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f) [Vlong w; Vlong n] E0 m (Vlong v) ->
+  ClightBigstep.Clight2.exec_stmt ge0 empty_env le m
+    (Scall (Some result)
+      (Evar fid (Tfunction (Tcons tulong (Tcons tulong Tnil)) tulong cc_default)) [a1; a2])
+    E0 (PTree.set result (Vlong v) le) m Out_normal.
+Proof. apply call_word_helper_ge. Qed.

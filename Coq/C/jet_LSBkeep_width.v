@@ -25,8 +25,8 @@ Proof.
     apply andb_false_r.
 Qed.
 
-Lemma eval_keep_width m w n : 1 <= n <= 64 ->
-  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBkeep)
+Lemma eval_keep_width_ge (ge : Clight.genv) m w n : 1 <= n <= 64 ->
+  ClightBigstep.Clight2.eval_funcall ge m (Internal f_LSBkeep)
     [Vlong w; Vlong (Int64.repr n)] E0 m (Vlong (Int64.zero_ext n w)).
 Proof.
   intros HN. rewrite <- keep_mask by exact HN.
@@ -61,3 +61,8 @@ Proof.
   - cbn; split; [discriminate | reflexivity].
   - reflexivity.
 Qed.
+
+Lemma eval_keep_width m w n : 1 <= n <= 64 ->
+  ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_LSBkeep)
+    [Vlong w; Vlong (Int64.repr n)] E0 m (Vlong (Int64.zero_ext n w)).
+Proof. apply eval_keep_width_ge. Qed.
