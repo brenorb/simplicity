@@ -2268,3 +2268,13 @@ the existing six execution assumptions (`99522`) and the three canonical
 choice facts are closed. The chunk step derives actual branch/halving execution;
 its pure tag invariant is established from the canonical remaining-byte length,
 not assumed helper behavior. The complete mixed loop/call remains next.
+
+The complete mixed writer loop and arbitrary Buffer63 call subsequently compile
+in `jet_write_buffer8_loop_layout.v` and `jet_write_buffer8_layout.v` (2 modules /
+3 results / 1 definition). Explicit scans, fresh kernels `99205`, `6681` and
+Print Assumptions pass, without new assumptions. The call consumer derives
+every comparison/tag/payload/skip/update, both actual disabled assertion loops,
+initial shift and return. It preserves arbitrary padding/earlier output and
+writable continuation for remaining SHA-context fields. The seven unregistered
+writer-support modules total 21 results / 4 definitions. They are independently
+checked helpers, not public coverage and not part of live audit `13723`.

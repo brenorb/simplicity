@@ -1274,10 +1274,19 @@ tree otherwise contains only Coq files.
    chunk capacities and the remaining present-byte length (fresh kernel
    `63017`, all three facts closed). Together these two unregistered modules
    have 8 results / 2 definitions; no public coverage is added.
-   **Next bounded SHA milestone:** compose the total mixed write_buffer8 loop,
-   its actual call boundary and writable continuation, retaining arbitrary
-   padding and framing. Then
-   compose read_sha256_context's counter/array observations and overflow return.
+   **Complete arbitrary Buffer63 writer independently checked.**
+   `jet_write_buffer8_loop_layout.v` composes every mixed step and derives its
+   length/tag decisions from canonical remaining bytes; `jet_write_buffer8_layout.v`
+   derives the full actual call boundary, both disabled assertion loops, initial
+   shift and return. Arbitrary padding, earlier output, crossings, unrelated
+   memory and writable continuation are retained. Both modules / 3 results /
+   1 definition pass source, scans, assumptions and fresh kernels `99205`, `6681`.
+   The seven new writer-support modules total 21 results / 4 definitions and
+   remain unregistered while audit `13723` runs. They add no public coverage.
+   **Next bounded SHA milestone:** compose the general context writer's buffer,
+   compression count, state array and overflow return from initial context
+   observations; also compose read_sha256_context's counter/array observations
+   and overflow return.
    Its compression-count threshold is 2^55; invalid input is a required failure
    case, not an assumption to remove from a public contract. The frame.c prose
    saying 838 output cells is stale: the actual canonical context has 830.
