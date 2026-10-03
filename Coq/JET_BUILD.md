@@ -2515,3 +2515,19 @@ program, not substitute a numerical inequality for the canonical spec. Public
 add/finalize success paths still need concrete compression dispatch provenance
 and actual compression execution; do not count a guard or failure-only theorem
 as complete public jet coverage.
+
+The literal compression-count assertion is now ported in
+`C/jet_sha256_count_assertion.v` (6 results / 3 definitions). Its checked option
+semantics and machine-return bridge are closed under the global context.
+`C/jet_read_sha256_count_contract.v` (1 result / 0 definitions) applies that
+bridge to the complete actual initial-memory reader call, retaining both
+success and failure, all field/array observations, cursor movement and unrelated
+memory framing. It assumes no intermediate execution or desired return value.
+Both current sources compile and pass explicit proof scans. Fresh kernel checks
+`82609` and `86025` completed with terminal exit 0; the consumer's assumptions
+retain the six inherited execution assumptions, with no new axioms. These two
+modules remain unregistered while audit `69867` runs and add no public coverage.
+The consumer checks the reader helper against the literal count guard, not an
+entire public context-add/finalize program. Next derive the successful reader's
+counter quotient/remainder representation for reuse by the existing general
+context writer; compression dispatch and actual public caller obligations remain.
