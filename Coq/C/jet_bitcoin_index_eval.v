@@ -81,7 +81,33 @@ Proof. vm_compute; reflexivity. Qed.
 Lemma bitcoin_sigOutput_scriptPubKey : bitcoin_field_at _sigOutput _scriptPubKey 8.
 Proof. vm_compute; reflexivity. Qed.
 
-(** [(xp[i]).field] for a scalar 64-bit field at offset [fdelta]. *)
+(** [(xp[i]).field] for a scalar 64-bit field at offset [fdelta], index in temporary [ip]. *)
+Lemma eval_bitcoin_elem_field_at e le m t4 ip sid sz field fdelta b inbase r v :
+  sizeof (Clight.genv_cenv bitcoin_ge) (Tstruct sid noattr) = sz ->
+  bitcoin_field_at sid field fdelta ->
+  le!t4 = Some (Vptr b (Ptrofs.repr inbase)) -> le!ip = Some (Vlong r) ->
+  0 <= inbase -> 0 < sz <= 1000 -> 0 <= fdelta ->
+  inbase + sz * Int64.unsigned r + fdelta + 8 <= Ptrofs.max_unsigned ->
+  Mem.load Mint64 m b (inbase + sz * Int64.unsigned r + fdelta) = Some (Vlong v) ->
+  eval_expr bitcoin_ge e le m
+    (Efield (Ederef (Ebinop Oadd (Etempvar t4 (tptr (Tstruct sid noattr))) (Etempvar ip tulong)
+      (tptr (Tstruct sid noattr))) (Tstruct sid noattr)) field tulong) (Vlong v).
+Proof.
+  intros Hsz HF H4 HI HB HS Hd HM HL.
+  assert (HR : 0 <= Int64.unsigned r) by (apply Int64.unsigned_range).
+  assert (HI' : le!ip = Some (Vlong (Int64.repr (Int64.unsigned r)))) by (rewrite Int64.repr_unsigned; exact HI).
+  assert (Hsr : 0 <= sz * Int64.unsigned r) by (apply Z.mul_nonneg_nonneg; [lia|exact HR]).
+  pose proof (eval_bitcoin_index e le m t4 ip sid sz b inbase (Int64.unsigned r) Hsz H4 HI' HB HS HR
+    ltac:(clear - HM Hd Hsr; lia)) as HElem.
+  eapply eval_bitcoin_field_value with (sid := sid) (delta := fdelta) (chunk := Mint64).
+  - reflexivity.
+  - exact HF.
+  - reflexivity.
+  - exact HElem.
+  - rewrite bitcoin_ptr_add_repr by (clear - HM Hd Hsr HB; lia).
+    apply bitcoin_loadv_repr; [clear - HM Hd Hsr HB; lia|exact HL].
+Qed.
+
 Lemma eval_bitcoin_elem_field e le m t4 sid sz field fdelta b inbase r v :
   sizeof (Clight.genv_cenv bitcoin_ge) (Tstruct sid noattr) = sz ->
   bitcoin_field_at sid field fdelta ->
@@ -92,18 +118,34 @@ Lemma eval_bitcoin_elem_field e le m t4 sid sz field fdelta b inbase r v :
   eval_expr bitcoin_ge e le m
     (Efield (Ederef (Ebinop Oadd (Etempvar t4 (tptr (Tstruct sid noattr))) (Etempvar _i tulong)
       (tptr (Tstruct sid noattr))) (Tstruct sid noattr)) field tulong) (Vlong v).
+Proof. intros. eapply eval_bitcoin_elem_field_at; eassumption. Qed.
+
+(** [(xp[i]).f1.f2] where [f1] is a struct-valued field. *)
+Lemma eval_bitcoin_elem_nested_field_at e le m t4 ip sid sz f1 d1 sid1 f2 d2 b inbase r v :
+  sizeof (Clight.genv_cenv bitcoin_ge) (Tstruct sid noattr) = sz ->
+  bitcoin_field_at sid f1 d1 -> bitcoin_field_at sid1 f2 d2 ->
+  le!t4 = Some (Vptr b (Ptrofs.repr inbase)) -> le!ip = Some (Vlong r) ->
+  0 <= inbase -> 0 < sz <= 1000 -> 0 <= d1 -> 0 <= d2 ->
+  inbase + sz * Int64.unsigned r + d1 + d2 + 8 <= Ptrofs.max_unsigned ->
+  Mem.load Mint64 m b (inbase + sz * Int64.unsigned r + (d1 + d2)) = Some (Vlong v) ->
+  eval_expr bitcoin_ge e le m
+    (Efield (Efield (Ederef (Ebinop Oadd (Etempvar t4 (tptr (Tstruct sid noattr))) (Etempvar ip tulong)
+      (tptr (Tstruct sid noattr))) (Tstruct sid noattr)) f1 (Tstruct sid1 noattr)) f2 tulong) (Vlong v).
 Proof.
-  intros Hsz HF H4 HI HB HS Hd HM HL.
+  intros Hsz HF1 HF2 H4 HI HB HS Hd1 Hd2 HM HL.
   assert (HR : 0 <= Int64.unsigned r) by (apply Int64.unsigned_range).
-  assert (HI' : le!_i = Some (Vlong (Int64.repr (Int64.unsigned r)))) by (rewrite Int64.repr_unsigned; exact HI).
+  assert (HI' : le!ip = Some (Vlong (Int64.repr (Int64.unsigned r)))) by (rewrite Int64.repr_unsigned; exact HI).
   assert (Hsr : 0 <= sz * Int64.unsigned r) by (apply Z.mul_nonneg_nonneg; [lia|exact HR]).
-  pose proof (eval_bitcoin_index e le m t4 _i sid sz b inbase (Int64.unsigned r) Hsz H4 HI' HB HS HR
-    ltac:(clear - HM Hd Hsr; lia)) as HElem.
-  eapply eval_bitcoin_field_value with (sid := sid) (delta := fdelta) (chunk := Mint64).
+  pose proof (eval_bitcoin_index e le m t4 ip sid sz b inbase (Int64.unsigned r) Hsz H4 HI' HB HS HR
+    ltac:(clear - HM Hd1 Hd2 Hsr; lia)) as HElem.
+  eapply eval_bitcoin_field_value with (sid := sid1) (delta := d2) (chunk := Mint64).
   - reflexivity.
-  - exact HF.
+  - exact HF2.
   - reflexivity.
-  - exact HElem.
-  - rewrite bitcoin_ptr_add_repr by (clear - HM Hd Hsr HB; lia).
-    apply bitcoin_loadv_repr; [clear - HM Hd Hsr HB; lia|exact HL].
+  - eapply eval_bitcoin_field_struct; [reflexivity|exact HF1|exact HElem].
+  - rewrite bitcoin_ptr_add_repr by (clear - HM Hd1 Hd2 Hsr HB; lia).
+    rewrite bitcoin_ptr_add_repr by (clear - HM Hd1 Hd2 Hsr HB; lia).
+    apply bitcoin_loadv_repr; [clear - HM Hd1 Hd2 Hsr HB; lia|].
+    replace (inbase + sz * Int64.unsigned r + d1 + d2) with (inbase + sz * Int64.unsigned r + (d1 + d2)) by lia.
+    exact HL.
 Qed.
