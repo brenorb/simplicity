@@ -2852,3 +2852,12 @@ negative fixtures, and exact pinned core AST regeneration all passed. Both
 prescribed filters again reproduce `c8cbaeb` byte-for-byte; kernel axioms remain
 unchanged. Accept 398 result modules / 1808 results / 754 closed, still 206
 public jets. Its snapshots may now be committed and registered inputs unfrozen.
+
+Application integration gates: coverage now distinguishes core total/partial
+contracts from direct Bitcoin application contracts, requiring the exact public
+function plus bitcoin_ge and Bitcoin.env. New isolated positive bookkeeping and
+negative wrong-function/global/logical-environment/core-contract fixtures pass;
+existing unknown/duplicate/helper/unaudited rejections still pass. Coverage is
+still 206 before adding a Bitcoin row. Shell syntax checks pass. The integrated
+--ast gate now freshly regenerates and compares both core and real Bitcoin
+artifacts; the new gate needs the forthcoming full integration terminal result.

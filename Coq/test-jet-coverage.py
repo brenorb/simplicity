@@ -69,7 +69,36 @@ def main():
         rejects(coverage.inventory, "not a direct canonical jet theorem")
         partial.write_text(partial_original)
         assert coverage.inventory() == rows
-    print("coverage tests passed: complete header inventory; total/partial exact-function contracts; unknown/duplicate/helper/unaudited entries rejected")
+        # This positive fixture checks bookkeeping only. The actual application
+        # theorem still requires compilation, kernel and assumption gates.
+        application_name = "simplicity_bitcoin_version"
+        application_module = "C.jet_bitcoin_version_local"
+        application_theorem = "bitcoin_version_local_spec"
+        application = project / "C/jet_bitcoin_version_local.v"
+        shutil.copy2(SOURCE / "C/jet_bitcoin_version_local.v", application)
+        application_original = application.read_text()
+        application_rows = original
+        if not any(row["function"] == application_name and row["proof"] for row in rows):
+            application_rows += f"{application_name} {application_module} {application_theorem}\n"
+        manifest.write_text(application_rows)
+        audited = project / "C/jet_public_theorems.txt"
+        audited_original = audited.read_text()
+        if (application_module, application_theorem) not in coverage.records(audited, 2):
+            audited.write_text(audited_original + f"{application_module} {application_theorem}\n")
+        application_inventory = coverage.inventory()
+        assert next(row for row in application_inventory if row["function"] == application_name)["proof"]
+        for old, new in (
+            ("application_jet_local_spec f_simplicity_bitcoin_version", "application_jet_local_spec f_simplicity_bitcoin_lock_time"),
+            ("bitcoin_ge Bitcoin.env", "ge0 Bitcoin.env"),
+            ("bitcoin_ge Bitcoin.env", "bitcoin_ge Elements.env"),
+            ("application_jet_local_spec f_simplicity_bitcoin_version", "jet_local_spec f_simplicity_bitcoin_version"),
+        ):
+            assert old in application_original
+            application.write_text(application_original.replace(old, new))
+            rejects(coverage.inventory, "not a direct canonical jet theorem")
+        application.write_text(application_original)
+        assert coverage.inventory() == application_inventory
+    print("coverage tests passed: exact core/partial/application contracts; wrong function/global/logical environment and unknown/duplicate/helper/unaudited entries rejected")
 
 
 if __name__ == "__main__":

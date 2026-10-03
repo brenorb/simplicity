@@ -12,7 +12,7 @@
 #      axiom list C/jet_coqchk_axioms.expected;
 #   4. the per-theorem assumption gate (audit-jet-assumptions.sh);
 #   5. with --ast (or JET_SYSROOT set): regenerate the C AST with the pinned
-#      inputs and compare it with the committed C/jets.v.
+#      inputs and compare the core and Bitcoin artifacts with committed ASTs.
 # Requires Coq 8.17.1 on PATH and JET_DEPS prepared by jet-deps.sh (and
 # jet-sysroot.sh for step 5; JET_SYSROOT defaults to its output directory).
 set -euo pipefail
@@ -87,5 +87,7 @@ if $ast; then
   fi
   COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14} JET_SYSROOT=$JET_SYSROOT \
     bash C/check-jets-generation.sh
+  COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14} JET_SYSROOT=$JET_SYSROOT \
+    bash C/check-bitcoin-jets-generation.sh
 fi
 echo "all jet checks passed"

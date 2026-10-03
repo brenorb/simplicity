@@ -95,8 +95,19 @@ def inventory():
             raise ValueError(f"coverage theorem not publicly audited: {module}.{theorem}")
         code = scanner.code_only((COQ / (module.replace(".", "/") + ".v")).read_text())
         statement = re.search(rf"\b(?:Theorem|Lemma|Corollary)\s+{re.escape(theorem)}\s*:(.*?)\bProof\.", code, re.S)
-        if not statement or not re.search(
-                rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b", statement[1]):
+        # Application functions execute in their own linked global environment,
+        # not the core ge0. Counting a core contract for them would lose the
+        # physical/logical primitive-environment correspondence.
+        family = jets[name]["family"]
+        if family == "core":
+            contract = rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b"
+        elif family == "bitcoin":
+            contract = (rf"\bapplication_jet_local_spec\s+f_{re.escape(name)}\s+"
+                        r"bitcoin_ge\s+Bitcoin\.env\b")
+        else:
+            # Elements has no checked application contract yet.
+            contract = r"(?!)"
+        if not statement or not re.search(contract, statement[1]):
             raise ValueError(f"coverage entry is not a direct canonical jet theorem: {module}.{theorem}")
         jets[name]["proof"] = f"{module}.{theorem}"
     return list(jets.values())
