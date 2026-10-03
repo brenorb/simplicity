@@ -2461,3 +2461,27 @@ result / 0 definitions passes current source, explicit scan and fresh kernel
 `13483` with terminal exit 0. Print Assumptions retains the six existing execution
 assumptions, no new axioms. It supports the initial-only full-reader consumer;
 it adds no public jet coverage.
+
+The full actual context-reader helper is now independently checked in
+`jet_read_sha256_context_layout.v` and `jet_read_sha256_context_initial.v`
+(2 modules / 4 results / 0 definitions). The allocated-memory consumer derives
+all intermediate calls, loads, stores, both overflow return cases and cleanup,
+without helper-execution premises. The initial-memory wrapper derives the
+actual private allocation and all old-block/global separation from initial
+validity and readonly provenance; no private slot or expected intermediate
+global load is assumed. A nonempty canonical word derives source block validity.
+Outputs include actual buffer/state arrays, counter and overflow observations,
+unchanged context output pointer, cursor +830, exact global load, preserved
+initial permissions and load framing for unrelated old blocks/regions. Invalid
+compression counts are retained and return failure; no zero-output or special
+cursor restriction is introduced. Initial private context/output blocks remain
+separate from caller source/frame, as actual public callers must derive.
+Both current sources compile, explicit scans pass, fresh kernel `2334` checks
+the initial consumer and its allocated-layout dependency with terminal exit 0;
+assumptions `37587` retain only inherited initialization/execution assumptions.
+The seven unregistered reader modules total 30 results / 9 definitions. These
+are checked C helper results, not a canonical public jet proof or coverage row.
+Next integrate this support separately, then bridge the canonical context
+representation and failure condition into actual public callers. The mutable
+compression dispatch provenance remains a distinct obligation on compression
+paths, not something the now-complete reader establishes.

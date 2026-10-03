@@ -1318,8 +1318,9 @@ tree otherwise contains only Coq files.
    `jet_readonly_int64.v` and `jet_sha256_max_counter.v` derive the actual
    initialized global and its preservation through allocation, stores and
    private frees. Together with the general context writer they are registered
-   for live audit `58720` (385 modules / 1761 results), against `dd2b9d7`;
-   build and kernel passed, but remaining gates/snapshots are not yet accepted.
+   for audit `58720` (385 modules / 1761 results), against `dd2b9d7`;
+   all gates, negative fixtures and exact AST regeneration passed with terminal
+   exit 0; filtered snapshots reproduce the baseline and are accepted.
    The unregistered `jet_read_sha256_{counter,overflow}.v` modules derive actual
    counter reconstruction and overflow store/reload/both returns from current
    memory observations and writable fields (fresh kernels `43218`, `84510`).
@@ -1338,9 +1339,19 @@ tree otherwise contains only Coq files.
    unregistered reader modules have 25 results / 9 definitions. Next derive
    those premises from initial 830-cell frames using the complete buffer/count/
    state readers and memory framing; then prove literal canonical public specs.
-   Audit `58720` has passed assumption/contract gates and snapshot comparison,
-   but negative fixtures/AST completion are still unobserved. Keep its snapshots
-   pending and registered inputs frozen.
+   **Complete context reader independently checked.**
+   `jet_read_sha256_prefix_layout.v` derives actual buffer/count reads and counter
+   store from initial canonical cells (fresh kernel `13483`).
+   `jet_read_sha256_context_{layout,initial}.v` derives the remaining state read,
+   both overflow returns and cleanup; its initial wrapper derives the actual
+   private allocation and separation rather than assuming intermediate calls or
+   memory effects (fresh kernel `2334`, current layout dependency included).
+   Actual arrays, counter/overflow fields, output pointer, cursor +830, global
+   load, permissions and unrelated-memory framing are retained. The seven
+   unregistered reader modules total 30 results / 9 definitions, with no public
+   coverage added. Integrate them separately, then prove the canonical context
+   representation/failure bridge and public caller equivalences. Compression
+   dispatch initialization/linking is still a separate obligation on those paths.
    Its compression-count threshold is 2^55; invalid input is a required failure
    case, not an assumption to remove from a public contract. The frame.c prose
    saying 838 output cells is stale: the actual canonical context has 830.
