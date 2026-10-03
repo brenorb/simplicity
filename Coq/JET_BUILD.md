@@ -2244,3 +2244,18 @@ filter the five new module names from assumptions. Remove theorem blocks from
 `buffer8_read_chunk_src` to `frame_fields =`, and definition blocks from
 `buffer8_read_chunk_temps =` onward, to reproduce `0ddec7c` byte-for-byte.
 Check unchanged inherited global axioms before accepting generated snapshots.
+
+Expanded consumer audit `13723` is live; its durable log is
+`/tmp/jet-buffer-total-audit.Pyk5uy/audit.log`. Its build and 374-module kernel
+passed; subsequent gates are not yet accepted. Keep registered files frozen.
+
+Three further unregistered modules / 10 results / 1 definition independently
+compile and pass scans, assumptions and fresh kernels `31906`, `13689`.
+`jet_output_cells_step.v` recovers writable continuation from a nonempty
+canonical output sequence and actual framing, including the partially written
+boundary word. `jet_present_buffer_segment.v` derives the true-tag and complete
+byte-array writes from initial contracts. `jet_write_buffer8_exec.v` retains
+the actual comparison, either branch, pointer/length updates and halving;
+its internal branch execution premises must be discharged by total consumers.
+Print Assumptions `40586`, `98671` adds no assumptions. These helpers add no
+public coverage and remain outside the live integrated audit.

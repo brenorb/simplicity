@@ -1257,8 +1257,19 @@ tree otherwise contains only Coq files.
    prefix/sequence framing lemmas, and proves exact canonical byte output
    symbolically. Both modules / 13 results / 5 definitions pass compilation,
    explicit scans, assumptions and fresh kernel `1327`; no new assumptions.
-   **Next bounded SHA milestone:** extend write_buffer8 beyond its completed
-   empty case using this total array writer. Then
+   The five complete mixed-reader/byte-writer modules are now registered for
+   expanded audit `13723` (374 modules / 1724 results) against `0ddec7c`.
+   Three further unregistered modules / 10 results / 1 definition pass source,
+   scans, assumptions and fresh kernels (`31906`, `13689`):
+   `jet_output_cells_step.v` recovers writable continuation after arbitrary
+   nonempty encoded cells, including the partially written boundary word;
+   `jet_present_buffer_segment.v` derives a true tag plus exact byte payload;
+   `jet_write_buffer8_exec.v` retains the actual length comparison, either
+   branch, pointer/length updates and shared halving step. Internal branch
+   adapters remain conditional until a total consumer derives their calls.
+   **Next bounded SHA milestone:** compose actual write_buffer8 mixed chunks,
+   derive the tag decision from canonical remaining lengths, and retain
+   arbitrary padding and framing. Then
    compose read_sha256_context's counter/array observations and overflow return.
    Its compression-count threshold is 2^55; invalid input is a required failure
    case, not an assumption to remove from a public contract. The frame.c prose
