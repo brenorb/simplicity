@@ -37,6 +37,9 @@ Definition hash_cells (xs : list int) : list Cell := uint32_word_cells xs.
 Lemma hash_cells_length xs : length (hash_cells xs) = (32 * length xs)%nat.
 Proof. apply uint32_word_cells_length. Qed.
 
+Lemma hash_cells_length_Z xs : length xs = 8%nat -> Z.of_nat (length (hash_cells xs)) = 256.
+Proof. intros H. rewrite hash_cells_length, H. reflexivity. Qed.
+
 (** An interval separated from the whole write is separated from every word. *)
 Lemma out_sep_words bf base bw edge cursor count b lo n j :
   (j < n)%nat ->
