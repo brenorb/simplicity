@@ -2531,3 +2531,11 @@ The consumer checks the reader helper against the literal count guard, not an
 entire public context-add/finalize program. Next derive the successful reader's
 counter quotient/remainder representation for reuse by the existing general
 context writer; compression dispatch and actual public caller obligations remain.
+
+Expanded reader-support audit `69867` completed with terminal exit 0: all
+392 modules / 1791 results, assumption/contract gates, negative fixtures and
+exact pinned AST regeneration passed. Both prescribed snapshot filters reproduce
+`5fffb98` byte-for-byte; inherited kernel axioms are unchanged. There are 741
+closed results. Accept its generated assumption/contract snapshots separately;
+public coverage remains 206/533. The two newer assertion-bridge modules above
+are independently checked and do not belong to these integration totals.
