@@ -1309,6 +1309,20 @@ tree otherwise contains only Coq files.
    and all overflow return cases. Derive the initialized readonly max-counter
    global observation and its preservation rather than assuming its desired
    loaded value as an unexplained public execution premise.
+   **Readonly provenance and reader suffixes independently checked.**
+   `jet_readonly_int64.v` and `jet_sha256_max_counter.v` derive the actual
+   initialized global and its preservation through allocation, stores and
+   private frees. Together with the general context writer they are registered
+   for live audit `58720` (385 modules / 1761 results), against `dd2b9d7`;
+   build and kernel passed, but remaining gates/snapshots are not yet accepted.
+   The unregistered `jet_read_sha256_{counter,overflow}.v` modules derive actual
+   counter reconstruction and overflow store/reload/both returns from current
+   memory observations and writable fields (fresh kernels `43218`, `84510`).
+   Exact AST selectors connect both fragments to the generated function. Their
+   initial-memory consumers do not establish whole-reader entry/calls/cleanup
+   or canonical public equivalence. Compose those next; preserve readonly
+   provenance explicitly, since forward permission preservation alone does
+   not imply the absence of newly Writable permissions.
    Its compression-count threshold is 2^55; invalid input is a required failure
    case, not an assumption to remove from a public contract. The frame.c prose
    saying 838 output cells is stale: the actual canonical context has 830.

@@ -2365,3 +2365,26 @@ the exact unsigned 2^55 threshold without excluding invalid counts. Current
 source, explicit scan and fresh kernel `84510` pass with terminal exit 0.
 This is a suffix consumer, not whole function or public equivalence coverage;
 the reader's earlier calls, local allocation/free and canonical bridge remain.
+
+The actual counter-reconstruction sequence is independently checked in
+`jet_read_sha256_counter.v` (1 unregistered module / 3 results / 2 definitions).
+An exact AST selector check fixes the sequence; from the private local length
+load, current temp observations and writable counter field it derives the
+actual local reload, multiply-by-one, shift, addition and store. It retains
+machine wraparound on invalid counts rather than asserting unbounded arithmetic
+on all inputs. Source, explicit scan and fresh kernel `43218` pass with terminal
+exit 0. Assumptions `99361` reports only the six existing execution assumptions
+for both counter and overflow consumers; both threshold bridges are closed
+(separately checked with Print Assumptions). No public coverage is added.
+
+Next composition detail: derive private len allocation and all reader calls
+from initial frames, not intermediate-execution premises. The existing reader
+contracts preserve loads and forward permissions; forward permission
+preservation alone does not prove that new Writable permissions are absent.
+Do not silently infer the readonly no-Writable invariant from that implication.
+Use actual store/alloc/free provenance, strengthen helper permission contracts
+with checked proofs when needed, or carry the derived exact global load and
+initially established destination/global separation through load framing. The
+internal store adapters can be used without their stronger invariant wrappers.
+The public theorem must discharge whichever interface is chosen, including
+actual overflow failure, function return conversion and private-local cleanup.
