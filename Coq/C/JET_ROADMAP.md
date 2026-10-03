@@ -94,10 +94,13 @@ the current Haskell jet catalog. `Programs.Transaction.lib` defines them as
 `firstFail word32 (primitive InputValue/OutputValue)`. The older Coq Bitcoin
 primitive module still has NumInputs/NumOutputs constructors, but proving the C
 getters against those alone would not establish the requested literal-program
-equivalence. Port/check the actual firstFail programs and their environment
-interpretations before registering count-jet coverage. The C getters do share
-the getter32 wrapper, with checked field offsets 448/456, so their execution
-proofs can later reuse the same infrastructure.
+equivalence. The literal firstFail/forWhile ports, symbolic ordered-search and
+bounded-list-length bridges, and both actual C count-getter local proofs now
+compile and pass independent kernel checks. Their seven-module chain is
+registered for the next full integration audit, not yet accepted: static
+coverage is 211, while accepted coverage remains 209. The direct count proofs
+reuse the getter32 wrapper with actual field offsets 448/456; they do not use
+the legacy NumInputs/NumOutputs primitives as their specifications.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 

@@ -3043,3 +3043,18 @@ Current source compiles/scans; fresh kernel `90757` finishes with exit 0.
 Both public theorems retain the six inherited execution assumptions only.
 This seven-module / 28-result / 12-definition chain is independently checked,
 but still unregistered; accepted coverage remains 209 until full integration.
+
+Register the seven-module count chain in both project files, all 28 results
+and 12 definitions in the audit manifests, and only the two actual public
+count-getter theorems in coverage. Static gates pass with 211/533 entries;
+accepted coverage remains 209 pending full build/kernel/assumption/contract/
+negative/dual-AST integration. Baseline snapshots are `cd7c838` (unchanged
+since accepted `b949b03`). Prospective totals: 423 result modules / 1897 results.
+Filtering only the seven new module prefixes must reproduce baseline assumptions
+exactly. Determine the first actual appended result header in the contract
+snapshot (do not assume rg's result order); remove its new-result block through
+the next `frame_fields =` header, then truncate the appended definitions starting
+at `for_while_program =`. Compare inherited kernel axioms unchanged. Freeze all
+registered sources/manifests during the integration. Capture an explicit exit
+status in its durable log so a completed session handle expiring cannot obscure
+the terminal result.
