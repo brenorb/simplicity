@@ -2216,3 +2216,11 @@ would contain 372 modules / 1711 results, still 206 public jets. Continue with
 the actual write8s loop and present Buffer63 writer, then the context reader's
 counter/array observations and all overflow return cases. Public consumers must
 derive private block separation from their actual allocations.
+
+Expanded reader audit `51817` subsequently returned terminal exit 0. All gates,
+negative fixtures and exact pinned AST regeneration passed; the durable log
+ends with `all jet checks passed`. The prescribed ten-module assumption filter
+and theorem/definition contract filters reproduce `b941abc` byte-for-byte,
+and global kernel axioms are unchanged. Accept the two snapshots: 369 modules /
+1703 results, 706 closed; 206/533 public jets, 327 remaining. Registration of
+new independently checked consumers can now proceed in a separate batch.

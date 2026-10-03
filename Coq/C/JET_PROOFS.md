@@ -1,6 +1,6 @@
 # C jet implementation-to-Simplicity proofs
 
-Fully audited Coq proofs that the generated CompCert Clight of 202 jets of the C library
+Fully audited Coq proofs that the generated CompCert Clight of 206 jets of the C library
 (`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
@@ -73,6 +73,14 @@ documented filters; the 15 inherited kernel axioms are unchanged.
 It derives the actual caller/initializer
 allocations, stores, struct copies, writer and frees from initial frames; no
 intermediate execution is assumed. Its encoding is the literal 830-cell ctx8Init.
+
+The ten shared byte/Buffer63 reader-support modules passed expanded audit
+`51817`: all gates, negative fixtures and exact pinned AST regeneration, with
+terminal exit 0 (369 modules / 1703 results, 706 closed). Filtering the new
+entries reproduces accepted `b941abc` contracts/assumptions byte-for-byte;
+the inherited kernel axioms are unchanged. These helpers add no public jets.
+The complete mixed-chunk Buffer63 reader additionally passes independent source,
+kernel and assumption checks and awaits its own integration.
 
 | Jet | Simplicity specification |
 | --- | --- |

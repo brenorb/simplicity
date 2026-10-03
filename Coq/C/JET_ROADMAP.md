@@ -26,11 +26,15 @@ all at 8/16/32/64 bits, eq at 1/8/16/32/64/256 bits, multiply/full_multiply at 8
 There are 327 declarations without coverage entries, including all Bitcoin and
 Elements jets. The latest completed integration covers 206 public entries,
 including sha_256_ctx_8_init, DivMod128_64, multiply64 and fullMultiply64
-(359 modules / 1649 results, 676 closed). Audit `94007`'s build/kernel/assumption/
+(369 modules / 1703 results, 706 closed). Audit `94007`'s build/kernel/assumption/
 contract gates were observed passing; recovery `33472` completed its unobserved
 negative fixtures and exact pinned AST regeneration with terminal exit 0. The
 prescribed snapshot filters reproduce accepted `a77fcf0` byte-for-byte and the
-15 inherited kernel axioms are unchanged. Accept the context-init snapshots.
+15 inherited kernel axioms are unchanged. Expanded reader-support audit `51817`
+subsequently passed all gates, negative fixtures and exact pinned AST regeneration
+with terminal exit 0. Its prescribed filters reproduce `b941abc` byte-for-byte;
+the inherited kernel axioms remain unchanged. The ten reader-support modules
+add no public coverage. Their snapshots are accepted.
 Coverage is for the pinned
 PRODUCTION LP64 Clight configuration, not other ABIs or debug builds.
 
@@ -1235,7 +1239,8 @@ tree otherwise contains only Coq files.
    and the actual tag read for either branch, retaining exact payload cells.
    Both pass source/scan/assumption and fresh kernel checks (`32751`, `8151`).
    The ten reader-support modules total 54 results / 28 definitions;
-   their next integration will have 369 modules / 1703 results, still 206 jets.
+   their integrated audit `51817` passed all gates, negative fixtures and exact
+   AST regeneration: 369 modules / 1703 results, 706 closed, still 206 jets.
    **Complete arbitrary Buffer63 reader independently checked.**
    `jet_read_buffer8_chunk_layout.v` derives either actual chunk branch from
    initial cells; `jet_read_buffer8_loop_layout.v` composes every mixed chunk,
