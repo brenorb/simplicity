@@ -2196,3 +2196,23 @@ blocks from `read8s_run =` onward. These must reproduce `b941abc` byte-for-byte,
 with unchanged inherited global kernel axioms. Do not accept snapshots early or
 restart a verified live run. New unregistered chunk-step/loop consumers may be
 developed while this run continues.
+
+## Complete mixed Buffer63 reader checked (2026-10-03)
+
+Three additional unregistered modules / 8 results / 1 definition now derive
+the actual mixed-chunk reader step, complete halving loop and full Buffer63 call
+from initial canonical cells. `jet_read_buffer8_chunk_layout.v` discharges both
+tag/branch executions and the length store; `jet_read_buffer8_loop_layout.v`
+preserves previous output bytes and unread cells through arbitrary mixtures;
+`jet_read_buffer8_layout.v` derives length initialization and normal return.
+Current-source compilation and explicit scans passed, fresh kernels `18859`,
+`22733`, `92150` returned exit 0, and Print Assumptions `17020` retains only the
+existing six execution assumptions. The inherited global kernel context is
+unchanged. These are shared helpers, not additional public jet proofs.
+
+Do not register these consumers until live expanded audit `51817` completes;
+its registered sources remain frozen. After acceptance the next reader audit
+would contain 372 modules / 1711 results, still 206 public jets. Continue with
+the actual write8s loop and present Buffer63 writer, then the context reader's
+counter/array observations and all overflow return cases. Public consumers must
+derive private block separation from their actual allocations.

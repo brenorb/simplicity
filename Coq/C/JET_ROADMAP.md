@@ -1236,16 +1236,18 @@ tree otherwise contains only Coq files.
    Both pass source/scan/assumption and fresh kernel checks (`32751`, `8151`).
    The ten reader-support modules total 54 results / 28 definitions;
    their next integration will have 369 modules / 1703 results, still 206 jets.
-   **Next bounded SHA milestone:** compose the same actual loop over arbitrary
-   canonical Buffer63 chunks. Preserve previous output bytes while storing the
-   next present chunk, and preserve the unread canonical cells through both
-   byte stores and the actual length store. Derive the initial len=0 store and
-   every branch call; a conditional loop adapter is not a total reader theorem.
-   Reuse the completed empty-loop induction for the guard/update/termination
-   structure, not its all-absent input restriction. Private array/frame/length
-   block separation must be derived from allocations in public consumers, not
-   imposed on the user's original input/output buffers.
-   Extend write_buffer8 beyond its completed empty case in parallel. Then
+   **Complete arbitrary Buffer63 reader independently checked.**
+   `jet_read_buffer8_chunk_layout.v` derives either actual chunk branch from
+   initial cells; `jet_read_buffer8_loop_layout.v` composes every mixed chunk,
+   preserving previous output bytes and unread cells; `jet_read_buffer8_layout.v`
+   derives the full actual call, initial len=0 store and return. These three
+   modules / 8 results / 1 definition pass current-source compilation, explicit
+   scan, assumptions and fresh kernel checks (`18859`, `22733`, `92150`). They
+   remain unregistered while audit `51817` runs and add no public coverage.
+   Private array/frame/length block separation must still be derived from
+   allocations in public consumers, not imposed on original input/output.
+   **Next bounded SHA milestone:** derive the actual write8s array loop and
+   extend write_buffer8 beyond its completed empty case. Then
    compose read_sha256_context's counter/array observations and overflow return.
    Its compression-count threshold is 2^55; invalid input is a required failure
    case, not an assumption to remove from a public contract. The frame.c prose
