@@ -1251,8 +1251,14 @@ tree otherwise contains only Coq files.
    remain unregistered while audit `51817` runs and add no public coverage.
    Private array/frame/length block separation must still be derived from
    allocations in public consumers, not imposed on original input/output.
-   **Next bounded SHA milestone:** derive the actual write8s array loop and
-   extend write_buffer8 beyond its completed empty case. Then
+   `jet_write8s_{exec,layout}.v` additionally derives the actual byte-array writer
+   loop from initial arrays and writable frames, including its uchar cast,
+   pointer/count updates and return. It shares byte encodings and the existing
+   prefix/sequence framing lemmas, and proves exact canonical byte output
+   symbolically. Both modules / 13 results / 5 definitions pass compilation,
+   explicit scans, assumptions and fresh kernel `1327`; no new assumptions.
+   **Next bounded SHA milestone:** extend write_buffer8 beyond its completed
+   empty case using this total array writer. Then
    compose read_sha256_context's counter/array observations and overflow return.
    Its compression-count threshold is 2^55; invalid input is a required failure
    case, not an assumption to remove from a public contract. The frame.c prose

@@ -2224,3 +2224,13 @@ and theorem/definition contract filters reproduce `b941abc` byte-for-byte,
 and global kernel axioms are unchanged. Accept the two snapshots: 369 modules /
 1703 results, 706 closed; 206/533 public jets, 327 remaining. Registration of
 new independently checked consumers can now proceed in a separate batch.
+
+The actual write8s loop and total initial-array consumer are independently
+checked in `jet_write8s_{exec,layout}.v` (2 modules / 13 results / 5 definitions).
+They retain each Mint8unsigned load, actual uchar argument cast, write8 call,
+pointer/count update and normal return. Shared byte-sequence encodings and
+prefix/sequence framing avoid duplicating representation machinery. The
+canonical word-array wrapper gives literal encoded bytes symbolically. Both
+sources compile, the explicit scan passes, fresh kernel `1327` returns exit 0,
+and Print Assumptions `93046` shows closed representation facts and only the
+existing six execution assumptions. No public coverage is added.

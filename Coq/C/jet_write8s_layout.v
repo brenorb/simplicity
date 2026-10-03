@@ -1,0 +1,173 @@
+(** Initial-only sequencing of actual byte writer calls, with canonical cells
+    and preservation of earlier output, prefixes and unrelated memory. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events.
+Require Import Simplicity.Word Simplicity.Translate.
+Require Import C.jets C.jet_exec C.jet_spec C.jet_write8_layout_total.
+Require Import C.jet_write8_sequence C.jet_write8s_exec C.jet_read8s_layout.
+Require Import C.jet_frame_spec C.jet_frame_layout C.jet_write_layout C.jet_output_layout.
+Require Import C.jet_output_layout_step C.jet_output_sequence_step C.jet_output_slice.
+Require Import C.jet_encoding C.jet_bitmachine_rep C.jet_word_decode C.jet_word_repr.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma word8_array_decode x :
+  decode_word8 (Int64.repr (Int.unsigned (word8_array_value x))) = x.
+Proof.
+  pose proof (word_toZ_range 3 x) as HR.
+  change (0 <= @toZ (WordToZ 3) x < 256) in HR.
+  unfold decode_word8, word8_array_value.
+  rewrite Int.unsigned_repr by (change (0 <= @toZ (WordToZ 3) x <= 4294967295); lia).
+  rewrite Int64.unsigned_repr by (change (0 <= @toZ (WordToZ 3) x <= 18446744073709551615); lia).
+  apply from_toZ.
+Qed.
+
+Lemma byte_sequence_cells_encode xs :
+  byte_sequence_cells (map word8_array_value xs) = concat (map (@encode (Word 3)) xs).
+Proof.
+  induction xs as [|x xs IH]; [reflexivity|].
+  change (encode (decode_word8 (Int64.repr (Int.unsigned (word8_array_value x)))) ++
+    byte_sequence_cells (map word8_array_value xs) = encode x ++ concat (map (@encode (Word 3)) xs)).
+  rewrite word8_array_decode, IH; reflexivity.
+Qed.
+
+Theorem write8s_run_layout m bi input bf base bw edge cursor xs :
+  0 <= input -> input + Z.of_nat (length xs) <= Ptrofs.max_unsigned ->
+  bi <> bf -> bi <> bw -> uint8_array_at m bi input xs ->
+  write_frame_at m bf base bw edge cursor (8 * Z.of_nat (length xs)) ->
+  exists mf,
+    write8s_run bi input bf base xs m mf /\
+    frame_output_cells_at mf bw edge cursor (byte_sequence_cells xs) /\
+    write_prefix_at m mf bw edge cursor /\
+    frame_fields_at mf bf base bw edge (cursor - 8 * Z.of_nat (length xs)) /\
+    loads_outside_ranges m mf bf (base + 8) (base + 16)
+      bw (edge + 8 * ((cursor - 8 * Z.of_nat (length xs)) / 64))
+        (write_word_address edge cursor + 8) /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  revert m input cursor. induction xs as [|x xs IH]; intros m input cursor HB HM Hif Hiw HA HW.
+  - exists m. split; [reflexivity|]. split.
+    + intros i c Hi. destruct i; discriminate.
+    + split.
+      * intros old HL. exists old. split; [exact HL|].
+        unfold word_outside_eq; intros; reflexivity.
+      * split.
+        -- change (frame_fields_at m bf base bw edge (cursor - 0)).
+           rewrite Z.sub_0_r. exact (proj1 (proj2 HW)).
+        -- split; [unfold loads_outside_ranges; intros; reflexivity|]. split; auto.
+  - pose proof HW as [HFBase [HFields [HE [HC [HMax [Hfw [PW HWords]]]]]]].
+    assert (HW8 : write_frame_at m bf base bw edge cursor 8).
+    { eapply write_frame_at_shorter with (count := 8 * Z.of_nat (length (x :: xs)));
+        [cbn [length]; lia|exact HW]. }
+    destruct (eval_write8_layout m bf base bw edge cursor x HW8)
+      as [mi [Hwrite [Hbyte [Hprefix [Hfields [Hmem [Hperm Hvalid]]]]]]].
+    rewrite byte_write_low_slice in Hmem.
+    destruct (proj1 (byte_output_at_slice _ _ _ _ _) Hbyte) as [slice [Hslice Hdecode]].
+    assert (HFirst : frame_output_cells_at mi bw edge cursor
+      (encode (decode_word8 (Int64.repr (Int.unsigned x))))).
+    { apply byte_output_at_encode; [cbn [length] in HC; lia|exact Hbyte]. }
+    assert (HWNext : write_frame_at mi bf base bw edge (cursor - 8) (8 * Z.of_nat (length xs))).
+    { eapply write_frame_at_after_slice with (n := 8) (x := slice);
+        [lia|lia| |exact Hfields|exact Hslice|exact Hmem|exact Hperm].
+      replace (8 + 8 * Z.of_nat (length xs)) with (8 * Z.of_nat (length (x :: xs)))
+        by (cbn [length]; lia). exact HW. }
+    assert (HAHead : Mem.load Mint8unsigned m bi input = Some (Vint x)).
+    { pose proof (HA 0%nat x eq_refl) as HH.
+      replace (input + Z.of_nat 0) with input in HH by lia. exact HH. }
+    assert (HANext : uint8_array_at mi bi (input + 1) xs).
+    { intros j v Hj. rewrite Hmem by (left; assumption).
+      pose proof (HA (S j) v Hj) as HH.
+      replace (input + 1 + Z.of_nat j) with (input + Z.of_nat (S j)) by lia. exact HH. }
+    destruct (IH mi (input + 1) (cursor - 8) ltac:(lia) ltac:(cbn [length] in HM; lia)
+      Hif Hiw HANext HWNext)
+      as [mf [Hrun [Htail [HPrefixTail [HFieldsTail [HMemTail [HPermTail HValidTail]]]]]]].
+    assert (HfirstFinal : frame_output_cells_at mf bw edge cursor
+      (encode (decode_word8 (Int64.repr (Int.unsigned x))))).
+    { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base)
+        (cursor := cursor - 8); [exact Hfw| |exact HPrefixTail|exact HMemTail|exact HFirst].
+      rewrite (encode_word_length 3 (decode_word8 (Int64.repr (Int.unsigned x)))).
+      change (0 <= cursor - 8 <= cursor - 8).
+      cbn [length] in HC; lia. }
+    assert (HLo : edge + 8 * ((cursor - 8 * Z.of_nat (length (x :: xs))) / 64) <=
+      slice_write_low 8 edge cursor).
+    { pose proof (slice_write_low_bound 8 edge cursor ltac:(lia) ltac:(cbn [length] in HC; lia)) as HL.
+      pose proof (Z.div_le_mono (cursor - 8 * Z.of_nat (length (x :: xs))) (cursor - 8) 64
+        ltac:(lia) ltac:(cbn [length]; lia)). lia. }
+    assert (HPrev : write_word_address edge (cursor - 8) <= write_word_address edge cursor).
+    { unfold write_word_address. pose proof (Z.div_le_mono (cursor - 8 - 1) (cursor - 1) 64
+        ltac:(lia) ltac:(lia)); lia. }
+    exists mf. split; [exists mi; auto|]. split.
+    + change (frame_output_cells_at mf bw edge cursor
+        (encode (decode_word8 (Int64.repr (Int.unsigned x))) ++ byte_sequence_cells xs)).
+      apply frame_output_cells_at_app. split; [exact HfirstFinal|].
+      rewrite (encode_word_length 3 (decode_word8 (Int64.repr (Int.unsigned x)))).
+      exact Htail.
+    + split.
+      * eapply write_prefix_at_chain; [exact Hfw| |exact Hprefix|exact HPrefixTail|exact HMemTail].
+        cbn [length] in HC; lia.
+      * split.
+        -- replace (cursor - 8 * Z.of_nat (length (x :: xs))) with
+             (cursor - 8 - 8 * Z.of_nat (length xs)) by (cbn [length]; lia). exact HFieldsTail.
+        -- split.
+           ++ intros chunk b ofs Hbf Hbw. rewrite HMemTail.
+              ** apply Hmem; [exact Hbf|]. destruct Hbw as [Hneq|[Hbefore|Hafter]];
+                   [left|right; left|right; right]; auto.
+                 change (ofs + size_chunk chunk <= slice_write_low 8 edge cursor). lia.
+              ** exact Hbf.
+              ** replace (cursor - 8 - 8 * Z.of_nat (length xs)) with
+                   (cursor - 8 * Z.of_nat (length (x :: xs))) by (cbn [length]; lia).
+                 destruct Hbw as [Hneq|[Hbefore|Hafter]];
+                   [left|right; left|right; right]; auto; lia.
+           ++ split.
+              ** intros b ofs kind p HP. apply HPermTail, Hperm; exact HP.
+              ** intros b HV. apply HValidTail, Hvalid; exact HV.
+Qed.
+
+Theorem eval_write8s_layout m bi input bf base bw edge cursor xs :
+  0 <= input -> input + Z.of_nat (length xs) <= Ptrofs.max_unsigned ->
+  bi <> bf -> bi <> bw -> uint8_array_at m bi input xs ->
+  write_frame_at m bf base bw edge cursor (8 * Z.of_nat (length xs)) ->
+  exists mf,
+    Clight2.eval_funcall ge0 m (Internal f_write8s)
+      [Vptr bf (Ptrofs.repr base); Vptr bi (Ptrofs.repr input);
+        Vlong (Int64.repr (Z.of_nat (length xs)))] E0 mf Vundef /\
+    frame_output_cells_at mf bw edge cursor (byte_sequence_cells xs) /\
+    write_prefix_at m mf bw edge cursor /\
+    frame_fields_at mf bf base bw edge (cursor - 8 * Z.of_nat (length xs)) /\
+    loads_outside_ranges m mf bf (base + 8) (base + 16)
+      bw (edge + 8 * ((cursor - 8 * Z.of_nat (length xs)) / 64))
+        (write_word_address edge cursor + 8) /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  intros HB HM Hif Hiw HA HW.
+  destruct (write8s_run_layout m bi input bf base bw edge cursor xs HB HM Hif Hiw HA HW)
+    as [mf [HR HO]]. exists mf. split; [|exact HO].
+  eapply eval_write8s_from_run; [exact HB|lia| |exact HR].
+  pose proof HW as [_ [_ [_ [HC [Hmax _]]]]]. lia.
+Qed.
+
+Theorem eval_write8s_words_layout m bi input bf base bw edge cursor xs :
+  0 <= input -> input + Z.of_nat (length xs) <= Ptrofs.max_unsigned ->
+  bi <> bf -> bi <> bw -> uint8_array_at m bi input (map word8_array_value xs) ->
+  write_frame_at m bf base bw edge cursor (8 * Z.of_nat (length xs)) ->
+  exists mf,
+    Clight2.eval_funcall ge0 m (Internal f_write8s)
+      [Vptr bf (Ptrofs.repr base); Vptr bi (Ptrofs.repr input);
+        Vlong (Int64.repr (Z.of_nat (length xs)))] E0 mf Vundef /\
+    frame_output_cells_at mf bw edge cursor (concat (map (@encode (Word 3)) xs)) /\
+    write_prefix_at m mf bw edge cursor /\
+    frame_fields_at mf bf base bw edge (cursor - 8 * Z.of_nat (length xs)) /\
+    loads_outside_ranges m mf bf (base + 8) (base + 16)
+      bw (edge + 8 * ((cursor - 8 * Z.of_nat (length xs)) / 64))
+        (write_word_address edge cursor + 8) /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  intros HB HM Hif Hiw HA HW.
+  destruct (eval_write8s_layout m bi input bf base bw edge cursor (map word8_array_value xs)
+    HB ltac:(rewrite map_length; exact HM) Hif Hiw HA ltac:(rewrite map_length; exact HW))
+    as [mf H]. rewrite map_length, byte_sequence_cells_encode in H. exists mf; exact H.
+Qed.
