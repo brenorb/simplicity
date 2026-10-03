@@ -2177,3 +2177,11 @@ context-init integration (359 modules / 1649 results, 676 closed; 206/533 jets,
 exit 0 and the 15 inherited global axioms are unchanged. Accept the two pending
 snapshot files. The support batch may now be registered separately; it adds no
 public coverage and has not yet passed an integrated audit.
+
+Accepted context-init baseline is now `b941abc`. The ten reader-support modules /
+54 results / 28 definitions are registered in both project manifests and the
+theorem/definition audits, with no additional coverage row (369 modules / 1703
+results; 206 public jets). Static and inventory regression checks pass. Run an
+expanded logged audit before accepting helper snapshots. Once running, freeze
+these registered sources/manifests until terminal success; new unregistered
+mixed-loop consumers may be developed independently.

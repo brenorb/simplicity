@@ -1227,12 +1227,14 @@ tree otherwise contains only Coq files.
    `/tmp/jet-audit-recovery.qWC9in/remaining-gates.log`. That recovery subsequently
    passed with terminal exit 0; prior snapshot filters and inherited axioms are
    unchanged. Context-init integration is accepted, not inferred from the lost
-   handle. The support batch is now ready for registration.
+   handle. The support batch is now registered for its own expanded audit
+   against accepted context-init baseline `b941abc`, in dependency order.
+   No coverage row is added.
    `jet_buffer_chunks.v` and `jet_read_buffer8_tag_layout.v` additionally prove
    arbitrary canonical chunk capacities/widths, previous-byte array preservation
    and the actual tag read for either branch, retaining exact payload cells.
    Both pass source/scan/assumption and fresh kernel checks (`32751`, `8151`).
-   The ten unregistered support modules total 54 results / 28 definitions;
+   The ten reader-support modules total 54 results / 28 definitions;
    their next integration will have 369 modules / 1703 results, still 206 jets.
    **Next bounded SHA milestone:** compose the same actual loop over arbitrary
    canonical Buffer63 chunks. Preserve previous output bytes while storing the
