@@ -108,3 +108,34 @@ Proof.
   rewrite HIV. unfold Bitcoin.sem. cbv zeta.
   rewrite bitcoin_ix_word, Nat2Z.id, Hnth. reflexivity.
 Qed.
+
+Definition bitcoin_current_prev_outpoint_spec {alg : Primitive.Algebra} :
+    alg Ty.Unit (Ty.Prod Word256 Word32) :=
+  bitcoin_comp (Primitive.Combinators.prim Bitcoin.CurrentIndex)
+    (bitcoin_assert_spec (Primitive.Combinators.prim Bitcoin.InputPrevOutpoint)).
+
+Lemma bitcoin_current_prev_outpoint_sem (environment : Bitcoin.env) :
+  exists txi, nth_error (sigTxIn (Bitcoin.envTx environment)) (Bitcoin.envIx environment) = Some txi /\
+    @bitcoin_current_prev_outpoint_spec (PrimitivePrimSem option_Monad_Zero) tt environment =
+      Some (from_hash256 (opHash (sigTxiPreviousOutpoint txi)),
+            @fromZ (WordToZ 5) (Int.unsigned (opIndex (sigTxiPreviousOutpoint txi)))).
+Proof.
+  pose proof (Bitcoin.envIxBounded environment) as Hb.
+  destruct (nth_error (sigTxIn (Bitcoin.envTx environment)) (Bitcoin.envIx environment)) as [txi|] eqn:Hnth;
+    [|apply nth_error_None in Hnth; lia].
+  exists txi. split; [reflexivity|].
+  unfold bitcoin_current_prev_outpoint_spec.
+  rewrite bitcoin_comp_sem.
+  assert (HCI : @Primitive.Combinators.prim Ty.Unit Word32 (PrimitivePrimSem option_Monad_Zero)
+    Bitcoin.CurrentIndex tt environment = Some (@fromZ (WordToZ 5) (Z.of_nat (Bitcoin.envIx environment))))
+    by reflexivity.
+  rewrite HCI.
+  rewrite bitcoin_assert_sem.
+  assert (HIV : @Primitive.Combinators.prim Word32 (Ty.Sum Ty.Unit (Ty.Prod Word256 Word32))
+    (PrimitivePrimSem option_Monad_Zero)
+    Bitcoin.InputPrevOutpoint (@fromZ (WordToZ 5) (Z.of_nat (Bitcoin.envIx environment))) environment =
+    Bitcoin.sem Bitcoin.InputPrevOutpoint (@fromZ (WordToZ 5) (Z.of_nat (Bitcoin.envIx environment))) environment)
+    by reflexivity.
+  rewrite HIV. unfold Bitcoin.sem. cbv zeta.
+  rewrite bitcoin_ix_word, Nat2Z.id, Hnth. reflexivity.
+Qed.
