@@ -19,6 +19,9 @@ Fixpoint rotate_low_controls_fun n i count (amount : Ty.tySem (Word 3)) (x : Ty.
        end)
   end.
 
+(* This sentence checks 256 finite control cases with a symbolic payload.
+   Allow a bounded batch deadline, as for the 64-bit normal form below. *)
+Set Default Timeout 30.
 Lemma left_rotate32_controls_normalform (amount : Ty.tySem (Word 3)) (x : Ty.tySem (Word 5)) :
   @left_rotate_word_spec 3 5 Alg.CoreFunSem (amount, x) = rotate_low_controls_fun 5 0 5 amount x.
 Proof.

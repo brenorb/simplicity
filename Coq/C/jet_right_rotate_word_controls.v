@@ -29,6 +29,9 @@ Proof.
   all: reflexivity.
 Qed.
 
+(* The 128-case reflexivity batch can exceed ten seconds even in isolation.
+   Bound this finite-control proof separately; keep the usual bound below. *)
+Set Default Timeout 30.
 Lemma right_rotate64_controls_normalform amount (x : Ty.tySem (Word 6)) :
   @right_rotate_word_spec 3 6 Alg.CoreFunSem (amount,x) =
     right_rotate_low_controls_fun 6 0 6 amount x.
@@ -38,6 +41,8 @@ Proof.
     e as [[]|[]], f as [[]|[]], g as [[]|[]], h as [[]|[]].
   all: reflexivity.
 Qed.
+Set Default Timeout 10.
+
 
 Lemma right_rotate_low_controls_bits n i count amount (x : Ty.tySem (Word n)) j :
   0 <= j < two_power_nat n ->

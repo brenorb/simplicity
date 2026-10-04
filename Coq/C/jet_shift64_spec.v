@@ -85,7 +85,11 @@ Proof.
   1-8: cbn; reflexivity.
   1-8: cbn; reflexivity.
   1-8: cbn; reflexivity.
-Qed.
+  (* Kernel checking this finite control proof exceeds the 10-second tactic
+     budget in isolation. Keep tactic limits unchanged and bound Qed separately. *)
+  Set Default Timeout 30.
+Time Qed.
+Set Default Timeout 10.
 
 Lemma shift64_plain_spec_bits right amount x j : 0 <= j < 64 ->
   Z.testbit (@toZ (WordToZ 6) (@shift64_plain_spec right Alg.CoreFunSem (amount,x))) j =

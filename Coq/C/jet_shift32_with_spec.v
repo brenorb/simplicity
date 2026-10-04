@@ -151,4 +151,8 @@ Proof.
   1-8: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-8: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-8: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
-Qed.
+  (* Kernel checking this finite control proof can exceed the 10-second tactic
+     budget during a parallel rebuild. Keep tactic limits unchanged and bound Qed separately. *)
+  Set Default Timeout 30.
+Time Qed.
+Set Default Timeout 10.
