@@ -100,10 +100,16 @@ def inventory():
         # physical/logical primitive-environment correspondence.
         family = jets[name]["family"]
         if family == "core":
-            contract = rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b"
+            # Copy-family jets reach the plain libc memcpy, whose CompCert semantics
+            # is an abstract parameter: their theorems carry the explicit, named
+            # memcpy_model premise (jet_memcpy_model.v) and are never otherwise conditional.
+            contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b|"
+                        rf"\bmemcpy_model\s*->\s*jet_separated_local_spec\s+f_{re.escape(name)}\b")
         elif family == "bitcoin":
             contract = (rf"\bapplication_jet_local_spec\s+f_{re.escape(name)}\s+"
-                        r"bitcoin_ge\s+Bitcoin\.env\b")
+                        r"bitcoin_ge\s+Bitcoin\.env\b|"
+                        rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                        r"bitcoin_ge\s+(?:Bitcoin\.env|ext_environment)\b")
         else:
             # Elements has no checked application contract yet.
             contract = r"(?!)"
