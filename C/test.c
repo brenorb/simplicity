@@ -47,6 +47,52 @@ static void fprint_cmr(FILE* stream, const uint32_t* cmr) {
          );
 }
 
+/* Compare frame copying with bit-at-a-time execution across cursor alignments,
+ * including zero, single-word and bulk copies. Observe only copied cells and
+ * the preserved prefix: cells beyond the final cursor may be overwritten.
+ */
+static void test_copyBits(void) {
+  printf("Test copyBits cursor alignments\n");
+  const size_t counts[] = {0, 1, UWORD_BIT - 1, UWORD_BIT, UWORD_BIT + 1, 2 * UWORD_BIT - 1, 2 * UWORD_BIT};
+  UWORD source[4], original[4];
+  for (size_t i = 0; i < 4; ++i) {
+    UWORD pattern = (UWORD)(0x9635U ^ (0x51a7U * (unsigned int)i));
+    source[i] = original[i] = i % 2 ? (UWORD)~pattern : pattern;
+  }
+  for (size_t rc = 0; rc < UWORD_BIT; ++rc) {
+    for (size_t skip = 0; skip < UWORD_BIT; ++skip) {
+      for (size_t k = 0; k < sizeof(counts) / sizeof(counts[0]); ++k) {
+        UWORD actual[6], expected[6];
+        for (size_t i = 0; i < 6; ++i) actual[i] = expected[i] = (UWORD)(0xa569U ^ (0x1234U * (unsigned int)i));
+        frameItem src = initReadFrame(4 * UWORD_BIT, source);
+        forwardBits(&src, rc);
+        frameItem refsrc = src;
+        frameItem dst = initWriteFrame(4 * UWORD_BIT, actual + 5);
+        frameItem refdst = initWriteFrame(4 * UWORD_BIT, expected + 5);
+        skipBits(&dst, skip);
+        skipBits(&refdst, skip);
+        simplicity_copyBits(&dst, &src, counts[k]);
+        for (size_t i = 0; i < counts[k]; ++i) writeBit(&refdst, readBit(&refsrc));
+        bool ok = src.offset == rc && dst.offset == refdst.offset
+               && actual[0] == expected[0] && actual[5] == expected[5]
+               && 0 == memcmp(source, original, sizeof(source))
+               && (counts[k] || 0 == memcmp(actual, expected, sizeof(actual)));
+        frameItem observed = initReadFrame(4 * UWORD_BIT, actual + 1);
+        frameItem reference = initReadFrame(4 * UWORD_BIT, expected + 1);
+        for (size_t i = 0; i < skip + counts[k]; ++i) {
+          if (readBit(&observed) != readBit(&reference)) ok = false;
+        }
+        if (!ok) {
+          failures++;
+          printf("copyBits mismatch: source cursor %zu, destination skip %zu, count %zu\n", rc, skip, counts[k]);
+          return;
+        }
+      }
+    }
+  }
+  successes++;
+}
+
 static void test_decodeUptoMaxInt(void) {
   printf("Test decodeUptoMaxInt\n");
   const unsigned char buf[] =
@@ -744,6 +790,7 @@ int main(int argc, char **argv) {
     }
     timing_flag = 0;
   }
+  test_copyBits();
   test_decodeUptoMaxInt();
   test_hashBlock();
   test_occursCheck();
