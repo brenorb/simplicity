@@ -148,3 +148,60 @@ Proof.
   change (2 ^ Z.of_nat (Nat.pow 2 6)) with (wsize 6). rewrite Hsum.
   unfold wz. symmetry. apply from_toZ.
 Qed.
+
+Fixpoint sum_first (vals : list Z) (j : nat) : Z :=
+  match j, vals with
+  | S j, v :: t => v + sum_first t j
+  | _, _ => 0
+  end.
+
+Lemma sum_first_succ vals i v : nth_error vals i = Some v -> sum_first vals (S i) = sum_first vals i + v.
+Proof.
+  revert i. induction vals as [|a t IH]; intros i Hnth.
+  - destruct i; discriminate.
+  - destruct i as [|i]; cbn in Hnth |- *.
+    + injection Hnth as <-. destruct t; cbn [sum_first]; lia.
+    + rewrite (IH i Hnth). lia.
+Qed.
+
+Lemma sum_first_all vals : sum_first vals (length vals) = fold_right Z.add 0 vals.
+Proof. induction vals as [|a t IH]; cbn; [reflexivity|rewrite IH; reflexivity]. Qed.
+
+Lemma zero_fw6 : |[zero (n := 6)]| tt = fw6 0.
+Proof.
+  unfold fw6. rewrite <- (from_toZ (|[zero (n := 6)]| tt)) at 1.
+  rewrite (zero_correct 6). reflexivity.
+Qed.
+
+Lemma total_run_vals (vals : list Z) (op : tySem Word32 -> option (tySem (Unit + Word64))) :
+  Z.of_nat (length vals) < wsize 5 ->
+  (forall w, op w = Some (match nth_error vals (Z.to_nat (wz 5 w)) with
+                          | Some v => inr (fw6 v) | None => inl tt end)) ->
+  for_while_run 5 (total_step op) tt (|[zero (n := 6)]| tt) = Some (inl (fw6 (fold_right Z.add 0 vals))).
+Proof.
+  intros Hlen Hop.
+  rewrite zero_fw6.
+  assert (HS0 : fw6 0 = (fun j => fw6 (sum_first vals (Z.to_nat j))) 0)
+    by (cbv beta; f_equal; destruct vals; reflexivity).
+  rewrite HS0.
+  refine (for_while_run_seq_left (fun j => fw6 (sum_first vals (Z.to_nat j))) 5
+    (T := Z.of_nat (length vals)) (res := fw6 (fold_right Z.add 0 vals)) (total_step op) tt _ _ _).
+  - lia.
+  - intros w Hw. cbv beta. unfold total_step. cbn [fst snd].
+    rewrite Hop.
+    assert (Hn : exists v, nth_error vals (Z.to_nat (wz 5 w)) = Some v).
+    { destruct (nth_error vals (Z.to_nat (wz 5 w))) as [v|] eqn:E; [exists v; reflexivity|].
+      apply nth_error_None in E. pose proof (wz_range 5 w). lia. }
+    destruct Hn as [v Hv]. rewrite Hv.
+    replace (0 + wz 5 w) with (wz 5 w) by lia.
+    rewrite total_adder_fromZ.
+    f_equal. f_equal. f_equal.
+    replace (Z.to_nat (wz 5 w + 1)) with (S (Z.to_nat (wz 5 w))) by (pose proof (wz_range 5 w); lia).
+    rewrite (sum_first_succ vals (Z.to_nat (wz 5 w)) Hv). lia.
+  - intros w Hw. cbv beta. unfold total_step. cbn [fst snd].
+    rewrite Hop.
+    assert (Hn : nth_error vals (Z.to_nat (wz 5 w)) = None).
+    { apply nth_error_None. lia. }
+    rewrite Hn.
+    f_equal. f_equal. f_equal. rewrite Nat2Z.id. rewrite sum_first_all. reflexivity.
+Qed.
