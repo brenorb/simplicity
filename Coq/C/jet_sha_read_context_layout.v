@@ -61,7 +61,8 @@ Theorem sg_eval_read_sha256_context_allocated_layout m ma bf base bi edge cursor
       (b <> bf \/ ofs + size_chunk chunk <= base + 8 \/ base + 16 <= ofs) ->
       (b <> bc \/ ofs + size_chunk chunk <= cbase + 8 \/ cbase + 81 <= ofs) ->
       (b <> bo \/ ofs + size_chunk chunk <= output \/ output + 32 <= ofs) ->
-      Mem.load chunk mf b ofs = Mem.load chunk ma b ofs).
+      Mem.load chunk mf b ofs = Mem.load chunk ma b ofs) /\
+    (forall b, Mem.valid_block ma b -> Mem.valid_block mf b).
 Proof.
   intros HA HB HM HBufP HCtxW HOverW HOutput HO HOM HOA HOutP
     Hfc Hfi Hci Hlf Hlc Hli Hof Hoi Hoc Hlo Hfg Hcg Hlg Hog HGlobal
@@ -142,7 +143,10 @@ Proof.
         -- split.
            ++ intros b ofs kind p HOther HP. apply HPermFree; [exact HOther|].
               eapply Mem.perm_store_1; [exact HOverStore|apply HPermS, HPermP; exact HP].
-           ++ intros chunk b ofs Hbl Hbf Hbc Hbo.
+           ++ split.
+              2:{ intros b Hv. unfold Mem.valid_block. rewrite HNext.
+                  eapply Mem.store_valid_block_1; [exact HOverStore|]. apply HValidS, HValidP. exact Hv. }
+              intros chunk b ofs Hbl Hbf Hbc Hbo.
               rewrite HMemFree by exact Hbl.
               erewrite Mem.load_store_other; [|exact HOverStore|].
               ** rewrite HMemS by assumption. apply HMemP; [exact Hbf| |left; congruence].
