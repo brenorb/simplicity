@@ -304,4 +304,147 @@ Proof.
         { intros b Hv. eapply Mem.store_valid_block_1; [exact SP|].
           eapply Mem.store_valid_block_1; [exact SL|]. eapply Mem.store_valid_block_1; eauto. }
 Qed.
+Theorem eval_copy_helper_wide :
+  exists mf,
+    Clight2.eval_funcall ge0 m (Internal f_copyBitsHelper)
+      [Vptr bd (Ptrofs.repr base); Vptr bs (Ptrofs.repr sbase); Vlong (Int64.repr n)] E0 mf Vundef /\
+    frame_output_cells_at mf bw outedge cursor cells /\
+    write_prefix_at m mf bw outedge cursor /\
+    frame_fields_at mf bd base bw outedge cursor /\
+    (forall chunk b ofs, b <> bw \/ ofs + size_chunk chunk <= outedge + 8 * ((cursor - n) / 64) \/
+      wwa + 8 <= ofs -> Mem.load chunk mf b ofs = Mem.load chunk m b ofs) /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  destruct wh_cursor as (Hcur & Hds). destruct wh_rc as (Hrc & Hss0 & HR0).
+  destruct wh_bounds as (HNC & HCM & HO & Hbd). pose proof wh_k0 as Hk0.
+  assert (Hcq : 1 <= cq) by lia.
+  destruct wide_prefix as (le1 & m1 & so1 & do1 & k1 & ss1 & Hex1 &
+    KP & KD & KS & KN & Hso & Hdo & Hss1 & Hk1 & Hal & Hcop1 & Htop & Heff1 & Hperm1 & Hvalid1).
+  assert (Hwd : (cursor - 1) / 64 = if Z.eq_dec ds 0 then cq - 1 else cq).
+  { destruct (Z.eq_dec ds 0); symmetry;
+      [apply (Z.div_unique (cursor - 1) 64 (cq - 1) 63)|apply (Z.div_unique (cursor - 1) 64 cq (ds - 1))]; lia. }
+  assert (Hwwa : wwa = outedge + 8 * (if Z.eq_dec ds 0 then cq - 1 else cq)).
+  { unfold wwa, write_word_address. rewrite Hwd. reflexivity. }
+  assert (Hlow : 64 * (dA + 1) - (n - ds) = cursor - n) by (unfold dA; lia).
+  assert (Ha1 : 1 <= n - ds <= 128) by lia.
+  assert (Ha2 : 0 <= dA) by (unfold dA; lia).
+  assert (Ha3 : 0 <= k1) by lia.
+  assert (Ha4 : n - ds <= 64 * (dA + 1)) by (unfold dA; lia).
+  assert (Ha5 : C - 64 * dA - 63 = 64 * k1 + 64 - ss1) by (unfold C, dA; lia).
+  destruct (wide_tail Hmodel le1 m m1 bi edge bw outedge C so1 do1 k1 dA ss1 (n - ds)
+    KP KD KS KN Hso Hdo Ha1 Ha2 Ha3 Ha4 Ha5) as (le' & mf & out & Hex2 & Hout & Hcop2 & Heff2 & Hperm2 & Hvalid2).
+  - (* source words *)
+    intros q Hq. destruct (wh_src q ltac:(lia)) as (HE & S & HS). split; [exact HE|].
+    exists S. split; [exact HS|]. rewrite Heff1; [exact HS|].
+    pose proof (wh_sep q (cursor - 1) ltac:(lia) ltac:(lia)) as Hsp. rewrite Hwd in Hsp.
+    change (size_chunk Mint64) with 8. rewrite Hwwa. unfold dA.
+    destruct (Z.eq_dec ds 0); destruct Hsp as [H|[H|H]]; first [left; exact H|right; lia].
+  - (* destination words *)
+    intros p Hp. destruct (wh_dst p ltac:(unfold dA in Hp; lia)) as (H0 & HM & PW & _).
+    split; [exact H0|]. split; [exact HM|]. eapply valid_access_perm_preserved; [exact Hperm1|exact PW].
+  - (* separation *)
+    intros q p Hq Hp. apply wh_sep; [lia|unfold dA in Hp; lia].
+  - (* tail range *)
+    lia.
+  - (* assemble *)
+    rewrite Hlow in Hcop2, Heff2.
+    replace (64 * (dA + 1)) with (cursor - ds) in Hcop2 by (unfold dA; lia).
+    assert (HcopAll : copied m mf bi edge bw outedge C (cursor - n) cursor).
+    { eapply copied_app with (mid := cursor - ds); [exact Hcop2|].
+      eapply copied_preserved; [exact Hcop1|].
+      intros p Hp. apply Heff2. right; right.
+      assert (Hpd : p / 64 = cq) by (symmetry; apply (Z.div_unique p 64 cq (p - 64 * cq)); lia).
+      rewrite Hpd. unfold dA. lia. }
+    destruct Hwrite as (HB & HW & _ & _ & _ & _ & _ & _).
+    destruct (wh_src rc ltac:(lia)) as (HE0 & _).
+    assert (Hwm : write_word_address outedge cursor <= Ptrofs.max_unsigned).
+    { destruct (wh_dst (cursor - 1) ltac:(lia)) as (_ & HM & _). unfold write_word_address. lia. }
+    assert (Hrcr : 0 <= rc <= Int64.max_unsigned).
+    { destruct (input_cells_word m bi edge rc cells 0 Hinput ltac:(lia)) as (HRr & _).
+      replace (rc + 0) with rc in HRr by lia. exact HRr. }
+    assert (Hcr : 1 <= cursor <= Int64.max_unsigned) by lia.
+    exists mf. split.
+    + eapply eval_copy_helper_prefix_composes with (bi := bi) (edge := edge) (rc := rc) (le' := le') (out := out);
+        try eassumption.
+      rewrite copy_helper_tail_shape.
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m1) (le1 := le1); [exact Hex1|exact Hex2].
+    + split.
+      * eapply copied_output_cells; [exact Hinput|]. rewrite <- Hlen. exact HcopAll.
+      * split.
+        -- intros old Hold. fold wwa in Hold.
+           destruct (Z.eq_dec ds 0) as [Hz|Hnz].
+           ++ destruct (input_cells_word m bi edge rc cells 0 Hinput ltac:(lia)) as (HRr & HEe & S & HS).
+              replace (rc + 0) with rc in * by lia.
+              assert (Hin : frame_input_bit_at m bi edge (C - (cursor - 1))
+                (Z.testbit (Int64.unsigned S) (63 - rc mod 64))).
+              { replace (C - (cursor - 1)) with rc by (unfold C; lia).
+                split; [exact HRr|]. split; [exact HEe|]. exists S. split; [exact HS|reflexivity]. }
+              destruct (HcopAll (cursor - 1) _ ltac:(lia) Hin) as (_ & w & Hw & _).
+              exists w. split; [exact Hw|].
+              intros i Hi Hio. unfold write_word_shift in Hio.
+              replace ((cursor - 1) mod 64) with 63 in Hio
+                by (apply (Z.mod_unique (cursor - 1) 64 (cq - 1) 63); lia). lia.
+           ++ destruct (Htop old Hold) as (W & HW1 & Hbits).
+              exists W. split.
+              ** fold wwa. rewrite Heff2; [exact HW1|]. right; right. rewrite Hwwa. unfold dA.
+                 destruct (Z.eq_dec ds 0); lia.
+              ** intros i Hi Hio. apply Hbits. lia.
+        -- split.
+           ++ destruct HW as [HWe HWc]. split.
+              ** rewrite Heff2 by (left; exact Hbd). rewrite Heff1 by (left; exact Hbd). exact HWe.
+              ** rewrite Heff2 by (left; exact Hbd). rewrite Heff1 by (left; exact Hbd). exact HWc.
+           ++ split.
+              ** intros chunk b ofs Hofs.
+                 assert (Hdiv : (cursor - n) / 64 <= cq) by (apply Z.div_le_mono; lia).
+                 rewrite Heff2.
+                 --- apply Heff1. rewrite Hwwa in *. unfold dA.
+                     destruct (Z.eq_dec ds 0); destruct Hofs as [H|[H|H]];
+                       first [left; exact H|right; lia].
+                 --- rewrite Hwwa in Hofs. unfold dA.
+                     destruct (Z.eq_dec ds 0); destruct Hofs as [H|[H|H]];
+                       first [left; exact H|right; left; exact H|right; right; lia].
+              ** split.
+                 --- intros b ofs kind p Hp. apply Hperm2. apply Hperm1. exact Hp.
+                 --- intros b Hv. apply Hvalid2. apply Hvalid1. exact Hv.
+Qed.
+
+Theorem eval_copyBits_wide_layout :
+  exists mf,
+    Clight2.eval_funcall ge0 m (Internal f_simplicity_copyBits)
+      [Vptr bd (Ptrofs.repr base); Vptr bs (Ptrofs.repr sbase); Vlong (Int64.repr n)] E0 mf Vundef /\
+    frame_output_cells_at mf bw outedge cursor cells /\
+    write_prefix_at m mf bw outedge cursor /\
+    frame_fields_at mf bd base bw outedge (cursor - n) /\
+    loads_outside_ranges m mf bd (base + 8) (base + 16)
+      bw (outedge + 8 * ((cursor - n) / 64)) (write_word_address outedge cursor + 8) /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  destruct wh_bounds as (HNC & HCM & HO & Hbd).
+  destruct eval_copy_helper_wide as (mi & Hcall & Hcells & Hprefix & Hfields & Houtside & Hperm & Hvalid).
+  pose proof Hwrite as (HB & _ & _ & _ & _ & _ & PC & _).
+  assert (PCi : Mem.valid_access mi Mint64 bd (base + 8) Writable)
+    by (eapply valid_access_perm_preserved; [exact Hperm|exact PC]).
+  destruct (eval_copyBits_nonzero_advances m mi bd base bs (Ptrofs.repr sbase)
+    bw outedge cursor n HB ltac:(lia) HCM Hcall Hfields PCi)
+    as [mf [Hwrapper [Hfieldsf [HcursorOutside [Hpermf Hvalidf]]]]].
+  assert (Hbwload : forall ofs, Mem.load Mint64 mf bw ofs = Mem.load Mint64 mi bw ofs).
+  { intros ofs. apply HcursorOutside. left. congruence. }
+  exists mf. split; [exact Hwrapper|]. split.
+  - intros i c Hi. specialize (Hcells i c Hi).
+    assert (Hbit : forall q b, frame_output_bit_at mi bw outedge q b -> frame_output_bit_at mf bw outedge q b).
+    { intros q b (H0 & w & Hw & Hb). split; [exact H0|]. exists w. split; [rewrite Hbwload; exact Hw|exact Hb]. }
+    destruct c as [b|]; cbn [cell_matches] in *; [apply Hbit; exact Hcells|].
+    destruct Hcells as [b Hb]. exists b. apply Hbit. exact Hb.
+  - split.
+    + intros old Hold. destruct (Hprefix old Hold) as (w & Hw & Heq).
+      exists w. split; [rewrite Hbwload; exact Hw|exact Heq].
+    + split; [exact Hfieldsf|]. split.
+      * intros chunk b ofs Hcursor HwordOutside.
+        rewrite HcursorOutside by exact Hcursor. apply Houtside. exact HwordOutside.
+      * split.
+        -- intros b ofs kind p HP. apply Hpermf. apply Hperm; exact HP.
+        -- intros b HV. apply Hvalidf. apply Hvalid; exact HV.
+Qed.
 End WideHelper.
