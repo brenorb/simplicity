@@ -5,4 +5,6 @@ lib.sourceByRegex ./. [
   "C" "C/jets.h"
   "C/bitcoin" "C/bitcoin/bitcoinJets.h" "C/bitcoin/primitiveJetNode.inc"
   "C/elements" "C/elements/elementsJets.h" "C/elements/primitiveJetNode.inc"
+  "Haskell" "Haskell/Bitcoin" "Haskell/Bitcoin/Simplicity"
+  "Haskell/Bitcoin/Simplicity/Bitcoin" "Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs"
 ]

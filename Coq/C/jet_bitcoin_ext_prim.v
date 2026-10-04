@@ -42,7 +42,8 @@ Inductive prim : Ty -> Ty -> Set :=
 | TransactionId : prim Unit Word256.
 Definition t := prim.
 
-Definition primName : string := "BitcoinExt".
+(* This module extends the Coq interface, not the primitive namespace. *)
+Definition primName : string := "Bitcoin".
 
 Definition name {a b} (p : t a b) : string :=
 match p with
@@ -89,5 +90,19 @@ let cast {C : Ty} (x : option C) : tySem (Unit + C) :=
  end) a.
 
 End BitcoinExt.
+
+Lemma bitcoin_ext_tag_def_canonical {A B} (p : BitcoinExt.t A B) :
+  BitcoinExt.tag_def p =
+    MerkleRoot.tag (primitivePrefix "Bitcoin" ++ [BitcoinExt.name p]).
+Proof. destruct p; reflexivity. Qed.
+
+Lemma bitcoin_ext_current_index_tag :
+  BitcoinExt.tag BitcoinExt.CurrentIndex = Bitcoin.tag Bitcoin.CurrentIndex.
+Proof. reflexivity. Qed.
+
+Lemma bitcoin_ext_current_index_sem (e : ext_environment) (a : Ty.tySem Ty.Unit) :
+  BitcoinExt.sem BitcoinExt.CurrentIndex a e =
+    Bitcoin.sem Bitcoin.CurrentIndex a (extBase e).
+Proof. reflexivity. Qed.
 
 Module PrimitiveBitcoinExt := PrimitiveModule BitcoinExt.
