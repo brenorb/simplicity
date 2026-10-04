@@ -27,6 +27,7 @@ def main():
     assert coverage.declarations(f"/* {signature} */\n// {signature}\n{signature}") == ["simplicity_example"]
     rejects(lambda: coverage.declarations("bool simplicity_bad(int x);"), "signature")
     rows = coverage.inventory()
+    assert sum(row["condition"] == "memcpy_model" for row in rows) == 92
     expected = {name for header in coverage.HEADERS.values()
                 for name in coverage.declarations((coverage.REPO / header).read_text())}
     assert {row["function"] for row in rows} == expected
@@ -43,6 +44,33 @@ def main():
         manifest = project / "C/jet_coverage.tsv"
         original = manifest.read_text()
         assert coverage.inventory() == rows
+        # Regression for a contract merely occurring inside a weaker/vacuous
+        # proposition. These are metadata tests, not compiled fake proofs.
+        direct = project / "C/jet_constant_layout.v"
+        direct_original = direct.read_text()
+        declaration = "Corollary low1_local_spec :"
+        assert declaration in direct_original
+        for prefix, suffix in (("False -> ", ""), ("", " -> True"),
+                               ("", " \\/ True"), ("", " /\\ True")):
+            direct.write_text(direct_original.replace(
+                declaration, declaration + " " + prefix, 1))
+            if suffix:
+                text = direct.read_text()
+                start = text.index(declaration)
+                end = text.index(".\nProof.", start)
+                direct.write_text(text[:end] + suffix + text[end:])
+            rejects(coverage.inventory, "not a direct canonical jet theorem")
+        direct.write_text(direct_original)
+        conditional_path = project / "C/jet_core_projection_jets.v"
+        conditional_original = conditional_path.read_text()
+        for old, new in (
+            ("memcpy_model ->", "False -> memcpy_model ->"),
+            ("memcpy_model ->", "another_library_model ->"),
+            ("f_simplicity_leftmost_8_1", "f_simplicity_leftmost_8_2"),
+        ):
+            conditional_path.write_text(conditional_original.replace(old, new, 1))
+            rejects(coverage.inventory, "not a direct canonical jet theorem")
+        conditional_path.write_text(conditional_original)
         for extra, message in (
             ("simplicity_nonexistent C.jet_canonical one8_local_spec\n", "unknown jet"),
             ("simplicity_one_8 C.jet_canonical one8_local_spec\n", "duplicate coverage"),

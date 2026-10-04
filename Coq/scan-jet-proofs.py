@@ -40,13 +40,19 @@ def code_only(source):
     return "".join(chars)
 
 
+def violations(source):
+    pattern = re.compile(
+        r"\b(?:Axioms?|Parameters?|Conjecture|Admitted|admit|give_up|Abort|bypass_check)\b"
+        r"|\bUnset\s+(?:Guard|Universe|Positivity)\s+Checking\b")
+    return list(pattern.finditer(code_only(source)))
+
+
 def main():
-    pattern = re.compile(r"\b(?:Axioms?|Parameters?|Conjecture|Admitted|admit|give_up|Abort)\b")
-    paths = [Path(p) for p in sys.argv[1:]] or sorted(Path("C").glob("jet_*.v"))
+    paths = [Path(p) for p in sys.argv[1:]] or sorted(Path("C").glob("jet*.v"))
     failed = False
     for path in paths:
         source = path.read_text()
-        for match in pattern.finditer(code_only(source)):
+        for match in violations(source):
             print(f"{path}:{source.count(chr(10), 0, match.start()) + 1}: {match.group()}")
             failed = True
     if failed:

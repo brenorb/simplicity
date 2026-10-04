@@ -75,8 +75,10 @@ jobs:
           path: ${{ env.JET_DEPS }}
           key: jet-deps-${{ hashFiles('Coq/jet-deps.sh') }}
           fail-on-cache-miss: true
-      - name: Build, kernel, assumption and public contract gates
-        run: opam exec -- bash Coq/check-jets.sh
+      - run: sudo apt-get install -y clang
+      - run: bash Coq/jet-sysroot.sh
+      - name: Accept final proofs against reviewed snapshots and both pinned ASTs
+        run: opam exec -- bash Coq/check-jets.sh --accept
   jets-ast:
     needs: jets-deps
     runs-on: ubuntu-latest
@@ -97,6 +99,8 @@ jobs:
           bash Coq/jet-sysroot.sh
           COMPCERT="$JET_DEPS/compcert-3.14" JET_SYSROOT="$JET_DEPS/sysroot-glibc-2.36" \
             bash Coq/C/check-jets-generation.sh
+          COMPCERT="$JET_DEPS/compcert-3.14" JET_SYSROOT="$JET_DEPS/sysroot-glibc-2.36" \
+            bash Coq/C/check-bitcoin-jets-generation.sh
 
   jets-nix:
     runs-on: ubuntu-latest

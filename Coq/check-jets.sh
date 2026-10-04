@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Integrated verification of the jet proofs.
 #
-#   check-jets.sh [--update-expected] [--ast]
+#   check-jets.sh [--update-expected] [--ast] [--accept]
 #
 # Steps (each fails the script):
 #   1. static checks: no Axiom/Parameter/Admitted in the jet sources; every jet
@@ -18,22 +18,40 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-update=false; ast=false; build=true
+update=false; ast=false; build=true; accept=false
 for a in "$@"; do
   case "$a" in
     --update-expected) update=true ;;
     --ast) ast=true ;;
     --no-build) build=false ;;
+    --accept) accept=true ;;
     *) echo "unknown option $a" >&2; exit 2 ;;
   esac
 done
+if $accept; then
+  if $update || ! $build; then
+    echo '--accept requires a build and comparison with reviewed snapshots; no update/no-build flags' >&2
+    exit 2
+  fi
+  ast=true
+fi
 [[ -n "${JET_SYSROOT:-}" ]] && ast=true
 jobs=${JOBS:-$( (nproc || sysctl -n hw.ncpu) 2>/dev/null || echo 2)}
+audit_inputs() {
+  if $update; then
+    python3 jet-audit-inputs.py --updating
+  else
+    python3 jet-audit-inputs.py
+  fi
+}
+inputs_before=$(audit_inputs)
 
 echo "== static checks"
 python3 scan-jet-proofs.py
 python3 jet-coverage.py
 python3 test-jet-coverage.py
+python3 check-bitcoin-primitive-identity.py
+python3 test-jet-audit-inputs.py
 
 missing=$(comm -23 <(grep -E '^C/jets?[_.]' _CoqProject.jets | sort -u) \
                    <(grep -E '^C/jets?[_.]' _CoqProject | sort -u) || true)
@@ -90,4 +108,20 @@ if $ast; then
   COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14} JET_SYSROOT=$JET_SYSROOT \
     bash C/check-bitcoin-jets-generation.sh
 fi
-echo "all jet checks passed"
+inputs_after=$(audit_inputs)
+if [[ "$inputs_before" != "$inputs_after" ]]; then
+  echo 'audit inputs changed during verification; rerun against the final sources' >&2
+  exit 1
+fi
+echo "audit input SHA-256: $inputs_after"
+if $update; then
+  echo 'candidate snapshots generated; review their diffs, then rerun --accept without update flags'
+elif $accept; then
+  echo 'all jet acceptance checks passed (build, kernel, reviewed snapshots, negative tests, dual AST)'
+elif ! $build; then
+  echo 'jet artifact checks passed (--no-build; current sources were not rebuilt by this run)'
+elif ! $ast; then
+  echo 'jet proof checks passed (AST regeneration not run; use --accept for acceptance)'
+else
+  echo 'all jet checks passed'
+fi

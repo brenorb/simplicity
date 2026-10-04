@@ -3,6 +3,32 @@
 This describes how to reproduce the verification of `Coq/C/jet_*.v` from a clean
 checkout. What the proofs establish is in [C/JET_PROOFS.md](C/JET_PROOFS.md).
 
+## Current acceptance and trust boundaries
+
+The registered inventory is **319/533 entries**: 227 without an additional
+library premise, 92 conditional on `memcpy_model`, and 214 missing. The builtin
+copy-effect witness does not prove that the linked libc implements that model.
+Inherited Coq/CompCert axioms still apply. This is not a general libc or
+whole-evaluator verification. `--require-complete` rejects both missing entries
+and explicit library conditions.
+
+The extended Bitcoin module uses the canonical `Bitcoin` primitive namespace.
+Its primitive constructor types and names are compared with
+`Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs`; Coq checks compatibility of the
+tag definition and the shared CurrentIndex tag/semantics. The interface extends
+the old Coq environment with cached hash values. These value proofs do not
+prove that Haskell's hashing code computes those caches; the environment
+projection and cryptographic functions remain separate specification boundaries.
+
+For final acceptance, run **`bash Coq/check-jets.sh --accept`** on the final
+sources. It rebuilds registered modules, checks their kernel proofs, compares
+reviewed axiom and type/definition snapshots, runs negative tests, compares both
+pinned C ASTs, and rejects source/manifest/input changes during the run. It
+prints the audited input SHA-256. Snapshot-generation mode cannot print the
+acceptance marker; `--accept` rejects `--update-expected` and `--no-build`.
+The total-value semantic reduction is now registered as checked helper support,
+not as additional public C jet coverage.
+
 ## Target versus host
 
 The proofs are about generated Clight for **x86-64, little-endian, LP64 with glibc
@@ -14,7 +40,9 @@ OCaml, menhir and a C compiler for CompCert's OCaml tools; the verification was
 run on macOS/arm64 and is the same computation on Linux.
 
 Not covered: other ABIs (32-bit, ARM64 native, Windows), fully debug-enabled
-assertions (`PRODUCTION` off), and jets wider than 64 bits.
+assertions (`PRODUCTION` off), and public jets without an inventory proof entry.
+Coverage of a family can have width or external-library restrictions stated by
+its named theorem; the inventory does not certify whole-evaluator correctness.
 
 ## Prerequisites
 
@@ -55,6 +83,7 @@ bash Coq/build-jets.sh --regression -j"$(nproc)"  # optional earlier proofs
 bash Coq/check-jets.sh                  # static checks, build, coqchk, assumption gate
 bash Coq/jet-sysroot.sh                 # once: pinned glibc headers for the AST check
 bash Coq/check-jets.sh --ast            # additionally regenerate and compare the AST
+bash Coq/check-jets.sh --accept         # final build, reviewed snapshots and both ASTs
 ```
 
 `check-jets.sh` fails when
@@ -74,14 +103,17 @@ bash Coq/check-jets.sh --ast            # additionally regenerate and compare th
 * a public theorem type or a recorded contract definition differs from
   `C/jet_contracts.expected`. This catches added impossible premises and changes
   hidden behind predicate aliases, which an assumption-set check cannot detect;
-* the isolated negative tests fail to reject the review's impossible-premise
-  attack or the previously missed inline/local/attributed proof escapes;
-* with `--ast`, the regenerated AST differs byte-for-byte from `Coq/C/jets.v`.
+* the isolated negative tests fail to reject an impossible premise, a weakened
+  conclusion, a weakened transparent predicate, or proof escape commands;
+* with `--ast`, either regenerated AST differs byte-for-byte from
+  `Coq/C/jets.v` or `Coq/C/jets_bitcoin.v`.
 
 After an intentional change, review the diff and run
 `bash Coq/check-jets.sh --update-expected`. Review both the assumption and
-contract diffs; this option deliberately accepts changed contracts and is never
-used in CI. The fully explicit type/definition snapshots are conservative:
+contract diffs; this option generates candidate baselines and is never used in
+CI. Then rerun `bash Coq/check-jets.sh --accept` with no update flag. Candidate
+generation is not evidence of acceptance against reviewed baselines. The fully
+explicit type/definition snapshots are conservative:
 harmless presentation changes can also require a reviewed update.
 
 For a short proof cycle use the prepared load paths (they do not rebuild
@@ -3065,3 +3097,42 @@ and all gates with both AST checks, against snapshot baseline `cd7c838`.
 Do not accept partial snapshots or count 211 as integrated coverage until
 the final success marker and explicit exit status 0 are observed. Registered
 sources/manifests remain frozen. No pushes have been made.
+
+### Proof-integrity hardening (2026-10-03)
+
+The final working tree passed `JOBS=2 bash Coq/check-jets.sh --accept` on
+macOS/arm64 with Coq 8.17.1, pinned CompCert/VST and the pinned glibc sysroot.
+The process exited **0**, without updating snapshots. Its complete local log
+is `/tmp/jet-hardening-acceptance-final.log`. The pending integration notes
+above are historical; this run covers the current registered inventory.
+
+* The build and kernel safety checks passed on **440 public result modules**.
+  The inherited library-level axiom record is unchanged.
+* The assumption comparison passed on **2,010 results, 810 closed**. All
+  previous assumption records are preserved; the five added results are closed
+  compatibility/copy-effect/total-value helpers. They add no C jet coverage.
+* The reviewed explicit contract snapshot matched. All previous contract text
+  is preserved, with additions freezing primitive identity and total-value
+  support. The Bitcoin namespace correction is checked against the canonical
+  Haskell primitive interface and by Coq compatibility lemmas.
+* Compiled isolated fixtures using the real `add64_guarantees` proof show that
+  an impossible added premise and a disjunction with `True` preserve its axiom
+  set but fail contract comparison. A separately compiled predicate changed
+  to `True` fails definition comparison. Proof escapes and disabled kernel
+  checks are rejected; identity drift and invalid acceptance modes are tested.
+* Both regenerated **core and Bitcoin Clight ASTs matched byte-for-byte**.
+  The audit inputs remained unchanged throughout the complete run.
+
+Audited input SHA-256:
+`ef23729ac20fc1da02b255f2d9849bcd85109385a7121f5a08ae5b77905ee1ba`.
+This fingerprint excludes documentation and generated build artifacts.
+
+All **319/533 proof entries** are retained: 227 without an additional library
+premise, 92 conditional on `memcpy_model`, and 214 missing. The builtin witness
+does not prove linked libc, and the Bitcoin hash-cache/environment projection
+boundary remains explicit. The total-value helper is now built and audited;
+whole-evaluator correctness and every-jet completion are not established.
+
+Python/shell syntax, workflow YAML, Nix inventory syntax and `git diff --check`
+passed. GitHub Actions and a fresh Nix proof build were not run for this
+hardening. All changes are local and uncommitted.

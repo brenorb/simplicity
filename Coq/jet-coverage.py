@@ -57,6 +57,21 @@ def declarations(source):
     return names
 
 
+def top_level_connectives(statement):
+    depth = 0
+    arrows = []
+    for token in re.finditer(r"<->|->|/\\|\\/|[(){}\[\]]", statement):
+        if token[0] in "({[":
+            depth += 1
+        elif token[0] in ")}]":
+            depth -= 1
+        elif depth == 0:
+            arrows.append(token.start())
+    if depth != 0:
+        raise ValueError("unbalanced public theorem statement")
+    return arrows
+
+
 def inventory():
     jets = {}
     for family, header in HEADERS.items():
@@ -65,7 +80,7 @@ def inventory():
                 raise ValueError(f"duplicate public jet: {name}")
             jets[name] = {"family": family, "function": name, "header": header,
                           "specification_catalog": SPECIFICATIONS[family],
-                          "registrations": [], "proof": ""}
+                          "registrations": [], "proof": "", "condition": ""}
     for application in ("bitcoin", "elements"):
         registry = REPO / f"C/{application}/primitiveJetNode.inc"
         source = registry.read_text()
@@ -100,9 +115,8 @@ def inventory():
         # physical/logical primitive-environment correspondence.
         family = jets[name]["family"]
         if family == "core":
-            # Copy-family jets reach the plain libc memcpy, whose CompCert semantics
-            # is an abstract parameter: their theorems carry the explicit, named
-            # memcpy_model premise (jet_memcpy_model.v) and are never otherwise conditional.
+            # Copy-family contracts retain an explicit library model;
+            # record these separately from direct execution proofs.
             contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b|"
                         rf"\bmemcpy_model\s*->\s*jet_separated_local_spec\s+f_{re.escape(name)}\b")
         elif family == "bitcoin":
@@ -113,16 +127,25 @@ def inventory():
         else:
             # Elements has no checked application contract yet.
             contract = r"(?!)"
-        if not statement or not re.search(contract, statement[1]):
+        body = statement[1].strip() if statement else ""
+        conditional = body.startswith("memcpy_model")
+        arrows = top_level_connectives(body)
+        # A direct contract must be the entire proposition. Searching anywhere
+        # in a type accidentally accepts False -> contract and contract -> True.
+        expected_arrows = 1 if family == "core" and conditional else 0
+        if (not statement or not re.match(contract, body)
+                or len(arrows) != expected_arrows):
             raise ValueError(f"coverage entry is not a direct canonical jet theorem: {module}.{theorem}")
         jets[name]["proof"] = f"{module}.{theorem}"
+        jets[name]["condition"] = "memcpy_model" if conditional else ""
     return list(jets.values())
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", action="store_true", help="list every jet, including all missing proofs")
-    parser.add_argument("--require-complete", action="store_true", help="fail if ANY declared jet lacks coverage")
+    parser.add_argument("--require-complete", action="store_true",
+                        help="fail if any declared jet lacks a proof or retains an explicit library condition")
     args = parser.parse_args()
     try:
         jets = inventory()
@@ -136,13 +159,19 @@ def main():
     else:
         for family in HEADERS:
             rows = [row for row in jets if row["family"] == family]
-            print(f"{family}: {sum(bool(row['proof']) for row in rows)}/{len(rows)} jets have audited proof entries")
+            direct = sum(bool(row["proof"]) and not row["condition"] for row in rows)
+            conditional = sum(bool(row["condition"]) for row in rows)
+            print(f"{family}: {direct} proof entries without an extra library premise; "
+                  f"{conditional} conditional; {len(rows)} declared")
         missing = sum(not row["proof"] for row in jets)
+        conditional = sum(bool(row["condition"]) for row in jets)
         unregistered = sum(not row["registrations"] for row in jets)
         print(f"total: {len(jets) - missing}/{len(jets)}; remaining: {missing}; unregistered declarations: {unregistered}")
+        print(f"Of these entries: {len(jets) - missing - conditional} without an extra library premise, "
+              f"{conditional} conditional on memcpy_model (libc implementation not proved).")
         print("Scope: public jet declarations in all three C headers. Proof validity requires check-jets.sh.")
-    if args.require_complete and any(not row["proof"] for row in jets):
-        sys.exit("Every-jet goal is incomplete: declared C jets still lack proofs.")
+    if args.require_complete and any(not row["proof"] or row["condition"] for row in jets):
+        sys.exit("Every-jet goal is incomplete: declared C jets lack proofs or retain explicit library conditions.")
 
 
 if __name__ == "__main__":
