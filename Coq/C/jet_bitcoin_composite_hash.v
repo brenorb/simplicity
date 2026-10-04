@@ -41,6 +41,14 @@ Proof.
   exists cf. split; [exact Hcf|exact HFin].
 Qed.
 
+Lemma add_app_some c (bs1 bs2 : list (Ty.tySem (Word 3))) cf :
+  ctx8_add_list c (bs1 ++ bs2) = Some cf ->
+  exists c1, ctx8_add_list c bs1 = Some c1 /\ ctx8_add_list c1 bs2 = Some cf.
+Proof.
+  rewrite ctx8_add_list_app. intros H.
+  destruct (ctx8_add_list c bs1) as [c1|]; [exists c1; split; [reflexivity|exact H]|discriminate].
+Qed.
+
 Ltac use_add H :=
   match goal with |- context[ctx8_add_list ?c ?l] =>
     match type of H with _ = ?r =>
@@ -161,6 +169,86 @@ Proof.
   - exact input_utxos_hash_spec_sem.
   - getter_shape.
   - exact bitcoin_txEnv_tx.
+  - vm_compute; reflexivity.
+  - lia.
+  - lia.
+Qed.
+
+(** ** tapEnvHash *)
+Definition tap_env_hash_spec {alg : PF.Algebra} : PF.domain alg Ty.Unit Word256 :=
+  let term := PF.CanonicalStructures.toAssertion alg in
+  let core := Alg.Assertion.toCore term in
+  @AC.comp _ _ _ core
+    (@AC.pair _ _ _ core
+      (@AC.comp _ _ _ core
+        (@AC.pair _ _ _ core (@sha256_ctx8_init_spec core) (@tapleaf_hash_spec alg))
+        (@ctx8_addn_spec 5 term))
+      (@AC.pair _ _ _ core
+        (@prim_words_hash_spec 5 3 (BitcoinFull.Ext BitcoinExt.Tappath) alg)
+        (@PF.Combinators.prim _ _ alg (BitcoinFull.Ext BitcoinExt.InternalKey))))
+    (@AC.comp _ _ _ core (@ctx8_addn_spec 6 term) (@ctx8_finalize_spec term)).
+
+Lemma tap_env_hash_spec_parametric : PF.Parametric (@tap_env_hash_spec).
+Proof.
+  intros alg1 alg2 R.
+  pose proof (tapleaf_hash_spec_parametric alg1 alg2 R) as HL.
+  pose proof (prim_words_hash_spec_parametric 5 3 (BitcoinFull.Ext BitcoinExt.Tappath) alg1 alg2 R) as HT.
+  destruct R as [R [HA [HP]]].
+  set (RA := Alg.Assertion.Parametric.Pack HA).
+  pose proof (ctx8_addn_spec_parametric 5 _ _ RA) as H5.
+  pose proof (ctx8_addn_spec_parametric 6 _ _ RA) as H6.
+  pose proof (ctx8_finalize_spec_parametric _ _ RA) as HF.
+  destruct HA as [HC HAm]. set (RC := Alg.Core.Parametric.Pack HC).
+  unfold tap_env_hash_spec. cbv zeta.
+  apply (Alg.comp_Parametric RC); [|apply (Alg.comp_Parametric RC); [exact H6|exact HF]].
+  apply (Alg.pair_Parametric RC).
+  - apply (Alg.comp_Parametric RC); [|exact H5].
+    apply (Alg.pair_Parametric RC); [apply (sha256_ctx8_init_spec_parametric _ _ RC)|exact HL].
+  - apply (Alg.pair_Parametric RC); [exact HT|apply HP].
+Qed.
+
+Definition tap_env_hash_of (e : ext_environment) : hash256 :=
+  sha256_bytes_of
+    (vector_values (Word 3) 5 (from_hash256 (tapleaf_hash_of e)) ++
+     vector_values (Word 3) 6
+       (from_hash256 (words_hash_of 5 3 (tappath_of e)), from_hash256 (extInternalKey e))).
+
+Lemma tap_env_hash_spec_sem e :
+  @tap_env_hash_spec fullalg tt e = Some (from_hash256 (tap_env_hash_of e)).
+Proof.
+  unfold tap_env_hash_spec. cbv zeta.
+  rewrite fx_comp, fx_pair, fx_comp, fx_pair.
+  rewrite (fx_core (fun alg => @sha256_ctx8_init_spec alg) sha256_ctx8_init_spec_parametric).
+  rewrite tapleaf_hash_spec_sem, fx_pair.
+  rewrite (prim_words_hash_spec_sem 5 3 _ tappath_of tappath_sem words_bound_path), fx_prim.
+  change (BitcoinFull.sem (BitcoinFull.Ext BitcoinExt.InternalKey) tt e) with
+    (Some (from_hash256 (extInternalKey e))).
+  cbv beta iota.
+  rewrite (fx_assert (fun alg => @ctx8_addn_spec 5 alg) (ctx8_addn_spec_parametric 5)), (ctx8_addn_option 5).
+  destruct (init_hash_sem
+    (vector_values (Word 3) 5 (from_hash256 (tapleaf_hash_of e)) ++
+     vector_values (Word 3) 6
+       (from_hash256 (words_hash_of 5 3 (tappath_of e)), from_hash256 (extInternalKey e))))
+    as (cf & H1 & H2).
+  { rewrite app_length, !vector_values_length. reflexivity. }
+  destruct (add_app_some _ _ _ _ H1) as (c1 & E1 & E2).
+  use_add E1. cbv beta iota. rewrite fx_comp.
+  rewrite (fx_assert (fun alg => @ctx8_addn_spec 6 alg) (ctx8_addn_spec_parametric 6)), (ctx8_addn_option 6).
+  use_add E2.
+  rewrite (fx_assert (fun alg => @ctx8_finalize_spec alg) ctx8_finalize_spec_parametric).
+  exact H2.
+Qed.
+
+Theorem bitcoin_tap_env_hash_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_tap_env_hash bitcoin_ge ext_environment
+    Ty.Unit Word256 (hash_getter_rep tap_env_hash_of 8 72 176)
+    (fun a environment => @tap_env_hash_spec fullalg a environment).
+Proof.
+  eapply bitcoin_hash_getter_writeHash_local with (ptrfield := _taproot) (sid := _bitcoinTapEnv)
+    (hashfield := _tapEnvHash).
+  - exact tap_env_hash_spec_sem.
+  - getter_shape.
+  - exact bitcoin_txEnv_taproot.
   - vm_compute; reflexivity.
   - lia.
   - lia.
