@@ -1,3 +1,22 @@
+memcpy_builtin_witness
+     : forall (ge : Globalenvs.Senv.t) (m : Memory.Mem.mem) (bd : Values.block) (od : Integers.Ptrofs.int)
+         (bs : Values.block) (os : Integers.Ptrofs.int) (n : BinNums.Z) (bytes : list Memdata.memval)
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m bs (Integers.Ptrofs.unsigned os) n)
+                (@Some (list Memdata.memval) bytes))
+         (_ : Memory.Mem.range_perm m bd (Integers.Ptrofs.unsigned od) (BinInt.Z.add (Integers.Ptrofs.unsigned od) n)
+                Memtype.Cur Memtype.Writable)
+         (_ : or (not (@eq Values.block bs bd))
+                (or (BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned os) n) (Integers.Ptrofs.unsigned od))
+                   (BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned od) n) (Integers.Ptrofs.unsigned os))))
+         (_ : BinInt.Z.le BinNums.Z0 n),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem) (Memory.Mem.storebytes m bd (Integers.Ptrofs.unsigned od) bytes)
+               (@Some Memory.Mem.mem m'))
+            (Events.extcall_memcpy_sem n (BinNums.Zpos BinNums.xH) ge
+               (@cons Values.val (Values.Vptr bd od) (@cons Values.val (Values.Vptr bs os) (@nil Values.val))) m
+               Events.E0 Values.Vundef m'))
 eval_one8_layout_matches_spec
      : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
          (bs : Values.block) (sbase : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z)
