@@ -179,6 +179,15 @@ bool simplicity_write_sha256_context(frameItem* dst, const sha256_context* ctx) 
   return !ctx->overflow;
 }
 
+/* Copy an initialized frame word directly; keep the bulk path for larger copies. */
+static void copyWords(UWORD* dst, const UWORD* src, size_t bytes) {
+  if (bytes == sizeof(UWORD)) {
+    *dst = *src;
+  } else {
+    memcpy(dst, src, bytes);
+  }
+}
+
 /* Given a write frame and a read frame, copy 'n' cells from after the read frame's cursor to after the write frame's cursor,
  * Cells in within the write frame beyond 'n' cells after the write frame's cursor may also be overwritten.
  *
@@ -234,7 +243,7 @@ static void copyBitsHelper(const frameItem* dst, const frameItem *src, size_t n)
      * and we do not need to decrement src_ptr.
      * We have folded this conditional decrement into the equation applied to 'src_ptr' below.
      */
-    memcpy(dst_ptr - (m - 1), src_ptr - (m - src_shift / UWORD_BIT), m * sizeof(UWORD));
+    copyWords(dst_ptr - (m - 1), src_ptr - (m - src_shift / UWORD_BIT), m * sizeof(UWORD));
   } else {
     while(1) {
       /* Fill the write frame's UWORD by copying the LSBs of the read frame's current UWORD

@@ -1,7 +1,15 @@
 # C jet implementation-to-Simplicity proofs
 
-Fully audited Coq proofs that the generated CompCert Clight of 206 jets of the C library
-(`C/jets.c`, `C/frame.c`) matches the corresponding Simplicity expression.
+The registered inventory is **319/533 jet proof entries without an extra library
+premise, with 214 missing**. The 92 copy-family entries formerly conditional on
+`memcpy_model` now execute the internal one-UWORD branch of `copyWords`, proved
+in `jet_copyWord.v`. Larger copies still call libc and are outside this bounded
+proof. Target, inherited assumptions and latest acceptance evidence are recorded
+in [../JET_BUILD.md](../JET_BUILD.md); the audit counts below are historical
+milestones.
+
+These proofs relate generated CompCert Clight to the corresponding Simplicity
+expressions under their named frame and environment contracts.
 The total, positive-output contracts also prove replacement of the Bit Machine
 translation in a local, explicitly described context. `verify` instead uses
 canonical option/assertion semantics, covering success and failure with no output.

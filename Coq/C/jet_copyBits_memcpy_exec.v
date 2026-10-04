@@ -1,11 +1,10 @@
-(** Execution of the actual [memcpy] branch of [copyBitsHelper] for counts up
-    to one word.  The external call is a premise here; [jet_memcpy_model]
-    discharges it from the explicit memcpy model. *)
+(** Execution of the aligned copy branch of [copyBitsHelper] for counts up
+    to one word. The internal [copyWords] call is proved in [jet_copyWord]. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps.
 From compcert Require Import ClightBigstep Memory Events Globalenvs.
 Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_frame_constants.
-Require Import C.jet_copyBits_helper_exec C.jet_copyBits_loop_exec C.jet_memcpy_model.
+Require Import C.jet_copyBits_helper_exec C.jet_copyBits_loop_exec C.jet_copyWord.
 Import Values Mem Ctypes ListNotations Clightdefs.
 Local Open Scope Z_scope.
 Local Transparent Archi.ptr64.
@@ -27,8 +26,8 @@ Lemma copy_mcpy_m_shape : copy_mcpy_m_expr =
 Proof. reflexivity. Qed.
 
 Lemma copy_mcpy_call_shape : copy_mcpy_call =
-  Scall None (Evar _memcpy (Tfunction (Tcons (tptr tvoid) (Tcons (tptr tvoid) (Tcons tulong Tnil)))
-    (tptr tvoid) cc_default))
+  Scall None (Evar _copyWords (Tfunction (Tcons (tptr tulong) (Tcons (tptr tulong) (Tcons tulong Tnil)))
+    tvoid cc_default))
     [Ebinop Osub (Etempvar _dst_ptr (tptr tulong))
        (Ebinop Osub (Etempvar _m tulong) (Econst_int (Int.repr 1) tint) tulong) (tptr tulong);
      Ebinop Osub (Etempvar _src_ptr (tptr tulong))
@@ -95,9 +94,9 @@ Lemma exec_copy_memcpy_branch le m m' bi src_ofs bw dst_ofs ss n :
   (ss = 0 \/ ss = 64) -> 1 <= n <= 64 ->
   le!_dst_ptr = Some (Vptr bw dst_ofs) -> le!_src_ptr = Some (Vptr bi src_ofs) ->
   le!_src_shift = Some (Vlong (Int64.repr ss)) -> le!_n = Some (Vlong (Int64.repr n)) ->
-  external_call (EF_external "memcpy" memcpy_sig) ge0
+  Clight2.eval_funcall ge0 m (Internal f_copyWords)
     [Vptr bw dst_ofs; Vptr bi (Ptrofs.sub src_ofs (Ptrofs.repr (8 * (1 - ss / 64)))); Vlong (Int64.repr 8)]
-    m E0 (Vptr bw dst_ofs) m' ->
+    E0 m' Vundef ->
   Clight2.exec_stmt ge0 empty_env le m copy_memcpy_branch E0 (copy_mcpy_env le) m' Out_normal.
 Proof.
   intros Hss Hn HD HS HSS HN Hext.
@@ -106,15 +105,15 @@ Proof.
   - apply exec_set. eapply eval_copy_mcpy_m; eassumption.
   - assert (HM : (copy_mcpy_env le)!_m = Some (Vlong (Int64.repr 1))) by (unfold copy_mcpy_env; apply PTree.gss).
     assert (Hexec : Clight2.exec_stmt ge0 empty_env (copy_mcpy_env le) m copy_mcpy_call E0
-      (set_opttemp None (Vptr bw dst_ofs) (copy_mcpy_env le)) m' Out_normal).
+      (set_opttemp None Vundef (copy_mcpy_env le)) m' Out_normal).
     2: exact Hexec.
     rewrite copy_mcpy_call_shape.
-    eapply exec_Scall with (vf := Vptr block_memcpy Ptrofs.zero)
+    eapply exec_Scall with (vf := Vptr block_copyWords Ptrofs.zero)
       (vargs := [Vptr bw dst_ofs; Vptr bi (Ptrofs.sub src_ofs (Ptrofs.repr (8 * (1 - ss / 64))));
         Vlong (Int64.repr 8)]).
     + reflexivity.
     + eapply eval_Elvalue.
-      * apply eval_Evar_global; [reflexivity|apply symbol_memcpy].
+      * apply eval_Evar_global; [reflexivity|apply symbol_copyWords].
       * apply deref_loc_reference; reflexivity.
     + eapply eval_Econs with (v1 := Vptr bw dst_ofs).
       * eapply eval_Ebinop with (v1 := Vptr bw dst_ofs) (v2 := Vlong Int64.zero).
@@ -150,7 +149,7 @@ Proof.
               ** vm_compute. reflexivity.
            ++ reflexivity.
            ++ apply eval_Enil.
-    + apply funct_memcpy.
+    + apply funct_copyWords.
     + reflexivity.
-    + eapply eval_funcall_external. exact Hext.
+    + exact Hext.
 Qed.

@@ -122,10 +122,12 @@ Definition _bl : ident := $"bl".
 Definition _block : ident := $"block".
 Definition _buf : ident := $"buf".
 Definition _buf_len : ident := $"buf_len".
+Definition _bytes : ident := $"bytes".
 Definition _chunk : ident := $"chunk".
 Definition _cmr : ident := $"cmr".
 Definition _compressionCount : ident := $"compressionCount".
 Definition _copyBitsHelper : ident := $"copyBitsHelper".
+Definition _copyWords : ident := $"copyWords".
 Definition _counter : ident := $"counter".
 Definition _ctx : ident := $"ctx".
 Definition _ctx__1 : ident := $"ctx__1".
@@ -9831,6 +9833,29 @@ Definition f_simplicity_write_sha256_context := {|
         (Sreturn (Some (Eunop Onotbool (Etempvar _t'1 tbool) tint)))))))
 |}.
 
+Definition f_copyWords := {|
+  fn_return := tvoid;
+  fn_callconv := cc_default;
+  fn_params := ((_dst, (tptr tulong)) :: (_src, (tptr tulong)) ::
+                (_bytes, tulong) :: nil);
+  fn_vars := nil;
+  fn_temps := ((_t'1, tulong) :: nil);
+  fn_body :=
+(Sifthenelse (Ebinop Oeq (Etempvar _bytes tulong) (Esizeof tulong tulong)
+               tint)
+  (Ssequence
+    (Sset _t'1 (Ederef (Etempvar _src (tptr tulong)) tulong))
+    (Sassign (Ederef (Etempvar _dst (tptr tulong)) tulong)
+      (Etempvar _t'1 tulong)))
+  (Scall None
+    (Evar _memcpy (Tfunction
+                    (Tcons (tptr tvoid)
+                      (Tcons (tptr tvoid) (Tcons tulong Tnil))) (tptr tvoid)
+                    cc_default))
+    ((Etempvar _dst (tptr tulong)) :: (Etempvar _src (tptr tulong)) ::
+     (Etempvar _bytes tulong) :: nil)))
+|}.
+
 Definition f_copyBitsHelper := {|
   fn_return := tvoid;
   fn_callconv := cc_default;
@@ -10485,10 +10510,11 @@ Definition f_copyBitsHelper := {|
                               (Econst_int (Int.repr 3) tint) tulong) tulong)
                           tulong) tulong) tint) tint) tulong))
               (Scall None
-                (Evar _memcpy (Tfunction
-                                (Tcons (tptr tvoid)
-                                  (Tcons (tptr tvoid) (Tcons tulong Tnil)))
-                                (tptr tvoid) cc_default))
+                (Evar _copyWords (Tfunction
+                                   (Tcons (tptr tulong)
+                                     (Tcons (tptr tulong)
+                                       (Tcons tulong Tnil))) tvoid
+                                   cc_default))
                 ((Ebinop Osub (Etempvar _dst_ptr (tptr tulong))
                    (Ebinop Osub (Etempvar _m tulong)
                      (Econst_int (Int.repr 1) tint) tulong) (tptr tulong)) ::
@@ -34378,6 +34404,7 @@ Definition global_definitions : list (ident * globdef fundef type) :=
  (_simplicity_write_buffer8, Gfun(Internal f_simplicity_write_buffer8)) ::
  (_simplicity_read_sha256_context, Gfun(Internal f_simplicity_read_sha256_context)) ::
  (_simplicity_write_sha256_context, Gfun(Internal f_simplicity_write_sha256_context)) ::
+ (_copyWords, Gfun(Internal f_copyWords)) ::
  (_copyBitsHelper, Gfun(Internal f_copyBitsHelper)) ::
  (_simplicity_copyBits, Gfun(Internal f_simplicity_copyBits)) ::
  (_secp256k1_umul128, Gfun(Internal f_secp256k1_umul128)) ::

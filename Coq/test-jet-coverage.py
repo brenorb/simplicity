@@ -27,7 +27,7 @@ def main():
     assert coverage.declarations(f"/* {signature} */\n// {signature}\n{signature}") == ["simplicity_example"]
     rejects(lambda: coverage.declarations("bool simplicity_bad(int x);"), "signature")
     rows = coverage.inventory()
-    assert sum(row["condition"] == "memcpy_model" for row in rows) == 92
+    assert not any(row["condition"] for row in rows)
     expected = {name for header in coverage.HEADERS.values()
                 for name in coverage.declarations((coverage.REPO / header).read_text())}
     assert {row["function"] for row in rows} == expected
@@ -62,7 +62,16 @@ def main():
             rejects(coverage.inventory, "not a direct canonical jet theorem")
         direct.write_text(direct_original)
         conditional_path = project / "C/jet_core_projection_jets.v"
-        conditional_original = conditional_path.read_text()
+        direct_projection = conditional_path.read_text()
+        # Bookkeeping fixture only: an explicit library premise must remain
+        # conditional rather than disappearing into the direct-proof count.
+        conditional_original = direct_projection.replace(
+            "Theorem leftmost_8_1_local_spec :",
+            "Theorem leftmost_8_1_local_spec : memcpy_model ->", 1)
+        assert conditional_original != direct_projection
+        conditional_path.write_text(conditional_original)
+        conditional_rows = coverage.inventory()
+        assert sum(row["condition"] == "memcpy_model" for row in conditional_rows) == 1
         for old, new in (
             ("memcpy_model ->", "False -> memcpy_model ->"),
             ("memcpy_model ->", "another_library_model ->"),
@@ -70,7 +79,7 @@ def main():
         ):
             conditional_path.write_text(conditional_original.replace(old, new, 1))
             rejects(coverage.inventory, "not a direct canonical jet theorem")
-        conditional_path.write_text(conditional_original)
+        conditional_path.write_text(direct_projection)
         for extra, message in (
             ("simplicity_nonexistent C.jet_canonical one8_local_spec\n", "unknown jet"),
             ("simplicity_one_8 C.jet_canonical one8_local_spec\n", "duplicate coverage"),

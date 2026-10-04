@@ -1,17 +1,16 @@
 (** Uniform initial-only frame contract for every positive copy up to 64
-    bits.  The two paths that call plain libc [memcpy] use the explicit
-    [memcpy_model] premise; everything else is the unconditional
-    [eval_copyBits_small_no_memcpy_layout]. *)
+    bits. The aligned paths use the proved internal one-word copy; the other
+    paths use [eval_copyBits_small_no_memcpy_layout]. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Events.
 Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_input_layout.
 Require Import C.jet_output_layout C.jet_encoding C.jet_context_separated C.jet_copyBits_separation.
-Require Import C.jet_copyBits_short_cells C.jet_copyBits_loop_crossing C.jet_copyBits_small_layout C.jet_memcpy_model C.jet_copyBits_memcpy_cells.
+Require Import C.jet_copyBits_short_cells C.jet_copyBits_loop_crossing C.jet_copyBits_small_layout C.jet_copyBits_memcpy_cells.
 Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 30.
 
-Theorem eval_copyBits_small_layout (Hmodel : memcpy_model) m bd base bs sbase bi edge rc bw outedge cursor n cells :
+Theorem eval_copyBits_small_layout m bd base bs sbase bi edge rc bw outedge cursor n cells :
   frame_base_valid sbase -> frame_fields_at m bs sbase bi edge rc ->
   write_frame_at m bd base bw outedge cursor n -> n = Z.of_nat (length cells) ->
   0 < n <= 64 ->
