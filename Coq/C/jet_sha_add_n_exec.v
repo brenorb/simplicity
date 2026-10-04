@@ -89,7 +89,8 @@ Theorem eval_sha_add_n (Hmodel : memcpy_model) (k : nat) m bd dbase bsf sbase bi
       (b <> bw \/ ofs + size_chunk chunk <= outedge + 8 * ((cursor - 830) / 64) \/
         write_word_address outedge cursor + 8 <= ofs) ->
       (b <> bsf \/ ofs + size_chunk chunk <= sbase + 8 \/ sbase + 16 <= ofs) ->
-      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs) /\
+    (forall b ofs kd p, Mem.valid_block m b -> Mem.perm m b ofs kd p -> Mem.perm mf b ofs kd p).
 Proof.
   intros Hk [Hdisp HMaxC] HSbase [HSE HSO] HSW H0 Hmax Hin Hout Hsi Hsd Hsw HsM HsG vs spec.
   destruct c as [buf [count state]].
@@ -217,9 +218,10 @@ Proof.
   assert (HFree : forall m5,
     (forall b0 ofs kd p, b0 <> bl -> Mem.perm ma b0 ofs kd p -> Mem.perm m5 b0 ofs kd p) ->
     exists mf, Mem.free_list m5 [(bx, 0, 88); (bm, 0, 32); (bb, 0, 512)] = Some mf /\
-      (forall ch b0 ofs, Mem.valid_block m b0 -> Mem.load ch mf b0 ofs = Mem.load ch m5 b0 ofs)).
+      (forall ch b0 ofs, Mem.valid_block m b0 -> Mem.load ch mf b0 ofs = Mem.load ch m5 b0 ofs) /\
+      (forall b0 ofs kd p, Mem.valid_block m b0 -> Mem.perm m5 b0 ofs kd p -> Mem.perm mf b0 ofs kd p)).
   { intros m5 HP5.
-    destruct (free_list_blocks [(bx, 0, 88); (bm, 0, 32); (bb, 0, 512)] m5) as (mf & HFL & HLf & _ & _).
+    destruct (free_list_blocks [(bx, 0, 88); (bm, 0, 32); (bb, 0, 512)] m5) as (mf & HFL & HLf & HPf & _).
     - intros b0 lo hi Hin0. cbn in Hin0.
       destruct Hin0 as [Heq|[Heq|[Heq|[]]]]; injection Heq as <- <- <-; intros ofs Hr0; apply HP5.
       + apply Fl; exact Vx1.
@@ -229,9 +231,13 @@ Proof.
       + apply Fl; exact Vb1.
       + apply PBa; exact Hr0.
     - cbn. repeat constructor; cbn; intuition congruence.
-    - exists mf. split; [exact HFL|]. intros ch b0 ofs Hv. apply HLf. cbn.
-      intros [E|[E|[E|[]]]]; subst b0;
-        [exact (Fx _ Hv eq_refl)|exact (Fm _ Hv eq_refl)|exact (Fb _ Hv eq_refl)]. }
+    - assert (HNot : forall b0, Mem.valid_block m b0 ->
+        ~ In b0 (map (fun x => fst (fst x)) [(bx, 0, 88); (bm, 0, 32); (bb, 0, 512)])).
+      { intros b0 Hv. cbn. intros [E|[E|[E|[]]]]; subst b0;
+          [exact (Fx _ Hv eq_refl)|exact (Fm _ Hv eq_refl)|exact (Fb _ Hv eq_refl)]. }
+      exists mf. split; [exact HFL|]. split.
+      + intros ch b0 ofs Hv. apply HLf. apply HNot. exact Hv.
+      + intros b0 ofs kd p Hv Hp. apply HPf; [apply HNot; exact Hv|exact Hp]. }
   (* the specification *)
   assert (Hlist : lbuf = buffer_list (Word 3) 5 buf) by (apply buffer_values_list).
   set (total := @toZ (WordToZ 6) count + (Z.of_nat (length lbuf) + Z.of_nat (length vs)) / 64).
@@ -243,8 +249,8 @@ Proof.
   - (* the stored compression count is out of range *)
     apply sha256_read_overflow_true in Hovr.
     assert (HNone : spec = None) by (apply HCb; unfold total, ctx8_limit; rewrite <- Hr; lia).
-    destruct (HFree m2 HPerm2) as (mf & HFL & HLf).
-    exists mf. rewrite HNone. split; [|split; [exact I|]].
+    destruct (HFree m2 HPerm2) as (mf & HFL & HLf & HPf0).
+    exists mf. rewrite HNone. split; [|split; [exact I|split]].
     + eapply eval_funcall_internal with (e := e) (le1 := le0) (m1 := m0)
         (le2 := PTree.set _t'3 (Vint (bit_int (negb true))) le0) (m2 := m2)
         (out := Out_return (Some (Vint (Int.repr 0), tint))).
@@ -260,6 +266,8 @@ Proof.
       * cbn. split; [discriminate|reflexivity].
       * unfold e. rewrite an_blocks. exact HFL.
     + intros ch b0 ofs Hv Hd Hw Hs. rewrite HLf by exact Hv. apply K2; assumption.
+    + intros b0 ofs kd p Hv Hp. apply HPf0; [exact Hv|].
+      apply HPerm2; [apply Fl, W1; exact Hv|]. apply YP, Q1, Hp.
   - (* the reader succeeds *)
     apply sha256_read_overflow_false in Hovr.
     assert (HWords : forall i x, nth_error vs i = Some x ->
@@ -382,13 +390,13 @@ Proof.
       HCnt4 HOut4 HOvf4 HArr4 HModu HSt4 HOut4')
       as (m5 & HWr & HCells & HPrefix & HFldE & HLoadsE & HPermE & HValE).
     apply (sha_transport_call _ _ sg_in_write_context) in HWr.
-    destruct (HFree m5) as (mf & HFL & HLf).
+    destruct (HFree m5) as (mf & HFL & HLf & HPf0).
     { intros b0 ofs kd p Hb Hp. apply HPermE.
       apply HPerm4; [|apply Q3; assumption].
       eapply Mem.perm_valid_block. apply Q3; eassumption. }
     set (le2 := PTree.set _t'3 (Vint (bit_int (negb false))) le0).
     set (le5 := PTree.set _t'4 (Vint (bit_int (negb ovf'))) le2).
-    exists mf. split; [|split].
+    exists mf. split; [|split; [|split]].
     + eapply eval_funcall_internal with (e := e) (le1 := le0) (m1 := m0) (le2 := le5) (m2 := m5)
         (out := Out_return (Some (Vint (bit_int (negb ovf')), tbool))).
       * eapply an_entry; eassumption.
@@ -425,4 +433,5 @@ Proof.
       * destruct HFldE as [HE1 HE2]. split; rewrite HLf by exact Vd; assumption.
     + intros ch b0 ofs Hv Hd Hw Hs. rewrite HLf by exact Hv.
       rewrite HLoadsE by assumption. apply K4; assumption.
+    + intros b0 ofs kd p Hv Hp. apply HPf0; [exact Hv|]. apply HPermE, Q4, Hp.
 Qed.
