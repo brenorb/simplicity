@@ -40,9 +40,30 @@ Record cst : Type := mk_cst {
   wv : list int; wdef : nat; lv : list int; ldef : nat;
   scratch : list (ident * int); sarr : list int; chunk : list int }.
 
-Definition is_tuint (ty : type) : bool := if type_eq ty tuint then true else false.
-Definition is_tint (ty : type) : bool := if type_eq ty tint then true else false.
-Definition is_ptuint (ty : type) : bool := if type_eq ty (tptr tuint) then true else false.
+(** Computable recognizers of the few types that occur in the body. *)
+Definition attr_noattrb (a : attr) : bool :=
+  negb (attr_volatile a) && match attr_alignas a with None => true | Some _ => false end.
+Definition is_tuint (ty : type) : bool :=
+  match ty with Tint I32 Unsigned a => attr_noattrb a | _ => false end.
+Definition is_tint (ty : type) : bool :=
+  match ty with Tint I32 Signed a => attr_noattrb a | _ => false end.
+Definition is_ptuint (ty : type) : bool :=
+  match ty with Tpointer t a => is_tuint t && attr_noattrb a | _ => false end.
+Definition is_cc_default (cc : calling_convention) : bool :=
+  match cc_vararg cc with None => negb (cc_unproto cc) && negb (cc_structret cc) | Some _ => false end.
+Definition is_sigma_ty (ty : type) : bool :=
+  match ty with
+  | Tfunction (Tcons a Tnil) r cc => is_tuint a && is_tuint r && is_cc_default cc
+  | _ => false
+  end.
+Definition is_round_ty (ty : type) : bool :=
+  match ty with
+  | Tfunction (Tcons a (Tcons b (Tcons c (Tcons d (Tcons e (Tcons f (Tcons g (Tcons h (Tcons k Tnil)))))))))
+      Tvoid cc =>
+      is_tuint a && is_tuint b && is_tuint c && is_ptuint d && is_tuint e && is_tuint f && is_tuint g &&
+      is_ptuint h && is_tuint k && is_cc_default cc
+  | _ => false
+  end.
 
 Definition arr_read (st : cst) (p : ident) (i : int) : option int :=
   let k := Z.to_nat (Int.unsigned i) in
@@ -139,7 +160,7 @@ Definition interp_assign (st : cst) (lhs e : expr) : option cst :=
   end.
 
 Definition interp_sigma (st : cst) (t f : ident) (fty : type) (a : expr) : option cst :=
-  if type_eq fty sigma_ty then
+  if is_sigma_ty fty then
     match eval_ie st a with
     | Some v =>
         if Pos.eqb f _sigma0 then set_temp st t (c_sigma0 v)
@@ -150,7 +171,7 @@ Definition interp_sigma (st : cst) (t f : ident) (fty : type) (a : expr) : optio
   else None.
 
 Definition interp_round (st : cst) (f : ident) (fty : type) (a b c d e f' g h k : expr) : option cst :=
-  if type_eq fty round_ty then
+  if is_round_ty fty then
   if Pos.eqb f _Round then
     match eval_ie st a, eval_ie st b, eval_ie st c, eval_ie st e, eval_ie st f', eval_ie st g,
           eval_ie st k, addr_local d, addr_local h with

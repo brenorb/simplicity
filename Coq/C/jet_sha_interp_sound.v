@@ -9,12 +9,50 @@ Local Transparent Archi.ptr64.
 Local Opaque sha_ge.
 Set Default Timeout 120.
 
+Lemma attr_noattrb_true a : attr_noattrb a = true -> a = noattr.
+Proof.
+  destruct a as [v al]. unfold attr_noattrb. cbn. destruct v; [discriminate|].
+  destruct al; [discriminate|]. reflexivity.
+Qed.
 Lemma is_tuint_true ty : is_tuint ty = true -> ty = tuint.
-Proof. unfold is_tuint. destruct (type_eq ty tuint); [auto|discriminate]. Qed.
+Proof.
+  destruct ty; try discriminate. destruct i; try discriminate. destruct s; try discriminate.
+  cbn. intros H. apply attr_noattrb_true in H. subst a. reflexivity.
+Qed.
 Lemma is_tint_true ty : is_tint ty = true -> ty = tint.
-Proof. unfold is_tint. destruct (type_eq ty tint); [auto|discriminate]. Qed.
+Proof.
+  destruct ty; try discriminate. destruct i; try discriminate. destruct s; try discriminate.
+  cbn. intros H. apply attr_noattrb_true in H. subst a. reflexivity.
+Qed.
 Lemma is_ptuint_true ty : is_ptuint ty = true -> ty = tptr tuint.
-Proof. unfold is_ptuint. destruct (type_eq ty (tptr tuint)); [auto|discriminate]. Qed.
+Proof.
+  destruct ty; try discriminate. cbn. intros H. apply andb_true_iff in H. destruct H as [H1 H2].
+  apply is_tuint_true in H1. apply attr_noattrb_true in H2. subst. reflexivity.
+Qed.
+Lemma is_cc_default_true cc : is_cc_default cc = true -> cc = cc_default.
+Proof.
+  destruct cc as [va up sr]. unfold is_cc_default. cbn. destruct va; [discriminate|].
+  destruct up; [discriminate|]. destruct sr; [discriminate|]. reflexivity.
+Qed.
+Lemma is_sigma_ty_true ty : is_sigma_ty ty = true -> ty = sigma_ty.
+Proof.
+  destruct ty as [| | | | | |targs tres cc| | ]; try discriminate.
+  destruct targs as [|ta [|? ?]]; try discriminate.
+  cbn. intros H. apply andb_true_iff in H. destruct H as [H H3]. apply andb_true_iff in H. destruct H as [H1 H2].
+  apply is_tuint_true in H1, H2. apply is_cc_default_true in H3. subst. reflexivity.
+Qed.
+Lemma is_round_ty_true ty : is_round_ty ty = true -> ty = round_ty.
+Proof.
+  destruct ty as [| | | | | |targs tres cc| | ]; try discriminate.
+  destruct targs as [|a [|b [|c [|d [|e [|f [|g [|h [|k [|? ?]]]]]]]]]]; try discriminate.
+  destruct tres; try discriminate.
+  cbn. intros H. repeat (apply andb_true_iff in H; let H' := fresh "H" in destruct H as [H H']).
+  repeat match goal with
+  | X : is_tuint _ = true |- _ => apply is_tuint_true in X
+  | X : is_ptuint _ = true |- _ => apply is_ptuint_true in X
+  | X : is_cc_default _ = true |- _ => apply is_cc_default_true in X
+  end. subst. reflexivity.
+Qed.
 
 Lemma arr_expr_inv a p i :
   arr_expr a = Some (p, i) ->
@@ -350,7 +388,7 @@ Lemma interp_sigma_sound st st' le m t f fty a :
     sha_R st' le' m.
 Proof.
   intros HR H. unfold interp_sigma in H.
-  destruct (type_eq fty sigma_ty) as [->|]; [|discriminate].
+  destruct (is_sigma_ty fty) eqn:Efty; [|discriminate]. apply is_sigma_ty_true in Efty. subst fty.
   destruct (eval_ie st a) as [v|] eqn:Ev; [|discriminate].
   destruct (eval_ie_sound st le m a v HR Ev) as [He Ht].
   destruct (Pos.eqb_spec f _sigma0) as [->|N0].
@@ -372,7 +410,7 @@ Lemma interp_round_sound st st' le m f fty a b c d e f' g h k :
     sha_R st' le m' /\ sha_F m m'.
 Proof.
   intros HR H. unfold interp_round in H.
-  destruct (type_eq fty round_ty) as [->|]; [|discriminate].
+  destruct (is_round_ty fty) eqn:Efty; [|discriminate]. apply is_round_ty_true in Efty. subst fty.
   destruct (Pos.eqb_spec f _Round) as [->|]; [|discriminate].
   destruct (eval_ie st a) as [va|] eqn:Ea; [|discriminate].
   destruct (eval_ie st b) as [vb|] eqn:Eb; [|discriminate].
