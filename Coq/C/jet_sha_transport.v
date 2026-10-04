@@ -31,7 +31,10 @@ Definition sha_core_helpers : list (ident * function) :=
     (jets._write32s, jets.f_write32s);
     (jets._read32s, jets.f_read32s);
     (jets._write8s, jets.f_write8s);
-    (jets._read8s, jets.f_read8s) ].
+    (jets._read8s, jets.f_read8s);
+    (jets._simplicity_read_buffer8, jets.f_simplicity_read_buffer8);
+    (jets._simplicity_write_buffer8, jets.f_simplicity_write_buffer8);
+    (jets._simplicity_write_sha256_context, jets.f_simplicity_write_sha256_context) ].
 
 Local Transparent sha_ge ge0.
 
