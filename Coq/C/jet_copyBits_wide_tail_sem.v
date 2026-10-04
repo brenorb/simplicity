@@ -41,6 +41,7 @@ Hypothesis Hso : Ptrofs.unsigned so = edge - 8 * (1 + k1).
 Hypothesis Hdo : Ptrofs.unsigned do = outedge + 8 * dA.
 Hypothesis Hn : 1 <= n1 <= 128.
 Hypothesis HdA : 0 <= dA.
+Hypothesis Hk1 : 0 <= k1.
 Hypothesis Hpos : n1 <= 64 * (dA + 1).
 Hypothesis Halign : C - 64 * dA - 63 = 64 * k1 + 64 - ss.
 Hypothesis Hsrc : forall q, 64 * k1 + 64 - ss <= q < 64 * k1 + 64 - ss + n1 ->
@@ -313,5 +314,101 @@ Proof.
                      eapply Mem.perm_store_1; [exact S3|]. apply Hperm2. exact Hp.
                  --- intros b Hv. eapply Mem.store_valid_block_1; [exact S4|].
                      eapply Mem.store_valid_block_1; [exact S3|]. apply Hvalid2. exact Hv.
+Qed.
+(** * memcpy branch *)
+Lemma wide_tail_memcpy :
+  ss = 0 \/ ss = 64 ->
+  exists le' mf out,
+    Clight2.exec_stmt ge0 empty_env le m1 copy_tail_after_partial E0 le' mf out /\
+    wide_tail_post le' mf out.
+Proof.
+  intros Hss.
+  set (j0 := 1 - ss / 64).
+  assert (Hj0 : (ss = 64 /\ j0 = 0) \/ (ss = 0 /\ j0 = 1)).
+  { unfold j0. destruct Hss as [E|E]; rewrite E; [right|left]; split; reflexivity. }
+  assert (Hdiv : ss / 64 = 1 - j0) by (unfold j0; lia).
+  assert (Hj0r : 0 <= j0 <= 1) by lia.
+  destruct (tail_src_word j0 ltac:(lia) ltac:(lia) ltac:(lia)) as (HE0 & S0 & HS0 & HS0').
+  destruct (tail_dst_word 0 ltac:(lia) ltac:(lia)) as (HA0 & HAM & PA).
+  replace (dA - 0) with dA in * by lia.
+  pose proof (Ptrofs.unsigned_range_2 so) as Hsor.
+  assert (Hdo_eq : Ptrofs.repr (outedge + 8 * dA) = do)
+    by (rewrite <- Hdo; apply Ptrofs.repr_unsigned).
+  destruct (Z_le_gt_dec n1 64) as [Hone|Htwo].
+  - (* one word *)
+    pose proof (tail_sep_word j0 0 ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia)) as Hsep0.
+    replace (dA - 0) with dA in Hsep0 by lia.
+    destruct (memcpy_word_effect Hmodel m1 bi (edge - 8 * (1 + (k1 + j0))) bw (outedge + 8 * dA) S0
+      HS0' PA ltac:(lia) ltac:(lia) Hsep0) as (mf & Hext & HloadA & Heff & Hperm & Hvalid).
+    assert (Hsrc_eq : Ptrofs.repr (edge - 8 * (1 + (k1 + j0))) =
+      Ptrofs.sub so (Ptrofs.repr (8 * (1 - ss / 64)))).
+    { rewrite Hdiv. unfold Ptrofs.sub. rewrite (Ptrofs.unsigned_repr (8 * (1 - (1 - j0)))) by lia.
+      rewrite Hso. f_equal. lia. }
+    rewrite Hdo_eq, Hsrc_eq in Hext.
+    eexists _, mf, Out_normal. split.
+    + eapply exec_copy_choice_memcpy with (src_ofs := so) (dst_ofs := do); try eassumption. lia.
+    + split; [left; reflexivity|]. split.
+      * eapply copied_sub with (lo := 64 * dA + 0) (hi := 64 * dA + 64); [|lia|lia].
+        apply (copied_word m0 mf bi edge bw outedge C dA (k1 + j0) 0 0 64 S0 S0 HloadA HS0 HdA
+          ltac:(lia) ltac:(lia) ltac:(lia)).
+        intros i Hi. split; [lia|]. f_equal; lia.
+      * split.
+        -- intros chunk b ofs Hout. apply Heff. rewrite (tail_low_word 0) in Hout by lia.
+           destruct Hout as [H|[H|H]]; [left; exact H|right; left; lia|right; right; lia].
+        -- split; [exact Hperm|exact Hvalid].
+  - (* two words *)
+    destruct (tail_src_word (j0 + 1) ltac:(lia) ltac:(lia) ltac:(lia)) as (HE1 & S1 & HS1 & HS1').
+    destruct (tail_dst_word 1 ltac:(lia) ltac:(lia)) as (HB0 & HBM & PB).
+    pose proof (tail_sep_word j0 0 ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia)) as Hs00.
+    pose proof (tail_sep_word j0 1 ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia)) as Hs01.
+    pose proof (tail_sep_word (j0 + 1) 0 ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia)) as Hs10.
+    pose proof (tail_sep_word (j0 + 1) 1 ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia)) as Hs11.
+    replace (dA - 0) with dA in * by lia.
+    set (src := edge - 8 * (1 + (k1 + (j0 + 1)))) in *.
+    set (dst := outedge + 8 * (dA - 1)) in *.
+    assert (HS0s : Mem.load Mint64 m1 bi (src + 8) = Some (Vlong S0)).
+    { replace (src + 8) with (edge - 8 * (1 + (k1 + j0))) by (unfold src; lia). exact HS0'. }
+    assert (PAd : Mem.valid_access m1 Mint64 bw (dst + 8) Writable).
+    { replace (dst + 8) with (outedge + 8 * dA) by (unfold dst; lia). exact PA. }
+    destruct (memcpy_two_words_effect Hmodel m1 bi src bw dst S1 S0 HS1' HS0s PB PAd
+      ltac:(unfold src; lia) ltac:(unfold src; lia) ltac:(unfold dst; lia) ltac:(unfold dst; lia)
+      ltac:(unfold src, dst in *; lia))
+      as (mf & Hext & HloadB & HloadA & Heff & Hperm & Hvalid).
+    assert (Hdst_eq : Ptrofs.repr dst = Ptrofs.sub do (Ptrofs.repr 8)).
+    { unfold Ptrofs.sub. rewrite (Ptrofs.unsigned_repr 8) by lia. rewrite Hdo. f_equal. unfold dst. lia. }
+    assert (Hsrc_eq : Ptrofs.repr src = Ptrofs.sub so (Ptrofs.repr (8 * (2 - ss / 64)))).
+    { rewrite Hdiv. unfold Ptrofs.sub. rewrite (Ptrofs.unsigned_repr (8 * (2 - (1 - j0)))) by lia.
+      rewrite Hso. f_equal. unfold src. lia. }
+    rewrite Hdst_eq, Hsrc_eq in Hext.
+    replace (dst + 8) with (outedge + 8 * dA) in HloadA by (unfold dst; lia).
+    eexists _, mf, Out_normal. split.
+    + eapply exec_copy_choice_memcpy2 with (src_ofs := so) (dst_ofs := do); try eassumption. lia.
+    + split; [left; reflexivity|]. split.
+      * eapply copied_sub with (lo := 64 * (dA - 1) + 0) (hi := 64 * dA + 64); [|lia|lia].
+        eapply copied_app with (mid := 64 * dA).
+        -- replace (64 * dA) with (64 * (dA - 1) + 64) by lia.
+           apply (copied_word m0 mf bi edge bw outedge C (dA - 1) (k1 + (j0 + 1)) 0 0 64 S1 S1 HloadB HS1
+             ltac:(lia) ltac:(lia) ltac:(lia) ltac:(lia)).
+           intros i Hi. split; [lia|]. f_equal; lia.
+        -- replace (64 * dA) with (64 * dA + 0) at 1 by lia.
+           apply (copied_word m0 mf bi edge bw outedge C dA (k1 + j0) 0 0 64 S0 S0 HloadA HS0 HdA
+             ltac:(lia) ltac:(lia) ltac:(lia)).
+           intros i Hi. split; [lia|]. f_equal; lia.
+      * split.
+        -- intros chunk b ofs Hout. apply Heff. rewrite (tail_low_word 1) in Hout by lia.
+           unfold dst. destruct Hout as [H|[H|H]]; [left; exact H|right; left; lia|right; right; lia].
+        -- split; [exact Hperm|exact Hvalid].
+Qed.
+
+Theorem wide_tail :
+  0 <= ss <= 64 ->
+  exists le' mf out,
+    Clight2.exec_stmt ge0 empty_env le m1 copy_tail_after_partial E0 le' mf out /\
+    wide_tail_post le' mf out.
+Proof.
+  intros Hss.
+  destruct (Z.eq_dec ss 0) as [E0|N0]; [apply wide_tail_memcpy; left; exact E0|].
+  destruct (Z.eq_dec ss 64) as [E64|N64]; [apply wide_tail_memcpy; right; exact E64|].
+  apply wide_tail_loop. lia.
 Qed.
 End WideTail.
