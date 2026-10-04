@@ -7,6 +7,17 @@ new axioms or pushes. Reuse completed proofs and proceed easiest to hardest.
 
 ## Scope and status
 
+Current registered coverage is **319/533 entries without an extra library
+premise and 214 missing**. The 92 formerly conditional copy-family entries use
+the proved internal one-UWORD branch of `copyWords`. Copies exceeding one UWORD
+still use libc and are outside the bounded copy theorem. Missing entries still
+prevent `--require-complete` from passing. The primitive namespace is corrected to `Bitcoin`, with
+canonical constructor/name/type checks and Coq compatibility lemmas. Final
+acceptance requires `../check-jets.sh --accept` against reviewed snapshots and
+unchanged sources, including both pinned ASTs. See `../JET_BUILD.md` for trust
+boundaries and verification evidence. The paragraphs below record earlier
+integration milestones rather than the latest inventory.
+
 The public surface currently has 533 distinct declarations: 370 in `C/jets.h`,
 60 in `C/bitcoin/bitcoinJets.h`, 103 in `C/elements/elementsJets.h`.
 `../jet-coverage.py` derives this inventory from those headers and both

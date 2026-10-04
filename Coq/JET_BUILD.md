@@ -5,12 +5,16 @@ checkout. What the proofs establish is in [C/JET_PROOFS.md](C/JET_PROOFS.md).
 
 ## Current acceptance and trust boundaries
 
-The registered inventory is **319/533 entries**: 227 without an additional
-library premise, 92 conditional on `memcpy_model`, and 214 missing. The builtin
-copy-effect witness does not prove that the linked libc implements that model.
-Inherited Coq/CompCert axioms still apply. This is not a general libc or
-whole-evaluator verification. `--require-complete` rejects both missing entries
-and explicit library conditions.
+The registered inventory is **319/533 entries without an extra library premise;
+214 have no proof entry**. The Coq/CompCert inherited axioms still apply. The 92
+copy-family entries previously conditional on `memcpy_model` now use the actual
+internal `copyWords` one-UWORD branch, proved by Clight load/store execution in
+`C/jet_copyWord.v`. Existing frame, output, prefix and separation contracts are
+preserved; only the external-library premise is removed. Larger copies retain
+libc `memcpy` and are outside the bounded copy theorem. This is not a general
+libc or whole-evaluator verification. The historical `memcpy_model` and builtin
+witness remain explicit library-boundary documentation, not coverage premises.
+`--require-complete` still fails on the 214 missing entries.
 
 The extended Bitcoin module uses the canonical `Bitcoin` primitive namespace.
 Its primitive constructor types and names are compared with
@@ -3136,3 +3140,51 @@ whole-evaluator correctness and every-jet completion are not established.
 Python/shell syntax, workflow YAML, Nix inventory syntax and `git diff --check`
 passed. GitHub Actions and a fresh Nix proof build were not run for this
 hardening. All changes are local and uncommitted.
+
+### Verified internal one-word copy (2026-10-04)
+
+The final working tree passed `JOBS=2 bash Coq/check-jets.sh --accept`
+with exit **0**, against reviewed snapshots, without update flags. The full
+local log is `/tmp/jet-copy-word-acceptance-final.log` and includes its explicit
+exit status. The host was macOS/arm64 with Coq 8.17.1 and the pinned CompCert/VST
+and glibc sysroot; the proof target remains x86-64/Linux LP64.
+
+* `C/frame.c` now uses a real internal `copyWords` helper. Its initialized
+  one-UWORD branch executes a load/store; larger copies retain libc `memcpy`.
+  `C/jet_copyWord.v` proves the actual generated Clight branch, then existing
+  execution, memory preservation and specification proofs compose with it.
+* All **92** copy-family public theorems lose only `memcpy_model`. Comparing
+  the complete printed contract sections against the pre-change baseline
+  preserves every other part of all **2,010** existing theorem types and every
+  existing audited specification definition. Existing theorem axiom sets and
+  the library kernel-axiom record are unchanged. Review evidence is in
+  `/tmp/jet-copy-word-snapshot-review.log`.
+* Ten helper results and two helper definitions are newly audited. The final
+  kernel check covers **444 public-result modules**; the assumption comparison
+  covers **2,020 results, 813 closed**. The contract comparison, compiled negative
+  fixtures, primitive identity checks and both pinned AST comparisons pass.
+  Audit inputs remained unchanged throughout the final run.
+* Both Clight artifacts were genuinely regenerated. Among existing function
+  bodies, only `copyBitsHelper` changes; `copyWords` is the only added function.
+  No generated body is manually substituted.
+* Cold consumer rebuilding exposed existing 10-second deadlines in four finite
+  rotation/shift normal-form proofs. Scoped 30-second limits retain every
+  theorem and proof step; the two shift adjustments affect `Qed` checking only.
+  Ordinary tactic limits remain unchanged outside these scopes. The isolated
+  shift checks took 6.674/7.296 seconds at `Qed`; final shift32 checking took
+  11.03 seconds. Diagnostic logs are `/tmp/jet-copy-word-rotation-batches.log`
+  and `/tmp/jet-copy-word-shift-qed-retry.log`.
+* The strict native C build and correctness suite pass: **96 successes, zero
+  failures**, including a new bit-by-bit copying regression over all cursor
+  alignments and zero/single-word/bulk boundary counts. It checks the preserved
+  prefix, cursors, source contents and guard words, allowing the documented
+  overwrite beyond the destination cursor. The log is
+  `/tmp/jet-copy-word-native-tests.log`. Native timing assertions were disabled;
+  this is a correctness check, not a performance acceptance claim.
+
+Final audited input SHA-256: `21b9e729ad68121ec331e2493da6489a365f9b834b22ac86906a89d58210adc8`.
+
+Coverage is **319/533 entries without an additional library premise**, with
+**214 missing**. Inherited Coq/CompCert axioms still apply. This bounded helper
+proof does not verify general libc copying, the Bitcoin cache/environment
+projection or the whole evaluator. All changes remain local and uncommitted.

@@ -115,9 +115,9 @@ def inventory():
         # physical/logical primitive-environment correspondence.
         family = jets[name]["family"]
         if family == "core":
-            # Copy-family contracts retain an explicit library model;
-            # record these separately from direct execution proofs.
-            contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b|"
+            # Separated frame contracts can be unconditional. A remaining
+            # explicit libc model is still recorded as conditional coverage.
+            contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec|jet_separated_local_spec)\s+f_{re.escape(name)}\b|"
                         rf"\bmemcpy_model\s*->\s*jet_separated_local_spec\s+f_{re.escape(name)}\b")
         elif family == "bitcoin":
             contract = (rf"\bapplication_jet_local_spec\s+f_{re.escape(name)}\s+"
