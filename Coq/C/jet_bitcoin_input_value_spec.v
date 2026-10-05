@@ -3,7 +3,7 @@
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers.
 Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate Simplicity.Util.Option.
-Require Import Simplicity.Primitive.Bitcoin C.jet_wide_spec C.jet_wide.
+Require Import Simplicity.Primitive.Bitcoin C.jet_wide_spec C.jet_wide C.jet_word_repr.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 30.
@@ -39,15 +39,31 @@ Lemma encode_sum_inl_word64 :
   @encode (Ty.Sum Ty.Unit Word64) (inl tt) = Some false :: repeat None 64.
 Proof. vm_compute. reflexivity. Qed.
 
-(** The 64-bit word the C jet writes agrees with the canonical value of an
-    in-range (non-negative) amount. *)
+(** Both integer views encode the same canonical Word64, including values
+    whose most significant bit is set.  No monetary range is required. *)
+Lemma word64_signed_unsigned v :
+  @fromZ (WordToZ 6) (Int64.signed v) =
+  @fromZ (WordToZ 6) (Int64.unsigned v).
+Proof.
+  rewrite <- (word_fromZ_mod 6 (Int64.signed v)).
+  change (@fromZ (WordToZ 6) (Int64.signed v mod Int64.modulus) =
+    @fromZ (WordToZ 6) (Int64.unsigned v)).
+  rewrite <- Int64.unsigned_repr_eq, Int64.repr_signed. reflexivity.
+Qed.
+
+Lemma decode_wide64_value v :
+  decode_wide W64 (Int64.zero_ext 64 v) = @fromZ (WordToZ 6) (Int64.signed v).
+Proof.
+  unfold decode_wide. change (wide_log W64) with 6%nat.
+  rewrite Int64.zero_ext_above by (change Int64.zwordsize with 64; lia).
+  symmetry. apply word64_signed_unsigned.
+Qed.
+
+(** Retained as a compatibility corollary; the stronger result above covers
+    every machine value. *)
 Lemma decode_wide64_money v :
   0 <= Int64.signed v ->
   decode_wide W64 (Int64.zero_ext 64 v) = @fromZ (WordToZ 6) (Int64.signed v).
 Proof.
-  intros Hv. unfold decode_wide. change (wide_log W64) with 6%nat.
-  rewrite Int64.zero_ext_above by (change Int64.zwordsize with 64; lia).
-  f_equal. unfold Int64.signed in *.
-  destruct (zlt (Int64.unsigned v) Int64.half_modulus); [reflexivity|].
-  pose proof (Int64.unsigned_range v) as [_ Hlt]. lia.
+  intros _. apply decode_wide64_value.
 Qed.

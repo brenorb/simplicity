@@ -200,8 +200,7 @@ Proof.
         encode V).
       { unfold V, bitcoin_input_value_result. rewrite <- Hidx. fold tx. rewrite Hnth. rewrite Hb.
         change (wide_bits W64) with 64. rewrite encode_sum_inr_word64.
-        rewrite (decode_wide64_money v); [reflexivity|].
-        pose proof (sigTxiValue_bound txi) as HB0. unfold MAX_MONEY in HB0. subst v. lia. }
+        rewrite (decode_wide64_value v). reflexivity. }
       exact (eq_rect _ (fun c => write_effect mr me bd dbase bw outedge cursor (1 + 64) c) Eseq _ Hcells).
     - (* failure branch *)
       intros le' Hi Hd He Hb.

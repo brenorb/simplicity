@@ -197,8 +197,7 @@ Proof.
     ltac:(split; lia) ltac:(split; lia) ltac:(split; lia) ltac:(split; lia)
     _ _ bitcoin_current_value_shape _ _).
   - intros x. unfold bitcoin_current_value_specv. rewrite Int64.repr_unsigned.
-    apply decode_wide64_money.
-    pose proof (sigTxiValue_bound x) as HB0. unfold MAX_MONEY in HB0. lia.
+    apply decode_wide64_value.
   - intros e le' m' bin inbase ixv v H2 H3 Hi0 HM HL.
     exact (eval_bitcoin_elem_nested_field_at e le' m' _t'2 _t'3 _sigInput 160 _txo 104 _sigOutput _value 0
       bin inbase ixv v bitcoin_sizeof_sigInput bitcoin_sigInput_txo bitcoin_sigOutput_value H2 H3 Hi0

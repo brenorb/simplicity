@@ -12,6 +12,7 @@ Require Import C.jets_bitcoin C.jet_bitcoin_linkage C.jet_bitcoin_version_exec.
 Require Import C.jet_bitcoin_field_eval C.jet_bitcoin_effects C.jet_bitcoin_wrapper.
 Require Import C.jet_bitcoin_hash_getters C.jet_bitcoin_transport C.jet_bitcoin_call C.jet_bitcoin_steps.
 Require Import C.jet_bitcoin_totals_spec C.jet_bitcoin_totals_canonical.
+Require Import C.jet_word_repr.
 Import Values Mem Ctypes ListNotations Clightdefs.
 Local Open Scope Z_scope.
 Local Opaque bitcoin_ge.
@@ -83,7 +84,7 @@ Definition bitcoin_tx64_env_rep delta (total : Bitcoin.env -> Z)
     0 <= tbase /\ tbase + 488 <= Ptrofs.max_unsigned /\
     Mem.load Mptr m be ebase = Some (Vptr bt (Ptrofs.repr tbase)) /\
     Mem.load Mint64 m bt (tbase + delta) = Some (Vlong value) /\
-    Int64.unsigned value = total environment /\
+    Int64.unsigned value = total environment mod Int64.modulus /\
     fp = [(be, ebase, ebase + 8); (bt, tbase + delta, tbase + delta + 8)].
 
 Lemma decode_wide64_unsigned v :
@@ -91,6 +92,18 @@ Lemma decode_wide64_unsigned v :
 Proof.
   unfold decode_wide, fw6. change (wide_log W64) with 6%nat.
   rewrite Int64.zero_ext_above by (change Int64.zwordsize with 64; lia). reflexivity.
+Qed.
+
+(** C caches Word64 totals modulo 2^64, rather than an unbounded integer
+    total.  This also covers signed representatives and aggregate overflow. *)
+Lemma fw6_mod64 z : fw6 (z mod Int64.modulus) = fw6 z.
+Proof. exact (word_fromZ_mod 6 z). Qed.
+
+Lemma fw6_sub_mod64 x y :
+  fw6 (x mod Int64.modulus - y mod Int64.modulus) = fw6 (x - y).
+Proof.
+  rewrite <- (fw6_mod64 (x mod Int64.modulus - y mod Int64.modulus)).
+  rewrite <- Zminus_mod. apply fw6_mod64.
 Qed.
 
 Lemma bitcoin_tx64_getter_local_spec f field delta total
@@ -151,7 +164,7 @@ Proof.
       end))
     as (mf & HCall & HCells & HPrefix & HFields & HMem).
   exists mf, (fw6 (total environment)). split; [apply HSpec|]. split; [exact HCall|].
-  split; [unfold cells in HCells; rewrite decode_wide64_unsigned, HR in HCells; exact HCells|].
+  split; [unfold cells in HCells; rewrite decode_wide64_unsigned, HR, fw6_mod64 in HCells; exact HCells|].
   split; [exact HPrefix|]. split; [exact HFields|]. exact HMem.
 Qed.
 

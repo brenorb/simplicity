@@ -32,13 +32,11 @@ Record sigTxInput : Set :=
  { sigTxiPreviousOutpoint : outpoint
  ; sigTxiValue : int64
  ; sigTxiSequence : int
- ; sigTxiValue_bound : moneyRange (Int64.signed sigTxiValue)
  }.
 
 Record txOutput : Set :=
  { txoValue : int64
  ; txoScript : script
- ; txoValue_bound : moneyRange (Int64.signed txoValue)
  ; txoScript_bound : (Zlength txoScript < Int.modulus)%Z
  }.
 
@@ -48,13 +46,13 @@ Record sigTx : Set :=
  ; sigTxOut : list txOutput
  ; sigTxLock : lock
  ; sigTxInBounds : (0 < Zlength sigTxIn < Int.modulus)%Z
- ; sigTxOutBounds : (0 < Zlength sigTxOut < Int.modulus)%Z
+ ; sigTxOutBounds : (0 <= Zlength sigTxOut < Int.modulus)%Z
+ (* These sums are integer representatives.  Primitive results below encode
+    their low 64 bits, as do the Word64 sums in the canonical implementation.
+    Signed and unsigned representatives encode the same Word64. *)
  ; sigTxTotalInValue : Z := Z_sum (map (fun i => Int64.signed (sigTxiValue i)) sigTxIn)
  ; sigTxTotalOutValue : Z := Z_sum (map (fun i => Int64.signed (txoValue i)) sigTxOut)
- ; sigTxFee : Z := sigTxTotalOutValue - sigTxTotalInValue
- ; sigTxTotalInValue_bound : moneyRange sigTxTotalInValue
- ; sigTxTotalOutValue_bound : moneyRange sigTxTotalOutValue
- ; sigTxFee_bound : moneyRange sigTxFee
+ ; sigTxFee : Z := sigTxTotalInValue - sigTxTotalOutValue
  }.
 
 End DataTypes.
@@ -105,7 +103,7 @@ Definition primName : string := "Bitcoin".
 Definition name {a b} (p : t a b) : string :=
 match p with
 | Version => "version"
-| LockTime => "locktime"
+| LockTime => "lockTime"
 | InputsHash => "inputsHash"
 | OutputsHash => "outputsHash"
 | NumInputs => "numInputs"

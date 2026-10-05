@@ -132,8 +132,8 @@ Definition bitcoin_fee_env_rep (m : mem) (env : val) (environment : Bitcoin.env)
     Mem.load Mptr m be ebase = Some (Vptr bt (Ptrofs.repr tbase)) /\
     Mem.load Mint64 m bt (tbase + 432) = Some (Vlong vi) /\
     Mem.load Mint64 m bt (tbase + 440) = Some (Vlong vo) /\
-    Int64.unsigned vi = sigTxTotalInValue (Bitcoin.envTx environment) /\
-    Int64.unsigned vo = sigTxTotalOutValue (Bitcoin.envTx environment) /\
+    Int64.unsigned vi = sigTxTotalInValue (Bitcoin.envTx environment) mod Int64.modulus /\
+    Int64.unsigned vo = sigTxTotalOutValue (Bitcoin.envTx environment) mod Int64.modulus /\
     fp = [(be, ebase, ebase + 8); (bt, tbase + 432, tbase + 448)].
 
 Lemma fw6_sub (vi vo : int64) :
@@ -208,6 +208,7 @@ Proof.
   exists mf, (fw6 (sigTxTotalInValue (Bitcoin.envTx environment) -
                    sigTxTotalOutValue (Bitcoin.envTx environment))).
   split; [apply bitcoin_fee_spec_value|]. split; [exact HCall|].
-  split; [unfold cells in HCells; rewrite decode_wide64_unsigned, fw6_sub, HRi, HRo in HCells; exact HCells|].
+  split; [unfold cells in HCells;
+    rewrite decode_wide64_unsigned, fw6_sub, HRi, HRo, fw6_sub_mod64 in HCells; exact HCells|].
   split; [exact HPrefix|]. split; [exact HFields|]. exact HMem.
 Qed.
