@@ -106,6 +106,24 @@ Definition xcall_ret (optid : option ident) (ts : PTree.t sx) (nreg : nat) (ty :
   | None => None
   end.
 
+(** Entry into, execution of, and return from an internal function, given
+    an executor [rec] for its body. *)
+Definition xfun_with (rec : venv -> sstate -> statement -> option res)
+    (fd : function) (xs : list sx) (regs : list region)
+    (k : sstate -> xout -> option res) : option res :=
+  if fn_okb fd then
+    if forallb (xp_lt (length regs)) xs then
+      match xalloc ce (fn_vars fd) (length regs), xbind (fn_params fd) xs (PTree.empty sx) with
+      | Some (regsN, veN), Some ts0 =>
+          match rec veN (mkst ts0 (regs ++ regsN)) (fn_body fd) with
+          | Some rb => tbind rb k
+          | None => None
+          end
+      | _, _ => None
+      end
+    else None
+  else None.
+
 Fixpoint xstmt (n : nat) (ve : venv) (Σ : sstate) (s : statement) {struct n} : option res :=
   match n with
   | O => None
@@ -190,30 +208,23 @@ Fixpoint xstmt (n : nat) (ve : venv) (Σ : sstate) (s : statement) {struct n} : 
         match vlookup ve fid, flookup fns fid, fty with
         | None, Some fd, Tfunction tyargs tyres cc =>
             if type_eq (type_of_function fd) fty then
-              if fn_okb fd then
-                match xargs ce ve gv Σ al tyargs with
-                | Some xs =>
-                    if forallb (xp_lt (length (sregs Σ))) xs then
-                      match xalloc ce (fn_vars fd) (length (sregs Σ)),
-                            xbind (fn_params fd) xs (PTree.empty sx) with
-                      | Some (regsN, veN), Some ts0 =>
-                          match xstmt n veN (mkst ts0 (sregs Σ ++ regsN)) (fn_body fd) with
-                          | Some rb =>
-                              tbind rb (xcall_ret optid (stemps Σ) (length (sregs Σ)) (fn_return fd))
-                          | None => None
-                          end
-                      | _, _ => None
-                      end
-                    else None
-                | None => None
-                end
-              else None
+              match xargs ce ve gv Σ al tyargs with
+              | Some xs =>
+                  xfun_with (xstmt n) fd xs (sregs Σ)
+                    (xcall_ret optid (stemps Σ) (length (sregs Σ)) (fn_return fd))
+              | None => None
+              end
             else None
         | _, _, _ => None
         end
     | _ => None
     end
   end.
+
+(** A whole function call from the outside; the result is bound to
+    temporary [1] of an otherwise empty temporary environment. *)
+Definition xfun (n : nat) (fd : function) (xs : list sx) (regs : list region) : option res :=
+  xfun_with (xstmt n) fd xs regs (xcall_ret (Some 1%positive) (PTree.empty sx) (length regs) (fn_return fd)).
 End EXEC.
 
 (** ** Soundness *)
@@ -332,6 +343,133 @@ Notation exec := (ClightBigstep.exec_stmt function_entry2 ge).
 Ltac outinv Hom out :=
   destruct out as [| | |[[? ?]|]]; simpl in Hom; try contradiction.
 
+Lemma xfun_sound (rec : venv -> sstate -> statement -> option res)
+  (IH : forall ve Σ s r, rec ve Σ s = Some r ->
+     forall β e le m,
+       rep β (sregs Σ) m -> tmatch β (stemps Σ) le -> ematch β ve e -> gmatch2 ge β gv ->
+       exists le' m' out, exec e le m s E0 le' m' out /\ post β Σ m r le' m' out)
+  fd xs regs ts optid rr :
+  xfun_with ce rec fd xs regs (xcall_ret optid ts (length regs) (fn_return fd)) = Some rr ->
+  forall β m, rep β regs m -> gmatch2 ge β gv ->
+  exists m3 vres,
+    ClightBigstep.eval_funcall function_entry2 ge m (Internal fd) (map (den (lay β)) xs) E0 m3 vres /\
+    rep β (sregs (fst (rsel (lay β) rr))) m3 /\
+    (exists v, stemps (fst (rsel (lay β) rr)) = set_opt optid v ts /\
+       match v with Some x => vres = den (lay β) x | None => vres = Vundef end) /\
+    snd (rsel (lay β) rr) = ONormal /\
+    map rshape (sregs (fst (rsel (lay β) rr))) = map rshape regs /\
+    Mem.unchanged_on (frame β (mkst ts regs) m) m m3.
+Proof.
+  unfold xfun_with. intros H β m Hrep Hgm.
+  destruct (fn_okb fd) eqn:Fok; [|discriminate].
+  destruct (forallb (xp_lt (length regs)) xs) eqn:Fa; [|discriminate].
+  destruct (xalloc ce (fn_vars fd) (length regs)) as [[regsN veN]|] eqn:Eal; [|discriminate].
+  destruct (xbind (fn_params fd) xs (PTree.empty sx)) as [ts0|] eqn:Ebd; [|discriminate].
+  destruct (rec veN (mkst ts0 (regs ++ regsN)) (fn_body fd)) as [rb|] eqn:Eb; [|discriminate].
+  destruct (fn_okb_true fd Fok) as (Hnr1 & Hnr2 & Hdj).
+  assert (Hlen : length β = length regs) by (destruct Hrep as (HH & _); exact HH).
+  destruct (xalloc_sound ge (fn_vars fd) (length regs) regsN veN β regs m empty_env
+              Eal Hrep Hlen Hnr1)
+    as (e' & m1 & βN & Hav & Hrep1 & HlenN & He' & Hidx & Hinj & Hnv & Hun1).
+  set (β' := β ++ βN) in *.
+  assert (Hlay : forall r, (r < length regs)%nat -> lay β' r = lay β r).
+  { intros r Hr. apply lay_app_l. lia. }
+  assert (Hargs : map (den (lay β')) xs = map (den (lay β)) xs).
+  { apply map_den_ext with (n := length regs); [exact Hlay|exact Fa]. }
+  destruct (xbind_sound β' (fn_params fd) xs (PTree.empty sx) ts0
+              (create_undef_temps (fn_temps fd)) Ebd) as (le1 & Hbind & Htm0).
+  { intros id x Hx. rewrite PTree.gempty in Hx. discriminate. }
+  rewrite Hargs in Hbind.
+  assert (Hem' : ematch β' veN e').
+  { intros id. split.
+    - rewrite He'. destruct (vlookup veN id) as [[r ty]|]; [reflexivity|apply PTree.gempty].
+    - intros r ty V. exact (proj1 (proj2 (proj2 (Hidx id r ty V)))). }
+  assert (Hgm' : gmatch2 ge β' gv).
+  { destruct Hgm as [Hg1 Hg2]. split.
+    - intros id r ty V. destruct (Hg1 id r ty V) as [Hs Hb]. pose proof (Hg2 id r ty V) as Hr.
+      unfold blk, bas in *. rewrite Hlay by lia. auto.
+    - intros id r ty V. pose proof (Hg2 id r ty V). unfold β'. rewrite app_length. lia. }
+  destruct (IH veN _ _ rb Eb β' e' le1 m1 Hrep1 Htm0 Hem' Hgm')
+    as (le2 & m2 & out2 & Hexb & Hrepb & Htmb & Homb & Hshb & Hunb).
+  destruct (tbind_sel (lay β) _ _ _ H) as (rk & Hk & Hsel).
+  rewrite (rsel_indep (lay β') (lay β)) in Hrepb, Htmb, Homb, Hshb.
+  destruct (rsel (lay β) rb) as [Σb ob]. simpl in Hk, Hrepb, Htmb, Homb, Hshb.
+  unfold xcall_ret in Hk.
+  destruct (xret (fn_return fd) ob) as [v|] eqn:Er; [|discriminate].
+  destruct (match v with Some x => xp_lt (length regs) x | None => true end) eqn:Ev; [|discriminate].
+  inversion Hk; subst rk; clear Hk.
+  destruct (xret_sound β' _ _ out2 m2 v Er Homb) as (vres & Hres & Hvres).
+  assert (Hnrb : list_norepet (map fst β')) by (destruct Hrepb as (_ & HH & _); exact HH).
+  assert (Hlenb : length β' = length (regs ++ regsN)).
+  { unfold β'. rewrite !app_length. lia. }
+  destruct (callee_env_blocks ge β' veN e' Hnrb) as (Hblk & Hbnr).
+  { intros id. rewrite He'. destruct (vlookup veN id) as [[r ty]|]; [reflexivity|apply PTree.gempty]. }
+  { intros id r ty V. destruct (Hidx id r ty V) as (_ & _ & _ & reg & Hreg & _).
+    rewrite Hlenb. apply nth_error_Some. congruence. }
+  { exact Hinj. }
+  destruct (free_list_exists (blocks_of_env ge e') m2 Hbnr) as (m3 & Hfl & Hun3).
+  { intros b lo hi Hin. destruct (Hblk b lo hi Hin) as (id & r & ty & V & -> & -> & ->).
+    destruct (Hidx id r ty V) as (_ & _ & _ & reg & Hreg & Hfree).
+    destruct (shape_nth _ _ r reg Hshb Hreg) as (regb & Hregb & Hsh).
+    destruct Hrepb as (_ & _ & HH). pose proof (HH r regb Hregb) as (_ & _ & _ & _ & Hfr).
+    assert (Ef : rfree regb = Some (sizeof ce ty)).
+    { unfold rshape in Hsh. inversion Hsh. congruence. }
+    rewrite Ef in Hfr. exact (proj1 (proj2 (proj2 Hfr))). }
+  assert (HinN : forall b, In b (map (fun x => fst (fst x)) (blocks_of_env ge e')) -> In b (map fst βN)).
+  { intros b Hin. apply in_map_iff in Hin. destruct Hin as ([[b' lo] hi] & Eq & Hin). simpl in Eq. subst b'.
+    destruct (Hblk b lo hi Hin) as (id & r & ty & V & -> & _).
+    destruct (Hidx id r ty V) as (_ & Hge & _ & reg & Hreg & _).
+    assert (Hr : (r < length β')%nat) by (rewrite Hlenb; apply nth_error_Some; congruence).
+    unfold blk, lay, β'. rewrite app_nth2 by lia. apply in_map. apply nth_In.
+    unfold β' in Hr. rewrite app_length in Hr. lia. }
+  assert (HNinv : forall b, In b (map fst βN) -> ~ Mem.valid_block m b).
+  { intros b Hin. apply in_map_iff in Hin. destruct Hin as (p & <- & Hp).
+    exact (proj1 (Forall_forall _ _) Hnv p Hp). }
+  assert (HβN : forall b, In b (map fst β) -> ~ In b (map fst βN)).
+  { intros b H1 H2. unfold β' in Hnrb. rewrite map_app in Hnrb.
+    apply list_norepet_app in Hnrb. destruct Hnrb as (_ & _ & Hd). exact (Hd b b H1 H2 eq_refl). }
+  assert (Hlenb2 : length (sregs Σb) = length (regs ++ regsN)).
+  { rewrite <- (map_length rshape (sregs Σb)), Hshb, map_length. reflexivity. }
+  assert (Hrep3 : rep β (firstn (length regs) (sregs Σb)) m3).
+  { eapply rep_mem with (m := m2).
+    - eapply Mem.unchanged_on_implies; [exact Hun3|]. intros b ofs Hb _ Hin.
+      exact (HβN b Hb (HinN b Hin)).
+    - eapply rep_prefix with (βN := βN) (regsN := skipn (length regs) (sregs Σb)).
+      + rewrite firstn_skipn. exact Hrepb.
+      + rewrite firstn_length, Hlenb2, app_length. lia. }
+  assert (Hvr : match v with Some x => vres = den (lay β) x | None => vres = Vundef end).
+  { destruct v as [x|]; [|exact Hvres]. rewrite Hvres.
+    apply den_ext with (n := length regs); [exact Hlay|exact Ev]. }
+  exists m3, vres. split.
+  { eapply eval_funcall_internal.
+    - constructor; [exact Hnr1|exact Hnr2|exact Hdj|exact Hav|exact Hbind].
+    - exact Hexb.
+    - exact Hres.
+    - exact Hfl. }
+  rewrite Hsel. simpl.
+  split; [exact Hrep3|]. split; [exists v; split; [reflexivity|exact Hvr]|].
+  split; [reflexivity|]. split.
+  { rewrite <- firstn_map, Hshb, map_app, firstn_app, map_length, Nat.sub_diag.
+    simpl. rewrite app_nil_r. apply firstn_all2. rewrite map_length. lia. }
+  eapply Mem.unchanged_on_trans.
+  { eapply Mem.unchanged_on_implies; [exact Hun1|]. intros; exact I. }
+  eapply Mem.unchanged_on_trans.
+  { eapply Mem.unchanged_on_implies; [exact Hunb|].
+    intros b ofs [Hv Hf] Hv1. split; [exact Hv1|].
+    intros (r & s & d & ch & Hs & Hin & Eb' & Hr).
+    destruct (lt_dec r (length regs)) as [Hlt|Hge].
+    - apply Hf. exists r, s, d, ch. simpl in Hs.
+      rewrite map_app, nth_error_app1 in Hs by (rewrite map_length; exact Hlt).
+      unfold blk, bas in *. rewrite Hlay in Eb', Hr by exact Hlt. auto.
+    - apply (HNinv b); [|exact Hv]. subst b.
+      assert (r < length β')%nat.
+      { rewrite Hlenb. rewrite <- (map_length rshape). apply nth_error_Some. simpl in Hs. congruence. }
+      unfold blk, lay, β'. rewrite app_nth2 by lia. apply in_map. apply nth_In.
+      unfold β' in H0. rewrite app_length in H0. lia. }
+  eapply Mem.unchanged_on_implies; [exact Hun3|].
+  intros b ofs [Hv Hf] _ Hin. exact (HNinv b (HinN b Hin) Hv).
+Qed.
+
 Theorem xstmt_sound n : forall ve Σ s r,
   xstmt ce gv fns n ve Σ s = Some r ->
   forall β e le m,
@@ -374,86 +512,9 @@ Proof.
     destruct (flookup fns i) as [fd|] eqn:Fl; [|discriminate].
     destruct t; try discriminate.
     destruct (type_eq (type_of_function fd) (Tfunction t t0 c)) as [Ety|]; [|discriminate].
-    destruct (fn_okb fd) eqn:Fok; [|discriminate].
     destruct (xargs ce ve gv Σ l t) as [xs|] eqn:Ea; [|discriminate].
-    destruct (forallb (xp_lt (length (sregs Σ))) xs) eqn:Fa; [|discriminate].
-    destruct (xalloc ce (fn_vars fd) (length (sregs Σ))) as [[regsN veN]|] eqn:Eal; [|discriminate].
-    destruct (xbind (fn_params fd) xs (PTree.empty sx)) as [ts0|] eqn:Ebd; [|discriminate].
-    destruct (xstmt ce gv fns n veN (mkst ts0 (sregs Σ ++ regsN)) (fn_body fd)) as [rb|] eqn:Eb; [|discriminate].
-    destruct (fn_okb_true fd Fok) as (Hnr1 & Hnr2 & Hdj).
-    assert (Hlen : length β = length (sregs Σ)) by (destruct Hrep as (HH & _); exact HH).
-    destruct (xalloc_sound ge (fn_vars fd) (length (sregs Σ)) regsN veN β (sregs Σ) m empty_env
-                Eal Hrep Hlen Hnr1)
-      as (e' & m1 & βN & Hav & Hrep1 & HlenN & He' & Hidx & Hinj & Hnv & Hun1).
-    set (β' := β ++ βN) in *.
-    assert (Hlay : forall r, (r < length (sregs Σ))%nat -> lay β' r = lay β r).
-    { intros r Hr. apply lay_app_l. lia. }
-    assert (Hargs : map (den (lay β')) xs = map (den (lay β)) xs).
-    { apply map_den_ext with (n := length (sregs Σ)); [exact Hlay|exact Fa]. }
-    destruct (xbind_sound β' (fn_params fd) xs (PTree.empty sx) ts0
-                (create_undef_temps (fn_temps fd)) Ebd) as (le1 & Hbind & Htm0).
-    { intros id x Hx. rewrite PTree.gempty in Hx. discriminate. }
-    rewrite Hargs in Hbind.
-    assert (Hem' : ematch β' veN e').
-    { intros id. split.
-      - rewrite He'. destruct (vlookup veN id) as [[r ty]|]; [reflexivity|apply PTree.gempty].
-      - intros r ty V. exact (proj1 (proj2 (proj2 (Hidx id r ty V)))). }
-    assert (Hgm' : gmatch2 ge β' gv).
-    { destruct Hgm as [Hg1 Hg2]. split.
-      - intros id r ty V. destruct (Hg1 id r ty V) as [Hs Hb]. pose proof (Hg2 id r ty V) as Hr.
-        unfold blk, bas in *. rewrite Hlay by lia. auto.
-      - intros id r ty V. pose proof (Hg2 id r ty V). unfold β'. rewrite app_length. lia. }
-    destruct (IH veN _ _ rb Eb β' e' le1 m1 Hrep1 Htm0 Hem' Hgm')
-      as (le2 & m2 & out2 & Hexb & Hrepb & Htmb & Homb & Hshb & Hunb).
-    destruct (tbind_sel (lay β) _ _ _ H) as (rk & Hk & Hsel).
-    rewrite (rsel_indep (lay β') (lay β)) in Hrepb, Htmb, Homb, Hshb.
-    destruct (rsel (lay β) rb) as [Σb ob]. simpl in Hk, Hrepb, Htmb, Homb, Hshb.
-    unfold xcall_ret in Hk.
-    destruct (xret (fn_return fd) ob) as [v|] eqn:Er; [|discriminate].
-    destruct (match v with Some x => xp_lt (length (sregs Σ)) x | None => true end) eqn:Ev; [|discriminate].
-    inversion Hk; subst rk; clear Hk.
-    destruct (xret_sound β' _ _ out2 m2 v Er Homb) as (vres & Hres & Hvres).
-    assert (Hnrb : list_norepet (map fst β')) by (destruct Hrepb as (_ & HH & _); exact HH).
-    assert (Hlenb : length β' = length (sregs Σ ++ regsN)).
-    { unfold β'. rewrite !app_length. lia. }
-    destruct (callee_env_blocks ge β' veN e' Hnrb) as (Hblk & Hbnr).
-    { intros id. rewrite He'. destruct (vlookup veN id) as [[r ty]|]; [reflexivity|apply PTree.gempty]. }
-    { intros id r ty V. destruct (Hidx id r ty V) as (_ & _ & _ & reg & Hreg & _).
-      rewrite Hlenb. apply nth_error_Some. congruence. }
-    { exact Hinj. }
-    destruct (free_list_exists (blocks_of_env ge e') m2 Hbnr) as (m3 & Hfl & Hun3).
-    { intros b lo hi Hin. destruct (Hblk b lo hi Hin) as (id & r & ty & V & -> & -> & ->).
-      destruct (Hidx id r ty V) as (_ & _ & _ & reg & Hreg & Hfree).
-      destruct (shape_nth _ _ r reg Hshb Hreg) as (regb & Hregb & Hsh).
-      destruct Hrepb as (_ & _ & HH). pose proof (HH r regb Hregb) as (_ & _ & _ & _ & Hfr).
-      assert (Ef : rfree regb = Some (sizeof ce ty)).
-      { unfold rshape in Hsh. inversion Hsh. congruence. }
-      rewrite Ef in Hfr. exact (proj1 (proj2 (proj2 Hfr))). }
-    assert (HinN : forall b, In b (map (fun x => fst (fst x)) (blocks_of_env ge e')) -> In b (map fst βN)).
-    { intros b Hin. apply in_map_iff in Hin. destruct Hin as ([[b' lo] hi] & Eq & Hin). simpl in Eq. subst b'.
-      destruct (Hblk b lo hi Hin) as (id & r & ty & V & -> & _).
-      destruct (Hidx id r ty V) as (_ & Hge & _ & reg & Hreg & _).
-      assert (Hr : (r < length β')%nat) by (rewrite Hlenb; apply nth_error_Some; congruence).
-      unfold blk, lay, β'. rewrite app_nth2 by lia. apply in_map. apply nth_In.
-      unfold β' in Hr. rewrite app_length in Hr. lia. }
-    assert (HNinv : forall b, In b (map fst βN) -> ~ Mem.valid_block m b).
-    { intros b Hin. apply in_map_iff in Hin. destruct Hin as (p & <- & Hp).
-      exact (proj1 (Forall_forall _ _) Hnv p Hp). }
-    assert (HβN : forall b, In b (map fst β) -> ~ In b (map fst βN)).
-    { intros b H1 H2. unfold β' in Hnrb. rewrite map_app in Hnrb.
-      apply list_norepet_app in Hnrb. destruct Hnrb as (_ & _ & Hd). exact (Hd b b H1 H2 eq_refl). }
-    assert (Hlenb2 : length (sregs Σb) = length (sregs Σ ++ regsN)).
-    { rewrite <- (map_length rshape (sregs Σb)), Hshb, map_length. reflexivity. }
-    assert (Hrep3 : rep β (firstn (length (sregs Σ)) (sregs Σb)) m3).
-    { eapply rep_mem with (m := m2).
-      - eapply Mem.unchanged_on_implies; [exact Hun3|]. intros b ofs Hb _ Hin.
-        exact (HβN b Hb (HinN b Hin)).
-      - eapply rep_prefix with (βN := βN) (regsN := skipn (length (sregs Σ)) (sregs Σb)).
-        + rewrite firstn_skipn. exact Hrepb.
-        + rewrite firstn_length, Hlenb2, app_length. lia. }
-    assert (Hvr : match v with Some x => vres = den (lay β) x | None => vres = Vundef end).
-    { destruct v as [x|]; [|exact Hvres]. rewrite Hvres.
-      apply den_ext with (n := length (sregs Σ)); [exact Hlay|exact Ev]. }
+    destruct (xfun_sound _ IH fd xs (sregs Σ) (stemps Σ) o rr H β m Hrep Hgm)
+      as (m3 & vres & Heval & Hrep3 & (v & Hts & Hvr) & Hon & Hsh & Hun).
     destruct (Hfns i fd Fl) as (bf & Hsym & Hfp).
     exists (set_opttemp o vres le), m3, Out_normal. split.
     + eapply exec_Scall with (vf := Vptr bf Ptrofs.zero) (f := Internal fd)
@@ -466,38 +527,14 @@ Proof.
       * eapply xargs_sound; eauto. exact (proj1 Hgm).
       * simpl. destruct (Ptrofs.eq_dec Ptrofs.zero Ptrofs.zero); [exact Hfp|congruence].
       * exact Ety.
-      * eapply eval_funcall_internal.
-        -- constructor; [exact Hnr1|exact Hnr2|exact Hdj|exact Hav|exact Hbind].
-        -- exact Hexb.
-        -- exact Hres.
-        -- exact Hfl.
-    + eapply post_sel; [exact Hsel|]. simpl.
-      split; [exact Hrep3|]. split.
-      { simpl. destruct o as [id|]; simpl; [|exact Htm].
+      * exact Heval.
+    + split; [exact Hrep3|]. split.
+      { rewrite Hts. destruct o as [id|]; simpl; [|exact Htm].
         destruct v as [x|]; simpl.
         - rewrite Hvr. apply tmatch_set. exact Htm.
         - intros id' x'. rewrite PTree.grspec. destruct (PTree.elt_eq id' id); [discriminate|].
           intros Hx. rewrite PTree.gso by assumption. apply Htm. exact Hx. }
-      split; [exact I|]. split.
-      { simpl. rewrite <- firstn_map, Hshb, map_app, firstn_app, map_length, Nat.sub_diag.
-        simpl. rewrite app_nil_r. apply firstn_all2. rewrite map_length. lia. }
-      eapply Mem.unchanged_on_trans.
-      { eapply Mem.unchanged_on_implies; [exact Hun1|]. intros; exact I. }
-      eapply Mem.unchanged_on_trans.
-      { eapply Mem.unchanged_on_implies; [exact Hunb|].
-        intros b ofs [Hv Hf] Hv1. split; [exact Hv1|].
-        intros (r & s & d & ch & Hs & Hin & Eb' & Hr).
-        destruct (lt_dec r (length (sregs Σ))) as [Hlt|Hge].
-        - apply Hf. exists r, s, d, ch. simpl in Hs.
-          rewrite map_app, nth_error_app1 in Hs by (rewrite map_length; exact Hlt).
-          unfold blk, bas in *. rewrite Hlay in Eb', Hr by exact Hlt. auto.
-        - apply (HNinv b); [|exact Hv]. subst b.
-          assert (r < length β')%nat.
-          { rewrite Hlenb. rewrite <- (map_length rshape). apply nth_error_Some. simpl in Hs. congruence. }
-          unfold blk, lay, β'. rewrite app_nth2 by lia. apply in_map. apply nth_In.
-          unfold β' in H0. rewrite app_length in H0. lia. }
-      eapply Mem.unchanged_on_implies; [exact Hun3|].
-      intros b ofs [Hv Hf] _ Hin. exact (HNinv b (HinN b Hin) Hv).
+      split; [rewrite Hon; exact I|]. split; [exact Hsh|exact Hun].
   - (* Ssequence *)
     destruct (xstmt ce gv fns n ve Σ s1) as [r1|] eqn:E1; [|discriminate].
     destruct (IH _ _ _ _ E1 β e le m Hrep Htm Hem Hgm) as (le1 & m1 & out1 & Hex1 & Hp1).
@@ -617,4 +654,36 @@ Proof.
     + inversion H; subst rr. exists le, m, (Out_return None). split; [constructor|].
       split; [exact Hrep|]. split; [exact Htm|]. split; [exact I|]. split; [reflexivity|apply Mem.unchanged_on_refl].
 Qed.
+
+(** A successful symbolic run of a whole function is a big-step call. *)
+Theorem xfun_top_sound n fd xs regs rr :
+  xfun ce gv fns n fd xs regs = Some rr ->
+  forall β m, rep β regs m -> gmatch2 ge β gv ->
+  exists m' vres,
+    ClightBigstep.eval_funcall function_entry2 ge m (Internal fd) (map (den (lay β)) xs) E0 m' vres /\
+    rep β (sregs (fst (rsel (lay β) rr))) m' /\
+    match (stemps (fst (rsel (lay β) rr)))!1%positive with
+    | Some x => vres = den (lay β) x
+    | None => vres = Vundef
+    end /\
+    map rshape (sregs (fst (rsel (lay β) rr))) = map rshape regs /\
+    Mem.unchanged_on (fun b o => Mem.valid_block m b /\ ~ foot β (map rshape regs) b o) m m'.
+Proof.
+  intros H β m Hrep Hgm.
+  destruct (xfun_sound _ (xstmt_sound n) fd xs regs (PTree.empty sx) (Some 1%positive) rr H β m Hrep Hgm)
+    as (m3 & vres & Heval & Hrep3 & (v & Hts & Hvr) & Hon & Hsh & Hun).
+  exists m3, vres. split; [exact Heval|]. split; [exact Hrep3|]. split.
+  - rewrite Hts. destruct v as [x|]; unfold set_opt.
+    + rewrite PTree.gss. exact Hvr.
+    + rewrite PTree.grs. exact Hvr.
+  - split; [exact Hsh|exact Hun].
+Qed.
 End SOUND.
+
+Lemma flookup_In fns id fd : flookup fns id = Some fd -> In (id, fd) fns.
+Proof.
+  induction fns as [|[i f] t IH]; simpl; [discriminate|].
+  destruct (Pos.eqb i id) eqn:E.
+  - apply Pos.eqb_eq in E. intros H; inversion H; subst. left; reflexivity.
+  - intros H. right. exact (IH H).
+Qed.
