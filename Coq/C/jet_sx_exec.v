@@ -450,15 +450,13 @@ Section SOUND.
 Variable ge : genv.
 Variable gv : venv.
 Variable fns : list (ident * fentry).
-(** Meaning of the event tags, and the invariant maintained on the memory
-    outside the regions, in the blocks satisfying [ext]. *)
-Variable F : nat -> list int64 -> list int64.
+(** Meaning of the events (typically the defining equations of their
+    variables), and the invariant maintained on the memory outside the
+    regions, in the blocks satisfying [ext]. *)
+Variable ev_ok : (nat -> int64) -> event -> Prop.
 Variable inv : (nat -> int64) -> list event -> mem -> Prop.
 Variable ext : block -> Prop.
 
-Definition ev_ok (ρ : nat -> int64) (ev : event) : Prop :=
-  forall j, (j < ecnt ev)%nat ->
-    ρ (ebase ev + j)%nat = nth j (F (etag ev) (map (lv ρ) (eargs ev))) Int64.zero.
 Definition solves (ρ : nat -> int64) (log : list event) : Prop := Forall (ev_ok ρ) log.
 
 Definition xsep (β : layout) : Prop := forall r, (r < length β)%nat -> ~ ext (blk β r).

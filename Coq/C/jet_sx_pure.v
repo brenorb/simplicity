@@ -70,7 +70,7 @@ Theorem xfun_pure n fd xs regs nv rr :
     Mem.unchanged_on (fun b o => Mem.valid_block m b /\ ~ foot β (map rshape regs) b o) m m'.
 Proof.
   intros H Hnil ρ β m Hrep.
-  destruct (xfun_top_sound ge [] (int_table l) (fun _ _ => []) (fun _ _ _ => True) (fun _ => False)
+  destruct (xfun_top_sound ge [] (int_table l) (fun _ _ => True) (fun _ _ _ => True) (fun _ => False)
               ltac:(auto) ltac:(intros; contradiction)) with (n := n) (fd := fd) (xs := xs) (regs := regs)
               (log := @nil event) (nv := nv) (rr := rr) (ρ := ρ) (β := β) (m := m)
     as (m' & vres & Hev & Hrep' & Hret & Hsh & _ & Hun).
