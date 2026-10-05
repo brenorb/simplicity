@@ -467,16 +467,16 @@ Definition frame (β : layout) (regs : list region) (m : mem) : block -> Z -> Pr
 Definition oracle_ok (fd : function) (o : oracle) : Prop :=
   forall base xs regs regs' v tag cnt eargs log ρ β m,
     o base log xs regs = Some (regs', v, tag, cnt, eargs) ->
-    rep ρ β regs m -> xsep β -> inv ρ log m -> ev_ok ρ (mkev tag base cnt eargs) ->
+    rep ρ β regs m -> xsep β -> inv ρ log m -> solves ρ log -> ev_ok ρ (mkev tag base cnt eargs) ->
     exists m' vres,
       ClightBigstep.eval_funcall function_entry2 ge m (Internal fd) (map (den ρ (lay β)) xs) E0 m' vres /\
       rep ρ β regs' m' /\ inv ρ (log ++ [mkev tag base cnt eargs]) m' /\
       map rshape regs' = map rshape regs /\
       match v with Some x => vres = den ρ (lay β) x | None => vres = Vundef end /\
-      Mem.unchanged_on (frame β regs m) m m'.
+      lframe (frame β regs m) m m'.
 
 Hypothesis Hinv_stable : forall ρ log m m',
-  inv ρ log m -> Mem.unchanged_on (fun b _ => ext b) m m' -> inv ρ log m'.
+  inv ρ log m -> lframe (fun b _ => ext b) m m' -> inv ρ log m'.
 Hypothesis Hext_valid : forall ρ log m b, inv ρ log m -> ext b -> Mem.valid_block m b.
 Hypothesis Hfns : forall id ent, flookup fns id = Some ent ->
   (exists b, Genv.find_symbol ge id = Some b /\
@@ -493,7 +493,7 @@ Definition post ρ (β : layout) (Σ0 : sstate) (m0 : mem) (r : res)
   outmatch ρ β (snd (rsel ρ (lay β) r)) out /\
   map rshape (sregs (fst (rsel ρ (lay β) r))) = map rshape (sregs Σ0) /\
   inv ρ (slog (fst (rsel ρ (lay β) r))) m' /\
-  Mem.unchanged_on (frame β (sregs Σ0) m0) m0 m'.
+  lframe (frame β (sregs Σ0) m0) m0 m'.
 
 Lemma post_sel ρ β Σ m r r' le' m' out :
   rsel ρ (lay β) r = rsel ρ (lay β) r' -> post ρ β Σ m r' le' m' out -> post ρ β Σ m r le' m' out.
@@ -509,18 +509,18 @@ Lemma post_trans ρ β Σ m r1 le1 m1 out1 r2 le2 m2 out2 :
 Proof.
   intros (R1 & T1 & O1 & S1 & I1 & U1) (R2 & T2 & O2 & S2 & I2 & U2).
   split; [exact R2|]. split; [exact T2|]. split; [exact O2|]. split; [congruence|]. split; [exact I2|].
-  eapply Mem.unchanged_on_trans; [exact U1|].
-  eapply Mem.unchanged_on_implies; [exact U2|].
+  eapply lframe_trans; [exact U1|].
+  eapply lframe_implies; [exact U2|].
   intros b o (Hv & Hf & He) _. rewrite (frame_shape _ _ _ _ S1). split; [|split; assumption].
-  eapply Mem.valid_block_unchanged_on; eauto.
+  exact (proj2 (proj2 U1) b Hv).
 Qed.
 
 Lemma ext_unchanged ρ β regs m m' :
   rep ρ β regs m -> xsep β ->
   Mem.unchanged_on (fun b o => ~ foot β (map rshape regs) b o) m m' ->
-  Mem.unchanged_on (fun b _ => ext b) m m'.
+  lframe (fun b _ => ext b) m m'.
 Proof.
-  intros (Hlen & _ & _) Hsep U. eapply Mem.unchanged_on_implies; [exact U|].
+  intros (Hlen & _ & _) Hsep U. apply lframe_unchanged. eapply Mem.unchanged_on_implies; [exact U|].
   intros b o He _ (r & s & d & ch & Hs & _ & -> & _).
   apply (Hsep r); [|exact He]. rewrite Hlen. rewrite <- (map_length rshape). apply nth_error_Some. congruence.
 Qed.
@@ -551,7 +551,7 @@ Lemma xfun_sound (rec : venv -> sstate -> statement -> option res) (IH : sound_r
     snd (rsel ρ (lay β) rr) = ONormal /\
     map rshape (sregs (fst (rsel ρ (lay β) rr))) = map rshape regs /\
     inv ρ (slog (fst (rsel ρ (lay β) rr))) m3 /\
-    Mem.unchanged_on (frame β regs m) m m3.
+    lframe (frame β regs m) m m3.
 Proof.
   unfold xfun_with. intros H ρ β m Hrep Hgm Hsep Hinv Hsol.
   destruct (fn_okb fd) eqn:Fok; [|discriminate].
@@ -592,7 +592,7 @@ Proof.
       unfold blk, lay, β'. rewrite app_nth2 by lia. apply in_map. apply nth_In.
       unfold β' in Hr. rewrite app_length in Hr. lia. }
   assert (Hinv1 : inv ρ log m1).
-  { eapply Hinv_stable; [exact Hinv|]. eapply Mem.unchanged_on_implies; [exact Hun1|]. intros; exact I. }
+  { eapply Hinv_stable; [exact Hinv|]. apply lframe_unchanged. eapply Mem.unchanged_on_implies; [exact Hun1|]. intros; exact I. }
   destruct (tbind_sel ρ (lay β) _ _ _ H) as (rk & Hk & Hsel).
   assert (Hsolb : solves ρ (slog (fst (rsel ρ (lay β') rb)))).
   { rewrite (rsel_indep ρ (lay β') (lay β)). rewrite Hsel in Hsol. unfold xcall_ret in Hk.
@@ -647,7 +647,7 @@ Proof.
   { destruct v as [x|]; [|exact Hvres]. rewrite Hvres.
     apply den_ext with (n := length regs); [exact Hlay|exact Ev]. }
   assert (Hinv3 : inv ρ (slog Σb) m3).
-  { eapply Hinv_stable; [exact Hinvb|]. eapply Mem.unchanged_on_implies; [exact Hun3|].
+  { eapply Hinv_stable; [exact Hinvb|]. apply lframe_unchanged. eapply Mem.unchanged_on_implies; [exact Hun3|].
     intros b ofs He _ Hin. apply (HNinv b (HinN b Hin)). exact (Hext_valid _ _ _ _ Hinv He). }
   exists m3, vres. split.
   { eapply eval_funcall_internal.
@@ -661,10 +661,10 @@ Proof.
   { rewrite <- firstn_map, Hshb, map_app, firstn_app, map_length, Nat.sub_diag.
     simpl. rewrite app_nil_r. apply firstn_all2. rewrite map_length. lia. }
   split; [exact Hinv3|].
-  eapply Mem.unchanged_on_trans.
-  { eapply Mem.unchanged_on_implies; [exact Hun1|]. intros; exact I. }
-  eapply Mem.unchanged_on_trans.
-  { eapply Mem.unchanged_on_implies; [exact Hunb|].
+  eapply lframe_trans.
+  { apply lframe_unchanged. eapply Mem.unchanged_on_implies; [exact Hun1|]. intros; exact I. }
+  eapply lframe_trans.
+  { eapply lframe_implies; [exact Hunb|].
     intros b ofs (Hv & Hf & He) Hv1. split; [exact Hv1|]. split; [|exact He].
     intros (r & s & d & ch & Hs & Hin & Eb' & Hr).
     destruct (lt_dec r (length regs)) as [Hlt|Hge].
@@ -676,7 +676,7 @@ Proof.
       { rewrite Hlenb. rewrite <- (map_length rshape). apply nth_error_Some. simpl in Hs. congruence. }
       unfold blk, lay, β'. rewrite app_nth2 by lia. apply in_map. apply nth_In.
       unfold β' in H0. rewrite app_length in H0. lia. }
-  eapply Mem.unchanged_on_implies; [exact Hun3|].
+  apply lframe_unchanged. eapply Mem.unchanged_on_implies; [exact Hun3|].
   intros b ofs (Hv & Hf & He) _ Hin. exact (HNinv b (HinN b Hin) Hv).
 Qed.
 
@@ -687,7 +687,7 @@ Proof.
   - (* Sskip *)
     inversion H; subst rr. exists le, m, Out_normal. split; [constructor|].
     split; [exact Hrep|]. split; [exact Htm|]. split; [exact I|]. split; [reflexivity|].
-    split; [exact Hinv|apply Mem.unchanged_on_refl].
+    split; [exact Hinv|apply lframe_refl].
   - (* Sassign *)
     destruct (xlval ce ve gv Σ e0) as [[r0 d]|] eqn:El; [|discriminate].
     destruct (xexpr ce ve gv Σ e1) as [x2|] eqn:Ee; [|discriminate].
@@ -706,14 +706,14 @@ Proof.
     + split; [exact Hrep'|]. split; [exact Htm|]. split; [exact I|].
       split; [exact (xstore_shape _ _ _ _ _ _ Est)|].
       split; [eapply Hinv_stable; [exact Hinv|eapply ext_unchanged; eauto]|].
-      eapply Mem.unchanged_on_implies; [exact Hun|]. intros b o (Hv & Hf & He) _. exact Hf.
+      apply lframe_unchanged. eapply Mem.unchanged_on_implies; [exact Hun|]. intros b o (Hv & Hf & He) _. exact Hf.
   - (* Sset *)
     destruct (xexpr ce ve gv Σ e0) as [x|] eqn:Ee; [|discriminate].
     inversion H; subst rr; clear H.
     exists (PTree.set i (den ρ (lay β) x) le), m, Out_normal. split.
     + apply exec_Sset. eapply xexpr_sound; eauto. exact (proj1 Hgm).
     + split; [exact Hrep|]. split; [apply tmatch_set; exact Htm|]. split; [exact I|].
-      split; [reflexivity|]. split; [exact Hinv|apply Mem.unchanged_on_refl].
+      split; [reflexivity|]. split; [exact Hinv|apply lframe_refl].
   - (* Scall *)
     destruct e0; try discriminate.
     destruct (vlookup ve i) eqn:Vl; [discriminate|].
@@ -754,8 +754,8 @@ Proof.
       split; [rewrite Hon; exact I|]. split; [exact Hsh|]. split; [exact Hinv3|exact Hun].
     + destruct (orc (snv Σ) (slog Σ) xs (sregs Σ)) as [[[[[regs' v] tag] cnt] eargs]|] eqn:Eo; [|discriminate].
       inversion H; subst rr; clear H. simpl in Hsol.
-      destruct (solves_app _ _ _ Hsol) as [_ Hev]. inversion Hev as [|? ? Hev1 _]; subst.
-      destruct (Hent (snv Σ) xs (sregs Σ) regs' v tag cnt eargs (slog Σ) ρ β m Eo Hrep Hsep Hinv Hev1)
+      destruct (solves_app _ _ _ Hsol) as [Hsol0 Hev]. inversion Hev as [|? ? Hev1 _]; subst.
+      destruct (Hent (snv Σ) xs (sregs Σ) regs' v tag cnt eargs (slog Σ) ρ β m Eo Hrep Hsep Hinv Hsol0 Hev1)
         as (m3 & vres & Heval & Hrep3 & Hinv3 & Hsh & Hvr & Hun).
       exists (set_opttemp o vres le), m3, Out_normal. split; [exact (Hcall m3 vres Heval)|].
       split; [exact Hrep3|]. split; [exact (Htmo v vres Hvr)|].
@@ -923,11 +923,11 @@ Proof.
   - (* Sbreak *)
     inversion H; subst rr. exists le, m, Out_break. split; [constructor|].
     split; [exact Hrep|]. split; [exact Htm|]. split; [exact I|]. split; [reflexivity|].
-    split; [exact Hinv|apply Mem.unchanged_on_refl].
+    split; [exact Hinv|apply lframe_refl].
   - (* Scontinue *)
     inversion H; subst rr. exists le, m, Out_continue. split; [constructor|].
     split; [exact Hrep|]. split; [exact Htm|]. split; [exact I|]. split; [reflexivity|].
-    split; [exact Hinv|apply Mem.unchanged_on_refl].
+    split; [exact Hinv|apply lframe_refl].
   - (* Sreturn *)
     destruct o as [a|].
     + destruct (xexpr ce ve gv Σ a) as [x|] eqn:Ee; [|discriminate].
@@ -935,10 +935,10 @@ Proof.
       exists le, m, (Out_return (Some (den ρ (lay β) x, typeof a))). split.
       * apply exec_Sreturn_some. eapply xexpr_sound; eauto. exact (proj1 Hgm).
       * split; [exact Hrep|]. split; [exact Htm|]. split; [split; reflexivity|].
-        split; [reflexivity|]. split; [exact Hinv|apply Mem.unchanged_on_refl].
+        split; [reflexivity|]. split; [exact Hinv|apply lframe_refl].
     + inversion H; subst rr. exists le, m, (Out_return None). split; [constructor|].
       split; [exact Hrep|]. split; [exact Htm|]. split; [exact I|]. split; [reflexivity|].
-      split; [exact Hinv|apply Mem.unchanged_on_refl].
+      split; [exact Hinv|apply lframe_refl].
 Qed.
 
 (** A successful symbolic run of a whole function is a big-step call. *)
@@ -955,7 +955,7 @@ Theorem xfun_top_sound n fd xs regs log nv rr :
     end /\
     map rshape (sregs (fst (rsel ρ (lay β) rr))) = map rshape regs /\
     inv ρ (slog (fst (rsel ρ (lay β) rr))) m' /\
-    Mem.unchanged_on (frame β regs m) m m'.
+    lframe (frame β regs m) m m'.
 Proof.
   intros H ρ β m Hrep Hgm Hsep Hinv Hsol.
   destruct (xfun_sound _ (xstmt_sound n) fd xs regs log nv (PTree.empty sx) (Some 1%positive) rr H

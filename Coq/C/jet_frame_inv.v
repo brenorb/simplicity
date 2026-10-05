@@ -7,6 +7,7 @@ From compcert Require Import Coqlib Integers AST Memory.
 Require Import Simplicity.Translate Simplicity.BitMachine.
 Require Import C.jet_frame_spec C.jet_frame_layout C.jet_write_layout C.jet_input_layout.
 Require Import C.jet_output_layout C.jet_output_sequence_step C.jet_encoding C.jet_bitcoin_effects.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem.
 Import Values Mem ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 60.
@@ -17,35 +18,7 @@ Variables (m0 : mem) (bd : block) (dbase : Z) (bw : block) (outedge cursor N : Z
 (** The frame blocks, as far as they exist initially. *)
 Definition fext (b : block) : Prop := (b = bd \/ b = bw \/ b = bi) /\ Mem.valid_block m0 b.
 
-Definition eqext (m m' : mem) : Prop :=
-  (forall chunk b ofs, fext b -> Mem.load chunk m' b ofs = Mem.load chunk m b ofs) /\
-  (forall b ofs k p, fext b -> (Mem.perm m b ofs k p <-> Mem.perm m' b ofs k p)) /\
-  (forall b, fext b -> Mem.valid_block m b -> Mem.valid_block m' b).
-
-Lemma eqext_refl m : eqext m m.
-Proof. split; [reflexivity|]. split; [reflexivity|auto]. Qed.
-
-Lemma eqext_trans m1 m2 m3 :
-  (forall b, fext b -> Mem.valid_block m1 b) ->
-  eqext m1 m2 -> eqext m2 m3 -> eqext m1 m3.
-Proof.
-  intros HV (L1 & P1 & V1) (L2 & P2 & V2). split.
-  - intros chunk b ofs Hb. rewrite L2, L1 by exact Hb. reflexivity.
-  - split.
-    + intros b ofs k p Hb. rewrite (P1 b ofs k p Hb). apply P2. exact Hb.
-    + intros b Hb H. apply V2; [exact Hb|]. apply V1; assumption.
-Qed.
-
-Lemma eqext_unchanged m m' :
-  (forall b, fext b -> Mem.valid_block m b) ->
-  Mem.unchanged_on (fun b _ => fext b) m m' -> eqext m m'.
-Proof.
-  intros HV U. split.
-  - intros chunk b ofs Hb. eapply Mem.load_unchanged_on_1; [exact U|exact (HV b Hb)|]. intros; exact Hb.
-  - split.
-    + intros b ofs k p Hb. apply (Mem.unchanged_on_perm _ _ _ U); [exact Hb|exact (HV b Hb)].
-    + intros b Hb H. eapply Mem.valid_block_unchanged_on; eauto.
-Qed.
+Definition eqext (m m' : mem) : Prop := lframe (fun b _ => fext b) m m'.
 
 (** The effect of the writes so far, restricted to the frame blocks. *)
 Definition weffE (m : mem) (n : Z) (cells : list Cell) : Prop :=
@@ -90,7 +63,7 @@ Proof.
     split; [intros old HL; exists old; split; [exact HL|unfold word_outside_eq; intros; reflexivity]|].
     split; [simpl; replace (cursor - 0) with cursor by lia; exact HFl|].
     split; [reflexivity|auto].
-  - intros _. split; [reflexivity|apply eqext_refl].
+  - intros _. split; [reflexivity|apply lframe_refl].
 Qed.
 
 Lemma output_cells_transfer m m' cells :
@@ -114,26 +87,27 @@ Proof.
 Qed.
 
 Lemma finv_stable m m' w outs :
-  finv m w outs -> Mem.unchanged_on (fun b _ => fext b) m m' -> finv m' w outs.
+  finv m w outs -> eqext m m' -> finv m' w outs.
 Proof.
-  intros (HV & HF & HN & (O & P & F & L & Pm) & Hw) U.
-  pose proof (eqext_unchanged m m' HV U) as (EL & EP & EV).
-  split; [intros b Hb; apply EV; [exact Hb|apply HV; exact Hb]|]. split; [exact HF|]. split; [exact HN|].
+  intros (HV & HF & HN & (O & P & F & L & Pm) & Hw) (EL & EP & EV).
+  assert (EL' : forall chunk b ofs, fext b -> Mem.load chunk m' b ofs = Mem.load chunk m b ofs).
+  { intros chunk b ofs Hb. apply EL; [exact (HV b Hb)|intros; exact Hb]. }
+  split; [intros b Hb; apply EV; apply HV; exact Hb|]. split; [exact HF|]. split; [exact HN|].
   split.
   - split.
-    { apply (output_cells_transfer m m'); [|exact O]. intros Hne ofs. apply EL.
+    { apply (output_cells_transfer m m'); [|exact O]. intros Hne ofs. apply EL'.
       split; [right; left; reflexivity|].
       apply bw_valid. destruct outs; [congruence|simpl in HN; lia]. }
     split.
     { intros old Hold. destruct (P old Hold) as (w1 & Hw1 & Ho). exists w1. split; [|exact Ho].
-      rewrite EL; [exact Hw1|]. split; [right; left; reflexivity|exact (load_valid _ _ _ _ _ Hold)]. }
+      rewrite EL'; [exact Hw1|]. split; [right; left; reflexivity|exact (load_valid _ _ _ _ _ Hold)]. }
     split.
-    { destruct F as [F1 F2]. split; rewrite EL by exact fext_bd; assumption. }
+    { destruct F as [F1 F2]. split; rewrite EL' by exact fext_bd; assumption. }
     split.
-    { intros chunk b ofs Hb H1 H2. rewrite EL by exact Hb. apply L; assumption. }
-    intros b ofs k p Hb Hp. apply (EP b ofs k p Hb). apply Pm; assumption.
+    { intros chunk b ofs Hb H1 H2. rewrite EL' by exact Hb. apply L; assumption. }
+    intros b ofs k p Hb Hp. apply EP; [exact (HV b Hb)|exact Hb|]. apply Pm; assumption.
   - intros Hwf. destruct (Hw Hwf) as [-> E]. split; [reflexivity|].
-    eapply eqext_trans; [intros b [_ H]; exact H|exact E|]. split; [exact EL|]. split; [exact EP|exact EV].
+    eapply lframe_trans; [exact E|]. split; [exact EL|]. split; [exact EP|exact EV].
 Qed.
 
 (** While nothing has been written, the input is as initially. *)
@@ -141,7 +115,9 @@ Lemma finv_input m outs edge rc inp :
   finv m false outs ->
   frame_input_cells_at m0 bi edge rc inp -> frame_input_cells_at m bi edge rc inp.
 Proof.
-  intros (_ & _ & _ & _ & Hw) H. destruct (Hw eq_refl) as [_ (EL & _ & _)].
+  intros (_ & _ & _ & _ & Hw) H. destruct (Hw eq_refl) as [_ (EL0 & _ & _)].
+  assert (EL : forall chunk b ofs, fext b -> Mem.load chunk m b ofs = Mem.load chunk m0 b ofs).
+  { intros chunk b ofs Hb. apply EL0; [exact (proj2 Hb)|intros; exact Hb]. }
   intros i c Hi. specialize (H i c Hi). unfold frame_input_bit_at in *.
   destruct c as [bit|]; cbn [cell_matches] in *.
   - destruct H as (Hq & He & w & Hl & Hb). split; [exact Hq|]. split; [exact He|]. exists w.

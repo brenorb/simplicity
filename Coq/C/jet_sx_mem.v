@@ -390,3 +390,43 @@ Proof.
     apply Hnotin. rewrite <- (Hinj y a (or_intror Hy2) (or_introl eq_refl) Hy1). apply in_map. exact Hy2.
   - apply IH; [exact Hn'|]. intros x y Hx Hy. apply Hinj; right; assumption.
 Qed.
+
+(** ** Load-level framing
+    [lframe P m m']: on blocks valid in [m], loads from locations in [P] and
+    permissions there are preserved.  It is implied by [Mem.unchanged_on] and
+    is what helper contracts stated on loads provide. *)
+Definition lframe (P : block -> Z -> Prop) (m m' : mem) : Prop :=
+  (forall chunk b ofs, Mem.valid_block m b ->
+     (forall i, ofs <= i < ofs + size_chunk chunk -> P b i) ->
+     Mem.load chunk m' b ofs = Mem.load chunk m b ofs) /\
+  (forall b ofs k p, Mem.valid_block m b -> P b ofs -> Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+  (forall b, Mem.valid_block m b -> Mem.valid_block m' b).
+
+Lemma lframe_refl P m : lframe P m m.
+Proof. split; [reflexivity|]. split; auto. Qed.
+
+Lemma lframe_unchanged P m m' : Mem.unchanged_on P m m' -> lframe P m m'.
+Proof.
+  intros U. split.
+  - intros chunk b ofs Hv HP. eapply Mem.load_unchanged_on_1; eauto.
+  - split.
+    + intros b ofs k p Hv HP Hp. eapply Mem.perm_unchanged_on; eauto.
+    + intros b Hv. eapply Mem.valid_block_unchanged_on; eauto.
+Qed.
+
+Lemma lframe_implies (P Q : block -> Z -> Prop) m m' :
+  lframe P m m' -> (forall b ofs, Q b ofs -> Mem.valid_block m b -> P b ofs) -> lframe Q m m'.
+Proof.
+  intros (L & Pm & V) H. split.
+  - intros chunk b ofs Hv HQ. apply L; [exact Hv|]. intros i Hi. apply H; [apply HQ; exact Hi|exact Hv].
+  - split; [|exact V]. intros b ofs k p Hv HQ. apply Pm; [exact Hv|]. apply H; assumption.
+Qed.
+
+Lemma lframe_trans P m1 m2 m3 : lframe P m1 m2 -> lframe P m2 m3 -> lframe P m1 m3.
+Proof.
+  intros (L1 & P1 & V1) (L2 & P2 & V2). split.
+  - intros chunk b ofs Hv HP. rewrite L2 by (auto). apply L1; assumption.
+  - split.
+    + intros b ofs k p Hv HP Hp. apply P2; auto.
+    + auto.
+Qed.

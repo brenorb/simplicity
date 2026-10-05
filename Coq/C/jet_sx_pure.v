@@ -67,7 +67,7 @@ Theorem xfun_pure n fd xs regs nv rr :
     | None => vres = Vundef
     end /\
     map rshape (sregs (fst (rsel ρ (lay β) rr))) = map rshape regs /\
-    Mem.unchanged_on (fun b o => Mem.valid_block m b /\ ~ foot β (map rshape regs) b o) m m'.
+    lframe (fun b o => ~ foot β (map rshape regs) b o) m m'.
 Proof.
   intros H Hnil ρ β m Hrep.
   destruct (xfun_top_sound ge [] (int_table l) (fun _ _ => True) (fun _ _ _ => True) (fun _ => False)
@@ -83,6 +83,6 @@ Proof.
   - exact I.
   - rewrite (leaves_log_nil_sel _ _ _ Hnil). constructor.
   - exists m', vres. split; [exact Hev|]. split; [exact Hrep'|]. split; [exact Hret|]. split; [exact Hsh|].
-    eapply Mem.unchanged_on_implies; [exact Hun|]. intros b o [Hv Hf] _. split; [exact Hv|]. split; [exact Hf|tauto].
+    eapply lframe_implies; [exact Hun|]. intros b o Hf Hv. split; [exact Hv|]. split; [exact Hf|tauto].
 Qed.
 End PURE.

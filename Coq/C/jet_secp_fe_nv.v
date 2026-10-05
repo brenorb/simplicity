@@ -103,7 +103,7 @@ Theorem eval_fe_normalize_var m b ofs t0 t1 t2 t3 t4 :
       [Vptr b (Ptrofs.repr ofs)] E0 m' Vundef /\
     fe_at m' b ofs (map Int64.repr (nvz_list (Int64.unsigned t0) (Int64.unsigned t1) (Int64.unsigned t2)
                                       (Int64.unsigned t3) (Int64.unsigned t4))) /\
-    Mem.unchanged_on (fun b' o => ~ (b' = b /\ ofs <= o < ofs + 40)) m m'.
+    lframe (fun b' o => ~ (b' = b /\ ofs <= o < ofs + 40)) m m'.
 Proof.
   intros Hfe B0 B1 B2 B3 B4.
   set (ρ := rho5 t0 t1 t2 t3 t4). set (bnd := fun _ : nat => (0, 2 ^ 60)).
@@ -147,9 +147,9 @@ Proof.
   assert (Hvres : forall Σ, (stemps Σ)!1%positive = None ->
             match (stemps Σ)!1%positive with Some x => vres = den ρ (lay [(b, ofs)]) x | None => vres = Vundef end ->
             vres = Vundef) by (intros Σ E H; rewrite E in H; exact H).
-  assert (Hunch : Mem.unchanged_on (fun b' o => ~ (b' = b /\ ofs <= o < ofs + 40)) m m').
-  { eapply Mem.unchanged_on_implies; [exact Hun|]. intros b' o Hn Hv. split; [exact Hv|].
-    intros Hf. apply Hn. exact (fe_foot b ofs (vars5 0) b' o eq_refl Hf). }
+  assert (Hunch : lframe (fun b' o => ~ (b' = b /\ ofs <= o < ofs + 40)) m m').
+  { eapply lframe_implies; [exact Hun|]. intros b' o Hn Hv Hf.
+    apply Hn. exact (fe_foot b ofs (vars5 0) b' o eq_refl Hf). }
   destruct (negb (Z.eqb (zval _ nv_c) 0)).
   - exists m'. cbn [fst] in Hrep', Hret.
     rewrite (Hvres nv_a eq_refl Hret) in Hev. split; [exact Hev|]. split; [|exact Hunch].
