@@ -1,5 +1,5 @@
 (** Uniform initial-only frame contract for positive copies up to 64 bits,
-    excluding the two aligned paths proved separately through [copyWords].
+    explicitly excluding the two paths that call unspecified plain memcpy.
     This is NOT a complete copyBits or public jet equivalence theorem. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Events.

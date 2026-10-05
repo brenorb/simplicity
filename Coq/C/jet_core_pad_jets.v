@@ -1,7 +1,7 @@
 (** Generic proofs of the core padding jets
       left:  [src_local = src; for (i<c) writeN(dst, pad); copyBits(dst, &src_local, N); return 1]
       right: [src_local = src; copyBits(dst, &src_local, N); for (i<c) writeN(dst, pad); return 1]
-    without an external-library premise. *)
+    conditional on the explicit [memcpy_model]. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps Errors.
 From compcert Require Import ClightBigstep Memory Events Globalenvs.
@@ -10,7 +10,7 @@ Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_frame_copy C.jet_frame
 Require Import C.jet_write_layout C.jet_output_layout C.jet_output_layout_step C.jet_input_layout C.jet_encoding.
 Require Import C.jet_context_separated C.jet_bitmachine_rep C.jet_copyBits_separation.
 Require Import C.jet_bitcoin_effects C.jet_core_wrapper C.jet_core_copy_exec C.jet_core_loop.
-Require Import C.jet_core_pad_spec C.jet_core_pad C.jet_core_copy_jets.
+Require Import C.jet_core_pad_spec C.jet_core_pad C.jet_core_copy_jets C.jet_memcpy_model.
 Import Values Mem Ctypes ListNotations Clightdefs.
 Local Open Scope Z_scope.
 Local Transparent Archi.ptr64.
@@ -84,7 +84,7 @@ Lemma core_pad_frame_after m m1 bd dbase bw outedge cursor n count cells :
   write_frame_at m1 bd dbase bw outedge (cursor - n) count.
 Proof. intros; eapply write_frame_at_after_effect; eassumption. Qed.
 
-Theorem core_left_pad_jet f (A B : Ty) (spec : tySem A -> tySem B)
+Theorem core_left_pad_jet (Hmodel : memcpy_model) f (A B : Ty) (spec : tySem A -> tySem B)
     (c w Nn : Z) (cnt : expr) (stmt : statement) (pcells : list Cell) :
   core_wrapper_shape f (Ssequence (core_for_loop cnt stmt) (core_simple_rest (core_copy_call Nn))) ->
   Nn = Z.of_nat (bitSize A) -> Z.of_nat (bitSize B) = c * w + Nn -> 0 < Nn <= 64 -> 0 < w ->
@@ -150,7 +150,7 @@ Proof.
       - rewrite (L1 Mint64 bl (0 + 8) (or_introl Hbd) (or_introl Hbw)). exact HO. }
     assert (Hdst2 : (le_at le0 c)!_dst = Some (Vptr bd (Ptrofs.repr dbase)))
       by (unfold le_at; rewrite PTree.gso by discriminate; exact Hdst).
-    destruct (core_copy_phase ml bl bd dbase bw outedge (cursor - c * w) bi edge rc Nn (encode a)
+    destruct (core_copy_phase Hmodel ml bl bd dbase bw outedge (cursor - c * w) bi edge rc Nn (encode a)
       (le_at le0 c) HLocL HFcopy ltac:(lia) HNn HSepL HInL Hdst2) as (mf & Hexec2 & Heff2).
     assert (Heff : write_effect mc mf bd dbase bw outedge cursor (c * w + Nn)
       (rep_cells pcells (Z.to_nat c) ++ encode a)).
@@ -167,7 +167,7 @@ Proof.
   - exists mf. split; [exact Hcall|]. split; [exact HC|]. split; [exact HP|]. split; [exact HFl|exact HL].
 Qed.
 
-Theorem core_right_pad_jet f (A B : Ty) (spec : tySem A -> tySem B)
+Theorem core_right_pad_jet (Hmodel : memcpy_model) f (A B : Ty) (spec : tySem A -> tySem B)
     (c w Nn : Z) (cnt : expr) (stmt : statement) (pcells : list Cell) :
   core_wrapper_shape f (Ssequence (core_copy_call Nn) (core_simple_rest (core_for_loop cnt stmt))) ->
   Nn = Z.of_nat (bitSize A) -> Z.of_nat (bitSize B) = Nn + c * w -> 0 < Nn <= 64 -> 0 < w ->
@@ -202,7 +202,7 @@ Proof.
     { eapply write_frame_at_shorter; [|exact HFrameC]. nia. }
     assert (HSepC : jet_copy_buffers_separated bd bi bw edge outedge cursor rc Nn)
       by (rewrite HN; exact Hsep).
-    destruct (core_copy_phase mc bl bd dbase bw outedge cursor bi edge rc Nn (encode a) le0
+    destruct (core_copy_phase Hmodel mc bl bd dbase bw outedge cursor bi edge rc Nn (encode a) le0
       HLoc HFc ltac:(lia) HNn HSepC HInC Hdst) as (mk & Hexec1 & Heff1).
     assert (HFloop : write_frame_at mk bd dbase bw outedge (cursor - Nn) (c * w)).
     { eapply write_frame_at_after_effect with (m := mc) (cells := encode a);
