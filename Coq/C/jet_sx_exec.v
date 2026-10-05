@@ -73,11 +73,11 @@ Definition xret (ty : type) (o : xout) : option (option sx) :=
   | _ => None
   end.
 
-(** An oracle maps the first fresh variable, the arguments and the regions
+(** An oracle maps the first fresh variable, the log so far, the arguments and the regions
     to the new regions, the result, and the tag, number of defined variables
     and arguments of the event to log. *)
 Definition oracle : Type :=
-  nat -> list sx -> list region -> option (list region * option sx * nat * nat * list sx).
+  nat -> list event -> list sx -> list region -> option (list region * option sx * nat * nat * list sx).
 Inductive fentry := FInt (fd : function) | FOra (fd : function) (o : oracle).
 Definition fentry_fd (ent : fentry) : function :=
   match ent with FInt fd => fd | FOra fd _ => fd end.
@@ -230,7 +230,7 @@ Fixpoint xstmt (n : nat) (ve : venv) (Σ : sstate) (s : statement) {struct n} : 
                       xfun_with (xstmt n) fd xs (sregs Σ) (slog Σ) (snv Σ)
                         (xcall_ret optid (stemps Σ) (length (sregs Σ)) (fn_return fd))
                   | FOra fd o =>
-                      match o (snv Σ) xs (sregs Σ) with
+                      match o (snv Σ) (slog Σ) xs (sregs Σ) with
                       | Some (regs', v, tag, cnt, eargs) =>
                           Some (RDone (mkst (set_opt optid v (stemps Σ)) regs'
                                          (slog Σ ++ [mkev tag (snv Σ) cnt eargs]) (snv Σ + cnt)) ONormal)
@@ -311,7 +311,7 @@ Proof.
     destruct (xargs ce ve gv Σ l t) as [xs|]; [|discriminate].
     destruct ent as [fd|fd orc].
     + eapply xfun_lext; [exact IH|exact H].
-    + destruct (orc (snv Σ) xs (sregs Σ)) as [[[[[regs' v] tag] cnt] eargs]|]; [|discriminate].
+    + destruct (orc (snv Σ) (slog Σ) xs (sregs Σ)) as [[[[[regs' v] tag] cnt] eargs]|]; [|discriminate].
       inversion H; subst rr. eexists. simpl. reflexivity.
   - destruct (xstmt n ve Σ s1) as [r1|] eqn:E1; [|discriminate].
     destruct (tbind_sel ρ β _ _ _ H) as (rk & Hk & Hsel).
@@ -468,7 +468,7 @@ Definition frame (β : layout) (regs : list region) (m : mem) : block -> Z -> Pr
 
 Definition oracle_ok (fd : function) (o : oracle) : Prop :=
   forall base xs regs regs' v tag cnt eargs log ρ β m,
-    o base xs regs = Some (regs', v, tag, cnt, eargs) ->
+    o base log xs regs = Some (regs', v, tag, cnt, eargs) ->
     rep ρ β regs m -> xsep β -> inv ρ log m -> ev_ok ρ (mkev tag base cnt eargs) ->
     exists m' vres,
       ClightBigstep.eval_funcall function_entry2 ge m (Internal fd) (map (den ρ (lay β)) xs) E0 m' vres /\
@@ -754,7 +754,7 @@ Proof.
       exists (set_opttemp o vres le), m3, Out_normal. split; [exact (Hcall m3 vres Heval)|].
       split; [exact Hrep3|]. split; [rewrite Hts; exact (Htmo v vres Hvr)|].
       split; [rewrite Hon; exact I|]. split; [exact Hsh|]. split; [exact Hinv3|exact Hun].
-    + destruct (orc (snv Σ) xs (sregs Σ)) as [[[[[regs' v] tag] cnt] eargs]|] eqn:Eo; [|discriminate].
+    + destruct (orc (snv Σ) (slog Σ) xs (sregs Σ)) as [[[[[regs' v] tag] cnt] eargs]|] eqn:Eo; [|discriminate].
       inversion H; subst rr; clear H. simpl in Hsol.
       destruct (solves_app _ _ _ Hsol) as [_ Hev]. inversion Hev as [|? ? Hev1 _]; subst.
       destruct (Hent (snv Σ) xs (sregs Σ) regs' v tag cnt eargs (slog Σ) ρ β m Eo Hrep Hsep Hinv Hev1)
