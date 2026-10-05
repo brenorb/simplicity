@@ -112,13 +112,13 @@ Additional mathematical field properties alone do not close that bridge.
 
 ## Acceptance status
 
-The conservative registry remains 319/533: 227 entries without an extra libc
-premise, 92 explicitly conditional on libc, and 214 unregistered declarations.
+The conservative registry is 346/533: 242 entries without an extra libc
+premise, 104 explicitly conditional on libc, and 187 unregistered declarations.
 No experimental result is promoted solely because its name says it proves a jet.
 The support inventory is broader than the coverage registry.
 
-The complete candidate audit passes (exit 0), including all 567 kernel modules,
-3,331 public assumption records, contract/definition snapshots, negative tests,
+The separate final acceptance passes (exit 0), including all 567 kernel modules,
+3,334 public assumption records, contract/definition snapshots, negative tests,
 and four independently regenerated ASTs. There are 1,683 closed public results.
 All common public assumption records retain their previous axiom sets; no new
 axiom name or library-level axiom is introduced. Four obsolete `copyWords`
@@ -132,27 +132,34 @@ modular cache representations, canonical fee direction/name, and raw-data
 projection described above. The final acceptance run compares the reviewed
 snapshots without updating them and completes with exit 0. The consolidation
 retains experimental results as checked support under their actual statements,
-with no additional coverage promotion. See `JET_ACCEPTANCE.md` for the receipt.
+with only the 27 further registrations justified below. See `JET_ACCEPTANCE.md`
+for the receipt and candidate/final fingerprint distinction.
 
 
 
-## Review queue after the frozen candidate audit
+## Canonical continuation reviewed and accepted
 
 The twelve `jet_core_fullshift64_jets.v` statements retain the literal
-`Word.full_left_shift1` / `full_right_shift1` programs. Their vector recursion
-matches pinned `Haskell/Core/Simplicity/Programs/Word.hs:163–174`; the execution
-chain copies 65–96 cells through the original two-word helper and explicit libc
-model. No execution/output fact is added to their final premises. They are
-candidates for a subsequent coverage-registration change after the remaining
-registration/fidelity review; they do not contribute to the conservative total
-reported by this consolidation.
+`Word.full_left_shift1` / `full_right_shift1` programs. The pinned catalog's
+`full_shift` compareVectorSize/vectorComp dispatch selects exactly their Coq
+specializations. Their actual original-C two-word copy retains explicit libc
+and initial-frame/output/framing obligations. All 36 narrow/wide bindings and
+literal recursions are checked by the new negative-tested source gate.
 
-The total/fee and TimeLock programs have also been inspected against pinned
-Transaction/TimeLock composition. Metadata promotion still requires review of
-initial environment representations and the assertion contracts. The current
-coverage parser does not yet register `application_jet_partial_spec`; its
-success/failure/framing definition must remain part of the frozen definitions
-before those assertion jets are promoted.
+Fifteen Bitcoin contracts are now registered after review: raw tappath, two raw
+annex getters, totals/fee and nine TimeLock contracts. The full Word64/modular
+value domain is preserved. Current annex applies the canonical outer assertion
+while retaining the inner absent-annex success. The four check-lock assertions
+use the entire `application_jet_partial_spec`, preserving option-dependent C
+return, successful output/prefix/cursor and framing on both success and failure.
+Metadata rejects added impossible premises or the wrong linked program/env.
+
+All old snapshot records are unchanged; three raw annex results and five new
+frozen definitions are added. The final log is
+`/tmp/jet-next-canonical-final-accept.log`, exit 0. Its snapshot-inclusive
+SHA-256 is `a566e6bfc17b188b9377c0993284b555f6364e56f8c17801833d4b0e203572b6`.
+
+## Remaining proof queue
 
 SHA contracts use the actual generated SHA translation unit and explicit
 `sha_globals_ok` (portable compression dispatch and max-counter load). The AST

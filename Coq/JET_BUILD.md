@@ -12,12 +12,12 @@ The target is the original production C and canonical Haskell at
 `memcpy`. Previous acceptance of that helper was about modified C and does not
 establish equivalence for the original library.
 
-Current source bookkeeping finds **319/533 registered entries: 227 without an
-extra libc premise, 92 conditional on `memcpy_model`, and 214 missing**. The
+Current source bookkeeping finds **346/533 registered entries: 242 without an
+extra libc premise, 104 conditional on `memcpy_model`, and 187 missing**. The
 restored target has passed full compilation, four AST regeneration comparisons,
 the source/configuration pin, and 96 native correctness tests with zero failures.
 Final acceptance against reviewed snapshots completes with exit 0: 567 kernel
-modules, 3,331 assumption records (1,683 closed), public types/definitions,
+modules, 3,334 assumption records (1,683 closed), public types/definitions,
 negative tests and four ASTs. See [C/JET_ACCEPTANCE.md](C/JET_ACCEPTANCE.md) for
 the receipt and audited input fingerprint. Integer models, arithmetic and symbolic-executor results are
 support until their canonical jet-equivalence chains close. Do not read historical
@@ -3280,3 +3280,16 @@ Its audited input SHA-256 is
 This final record supersedes the pending statuses in the historical entries
 above. The inventory remains conservative: experimental
 models/oracles do not automatically add canonical jet coverage.
+
+## Canonical registration continuation accepted on original C
+
+The reviewed 27-entry continuation passes `check-jets.sh --accept` without
+update flags, exit 0, log `/tmp/jet-next-canonical-final-accept.log`. All 567
+kernel modules, 3,334 assumption records (1,683 closed), reviewed types and
+definitions, negative fixtures and four AST regenerations pass. Acceptance
+SHA-256: `a566e6bfc17b188b9377c0993284b555f6364e56f8c17801833d4b0e203572b6`.
+The separate candidate hash excludes expected snapshots; the final acceptance
+hash includes them. All 3,331 previous assumption records and prior printed
+contracts/definitions are unchanged. Coverage is 346/533: 242 without an extra
+libc premise, 104 conditional, 187 unregistered. Further isolated SHA/secp
+proof support is not part of this round or count. See `C/JET_ACCEPTANCE.md`.
