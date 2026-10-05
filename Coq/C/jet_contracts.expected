@@ -68498,6 +68498,27 @@ bitcoin_current_script_sig_hash_raw_local_spec
                      (BinNums.xO
                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
          (raw_current_hash_sem BitcoinExt.InputScriptSigHash)
+bitcoin_input_annex_hash_raw_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_annex_hash bitcoin_ge
+         raw_bitcoin_environment (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (raw_env_rep bitcoin_input_annex_hash_env_rep)
+         (@raw_ext_sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) BitcoinExt.InputAnnexHash)
+raw_current_annex_composition
+     : forall (a : Ty.tySem Ty.Unit) (logical : raw_bitcoin_environment)
+         (Hpath : le (@length Digest.hash256 (raw_tap_path logical))
+                    (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@bitcoin_current_annex_hash_spec
+            (PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            (project_raw_environment logical Hpath)) (raw_current_annex_sem a logical)
+bitcoin_current_annex_hash_raw_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_current_annex_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (raw_env_rep bitcoin_current_annex_hash_env_rep) raw_current_annex_sem
 frame_fields =
 fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
 and
@@ -133011,3 +133032,36 @@ end
      : forall (A B : Ty.Ty) (_ : Bitcoin.Bitcoin.t A B), Digest.hash256
 
 Arguments Bitcoin.Bitcoin.tag {A B}%ty_scope p
+raw_current_annex_sem =
+fun (a : Ty.tySem Ty.Unit) (logical : raw_bitcoin_environment) =>
+match
+  @raw_ext_sem Ty.Unit (Word.Word (S (S (S (S (S O)))))) BitcoinExt.CurrentIndex a logical
+  return (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+with
+| Some ix =>
+    match
+      @raw_ext_sem (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) BitcoinExt.InputAnnexHash ix
+        logical return (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+    with
+    | Some t =>
+        match t return (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))) with
+        | inl _ => @None (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        | inr annex =>
+            @Some
+              (sum unit
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) annex
+        end
+    | None => @None (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+    end
+| None => @None (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+end
+     : forall (_ : Ty.tySem Ty.Unit) (_ : raw_bitcoin_environment),
+       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments raw_current_annex_sem a logical
