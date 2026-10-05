@@ -62,6 +62,8 @@ python3 test-jet-source-target.py
 python3 scan-jet-proofs.py
 python3 jet-coverage.py
 python3 test-jet-coverage.py
+python3 check-fullshift-specification.py
+python3 test-fullshift-specification.py
 python3 check-bitcoin-primitive-identity.py
 python3 test-bitcoin-primitive-identity.py
 python3 test-jet-audit-inputs.py
