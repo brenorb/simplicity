@@ -77,7 +77,7 @@ jobs:
           fail-on-cache-miss: true
       - run: sudo apt-get install -y clang
       - run: bash Coq/jet-sysroot.sh
-      - name: Accept final proofs against reviewed snapshots and both pinned ASTs
+      - name: Accept final proofs against reviewed snapshots and all four pinned ASTs
         run: opam exec -- bash Coq/check-jets.sh --accept
   jets-ast:
     needs: jets-deps
@@ -101,6 +101,10 @@ jobs:
             bash Coq/C/check-jets-generation.sh
           COMPCERT="$JET_DEPS/compcert-3.14" JET_SYSROOT="$JET_DEPS/sysroot-glibc-2.36" \
             bash Coq/C/check-bitcoin-jets-generation.sh
+          COMPCERT="$JET_DEPS/compcert-3.14" JET_SYSROOT="$JET_DEPS/sysroot-glibc-2.36" \
+            bash Coq/C/check-sha-jets-generation.sh
+          COMPCERT="$JET_DEPS/compcert-3.14" JET_SYSROOT="$JET_DEPS/sysroot-glibc-2.36" \
+            bash Coq/C/check-secp-jets-generation.sh
 
   jets-nix:
     runs-on: ubuntu-latest

@@ -12,7 +12,7 @@
 #      axiom list C/jet_coqchk_axioms.expected;
 #   4. the per-theorem assumption gate (audit-jet-assumptions.sh);
 #   5. with --ast (or JET_SYSROOT set): regenerate the C AST with the pinned
-#      inputs and compare the core and Bitcoin artifacts with committed ASTs.
+#      inputs and compare the core, Bitcoin, SHA and secp256k1 artifacts with committed ASTs.
 # Requires Coq 8.17.1 on PATH and JET_DEPS prepared by jet-deps.sh (and
 # jet-sysroot.sh for step 5; JET_SYSROOT defaults to its output directory).
 set -euo pipefail
@@ -37,6 +37,16 @@ if $accept; then
 fi
 [[ -n "${JET_SYSROOT:-}" ]] && ast=true
 jobs=${JOBS:-$( (nproc || sysctl -n hw.ncpu) 2>/dev/null || echo 2)}
+# The native checker over the symbolic-execution proofs exceeds the default
+# macOS 8 MiB stack. Raise the resource limit, preserving every kernel check.
+checker_stack_kib=$(ulimit -S -s)
+if [[ "$checker_stack_kib" != unlimited && "$checker_stack_kib" -lt 65520 ]]; then
+  if ! ulimit -S -s 65520; then
+    echo 'jet verification needs a 65520 KiB stack; increase the OS hard stack limit' >&2
+    exit 1
+  fi
+fi
+echo "checker stack limit (KiB): $(ulimit -S -s)"
 audit_inputs() {
   if $update; then
     python3 jet-audit-inputs.py --updating
@@ -47,10 +57,13 @@ audit_inputs() {
 inputs_before=$(audit_inputs)
 
 echo "== static checks"
+python3 check-jet-source-target.py
+python3 test-jet-source-target.py
 python3 scan-jet-proofs.py
 python3 jet-coverage.py
 python3 test-jet-coverage.py
 python3 check-bitcoin-primitive-identity.py
+python3 test-bitcoin-primitive-identity.py
 python3 test-jet-audit-inputs.py
 
 missing=$(comm -23 <(grep -E '^C/jets?[_.]' _CoqProject.jets | sort -u) \
@@ -107,6 +120,10 @@ if $ast; then
     bash C/check-jets-generation.sh
   COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14} JET_SYSROOT=$JET_SYSROOT \
     bash C/check-bitcoin-jets-generation.sh
+  COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14} JET_SYSROOT=$JET_SYSROOT \
+    bash C/check-sha-jets-generation.sh
+  COMPCERT=${COMPCERT:-$JET_DEPS/compcert-3.14} JET_SYSROOT=$JET_SYSROOT \
+    bash C/check-secp-jets-generation.sh
 fi
 inputs_after=$(audit_inputs)
 if [[ "$inputs_before" != "$inputs_after" ]]; then
@@ -117,7 +134,7 @@ echo "audit input SHA-256: $inputs_after"
 if $update; then
   echo 'candidate snapshots generated; review their diffs, then rerun --accept without update flags'
 elif $accept; then
-  echo 'all jet acceptance checks passed (build, kernel, reviewed snapshots, negative tests, dual AST)'
+  echo 'all jet acceptance checks passed (build, kernel, reviewed snapshots, negative tests, four ASTs)'
 elif ! $build; then
   echo 'jet artifact checks passed (--no-build; current sources were not rebuilt by this run)'
 elif ! $ast; then

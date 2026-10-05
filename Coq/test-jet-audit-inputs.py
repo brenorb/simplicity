@@ -47,12 +47,18 @@ def main():
         model.write_text(original)
         assert identity.check(model, canonical) == 8
         baseline = inputs.fingerprint(coq, root)
+        for name in ("translation_unit.c", "clightgen-linux.ini.in"):
+            path = coq / name
+            path.write_text("generation input changed during audit\n")
+            assert inputs.fingerprint(coq, root) != baseline
+            path.unlink()
         (coq / "model.vo").write_text("compiled output")
         assert inputs.fingerprint(coq, root) == baseline
-        c_input = root / "C/input.c"
-        c_input.write_text("/* C input added during audit */\n")
-        assert inputs.fingerprint(coq, root) != baseline
-        c_input.unlink()
+        for suffix in (".c", ".S", ".s"):
+            c_input = root / f"C/input{suffix}"
+            c_input.write_text("/* implementation input added during audit */\n")
+            assert inputs.fingerprint(coq, root) != baseline
+            c_input.unlink()
         canonical_original = canonical.read_text()
         canonical.write_text(canonical_original + "\n-- canonical input edited\n")
         assert inputs.fingerprint(coq, root) != baseline

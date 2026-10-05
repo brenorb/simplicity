@@ -1,10 +1,6 @@
-# The complete public C jet surface and both registration catalogs, for the
-# inventory gate in the otherwise Coq-only derivations.
+# Production C and canonical Haskell inputs, retained in Coq-only builds
+# for inventory, primitive identity and immutable source-target checks.
 { lib }:
-lib.sourceByRegex ./. [
-  "C" "C/jets.h"
-  "C/bitcoin" "C/bitcoin/bitcoinJets.h" "C/bitcoin/primitiveJetNode.inc"
-  "C/elements" "C/elements/elementsJets.h" "C/elements/primitiveJetNode.inc"
-  "Haskell" "Haskell/Bitcoin" "Haskell/Bitcoin/Simplicity"
-  "Haskell/Bitcoin/Simplicity/Bitcoin" "Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs"
-]
+lib.sourceFilesBySuffices
+  (lib.sourceByRegex ./. [ "C" "C/.*" "Haskell" "Haskell/.*" ])
+  [ ".c" ".h" ".inc" ".S" ".s" ".hs" ]
