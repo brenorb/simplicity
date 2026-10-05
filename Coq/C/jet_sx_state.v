@@ -124,27 +124,27 @@ Qed.
 Definition xp_le (r : nat) (x : sx) : bool :=
   match x with XP r' _ => Nat.leb r' r | _ => true end.
 
-Definition cell_ok (β : layout) (m : mem) (r : nat) (w : bool) (c : cell) : Prop :=
+Definition cell_ok ρ (β : layout) (m : mem) (r : nat) (w : bool) (c : cell) : Prop :=
   bas β r + cofs c + size_chunk (cchunk c) <= Ptrofs.max_unsigned /\
   (align_chunk (cchunk c) | bas β r + cofs c) /\
   Mem.range_perm m (blk β r) (bas β r + cofs c) (bas β r + cofs c + size_chunk (cchunk c)) Cur
     (if w then Writable else Readable) /\
   (forall x, cval c = Some x ->
-     Mem.load (cchunk c) m (blk β r) (bas β r + cofs c) = Some (den (lay β) x) /\ xp_le r x = true).
+     Mem.load (cchunk c) m (blk β r) (bas β r + cofs c) = Some (den ρ (lay β) x) /\ xp_le r x = true).
 
-Definition region_ok (β : layout) (m : mem) (r : nat) (reg : region) : Prop :=
+Definition region_ok ρ (β : layout) (m : mem) (r : nat) (reg : region) : Prop :=
   0 <= bas β r /\ Mem.valid_block m (blk β r) /\
   cells_sorted 0 (rcells reg) = true /\
-  Forall (cell_ok β m r (rw reg)) (rcells reg) /\
+  Forall (cell_ok ρ β m r (rw reg)) (rcells reg) /\
   match rfree reg with
   | Some sz => bas β r = 0 /\ rw reg = true /\ Mem.range_perm m (blk β r) 0 sz Cur Freeable /\
                Forall (fun c => cofs c + size_chunk (cchunk c) <= sz) (rcells reg)
   | None => True
   end.
 
-Definition rep (β : layout) (regs : list region) (m : mem) : Prop :=
+Definition rep ρ (β : layout) (regs : list region) (m : mem) : Prop :=
   length β = length regs /\ list_norepet (map fst β) /\
-  forall r reg, nth_error regs r = Some reg -> region_ok β m r reg.
+  forall r reg, nth_error regs r = Some reg -> region_ok ρ β m r reg.
 
 Definition foot (β : layout) (sh : list (list (Z * memory_chunk) * bool * option Z)) (b : block) (o : Z) : Prop :=
   exists r s d ch, nth_error sh r = Some s /\ In (d, ch) (fst (fst s)) /\
@@ -210,12 +210,12 @@ Proof.
   eapply upd_map_id; [exact E|]. unfold rshape; simpl. rewrite set_cell_shape, W. reflexivity.
 Qed.
 
-Lemma xstore_sound β regs m r d ch x regs' :
-  rep β regs m -> xstore regs r d ch x = Some regs' ->
+Lemma xstore_sound ρ β regs m r d ch x regs' :
+  rep ρ β regs m -> xstore regs r d ch x = Some regs' ->
   exists m',
-    Mem.store ch m (blk β r) (bas β r + d) (den (lay β) x) = Some m' /\
+    Mem.store ch m (blk β r) (bas β r + d) (den ρ (lay β) x) = Some m' /\
     0 <= bas β r + d <= Ptrofs.max_unsigned /\
-    rep β regs' m' /\
+    rep ρ β regs' m' /\
     Mem.unchanged_on (fun b o => ~ foot β (map rshape regs) b o) m m'.
 Proof.
   intros (Hlen & Hnr & Hreg) Hs. unfold xstore in Hs.
@@ -231,7 +231,7 @@ Proof.
   rewrite Hd, Hch, W in *.
   assert (Hc0 : 0 <= d) by (rewrite <- Hd; exact (sorted_lower 0 _ _ Hsort Hin)).
   assert (VA : Mem.valid_access m ch (blk β r) (bas β r + d) Writable) by (split; assumption).
-  destruct (Mem.valid_access_store m ch (blk β r) (bas β r + d) (den (lay β) x) VA) as [m' Hst].
+  destruct (Mem.valid_access_store m ch (blk β r) (bas β r + d) (den ρ (lay β) x) VA) as [m' Hst].
   exists m'. split; [exact Hst|]. split; [pose proof (size_chunk_pos' ch); lia|]. split.
   - split; [rewrite upd_length; exact Hlen|]. split; [exact Hnr|].
     intros r2 reg2 E2.
@@ -306,9 +306,9 @@ Definition xload (regs : list region) (r : nat) (d : Z) (ty : type) : option sx 
   | By_nothing => None
   end.
 
-Lemma xload_sound β regs m r d ch c reg x :
-  rep β regs m -> nth_error regs r = Some reg -> find_cell (rcells reg) d ch = Some c -> cval c = Some x ->
-  Mem.load ch m (blk β r) (bas β r + d) = Some (den (lay β) x) /\
+Lemma xload_sound ρ β regs m r d ch c reg x :
+  rep ρ β regs m -> nth_error regs r = Some reg -> find_cell (rcells reg) d ch = Some c -> cval c = Some x ->
+  Mem.load ch m (blk β r) (bas β r + d) = Some (den ρ (lay β) x) /\
   0 <= bas β r + d <= Ptrofs.max_unsigned.
 Proof.
   intros (Hlen & Hnr & Hreg) E F V.

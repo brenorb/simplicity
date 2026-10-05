@@ -7,7 +7,10 @@ Local Open Scope Z_scope.
 Local Transparent Archi.ptr64.
 Set Default Timeout 300.
 
-Record sstate := mkst { stemps : PTree.t sx; sregs : list region }.
+(** An event records one oracle call: its tag, the first of the fresh
+    variables it defines, their number, and its symbolic arguments. *)
+Record event := mkev { etag : nat; ebase : nat; ecnt : nat; eargs : list sx }.
+Record sstate := mkst { stemps : PTree.t sx; sregs : list region; slog : list event; snv : nat }.
 Definition venv := list (ident * (nat * type)).
 
 Fixpoint vlookup (ve : venv) (id : ident) : option (nat * type) :=
@@ -112,8 +115,8 @@ Fixpoint xargs (Σ : sstate) (al : list expr) (tys : typelist) : option (list sx
   end.
 End XEXPR.
 
-Definition tmatch (β : layout) (ts : PTree.t sx) (le : temp_env) : Prop :=
-  forall id x, ts!id = Some x -> le!id = Some (den (lay β) x).
+Definition tmatch ρ (β : layout) (ts : PTree.t sx) (le : temp_env) : Prop :=
+  forall id x, ts!id = Some x -> le!id = Some (den ρ (lay β) x).
 Definition ematch (β : layout) (ve : venv) (e : env) : Prop :=
   forall id, e!id = match vlookup ve id with Some (r, ty) => Some (blk β r, ty) | None => None end /\
              (forall r ty, vlookup ve id = Some (r, ty) -> bas β r = 0).
@@ -144,13 +147,14 @@ Qed.
 Section SOUND.
 Variable ge : genv.
 Variables ve gv : venv.
+Variable ρ : nat -> int64.
 Variable β : layout.
 Variable Σ : sstate.
 Variable m : mem.
 Variable e : env.
 Variable le : temp_env.
-Hypothesis Hrep : rep β (sregs Σ) m.
-Hypothesis Htm : tmatch β (stemps Σ) le.
+Hypothesis Hrep : rep ρ β (sregs Σ) m.
+Hypothesis Htm : tmatch ρ β (stemps Σ) le.
 Hypothesis Hem : ematch β ve e.
 Hypothesis Hgm : gmatch ge β gv.
 
@@ -158,7 +162,7 @@ Notation ce := (genv_cenv ge).
 
 Lemma xptradd_sound xa ta xb tb x :
   xptradd ce xa ta xb tb = Some x ->
-  sem_binary_operation ce Oadd (den (lay β) xa) ta (den (lay β) xb) tb m = Some (den (lay β) x).
+  sem_binary_operation ce Oadd (den ρ (lay β) xa) ta (den ρ (lay β) xb) tb m = Some (den ρ (lay β) x).
 Proof.
   unfold xptradd. intros H. destruct xa; try discriminate.
   destruct ta as [| sza sga aa | sga aa | fa aa | ta' aa | ta' na aa | targsa tresa cca | ida aa | ida aa];
@@ -176,7 +180,7 @@ Qed.
 
 Lemma xbinop_sound op xa ta xb tb x :
   xbinop ce op xa ta xb tb = Some x ->
-  sem_binary_operation ce op (den (lay β) xa) ta (den (lay β) xb) tb m = Some (den (lay β) x).
+  sem_binary_operation ce op (den ρ (lay β) xa) ta (den ρ (lay β) xb) tb m = Some (den ρ (lay β) x).
 Proof.
   unfold xbinop. intros H.
   destruct op; try (apply xbin_sound; exact H).
@@ -187,13 +191,13 @@ Qed.
 Lemma load_lv_sound a r d x :
   eval_lvalue ge e le m a (blk β r) (Ptrofs.repr (bas β r + d)) Full ->
   xload (sregs Σ) r d (typeof a) = Some x ->
-  eval_expr ge e le m a (den (lay β) x).
+  eval_expr ge e le m a (den ρ (lay β) x).
 Proof.
   intros Hlv Hx. unfold xload in Hx.
   destruct (access_mode (typeof a)) as [ch| | |] eqn:AM; try discriminate.
   - destruct (nth_error (sregs Σ) r) as [reg|] eqn:E; [|discriminate].
     destruct (find_cell (rcells reg) d ch) as [c|] eqn:F; [|discriminate].
-    destruct (xload_sound β _ m r d ch c reg x Hrep E F Hx) as [Hl Hr].
+    destruct (xload_sound ρ β _ m r d ch c reg x Hrep E F Hx) as [Hl Hr].
     eapply eval_Elvalue; [exact Hlv|].
     eapply deref_loc_value; [exact AM|].
     simpl. rewrite Ptrofs.unsigned_repr by exact Hr. exact Hl.
@@ -216,7 +220,7 @@ Proof.
 Qed.
 
 Lemma xexpr_sound_both a :
-  (forall x, xexpr ce ve gv Σ a = Some x -> eval_expr ge e le m a (den (lay β) x)) /\
+  (forall x, xexpr ce ve gv Σ a = Some x -> eval_expr ge e le m a (den ρ (lay β) x)) /\
   (forall r d, xlval ce ve gv Σ a = Some (r, d) ->
      eval_lvalue ge e le m a (blk β r) (Ptrofs.repr (bas β r + d)) Full).
 Proof.
@@ -273,7 +277,7 @@ Proof.
 Qed.
 
 Lemma xexpr_sound a x :
-  xexpr ce ve gv Σ a = Some x -> eval_expr ge e le m a (den (lay β) x).
+  xexpr ce ve gv Σ a = Some x -> eval_expr ge e le m a (den ρ (lay β) x).
 Proof. exact (proj1 (xexpr_sound_both a) x). Qed.
 Lemma xlval_sound a r d :
   xlval ce ve gv Σ a = Some (r, d) ->
@@ -282,7 +286,7 @@ Proof. exact (proj2 (xexpr_sound_both a) r d). Qed.
 
 Lemma xargs_sound al tys xs :
   xargs ce ve gv Σ al tys = Some xs ->
-  eval_exprlist ge e le m al tys (map (den (lay β)) xs).
+  eval_exprlist ge e le m al tys (map (den ρ (lay β)) xs).
 Proof.
   revert tys xs. induction al as [|a al IH]; intros tys xs H; destruct tys; simpl in H; try discriminate.
   - inversion H; subst. constructor.

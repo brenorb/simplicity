@@ -9,8 +9,8 @@ Local Transparent Archi.ptr64.
 Set Default Timeout 300.
 
 (** ** Independence of the layout *)
-Lemma den_proj_indep x β β' :
-  ii (den β x) = ii (den β' x) /\ il (den β x) = il (den β' x).
+Lemma den_proj_indep ρ x β β' :
+  ii (den ρ β x) = ii (den ρ β' x) /\ il (den ρ β x) = il (den ρ β' x).
 Proof.
   induction x; simpl; try (split; reflexivity);
     repeat match goal with H : _ /\ _ |- _ => destruct H end;
@@ -19,19 +19,19 @@ Proof.
     split; reflexivity.
 Qed.
 
-Lemma truth_indep β β' c : truth β c = truth β' c.
-Proof. unfold truth. rewrite (proj1 (den_proj_indep c β β')). reflexivity. Qed.
+Lemma truth_indep ρ β β' c : truth ρ β c = truth ρ β' c.
+Proof. unfold truth. rewrite (proj1 (den_proj_indep ρ c β β')). reflexivity. Qed.
 
 Definition xp_lt (n : nat) (x : sx) : bool :=
   match x with XP r _ => Nat.ltb r n | _ => true end.
 
-Lemma den_ext x (β β' : nat -> block * Z) n :
-  (forall r, (r < n)%nat -> β' r = β r) -> xp_lt n x = true -> den β' x = den β x.
+Lemma den_ext ρ x (β β' : nat -> block * Z) n :
+  (forall r, (r < n)%nat -> β' r = β r) -> xp_lt n x = true -> den ρ β' x = den ρ β x.
 Proof.
   intros H Hx.
   destruct x; simpl in *;
-    try rewrite !(proj1 (den_proj_indep _ β' β));
-    try rewrite !(proj2 (den_proj_indep _ β' β)); try reflexivity.
+    try rewrite !(proj1 (den_proj_indep ρ _ β' β));
+    try rewrite !(proj2 (den_proj_indep ρ _ β' β)); try reflexivity.
   apply Nat.ltb_lt in Hx. rewrite (H r Hx). reflexivity.
 Qed.
 
@@ -44,9 +44,9 @@ Lemma lay_app_l β βN r : (r < length β)%nat -> lay (β ++ βN) r = lay β r.
 Proof. intros H. unfold lay. apply app_nth1. exact H. Qed.
 
 (** ** Stability of the invariant *)
-Lemma region_ok_ext β β' m r reg :
+Lemma region_ok_ext ρ β β' m r reg :
   (forall r', (r' <= r)%nat -> lay β' r' = lay β r') ->
-  region_ok β m r reg -> region_ok β' m r reg.
+  region_ok ρ β m r reg -> region_ok ρ β' m r reg.
 Proof.
   intros H (Hb0 & Hvb & Hsort & Hcells & Hfree).
   assert (Eb : blk β' r = blk β r) by (unfold blk; rewrite H by lia; reflexivity).
@@ -63,9 +63,9 @@ Proof.
   - apply xp_le_lt. exact Hp.
 Qed.
 
-Lemma region_ok_mem β m m' r reg :
+Lemma region_ok_mem ρ β m m' r reg :
   Mem.unchanged_on (fun b _ => b = blk β r) m m' ->
-  region_ok β m r reg -> region_ok β m' r reg.
+  region_ok ρ β m r reg -> region_ok ρ β m' r reg.
 Proof.
   intros U (Hb0 & Hvb & Hsort & Hcells & Hfree).
   split; [exact Hb0|]. split; [eapply Mem.valid_block_unchanged_on; eauto|].
@@ -82,8 +82,8 @@ Proof.
     intros o Ho. eapply Mem.perm_unchanged_on; eauto. reflexivity.
 Qed.
 
-Lemma rep_mem β regs m m' :
-  Mem.unchanged_on (fun b _ => In b (map fst β)) m m' -> rep β regs m -> rep β regs m'.
+Lemma rep_mem ρ β regs m m' :
+  Mem.unchanged_on (fun b _ => In b (map fst β)) m m' -> rep ρ β regs m -> rep ρ β regs m'.
 Proof.
   intros U (Hlen & Hnr & Hreg). split; [exact Hlen|]. split; [exact Hnr|].
   intros r reg E. eapply region_ok_mem; [|exact (Hreg r reg E)].
@@ -92,8 +92,8 @@ Proof.
   rewrite Hlen. apply nth_error_Some. congruence.
 Qed.
 
-Lemma rep_prefix β βN regs regsN m :
-  rep (β ++ βN) (regs ++ regsN) m -> length β = length regs -> rep β regs m.
+Lemma rep_prefix ρ β βN regs regsN m :
+  rep ρ (β ++ βN) (regs ++ regsN) m -> length β = length regs -> rep ρ β regs m.
 Proof.
   intros (Hlen & Hnr & Hreg) Hl. split; [exact Hl|].
   split; [rewrite map_app in Hnr; exact (proj1 (proj1 (list_norepet_app _ _) Hnr))|].
@@ -103,14 +103,14 @@ Proof.
   intros r' Hr'. symmetry. apply lay_app_l. lia.
 Qed.
 
-Lemma rep_snoc β regs m b cs sz :
-  rep β regs m -> ~ In b (map fst β) -> Mem.valid_block m b ->
+Lemma rep_snoc ρ β regs m b cs sz :
+  rep ρ β regs m -> ~ In b (map fst β) -> Mem.valid_block m b ->
   Mem.range_perm m b 0 sz Cur Freeable ->
   cells_sorted 0 cs = true ->
   Forall (fun c => cofs c + size_chunk (cchunk c) <= sz /\ (align_chunk (cchunk c) | cofs c) /\
                    cval c = None) cs ->
   sz <= Ptrofs.max_unsigned ->
-  rep (β ++ [(b, 0)]) (regs ++ [mkreg cs true (Some sz)]) m.
+  rep ρ (β ++ [(b, 0)]) (regs ++ [mkreg cs true (Some sz)]) m.
 Proof.
   intros (Hlen & Hnr & Hreg) Hnew Hvb Hperm Hsort Hcs Hsz.
   split; [rewrite !app_length, Hlen; reflexivity|].
@@ -186,6 +186,9 @@ Fixpoint cells_of (fuel : nat) (ce : composite_env) (ty : type) (ofs : Z) : opti
       end
   end.
 
+Definition std_cells (ce : composite_env) (id : ident) (ty : type) : option (list cell) :=
+  cells_of 8 ce ty 0.
+
 Definition cell_allocb (sz : Z) (c : cell) : bool :=
   Z.leb (cofs c + size_chunk (cchunk c)) sz && Z.eqb (cofs c mod align_chunk (cchunk c)) 0 &&
   match cval c with None => true | Some _ => false end.
@@ -204,11 +207,12 @@ Proof.
   - destruct (cval c); [discriminate|reflexivity].
 Qed.
 
-Fixpoint xalloc (ce : composite_env) (vars : list (ident * type)) (n : nat) : option (list region * venv) :=
+Fixpoint xalloc (cf : ident -> type -> option (list cell)) (ce : composite_env)
+    (vars : list (ident * type)) (n : nat) : option (list region * venv) :=
   match vars with
   | [] => Some ([], [])
   | (id, ty) :: t =>
-      match cells_of 8 ce ty 0, xalloc ce t (S n) with
+      match cf id ty, xalloc cf ce t (S n) with
       | Some cs, Some (regs, ve) =>
           let sz := sizeof ce ty in
           if cells_sorted 0 cs && forallb (cell_allocb sz) cs && Z.leb sz Ptrofs.max_unsigned
@@ -226,12 +230,12 @@ Section ALLOC.
 Variable ge : genv.
 Notation ce := (genv_cenv ge).
 
-Lemma xalloc_sound vars : forall n regsN veN β regs m e,
-  xalloc ce vars n = Some (regsN, veN) -> rep β regs m -> length β = n ->
+Lemma xalloc_sound ρ cf vars : forall n regsN veN β regs m e,
+  xalloc cf ce vars n = Some (regsN, veN) -> rep ρ β regs m -> length β = n ->
   list_norepet (var_names vars) ->
   exists e' m' βN,
     alloc_variables ge e m vars e' m' /\
-    rep (β ++ βN) (regs ++ regsN) m' /\
+    rep ρ (β ++ βN) (regs ++ regsN) m' /\
     length βN = length regsN /\
     (forall id, e'!id = match vlookup veN id with
                         | Some (r, ty) => Some (blk (β ++ βN) r, ty)
@@ -248,8 +252,8 @@ Proof.
     split; [constructor|]. split; [exact Hrep|]. split; [reflexivity|].
     split; [intros; reflexivity|]. split; [intros; discriminate|]. split; [intros; discriminate|].
     split; [constructor|apply Mem.unchanged_on_refl].
-  - destruct (cells_of 8 ce ty 0) as [cs|] eqn:Ecs; [|discriminate].
-    destruct (xalloc ce t (S n)) as [[regsT veT]|] eqn:Et; [|discriminate].
+  - destruct (cf id ty) as [cs|] eqn:Ecs; [|discriminate].
+    destruct (xalloc cf ce t (S n)) as [[regsT veT]|] eqn:Et; [|discriminate].
     destruct (cells_sorted 0 cs && forallb (cell_allocb (sizeof ce ty)) cs &&
               Z.leb (sizeof ce ty) Ptrofs.max_unsigned) eqn:Chk; [|discriminate].
     inversion Hx; subst regsN veN; clear Hx.
@@ -270,7 +274,7 @@ Proof.
       assert (Eb : blk β r = b1) by (unfold blk, lay; rewrite <- Hp1; f_equal; exact Hnth).
       rewrite Eb in Hvb.
       exact (Mem.fresh_block_alloc _ _ _ _ _ Al Hvb). }
-    assert (Hrep1 : rep (β ++ [(b1, 0)]) (regs ++ [mkreg cs true (Some (sizeof ce ty))]) m1).
+    assert (Hrep1 : rep ρ (β ++ [(b1, 0)]) (regs ++ [mkreg cs true (Some (sizeof ce ty))]) m1).
     { apply rep_snoc.
       - eapply rep_mem; [|exact Hrep]. eapply Mem.unchanged_on_implies;
           [eapply Mem.alloc_unchanged_on; exact Al|]. intros; exact I.
@@ -337,15 +341,15 @@ Fixpoint xbind (params : list (ident * type)) (xs : list sx) (ts : PTree.t sx) :
   | _, _ => None
   end.
 
-Lemma tmatch_set β ts le id x :
-  tmatch β ts le -> tmatch β (PTree.set id x ts) (PTree.set id (den (lay β) x) le).
+Lemma tmatch_set ρ β ts le id x :
+  tmatch ρ β ts le -> tmatch ρ β (PTree.set id x ts) (PTree.set id (den ρ (lay β) x) le).
 Proof.
   intros H id' x'. rewrite !PTree.gsspec. destruct (peq id' id); [intros E; inversion E; reflexivity|apply H].
 Qed.
 
-Lemma xbind_sound β params : forall xs ts ts' le,
-  xbind params xs ts = Some ts' -> tmatch β ts le ->
-  exists le', bind_parameter_temps params (map (den (lay β)) xs) le = Some le' /\ tmatch β ts' le'.
+Lemma xbind_sound ρ β params : forall xs ts ts' le,
+  xbind params xs ts = Some ts' -> tmatch ρ β ts le ->
+  exists le', bind_parameter_temps params (map (den ρ (lay β)) xs) le = Some le' /\ tmatch ρ β ts' le'.
 Proof.
   induction params as [|[id ty] ps IH]; intros xs ts ts' le H Hm; destruct xs as [|x xs]; simpl in H; try discriminate.
   - inversion H; subst. exists le. split; [reflexivity|exact Hm].
