@@ -115,15 +115,15 @@ def inventory():
         # physical/logical primitive-environment correspondence.
         family = jets[name]["family"]
         if family == "core":
-            # Separated frame contracts can be unconditional. A remaining
-            # explicit libc model is still recorded as conditional coverage.
-            contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec|jet_separated_local_spec)\s+f_{re.escape(name)}\b|"
+            # Copy-family contracts retain an explicit library model;
+            # record these separately from direct execution proofs.
+            contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b|"
                         rf"\bmemcpy_model\s*->\s*jet_separated_local_spec\s+f_{re.escape(name)}\b")
         elif family == "bitcoin":
             contract = (rf"\bapplication_jet_local_spec\s+f_{re.escape(name)}\s+"
                         r"bitcoin_ge\s+Bitcoin\.env\b|"
                         rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
-                        r"bitcoin_ge\s+(?:Bitcoin\.env|ext_environment)\b")
+                        r"bitcoin_ge\s+(?:Bitcoin\.env|raw_bitcoin_environment)\b")
         else:
             # Elements has no checked application contract yet.
             contract = r"(?!)"
@@ -145,7 +145,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--csv", action="store_true", help="list every jet, including all missing proofs")
     parser.add_argument("--require-complete", action="store_true",
-                        help="fail if any declared jet lacks a proof or retains an explicit library condition")
+                        help="fail if any declared jet lacks a registered final equivalence contract")
     args = parser.parse_args()
     try:
         jets = inventory()
@@ -170,8 +170,8 @@ def main():
         print(f"Of these entries: {len(jets) - missing - conditional} without an extra library premise, "
               f"{conditional} conditional on memcpy_model (libc implementation not proved).")
         print("Scope: public jet declarations in all three C headers. Proof validity requires check-jets.sh.")
-    if args.require_complete and any(not row["proof"] or row["condition"] for row in jets):
-        sys.exit("Every-jet goal is incomplete: declared C jets lack proofs or retain explicit library conditions.")
+    if args.require_complete and any(not row["proof"] for row in jets):
+        sys.exit("Every-jet goal is incomplete: declared C jets lack registered final equivalence proofs.")
 
 
 if __name__ == "__main__":

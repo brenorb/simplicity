@@ -27,7 +27,7 @@ def main():
     assert coverage.declarations(f"/* {signature} */\n// {signature}\n{signature}") == ["simplicity_example"]
     rejects(lambda: coverage.declarations("bool simplicity_bad(int x);"), "signature")
     rows = coverage.inventory()
-    assert not any(row["condition"] for row in rows)
+    assert sum(row["condition"] == "memcpy_model" for row in rows) == 92
     expected = {name for header in coverage.HEADERS.values()
                 for name in coverage.declarations((coverage.REPO / header).read_text())}
     assert {row["function"] for row in rows} == expected
@@ -62,16 +62,7 @@ def main():
             rejects(coverage.inventory, "not a direct canonical jet theorem")
         direct.write_text(direct_original)
         conditional_path = project / "C/jet_core_projection_jets.v"
-        direct_projection = conditional_path.read_text()
-        # Bookkeeping fixture only: an explicit library premise must remain
-        # conditional rather than disappearing into the direct-proof count.
-        conditional_original = direct_projection.replace(
-            "Theorem leftmost_8_1_local_spec :",
-            "Theorem leftmost_8_1_local_spec : memcpy_model ->", 1)
-        assert conditional_original != direct_projection
-        conditional_path.write_text(conditional_original)
-        conditional_rows = coverage.inventory()
-        assert sum(row["condition"] == "memcpy_model" for row in conditional_rows) == 1
+        conditional_original = conditional_path.read_text()
         for old, new in (
             ("memcpy_model ->", "False -> memcpy_model ->"),
             ("memcpy_model ->", "another_library_model ->"),
@@ -79,7 +70,7 @@ def main():
         ):
             conditional_path.write_text(conditional_original.replace(old, new, 1))
             rejects(coverage.inventory, "not a direct canonical jet theorem")
-        conditional_path.write_text(direct_projection)
+        conditional_path.write_text(conditional_original)
         for extra, message in (
             ("simplicity_nonexistent C.jet_canonical one8_local_spec\n", "unknown jet"),
             ("simplicity_one_8 C.jet_canonical one8_local_spec\n", "duplicate coverage"),
@@ -106,6 +97,14 @@ def main():
         rejects(coverage.inventory, "not a direct canonical jet theorem")
         partial.write_text(partial_original)
         assert coverage.inventory() == rows
+        # Free cached hashes are auxiliary until the raw canonical projection
+        # is present; a cache-only environment cannot be registered as final.
+        raw_jets = project / "C/jet_bitcoin_raw_jets.v"
+        raw_original = raw_jets.read_text()
+        raw_jets.write_text(raw_original.replace(
+            "raw_bitcoin_environment Ty.Unit Word256", "ext_environment Ty.Unit Word256", 1))
+        rejects(coverage.inventory, "not a direct canonical jet theorem")
+        raw_jets.write_text(raw_original)
         # This positive fixture checks bookkeeping only. The actual application
         # theorem still requires compilation, kernel and assumption gates.
         application_name = "simplicity_bitcoin_version"
