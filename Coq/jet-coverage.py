@@ -120,7 +120,7 @@ def inventory():
             contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b|"
                         rf"\bmemcpy_model\s*->\s*jet_separated_local_spec\s+f_{re.escape(name)}\b")
         elif family == "bitcoin":
-            contract = (rf"\bapplication_jet_local_spec\s+f_{re.escape(name)}\s+"
+            contract = (rf"\b(?:application_jet_local_spec|application_jet_partial_spec)\s+f_{re.escape(name)}\s+"
                         r"bitcoin_ge\s+Bitcoin\.env\b|"
                         rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
                         r"bitcoin_ge\s+(?:Bitcoin\.env|raw_bitcoin_environment)\b")

@@ -27,7 +27,7 @@ def main():
     assert coverage.declarations(f"/* {signature} */\n// {signature}\n{signature}") == ["simplicity_example"]
     rejects(lambda: coverage.declarations("bool simplicity_bad(int x);"), "signature")
     rows = coverage.inventory()
-    assert sum(row["condition"] == "memcpy_model" for row in rows) == 92
+    assert sum(row["condition"] == "memcpy_model" for row in rows) == 104
     expected = {name for header in coverage.HEADERS.values()
                 for name in coverage.declarations((coverage.REPO / header).read_text())}
     assert {row["function"] for row in rows} == expected
@@ -105,6 +105,24 @@ def main():
             "raw_bitcoin_environment Ty.Unit Word256", "ext_environment Ty.Unit Word256", 1))
         rejects(coverage.inventory, "not a direct canonical jet theorem")
         raw_jets.write_text(raw_original)
+        # Assertion jets must retain the exact linked program/environment and
+        # be the whole proposition, including both success and failure.
+        assertion = project / "C/jet_bitcoin_check_lock.v"
+        assertion_original = assertion.read_text()
+        for old, new in (
+            ("application_jet_partial_spec f_simplicity_bitcoin_check_lock_height",
+             "application_jet_partial_spec f_simplicity_bitcoin_check_lock_time"),
+            ("bitcoin_ge Bitcoin.env", "ge0 Bitcoin.env"),
+            ("bitcoin_ge Bitcoin.env", "bitcoin_ge ext_environment"),
+            ("Theorem bitcoin_check_lock_height_local_spec :",
+             "Theorem bitcoin_check_lock_height_local_spec : False ->"),
+        ):
+            assert old in assertion_original
+            declaration_start = assertion_original.index("Theorem bitcoin_check_lock_height_local_spec")
+            assertion.write_text(assertion_original[:declaration_start] +
+                                 assertion_original[declaration_start:].replace(old, new, 1))
+            rejects(coverage.inventory, "not a direct canonical jet theorem")
+        assertion.write_text(assertion_original)
         # This positive fixture checks bookkeeping only. The actual application
         # theorem still requires compilation, kernel and assumption gates.
         application_name = "simplicity_bitcoin_version"
