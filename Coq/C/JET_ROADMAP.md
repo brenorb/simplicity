@@ -3,20 +3,28 @@
 Prove every individual public C jet equivalent to its Simplicity program,
 including application primitives. Mathematical properties of the specifications
 and helper correctness alone do not count as jet coverage. No proof escapes,
-new axioms or pushes. Reuse completed proofs and proceed easiest to hardest.
+new axioms. Publish only to the user fork after review and verification. Reuse completed proofs and proceed easiest to hardest.
 
 ## Scope and status
 
-Current registered coverage is **319/533 entries without an extra library
-premise and 214 missing**. The 92 formerly conditional copy-family entries use
-the proved internal one-UWORD branch of `copyWords`. Copies exceeding one UWORD
-still use libc and are outside the bounded copy theorem. Missing entries still
-prevent `--require-complete` from passing. The primitive namespace is corrected to `Bitcoin`, with
-canonical constructor/name/type checks and Coq compatibility lemmas. Final
-acceptance requires `../check-jets.sh --accept` against reviewed snapshots and
-unchanged sources, including both pinned ASTs. See `../JET_BUILD.md` for trust
-boundaries and verification evidence. The paragraphs below record earlier
-integration milestones rather than the latest inventory.
+The immutable implementation target is recorded in [JET_TARGET.md](JET_TARGET.md)
+and `jet_source_target.tsv`. The implementation uses its original libc `memcpy`
+path; no added helper or compiler flag may replace it to facilitate proofs.
+Source inspection currently finds **319/533 registered entries: 227 without an
+extra libc premise, 92 conditional on `memcpy_model`, and 214 unregistered**.
+The restored target passes final acceptance against reviewed snapshots (exit 0);
+see [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md). Remaining canonical bridges are
+recorded separately; registration counts alone do not discharge them.
+
+Conditional libc results are legitimate final equivalences when all caller
+obligations and the canonical-specification bridge are proved. `--require-complete`
+therefore requires every declared jet to have a registered final contract; it
+reports the libc boundary separately. Its success is inventory evidence only.
+Final acceptance requires `../check-jets.sh --accept` against reviewed snapshots
+and unchanged sources, including all four pinned ASTs. Mathematical models and
+symbolic-executor results count as support until the C-to-canonical chain closes.
+The paragraphs below record earlier milestones, including proofs for the added
+helper that have since been superseded by restoration of the original target.
 
 The public surface currently has 533 distinct declarations: 370 in `C/jets.h`,
 60 in `C/bitcoin/bitcoinJets.h`, 103 in `C/elements/elementsJets.h`.
