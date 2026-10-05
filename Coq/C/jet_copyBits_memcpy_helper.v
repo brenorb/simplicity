@@ -1,54 +1,70 @@
-(** Initial-only contracts of the actual [copyBitsHelper] on its two aligned
-    copy paths for counts up to one word: both frames aligned, and equal
-    initial shifts after the partial-word prefix.  Both use the proved
-    internal one-word copy. *)
+(** Initial-only contracts of the actual [copyBitsHelper] on its two plain
+    [memcpy] paths for counts up to one word: both frames aligned, and equal
+    initial shifts after the partial-word prefix.  Both are conditional on the
+    explicit [memcpy_model]. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps.
 From compcert Require Import ClightBigstep Memory Events Globalenvs.
 Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_word_bits C.jet_frame_constants.
 Require Import C.jet_copyBits_exec C.jet_copyBits_helper_exec C.jet_copyBits_helper_right.
 Require Import C.jet_copyBits_right_advance C.jet_copyBits_loop_exec C.jet_copyBits_loop_crossing.
-Require Import C.jet_copyBits_two_words_right_exec C.jet_copyWord C.jet_copyBits_memcpy_exec.
+Require Import C.jet_copyBits_two_words_right_exec C.jet_memcpy_model C.jet_copyBits_memcpy_exec C.jet_copyWord.
 Import Values Mem Ctypes ListNotations Clightdefs.
 Local Open Scope Z_scope.
 Local Transparent Archi.ptr64.
 Local Opaque ge0.
 Set Default Timeout 30.
 
-(** One initialized 64-bit word copied by the actual internal helper. *)
-Lemma memcpy_word_effect m bi src bw dst v :
+(** One 64-bit word copied by the modelled [memcpy]. *)
+Lemma memcpy_word_effect (Hmodel : memcpy_model) m bi src bw dst v :
   Mem.load Mint64 m bi src = Some (Vlong v) -> Mem.valid_access m Mint64 bw dst Writable ->
   0 <= src <= Ptrofs.max_unsigned -> 0 <= dst <= Ptrofs.max_unsigned ->
   (bi <> bw \/ src + 8 <= dst \/ dst + 8 <= src) ->
   exists m',
-    Clight2.eval_funcall ge0 m (Internal f_copyWords)
+    external_call (EF_external "memcpy" memcpy_sig) ge0
       [Vptr bw (Ptrofs.repr dst); Vptr bi (Ptrofs.repr src); Vlong (Int64.repr 8)]
-      E0 m' Vundef /\
+      m E0 (Vptr bw (Ptrofs.repr dst)) m' /\
     Mem.load Mint64 m' bw dst = Some (Vlong v) /\
     (forall chunk b ofs, b <> bw \/ ofs + size_chunk chunk <= dst \/ dst + 8 <= ofs ->
       Mem.load chunk m' b ofs = Mem.load chunk m b ofs) /\
     (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm m' b ofs kind p) /\
     (forall b, Mem.valid_block m b -> Mem.valid_block m' b).
 Proof.
-  intros HL HW Hs Hd Hsep.
-  destruct (Mem.valid_access_store m Mint64 bw dst (Vlong v) HW) as [m' HS].
-  exists m'. split.
-  - apply eval_copy_word with (v := v); rewrite Ptrofs.unsigned_repr by lia; assumption.
-  - split; [exact (Mem.load_store_same _ _ _ _ _ _ HS)|].
-    split.
-    + intros chunk b ofs Hout. eapply Mem.load_store_other; [exact HS|exact Hout].
-    + split.
-      * intros b ofs kind p HP. eapply Mem.perm_store_1; eauto.
-      * intros b HV. eapply Mem.store_valid_block_1; eauto.
+  intros HL [HW HAl] Hs Hd Hsep.
+  destruct (Mem.load_loadbytes _ _ _ _ _ HL) as [bytes [HBytes Hdec]].
+  change (size_chunk Mint64) with 8 in HBytes.
+  assert (Hlen : length bytes = 8%nat) by (apply (Mem.loadbytes_length _ _ _ _ _ HBytes)).
+  pose proof (Mem.load_valid_access _ _ _ _ _ HL) as [HR HSrcAl].
+  assert (HSrcValid : Mem.valid_block m bi).
+  { eapply Mem.perm_valid_block. apply (HR src). change (size_chunk Mint64) with 8. lia. }
+  assert (HDstValid : Mem.valid_block m bw).
+  { eapply Mem.perm_valid_block. apply (HW dst). change (size_chunk Mint64) with 8. lia. }
+  assert (HSrcEnd : src + 8 <= Ptrofs.max_unsigned + 1).
+  { change (8 | src) in HSrcAl. destruct HSrcAl as [q Eq].
+    change Ptrofs.max_unsigned with 18446744073709551615 in *. lia. }
+  assert (HDstEnd : dst + 8 <= Ptrofs.max_unsigned + 1).
+  { change (8 | dst) in HAl. destruct HAl as [q Eq].
+    change Ptrofs.max_unsigned with 18446744073709551615 in *. lia. }
+  destruct (Hmodel ge0 m bw (Ptrofs.repr dst) bi (Ptrofs.repr src) 8 bytes
+    HSrcValid HDstValid) as [m' [HS HE]].
+  - rewrite !Ptrofs.unsigned_repr by lia. exact HBytes.
+  - rewrite Ptrofs.unsigned_repr by lia. intros ofs Hofs. apply HW. change (size_chunk Mint64) with 8. lia.
+  - rewrite !Ptrofs.unsigned_repr by lia. lia.
+  - change Int64.max_unsigned with 18446744073709551615; lia.
+  - rewrite Ptrofs.unsigned_repr by lia. exact HSrcEnd.
+  - rewrite Ptrofs.unsigned_repr by lia. exact HDstEnd.
+  - rewrite Ptrofs.unsigned_repr in HS by lia.
+    exists m'. split; [exact HE|].
+    eapply copy_word_storebytes_effect; eassumption.
 Qed.
 
 Lemma exec_copy_choice_memcpy le m m' bi src_ofs bw dst_ofs ss n :
   (ss = 0 \/ ss = 64) -> 1 <= n <= 64 ->
   le!_dst_ptr = Some (Vptr bw dst_ofs) -> le!_src_ptr = Some (Vptr bi src_ofs) ->
   le!_src_shift = Some (Vlong (Int64.repr ss)) -> le!_n = Some (Vlong (Int64.repr n)) ->
-  Clight2.eval_funcall ge0 m (Internal f_copyWords)
+  external_call (EF_external "memcpy" memcpy_sig) ge0
     [Vptr bw dst_ofs; Vptr bi (Ptrofs.sub src_ofs (Ptrofs.repr (8 * (1 - ss / 64)))); Vlong (Int64.repr 8)]
-    E0 m' Vundef ->
+    m E0 (Vptr bw dst_ofs) m' ->
   Clight2.exec_stmt ge0 empty_env le m copy_tail_after_partial E0 (copy_mcpy_env le) m' Out_normal.
 Proof.
   intros Hss Hn HD HS HSS HN Hext.
@@ -68,7 +84,7 @@ Proof.
   - eapply exec_copy_memcpy_branch; eassumption.
 Qed.
 
-Theorem eval_copy_helper_memcpy_aligned m bd base bs sbase bi edge rc bw outedge cursor n source :
+Theorem eval_copy_helper_memcpy_aligned (Hmodel : memcpy_model) m bd base bs sbase bi edge rc bw outedge cursor n source :
   frame_base_valid sbase -> frame_base_valid base ->
   frame_fields_at m bs sbase bi edge rc -> frame_fields_at m bd base bw outedge cursor ->
   0 <= rc <= Int64.max_unsigned -> 1 <= cursor <= Int64.max_unsigned ->
@@ -94,7 +110,7 @@ Proof.
   { pose proof (Z.div_pos rc 64 ltac:(lia) ltac:(lia)); lia. }
   assert (Hdstaddr : 0 <= write_word_address outedge cursor <= Ptrofs.max_unsigned).
   { unfold write_word_address in *. pose proof (Z.div_pos (cursor - 1) 64 ltac:(lia) ltac:(lia)); lia. }
-  destruct (memcpy_word_effect m bi (edge - 8 * (1 + rc / 64)) bw
+  destruct (memcpy_word_effect Hmodel m bi (edge - 8 * (1 + rc / 64)) bw
     (write_word_address outedge cursor) source Hsource Hdst Hsrcaddr Hdstaddr Hsep)
     as (mf & Hext & Hword & Hother & Hperm & Hvalid).
   exists mf. split.
@@ -137,10 +153,10 @@ Lemma exec_copy_tail_memcpy_equal le m mc mp m' bi src_ofs bw dst_ofs ds n old s
   Mem.store Mint64 m bw (Ptrofs.unsigned dst_ofs) (Vlong (clear_low ds old)) = Some mc ->
   Mem.load Mint64 mc bi (Ptrofs.unsigned src_ofs) = Some (Vlong source) ->
   Mem.store Mint64 mc bw (Ptrofs.unsigned dst_ofs) (Vlong (copy_right_value ds ds old source)) = Some mp ->
-  Clight2.eval_funcall ge0 mp (Internal f_copyWords)
+  external_call (EF_external "memcpy" memcpy_sig) ge0
     [Vptr bw (Ptrofs.sub dst_ofs (Ptrofs.repr 8));
      Vptr bi (Ptrofs.sub src_ofs (Ptrofs.repr (8 * (1 - 0 / 64)))); Vlong (Int64.repr 8)]
-    E0 m' Vundef ->
+    mp E0 (Vptr bw (Ptrofs.sub dst_ofs (Ptrofs.repr 8))) m' ->
   Clight2.exec_stmt ge0 empty_env le m copy_helper_tail E0
     (copy_mcpy_env (copy_two_right_env le bw dst_ofs ds ds n old source)) m' Out_normal.
 Proof.
@@ -170,7 +186,7 @@ Proof.
     + exact Hext.
 Qed.
 
-Theorem eval_copy_helper_memcpy_equal m bd base bs sbase bi edge rc bw outedge cursor n old source next :
+Theorem eval_copy_helper_memcpy_equal (Hmodel : memcpy_model) m bd base bs sbase bi edge rc bw outedge cursor n old source next :
   frame_base_valid sbase -> frame_base_valid base ->
   frame_fields_at m bs sbase bi edge rc -> frame_fields_at m bd base bw outedge cursor ->
   0 <= rc <= Int64.max_unsigned -> 1 <= cursor <= Int64.max_unsigned ->
@@ -234,7 +250,7 @@ Proof.
   assert (PWlowP : Mem.valid_access mp Mint64 bw (write_word_address outedge cursor - 8) Writable).
   { eapply Mem.store_valid_access_1; [exact SP|].
     eapply Mem.store_valid_access_1; [exact SC|exact PWlow]. }
-  destruct (memcpy_word_effect mp bi (edge - 8 * (2 + rc / 64)) bw
+  destruct (memcpy_word_effect Hmodel mp bi (edge - 8 * (2 + rc / 64)) bw
     (write_word_address outedge cursor - 8) next HnextP PWlowP Hnextaddr Hlowaddr Hsepnextlow)
     as (mf & Hext & Hword & Hother & Hperm & Hvalid).
   assert (Hss : 64 - rc mod 64 = cursor mod 64) by lia.

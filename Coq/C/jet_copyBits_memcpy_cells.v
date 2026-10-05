@@ -1,5 +1,6 @@
-(** Logical cell observations of the two aligned-copy paths of copyBits for
-    counts up to 64, and their unconditional wrapper contracts. *)
+(** Logical cell observations of the two plain-[memcpy] paths of copyBits for
+    counts up to 64, and their wrapper contracts (conditional on the explicit
+    [memcpy_model]). *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Events.
 Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_input_layout.
@@ -8,7 +9,7 @@ Require Import C.jet_copyBits_exec C.jet_copyBits_helper_right C.jet_copyBits_sh
 Require Import C.jet_copyBits_loop_exec C.jet_copyBits_loop_crossing C.jet_copyBits_short_cells.
 Require Import C.jet_copyBits_aligned_short C.jet_copyBits_aligned_crossing.
 Require Import C.jet_copyBits_two_words_left_cells C.jet_copyBits_separation C.jet_copyBits_two_words_right_full_cells.
-Require Import C.jet_copyBits_memcpy_helper.
+Require Import C.jet_memcpy_model C.jet_copyBits_memcpy_helper.
 Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 30.
@@ -46,7 +47,7 @@ Proof.
   - destruct Hinput as [bit Hbit]. exists bit. eapply copy_memcpy_aligned_output_bit with (rc := rc) (cursor := cursor); try eassumption; lia.
 Qed.
 
-Theorem eval_copyBits_memcpy_aligned_layout m bd base bs sbase bi edge rc bw outedge cursor n cells :
+Theorem eval_copyBits_memcpy_aligned_layout (Hmodel : memcpy_model) m bd base bs sbase bi edge rc bw outedge cursor n cells :
   frame_base_valid sbase -> frame_fields_at m bs sbase bi edge rc ->
   write_frame_at m bd base bw outedge cursor n -> n = Z.of_nat (length cells) ->
   rc mod 64 = 0 -> cursor mod 64 = 0 -> 0 < n <= 64 ->
@@ -70,7 +71,7 @@ Proof.
   destruct Hwrite as [HB [HW [HO [HNcursor [HC [Hbd [PC Hwords]]]]]]].
   destruct (copy_input_cells_head m bi edge rc cells ltac:(lia) Hinput)
     as [HR [HE [source Hsource]]].
-  destruct (eval_copy_helper_memcpy_aligned m bd base bs sbase bi edge rc bw outedge cursor n source
+  destruct (eval_copy_helper_memcpy_aligned Hmodel m bd base bs sbase bi edge rc bw outedge cursor n source
     HS HB HF HW HR ltac:(lia) HE HO ltac:(lia) Hrz Hcz Hn ltac:(lia) Hbd Hsep Hsource PW)
     as [mi [Hcall [Hword [Hfields [Houtside [Hperm Hvalid]]]]]].
   assert (PCi : Mem.valid_access mi Mint64 bd (base + 8) Writable).
@@ -145,7 +146,7 @@ Proof.
   - destruct Hinput as [bit Hbit]. exists bit. eapply copy_memcpy_equal_output_bit with (rc := rc) (cursor := cursor); try eassumption; lia.
 Qed.
 
-Theorem eval_copyBits_memcpy_equal_layout m bd base bs sbase bi edge rc bw outedge cursor n cells :
+Theorem eval_copyBits_memcpy_equal_layout (Hmodel : memcpy_model) m bd base bs sbase bi edge rc bw outedge cursor n cells :
   frame_base_valid sbase -> frame_fields_at m bs sbase bi edge rc ->
   write_frame_at m bd base bw outedge cursor n -> n = Z.of_nat (length cells) ->
   0 < cursor mod 64 -> cursor mod 64 = 64 - rc mod 64 -> cursor mod 64 < n <= 64 ->
@@ -184,7 +185,7 @@ Proof.
   rewrite Hq, Z.sub_0_r in Hsepnext.
   rewrite Hq, copy_partial_aligned_write_address in Hsepnextlow by exact Hpartial.
   replace (1 + (rc / 64 + 1)) with (2 + rc / 64) in Hsepnext, Hsepnextlow by lia.
-  destruct (eval_copy_helper_memcpy_equal m bd base bs sbase bi edge rc bw outedge cursor n old source next
+  destruct (eval_copy_helper_memcpy_equal Hmodel m bd base bs sbase bi edge rc bw outedge cursor n old source next
     HS HB HF HW HR ltac:(lia) HE2 HO ltac:(lia) Hpartial Hss Hn ltac:(lia) Hbd
     Hsephead Hsepnext Hsepnextlow Hsource Hnext Hold PW PWlow)
     as [mi [Hcall [Hhead [Hlow [Hfields [Houtside [Hperm Hvalid]]]]]]].

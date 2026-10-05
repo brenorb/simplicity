@@ -111,10 +111,15 @@ Proof.
     apply H. change (size_chunk Mint8unsigned) with 1. lia. }
   destruct (Mem.range_perm_loadbytes m bs (Ptrofs.unsigned os) n HR) as [bytes HB].
   pose proof (Mem.loadbytes_length _ _ _ _ _ HB) as HBL.
-  destruct (Hmodel ge m bd od bs os n bytes HB HP ltac:(left; exact Hne)
+  assert (HSrcValid : Mem.valid_block m bs).
+  { eapply Mem.perm_valid_block. apply (HR (Ptrofs.unsigned os)). lia. }
+  assert (HDstValid : Mem.valid_block m bd).
+  { eapply Mem.perm_valid_block. apply (HP (Ptrofs.unsigned od)). lia. }
+  destruct (Hmodel ge m bd od bs os n bytes HSrcValid HDstValid HB HP ltac:(left; exact Hne)
     ltac:(change Int64.max_unsigned with 18446744073709551615;
           change Ptrofs.max_unsigned with 18446744073709551615 in Hos;
-          pose proof (Ptrofs.unsigned_range os); lia)) as (m' & HS & HX).
+          pose proof (Ptrofs.unsigned_range os); lia)
+    ltac:(lia) ltac:(lia)) as (m' & HS & HX).
   exists m'. split; [exact HX|]. split; [|split; [|split]].
   - intros i Hi.
     pose proof (Mem.loadbytes_storebytes_same _ _ _ _ _ HS) as HSame.

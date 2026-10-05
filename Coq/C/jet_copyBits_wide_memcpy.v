@@ -193,12 +193,20 @@ Proof.
   assert (Hlen1 : length bytes1 = 8%nat) by (apply (Mem.loadbytes_length _ _ _ _ _ HB1)).
   assert (HB : Mem.loadbytes m bi src 16 = Some (bytes0 ++ bytes1)).
   { change 16 with (8 + 8). apply Mem.loadbytes_concat; [exact HB0|exact HB1|lia|lia]. }
-  destruct (Hmodel ge0 m bw (Ptrofs.repr dst) bi (Ptrofs.repr src) 16 (bytes0 ++ bytes1)) as [m' [HS HE]].
+  assert (HSrcValid : Mem.valid_block m bi).
+  { pose proof (Mem.load_valid_access _ _ _ _ _ HL0) as [HR _].
+    eapply Mem.perm_valid_block. apply (HR src). change (size_chunk Mint64) with 8. lia. }
+  assert (HDstValid : Mem.valid_block m bw).
+  { eapply Mem.perm_valid_block. apply (HW0 dst). change (size_chunk Mint64) with 8. lia. }
+  destruct (Hmodel ge0 m bw (Ptrofs.repr dst) bi (Ptrofs.repr src) 16 (bytes0 ++ bytes1)
+    HSrcValid HDstValid) as [m' [HS HE]].
   - rewrite !Ptrofs.unsigned_repr by lia. exact HB.
   - rewrite Ptrofs.unsigned_repr by lia. intros ofs Hofs.
     destruct (zlt ofs (dst + 8)); [apply HW0|apply HW1]; change (size_chunk Mint64) with 8; lia.
   - rewrite !Ptrofs.unsigned_repr by lia. lia.
   - change Int64.max_unsigned with 18446744073709551615; lia.
+  - rewrite Ptrofs.unsigned_repr by lia. lia.
+  - rewrite Ptrofs.unsigned_repr by lia. lia.
   - rewrite Ptrofs.unsigned_repr in HS by lia.
     exists m'. split; [exact HE|].
     assert (HLen : Z.of_nat (length (bytes0 ++ bytes1)) = 16).

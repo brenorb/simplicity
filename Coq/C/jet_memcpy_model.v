@@ -3,7 +3,7 @@
     [EF_external "memcpy"], whose CompCert semantics is the abstract parameter
     [external_functions_sem]; CompCert's runtime provides no definition.  The
     statement below is the C standard contract of [memcpy] for valid,
-    non-overlapping ranges, stated as a premise of every theorem that reaches
+    non-overlapping positive-size ranges, stated as a premise of every theorem that reaches
     that call. The copy effect has the checked builtin witness below, but
     the abstract external function also has a different argument/result ABI.
     Nothing here proves that the linked libc implements this contract. *)
@@ -21,11 +21,14 @@ Definition memcpy_sig : signature :=
 
 Definition memcpy_model : Prop :=
   forall (ge : Senv.t) m bd od bs os n bytes,
+    Mem.valid_block m bs -> Mem.valid_block m bd ->
     Mem.loadbytes m bs (Ptrofs.unsigned os) n = Some bytes ->
     Mem.range_perm m bd (Ptrofs.unsigned od) (Ptrofs.unsigned od + n) Cur Writable ->
     (bs <> bd \/ Ptrofs.unsigned os + n <= Ptrofs.unsigned od \/
       Ptrofs.unsigned od + n <= Ptrofs.unsigned os) ->
-    0 <= n <= Int64.max_unsigned ->
+    0 < n <= Int64.max_unsigned ->
+    Ptrofs.unsigned os + n <= Ptrofs.max_unsigned + 1 ->
+    Ptrofs.unsigned od + n <= Ptrofs.max_unsigned + 1 ->
     exists m', Mem.storebytes m bd (Ptrofs.unsigned od) bytes = Some m' /\
       external_call (EF_external "memcpy" memcpy_sig) ge
         [Vptr bd od; Vptr bs os; Vlong (Int64.repr n)] m E0 (Vptr bd od) m'.
