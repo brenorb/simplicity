@@ -293,3 +293,146 @@ Proof.
     change (2 ^ 48) with 281474976710656 in *.
     lia.
 Qed.
+
+(** ** Canonical limbs of a 256-bit value *)
+Definition fe_limbs_of (V : Z) : list Z :=
+  [V mod 2 ^ 52; (V / 2 ^ 52) mod 2 ^ 52; (V / 2 ^ 104) mod 2 ^ 52; (V / 2 ^ 156) mod 2 ^ 52; V / 2 ^ 208].
+
+Lemma fe_limbs_unique l0 l1 l2 l3 l4 V :
+  fe_limbs_ok l0 l1 l2 l3 l4 -> fe_val l0 l1 l2 l3 l4 = V -> [l0; l1; l2; l3; l4] = fe_limbs_of V.
+Proof.
+  unfold fe_limbs_ok, fe_val, fe_limbs_of. intros H <-.
+  change (2 ^ 104) with (2 ^ 52 * 2 ^ 52). change (2 ^ 156) with (2 ^ 52 * 2 ^ 52 * 2 ^ 52).
+  change (2 ^ 208) with (2 ^ 52 * 2 ^ 52 * 2 ^ 52 * 2 ^ 52).
+  assert (E1 : l0 + l1 * 2 ^ 52 + l2 * (2 ^ 52 * 2 ^ 52) + l3 * (2 ^ 52 * 2 ^ 52 * 2 ^ 52) +
+               l4 * (2 ^ 52 * 2 ^ 52 * 2 ^ 52 * 2 ^ 52) =
+               l0 + (l1 + (l2 + (l3 + l4 * 2 ^ 52) * 2 ^ 52) * 2 ^ 52) * 2 ^ 52) by ring.
+  rewrite E1. clear E1.
+  set (A1 := l1 + (l2 + (l3 + l4 * 2 ^ 52) * 2 ^ 52) * 2 ^ 52).
+  assert (H0 : (l0 + A1 * 2 ^ 52) mod 2 ^ 52 = l0).
+  { rewrite Z.mod_add by lia. apply Z.mod_small. change (2 ^ 52) with 4503599627370496. lia. }
+  assert (D0 : (l0 + A1 * 2 ^ 52) / 2 ^ 52 = A1).
+  { rewrite Z.div_add by lia. rewrite Z.div_small by (change (2 ^ 52) with 4503599627370496; lia). lia. }
+  rewrite H0, D0.
+  rewrite <- !Z.div_div by lia. rewrite D0.
+  unfold A1. set (A2 := l2 + (l3 + l4 * 2 ^ 52) * 2 ^ 52).
+  assert (H1 : (l1 + A2 * 2 ^ 52) mod 2 ^ 52 = l1).
+  { rewrite Z.mod_add by lia. apply Z.mod_small. change (2 ^ 52) with 4503599627370496. lia. }
+  assert (D1 : (l1 + A2 * 2 ^ 52) / 2 ^ 52 = A2).
+  { rewrite Z.div_add by lia. rewrite Z.div_small by (change (2 ^ 52) with 4503599627370496; lia). lia. }
+  rewrite H1, D1.
+  unfold A2. set (A3 := l3 + l4 * 2 ^ 52).
+  assert (H2 : (l2 + A3 * 2 ^ 52) mod 2 ^ 52 = l2).
+  { rewrite Z.mod_add by lia. apply Z.mod_small. change (2 ^ 52) with 4503599627370496. lia. }
+  assert (D2 : (l2 + A3 * 2 ^ 52) / 2 ^ 52 = A3).
+  { rewrite Z.div_add by lia. rewrite Z.div_small by (change (2 ^ 52) with 4503599627370496; lia). lia. }
+  rewrite H2, D2. unfold A3.
+  assert (H3 : (l3 + l4 * 2 ^ 52) mod 2 ^ 52 = l3).
+  { rewrite Z.mod_add by lia. apply Z.mod_small. change (2 ^ 52) with 4503599627370496. lia. }
+  assert (D3 : (l3 + l4 * 2 ^ 52) / 2 ^ 52 = l4).
+  { rewrite Z.div_add by lia. rewrite Z.div_small by (change (2 ^ 52) with 4503599627370496; lia). lia. }
+  rewrite H3, D3. reflexivity.
+Qed.
+
+Lemma fe_limbs_of_ok V :
+  0 <= V < 2 ^ 256 ->
+  fe_limbs_ok (V mod 2 ^ 52) ((V / 2 ^ 52) mod 2 ^ 52) ((V / 2 ^ 104) mod 2 ^ 52)
+              ((V / 2 ^ 156) mod 2 ^ 52) (V / 2 ^ 208) /\
+  fe_val (V mod 2 ^ 52) ((V / 2 ^ 52) mod 2 ^ 52) ((V / 2 ^ 104) mod 2 ^ 52)
+         ((V / 2 ^ 156) mod 2 ^ 52) (V / 2 ^ 208) = V.
+Proof.
+  intros HV. unfold fe_limbs_ok, fe_val.
+  pose proof (Z.mod_pos_bound V (2 ^ 52) ltac:(lia)).
+  pose proof (Z.mod_pos_bound (V / 2 ^ 52) (2 ^ 52) ltac:(lia)).
+  pose proof (Z.mod_pos_bound (V / 2 ^ 104) (2 ^ 52) ltac:(lia)).
+  pose proof (Z.mod_pos_bound (V / 2 ^ 156) (2 ^ 52) ltac:(lia)).
+  assert (0 <= V / 2 ^ 208 < 2 ^ 48).
+  { split; [apply Z.div_pos; lia|]. apply Z.div_lt_upper_bound; [lia|]. change (2 ^ 208 * 2 ^ 48) with (2 ^ 256). lia. }
+  split.
+  { change (2 ^ 52) with 4503599627370496 in *. change (2 ^ 48) with 281474976710656 in *. lia. }
+  pose proof (Z.div_mod V (2 ^ 52) ltac:(lia)) as E0.
+  pose proof (Z.div_mod (V / 2 ^ 52) (2 ^ 52) ltac:(lia)) as E1.
+  pose proof (Z.div_mod (V / 2 ^ 104) (2 ^ 52) ltac:(lia)) as E2.
+  pose proof (Z.div_mod (V / 2 ^ 156) (2 ^ 52) ltac:(lia)) as E3.
+  rewrite Z.div_div in E1, E2, E3 by lia.
+  change (2 ^ 52 * 2 ^ 52) with (2 ^ 104) in E1. change (2 ^ 104 * 2 ^ 52) with (2 ^ 156) in E2.
+  change (2 ^ 156 * 2 ^ 52) with (2 ^ 208) in E3.
+  change (2 ^ 104) with (2 ^ 52 * 2 ^ 52) at 2. change (2 ^ 156) with (2 ^ 52 * 2 ^ 52 * 2 ^ 52) at 2.
+  change (2 ^ 208) with (2 ^ 52 * 2 ^ 52 * 2 ^ 52 * 2 ^ 52) at 2.
+  set (a0 := V mod 2 ^ 52) in *. set (a1 := (V / 2 ^ 52) mod 2 ^ 52) in *.
+  set (a2 := (V / 2 ^ 104) mod 2 ^ 52) in *. set (a3 := (V / 2 ^ 156) mod 2 ^ 52) in *.
+  set (q1 := V / 2 ^ 52) in *. set (q2 := V / 2 ^ 104) in *. set (q3 := V / 2 ^ 156) in *.
+  set (q4 := V / 2 ^ 208) in *. lia.
+Qed.
+
+(** ** Bit-field facts for the byte conversions *)
+Lemma lor_shift_add x y k : 0 <= x < 2 ^ k -> 0 <= y -> 0 <= k -> Z.lor x (y * 2 ^ k) = x + y * 2 ^ k.
+Proof.
+  intros Hx Hy Hk.
+  assert (HL : Z.land x (y * 2 ^ k) = 0).
+  { apply Z.bits_inj'. intros i Hi. rewrite Z.land_spec, Z.bits_0.
+    destruct (Z_lt_dec i k).
+    - rewrite Z.mul_pow2_bits_low by lia. apply andb_false_r.
+    - destruct (Z.eq_dec x 0) as [->|Hne]; [rewrite Z.bits_0; reflexivity|].
+      rewrite (Z.bits_above_log2 x i); [reflexivity|lia|].
+      assert (Z.log2 x < k) by (apply Z.log2_lt_pow2; lia). lia. }
+  rewrite <- Z.lxor_lor by exact HL. symmetry. apply Z.add_nocarry_lxor. exact HL.
+Qed.
+
+Lemma mod_div_mod x a b c :
+  0 <= b -> 0 <= c -> b + c <= a -> ((x mod 2 ^ a) / 2 ^ b) mod 2 ^ c = (x / 2 ^ b) mod 2 ^ c.
+Proof.
+  intros Hb Hc Ha.
+  pose proof (Z.div_mod x (2 ^ a) ltac:(apply Z.pow_nonzero; lia)) as E.
+  rewrite E at 2.
+  replace (2 ^ a * (x / 2 ^ a)) with ((x / 2 ^ a) * 2 ^ (a - b - c) * 2 ^ c * 2 ^ b).
+  2: { rewrite <- !Z.mul_assoc, <- !Z.pow_add_r by lia. replace (a - b - c + (c + b)) with a by lia. ring. }
+  rewrite Z.div_add_l by (apply Z.pow_nonzero; lia).
+  rewrite Z.add_comm, Z.mod_add by (apply Z.pow_nonzero; lia). reflexivity.
+Qed.
+
+Lemma div_div_pow x a b : 0 <= a -> 0 <= b -> x / 2 ^ a / 2 ^ b = x / 2 ^ (a + b).
+Proof.
+  intros. rewrite Z.div_div; [|apply Z.pow_nonzero; lia|apply Z.pow_pos_nonneg; lia].
+  rewrite Z.pow_add_r by lia. reflexivity.
+Qed.
+
+Lemma mod256_split x : x mod 2 ^ 8 = x mod 2 ^ 4 + (x / 2 ^ 4) mod 2 ^ 4 * 2 ^ 4.
+Proof.
+  pose proof (Z.div_mod x (2 ^ 4) ltac:(lia)) as E.
+  pose proof (Z.div_mod (x / 2 ^ 4) (2 ^ 4) ltac:(lia)) as E2.
+  pose proof (Z.mod_pos_bound x (2 ^ 4) ltac:(lia)). pose proof (Z.mod_pos_bound (x / 2 ^ 4) (2 ^ 4) ltac:(lia)).
+  symmetry. apply Z.mod_unique with (q := x / 2 ^ 4 / 2 ^ 4).
+  - left. change (2 ^ 8) with 256. change (2 ^ 4) with 16 in *. lia.
+  - change (2 ^ 8) with (2 ^ 4 * 2 ^ 4). lia.
+Qed.
+
+Lemma land_15 a : Z.land a 15 = a mod 2 ^ 4.
+Proof. exact (land_ones_mod a 4 ltac:(lia)). Qed.
+Lemma land_255 a : Z.land a 255 = a mod 2 ^ 8.
+Proof. exact (land_ones_mod a 8 ltac:(lia)). Qed.
+
+Lemma overflow_flag l0 l1 l2 l3 l4 :
+  fe_limbs_ok l0 l1 l2 l3 l4 ->
+  Z.eqb (Z.land (Z.land (b2z (Z.eqb l4 M48)) (b2z (Z.eqb (Z.land (Z.land l3 l2) l1) M52)))
+                (b2z (negb (Z.ltb l0 4503595332402223)))) 0 =
+  Z.ltb (fe_val l0 l1 l2 l3 l4) feP.
+Proof.
+  intros Hl. pose proof (fe_val_ge_P _ _ _ _ _ Hl) as HP.
+  destruct Hl as (H0 & H1 & H2 & H3 & H4).
+  assert (Hm : Z.land (Z.land l3 l2) l1 = M52 <-> l3 = M52 /\ l2 = M52 /\ l1 = M52).
+  { assert (0 <= Z.land l3 l2 <= M52).
+    { split; [apply Z.land_nonneg; lia|].
+      pose proof (land_le_l l3 l2 ltac:(change (2^64) with 18446744073709551616; lia) ltac:(change (2^64) with 18446744073709551616; lia)). lia. }
+    rewrite (land_eq_M52 _ _ H H1). rewrite (land_eq_M52 _ _ H3 H2). tauto. }
+  destruct (Z.ltb_spec (fe_val l0 l1 l2 l3 l4) feP) as [Hlt|Hge].
+  - destruct (Z.eqb_spec l4 M48) as [E4|N4]; [|reflexivity].
+    destruct (Z.eqb_spec (Z.land (Z.land l3 l2) l1) M52) as [Em|Nm]; [|reflexivity].
+    destruct (Z.ltb_spec l0 4503595332402223) as [E0|N0]; [reflexivity|].
+    exfalso. apply Hm in Em. assert (feP <= fe_val l0 l1 l2 l3 l4) by (apply HP; tauto). lia.
+  - apply HP in Hge. destruct Hge as (E4 & E3 & E2 & E1 & E0).
+    assert (Em : Z.land (Z.land l3 l2) l1 = M52) by (apply Hm; tauto).
+    rewrite E4, Em. destruct (Z.ltb_spec l0 4503595332402223); [lia|reflexivity].
+Qed.
+
+Definition be_val (bs : list Z) : Z := fold_left (fun acc b => acc * 256 + b) bs 0.
