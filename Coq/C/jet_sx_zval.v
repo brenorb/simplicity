@@ -559,3 +559,41 @@ Proof.
     destruct (zeq (zval zrho x) 0); destruct (Z.eqb_spec (zval zrho x) 0); try reflexivity; contradiction.
 Qed.
 End ZB.
+
+(** Consequences for cell values and branch conditions. *)
+Section ZBUSE.
+Variables (ρ : nat -> int64) (bnd : nat -> Z * Z) (β : nat -> block * Z).
+Hypothesis Hb : forall n, fst (bnd n) <= Int64.unsigned (ρ n) <= snd (bnd n).
+
+Lemma den_zval_long x lo hi :
+  zb bnd x = Some (lo, hi) -> isk KL x = true ->
+  den ρ β x = Vlong (Int64.repr (zval (zrho ρ) x)) /\ lo <= zval (zrho ρ) x <= hi.
+Proof.
+  intros H K. destruct (zb_sound ρ bnd β Hb x lo hi H) as [G B]. split; [|exact B].
+  rewrite (den_KL ρ β x K). rewrite <- (zgood_KL ρ β x K G), Int64.repr_unsigned. reflexivity.
+Qed.
+
+Lemma den_zval_int x lo hi :
+  zb bnd x = Some (lo, hi) -> isk KI x = true ->
+  den ρ β x = Vint (Int.repr (zval (zrho ρ) x)) /\ lo <= zval (zrho ρ) x <= hi.
+Proof.
+  intros H K. destruct (zb_sound ρ bnd β Hb x lo hi H) as [G B]. split; [|exact B].
+  rewrite (den_KI ρ β x K). rewrite <- (zgood_KI ρ β x K G), Int.repr_unsigned. reflexivity.
+Qed.
+
+Lemma truth_zval c lo hi :
+  zb bnd c = Some (lo, hi) -> isk KI c = true ->
+  truth ρ β c = negb (Z.eqb (zval (zrho ρ) c) 0).
+Proof.
+  intros H K. destruct (zb_sound ρ bnd β Hb c lo hi H) as [G B].
+  unfold truth. f_equal. unfold Int.eq. rewrite (zgood_KI ρ β c K G).
+  change (Int.unsigned Int.zero) with 0.
+  destruct (zeq (zval (zrho ρ) c) 0); destruct (Z.eqb_spec (zval (zrho ρ) c) 0); try reflexivity; contradiction.
+Qed.
+End ZBUSE.
+
+Lemma zval_ext (z1 z2 : nat -> Z) x : (forall n, z1 n = z2 n) -> zval z1 x = zval z2 x.
+Proof.
+  intros H. induction x; simpl; try reflexivity; try rewrite H; try rewrite IHx; try rewrite IHx1, IHx2;
+    try reflexivity.
+Qed.
