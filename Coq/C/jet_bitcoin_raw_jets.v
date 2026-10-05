@@ -11,6 +11,7 @@ Require Import C.jet_bitcoin_transaction_id_local C.jet_bitcoin_internal_key_loc
 Require Import C.jet_bitcoin_tapleaf_version_local C.jet_bitcoin_tappath_local.
 Require Import C.jet_bitcoin_ext_current_spec C.jet_bitcoin_ext_current_jets.
 Require Import C.jet_bitcoin_current_ptr_jets.
+Require Import C.jet_bitcoin_annex_local C.jet_bitcoin_current_annex_local.
 Local Open Scope Z_scope.
 Set Default Timeout 30.
 
@@ -160,4 +161,55 @@ Proof.
   eapply application_raw_local_spec_sep.
   - intros. unfold bitcoin_current_script_sig_hash_spec. apply raw_current_composition.
   - exact bitcoin_current_script_sig_hash_local_spec.
+Qed.
+
+Theorem bitcoin_input_annex_hash_raw_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_input_annex_hash bitcoin_ge
+    raw_bitcoin_environment Word32 (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Word256))
+    (raw_env_rep bitcoin_input_annex_hash_env_rep) (raw_ext_sem BitcoinExt.InputAnnexHash).
+Proof.
+  eapply application_raw_local_spec_sep with
+    (spec := fun a environment => @bitcoin_input_annex_hash_spec
+      (PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem option_Monad_Zero) a environment).
+  - intros a logical Hpath. unfold bitcoin_input_annex_hash_spec.
+    rewrite ext_primitive_option_sem. apply bitcoin_ext_raw_projection.
+  - exact bitcoin_input_annex_hash_local_spec.
+Qed.
+
+(** The outer assertion tests whether the current input exists.  An absent
+    annex remains a successful inner [inl], exactly as in the canonical program. *)
+Definition raw_current_annex_sem (a : Ty.tySem Ty.Unit)
+    (logical : raw_bitcoin_environment) : option (Ty.tySem (Ty.Sum Ty.Unit Word256)) :=
+  match raw_ext_sem BitcoinExt.CurrentIndex a logical with
+  | Some ix => match raw_ext_sem BitcoinExt.InputAnnexHash ix logical with
+               | Some (inr annex) => Some annex | _ => None end
+  | None => None
+  end.
+
+Lemma raw_current_annex_composition a logical Hpath :
+  @bitcoin_current_annex_hash_spec
+    (PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem option_Monad_Zero)
+    a (project_raw_environment logical Hpath) = raw_current_annex_sem a logical.
+Proof.
+  unfold bitcoin_current_annex_hash_spec. rewrite ext_comp_sem.
+  change (match BitcoinExt.sem BitcoinExt.CurrentIndex a (project_raw_environment logical Hpath) with
+    | Some ix => @ext_assert_spec
+        (PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem option_Monad_Zero)
+        Word32 (Ty.Sum Ty.Unit Word256)
+        (PrimitiveBitcoinExt.Primitive.Combinators.prim BitcoinExt.InputAnnexHash)
+        ix (project_raw_environment logical Hpath)
+    | None => None end = raw_current_annex_sem a logical).
+  rewrite bitcoin_ext_raw_projection. unfold raw_current_annex_sem.
+  destruct (raw_ext_sem BitcoinExt.CurrentIndex a logical) as [ix|]; [|reflexivity].
+  rewrite ext_assert_sem, ext_primitive_option_sem, bitcoin_ext_raw_projection. reflexivity.
+Qed.
+
+Theorem bitcoin_current_annex_hash_raw_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_current_annex_hash bitcoin_ge
+    raw_bitcoin_environment Ty.Unit (Ty.Sum Ty.Unit Word256)
+    (raw_env_rep bitcoin_current_annex_hash_env_rep) raw_current_annex_sem.
+Proof.
+  eapply application_raw_local_spec_sep.
+  - intros. apply raw_current_annex_composition.
+  - exact bitcoin_current_annex_hash_local_spec.
 Qed.
