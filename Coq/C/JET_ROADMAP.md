@@ -10,8 +10,8 @@ new axioms. Publish only to the user fork after review and verification. Reuse c
 The immutable implementation target is recorded in [JET_TARGET.md](JET_TARGET.md)
 and `jet_source_target.tsv`. The implementation uses its original libc `memcpy`
 path; no added helper or compiler flag may replace it to facilitate proofs.
-Source inspection currently finds **319/533 registered entries: 227 without an
-extra libc premise, 92 conditional on `memcpy_model`, and 214 unregistered**.
+Source inspection currently finds **346/533 registered entries: 242 without an
+extra libc premise, 104 conditional on `memcpy_model`, and 187 unregistered**.
 The restored target passes final acceptance against reviewed snapshots (exit 0);
 see [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md). Remaining canonical bridges are
 recorded separately; registration counts alone do not discharge them.
@@ -34,7 +34,7 @@ list of missing jets. `jet_coverage.tsv` maps completed functions to audited,
 named canonical implementation-to-specification theorems. It is bookkeeping,
 not an independent proof checker; `../check-jets.sh` builds and checks proofs.
 
-There are 206 registered core proof entries: verify, parse_lock, parse_sequence,
+The earlier 206 core entries without an extra libc premise include: verify, parse_lock, parse_sequence,
 sha_256_iv and sha_256_ctx_8_init; left_pad_low_1/right_pad_low_1/left_extend_1 at
 8/16/32/64 bits; left_extend_8/right_extend_8 at 16/32/64 bits;
 left/right_extend_16 at 32/64 bits and left/right_extend_32_64;
