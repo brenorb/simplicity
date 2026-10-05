@@ -1,12 +1,21 @@
 # C jet implementation-to-Simplicity proofs
 
-The registered inventory is **319/533 jet proof entries without an extra library
-premise, with 214 missing**. The 92 copy-family entries formerly conditional on
-`memcpy_model` now execute the internal one-UWORD branch of `copyWords`, proved
-in `jet_copyWord.v`. Larger copies still call libc and are outside this bounded
-proof. Target, inherited assumptions and latest acceptance evidence are recorded
-in [../JET_BUILD.md](../JET_BUILD.md); the audit counts below are historical
-milestones.
+The target is the original production C at commit
+`e3b670103101108faa238df012676ff5d8b77cf9`, with the canonical Haskell sources
+from that same commit. The hashes in `jet_source_target.tsv` pin those inputs.
+The added `copyWords` implementation has been removed; `copyBitsHelper` again
+calls the original external libc `memcpy`. Four ASTs are genuinely regenerated
+from this target without replacing function bodies or external-call mechanisms.
+
+The source inventory currently finds **319/533 registered proof entries**:
+**227 without an extra libc premise, 92 conditional on `memcpy_model`, and
+214 unregistered**. The restored target passes final acceptance against reviewed
+snapshots (exit 0); see [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md). This is not a claim
+of every-jet completion.
+The new experimental SHA/Bitcoin/secp256k1 results are included in the proof
+audits as support while their canonical equivalence chains are reviewed.
+See [JET_TARGET.md](JET_TARGET.md) for the target, trust boundary and remaining
+obligations, and [../JET_BUILD.md](../JET_BUILD.md) for historical checks.
 
 These proofs relate generated CompCert Clight to the corresponding Simplicity
 expressions under their named frame and environment contracts.

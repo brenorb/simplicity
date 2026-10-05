@@ -5,33 +5,42 @@ checkout. What the proofs establish is in [C/JET_PROOFS.md](C/JET_PROOFS.md).
 
 ## Current acceptance and trust boundaries
 
-The registered inventory is **319/533 entries without an extra library premise;
-214 have no proof entry**. The Coq/CompCert inherited axioms still apply. The 92
-copy-family entries previously conditional on `memcpy_model` now use the actual
-internal `copyWords` one-UWORD branch, proved by Clight load/store execution in
-`C/jet_copyWord.v`. Existing frame, output, prefix and separation contracts are
-preserved; only the external-library premise is removed. Larger copies retain
-libc `memcpy` and are outside the bounded copy theorem. This is not a general
-libc or whole-evaluator verification. The historical `memcpy_model` and builtin
-witness remain explicit library-boundary documentation, not coverage premises.
-`--require-complete` still fails on the 214 missing entries.
+The target is the original production C and canonical Haskell at
+`e3b670103101108faa238df012676ff5d8b77cf9`, pinned in
+[C/JET_TARGET.md](C/JET_TARGET.md) and `C/jet_source_target.tsv`. The added
+`copyWords` helper has been removed; the generated ASTs again use external libc
+`memcpy`. Previous acceptance of that helper was about modified C and does not
+establish equivalence for the original library.
 
-The extended Bitcoin module uses the canonical `Bitcoin` primitive namespace.
-Its primitive constructor types and names are compared with
-`Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs`; Coq checks compatibility of the
-tag definition and the shared CurrentIndex tag/semantics. The interface extends
-the old Coq environment with cached hash values. These value proofs do not
-prove that Haskell's hashing code computes those caches; the environment
-projection and cryptographic functions remain separate specification boundaries.
+Current source bookkeeping finds **319/533 registered entries: 227 without an
+extra libc premise, 92 conditional on `memcpy_model`, and 214 missing**. The
+restored target has passed full compilation, four AST regeneration comparisons,
+the source/configuration pin, and 96 native correctness tests with zero failures.
+Final acceptance against reviewed snapshots completes with exit 0: 567 kernel
+modules, 3,331 assumption records (1,683 closed), public types/definitions,
+negative tests and four ASTs. See [C/JET_ACCEPTANCE.md](C/JET_ACCEPTANCE.md) for
+the receipt and audited input fingerprint. Integer models, arithmetic and symbolic-executor results are
+support until their canonical jet-equivalence chains close. Do not read historical
+counts below as completion of the every-jet goal.
 
-For final acceptance, run **`bash Coq/check-jets.sh --accept`** on the final
-sources. It rebuilds registered modules, checks their kernel proofs, compares
-reviewed axiom and type/definition snapshots, runs negative tests, compares both
-pinned C ASTs, and rejects source/manifest/input changes during the run. It
-prints the audited input SHA-256. Snapshot-generation mode cannot print the
-acceptance marker; `--accept` rejects `--update-expected` and `--no-build`.
-The total-value semantic reduction is now registered as checked helper support,
-not as additional public C jet coverage.
+`memcpy_model` remains an explicit premise, with valid source/destination blocks,
+readability, destination permissions, positive representable sizes, non-overlap
+and address ranges without wraparound. All three model application sites have
+compiled proofs of these facts from their existing preconditions. The builtin
+copy witness does not prove external libc. Inherited Coq/CompCert assumptions and
+physical/logical environment and global-state boundaries remain explicit.
+
+The extended Bitcoin module preserves primitive names/types/tags. Its cached-hash
+fields still require a semantic projection from canonical raw transaction/taproot
+data. The inherited Bitcoin environment also imposes domain restrictions that
+need correction; see [C/JET_FIDELITY_REVIEW.md](C/JET_FIDELITY_REVIEW.md). Treat its
+current registered contracts as pending that review.
+
+Final acceptance runs `bash Coq/check-jets.sh --accept` on frozen inputs, without
+update/no-build flags. It builds modules, checks the kernel, compares reviewed
+axiom and type/definition snapshots, exercises negative fixtures and source/config
+pins, and checks all four ASTs. Snapshot generation does not establish acceptance
+or canonical fidelity. The every-jet objective remains active.
 
 ## Target versus host
 
@@ -3188,3 +3197,86 @@ Coverage is **319/533 entries without an additional library premise**, with
 **214 missing**. Inherited Coq/CompCert axioms still apply. This bounded helper
 proof does not verify general libc copying, the Bitcoin cache/environment
 projection or the whole evaluator. All changes remain local and uncommitted.
+
+
+### Original-C target correction (2026-10-05; verification in progress)
+
+The `copyWords` result reported above proved an implementation introduced by our
+work. It is superseded for the original-library goal. The correction restores
+`copyBitsHelper`'s original external `memcpy` call, with all production C and
+canonical Haskell inputs pinned to `e3b670103101108faa238df012676ff5d8b77cf9`.
+Only the separately maintained `C/test.c` harness differs from that commit.
+See [C/JET_TARGET.md](C/JET_TARGET.md) for configuration, source hashes, scope and
+the libc boundary. Neither the original feature branch nor the fork has yet
+received this consolidation/correction.
+
+The one-word, two-word and variable-length SHA libc call sites compile against
+the strengthened explicit `memcpy_model`. They derive valid blocks, readable
+bytes, writable destination ranges, positive representable sizes, non-overlap
+and address-range bounds from their existing preconditions. Their final jet
+conclusions and canonical definitions are retained. Useful byte-copy memory
+support remains in `jet_copyWord.v`; the added C helper and its symbol/function
+claims are absent from the regenerated target.
+
+The four AST checks pass and reproduce the original core/Bitcoin artifacts
+and Claude's original-source SHA/secp artifacts byte-for-byte. The source/config
+pin and its mutation tests pass. Native C correctness on the restored source
+reports **96 successes, zero failures**, exit 0 (`--no-timing`), in
+`/tmp/jet-original-c-native-tests.log`; this is a native macOS/arm64 regression
+check, not a proof of the x86-64/Linux target or of libc.
+
+Fresh complete proof rebuilding passed with exit 0 on the restored C and explicit
+libc contract, log `/tmp/jet-original-c-build-final.log`. Its predecessor was
+intentionally stopped (exit 143) before strengthening libc validity obligations.
+The three affected call sites have separately passed with exit 0 in
+`/tmp/jet-original-c-libc-callers-final.log`. Full kernel, assumption and contract
+checks and canonical-fidelity review remain pending; do not treat build progress,
+snapshot generation or the earlier modified-C acceptance as final acceptance.
+
+The registered audit inventory is **3,307 results in 563 modules**. Source
+bookkeeping reports **227 entries without an extra libc premise, 92 conditional
+on libc, and 214 missing**, out of 533 declarations. The experimental support is
+now in both projects and in the audit manifests; this does not promote its
+integer models or symbolic trees to final jet equivalence coverage.
+
+
+### Canonical Bitcoin domain and raw environment correction (2026-10-05)
+
+Removed monetary proof fields and the positive-output-count restriction from the
+legacy Coq domain. Corrected fee direction and the LockTime commitment name.
+The existing value jets compile for all uint64 values; total/fee cache relations
+now use modulo 2^64. The signed/unsigned sum bridge and positive-fee, empty-output
+and high-bit constructibility checks compile in `jet_bitcoin_value_domain.v`.
+
+The raw environment projection and eight complete raw execution/memory contracts
+compile; seven prior coverage registrations now use those contracts. The identity
+checker covers the common base signature and rejects missing canonical
+constructors. The full build after these changes is logged in
+`/tmp/jet-bitcoin-raw-full-build.log`; check its terminal status. The former
+candidate audit was stopped with exit 143 after the concrete domain discrepancy
+was established. No new kernel/snapshot acceptance is claimed for that run.
+
+See `C/JET_FIDELITY_REVIEW.md` for exact boundaries and outstanding obligations.
+Consolidation into `feat/jet-equivalence` and pushing to `brenorb/simplicity`
+remain pending review and acceptance. C production sources and compiler flags
+remain pinned to the original target.
+
+## Consolidation candidate review
+
+The corrected candidate audit completes with exit 0 in
+`/tmp/jet-bitcoin-raw-candidate-stack64-audit.log`: build, coqchk over 567 modules,
+3,331 public assumption records (1,683 closed), public types and definitions,
+negative tests, all four AST regenerations and unchanged input fingerprint.
+No common assumption record changes and no new axiom name is introduced.
+
+The default macOS native stack was insufficient for coqchk; the checker now
+raises the soft limit to the verified 65,520 KiB when necessary and fails if
+the hard limit prevents it. This changes a process resource limit only. All
+kernel checks and original C generation flags remain enabled and unchanged.
+`/tmp/jet-consolidation-final-accept.log` records the subsequent acceptance run
+against reviewed snapshots, with no update flag, and completes with exit 0.
+Its audited input SHA-256 is
+`6ab077ecd6bb173899701f63bfb966ee811e09618bc06df3879d8bc6ca4ee47f`.
+This final record supersedes the pending statuses in the historical entries
+above. The inventory remains conservative: experimental
+models/oracles do not automatically add canonical jet coverage.
