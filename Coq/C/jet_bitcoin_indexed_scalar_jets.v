@@ -142,8 +142,7 @@ Proof.
     ltac:(split; lia) ltac:(split; lia) ltac:(split; lia) ltac:(split; lia)
     _ _ bitcoin_output_value_shape _ _).
   - intros x. unfold bitcoin_output_value_specv. rewrite Int64.repr_signed.
-    apply decode_wide64_money.
-    pose proof (txoValue_bound x) as HB0. unfold MAX_MONEY in HB0. lia.
+    apply decode_wide64_value.
   - intros e le' m' bin inbase r v H4 HI Hi0 HM HL. unfold bitcoin_elem_expr.
     exact (eval_bitcoin_elem_field e le' m' _t'4 _sigOutput 40 _value 0 bin inbase r v
       bitcoin_sizeof_sigOutput bitcoin_sigOutput_value H4 HI Hi0 ltac:(split; lia) ltac:(lia) HM HL).

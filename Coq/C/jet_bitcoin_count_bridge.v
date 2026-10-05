@@ -36,6 +36,6 @@ Proof.
   apply first_fail_list_count.
   pose proof (sigTxOutBounds (Bitcoin.envTx environment)) as HBound.
   rewrite Zlength_correct in HBound.
-  change (0 < Z.of_nat (length (sigTxOut (Bitcoin.envTx environment))) < 4294967296) in HBound.
+  change (0 <= Z.of_nat (length (sigTxOut (Bitcoin.envTx environment))) < 4294967296) in HBound.
   change (Z.of_nat (length (sigTxOut (Bitcoin.envTx environment))) < 4294967296). lia.
 Qed.
