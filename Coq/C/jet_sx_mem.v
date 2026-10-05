@@ -96,11 +96,41 @@ Lemma rep_prefix ρ β βN regs regsN m :
   rep ρ (β ++ βN) (regs ++ regsN) m -> length β = length regs -> rep ρ β regs m.
 Proof.
   intros (Hlen & Hnr & Hreg) Hl. split; [exact Hl|].
-  split; [rewrite map_app in Hnr; exact (proj1 (proj1 (list_norepet_app _ _) Hnr))|].
+  split.
+  { intros r1 r2 reg1 reg2 Hne E1 E2.
+    assert (H1 : (r1 < length regs)%nat) by (apply nth_error_Some; congruence).
+    assert (H2 : (r2 < length regs)%nat) by (apply nth_error_Some; congruence).
+    pose proof (Hnr r1 r2 reg1 reg2 Hne ltac:(rewrite nth_error_app1 by exact H1; exact E1)
+                  ltac:(rewrite nth_error_app1 by exact H2; exact E2)) as H.
+    unfold blk, bas in *. rewrite !lay_app_l in H by lia. exact H. }
   intros r reg E.
   assert (Hr : (r < length regs)%nat) by (apply nth_error_Some; congruence).
   eapply region_ok_ext; [|apply Hreg; rewrite nth_error_app1 by exact Hr; exact E].
   intros r' Hr'. symmetry. apply lay_app_l. lia.
+Qed.
+
+Lemma blk_in β r : (r < length β)%nat -> In (blk β r) (map fst β).
+Proof. intros H. unfold blk, lay. apply in_map. apply nth_In. exact H. Qed.
+
+Lemma rsep_snoc β regs b base reg :
+  length β = length regs -> rsep β regs -> ~ In b (map fst β) ->
+  rsep (β ++ [(b, base)]) (regs ++ [reg]).
+Proof.
+  intros Hlen Hs Hnew r1 r2 reg1 reg2 Hne E1 E2.
+  assert (Hl1 : (r1 < length (regs ++ [reg]))%nat) by (apply nth_error_Some; congruence).
+  assert (Hl2 : (r2 < length (regs ++ [reg]))%nat) by (apply nth_error_Some; congruence).
+  rewrite app_length in Hl1, Hl2. simpl in Hl1, Hl2.
+  assert (Hnewb : blk (β ++ [(b, base)]) (length regs) = b).
+  { unfold blk, lay. rewrite app_nth2 by lia. rewrite Hlen, Nat.sub_diag. reflexivity. }
+  destruct (lt_dec r1 (length regs)) as [H1|H1]; destruct (lt_dec r2 (length regs)) as [H2|H2].
+  - rewrite nth_error_app1 in E1, E2 by assumption.
+    pose proof (Hs r1 r2 reg1 reg2 Hne E1 E2) as H.
+    unfold blk, bas in *. rewrite !lay_app_l by lia. exact H.
+  - left. assert (r2 = length regs) by lia. subst r2. rewrite Hnewb.
+    intros E. apply Hnew. rewrite <- E. unfold blk. rewrite lay_app_l by lia. apply blk_in. lia.
+  - left. assert (r1 = length regs) by lia. subst r1. rewrite Hnewb.
+    intros E. apply Hnew. rewrite E. unfold blk. rewrite lay_app_l by lia. apply blk_in. lia.
+  - lia.
 Qed.
 
 Lemma rep_snoc ρ β regs m b cs sz :
@@ -115,9 +145,7 @@ Proof.
   intros (Hlen & Hnr & Hreg) Hnew Hvb Hperm Hsort Hcs Hsz.
   split; [rewrite !app_length, Hlen; reflexivity|].
   split.
-  { rewrite map_app. apply list_norepet_app. split; [exact Hnr|]. split.
-    - constructor; [simpl; tauto|constructor].
-    - intros x y Hx [<-|[]] ->. apply Hnew. exact Hx. }
+  { apply rsep_snoc; assumption. }
   intros r reg E.
   destruct (lt_dec r (length regs)) as [Hr|Hr].
   - rewrite nth_error_app1 in E by exact Hr.

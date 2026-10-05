@@ -387,7 +387,8 @@ Proof.
 Qed.
 
 Lemma callee_env_blocks ge β' veN e' :
-  list_norepet (map fst β') ->
+  (forall id1 id2 r1 r2 ty1 ty2, vlookup veN id1 = Some (r1, ty1) -> vlookup veN id2 = Some (r2, ty2) ->
+     blk β' r1 = blk β' r2 -> r1 = r2) ->
   (forall id, e'!id = match vlookup veN id with
                       | Some (r, ty) => Some (blk β' r, ty) | None => None end) ->
   (forall id r ty, vlookup veN id = Some (r, ty) -> (r < length β')%nat) ->
@@ -409,7 +410,7 @@ Proof.
     apply norepet_map_keys with (f := fst); [apply PTree.elements_keys_norepet|].
     intros [id1 [b1 ty1]] [id2 [b2 ty2]] H1 H2 Eb. simpl in *.
     destruct (Hel id1 b1 ty1 H1) as (r1 & V1 & E1). destruct (Hel id2 b2 ty2 H2) as (r2 & V2 & E2).
-    assert (r1 = r2) by (eapply blk_inj; eauto; congruence). subst r2.
+    assert (r1 = r2) by (eapply Hnr; eauto; congruence). subst r2.
     exact (Hinj id1 id2 r1 ty1 ty2 V1 V2).
 Qed.
 
@@ -608,9 +609,18 @@ Proof.
   destruct (match v with Some x => xp_lt (length regs) x | None => true end) eqn:Ev; [|discriminate].
   inversion Hk; subst rk; clear Hk.
   destruct (xret_sound ρ β' _ _ out2 m2 v Er Homb) as (vres & Hres & Hvres).
-  assert (Hnrb : list_norepet (map fst β')) by (destruct Hrepb as (_ & HH & _); exact HH).
   assert (Hlenb : length β' = length (regs ++ regsN)).
   { unfold β'. rewrite !app_length. lia. }
+  assert (Hnrb : forall id1 id2 r1 r2 ty1 ty2, vlookup veN id1 = Some (r1, ty1) -> vlookup veN id2 = Some (r2, ty2) ->
+            blk β' r1 = blk β' r2 -> r1 = r2).
+  { intros id1 id2 r1 r2 ty1 ty2 V1 V2 Eblk. destruct (Nat.eq_dec r1 r2) as [|Hne]; [assumption|exfalso].
+    destruct (Hidx id1 r1 ty1 V1) as (_ & _ & _ & reg1 & Hreg1 & Hfree1).
+    destruct (Hidx id2 r2 ty2 V2) as (_ & _ & _ & reg2 & Hreg2 & Hfree2).
+    destruct (shape_nth _ _ r1 reg1 Hshb Hreg1) as (regb1 & Hregb1 & Hsh1).
+    destruct (shape_nth _ _ r2 reg2 Hshb Hreg2) as (regb2 & Hregb2 & Hsh2).
+    destruct Hrepb as (_ & HS & _).
+    destruct (HS r1 r2 regb1 regb2 Hne Hregb1 Hregb2) as [Hb|(Hf & _)]; [exact (Hb Eblk)|].
+    unfold rshape in Hsh1. inversion Hsh1. congruence. }
   destruct (callee_env_blocks ge β' veN e' Hnrb) as (Hblk & Hbnr).
   { intros id. rewrite He'. destruct (vlookup veN id) as [[r ty]|]; [reflexivity|apply PTree.gempty]. }
   { intros id r ty V. destruct (Hidx id r ty V) as (_ & _ & _ & reg & Hreg & _).
@@ -632,8 +642,13 @@ Proof.
     unfold blk, lay, β'. rewrite app_nth2 by lia. apply in_map. apply nth_In.
     unfold β' in Hr. rewrite app_length in Hr. lia. }
   assert (HβN : forall b, In b (map fst β) -> ~ In b (map fst βN)).
-  { intros b H1 H2. unfold β' in Hnrb. rewrite map_app in Hnrb.
-    apply list_norepet_app in Hnrb. destruct Hnrb as (_ & _ & Hd). exact (Hd b b H1 H2 eq_refl). }
+  { intros b H1 H2. apply (HNinv b H2).
+    apply in_map_iff in H1. destruct H1 as (p & <- & Hp).
+    destruct (In_nth _ _ (1%positive, 0) Hp) as (r & Hr & Hnth).
+    destruct (nth_error regs r) as [reg|] eqn:E.
+    2: { apply nth_error_None in E. assert (r < length regs)%nat by (rewrite <- Hlen; exact Hr). lia. }
+    destruct Hrep as (_ & _ & HR). destruct (HR r reg E) as (_ & Hv & _).
+    unfold blk, lay in Hv. replace (nth r β (1%positive, 0)) with p in Hv by (symmetry; exact Hnth). exact Hv. }
   assert (Hlenb2 : length (sregs Σb) = length (regs ++ regsN)).
   { rewrite <- (map_length rshape (sregs Σb)), Hshb, map_length. reflexivity. }
   assert (Hrep3 : rep ρ β (firstn (length regs) (sregs Σb)) m3).

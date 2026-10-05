@@ -142,8 +142,45 @@ Definition region_ok ρ (β : layout) (m : mem) (r : nat) (reg : region) : Prop 
   | None => True
   end.
 
+(** Distinct regions lie in different blocks, or are not stack blocks and
+    have disjoint cells. *)
+Definition rsep (β : layout) (regs : list region) : Prop :=
+  forall r1 r2 reg1 reg2, r1 <> r2 ->
+    nth_error regs r1 = Some reg1 -> nth_error regs r2 = Some reg2 ->
+    blk β r1 <> blk β r2 \/
+    (rfree reg1 = None /\ rfree reg2 = None /\
+     forall c1 c2, In c1 (rcells reg1) -> In c2 (rcells reg2) ->
+       bas β r1 + cofs c1 + size_chunk (cchunk c1) <= bas β r2 + cofs c2 \/
+       bas β r2 + cofs c2 + size_chunk (cchunk c2) <= bas β r1 + cofs c1).
+
+Lemma shape_In cs cs' c' :
+  map cshape cs' = map cshape cs -> In c' cs' -> exists c, In c cs /\ cofs c = cofs c' /\ cchunk c = cchunk c'.
+Proof.
+  intros H Hin. assert (Hm : In (cshape c') (map cshape cs)) by (rewrite <- H; apply in_map; exact Hin).
+  apply in_map_iff in Hm. destruct Hm as (c & Hc & Hin'). exists c. unfold cshape in Hc. inversion Hc. auto.
+Qed.
+
+Lemma rsep_shape β regs regs' :
+  map rshape regs' = map rshape regs -> rsep β regs -> rsep β regs'.
+Proof.
+  intros Hsh H r1 r2 reg1' reg2' Hne E1 E2.
+  assert (Hget : forall r reg', nth_error regs' r = Some reg' ->
+            exists reg, nth_error regs r = Some reg /\ rshape reg' = rshape reg).
+  { intros r reg' E. assert (H1 : nth_error (map rshape regs') r = nth_error (map rshape regs) r) by congruence.
+    rewrite !nth_error_map, E in H1. destruct (nth_error regs r) as [reg|]; [|discriminate].
+    simpl in H1. exists reg. split; [reflexivity|congruence]. }
+  destruct (Hget r1 reg1' E1) as (reg1 & F1 & S1). destruct (Hget r2 reg2' E2) as (reg2 & F2 & S2).
+  unfold rshape in S1, S2. inversion S1 as [[A1 B1 C1]]. inversion S2 as [[A2 B2 C2]].
+  destruct (H r1 r2 reg1 reg2 Hne F1 F2) as [Hb|(H1 & H2 & Hd)]; [left; exact Hb|right].
+  split; [congruence|]. split; [congruence|].
+  intros c1 c2 Hc1 Hc2.
+  destruct (shape_In _ _ c1 A1 Hc1) as (d1 & Hd1 & Eo1 & Ec1).
+  destruct (shape_In _ _ c2 A2 Hc2) as (d2 & Hd2 & Eo2 & Ec2).
+  rewrite <- Eo1, <- Ec1, <- Eo2, <- Ec2. exact (Hd d1 d2 Hd1 Hd2).
+Qed.
+
 Definition rep ρ (β : layout) (regs : list region) (m : mem) : Prop :=
-  length β = length regs /\ list_norepet (map fst β) /\
+  length β = length regs /\ rsep β regs /\
   forall r reg, nth_error regs r = Some reg -> region_ok ρ β m r reg.
 
 Definition foot (β : layout) (sh : list (list (Z * memory_chunk) * bool * option Z)) (b : block) (o : Z) : Prop :=
@@ -233,7 +270,9 @@ Proof.
   assert (VA : Mem.valid_access m ch (blk β r) (bas β r + d) Writable) by (split; assumption).
   destruct (Mem.valid_access_store m ch (blk β r) (bas β r + d) (den ρ (lay β) x) VA) as [m' Hst].
   exists m'. split; [exact Hst|]. split; [pose proof (size_chunk_pos' ch); lia|]. split.
-  - split; [rewrite upd_length; exact Hlen|]. split; [exact Hnr|].
+  - split; [rewrite upd_length; exact Hlen|]. split.
+    { apply (rsep_shape β regs); [|exact Hnr].
+      eapply upd_map_id; [exact E|]. unfold rshape; simpl. rewrite set_cell_shape, W. reflexivity. }
     intros r2 reg2 E2.
     assert (Hr2 : (r2 < length β)%nat).
     { rewrite Hlen. rewrite <- (upd_length regs r (mkreg (set_cell (rcells reg) d ch (Some x')) (rw reg) (rfree reg))).
@@ -280,7 +319,8 @@ Proof.
         split; [intros o Ho; eapply Mem.perm_store_1; eauto|].
         intros x0 Hx0. destruct (Hval2 x0 Hx0) as [Hl Hp]. split; [|exact Hp].
         rewrite (Mem.load_store_other _ _ _ _ _ _ Hst); [exact Hl|].
-        left. intros Eb. apply Hne. symmetry. eapply blk_inj; eauto.
+        destruct (Hnr r r2 reg reg2 Hne E E2) as [Hb|(_ & _ & Hdj)]; [left; congruence|].
+        right. destruct (Hdj c c2 Hin Hc2) as [Hx|Hx]; rewrite ?Hd, ?Hch in Hx; [right|left]; lia.
       * destruct (rfree reg2) as [sz|]; [|exact I].
         destruct Hfree2 as (Hf1 & Hf2 & Hf3 & Hf4).
         split; [exact Hf1|]. split; [exact Hf2|].

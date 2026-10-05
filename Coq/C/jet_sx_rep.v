@@ -8,7 +8,7 @@ Set Default Timeout 300.
 
 Lemma rep_nil ρ m : rep ρ [] [] m.
 Proof.
-  split; [reflexivity|]. split; [constructor|]. intros r reg E. destruct r; discriminate.
+  split; [reflexivity|]. split; [intros r1 r2 reg1 reg2 _ E; destruct r1; discriminate|]. intros r reg E. destruct r; discriminate.
 Qed.
 
 Lemma lay_app_new β p : lay (β ++ [p]) (length β) = p.
@@ -21,10 +21,7 @@ Lemma rep_add ρ β regs m b base reg :
 Proof.
   intros (Hlen & Hnr & Hreg) Hnew Hok.
   split; [rewrite !app_length, Hlen; reflexivity|].
-  split.
-  { rewrite map_app. apply list_norepet_app. split; [exact Hnr|]. split.
-    - constructor; [simpl; tauto|constructor].
-    - intros x y Hx [<-|[]] ->. apply Hnew. exact Hx. }
+  split; [apply rsep_snoc; assumption|].
   intros r reg' E.
   destruct (lt_dec r (length regs)) as [Hr|Hr].
   - rewrite nth_error_app1 in E by exact Hr.

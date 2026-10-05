@@ -228,7 +228,8 @@ Definition orc_rd8 (nin : Z) : oracle := fun base log xs regs =>
                   if negb w0 && negb (has_wr log) && Z.ltb 0 n &&
                      Z.leb (Int64.unsigned kc + 8 * n) nin && negb (Nat.eqb rb rs) &&
                      rw regb && rw regS &&
-                     shape_eqb (map cshape (rcells regb)) (map cshape (byte_undef 0 (Z.to_nat n)))
+                     shape_eqb (map cshape (rcells regb)) (map cshape (byte_undef 0 (Z.to_nat n))) &&
+                     match rfree regb with Some _ => true | None => false end
                   then
                     Some (upd (upd regs rb (mkreg (byte_cells 0 (Z.to_nat n) base) (rw regb) (rfree regb)))
                               rs (mkreg (mk_frame_cells xp (Int64.repr (Int64.unsigned kc + 8 * n)))
@@ -273,6 +274,7 @@ Proof.
   destruct (nth_error regs rs) as [regS|] eqn:ERS; [|discriminate].
   destruct (frame_cells regS) as [[xp kc]|] eqn:Efc; [|discriminate].
   match type of Ho with (if ?c then _ else _) = _ => destruct c eqn:Chk; [|discriminate] end.
+  apply andb_true_iff in Chk. destruct Chk as [Chk C9].
   apply andb_true_iff in Chk. destruct Chk as [Chk C8]. apply andb_true_iff in Chk. destruct Chk as [Chk C7].
   apply andb_true_iff in Chk. destruct Chk as [Chk C6]. apply andb_true_iff in Chk. destruct Chk as [Chk C5].
   apply andb_true_iff in Chk. destruct Chk as [Chk C4]. apply andb_true_iff in Chk. destruct Chk as [Chk C3].
@@ -294,7 +296,8 @@ Proof.
   assert (Hrbl : (rb < length β)%nat) by (rewrite Hlen; apply nth_error_Some; congruence).
   assert (Hrsl : (rs < length β)%nat) by (rewrite Hlen; apply nth_error_Some; congruence).
   assert (HbSB : bS <> bB).
-  { intros E. apply C5. symmetry. eapply blk_inj; eauto. }
+  { destruct (Hnrep rs rb regS regb ltac:(congruence) ERS ERB) as [H|(_ & Hf & _)]; [exact H|].
+    rewrite Hf in C9. discriminate. }
   (* the frame struct *)
   destruct (rep_region _ _ _ _ _ _ Hrep ERS) as (HsB0 & HvS & _ & HcellsS & _).
   rewrite HcS, C7 in HcellsS.
@@ -395,7 +398,13 @@ Proof.
         * rewrite !upd_other in Hr' by congruence. rewrite Hr in Hr'. inversion Hr'; subst reg'.
           left. split; [exact Hin'|].
           assert (Hrl : (r < length β)%nat) by (rewrite Hlen; apply nth_error_Some; congruence).
-          apply Hload; left; intros E; [apply Hrs|apply Hrb]; eapply blk_inj; eauto. }
+          apply Hload.
+          { destruct (Hnrep r rs reg regS Hrs Hr ERS) as [H|(_ & _ & Hdj)]; [left; exact H|right].
+            specialize (Hdj c' (mkcell 8 Mint64 (Some (XLb Badd (XLv 0%nat) (XLc kc)))) Hin').
+            rewrite HcS in Hdj. specialize (Hdj ltac:(right; left; reflexivity)).
+            cbn [cofs cchunk] in Hdj. change (size_chunk Mint64) with 8 in Hdj. fold sb in Hdj. lia. }
+          { left. destruct (Hnrep r rb reg regb Hrb Hr ERB) as [H|(_ & Hf & _)]; [exact H|].
+            rewrite Hf in C9. discriminate. } }
   split.
   { (* the frame state *)
     split; [exact Hρ0|]. rewrite has_wr_app, outsA_app, written_app, C1, C2. simpl.

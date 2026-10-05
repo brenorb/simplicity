@@ -40,13 +40,6 @@ Proof.
   simpl in H. inversion H as [[H1 H2 H3]]. simpl. rewrite H1, H2. f_equal. apply IH. exact H3.
 Qed.
 
-Lemma shape_In cs cs' c' :
-  map cshape cs' = map cshape cs -> In c' cs' -> exists c, In c cs /\ cofs c = cofs c' /\ cchunk c = cchunk c'.
-Proof.
-  intros H Hin. assert (Hm : In (cshape c') (map cshape cs)) by (rewrite <- H; apply in_map; exact Hin).
-  apply in_map_iff in Hm. destruct Hm as (c & Hc & Hin'). exists c. unfold cshape in Hc. inversion Hc. auto.
-Qed.
-
 (** After a change of memory that preserves permissions, the invariant holds
     for regions of the same shape whose defined cells are either unchanged
     cells whose content was preserved, or hold their new value. *)
@@ -68,7 +61,7 @@ Proof.
   intros (Hlen & Hnr & Hreg) Hsh Hperm Hvb Hcells.
   assert (Hlen' : length regs' = length regs).
   { rewrite <- (map_length rshape regs'), Hsh, map_length. reflexivity. }
-  split; [congruence|]. split; [exact Hnr|].
+  split; [congruence|]. split; [exact (rsep_shape β regs regs' Hsh Hnr)|].
   intros r reg' E'.
   destruct (nth_error regs r) as [reg|] eqn:E.
   2: { apply nth_error_None in E. assert (r < length regs')%nat by (apply nth_error_Some; congruence). lia. }
