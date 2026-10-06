@@ -155,4 +155,4 @@ proofs (`fe_is_odd` and `fe_is_zero`) are developed in an isolated scratch
 directory. The two predicates have compilation, kernel and statement/assumption
 review receipts, but are outside this acceptance and add no registered coverage.
 Scalar canonical and helper proofs are likewise isolated support. Their actual
-remaining links are recorded in `JET_PROGRESS.md`.
+remaining links are recorded in `JET_PROOF_BACKLOG.md`.
