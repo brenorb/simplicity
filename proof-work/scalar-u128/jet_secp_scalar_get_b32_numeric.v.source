@@ -1,0 +1,107 @@
+(** Exact big-endian bytes of the actual scalar_get_b32 symbolic output. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_rep C.jet_sx_zval C.jet_sx_zrep.
+Require Import C.jet_sx_mem.
+Require Import C.jet_secp_fe_math C.jet_secp_fe_nv C.jet_secp_fe_b32 C.jet_secp_b32_exec.
+Require Import C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_scalar_get_b32_exec.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition scalar_limbs_of value :=
+  [value mod 2 ^ 64; (value / 2 ^ 64) mod 2 ^ 64;
+   (value / 2 ^ 128) mod 2 ^ 64; value / 2 ^ 192].
+Definition scalar_u64_bounds (_ : nat) : Z * Z := (0, Int64.max_unsigned).
+Lemma scalar_get_output_region :
+  nth_error (sregs scalar_get_state) 0 = Some (mkreg (cells0 scalar_get_state) true None).
+Proof. reflexivity. Qed.
+Lemma scalar_get_output_length : length (cells0 scalar_get_state) = 32%nat.
+Proof. reflexivity. Qed.
+Lemma scalar_get_output_checked :
+  zbyte_reg_okb scalar_u64_bounds 0 (cells0 scalar_get_state) = true.
+Proof. vm_compute; reflexivity. Qed.
+Ltac scalar_byte_numeric :=
+  rewrite !mod_mod_pow by lia;
+  rewrite ?mod_div_mod by lia;
+  rewrite ?div_div_pow by lia;
+  rewrite ?Z.pow_0_r, ?Z.div_1_r; reflexivity.
+Lemma scalar_get_output_numeric value :
+  zcells (fun n => nth n (scalar_limbs_of value) 0) (cells0 scalar_get_state) = be_bytes value.
+Proof.
+  rewrite be_bytes_eq.
+  cbv [zcells cells0 scalar_get_state scalar_get_tree scalar_get_run sregs hd rcells
+       map cval zval zop zcmp nth scalar_limbs_of Int.unsigned Int64.unsigned Int.intval Int64.intval].
+  repeat (f_equal; [scalar_byte_numeric|]).
+  f_equal; scalar_byte_numeric.
+Qed.
+
+Definition scalar_limb_rho value n := Int64.repr (nth n (scalar_limbs_of value) 0).
+Lemma scalar_limbs_bounds value :
+  0 <= value < 2 ^ 256 ->
+  Forall (fun limb => 0 <= limb <= Int64.max_unsigned) (scalar_limbs_of value).
+Proof.
+  intro HValue; unfold scalar_limbs_of.
+  assert (HMod : forall x, 0 <= x mod 2 ^ 64 <= Int64.max_unsigned).
+  { intro x; pose proof (Z.mod_pos_bound x (2 ^ 64) ltac:(lia)).
+    change Int64.max_unsigned with 18446744073709551615; lia. }
+  assert (HTop : 0 <= value / 2 ^ 192 < 2 ^ 64).
+  { split; [apply Z.div_pos; lia|].
+    apply Z.div_lt_upper_bound; [lia|].
+    rewrite <- Z.pow_add_r by lia; exact (proj2 HValue). }
+  constructor; [apply HMod|].
+  constructor; [apply HMod|].
+  constructor; [apply HMod|].
+  constructor; [change Int64.max_unsigned with 18446744073709551615; lia|constructor].
+Qed.
+Lemma nth_u64_bound limbs :
+  Forall (fun limb => 0 <= limb <= Int64.max_unsigned) limbs ->
+  forall n, 0 <= nth n limbs 0 <= Int64.max_unsigned.
+Proof.
+  intro H; induction H; intros [|n]; cbn; try
+    (change Int64.max_unsigned with 18446744073709551615 in *; lia); apply IHForall.
+Qed.
+Lemma scalar_limb_rho_unsigned value n :
+  0 <= value < 2 ^ 256 ->
+  Int64.unsigned (scalar_limb_rho value n) = nth n (scalar_limbs_of value) 0.
+Proof.
+  intro HValue; apply Int64.unsigned_repr.
+  apply nth_u64_bound; apply scalar_limbs_bounds; exact HValue.
+Qed.
+Lemma scalar_get_zcells_numeric value :
+  0 <= value < 2 ^ 256 ->
+  zcells (zrho (scalar_limb_rho value)) (cells0 scalar_get_state) = be_bytes value.
+Proof.
+  intro HValue; rewrite <- scalar_get_output_numeric.
+  unfold zcells; apply map_ext; intro c.
+  destruct (cval c); [|reflexivity].
+  apply zval_ext; intro n; apply scalar_limb_rho_unsigned; exact HValue.
+Qed.
+Theorem eval_scalar_get_b32_numeric m layout value :
+  0 <= value < 2 ^ 256 ->
+  rep (scalar_limb_rho value) layout scalar_get_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_get_b32)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1))] E0 mf Vundef /\
+    (forall i byte, nth_error (be_bytes value) i = Some byte ->
+       Mem.load Mint8unsigned mf (blk layout 0) (bas layout 0 + Z.of_nat i) =
+         Some (Vint (Int.repr byte))) /\
+    rep (scalar_limb_rho value) layout (sregs scalar_get_state) mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_get_regs) b ofs) m mf.
+Proof.
+  intros HValue HRep.
+  destruct (eval_scalar_get_b32_from_initial_regions m layout (scalar_limb_rho value) HRep)
+    as [mf [HCall [HFinal HFrame]]].
+  pose proof (proj2 (proj2 HFinal) 0%nat (mkreg (cells0 scalar_get_state) true None)
+    scalar_get_output_region) as HRegion.
+  destruct HRegion as [_ [_ [_ [HCells _]]]].
+  exists mf; split; [exact HCall|]; split.
+  - intros i byte HNth.
+    replace (bas layout 0 + Z.of_nat i) with (bas layout 0 + (0 + Z.of_nat i)) by lia.
+    eapply (zbyte_region_load (scalar_limb_rho value) scalar_u64_bounds layout
+      ltac:(intro n; apply Int64.unsigned_range_2) mf 0%nat true (cells0 scalar_get_state) 0
+      scalar_get_output_checked HCells).
+    rewrite scalar_get_zcells_numeric by exact HValue; exact HNth.
+  - split; assumption.
+Qed.

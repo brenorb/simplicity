@@ -1,0 +1,79 @@
+(** Original u128_rshift(64): entry, stores, void return, memory and permissions. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_exec C.jet_sx_mem C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_u128_shift64_body.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition u128_shift64_temps b :=
+  PTree.set jets_secp._n (Vint (Int.repr 64))
+    (PTree.set jets_secp._r (Vptr b Ptrofs.zero)
+      (create_undef_temps (fn_temps f_secp256k1_u128_rshift))).
+Lemma u128_shift64_entry m b :
+  function_entry2 secp_ge f_secp256k1_u128_rshift
+    [Vptr b Ptrofs.zero; Vint (Int.repr 64)] m empty_env (u128_shift64_temps b) m.
+Proof.
+  constructor.
+  - cbn; constructor.
+  - cbn; repeat constructor; cbn; intuition discriminate.
+  - intros x y HX HY Hxy; cbn in HX, HY.
+    repeat match goal with H : _ \/ _ |- _ => destruct H end; subst;
+      first [contradiction|vm_compute in Hxy; discriminate|congruence].
+  - constructor.
+  - reflexivity.
+Qed.
+Lemma u128_shift64_storage m b value :
+  Mem.range_perm m b 0 16 Cur Writable ->
+  exists m1 mf,
+    Mem.store Mint64 m b 0 (Vlong value) = Some m1 /\
+    Mem.store Mint64 m1 b 8 (Vlong Int64.zero) = Some mf /\
+    Mem.load Mint64 mf b 0 = Some (Vlong value) /\
+    Mem.load Mint64 mf b 8 = Some (Vlong Int64.zero) /\
+    (forall bb ofs k p, Mem.perm m bb ofs k p -> Mem.perm mf bb ofs k p) /\
+    lframe (fun bb ofs => ~ (bb = b /\ 0 <= ofs < 16)) m mf.
+Proof.
+  intro HP.
+  assert (HA0 : Mem.valid_access m Mint64 b 0 Writable).
+  { split; [intros ofs HOfs; apply HP; cbn in HOfs; lia|exists 0; reflexivity]. }
+  destruct (Mem.valid_access_store m Mint64 b 0 (Vlong value) HA0) as [m1 HLo].
+  assert (HA8 : Mem.valid_access m1 Mint64 b 8 Writable).
+  { split.
+    - intros ofs HOfs. eapply Mem.perm_store_1; [exact HLo|apply HP; cbn in HOfs; lia].
+    - exists 1; reflexivity. }
+  destruct (Mem.valid_access_store m1 Mint64 b 8 (Vlong Int64.zero) HA8) as [mf HHi].
+  exists m1, mf; split; [exact HLo|]; split; [exact HHi|]; split.
+  - rewrite (Mem.load_store_other _ _ _ _ _ _ HHi); [exact (Mem.load_store_same _ _ _ _ _ _ HLo)|].
+    right; left; reflexivity.
+  - split; [exact (Mem.load_store_same _ _ _ _ _ _ HHi)|]; split.
+    + intros. eapply Mem.perm_store_1; [exact HHi|]. eapply Mem.perm_store_1; [exact HLo|assumption].
+    + eapply lframe_trans.
+      * apply lframe_unchanged. eapply Mem.store_unchanged_on; [exact HLo|].
+        intros ofs HOfs HOutside; apply HOutside; split; [reflexivity|cbn in HOfs; lia].
+      * apply lframe_unchanged. eapply Mem.store_unchanged_on; [exact HHi|].
+        intros ofs HOfs HOutside; apply HOutside; split; [reflexivity|cbn in HOfs; lia].
+Qed.
+Theorem eval_u128_shift64_from_storage m b value :
+  Mem.range_perm m b 0 16 Cur Writable ->
+  Mem.load Mint64 m b 8 = Some (Vlong value) ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_u128_rshift)
+      [Vptr b Ptrofs.zero; Vint (Int.repr 64)] E0 mf Vundef /\
+    Mem.load Mint64 mf b 0 = Some (Vlong value) /\
+    Mem.load Mint64 mf b 8 = Some (Vlong Int64.zero) /\
+    (forall bb ofs k p, Mem.perm m bb ofs k p -> Mem.perm mf bb ofs k p) /\
+    lframe (fun bb ofs => ~ (bb = b /\ 0 <= ofs < 16)) m mf.
+Proof.
+  intros HP HLoad.
+  destruct (u128_shift64_storage m b value HP)
+    as [m1 [mf [HLo [HHi [HL0 [HL8 [HPerm HFrame]]]]]]].
+  exists mf; split.
+  - eapply eval_funcall_internal with (e := empty_env) (le1 := u128_shift64_temps b)
+      (le2 := PTree.set jets_secp._t'4 (Vlong value) (u128_shift64_temps b))
+      (m1 := m) (m2 := mf) (out := Out_normal).
+    + apply u128_shift64_entry.
+    + apply exec_u128_shift64_body with (m1 := m1) (b := b); try assumption; reflexivity.
+    + reflexivity.
+    + reflexivity.
+  - split; [exact HL0|]; split; [exact HL8|]; split; [exact HPerm|exact HFrame].
+Qed.
