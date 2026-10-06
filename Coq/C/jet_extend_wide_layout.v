@@ -37,7 +37,7 @@ Proof.
   assert (Hwidth : 8 <= extend_wide_bits s) by (destruct s; cbn; lia).
   assert (HLocalBase : frame_base_valid 0).
   { split; [lia|change (16 <= 18446744073709551615); lia]. }
-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bd dbase bw outedge cursor (extend_wide_bits s) ltac:(lia) Hout)
     as [_ [_ [_ [initialword HInitialWord]]]].
   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
