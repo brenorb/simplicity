@@ -8,7 +8,7 @@ Local Open Scope Z_scope.
 Local Transparent Archi.ptr64.
 
 Definition frame_base_valid (base : Z) : Prop :=
-  0 <= base /\ base + 16 <= Ptrofs.max_unsigned.
+  0 <= base /\ base + 16 <= Ptrofs.max_unsigned + 1.
 
 Definition frame_fields_at (m : mem) (bf : block) (base : Z)
     (bw : block) (edge cursor : Z) : Prop :=
