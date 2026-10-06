@@ -322,3 +322,47 @@ other shared memory predicates still have distinct open scope obligations.
 None of these candidate commits is integrated or published. They correct a
 confirmed restriction in inherited memory contracts and add zero registered
 jets. The main branch's public predicate still has its original restriction.
+
+## Padding, uint32 arrays and arithmetic transports
+
+Four further private atomic commits extend the verified candidate to 26 changed
+modules, with no new registration:
+
+| Commit | Scope |
+| --- | --- |
+| `9399ab14c7c2cabf92bd157be461a0889af4a1d8` | write32s derives head/cell separation from the original frame capacity |
+| `d8f26a0f131aea17242f4d1e1a9521eb4a674201` | Actual skipBits preserves padding, including zero-length aliases |
+| `2217368e002599d1fc295320ac11148002e78aa5` | Existing increment layouts at 8/16/32/64 bits |
+| `c8bb852e1be2712f09315f433412d210a452c530` | Existing add layouts at 8/16/32/64 bits |
+
+The padding theorem retains its exact final type, including arbitrary skipped
+cell contents, prefix, updated cursor, outside loads, permissions and blocks.
+For a positive count, each observed data word's separation follows from initial
+capacity. For zero count, no unused data-word separation is required: initial
+cursor load, a same-value store and alignment prove preservation of any loaded
+Mint64 word, including one exactly aliasing the cursor. The actual store is
+constructed from initial Writable permission and the generated skipBits call is
+derived with the existing execution adapter. No execution, result or no-alias
+premise is added to the final theorem.
+
+The internal `noop_long_store_preserves_long_load` lemma makes that zero-length
+argument explicit. It is an intermediate memory lemma, not a jet equivalence.
+Its store premise is discharged by the final padding proof. The write32s and
+eight arithmetic changes retain every existing declaration/definition; the
+arithmetic changes only repair proof tuple destructuring and word-load
+extraction for the broadened predicate.
+
+Complete scoped rebuilds and separate kernel checks all have terminal exit 0:
+
+- Padding/uint32: `/tmp/jet-frame-range-padding-array-build-retry3.log`
+  (53968), `/tmp/jet-frame-range-padding-array-kernel.log` (63573).
+- Arithmetic transports: `/tmp/jet-frame-range-arithmetic-transports-build.log`
+  (79516), `/tmp/jet-frame-range-arithmetic-transports-kernel.log` (9092).
+
+Actual nonproof text/type/definition comparisons and source/fresh artifact
+receipts are `/tmp/jet-frame-range-public-padding-array-review.json` and
+`/tmp/jet-frame-range-public-arithmetic-review.json`. Exact goal diagnostics are
+linked in those receipts. Additional core-family transports are being rebuilt;
+they are not covered by these completed receipts. Whole-consumer verification,
+snapshot/assumption review and separate full acceptance remain required. The
+candidate is still neither integrated nor published.

@@ -85,17 +85,32 @@ payload from the open canonical division term, without changing the public
 statement/specification or increasing its timeout. The complete repaired
 module compiles (session 76385 terminal, exit 0).
 
-The subsequent candidate audit is running in
-`/tmp/jet-frame-memory-candidate-audit-retry.log`, session 47240. This is snapshot
-generation with an actual rebuild, kernel checking and AST comparisons; it
-is **not final acceptance**. No candidate proof or snapshot is integrated or
-published. After completion, inspect every changed public type/definition/
-assumption, then run a separate --accept without update/no-build flags.
+The subsequent candidate audit completed with terminal exit 0 in
+`/tmp/jet-frame-memory-candidate-audit-retry.log`, session 47240. It rebuilt the
+consumers, checked 583 kernel modules and 3,534 assumption records, and directly
+regenerated/compared all four ASTs. Candidate input SHA-256:
+`ba3a4e0474cc296458836a8beb739c957c46c78fd9b6e9c5bf438d4330251961`.
+
+The source and actual snapshot comparison in
+`/tmp/jet-frame-memory-snapshot-review.json` confirms that every existing public
+type, every other semantic definition, all per-theorem/library axiom sets and
+the public registry/inventory are unchanged. The only semantic-definition
+change is the wider exclusive-end bound; the divmod proof normalization changes
+no declaration. Together with the constructed endpoint/field diagnostic above,
+this supports the scoped domain correction, not a complete inherited fidelity
+review.
+
+This is **not final acceptance**. A separate full `--accept`, with neither
+update nor no-build flags, is running as session 60514 in
+`/tmp/jet-frame-memory-final-accept.log`. Its inputs are frozen. No candidate
+proof or snapshot is integrated or published. Successful candidate generation
+and reviewed diffs do not substitute for observing that final process exit.
 
 Next obligations:
 
-1. Rebuild all consumers of the widened predicate and check their whole public
-   conclusions; repair any caller requiring the unnecessarily strict end bound.
+1. Complete independent full acceptance of the reviewed endpoint candidate
+   before integrating it. The candidate rebuild/snapshot comparison is complete;
+   the final acceptance process is still pending.
 2. Review analogous exclusive-end bounds on UWORD output ranges and environment
    objects, distinguishing pointer starts from exclusive byte endpoints.
 3. Establish the legitimacy and reachability/domain of initial representations
