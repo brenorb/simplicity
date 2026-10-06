@@ -1,5 +1,9 @@
 # Original-C equivalence continuation
 
+Current priority: finish inherited source/definition/hypothesis review before
+developing or promoting new jets. `JET_INHERITED_REVIEW.md` distinguishes that
+partial review from the successful verification receipts recorded below.
+
 The previously published acceptance receipt is `JET_ACCEPTANCE.md` at
 `61de9183` (319 registered contracts). This continuation has now passed its own full
 reviewed-snapshot acceptance (exit 0); integration/publication follows the

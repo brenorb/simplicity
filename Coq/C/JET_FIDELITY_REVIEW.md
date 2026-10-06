@@ -1,5 +1,10 @@
 # Canonical specification fidelity review
 
+Overall inherited-work review is **partially complete**. The corrections and
+family reviews below are scoped evidence, not an exhaustive per-entry review
+of all registered jets. `JET_INHERITED_REVIEW.md` records the eight-criterion
+assessment and distinguishes pending fidelity review from missing jet proofs.
+
 The implementation/configuration target is fixed in `JET_TARGET.md` and
 `jet_source_target.tsv`. The compiled proof inventory is not itself a fidelity
 certificate. This review records corrected differences and the remaining chains required

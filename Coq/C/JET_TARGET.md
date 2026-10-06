@@ -78,10 +78,11 @@ pass the final build and kernel audit on this target. C-versus-integer normaliza
 results remain support until linked to canonical jet specifications. SHA and
 Bitcoin results retaining libc/global-state premises must be reported with them.
 
-Current source bookkeeping finds 242 entries without an extra libc premise,
-104 entries conditional on libc, and 187 missing entries out of 533 declarations.
+Current source bookkeeping finds 243 entries without an extra libc premise,
+104 entries conditional on libc, and 186 missing entries out of 533 declarations.
 The restored target passes final acceptance against the reviewed snapshots,
 without update flags (exit 0). See `JET_ACCEPTANCE.md` for the audited fingerprint. The remaining canonical bridges are listed in
 `JET_FIDELITY_REVIEW.md`. No new direct coverage is claimed from integer models, symbolic
-trees, retired helper proofs or unreviewed experimental theorem names. The completed consolidation review preserves these boundaries when integrating
-and publishing the checked work.
+trees, retired helper proofs or unreviewed experimental theorem names. The
+scoped consolidation reviews preserve these boundaries. Exhaustive inherited
+fidelity review remains partial; see `JET_INHERITED_REVIEW.md`.
