@@ -268,3 +268,57 @@ audit remains separate and its inputs are untouched.
 
 These are correction-support results, with zero new jet registrations. The
 public repair and exhaustive inherited fidelity review remain incomplete.
+
+## Actual public-contract candidate: scoped verification, not acceptance
+
+The separate `codex/frame-range-contract` branch now contains these private
+atomic commits:
+
+| Commit | Scope |
+| --- | --- |
+| `4e3c738f274dc2264211ac97aaaa605475fc63a6` | Actual write_frame_at predicate, bit writer and both byte paths |
+| `0414f7d5bd9383c58fcea0ca7afe3cc3270d3a39` | Remaining capacity/slices and wide/carry writers |
+| `02894d422df7f6588f78cbb7f232be3e1980b575` | Prefix/cell preservation, canonical byte sequences and actual write8s |
+| `ee415533fa2b46a229a1010529d3a3763bf261f5` | Existing context/one8 proof transports, without changing their declarations |
+
+The actual predicate replaces its global `bf <> bw` premise with a disjunction
+at every writable word: different blocks, or disjoint word/frame byte intervals.
+Every old input satisfies the broadened predicate. Original bounds, cursor
+capacity and read/write permissions remain explicit. All reviewed total output,
+cursor, prefix, framing, permission and block-preservation conclusions remain
+unchanged. Intermediate preservation lemmas use the actual separation intervals;
+the total writers derive their intermediate store/load facts from initial memory.
+Original C, generated ASTs and canonical specifications remain untouched.
+
+The sixteen changed modules have completed scoped rebuilds and independent
+kernel checks (all terminal exit 0):
+
+- Initial writers: `/tmp/jet-frame-range-writers-build.log` (45672) and
+  `/tmp/jet-frame-range-writers-kernel.log` (92339).
+- Wide/carry/sequence/array writers:
+  `/tmp/jet-frame-range-write8s-build-retry.log` (77893) and
+  `/tmp/jet-frame-range-array-writers-kernel.log` (74888).
+- Context/one8: `/tmp/jet-frame-range-context-one8-build.log` (2967) and
+  `/tmp/jet-frame-range-context-one8-kernel.log` (12377).
+
+Scoped statement/source comparison receipts are
+`/tmp/jet-frame-range-public-writers-review.json`,
+`/tmp/jet-frame-range-public-array-review.json` and
+`/tmp/jet-frame-range-public-context-one8-review.json`. The final receipt
+compares all nonproof text unchanged for the two transports. Unsafe kernel
+modes are absent. Pinned-source comparison passes on 240 inputs; the proof
+source scanner passes. These checks do not replace the still-pending full
+per-theorem assumption/snapshot review or canonical fidelity review.
+
+The first whole-consumer build failed on old tuple destructuring in one8 and
+the context constructor. Exact `Show` diagnostics are preserved in
+`/tmp/jet-frame-range-one8-debug.log` and
+`/tmp/jet-frame-range-context-debug.log`; the fourth commit fixes those proof
+scripts while leaving their types and definitions unchanged. Whole-consumer
+rebuilding continues, followed by actual snapshot/type/definition/axiom review
+and a separate full acceptance. Input-array separation, endpoint bounds and
+other shared memory predicates still have distinct open scope obligations.
+
+None of these candidate commits is integrated or published. They correct a
+confirmed restriction in inherited memory contracts and add zero registered
+jets. The main branch's public predicate still has its original restriction.
