@@ -1,7 +1,8 @@
 # Inherited-work review against the eight goal criteria
 
-Status: **partially complete**. This assessment covers the published tree at
-`4888ca776165497ab440bd6083292b3facc5d533`. It supersedes any interpretation of
+Status: **partially complete**. The initial assessment covers proof inputs at
+`4888ca776165497ab440bd6083292b3facc5d533`; subsequent reviews below leave those
+published proof inputs unchanged. It supersedes any interpretation of
 "accepted consolidation" as a complete specification-fidelity review of every
 inherited result. No new jet proof is developed or promoted in this assessment.
 
@@ -178,8 +179,19 @@ compilation and separate kernel checking. No new discrepancy or registration
 is reported. Constructor establishment and general memory-contract admissibility
 remain outside this local review.
 
-The current matrix has 18 reviewed local contracts, 36 prior family reviews,
-one prior complete chain, 292 registered rows requiring further evidence
+`JET_BITCOIN_INDEXED_CURRENT_REVIEW.md` adds eight existing indexed/current
+getter chains, including present/absent lookup, literal current assertions,
+full-word values, outpoint order, helper transport and source-level comparison
+of the actual canonical SHA primitive implementation. Eighteen closed examples
+and a general max-index lemma pass complete compilation and independent kernel
+checking. Constructor establishment and general memory-contract admissibility
+remain open. No new coverage is reported, and this round has no path overlap
+with the stopped experimental declaration inventory.
+
+The current matrix has 26 reviewed local contracts, 36 prior family reviews,
+one prior complete chain, 284 registered rows requiring further evidence
 cross-reference and 186 missing final registrations. These are review statuses,
 not a change to the 347/533 registered inventory. Next are the remaining
-registered Bitcoin indexed/current/raw getters, then SHA/composed-hash boundaries.
+ten registered Bitcoin raw getters, then SHA/composed-hash boundaries and the
+shared initial-representation/memory-contract review. None of the local review
+statuses closes the latter globally.
