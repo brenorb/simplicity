@@ -1,8 +1,8 @@
 # Inherited-work review against the eight goal criteria
 
 Status: **partially complete**. The initial assessment covers proof inputs at
-`4888ca776165497ab440bd6083292b3facc5d533`; subsequent reviews below leave those
-published proof inputs unchanged. It supersedes any interpretation of
+`4888ca776165497ab440bd6083292b3facc5d533`; subsequent scoped reviews and
+corrections are documented below. It supersedes any interpretation of
 "accepted consolidation" as a complete specification-fidelity review of every
 inherited result. No new jet proof is developed or promoted in this assessment.
 
@@ -58,7 +58,7 @@ Verification receipts:
 - Reviewed canonical continuation: `/tmp/jet-next-canonical-final-accept.log`,
   `final_accept_exit_status=0`, input SHA-256
   `a566e6bfc17b188b9377c0993284b555f6364e56f8c17801833d4b0e203572b6`.
-- Latest published proof inputs: `/tmp/jet-secp-normalize-final-accept.log`,
+- Previously published proof inputs: `/tmp/jet-secp-normalize-final-accept.log`,
   `final_accept_exit_status=0`, input SHA-256
   `5d01956807ea2f325ca099e65818f5e23d521e31ac994863c1f5fd09deeb6eae`.
   It includes four direct AST regenerations, 583 kernel modules and 3,534
@@ -135,12 +135,12 @@ without a complete source review. These are review questions, not confirmed
 new defects. Snapshot stability cannot dismiss them.
 
 `JET_SHARED_MEMORY_REVIEW.md` additionally validates a concrete shared-predicate
-restriction: frame_base_valid excludes an object whose exclusive end is
-max_unsigned+1 even though its field pointers, accessible bytes and actual
-Clight field expression are valid. This is a semantic-domain exclusion, not a
-proved wrong jet output or proved reachable Linux allocation. The candidate
-wider bound is being verified in a separate attached worktree; no proof or
-snapshot from it is yet accepted or published. The general memory-contract
+restriction in the former frame_base_valid: it excluded an object whose
+exclusive end is max_unsigned+1 even though its field pointers, accessible
+bytes and actual Clight field expression are valid. This is a semantic-domain exclusion, not a
+proved wrong jet output or proved reachable Linux allocation. The wider bound
+has now passed independent full acceptance and is integrated; see
+`JET_CONSOLIDATION_2026-10-06.md` for its scoped receipt. The general memory-contract
 admissibility review remains open for every affected local contract.
 
 `JET_SHARED_BLOCK_REVIEW.md` validates another concrete exclusion: the original
@@ -192,8 +192,9 @@ The separate endpoint candidate audit has now completed with exit 0: all four
 ASTs match, all 3,534 per-theorem assumption records and library axiom sets are
 unchanged, and only the intended exclusive-end definition differs. Actual
 source/snapshot comparison is recorded in
-`/tmp/jet-frame-memory-snapshot-review.json`. Independent full acceptance is
-running; the endpoint repair is not yet accepted, integrated or published.
+`/tmp/jet-frame-memory-snapshot-review.json`. Independent full acceptance now
+passes with exit 0 and the scoped endpoint repair is integrated. The broader same-block correction remains deferred; see
+`JET_CONSOLIDATION_2026-10-06.md` for the current receipt and classification.
 
 **Confirmed documentation overstatement corrected here:** earlier "accepted"
 and "completed consolidation review" wording could be read as completion of
@@ -273,6 +274,16 @@ The current matrix has 26 reviewed local contracts, 36 prior family reviews,
 one prior complete chain, 284 registered rows requiring further evidence
 cross-reference and 186 missing final registrations. These are review statuses,
 not a change to the 347/533 registered inventory. Next are the remaining
-shared frame/address-contract admissibility and its endpoint repair, followed
+shared frame/address-contract admissibility, followed
 by ten registered Bitcoin raw getters and SHA/composed-hash boundaries. None
 of the local review statuses closes the shared-contract review globally.
+
+## Minimal repository consolidation
+
+`JET_CONSOLIDATION_2026-10-06.md` records the accepted endpoint correction,
+historical review and tested preparatory Elements generation tools. It also
+records the private range candidate: 91 modules have prior scoped kernel
+receipts; another 12 source-reviewed/built modules are preserved in five
+atomic commits. The latter subset has no passing kernel result and the whole
+range candidate still needs consumer correction and final acceptance.
+No new coverage is promoted. The inherited review remains partially complete.
