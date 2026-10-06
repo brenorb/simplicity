@@ -207,3 +207,64 @@ from the earlier two-result diagnostic. None is registered as a new jet or
 integrated as a public-contract repair. The shared public predicate has 200
 direct `.v` consumers; sequence/prefix preservation, reader transports and
 actual jet boundaries still require adaptation and substantive review.
+
+## Canonical byte sequences and the actual array loop checked
+
+Eight further completed results in three isolated modules extend this same
+correction support:
+
+| Module | Results | Checked boundary |
+| --- | --- | --- |
+| `review_frame_ranges_sequence` | 4 | Remaining frame after an arbitrary 1–64-bit slice, chained prefix preservation and preservation of already written bits/cells using their actual word intervals |
+| `review_frame_ranges_bytes` | 1 | Arbitrary list of actual write8 calls, complete canonical cell output and framing |
+| `review_frame_ranges_write8s` | 3 | Initial-array derivation of the run, actual generated write8s function call, and exact encoding of an arbitrary canonical Word8 array |
+
+The sequence theorem retains every original conclusion of
+`write8_sequence_run_layout` byte-for-byte. It derives separation for previously
+written cells from the initial frame's full capacity, rather than assuming
+preservation of those cells. Defined bits and undefined padding cells retain
+the original `cell_matches` meaning. Empty lists, arbitrary initial backing
+words and all valid cursor crossings remain included.
+
+The array-loop results retain every original conclusion of `write8s_run_layout`,
+`eval_write8s_layout` and `eval_write8s_words_layout` byte-for-byte. They derive
+each actual unsigned-byte array load and writer call, then instantiate the
+existing proof of the generated pointer/count loop, function entry and return.
+Neither actual execution nor the internal run witness is a premise of the
+total array-writer theorem. Canonical arrays conclude
+`concat (map (@encode (Word 3)) xs)`, using the existing universal byte decoding
+bridge; no replacement output model is introduced.
+
+The two old input-array block-separation premises (`bi <> bf`, `bi <> bw`)
+remain explicit in these array results. This round generalizes frame/data
+separation only. It does not certify the admissibility of every remaining
+input-array placement or exclusive-end bound.
+
+Complete compilation: `/tmp/jet-frame-ranges-sequence-compile.log` (session
+42892), `/tmp/jet-frame-ranges-bytes-compile.log` (26170), and
+`/tmp/jet-frame-ranges-write8s-compile.log` (1186), all terminal exit 0.
+Independent kernel checks: `/tmp/jet-frame-ranges-sequence-kernel.log`
+(32837) and `/tmp/jet-frame-ranges-write8s-kernel.log` (53589), both terminal
+exit 0 with no unsafe modes. Execution results retain the six inherited
+assumptions; pure preservation results retain four. No new execution, output
+or libc premise was added.
+
+The source receipt `/tmp/jet-frame-ranges-source-review.json` now records 20
+completed support results in seven modules, fresh compiled hashes and unchanged
+dependencies. Exact goal diagnostics for the closed `2^3` bound, local naming
+and explicit head-capacity argument are in
+`/tmp/jet-frame-ranges-bytes-debug.log`,
+`/tmp/jet-frame-ranges-bytes-name-debug.log`,
+`/tmp/jet-frame-ranges-bytes-head-debug.log` and
+`/tmp/jet-frame-ranges-write8s-debug.log`. Their fixes changed no statement.
+
+Public-contract adaptation is now being prepared in the separate attached
+worktree `/Users/brenorb/.codex/worktrees/frame-range-contract/simplicity`,
+branch `codex/frame-range-contract`. Its actual `write_frame_at` predicate and
+bit/byte writers have a complete scoped rebuild. All dependent callers,
+definition/type/assumption review and independent full acceptance are still
+required before integration or publication of that candidate. The endpoint
+audit remains separate and its inputs are untouched.
+
+These are correction-support results, with zero new jet registrations. The
+public repair and exhaustive inherited fidelity review remain incomplete.

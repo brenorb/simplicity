@@ -139,6 +139,14 @@ arbitrary initial word/Boolean values. Intermediate store facts are derived at
 the total boundary. The public predicates and downstream contracts are still
 unchanged, and their repair remains necessary; none of this adds jet coverage.
 
+Subsequent support extends this to complete byte sequences and the actual
+write8s pointer/count loop, retaining every original canonical-output and
+framing conclusion. Twenty results in seven isolated modules pass compilation
+and independent kernel checking; input-array separation remains explicit and
+still needs scope review. Actual public-predicate/writer adaptation has begun
+in a separate candidate worktree. It is not integrated or published, and full
+consumer rebuilding/review/acceptance remains required.
+
 **Confirmed documentation overstatement corrected here:** earlier "accepted"
 and "completed consolidation review" wording could be read as completion of
 all eight criteria. Only the scoped verification/reviews were complete. The
