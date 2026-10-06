@@ -1,0 +1,56 @@
+"""Review isolated literal scalar programs; this does not establish C execution."""
+from pathlib import Path
+import importlib.util,re,tempfile,shutil,sys
+sys.dont_write_bytecode=True
+spec=importlib.util.spec_from_file_location('literal_gate','/tmp/secp-predicates-next/Coq/check-secp-predicates-specification.py')
+gate=importlib.util.module_from_spec(spec);spec.loader.exec_module(gate)
+project=Path('/Users/brenorb/.codex/worktrees/claude-consolidation/simplicity')
+scratch=Path('/Users/brenorb/.codex/jet-proof-scratch/original-c')
+files=['Haskell/Core/Simplicity/CoreJets.hs','Haskell/Core/Simplicity/Ty/LibSecp256k1.hs','Haskell/Core/Simplicity/Programs/LibSecp256k1.hs','Haskell/Core/Simplicity/LibSecp256k1/Spec.hs']
+ports=['jet_secp_canonical_scalar.v','jet_secp_canonical_scalar_zero.v']
+def check(repo,source):
+ catalog=gate.read_code(repo/files[0]);types=gate.read_code(repo/files[1]);program=gate.read_code(repo/files[2]);field=gate.read_code(repo/files[3])
+ gate.require(types,'type Scalar = Word256','scalar domain')
+ for constructor,name,out in [('ScalarNormalize','scalar_normalize','Secp256k1.Scalar'),('ScalarIsZero','scalar_is_zero','Bit')]:
+  gate.require(catalog,f'{constructor} :: Secp256k1Jet Secp256k1.Scalar {out}',name+' jet type')
+  gate.require(catalog,f'specificationSecp256k1 {constructor} = Secp256k1.{name}',name+' dispatch')
+ gate.require(program,'scribeGroupOrder = scribe256 LibSecp256k1.groupOrder','group constant')
+ impl=program.split('lib@Lib{..} = Lib {',1)[1]
+ gate.exact_program(impl,'scalar_normalize','scalar_is_zero','(iden &&& (unit >>> scribeGroupOrder) >>> sub256) &&& iden >>> ooh &&& (oih &&& ih) >>> cond ih oh')
+ gate.exact_program(impl,'scalar_is_zero','scalar_add','or (Arith.is_zero word256) ((unit >>> scribeGroupOrder) &&& iden >>> eq)')
+ port=gate.read_code(source/ports[0]);zero=gate.read_code(source/ports[1])
+ group=re.search(r'(?m)^groupOrder\s*=\s*(0x[0-9a-fA-F]+)\s*$',field)
+ assert group and int(group[1],16)==int(gate.definition(port,'canonical_group_order').strip())
+ assert gate.compact(gate.definition(port,'canonical_group_word'))==gate.compact('@fromZ (WordToZ 8) canonical_group_order')
+ expected='((iden &&& (unit >>> Alg.scribe canonical_group_word) >>> @subtract_word_spec term 8) &&& iden) >>> (O O H &&& (O I H &&& I H)) >>> cond (I H) (O H)'
+ assert gate.compact(gate.definition(port,'canonical_scalar_normalize'))==gate.compact(expected)
+ expected='Bit.or (@is_zero_word_spec 8 term) (((unit >>> Alg.scribe canonical_group_word) &&& iden) >>> @equality_spec (Word 8) term)'
+ assert gate.compact(gate.definition(zero,'canonical_scalar_is_zero'))==gate.compact(expected)
+ return 2
+mutations=[
+ ('repo',files[1],'type Scalar = Word256','type Scalar = Word128'),
+ ('repo',files[2],'scalar_normalize = (iden &&& (unit >>> scribeGroupOrder)','scalar_normalize = (iden &&& (unit >>> scribeFeOrder)'),
+ ('repo',files[2],'scalar_is_zero = or (Arith.is_zero word256)','scalar_is_zero = and (Arith.is_zero word256)'),
+ ('repo',files[3],'groupOrder = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141','groupOrder = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364142'),
+ ('source',ports[0],'>>> cond (I H) (O H)','>>> cond (O H) (I H)'),
+ ('source',ports[0],'@subtract_word_spec term 8','@subtract_word_spec term 7'),
+ ('source',ports[1],'@equality_spec (Word 8) term','@equality_spec (Word 7) term'),
+ ('source',ports[1],'Bit.or (@is_zero_word_spec 8 term)','Bit.and (@is_zero_word_spec 8 term)'),
+]
+assert check(project,scratch)==2
+with tempfile.TemporaryDirectory(prefix='scalar-literal-review.') as tmp:
+ repo,source=Path(tmp)/'repo',Path(tmp)/'source';source.mkdir()
+ for path in files:
+  dst=repo/path;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(project/path,dst)
+ for path in ports:shutil.copy2(scratch/path,source/path)
+ assert check(repo,source)==2
+ for kind,relative,old,new in mutations:
+  path=(repo if kind=='repo' else source)/relative
+  original=path.read_text();assert old in original,(relative,old)
+  path.write_text(original.replace(old,new,1))
+  try:check(repo,source)
+  except (ValueError,AssertionError):pass
+  else:raise AssertionError(('mutation accepted',relative))
+  finally:path.write_text(original)
+ assert check(repo,source)==2
+print('2 isolated literal scalar ports match; rejected 8 mutations; no C coverage added')

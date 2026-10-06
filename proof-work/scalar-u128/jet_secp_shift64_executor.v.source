@@ -1,0 +1,59 @@
+(** Sound symbolic execution with the proved original-C shift helper oracle. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Globalenvs Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_pure C.jet_sx_mem.
+Require Import C.jet_secp_fns C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_u128_shift64_oracle.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition secp_shift64_table :=
+  (jets_secp._secp256k1_u128_rshift, FOra f_secp256k1_u128_rshift u128_shift64_oracle)
+    :: int_table secp_pure.
+
+Lemma secp_shift64_table_correct id ent :
+  flookup secp_shift64_table id = Some ent ->
+  (exists b, Genv.find_symbol secp_ge id = Some b /\
+    Genv.find_funct_ptr secp_ge b = Some (Internal (fentry_fd ent))) /\
+  match ent with
+  | FInt _ => True
+  | FOra fd o => oracle_ok secp_ge (fun _ _ => True) (fun _ _ _ => True) (fun _ => False) fd o
+  end.
+Proof.
+  unfold secp_shift64_table; cbn [flookup].
+  destruct (Pos.eqb jets_secp._secp256k1_u128_rshift id) eqn:HE.
+  - apply Pos.eqb_eq in HE; subst id.
+    intro H; inversion H; subst ent; split.
+    + apply secp_pure_ok. unfold secp_pure.
+      do 6 right; left; reflexivity.
+    + apply u128_shift64_oracle_correct.
+  - intro H; destruct (int_table_lookup secp_pure id ent H) as [fd [-> HIn]].
+    split; [exact (secp_pure_ok id fd HIn)|exact I].
+Qed.
+
+Theorem xfun_shift64_sound fuel fd args regs nv result :
+  xfun (genv_cenv secp_ge) [] secp_shift64_table fuel fd args regs [] nv = Some result ->
+  forall rho layout m, rep rho layout regs m ->
+  exists mf vres,
+    Clight2.eval_funcall secp_ge m (Internal fd) (map (den rho (lay layout)) args) E0 mf vres /\
+    rep rho layout (sregs (fst (rsel rho (lay layout) result))) mf /\
+    match (stemps (fst (rsel rho (lay layout) result)))!1%positive with
+    | Some x => vres = den rho (lay layout) x | None => vres = Vundef end /\
+    map rshape (sregs (fst (rsel rho (lay layout) result))) = map rshape regs /\
+    lframe (fun b ofs => ~ foot layout (map rshape regs) b ofs) m mf.
+Proof.
+  intros HRun rho layout m HRep.
+  destruct (xfun_top_sound secp_ge [] secp_shift64_table
+    (fun _ _ => True) (fun _ _ _ => True) (fun _ => False)
+    ltac:(auto) ltac:(intros; contradiction) secp_shift64_table_correct
+    fuel fd args regs [] nv result HRun rho layout m HRep)
+    as [mf [vres [HCall [HFinal [HReturn [HShape [_ HFrame]]]]]]].
+  - split; intros; discriminate.
+  - intros r _ [].
+  - exact I.
+  - apply Forall_forall; intros; exact I.
+  - exists mf, vres; split; [exact HCall|]; split; [exact HFinal|];
+      split; [exact HReturn|]; split; [exact HShape|].
+    eapply lframe_implies; [exact HFrame|].
+    intros b ofs HOutside HValid; split; [exact HValid|]; split; [exact HOutside|tauto].
+Qed.

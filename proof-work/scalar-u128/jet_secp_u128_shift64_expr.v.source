@@ -1,0 +1,84 @@
+(** Evaluate expressions of the original u128_rshift helper at n=64.
+    No C or AST expression is substituted. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_exec C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_u128_layout.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition u128_ty := Tstruct jets_secp._secp256k1_uint128 noattr.
+Definition u128_field (fld : ident) :=
+  Efield (Ederef (Etempvar jets_secp._r (tptr u128_ty)) u128_ty) fld tulong.
+Definition u128_shift_test :=
+  Ebinop Oge (Etempvar jets_secp._n tuint) (Econst_int (Int.repr 64) tint) tint.
+Definition u128_shift_count :=
+  Ebinop Osub (Etempvar jets_secp._n tuint) (Econst_int (Int.repr 64) tint) tuint.
+Lemma u128_field_lvalue m le b fld off :
+  le!jets_secp._r = Some (Vptr b Ptrofs.zero) ->
+  (fld = jets_secp._lo /\ off = 0) \/ (fld = jets_secp._hi /\ off = 8) ->
+  eval_lvalue secp_ge empty_env le m (u128_field fld) b
+    (Ptrofs.add Ptrofs.zero (Ptrofs.repr off)) Full.
+Proof.
+  intros HT HField.
+  destruct secp_u128_composite_fields as [co [HCo [HSu HMembers]]].
+  destruct HField as [[-> ->]|[-> ->]]; unfold u128_field, u128_ty.
+  - eapply eval_Efield_struct with (co := co).
+    + eapply eval_Elvalue.
+      * eapply eval_Ederef; eapply eval_Etempvar; exact HT.
+      * apply deref_loc_copy; reflexivity.
+    + reflexivity.
+    + exact HCo.
+    + rewrite HMembers; reflexivity.
+  - eapply eval_Efield_struct with (co := co).
+    + eapply eval_Elvalue.
+      * eapply eval_Ederef; eapply eval_Etempvar; exact HT.
+      * apply deref_loc_copy; reflexivity.
+    + reflexivity.
+    + exact HCo.
+    + rewrite HMembers; reflexivity.
+Qed.
+Lemma eval_u128_hi m le b value :
+  le!jets_secp._r = Some (Vptr b Ptrofs.zero) ->
+  Mem.load Mint64 m b 8 = Some (Vlong value) ->
+  eval_expr secp_ge empty_env le m (u128_field jets_secp._hi) (Vlong value).
+Proof.
+  intros HT HL. eapply eval_Elvalue.
+  - eapply u128_field_lvalue; [exact HT|right; split; reflexivity].
+  - apply deref_loc_value with (chunk := Mint64).
+    + reflexivity.
+    + change (Mem.load Mint64 m b 8 = Some (Vlong value)); exact HL.
+Qed.
+Lemma eval_u128_shift_test64 m le :
+  le!jets_secp._n = Some (Vint (Int.repr 64)) ->
+  eval_expr secp_ge empty_env le m u128_shift_test (Vint Int.one).
+Proof.
+  intro HN; unfold u128_shift_test.
+  eapply eval_Ebinop with (v1 := Vint (Int.repr 64)) (v2 := Vint (Int.repr 64)).
+  - eapply eval_Etempvar; exact HN.
+  - constructor.
+  - vm_compute; reflexivity.
+Qed.
+Lemma eval_u128_shift_count64 m le :
+  le!jets_secp._n = Some (Vint (Int.repr 64)) ->
+  eval_expr secp_ge empty_env le m u128_shift_count (Vint Int.zero).
+Proof.
+  intro HN; unfold u128_shift_count.
+  eapply eval_Ebinop with (v1 := Vint (Int.repr 64)) (v2 := Vint (Int.repr 64)).
+  - eapply eval_Etempvar; exact HN.
+  - constructor.
+  - vm_compute; reflexivity.
+Qed.
+Lemma eval_u128_shift_hi64 m le value :
+  le!jets_secp._n = Some (Vint (Int.repr 64)) ->
+  le!jets_secp._t'4 = Some (Vlong value) ->
+  eval_expr secp_ge empty_env le m
+    (Ebinop Oshr (Etempvar jets_secp._t'4 tulong) u128_shift_count tulong) (Vlong value).
+Proof.
+  intros HN HV.
+  eapply eval_Ebinop with (v1 := Vlong value) (v2 := Vint Int.zero).
+  - eapply eval_Etempvar; exact HV.
+  - apply eval_u128_shift_count64; exact HN.
+  - change (Some (Vlong (Int64.shru value Int64.zero)) = Some (Vlong value)).
+    rewrite Int64.shru_zero; reflexivity.
+Qed.

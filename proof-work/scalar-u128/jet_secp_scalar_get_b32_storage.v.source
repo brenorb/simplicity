@@ -1,0 +1,79 @@
+(** Derive scalar_get_b32's symbolic precondition from concrete input storage. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_fe_b32 C.jet_secp_b32_exec C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_read8s_layout.
+Require Import OriginalC.jet_secp_scalar_get_b32_exec OriginalC.jet_secp_scalar_get_b32_numeric.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition scalar_at m b base limbs : Prop :=
+  length limbs = 4%nat /\ 0 <= base /\ (8 | base) /\ base + 32 <= Ptrofs.max_unsigned /\
+  Mem.range_perm m b base (base + 32) Cur Readable /\
+  forall i limb, nth_error limbs i = Some limb ->
+    Mem.load Mint64 m b (base + 8 * Z.of_nat i) = Some (Vlong limb).
+Lemma scalar_variables_nth i x :
+  nth_error [XLv 0; XLv 1; XLv 2; XLv 3] i = Some x ->
+  (i < 4)%nat /\ x = XLv i.
+Proof.
+  destruct i as [|[|[|[|i]]]]; cbn [nth_error]; intro H;
+    try (inversion H; subst x; split; [lia|reflexivity]).
+  destruct i; discriminate.
+Qed.
+Lemma scalar_region_from_storage value layout m r :
+  scalar_at m (blk layout r) (bas layout r) (map Int64.repr (scalar_limbs_of value)) ->
+  region_ok (scalar_limb_rho value) layout m r
+    (mkreg (u64_cells 0 [XLv 0; XLv 1; XLv 2; XLv 3]) false None).
+Proof.
+  intros [HLength [HBase [HAlign [HMax [HPerm HLoad]]]]].
+  apply region_u64.
+  - exact HBase.
+  - exact HAlign.
+  - exact HMax.
+  - eapply Mem.perm_valid_block; apply (HPerm (bas layout r)); lia.
+  - exact HPerm.
+  - intros i x HNth; destruct (scalar_variables_nth i x HNth) as [HIndex ->].
+    split; [|reflexivity].
+    change (Mem.load Mint64 m (blk layout r) (bas layout r + 8 * Z.of_nat i) =
+      Some (Vlong (Int64.repr (nth i (scalar_limbs_of value) 0)))).
+    apply HLoad; rewrite nth_error_map, (nth_error_nth' _ 0).
+    + reflexivity.
+    + change (i < 4)%nat; exact HIndex.
+Qed.
+Theorem scalar_get_initial_rep_derived value bbytes byteofs bscalar scalarofs m :
+  0 <= byteofs -> byteofs + 32 <= Ptrofs.max_unsigned ->
+  Mem.range_perm m bbytes byteofs (byteofs + 32) Cur Writable ->
+  scalar_at m bscalar scalarofs (map Int64.repr (scalar_limbs_of value)) ->
+  bbytes <> bscalar ->
+  rep (scalar_limb_rho value) [(bbytes, byteofs); (bscalar, scalarofs)] scalar_get_regs m.
+Proof.
+  intros HBase HMax HPerm HScalar HSeparate.
+  apply two_region_rep_separate; [reflexivity|exact HSeparate| |].
+  - apply region_b32_undefined_from_storage; assumption.
+  - apply scalar_region_from_storage; exact HScalar.
+Qed.
+
+Theorem eval_scalar_get_b32_from_storage m b offset bs base value :
+  0 <= value < 2 ^ 256 ->
+  0 <= offset -> offset + 32 <= Ptrofs.max_unsigned ->
+  Mem.range_perm m b offset (offset + 32) Cur Writable ->
+  scalar_at m bs base (map Int64.repr (scalar_limbs_of value)) -> b <> bs ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_get_b32)
+      [Vptr b (Ptrofs.repr offset); Vptr bs (Ptrofs.repr base)] E0 mf Vundef /\
+    uint8_array_at mf b offset (map Int.repr (be_bytes value)) /\
+    lframe (fun block pos =>
+      ~ foot [(b, offset); (bs, base)] (map rshape scalar_get_regs) block pos) m mf.
+Proof.
+  intros HValue HBase HMax HWritable HScalar HSeparate.
+  pose proof (scalar_get_initial_rep_derived value b offset bs base m
+    HBase HMax HWritable HScalar HSeparate) as HRep.
+  destruct (eval_scalar_get_b32_numeric m [(b,offset); (bs,base)] value HValue HRep)
+    as [mf [HCall [HLoad [HFinal HFrame]]]].
+  exists mf; split; [exact HCall|]; split; [|exact HFrame].
+  unfold uint8_array_at; intros i byte HNth.
+  rewrite nth_error_map in HNth.
+  destruct (nth_error (be_bytes value) i) as [z|] eqn:HZ; [|discriminate].
+  inversion HNth; subst byte; exact (HLoad i z HZ).
+Qed.

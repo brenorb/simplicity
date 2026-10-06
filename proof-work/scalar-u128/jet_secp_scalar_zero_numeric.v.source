@@ -1,0 +1,55 @@
+(** Actual scalar-zero helper linked to the canonical scalar predicate.
+    This is support: read_scalar and the public jet lifecycle remain to prove. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Maps Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Bit Simplicity.Alg.
+Require Import C.jet_toZ C.jet_exec C.jet_readBit_layout C.jet_predicate_wide_exec.
+Require Import C.jet_sx_state C.jet_sx_mem C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_scalar_zero_exec OriginalC.jet_secp_zero_numeric OriginalC.jet_secp_local_regions.
+Require Import OriginalC.jet_secp_canonical_scalar OriginalC.jet_secp_canonical_scalar_zero.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition scalar_value (rho : nat -> int64) : Z :=
+  Int64.unsigned (rho 1%nat) + 2 ^ 64 * Int64.unsigned (rho 2%nat) +
+  2 ^ 128 * Int64.unsigned (rho 3%nat) + 2 ^ 192 * Int64.unsigned (rho 4%nat).
+Lemma scalar_or_zero_numeric rho :
+  Int64.eq (scalar_or_value rho) Int64.zero = Z.eqb (scalar_value rho) 0.
+Proof.
+  unfold scalar_or_value; rewrite !int64_or_zero_bool.
+  rewrite !int64_eq_numeric, Int64.unsigned_zero.
+  apply Bool.eq_true_iff_eq; rewrite !Bool.andb_true_iff, !Z.eqb_eq.
+  unfold scalar_value.
+  pose proof (Int64.unsigned_range (rho 1%nat)).
+  pose proof (Int64.unsigned_range (rho 2%nat)).
+  pose proof (Int64.unsigned_range (rho 3%nat)).
+  pose proof (Int64.unsigned_range (rho 4%nat)).
+  change (2 ^ 64) with 18446744073709551616.
+  change (2 ^ 128) with 340282366920938463463374607431768211456.
+  change (2 ^ 192) with 6277101735386680763835789423207666416102355444464034512896.
+  intuition lia.
+Qed.
+Local Opaque canonical_scalar_normalize canonical_scalar_is_zero.
+Theorem eval_scalar_zero_canonical m layout rho (value : Ty.tySem (Word 8)) :
+  rep rho layout scalar_initial_regs m ->
+  scalar_value rho = @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value) ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_is_zero)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0))] E0 mf
+      (Vint (bit_int (Bit.toBool (@canonical_scalar_is_zero Alg.CoreFunSem value)))) /\
+    rep rho layout scalar_initial_regs mf /\
+    Mem.range_perm mf (blk layout 0) (bas layout 0) (bas layout 0 + 32) Cur Freeable /\
+    lframe (fun b pos => ~ foot layout (map rshape scalar_initial_regs) b pos) m mf.
+Proof.
+  intros HRep HValue.
+  destruct (eval_scalar_zero_from_owned_region m layout rho HRep)
+    as [mf [HCall [HFinal HFrame]]].
+  rewrite scalar_or_zero_numeric, HValue, canonical_scalar_zero_after_normalize in HCall.
+  change (Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_is_zero)
+    [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0))] E0 mf
+    (Vint (bit_int (Bit.toBool (@canonical_scalar_is_zero Alg.CoreFunSem value))))) in HCall.
+  pose proof (rep_free_region _ _ _ _ 0 32 HFinal ltac:(cbn; lia) eq_refl) as [HBase HFree].
+  exists mf; split; [exact HCall|]; split; [exact HFinal|]; split.
+  - rewrite HBase; exact HFree.
+  - exact HFrame.
+Qed.

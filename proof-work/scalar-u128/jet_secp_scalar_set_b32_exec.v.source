@@ -1,0 +1,109 @@
+(** Execute the unchanged scalar_set_b32 with its actual NULL overflow branch.
+    No replacement function or AST: recombine the verified prefix and suffix. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_fe_b32 C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_statement_prefix OriginalC.jet_secp_shift64_statement OriginalC.jet_secp_shift64_executor.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition scalar_set_initial_regs :=
+  [mkreg [mkcell 0 Mint64 None; mkcell 8 Mint64 None;
+          mkcell 16 Mint64 None; mkcell 24 Mint64 None] true None;
+   mkreg (byte_cells 0 32 0) false None].
+Definition scalar_set_initial_temps :=
+  PTree.set jets_secp._overflow (XLc Int64.zero)
+    (PTree.set jets_secp._b32 (XP 1 0) (PTree.set jets_secp._r (XP 0 0) (PTree.empty sx))).
+Definition scalar_set_temps rho layout :=
+  PTree.set jets_secp._overflow (den rho (lay layout) (XLc Int64.zero))
+    (PTree.set jets_secp._b32 (den rho (lay layout) (XP 1 0))
+      (PTree.set jets_secp._r (den rho (lay layout) (XP 0 0))
+        (create_undef_temps (fn_temps f_secp256k1_scalar_set_b32)))).
+Definition scalar_set_parts := fst (split_statement_last (fn_body f_secp256k1_scalar_set_b32)).
+Definition scalar_set_suffix := snd (split_statement_last (fn_body f_secp256k1_scalar_set_b32)).
+Definition scalar_set_prefix := statement_sequence scalar_set_parts Sskip.
+Definition scalar_set_initial := mkst scalar_set_initial_temps scalar_set_initial_regs [] 32.
+Definition scalar_set_prefix_run :=
+  xstmt (genv_cenv secp_ge) [] secp_shift64_table 1000 [] scalar_set_initial scalar_set_prefix.
+Definition scalar_set_prefix_tree := Eval vm_compute in scalar_set_prefix_run.
+Definition scalar_set_state :=
+  match scalar_set_prefix_tree with Some (RDone state _) => state
+  | _ => mkst (PTree.empty sx) [] [] 0 end.
+Lemma scalar_set_prefix_run_eq : scalar_set_prefix_run = Some (RDone scalar_set_state ONormal).
+Proof. reflexivity. Qed.
+Lemma scalar_set_pointer_unchanged : (stemps scalar_set_state)!jets_secp._overflow = Some (XLc Int64.zero).
+Proof. reflexivity. Qed.
+Lemma scalar_set_body_exact : fn_body f_secp256k1_scalar_set_b32 =
+  statement_sequence scalar_set_parts scalar_set_suffix.
+Proof. symmetry; apply split_statement_last_exact. Qed.
+Lemma scalar_set_suffix_exact : scalar_set_suffix =
+  Sifthenelse (Etempvar jets_secp._overflow (tptr tint))
+    (Sassign (Ederef (Etempvar jets_secp._overflow (tptr tint)) tint)
+      (Etempvar jets_secp._over tint)) Sskip.
+Proof. reflexivity. Qed.
+Lemma scalar_set_entry rho layout m :
+  function_entry2 secp_ge f_secp256k1_scalar_set_b32
+    (map (den rho (lay layout)) [XP 0 0; XP 1 0; XLc Int64.zero]) m
+    empty_env (scalar_set_temps rho layout) m.
+Proof.
+  constructor.
+  - cbn; constructor.
+  - cbn; repeat constructor; cbn; intuition discriminate.
+  - intros x y HX HY Hxy; cbn in HX, HY.
+    repeat match goal with H : _ \/ _ |- _ => destruct H end; subst;
+      first [contradiction|vm_compute in Hxy; discriminate|congruence].
+  - constructor.
+  - reflexivity.
+Qed.
+Lemma scalar_set_initial_tmatch rho layout :
+  tmatch rho layout scalar_set_initial_temps (scalar_set_temps rho layout).
+Proof.
+  unfold scalar_set_initial_temps, scalar_set_temps.
+  apply tmatch_set; apply tmatch_set; apply tmatch_set.
+  intros id x H; rewrite PTree.gempty in H; discriminate.
+Qed.
+Lemma exec_scalar_set_null_suffix le m :
+  le!jets_secp._overflow = Some (Vlong Int64.zero) ->
+  Clight2.exec_stmt secp_ge empty_env le m scalar_set_suffix E0 le m Out_normal.
+Proof.
+  intro HNull; rewrite scalar_set_suffix_exact.
+  eapply exec_Sifthenelse with (v1 := Vlong Int64.zero) (b := false).
+  - apply eval_Etempvar; exact HNull.
+  - reflexivity.
+  - constructor.
+Qed.
+Local Opaque xstmt scalar_set_state scalar_set_prefix scalar_set_initial_temps scalar_set_initial_regs.
+Theorem eval_scalar_set_b32_from_initial_regions rho layout m :
+  rep rho layout scalar_set_initial_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_set_b32)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1)); Vlong Int64.zero] E0 mf Vundef /\
+    rep rho layout (sregs scalar_set_state) mf /\
+    map rshape (sregs scalar_set_state) = map rshape scalar_set_initial_regs /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_set_initial_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  pose proof scalar_set_prefix_run_eq as HRun; unfold scalar_set_prefix_run in HRun.
+  destruct (xstmt_shift64_normal 1000 scalar_set_initial scalar_set_prefix scalar_set_state
+    rho layout m (scalar_set_temps rho layout) HRun HRep
+    (scalar_set_initial_tmatch rho layout)) as [le [mf [HPrefix [HFinal [HTemp [HShape HFrame]]]]]].
+  assert (HNull : le!jets_secp._overflow = Some (Vlong Int64.zero)).
+  { exact (HTemp jets_secp._overflow (XLc Int64.zero) scalar_set_pointer_unchanged). }
+  exists mf; split.
+  - assert (HArgs : map (den rho (lay layout)) [XP 0 0; XP 1 0; XLc Int64.zero] =
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1)); Vlong Int64.zero]).
+    { cbn [map den]; fold (blk layout 0) (bas layout 0) (blk layout 1) (bas layout 1).
+      rewrite !Z.add_0_r; reflexivity. }
+    rewrite <- HArgs.
+    eapply eval_funcall_internal with (e := empty_env) (le1 := scalar_set_temps rho layout)
+      (le2 := le) (m1 := m) (m2 := mf) (out := Out_normal).
+    + apply scalar_set_entry.
+    + rewrite scalar_set_body_exact; eapply exec_statement_prefix_then_last;
+        [exact HPrefix|apply exec_scalar_set_null_suffix; exact HNull].
+    + reflexivity.
+    + reflexivity.
+  - split; [exact HFinal|]; split; assumption.
+Qed.

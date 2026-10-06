@@ -1,0 +1,71 @@
+(** Original shift helper lifted to symbolic regions, with both stores derived. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_mem C.jet_sx_exec C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_u128_shift64_call OriginalC.jet_secp_u128_shift64_body.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma xload_u64_defined_sound rho layout regs m r d x :
+  rep rho layout regs m -> xload regs r d tulong = Some x ->
+  Mem.load Mint64 m (blk layout r) (bas layout r + d) = Some (den rho (lay layout) x).
+Proof.
+  intros HRep HLoad.
+  change (match nth_error regs r with
+    | Some reg => match find_cell (rcells reg) d Mint64 with
+        | Some c => cval c | None => None end
+    | None => None end = Some x) in HLoad.
+  destruct (nth_error regs r) as [reg|] eqn:HR; [|discriminate].
+  destruct (find_cell (rcells reg) d Mint64) as [c|] eqn:HC; [|discriminate].
+  exact (proj1 (xload_sound rho layout regs m r d Mint64 c reg x HRep HR HC HLoad)).
+Qed.
+
+Lemma rep_owned_region_base_zero rho layout regs m r reg sz :
+  rep rho layout regs m -> nth_error regs r = Some reg -> rfree reg = Some sz ->
+  bas layout r = 0.
+Proof.
+  intros [_ [_ HRegions]] HR HF.
+  destruct (HRegions r reg HR) as [_ [_ [_ [_ HFree]]]].
+  rewrite HF in HFree; exact (proj1 HFree).
+Qed.
+
+Theorem eval_u128_shift64_from_symbolic_stores rho layout regs m r reg hi regs1 regs2 :
+  rep rho layout regs m -> nth_error regs r = Some reg -> rfree reg = Some 16 ->
+  xload regs r 8 tulong = Some hi -> isk KL hi = true ->
+  xstore regs r 0 Mint64 hi = Some regs1 ->
+  xstore regs1 r 8 Mint64 (XLc Int64.zero) = Some regs2 ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_u128_rshift)
+      [Vptr (blk layout r) Ptrofs.zero; Vint (Int.repr 64)] E0 mf Vundef /\
+    rep rho layout regs2 mf /\
+    map rshape regs2 = map rshape regs /\
+    lframe (fun b ofs => ~ foot layout (map rshape regs) b ofs) m mf.
+Proof.
+  intros HRep HR HFree HX HK HStore1 HStore2.
+  pose proof (rep_owned_region_base_zero rho layout regs m r reg 16 HRep HR HFree) as HBase.
+  pose proof (xload_u64_defined_sound rho layout regs m r 8 hi HRep HX) as HLoad.
+  destruct (xstore_sound rho layout regs m r 0 Mint64 hi regs1 HRep HStore1)
+    as [m1 [HS1 [_ [HRep1 HUnchanged1]]]].
+  destruct (xstore_sound rho layout regs1 m1 r 8 Mint64 (XLc Int64.zero) regs2 HRep1 HStore2)
+    as [mf [HS2 [_ [HRep2 HUnchanged2]]]].
+  pose proof (xstore_shape regs r 0 Mint64 hi regs1 HStore1) as HShape1.
+  pose proof (xstore_shape regs1 r 8 Mint64 (XLc Int64.zero) regs2 HStore2) as HShape2.
+  rewrite HBase in HLoad, HS1, HS2; cbn [Z.add] in HLoad, HS1, HS2.
+  rewrite (den_KL rho (lay layout) hi HK) in HLoad, HS1.
+  exists mf; split.
+  - eapply eval_funcall_internal with (e := empty_env)
+      (le1 := u128_shift64_temps (blk layout r))
+      (le2 := PTree.set jets_secp._t'4 (Vlong (il (den rho (lay layout) hi)))
+         (u128_shift64_temps (blk layout r)))
+      (m1 := m) (m2 := mf) (out := Out_normal).
+    + apply u128_shift64_entry.
+    + apply exec_u128_shift64_body with (m1 := m1) (b := blk layout r);
+        try assumption; reflexivity.
+    + reflexivity.
+    + reflexivity.
+  - split; [exact HRep2|]; split; [congruence|].
+    eapply lframe_trans.
+    + apply lframe_unchanged; exact HUnchanged1.
+    + rewrite <- HShape1; apply lframe_unchanged; exact HUnchanged2.
+Qed.

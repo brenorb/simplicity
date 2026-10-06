@@ -1,0 +1,53 @@
+(** Actual original scalar reduction via the proved shift64 oracle.
+    Arithmetic/canonical and public-jet bridges are separate obligations. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_shift64_executor.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition scalar_reduce_initial_regs :=
+  [mkreg (u64_cells 0 [XLv 0; XLv 1; XLv 2; XLv 3]) true None].
+Definition scalar_reduce_run :=
+  xfun (genv_cenv secp_ge) [] secp_shift64_table 1000 f_secp256k1_scalar_reduce
+    [XP 0 0; XL2I (XLv 4)] scalar_reduce_initial_regs [] 5.
+Definition scalar_reduce_tree := Eval vm_compute in scalar_reduce_run.
+Definition scalar_reduce_state :=
+  match scalar_reduce_tree with
+  | Some (RDone state _) => state
+  | _ => mkst (PTree.empty sx) [] [] 0 end.
+Definition scalar_reduce_return :=
+  match (stemps scalar_reduce_state)!1%positive with
+  | Some value => value | None => XIc Int.zero end.
+Lemma scalar_reduce_run_eq : scalar_reduce_run = Some (RDone scalar_reduce_state ONormal).
+Proof. reflexivity. Qed.
+Lemma scalar_reduce_return_eq :
+  (stemps scalar_reduce_state)!1%positive = Some scalar_reduce_return.
+Proof. reflexivity. Qed.
+
+Theorem eval_scalar_reduce_from_initial_regions rho layout m :
+  rep rho layout scalar_reduce_initial_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_reduce)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vint (Int.repr (Int64.unsigned (rho 4%nat)))] E0 mf
+      (den rho (lay layout) scalar_reduce_return) /\
+    rep rho layout (sregs scalar_reduce_state) mf /\
+    map rshape (sregs scalar_reduce_state) = map rshape scalar_reduce_initial_regs /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_reduce_initial_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  destruct (xfun_shift64_sound 1000 f_secp256k1_scalar_reduce
+    [XP 0 0; XL2I (XLv 4)] scalar_reduce_initial_regs 5 _
+    scalar_reduce_run_eq rho layout m HRep)
+    as [mf [vres [HCall [HFinal [HReturn [HShape HFrame]]]]]].
+  cbn [rsel fst] in HFinal, HReturn, HShape.
+  rewrite scalar_reduce_return_eq in HReturn; subst vres.
+  change (map (den rho (lay layout)) [XP 0 0; XL2I (XLv 4)]) with
+    [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0 + 0));
+     Vint (Int.repr (Int64.unsigned (rho 4%nat)))] in HCall.
+  rewrite Z.add_0_r in HCall.
+  exists mf; split; [exact HCall|]; split; [exact HFinal|]; split; assumption.
+Qed.
