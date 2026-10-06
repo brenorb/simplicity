@@ -30,10 +30,12 @@ accepted receipts are preserved in Git history; the old temporary
 `/tmp/jet-consolidation-final-accept.log` is unavailable and is not a current
 verification log. Interrupted runs are not counted as acceptance.
 
-## Deferred work preserved separately
+## Unaccepted candidates consolidated as source archives
 
 - `codex/frame-range-contract`, head `00536113eb285b109f00c28a0fd22de66b05ec35`:
-  the broader same-block range correction remains private and unaccepted.
+  the broader same-block range correction remains unaccepted. Its exact patch
+  series is versioned in `../../proof-work/range/`, and the original candidate
+  history is retained as `codex/frame-range-contract` in the fork.
   Prior scoped receipts cover 91 changed modules with kernel checks; another
   12 modules were built and source-reviewed, then saved in five atomic commits.
   Their separate kernel run was stopped and has no passing result. The whole
@@ -41,13 +43,20 @@ verification log. Interrupted runs are not counted as acceptance.
   symbolic-executor consumers still require the old separation interface.
   A full correction/snapshot review/acceptance is needed before integration.
   Its copy of the endpoint fix does not make the entire range branch accepted.
-- The field odd/zero candidate remains in `claude-consolidation/simplicity`.
-  It is additional coverage, outside this consolidation and the accepted
-  registry. Scalar/support experiments remain separate as well.
+- The field odd/zero candidate is versioned as an exact patch under
+  `../../proof-work/secp-field-predicates/`, with original candidate commits on
+  `codex/secp-field-predicates`. Its registration/snapshot changes are not
+  applied to the accepted tree. Complete scalar/u128, SHA and review-witness
+  sources are also versioned under `../../proof-work/`, with exact hashes.
 
-These candidates are retained; consolidation does not discard their work or
-pretend that an unfinished candidate passes the gate. Completing those proofs
-is outside this request's minimal consolidation scope.
+All useful source work identified in the branches/worktrees and 84-file scratch
+inventory is now versioned on the main topic branch. Candidate manifests retain
+its incomplete/unaccepted status. Exact patch replay and source hashes pass;
+proof completion and acceptance remain separate obligations.
+
+`JET_PROOF_BACKLOG.md` replaces the stale chronological `JET_PROGRESS.md`.
+The old prototype worktree is removed after preserving its four untracked files
+in local Trash. `../../proof-work/README.md` records recovery and verification.
 
 ## Local-only artifacts
 
