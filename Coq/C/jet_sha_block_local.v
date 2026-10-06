@@ -124,7 +124,7 @@ Proof.
   destruct HSource as [HSE HSO].
   destruct (frame_loadbytes_at m bs sbase _ _ HSE HSO) as [bytes HB].
   pose proof (Mem.loadbytes_length _ _ _ _ _ HB) as Hbyteslen.
-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bd dbase bw outedge cursor 256 ltac:(lia) Hout)
     as [_ [_ [_ [initialword HInitialWord]]]].
   destruct (Mem.alloc m 0 16) as [ma bl] eqn:A1.
