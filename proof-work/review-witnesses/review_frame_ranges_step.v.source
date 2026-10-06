@@ -1,0 +1,123 @@
+(** Correction support: preservation of the remaining range-separated frame. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Events.
+Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_output_layout.
+Require Import C.jet_frame_spec C.jet_writeBit_layout C.jet_writeBit_layout_total.
+Require Import OriginalC.review_frame_same_block OriginalC.review_frame_ranges_total.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma write_frame_at_ranges_count m bf base bw edge cursor count count' :
+  0 <= count' <= count ->
+  write_frame_at_ranges m bf base bw edge cursor count ->
+  write_frame_at_ranges m bf base bw edge cursor count'.
+Proof.
+  intros Hcount (HB & HF & HE & HC & HM & PF & HW).
+  split; [exact HB|]. split; [exact HF|]. split; [exact HE|].
+  split; [lia|]. split; [exact HM|]. split; [exact PF|].
+  intros i Hi. apply HW; lia.
+Qed.
+
+Lemma write_frame_at_ranges_store_step m mo mf bf base bw edge cursor count value :
+  0 < count -> write_frame_at_ranges m bf base bw edge cursor count ->
+  Mem.store Mint64 m bf (base + 8) (Vlong (Int64.repr (cursor - 1))) = Some mo ->
+  Mem.store Mint64 mo bw (write_word_address edge cursor) (Vlong value) = Some mf ->
+  frame_fields_at mf bf base bw edge (cursor - 1) ->
+  write_frame_at_ranges mf bf base bw edge (cursor - 1) (count - 1).
+Proof.
+  intros Hpos (HB & HF & HE & HC & HM & PF & HW) SO SW HF'.
+  split; [exact HB|]. split; [exact HF'|]. split; [exact HE|].
+  split; [lia|]. split; [lia|].
+  split; [eauto using Mem.store_valid_access_1|].
+  intros i Hi.
+  assert (Haddr : write_cell_address edge (cursor - 1) i =
+      write_cell_address edge cursor (i + 1)).
+  { unfold write_cell_address. replace (cursor - 1 - 1 - i)
+      with (cursor - 1 - (i + 1)) by lia. reflexivity. }
+  rewrite Haddr.
+  destruct (HW (i + 1) ltac:(lia)) as (HA0 & HA & HD & PW & old & HL).
+  split; [exact HA0|]. split; [exact HA|]. split; [exact HD|].
+  split; [eauto using Mem.store_valid_access_1|].
+  assert (HLo : Mem.load Mint64 mo bw (write_cell_address edge cursor (i + 1)) = Some (Vlong old)).
+  { erewrite Mem.load_store_other; [exact HL|exact SO|].
+    change (bw <> bf \/ write_cell_address edge cursor (i + 1) + 8 <= base + 8 \/
+      base + 8 + 8 <= write_cell_address edge cursor (i + 1)).
+    destruct HD as [HD|[HD|HD]]; [left; congruence|right; left; lia|right; right; lia]. }
+  destruct (Z.eq_dec (write_cell_address edge cursor (i + 1))
+      (write_word_address edge cursor)) as [Heq|Hneq].
+  - rewrite Heq. exists value. exact (Mem.load_store_same _ _ _ _ _ _ SW).
+  - exists old. erewrite Mem.load_store_other; [exact HLo|exact SW|].
+    right. change (write_cell_address edge cursor (i + 1) + 8 <= write_word_address edge cursor \/
+      write_word_address edge cursor + 8 <= write_cell_address edge cursor (i + 1)).
+    unfold write_cell_address, write_word_address in Hneq |- *.
+    destruct (Z.le_gt_cases ((cursor - 1 - (i + 1)) / 64) ((cursor - 1) / 64)); lia.
+Qed.
+
+Theorem eval_writeBit_ranges_remaining m bf base bw edge cursor count (bit : bool) :
+  0 < count -> write_frame_at_ranges m bf base bw edge cursor count ->
+  exists mf w,
+    Clight2.eval_funcall ge0 m (Internal f_writeBit)
+      [Vptr bf (Ptrofs.repr base); Vint (if bit then Int.one else Int.zero)]
+      E0 mf (Vint (if bit then Int.one else Int.zero)) /\
+    Mem.load Mint64 mf bw (write_word_address edge cursor) = Some (Vlong w) /\
+    Int64.testbit w ((cursor - 1) mod 64) = bit /\
+    write_prefix_at m mf bw edge cursor /\
+    frame_fields_at mf bf base bw edge (cursor - 1) /\
+    loads_outside_ranges m mf bf (base + 8) (base + 16)
+      bw (write_word_address edge cursor) (write_word_address edge cursor + 8) /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b) /\
+    write_frame_at_ranges mf bf base bw edge (cursor - 1) (count - 1).
+Proof.
+  intros Hpos HFrame. pose proof HFrame as [HB [[HF HO] [HE [HC [HM [PD HW]]]]]].
+  destruct (write_frame_at_ranges_head m bf base bw edge cursor count ltac:(lia) HFrame)
+    as [HA0 [HA [HD [PW [old HL]]]]].
+  destruct (Mem.valid_access_store m Mint64 bf (base + 8) (Vlong (Int64.repr (cursor - 1))) PD)
+    as [mo SO].
+  assert (PWo : Mem.valid_access mo Mint64 bw (write_word_address edge cursor) Writable)
+    by (eapply Mem.store_valid_access_1; eauto).
+  destruct (Mem.valid_access_store mo Mint64 bw (write_word_address edge cursor)
+      (Vlong (write_bit_value cursor old bit)) PWo) as [mf SW].
+  pose proof (Mem.load_store_same _ _ _ _ _ _ SW) as Hout.
+  exists mf, (write_bit_value cursor old bit). split.
+  - eapply eval_writeBit_layout_ranges with (edge := edge); eauto; try lia. split; assumption.
+  - split; [exact Hout|]. split; [apply write_bit_value_correct; lia|].
+    split.
+    + intros old' HL'. assert (old' = old) by congruence. subst old'.
+      exists (write_bit_value cursor old bit). split; [exact Hout|apply write_bit_value_prefix; lia].
+    + split.
+      * split.
+        -- erewrite Mem.load_store_other; [|exact SW|
+             change (bf <> bw \/ base + 8 <= write_word_address edge cursor \/
+               write_word_address edge cursor + 8 <= base);
+             destruct HD as [HD|[HD|HD]]; [left; exact HD|right; right; exact HD|right; left; lia]].
+           erewrite Mem.load_store_other; [exact HF|exact SO|right; left; change (base + 8 <= base + 8); lia].
+        -- erewrite Mem.load_store_other; [|exact SW|
+             change (bf <> bw \/ base + 8 + 8 <= write_word_address edge cursor \/
+               write_word_address edge cursor + 8 <= base + 8);
+             destruct HD as [HD|[HD|HD]]; [left; exact HD|right; right; lia|right; left; lia]]. exact (Mem.load_store_same _ _ _ _ _ _ SO).
+      * split.
+        -- intros chunk b ofs Hbf Hbw.
+           erewrite Mem.load_store_other; [|exact SW|cbn; lia].
+           eapply Mem.load_store_other; [exact SO|cbn; lia].
+        -- split.
+           ++ intros b ofs kind p HP. eauto using Mem.perm_store_1.
+           ++ split.
+              ** intros b HV. eauto using Mem.store_valid_block_1.
+              ** eapply write_frame_at_ranges_store_step; [exact Hpos|exact HFrame|exact SO|exact SW|].
+                 split.
+                 --- erewrite Mem.load_store_other; [|exact SW|
+                       change (bf <> bw \/ base + 8 <= write_word_address edge cursor \/
+                         write_word_address edge cursor + 8 <= base);
+                       destruct HD as [HD|[HD|HD]]; [left; exact HD|right; right; exact HD|right; left; lia]].
+                     erewrite Mem.load_store_other; [exact HF|exact SO|right; left; change (base + 8 <= base + 8); lia].
+                 --- erewrite Mem.load_store_other; [|exact SW|
+                       change (bf <> bw \/ base + 8 + 8 <= write_word_address edge cursor \/
+                         write_word_address edge cursor + 8 <= base + 8);
+                       destruct HD as [HD|[HD|HD]]; [left; exact HD|right; right; lia|right; left; lia]].
+                     exact (Mem.load_store_same _ _ _ _ _ _ SO).
+Qed.
+Print Assumptions write_frame_at_ranges_count.
+Print Assumptions write_frame_at_ranges_store_step.
+Print Assumptions eval_writeBit_ranges_remaining.

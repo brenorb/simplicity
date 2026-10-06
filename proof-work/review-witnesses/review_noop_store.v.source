@@ -1,0 +1,25 @@
+From Coq Require Import ZArith Lia.
+From compcert Require Import Coqlib Integers AST Memory Values.
+Import Mem.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Lemma noop_long_store_preserves_long_load m mf bf ofs value bw addr old :
+  Mem.load Mint64 m bf ofs = Some (Vlong value) ->
+  Mem.store Mint64 m bf ofs (Vlong value) = Some mf ->
+  Mem.load Mint64 m bw addr = Some (Vlong old) ->
+  Mem.load Mint64 mf bw addr = Some (Vlong old).
+Proof.
+  intros HO HS HL.
+  destruct (peq bw bf) as [Heq|Hneq].
+  - subst bw. destruct (Z.eq_dec addr ofs) as [Heq|Hneq].
+    + subst addr. rewrite HO in HL. injection HL as Heq. subst old.
+      exact (Mem.load_store_same _ _ _ _ _ _ HS).
+    + pose proof (Mem.load_valid_access _ _ _ _ _ HO) as [_ HA].
+      pose proof (Mem.load_valid_access _ _ _ _ _ HL) as [_ HB].
+      change (8 | ofs) in HA. change (8 | addr) in HB.
+      destruct HA as [ka HA]. destruct HB as [kb HB].
+      erewrite Mem.load_store_other; [exact HL|exact HS|].
+      change (bf <> bf \/ addr + 8 <= ofs \/ ofs + 8 <= addr).
+      right. lia.
+  - erewrite Mem.load_store_other; [exact HL|exact HS|left; exact Hneq].
+Qed.

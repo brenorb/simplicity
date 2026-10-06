@@ -1,0 +1,79 @@
+(** Ordinary 24-byte shared-block instance of the complete range contract. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Events.
+Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_output_layout.
+Require Import C.jet_frame_spec C.jet_writeBit_layout.
+Require Import OriginalC.review_frame_ranges_total OriginalC.review_frame_ranges_step.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Theorem embedded_frame_ranges_total (seed : int64) (bit : bool) :
+  exists m mf b w,
+    write_frame_at_ranges m b 0 b 16 64 64 /\
+    Mem.load Mint64 m b 16 = Some (Vlong seed) /\
+    ~ write_frame_at m b 0 b 16 64 64 /\
+    Clight2.eval_funcall ge0 m (Internal f_writeBit)
+      [Vptr b Ptrofs.zero; Vint (if bit then Int.one else Int.zero)]
+      E0 mf (Vint (if bit then Int.one else Int.zero)) /\
+    Mem.load Mint64 mf b 16 = Some (Vlong w) /\
+    Int64.testbit w 63 = bit /\
+    write_prefix_at m mf b 16 64 /\
+    frame_fields_at mf b 0 b 16 63 /\
+    loads_outside_ranges m mf b 8 16 b 16 24 /\
+    (forall b' ofs kind p, Mem.perm m b' ofs kind p -> Mem.perm mf b' ofs kind p) /\
+    (forall b', Mem.valid_block m b' -> Mem.valid_block mf b') /\
+    write_frame_at_ranges mf b 0 b 16 63 63.
+Proof.
+  destruct (Mem.alloc Mem.empty 0 24) as [ma b] eqn:HA.
+  assert (VA : forall ofs, 0 <= ofs -> ofs + 8 <= 24 -> (8 | ofs) ->
+    Mem.valid_access ma Mint64 b ofs Writable).
+  { intros ofs Hlo Hhi Hal. eapply Mem.valid_access_implies.
+    - eapply Mem.valid_access_alloc_same; [exact HA|exact Hlo|exact Hhi|exact Hal].
+    - constructor. }
+  assert (VA0 : Mem.valid_access ma Mptr b 0 Writable).
+  { change (Mem.valid_access ma Mint64 b 0 Writable). apply VA; try lia. exists 0; reflexivity. }
+  assert (VA8 : Mem.valid_access ma Mint64 b 8 Writable).
+  { apply VA; try lia. exists 1; reflexivity. }
+  assert (VA16 : Mem.valid_access ma Mint64 b 16 Writable).
+  { apply VA; try lia. exists 2; reflexivity. }
+  destruct (Mem.valid_access_store _ _ _ _ (Vptr b (Ptrofs.repr 16)) VA0) as [mp HP].
+  assert (VP8 : Mem.valid_access mp Mint64 b 8 Writable).
+  { eapply Mem.store_valid_access_1; [exact HP|exact VA8]. }
+  destruct (Mem.valid_access_store _ _ _ _ (Vlong (Int64.repr 64)) VP8) as [mc HC].
+  assert (VC16 : Mem.valid_access mc Mint64 b 16 Writable).
+  { eapply Mem.store_valid_access_1; [exact HC|]. eapply Mem.store_valid_access_1; [exact HP|exact VA16]. }
+  destruct (Mem.valid_access_store _ _ _ _ (Vlong seed) VC16) as [m HI].
+  assert (HE : Mem.load Mptr m b 0 = Some (Vptr b (Ptrofs.repr 16))).
+  { rewrite (Mem.load_store_other _ _ _ _ _ _ HI Mptr b 0) by (right; left; change (8 <= 16); lia).
+    rewrite (Mem.load_store_other _ _ _ _ _ _ HC Mptr b 0) by (right; left; change (8 <= 8); lia).
+    exact (Mem.load_store_same _ _ _ _ _ _ HP). }
+  assert (HO : Mem.load Mint64 m b 8 = Some (Vlong (Int64.repr 64))).
+  { rewrite (Mem.load_store_other _ _ _ _ _ _ HI Mint64 b 8) by (right; left; change (16 <= 16); lia).
+    exact (Mem.load_store_same _ _ _ _ _ _ HC). }
+  assert (HL : Mem.load Mint64 m b 16 = Some (Vlong seed)).
+  { exact (Mem.load_store_same _ _ _ _ _ _ HI). }
+  assert (VM8 : Mem.valid_access m Mint64 b 8 Writable).
+  { eapply Mem.store_valid_access_1; [exact HI|]. eapply Mem.store_valid_access_1; [exact HC|exact VP8]. }
+  assert (VM16 : Mem.valid_access m Mint64 b 16 Writable).
+  { eapply Mem.store_valid_access_1; [exact HI|exact VC16]. }
+
+  assert (HFrame : write_frame_at_ranges m b 0 b 16 64 64).
+  { split.
+    - unfold frame_base_valid. change (0 <= 0 /\ 16 <= 18446744073709551615). lia.
+    - split; [split; [exact HE|exact HO]|]. split; [lia|].
+      split; [lia|]. split; [change (64 <= 18446744073709551615); lia|].
+      split; [exact VM8|]. intros i Hi.
+      unfold write_cell_address. rewrite Z.div_small by lia. cbn.
+      split; [lia|]. split; [change (24 <= 18446744073709551615); lia|].
+      split; [right; right; lia|]. split; [exact VM16|]. exists seed; exact HL. }
+  destruct (eval_writeBit_ranges_remaining m b 0 b 16 64 64 bit ltac:(lia) HFrame)
+    as (mf & w & HCall & HW & Hbit & Hprefix & HF & Houtside & Hperm & Hvalid & Hrest).
+  exists m, mf, b, w. split; [exact HFrame|]. split; [exact HL|].
+  split.
+  - intros (_ & _ & _ & _ & _ & Hne & _). apply Hne; reflexivity.
+  - split; [exact HCall|]. split; [exact HW|]. split; [exact Hbit|].
+    split; [exact Hprefix|]. split; [exact HF|]. split; [exact Houtside|].
+    split; [exact Hperm|]. split; [exact Hvalid|]. exact Hrest.
+Qed.
+Print Assumptions embedded_frame_ranges_total.

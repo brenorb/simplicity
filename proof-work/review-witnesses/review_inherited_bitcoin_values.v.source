@@ -1,0 +1,62 @@
+(** Review diagnostics for existing contracts; no new jet coverage. *)
+From Coq Require Import ZArith List.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Bit Simplicity.Alg.
+Require Import C.jet_bitcoin_lock_spec C.jet_bitcoin_distance_spec C.jet_bitcoin_fee_spec.
+Require Import C.jet_bitcoin_check_lock C.jet_bitcoin_check_distance.
+Require Import C.jet_bitcoin_lock_local C.jet_bitcoin_distance_local C.jet_bitcoin_is_final_local.
+Require Import C.jet_bitcoin_totals_local C.jet_bitcoin_fee_local.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition rw32 z := @fromZ (WordToZ 5) z.
+Definition rw64 z := @fromZ (WordToZ 6) z.
+Definition lock_observation height final z :=
+  @toZ (WordToZ 5) (@lock_tail height Alg.CoreFunSem (Bit.fromBool final, rw32 z)).
+Definition distance_observation dist version seq :=
+  @toZ (WordToZ 4) (@dist_tail dist Alg.CoreFunSem
+    (Bit.fromBool version, @C.jet_parse_sequence_spec.parse_sequence_spec Alg.CoreFunSem (rw32 seq))).
+Definition fee_observation x y := @toZ (WordToZ 6) (@fee_tail Alg.CoreFunSem (rw64 x, rw64 y)).
+Example lock_below_threshold : lock_observation Datatypes.true Datatypes.false 499999999 = 499999999.
+Proof. vm_compute; reflexivity. Qed.
+Example lock_at_threshold_height : lock_observation Datatypes.true Datatypes.false 500000000 = 0.
+Proof. vm_compute; reflexivity. Qed.
+Example lock_at_threshold_time : lock_observation Datatypes.false Datatypes.false 500000000 = 500000000.
+Proof. vm_compute; reflexivity. Qed.
+Example lock_final_ignores_time : lock_observation Datatypes.false Datatypes.true 4294967295 = 0.
+Proof. vm_compute; reflexivity. Qed.
+Example lock_full_unsigned_time : lock_observation Datatypes.false Datatypes.false 4294967295 = 4294967295.
+Proof. vm_compute; reflexivity. Qed.
+Example sequence_disable_bit31 : distance_observation Datatypes.true Datatypes.true 2147549183 = 0.
+Proof. vm_compute; reflexivity. Qed.
+Example sequence_height_payload : distance_observation Datatypes.true Datatypes.true 65535 = 65535.
+Proof. vm_compute; reflexivity. Qed.
+Example sequence_time_payload : distance_observation Datatypes.false Datatypes.true 4259839 = 65535.
+Proof. vm_compute; reflexivity. Qed.
+Example sequence_wrong_kind : distance_observation Datatypes.true Datatypes.true 4259839 = 0.
+Proof. vm_compute; reflexivity. Qed.
+Example sequence_version_disabled : distance_observation Datatypes.false Datatypes.false 4259839 = 0.
+Proof. vm_compute; reflexivity. Qed.
+Example version_high_bit_unsigned : Bit.toBool
+  (@bip68_core Alg.CoreFunSem
+    (@Alg.scribe Ty.Unit (Word 5) (rw32 4294967295) Alg.CoreFunSem) tt) = Datatypes.true.
+Proof. vm_compute; reflexivity. Qed.
+Example fee_positive : fee_observation 10 9 = 1.
+Proof. vm_compute; reflexivity. Qed.
+Example fee_underflow : fee_observation 9 10 = 18446744073709551615.
+Proof. vm_compute; reflexivity. Qed.
+Example fee_high_bit : fee_observation 9223372036854775808 0 = 9223372036854775808.
+Proof. vm_compute; reflexivity. Qed.
+Example fee_input_wrap : fee_observation 18446744073709551616 1 = 18446744073709551615.
+Proof. vm_compute; reflexivity. Qed.
+Check bitcoin_tx_is_final_local_spec.
+Check bitcoin_tx_lock_height_local_spec.
+Check bitcoin_tx_lock_time_local_spec.
+Check bitcoin_tx_lock_distance_local_spec.
+Check bitcoin_tx_lock_duration_local_spec.
+Check bitcoin_check_lock_height_local_spec.
+Check bitcoin_check_lock_time_local_spec.
+Check bitcoin_check_lock_distance_local_spec.
+Check bitcoin_check_lock_duration_local_spec.
+Check bitcoin_total_input_value_local_spec.
+Check bitcoin_total_output_value_local_spec.
+Check bitcoin_fee_local_spec.

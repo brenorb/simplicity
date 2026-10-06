@@ -1,0 +1,110 @@
+(** Initial-only sequencing of actual byte writer calls, with canonical cells
+    and preservation of earlier output, prefixes and unrelated memory. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events.
+Require Import Simplicity.Word Simplicity.Translate.
+Require Import C.jets C.jet_exec C.jet_spec C.jet_write8_layout_total.
+Require Import C.jet_frame_spec C.jet_frame_layout C.jet_write_layout C.jet_output_layout.
+Require Import C.jet_output_layout_step C.jet_output_sequence_step C.jet_output_slice.
+Require Import C.jet_encoding C.jet_bitmachine_rep C.jet_word_decode.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Require Import C.jet_write8_sequence.
+Require Import OriginalC.review_frame_ranges_total OriginalC.review_frame_ranges_step.
+Require Import OriginalC.review_frame_ranges_byte OriginalC.review_frame_ranges_sequence.
+
+Theorem write8_sequence_run_ranges_layout m bf base bw edge cursor xs :
+  write_frame_at_ranges m bf base bw edge cursor (8 * Z.of_nat (length xs)) ->
+  exists mf,
+    write8_sequence_run bf base xs m mf /\
+    frame_output_cells_at mf bw edge cursor (byte_sequence_cells xs) /\
+    write_prefix_at m mf bw edge cursor /\
+    frame_fields_at mf bf base bw edge (cursor - 8 * Z.of_nat (length xs)) /\
+    loads_outside_ranges m mf bf (base + 8) (base + 16)
+      bw (edge + 8 * ((cursor - 8 * Z.of_nat (length xs)) / 64))
+        (write_word_address edge cursor + 8) /\
+    (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  revert m cursor. induction xs as [|x xs IH]; intros m cursor HW.
+  - exists m. split; [reflexivity|]. split.
+    + intros i c Hi. destruct i; discriminate.
+    + split.
+      * intros old HL. exists old. split; [exact HL|].
+        unfold word_outside_eq; intros; reflexivity.
+      * split.
+        -- change (frame_fields_at m bf base bw edge (cursor - 0)).
+           rewrite Z.sub_0_r. exact (proj1 (proj2 HW)).
+        -- split; [unfold loads_outside_ranges; intros; reflexivity|]. split; auto.
+  - pose proof HW as [HFBase [HFields [HE [HC [HMax [PW HWords]]]]]].
+    assert (HW8 : write_frame_at_ranges m bf base bw edge cursor 8).
+    { eapply write_frame_at_ranges_count with (count := 8 * Z.of_nat (length (x :: xs)));
+        [cbn [length]; lia|exact HW]. }
+    destruct (eval_write8_ranges_total m bf base bw edge cursor x HW8)
+      as [mi [Hwrite [Hbyte [Hprefix [Hfields [Hmem [Hperm Hvalid]]]]]]].
+    rewrite byte_write_low_slice in Hmem.
+    destruct (proj1 (byte_output_at_slice _ _ _ _ _) Hbyte) as [slice [Hslice Hdecode]].
+    assert (HFirst : frame_output_cells_at mi bw edge cursor
+      (encode (decode_word8 (Int64.repr (Int.unsigned x))))).
+    { apply byte_output_at_encode; [cbn [length] in HC; lia|exact Hbyte]. }
+    assert (HWNext : write_frame_at_ranges mi bf base bw edge (cursor - 8) (8 * Z.of_nat (length xs))).
+    { eapply write_frame_at_ranges_after_slice with (n := 8) (x := slice);
+        [lia|lia| |exact Hfields|exact Hslice|exact Hmem|exact Hperm].
+      replace (8 + 8 * Z.of_nat (length xs)) with (8 * Z.of_nat (length (x :: xs)))
+        by (cbn [length]; lia). exact HW. }
+    destruct (IH mi (cursor - 8) HWNext)
+      as [mf [Hrun [Htail [HPrefixTail [HFieldsTail [HMemTail [HPermTail HValidTail]]]]]]].
+    assert (HfirstFinal : frame_output_cells_at mf bw edge cursor
+      (encode (decode_word8 (Int64.repr (Int.unsigned x))))).
+    { eapply frame_output_cells_ranges_prefix_preserved with (bf := bf) (base := base)
+        (cursor := cursor - 8); [| |exact HPrefixTail|exact HMemTail|exact HFirst].
+      - intros i Hi. rewrite (encode_word_length 3 (decode_word8 (Int64.repr (Int.unsigned x)))) in Hi.
+        change (i < 8)%nat in Hi.
+        destruct (HWords (Z.of_nat i) ltac:(cbn [length] in HC |- *; lia))
+          as (HA0 & HA & HD & HAccess & HBacking). exact HD.
+      -
+      rewrite (encode_word_length 3 (decode_word8 (Int64.repr (Int.unsigned x)))).
+      change (0 <= cursor - 8 <= cursor - 8).
+      cbn [length] in HC; lia. }
+    assert (HLo : edge + 8 * ((cursor - 8 * Z.of_nat (length (x :: xs))) / 64) <=
+      slice_write_low 8 edge cursor).
+    { pose proof (slice_write_low_bound 8 edge cursor ltac:(lia) ltac:(cbn [length] in HC; lia)) as HL.
+      pose proof (Z.div_le_mono (cursor - 8 * Z.of_nat (length (x :: xs))) (cursor - 8) 64
+        ltac:(lia) ltac:(cbn [length]; lia)). lia. }
+    assert (HPrev : write_word_address edge (cursor - 8) <= write_word_address edge cursor).
+    { unfold write_word_address. pose proof (Z.div_le_mono (cursor - 8 - 1) (cursor - 1) 64
+        ltac:(lia) ltac:(lia)); lia. }
+    exists mf. split; [exists mi; auto|]. split.
+    + change (frame_output_cells_at mf bw edge cursor
+        (encode (decode_word8 (Int64.repr (Int.unsigned x))) ++ byte_sequence_cells xs)).
+      apply frame_output_cells_at_app. split; [exact HfirstFinal|].
+      rewrite (encode_word_length 3 (decode_word8 (Int64.repr (Int.unsigned x)))).
+      exact Htail.
+    + split.
+      * eapply write_prefix_at_ranges_chain; [| |exact Hprefix|exact HPrefixTail|exact HMemTail].
+        -- destruct (write_frame_at_ranges_head m bf base bw edge cursor 8 ltac:(lia) HW8)
+             as (HA0 & HA & HD & HAccess & HBacking). exact HD.
+        --
+        cbn [length] in HC; lia.
+      * split.
+        -- replace (cursor - 8 * Z.of_nat (length (x :: xs))) with
+             (cursor - 8 - 8 * Z.of_nat (length xs)) by (cbn [length]; lia). exact HFieldsTail.
+        -- split.
+           ++ intros chunk b ofs Hbf Hbw. rewrite HMemTail.
+              ** apply Hmem; [exact Hbf|]. destruct Hbw as [Hneq|[Hbefore|Hafter]];
+                   [left|right; left|right; right]; auto.
+                 change (ofs + size_chunk chunk <= slice_write_low 8 edge cursor). lia.
+              ** exact Hbf.
+              ** replace (cursor - 8 - 8 * Z.of_nat (length xs)) with
+                   (cursor - 8 * Z.of_nat (length (x :: xs))) by (cbn [length]; lia).
+                 destruct Hbw as [Hneq|[Hbefore|Hafter]];
+                   [left|right; left|right; right]; auto; lia.
+           ++ split.
+              ** intros b ofs kind p HP. apply HPermTail, Hperm; exact HP.
+              ** intros b HV. apply HValidTail, Hvalid; exact HV.
+Qed.
+
+
+Print Assumptions write8_sequence_run_ranges_layout.

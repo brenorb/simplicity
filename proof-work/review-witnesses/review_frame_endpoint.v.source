@@ -1,0 +1,94 @@
+(** A semantic-memory boundary diagnostic, not an additional jet proof. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Memory Values Ctypes Cop Clight Maps.
+Require Import C.jets C.jet_exec C.jet_frame_layout.
+Import ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 10.
+Definition endpoint_base : Z := 18446744073709551600.
+Definition endpoint_limit : Z := 18446744073709551616.
+Example endpoint_field_offsets_representable :
+  Ptrofs.unsigned (Ptrofs.repr endpoint_base) = endpoint_base /\
+  Ptrofs.unsigned (Ptrofs.add (Ptrofs.repr endpoint_base) (Ptrofs.repr 8)) = endpoint_base + 8 /\
+  endpoint_base + 16 = Ptrofs.max_unsigned + 1.
+Proof. vm_compute; repeat split; reflexivity. Qed.
+Example endpoint_base_rejected : ~ frame_base_valid endpoint_base.
+Proof. unfold frame_base_valid, endpoint_base. change (~ (0 <= 18446744073709551600 /\ 18446744073709551600 + 16 <= 18446744073709551615)). lia. Qed.
+Theorem endpoint_frame_memory_exists :
+  exists m b bytes,
+    frame_fields_at m b endpoint_base b 8 0 /\
+    Mem.valid_access m Mptr b endpoint_base Readable /\
+    Mem.valid_access m Mint64 b (endpoint_base + 8) Writable /\
+    Mem.loadbytes m b endpoint_base 16 = Some bytes /\
+    ~ frame_base_valid endpoint_base.
+Proof.
+  destruct (Mem.alloc Mem.empty 0 endpoint_limit) as [ma b] eqn:HA.
+  assert (HA0 : Mem.valid_access ma Mptr b endpoint_base Freeable).
+  { eapply Mem.valid_access_alloc_same; [exact HA| | |].
+    - unfold endpoint_base; lia.
+    - change (endpoint_base + 8 <= endpoint_limit). unfold endpoint_base, endpoint_limit; lia.
+    - change (8 | endpoint_base). exists 2305843009213693950. reflexivity. }
+  assert (HA8 : Mem.valid_access ma Mint64 b (endpoint_base + 8) Freeable).
+  { eapply Mem.valid_access_alloc_same; [exact HA| | |].
+    - unfold endpoint_base; lia.
+    - change (endpoint_base + 8 + 8 <= endpoint_limit). unfold endpoint_base, endpoint_limit; lia.
+    - change (8 | endpoint_base + 8). exists 2305843009213693951. reflexivity. }
+  assert (HW0 : Mem.valid_access ma Mptr b endpoint_base Writable).
+  { eapply Mem.valid_access_implies; [exact HA0|constructor]. }
+  destruct (Mem.valid_access_store _ _ _ _ (Vptr b (Ptrofs.repr 8)) HW0) as [mp HP].
+  assert (HW8 : Mem.valid_access mp Mint64 b (endpoint_base + 8) Writable).
+  { eapply Mem.store_valid_access_1; [exact HP|].
+    eapply Mem.valid_access_implies; [exact HA8|constructor]. }
+  destruct (Mem.valid_access_store _ _ _ _ (Vlong Int64.zero) HW8) as [m HC].
+  assert (HE : Mem.load Mptr m b endpoint_base = Some (Vptr b (Ptrofs.repr 8))).
+  { rewrite (Mem.load_store_other _ _ _ _ _ _ HC Mptr b endpoint_base).
+    - pose proof (Mem.load_store_same _ _ _ _ _ _ HP) as H. exact H.
+    - right; left. change (endpoint_base + 8 <= endpoint_base + 8). lia. }
+  assert (HO : Mem.load Mint64 m b (endpoint_base + 8) = Some (Vlong Int64.zero)).
+  { exact (Mem.load_store_same _ _ _ _ _ _ HC). }
+  assert (HR : Mem.valid_access m Mptr b endpoint_base Readable).
+  { eapply Mem.store_valid_access_1; [exact HC|].
+    eapply Mem.store_valid_access_1; [exact HP|].
+    eapply Mem.valid_access_implies; [exact HA0|constructor]. }
+  assert (HW : Mem.valid_access m Mint64 b (endpoint_base + 8) Writable).
+  { eapply Mem.store_valid_access_1; [exact HC|exact HW8]. }
+  assert (HBytes : Mem.range_perm m b endpoint_base (endpoint_base + 16) Cur Readable).
+  { intros ofs Hrange.
+    eapply Mem.perm_store_1; [exact HC|].
+    eapply Mem.perm_store_1; [exact HP|].
+    eapply Mem.perm_implies.
+    - eapply Mem.perm_alloc_2; [exact HA|]. unfold endpoint_base, endpoint_limit in *; lia.
+    - constructor. }
+  destruct (Mem.range_perm_loadbytes _ _ _ _ HBytes) as [bytes HB].
+  exists m, b, bytes. split; [split; [exact HE|exact HO]|].
+  split; [exact HR|]. split; [exact HW|]. split; [exact HB|exact endpoint_base_rejected].
+Qed.
+Print Assumptions endpoint_frame_memory_exists.
+Lemma endpoint_offset_expression m b le :
+  le!_frame = Some (Vptr b (Ptrofs.repr endpoint_base)) ->
+  Mem.load Mint64 m b (endpoint_base + 8) = Some (Vlong Int64.zero) ->
+  eval_expr ge0 empty_env le m
+    (Efield (Ederef (Etempvar _frame (tptr (Tstruct _frameItem noattr)))
+      (Tstruct _frameItem noattr)) _offset tulong) (Vlong Int64.zero).
+Proof.
+  intros Hle Hload. eapply eval_Elvalue.
+  - apply eval_frame_offset_lvalue_at. exact Hle.
+  - apply deref_loc_value with (chunk := Mint64); [reflexivity|].
+    unfold Mem.loadv. rewrite (proj1 (proj2 endpoint_field_offsets_representable)). exact Hload.
+Qed.
+Theorem endpoint_frame_actual_field_read :
+  exists m b le,
+    eval_expr ge0 empty_env le m
+      (Efield (Ederef (Etempvar _frame (tptr (Tstruct _frameItem noattr)))
+        (Tstruct _frameItem noattr)) _offset tulong) (Vlong Int64.zero) /\
+    Mem.valid_access m Mint64 b (endpoint_base + 8) Writable /\
+    ~ frame_base_valid endpoint_base.
+Proof.
+  destruct endpoint_frame_memory_exists as (m & b & bytes & HF & HR & HW & HB & Hbad).
+  exists m, b, (PTree.set _frame (Vptr b (Ptrofs.repr endpoint_base)) (PTree.empty val)).
+  split.
+  - apply endpoint_offset_expression with (b := b); [apply PTree.gss|exact (proj2 HF)].
+  - split; [exact HW|exact Hbad].
+Qed.
+Print Assumptions endpoint_frame_actual_field_read.
