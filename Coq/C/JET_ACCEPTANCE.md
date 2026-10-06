@@ -1,6 +1,9 @@
 # Consolidation acceptance record
 
-Status: **accepted**, observed 2026-10-06 01:00:50 UTC.
+Verification status: **accepted**, observed 2026-10-06 01:00:50 UTC.
+Inherited-work fidelity review: **partially complete**. See
+`JET_INHERITED_REVIEW.md` for the eight-criterion assessment. This receipt does
+not certify an exhaustive individual canonical review of every registered jet.
 `check-jets.sh --accept` completes with **exit 0**, without snapshot updates.
 Build, all 583 kernel modules, all 3,534 assumption records, reviewed public
 contracts/definitions, negative tests and all four AST regenerations pass.
