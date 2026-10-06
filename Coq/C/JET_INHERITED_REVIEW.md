@@ -167,7 +167,7 @@ still needs scope review. Actual public-predicate/writer adaptation has begun
 in a separate candidate worktree. It is not integrated or published, and full
 consumer rebuilding/review/acceptance remains required.
 
-The range-separation candidate now has four private atomic commits:
+The first four private atomic range-separation commits are:
 `4e3c738f` (bit/byte writers), `0414f7d5` (wide/carry writes), `02894d42`
 (canonical byte sequences and actual write8s), and `ee415533` (context/one8
 transports). Sixteen changed modules have scoped rebuild and independent kernel
@@ -178,6 +178,22 @@ not integrated or published. Whole-consumer rebuilding, snapshot/type/definition
 axiom review and independent full acceptance are still pending, so this is
 verified correction progress rather than a completed published repair. It adds
 zero registered jets. See `JET_SHARED_BLOCK_REVIEW.md` for receipts and limits.
+
+Four subsequent private commits (`9399ab14`, `d8f26a0f`, `2217368e`, `c8bb852e`)
+extend this to 26 scoped rebuilt/kernel-checked modules: write32s, actual
+skipBits padding and existing add/increment layouts at all four widths. Their
+existing total types and definitions remain unchanged. The zero-length padding
+case derives same-value-store preservation even with exact alias, rather than
+adding an unused-data separation premise. Additional consumer transports are
+being rebuilt, outside those completed receipts. Full acceptance and publication
+of the range candidate remain pending.
+
+The separate endpoint candidate audit has now completed with exit 0: all four
+ASTs match, all 3,534 per-theorem assumption records and library axiom sets are
+unchanged, and only the intended exclusive-end definition differs. Actual
+source/snapshot comparison is recorded in
+`/tmp/jet-frame-memory-snapshot-review.json`. Independent full acceptance is
+running; the endpoint repair is not yet accepted, integrated or published.
 
 **Confirmed documentation overstatement corrected here:** earlier "accepted"
 and "completed consolidation review" wording could be read as completion of
