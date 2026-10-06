@@ -1,0 +1,163 @@
+From 9e6fc86f86a2d042ad946a2ec5e20d0655ebb491 Mon Sep 17 00:00:00 2001
+From: Breno Brito <brenorb@gmail.com>
+Date: Tue, 6 Oct 2026 00:54:13 -0300
+Subject: [PATCH 10/20] refactor(coq): transport logical and constants through
+ frame byte ranges
+
+
+diff --git a/Coq/C/jet_binary1_layout.v b/Coq/C/jet_binary1_layout.v
+index c6689bc937f65016f1561966f426b88e055e9901..67f24129bc66f46d43b9ffb3c90eedd8e7980aa2 100644
+--- a/Coq/C/jet_binary1_layout.v
++++ b/Coq/C/jet_binary1_layout.v
+@@ -33,7 +33,7 @@ Proof.
+   intros HSbase HSAlign [HSE HSO] HRC Hinput1 Hinput2 Hout.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 1 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_binary8_layout.v b/Coq/C/jet_binary8_layout.v
+index fd81ec202752749cd97b95fb24ce505bb9fa0976..584ed255a37d5b7b3162d69d87c87ba0beec5a29 100644
+--- a/Coq/C/jet_binary8_layout.v
++++ b/Coq/C/jet_binary8_layout.v
+@@ -31,7 +31,7 @@ Proof.
+   intros HSbase HSAlign [HSE HSO] Hinput1 Hinput2 Hout.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 8 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_binary_wide_layout.v b/Coq/C/jet_binary_wide_layout.v
+index 0ad28e5716fec6831a229cae4c89e355186fdf0a..66bbbf37cde9a01b33233408db8d5c948d462fb8 100644
+--- a/Coq/C/jet_binary_wide_layout.v
++++ b/Coq/C/jet_binary_wide_layout.v
+@@ -53,7 +53,7 @@ Proof.
+   pose proof (wide_bits_bounds s) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits s) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_bit_word_layout.v b/Coq/C/jet_bit_word_layout.v
+index 998223e490412266aedff14e3798ef06df66526c..bcfde1893b1b3b1d1a383bb4cd4be4501e30e2e9 100644
+--- a/Coq/C/jet_bit_word_layout.v
++++ b/Coq/C/jet_bit_word_layout.v
+@@ -62,7 +62,7 @@ Proof.
+   intros HWriter HCompose HPositive HSbase HSAlign [HSE HSO] HRC Hinput Hout.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (Z.of_nat (bitSize B)) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_complement1_layout.v b/Coq/C/jet_complement1_layout.v
+index 577a087ddc220d5ceb226122c74613638260af9e..59fda18c11bf5c6191533c8688a90e6ce8e692dd 100644
+--- a/Coq/C/jet_complement1_layout.v
++++ b/Coq/C/jet_complement1_layout.v
+@@ -31,7 +31,7 @@ Proof.
+   intros HSbase HSAlign [HSE HSO] HRC Hinput Hout.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 1 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_complement8_layout.v b/Coq/C/jet_complement8_layout.v
+index 63e9ab1cd366e0419f5ed9cc8982ece2f96c3e62..a941038c87d540bf994324df74f277f632c0f4e0 100644
+--- a/Coq/C/jet_complement8_layout.v
++++ b/Coq/C/jet_complement8_layout.v
+@@ -30,7 +30,7 @@ Proof.
+   intros HSbase HSAlign [HSE HSO] Hinput Hout.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 8 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_complement_wide_layout.v b/Coq/C/jet_complement_wide_layout.v
+index 188b604173bd13690b040ecb3970449ac98aa484..a9f9726fa470a8f5263c461df5a10783ed8e50a9 100644
+--- a/Coq/C/jet_complement_wide_layout.v
++++ b/Coq/C/jet_complement_wide_layout.v
+@@ -76,7 +76,7 @@ Proof.
+   pose proof (wide_bits_bounds s) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits s) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_constant_layout.v b/Coq/C/jet_constant_layout.v
+index e78415b68d81aac5ae25dee200609cb6d7cf3a13..014ba5b55afe27b84c15cef34e74265e868547cb 100644
+--- a/Coq/C/jet_constant_layout.v
++++ b/Coq/C/jet_constant_layout.v
+@@ -42,7 +42,7 @@ Theorem eval_constant_layout_matches_spec env s high m bd dbase bs sbase bw edge
+       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+ Proof.
+   intros HSbase HSAlign HB HFrame. pose proof (constant_bits_bounds s) as HNbound.
+-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw edge cursor (constant_bits s) ltac:(lia) HFrame)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   assert (HVs : Mem.valid_block m bs).
+diff --git a/Coq/C/jet_one_wide_layout.v b/Coq/C/jet_one_wide_layout.v
+index 28063f5b31efacab313b0c8f0ed5789f057ada9b..84b2d9d364742e4482100ca06162f37ed35a04b4 100644
+--- a/Coq/C/jet_one_wide_layout.v
++++ b/Coq/C/jet_one_wide_layout.v
+@@ -25,7 +25,7 @@ Theorem eval_one_wide_layout_matches_spec env s m bd dbase bs sbase bw edge curs
+       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+ Proof.
+   intros HSbase HSAlign HB HFrame. pose proof (wide_bits_bounds s) as HNbound.
+-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw edge cursor (wide_bits s) ltac:(lia) HFrame)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   assert (HVs : Mem.valid_block m bs).
+diff --git a/Coq/C/jet_ternary1_layout.v b/Coq/C/jet_ternary1_layout.v
+index 73562b10e9905e872917d190f8a1ad3f02678df7..689a59a17630846caa47607d75048d515f04de33 100644
+--- a/Coq/C/jet_ternary1_layout.v
++++ b/Coq/C/jet_ternary1_layout.v
+@@ -34,7 +34,7 @@ Proof.
+   intros HSbase HSAlign [HSE HSO] HRC Hinput1 Hinput2 Hinput3 Hout.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 1 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_ternary8_layout.v b/Coq/C/jet_ternary8_layout.v
+index 527e0d6c26cdf507da6aec90cbacd5e7839c96a4..5a5c6d9bc2f909ea1a02a0774e8de1666542af33 100644
+--- a/Coq/C/jet_ternary8_layout.v
++++ b/Coq/C/jet_ternary8_layout.v
+@@ -32,7 +32,7 @@ Proof.
+   intros HSbase HSAlign [HSE HSO] Hinput1 Hinput2 Hinput3 Hout.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 8 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_ternary_wide_layout.v b/Coq/C/jet_ternary_wide_layout.v
+index 09b01ca20422ea1da9b86628b3f4f615fe0de8c3..e5df566ba75dd6fbcbed9d726fe05f4e45146a97 100644
+--- a/Coq/C/jet_ternary_wide_layout.v
++++ b/Coq/C/jet_ternary_wide_layout.v
+@@ -54,7 +54,7 @@ Proof.
+   pose proof (wide_bits_bounds s) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits s) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
