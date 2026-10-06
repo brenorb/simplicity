@@ -8,6 +8,15 @@ Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
 
+Local Ltac bitcoin64_layout_separate :=
+  try change (size_chunk Mint64) with 8;
+  try change (size_chunk Mptr) with 8;
+  match goal with
+  | H : _ <> _ \/ _ \/ _ |- _ =>
+    solve [destruct H as [HDiff|[HBefore|HAfter]];
+      first [left; congruence|right; left; lia|right; right; lia]]
+  end.
+
 Theorem eval_bitcoin_write64_layout m bf base bw edge cursor x :
   write_frame_at m bf base bw edge cursor 64 ->
   exists mf,
@@ -22,7 +31,9 @@ Theorem eval_bitcoin_write64_layout m bf base bw edge cursor x :
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
   intros HFrame. assert (HNbound : 1 <= 64 <= 64) by lia.
-  pose proof HFrame as [HB [[HF HO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HB [[HF HO] [HE [HC [HM [PD HW]]]]]].
+  pose proof (write_frame_at_head_separate m bf base bw edge cursor 64
+    ltac:(lia) HFrame) as HHeadSeparate.
   destruct (write_frame_at_head m bf base bw edge cursor 64 ltac:(lia) HFrame)
     as [HA0 [HA [PH [oldhigh HH]]]].
   pose proof (write_layout_index cursor ltac:(lia)) as [_ [HK _]].
@@ -36,7 +47,7 @@ Proof.
     destruct (Mem.valid_access_store mw Mint64 bf (base + 8) (Vlong (Int64.repr (cursor - 64))) PDw)
       as [mf SF].
     assert (Houtput : Mem.load Mint64 mf bw (write_word_address edge cursor) = Some (Vlong output)).
-    { erewrite Mem.load_store_other; [|exact SF|auto]. exact (Mem.load_store_same _ _ _ _ _ _ SW). }
+    { erewrite Mem.load_store_other; [|exact SF|bitcoin64_layout_separate]. exact (Mem.load_store_same _ _ _ _ _ _ SW). }
     exists mf. split.
     + eapply eval_bitcoin_write64_non_crossing_raw with (edge := edge) (old := oldhigh);
         eauto; try lia. split; assumption.
@@ -49,7 +60,7 @@ Proof.
         -- split.
            ++ split.
               ** erewrite Mem.load_store_other; [|exact SF|right; left; change (base + 8 <= base + 8); lia].
-                 erewrite Mem.load_store_other; [exact HF|exact SW|auto].
+                 erewrite Mem.load_store_other; [exact HF|exact SW|bitcoin64_layout_separate].
               ** exact (Mem.load_store_same _ _ _ _ _ _ SF).
            ++ split.
               ** intros chunk b ofs Hbf Hbw.
@@ -60,6 +71,8 @@ Proof.
                  --- intros b HV. eauto using Mem.store_valid_block_1.
   - destruct (write_frame_at_slice_crossing 64 m bf base bw edge cursor ltac:(lia) HFrame)
       as [HAL [PL [oldlow HL]]].
+    pose proof (write_frame_at_slice_crossing_separate 64 m bf base bw edge cursor
+      ltac:(lia) HFrame) as HLowSeparate.
     set (k := write_word_shift cursor).
     destruct (Mem.valid_access_store m Mint64 bw (write_word_address edge cursor)
         (Vlong (slice_high 64 k oldhigh x)) PH) as [mh SH].
@@ -76,20 +89,20 @@ Proof.
     destruct (Mem.valid_access_store mw Mint64 bf (base + 8)
         (Vlong (Int64.repr (cursor - 64))) PDw) as [mf SF].
     assert (Hhigh : Mem.load Mint64 mf bw (write_word_address edge cursor) = Some (Vlong (slice_high 64 k oldhigh x))).
-    { erewrite Mem.load_store_other; [|exact SF|auto].
+    { erewrite Mem.load_store_other; [|exact SF|bitcoin64_layout_separate].
       erewrite Mem.load_store_other; [|exact SW|right; right; cbn; lia].
-      erewrite Mem.load_store_other; [|exact SO|auto].
+      erewrite Mem.load_store_other; [|exact SO|bitcoin64_layout_separate].
       exact (Mem.load_store_same _ _ _ _ _ _ SH). }
     assert (Hlow : Mem.load Mint64 mf bw (write_word_address edge cursor - 8) = Some (Vlong (slice_low 64 k x))).
-    { erewrite Mem.load_store_other; [|exact SF|auto]. exact (Mem.load_store_same _ _ _ _ _ _ SW). }
+    { erewrite Mem.load_store_other; [|exact SF|bitcoin64_layout_separate]. exact (Mem.load_store_same _ _ _ _ _ _ SW). }
     exists mf. split.
     + eapply eval_bitcoin_write64_crossing_raw with (edge := edge) (k := k)
         (oldhigh := oldhigh) (oldlow := oldlow); eauto; try (unfold k; lia).
       * split; assumption.
-      * erewrite Mem.load_store_other; [exact HO|exact SH|auto].
-      * erewrite Mem.load_store_other; [|exact SO|auto].
+      * erewrite Mem.load_store_other; [exact HO|exact SH|bitcoin64_layout_separate].
+      * erewrite Mem.load_store_other; [|exact SO|bitcoin64_layout_separate].
         erewrite Mem.load_store_other; [exact HL|exact SH|right; left; cbn; lia].
-      * erewrite Mem.load_store_other; [|exact SW|auto]. exact (Mem.load_store_same _ _ _ _ _ _ SO).
+      * erewrite Mem.load_store_other; [|exact SW|bitcoin64_layout_separate]. exact (Mem.load_store_same _ _ _ _ _ _ SO).
     + split.
       * exists (slice_high 64 k oldhigh x), (slice_low 64 k x).
         split; [exact Hhigh|]. split; [exact Hlow|]. apply crossing_slice_projection; unfold k; lia.
@@ -99,9 +112,9 @@ Proof.
         -- split.
            ++ split.
               ** erewrite Mem.load_store_other; [|exact SF|right; left; change (base + 8 <= base + 8); lia].
-                 erewrite Mem.load_store_other; [|exact SW|auto].
+                 erewrite Mem.load_store_other; [|exact SW|bitcoin64_layout_separate].
                  erewrite Mem.load_store_other; [|exact SO|right; left; change (base + 8 <= base + 8); lia].
-                 erewrite Mem.load_store_other; [exact HF|exact SH|auto].
+                 erewrite Mem.load_store_other; [exact HF|exact SH|bitcoin64_layout_separate].
               ** exact (Mem.load_store_same _ _ _ _ _ _ SF).
            ++ split.
               ** intros chunk b ofs Hbf Hbw.
