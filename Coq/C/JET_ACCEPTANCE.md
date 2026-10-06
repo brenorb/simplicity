@@ -1,15 +1,18 @@
 # Consolidation acceptance record
 
-Status: **accepted**, observed 2026-10-05 21:05:19 UTC.
+Status: **accepted**, observed 2026-10-06 01:00:50 UTC.
 `check-jets.sh --accept` completes with **exit 0**, without snapshot updates.
-Build, all 567 kernel modules, all 3,334 assumption records, reviewed public
+Build, all 583 kernel modules, all 3,534 assumption records, reviewed public
 contracts/definitions, negative tests and all four AST regenerations pass.
 
 Final audited input SHA-256:
-`a566e6bfc17b188b9377c0993284b555f6364e56f8c17801833d4b0e203572b6`.
+`5d01956807ea2f325ca099e65818f5e23d521e31ac994863c1f5fd09deeb6eae`.
 
-This supersedes the published receipt at `61de9183` (319 entries), whose
-acceptance hash was `6ab077ecd6bb173899701f63bfb966ee811e09618bc06df3879d8bc6ca4ee47f`.
+This supersedes the published receipt at `5c2958d5` (346 entries), whose
+acceptance hash was `a566e6bfc17b188b9377c0993284b555f6364e56f8c17801833d4b0e203572b6`.
+The original consolidation and subsequent continuation evidence below is
+preserved as historical review; the current coverage includes the field jet
+accepted in this round.
 
 ## Scope
 
@@ -47,7 +50,7 @@ a recorded earlier failure; the script now raises the soft limit without
 disabling kernel checks. The final run uses `check-jets.sh --accept`, with no
 snapshot update flags. Its original consolidation log is `/tmp/jet-consolidation-final-accept.log`.
 
-## Reviewed continuation and final acceptance
+## Previously accepted canonical continuation
 
 The continuation preserves all 3,331 existing assumption records and every
 existing printed type/definition byte-for-byte. Three annex results and five
@@ -68,28 +71,59 @@ Its snapshot-excluding input hash is
 `fe314944ebc695177ae320275b540ba5b8611b06092f9ce50e8528c78903488c`.
 After actual snapshot review, the separate final run
 `/tmp/jet-next-canonical-final-accept.log` passes `--accept` with exit 0.
-Its hash above includes the reviewed snapshots; both hashes describe unchanged
-inputs within their respective modes. Build, kernel, assumptions, contract
+Its hash `a566e6bfc17b188b9377c0993284b555f6364e56f8c17801833d4b0e203572b6`
+includes the reviewed snapshots; both hashes describe unchanged inputs within
+their respective modes. Build, kernel, assumptions, contract
 comparisons, negative fixtures and all four original-source AST checks pass.
+
+## Original fe_normalize accepted against its canonical program
+
+The 16 new proof modules contribute 200 audited results: 199 support results
+and the complete `fe_normalize_local_spec` jet contract. All 3,334 previous
+assumption records and every previous printed type/definition are unchanged.
+There are 151 new closed results, bringing the total to 1,834. The remaining
+new results retain only inherited Coq/CompCert assumptions; no axiom name or
+library-level axiom is added.
+
+The canonical port preserves the pinned Haskell subtraction, projections and
+conditional at the complete Word256 domain. The real C reader derives the
+big-endian bytes, limb values and normalization branches from the input frame;
+the writer derives its real calls and the encoded canonical output. The public
+proof derives local allocation, the actual by-value source-frame copy, helper
+execution, return and freeing from the initial memory contract. Its output,
+prefix, cursor and outside-memory conclusions are the complete common jet
+contract, with the original secp linked environment as the sole change. It does
+not assume a helper execution, output, or final freeing fact, and has no extra
+`memcpy_model` premise.
+
+The source correspondence gate rejects 11 mutations. The metadata gate rejects
+added impossible premises, weaker conclusions and unrelated secp functions.
+Actual definition/type/axiom snapshot diffs were reviewed after the candidate
+run `/tmp/jet-secp-normalize-candidate-audit.log` (exit 0, snapshot-excluding
+hash `cfa390055b3d83d986af7ed5541003219351a873d84acc4225a6fcd449fe4176`).
+The separate final run `/tmp/jet-secp-normalize-final-accept.log` completes with
+exit 0 without update flags, using the snapshot-inclusive hash above. All four
+ASTs are independently regenerated from the unchanged original C inputs.
 
 ## Conservative coverage and limits
 
 | Surface | Without an extra libc premise | Conditional on libc | Unregistered | Declared |
 | --- | ---: | ---: | ---: | ---: |
-| Core | 206 | 104 | 60 | 370 |
+| Core | 207 | 104 | 59 | 370 |
 | Bitcoin | 36 | 0 | 24 | 60 |
 | Elements | 0 | 0 | 103 | 103 |
-| Total | 242 | 104 | 187 | 533 |
+| Total | 243 | 104 | 186 | 533 |
 
 The denominator is the public header surface; it includes two secp declarations
 without primitive jet-node registrations. The 104 conditional proofs leave the
-actual linked libc implementation outside the proof. The 242 other entries
+actual linked libc implementation outside the proof. The 243 other entries
 still have their stated initial frame/environment representation contracts and
 inherited Coq/CompCert assumptions.
 
-Symbolic execution, interval analysis, byte/limb conversion and field
-normalization are checked support, not additional jet equivalences. Experimental
-SHA/Bitcoin contracts needing startup-global preservation or canonical raw-data
+Symbolic execution, interval analysis and byte/limb conversion remain support.
+Only the complete canonical `fe_normalize` contract adds a jet equivalence in
+this round; individual normalizer or conversion lemmas add no coverage.
+Experimental SHA/Bitcoin contracts needing startup-global preservation or canonical raw-data
 bridges remain outside this coverage registry. The full every-jet goal remains
 unfinished; the specific obligations are in `JET_FIDELITY_REVIEW.md`.
 
@@ -99,7 +133,9 @@ regression evidence, not a test of every x86-64/Linux build configuration.
 The two modified Nix expressions parse successfully; a Nix build and remote CI
 have not been run as part of this local acceptance.
 
-Further SHA startup preservation, canonical field normalization, byte/limb and
-read_fe/write_fe execution proofs are developed in an isolated scratch
-directory. Their compiled results are documented in `JET_PROGRESS.md`, but
-are outside this acceptance round and do not add registered jet coverage.
+Further SHA startup preservation and two complete canonical field predicate
+proofs (`fe_is_odd` and `fe_is_zero`) are developed in an isolated scratch
+directory. The two predicates have compilation, kernel and statement/assumption
+review receipts, but are outside this acceptance and add no registered coverage.
+Scalar canonical and helper proofs are likewise isolated support. Their actual
+remaining links are recorded in `JET_PROGRESS.md`.

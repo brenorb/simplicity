@@ -330,3 +330,53 @@ The next three atomic commits separate raw annex proof support, the reviewed
 Only this reviewed tree may be fast-forwarded to `feat/jet-equivalence` and
 pushed to the user fork. All isolated scratch proofs remain outside this round.
 The full goal remains unfinished: 187 header declarations are unregistered.
+
+## Original fe_normalize accepted, observed 2026-10-06 01:00:50 UTC
+
+The separate immutable `check-jets.sh --accept` run completes with exit 0 in
+`/tmp/jet-secp-normalize-final-accept.log`: 583 kernel modules, 3,534 public
+assumption records (1,834 closed), frozen types/definitions, negative fixtures
+and four direct original-source AST regenerations. Its snapshot-inclusive
+SHA-256 is `5d01956807ea2f325ca099e65818f5e23d521e31ac994863c1f5fd09deeb6eae`.
+The prior candidate has exit 0 and snapshot-excluding SHA-256 `cfa390055b3d83d986af7ed5541003219351a873d84acc4225a6fcd449fe4176`.
+The actual snapshot diff preserves all 3,334 old assumption sets and every old
+printed contract/definition. There are 200 new public records, including 151
+closed and only one complete public jet; all others are support.
+
+`fe_normalize_local_spec` derives the full original C body/call/output/entry/free
+chain against the literal canonical program on all Word256 inputs. All helper
+execution, intermediate representation and final ownership facts are derived
+from the legitimate initial frame contract. C and Haskell sources remain
+unchanged. Coverage is now 347/533: 243 without an extra library premise,
+104 conditional on the explicit original memcpy libc model and 186 remaining.
+Elements remains 0/103. The every-original-jet objective is still incomplete.
+
+The next isolated complete predicates total 43 results across 18 modules:
+`fe_odd_local_spec` (21 including support) and `fe_zero_local_spec` (22 including
+support). Their fresh compilation, kernel and statement/definition/assumption
+reviews pass, with the same six inherited axioms and no extra library,
+helper-execution or output premise. Zero includes the field-order input branch.
+They are not integrated, registered or included in this acceptance. A source
+gate prepared outside audited inputs compares the literal predicate programs,
+recursive Word/Bit/equality ports and complete public contracts; it rejects
+34 mutations, including commented-out lookalikes.
+
+Next scalar work remains isolated support. The literal scalar-normalize and
+scalar-zero ports match the pinned Haskell group order/programs; seven results
+are closed and pass the kernel, with eight negative source mutations rejected.
+The actual scalar-zero helper call and canonical predicate linkage compile and
+pass the kernel and statement/assumption review. They preserve the owned
+32-byte region and final Freeable permission. The actual scalar get-b32 helper
+call also compiles; its numerical output encoding remains to connect.
+
+The attempted scalar set-b32 run exposes a concrete executor limitation inside
+the original scalar_reduce/u128_rshift chain: `is_const` does not fold the
+constant comparison, and xshift does not accept the computed `64 - 64` shift
+count. The original helper is not replaced or assumed. The uncompiled experiment
+is outside repository load paths and adds no coverage; its diagnostic is
+`/tmp/jet-secp-scalar-shift-diagnosis.log`. Eleven new isolated support results
+now compile for the original shift helper: actual composite layout, expression
+evaluation, body, entry, stores, void return, output loads and permission/framing
+preservation. Its separate kernel check is running. The verified oracle and its
+use in scalar set-b32/read_scalar remain to close before the public scalar jet
+lifecycle can count as equivalence.

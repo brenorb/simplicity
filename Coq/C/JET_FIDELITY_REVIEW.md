@@ -106,20 +106,21 @@ C boundary before promoting any of these results.
 The symbolic executor retains actual Clight execution in its soundness theorem
 and its oracle correctness predicate. Read8s/write8s oracle proofs, memory-region
 separation, integer interval analysis, normalization and byte/limb lemmas have
-compiled on the original C. Field-normalization C-versus-integer-model and
-byte/limb results remain support until the canonical secp jet bridge is proved.
-Additional mathematical field properties alone do not close that bridge.
+compiled on the original C. The field-normalization integer model and byte/limb
+results are reused in the complete canonical `fe_normalize` chain accepted below. Their individual
+statements remain support and do not each count as jet equivalence. Additional
+mathematical field properties alone do not close other jets.
 
 ## Acceptance status
 
-The conservative registry is 346/533: 242 entries without an extra libc
-premise, 104 explicitly conditional on libc, and 187 unregistered declarations.
+The conservative registry is 347/533: 243 entries without an extra libc
+premise, 104 explicitly conditional on libc, and 186 unregistered declarations.
 No experimental result is promoted solely because its name says it proves a jet.
 The support inventory is broader than the coverage registry.
 
-The separate final acceptance passes (exit 0), including all 567 kernel modules,
-3,334 public assumption records, contract/definition snapshots, negative tests,
-and four independently regenerated ASTs. There are 1,683 closed public results.
+The separate final acceptance passes (exit 0), including all 583 kernel modules,
+3,534 public assumption records, contract/definition snapshots, negative tests,
+and four independently regenerated ASTs. There are 1,834 closed public results.
 All common public assumption records retain their previous axiom sets; no new
 axiom name or library-level axiom is introduced. Four obsolete `copyWords`
 execution/linkage lemmas are retired, and reusable memory support is retained.
@@ -132,7 +133,8 @@ modular cache representations, canonical fee direction/name, and raw-data
 projection described above. The final acceptance run compares the reviewed
 snapshots without updating them and completes with exit 0. The consolidation
 retains experimental results as checked support under their actual statements,
-with only the 27 further registrations justified below. See `JET_ACCEPTANCE.md`
+with the 27 previous registrations and the one canonical field registration
+justified below. See `JET_ACCEPTANCE.md`
 for the receipt and candidate/final fingerprint distinction.
 
 
@@ -158,6 +160,39 @@ All old snapshot records are unchanged; three raw annex results and five new
 frozen definitions are added. The final log is
 `/tmp/jet-next-canonical-final-accept.log`, exit 0. Its snapshot-inclusive
 SHA-256 is `a566e6bfc17b188b9377c0993284b555f6364e56f8c17801833d4b0e203572b6`.
+
+## Canonical original-C field normalization accepted
+
+`fe_normalize_local_spec` now establishes the complete original public function
+contract against the literal canonical `fe_normalize` program. The source gate
+checks its catalog dispatch, full FE=Word256 domain, exact field order,
+subtraction and conditional port, and equality with the common quantified
+frame/memory contract after only replacing `ge0` by the actual `secp_ge`.
+
+The proof derives real read8s/set-b32/normalizer/get-b32/write8s calls and their
+memory representations, including inputs at and above the field order. It
+derives entry allocation, the actual By_copy frame assignment, local ownership
+and final free_list from the legitimate initial frame contract. Successful C
+return and canonical encoded output/prefix/cursor/framing are all conclusions.
+No execution, intermediate output, or final Freeable premise is assumed by the
+public theorem. It retains the same six inherited Coq/CompCert axioms and no
+extra libc model.
+
+Snapshot review preserves every old assumption set, type and frozen definition.
+The 200 new records comprise one final jet and 199 support results; 151 are
+closed. The separate final acceptance is `/tmp/jet-secp-normalize-final-accept.log`,
+exit 0, snapshot-inclusive hash
+`5d01956807ea2f325ca099e65818f5e23d521e31ac994863c1f5fd09deeb6eae`.
+The candidate hash excludes the snapshots and is recorded in `JET_ACCEPTANCE.md`.
+C and canonical Haskell sources, target flags and the external memcpy mechanism
+are unchanged.
+
+The next `fe_is_odd` and `fe_is_zero` full public proofs exist only in the
+isolated scratch namespace. Their ports preserve `fe_normalize >>> lsb256` and
+the canonical zero-or-field-order test respectively. Compilation, kernel and
+actual statements/assumptions were reviewed. They are not registered or accepted
+in this round; a subsequent candidate/snapshot review/separate acceptance is
+still required. No coverage is claimed for scalar helper support.
 
 ## Remaining proof queue
 
