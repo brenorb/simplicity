@@ -4,6 +4,14 @@ Current priority: finish inherited source/definition/hypothesis review before
 developing or promoting new jets. `JET_INHERITED_REVIEW.md` distinguishes that
 partial review from the successful verification receipts recorded below.
 
+The inherited review now documents 18 existing Bitcoin local contracts: the
+12 TimeLock/value chains plus six simple getter/count chains in
+`JET_BITCOIN_SIMPLE_GETTERS_REVIEW.md`. The latter includes actual execution,
+literal firstFail, full-word/hash encoding and initial-representation review,
+with separate compiled/kernel-checked diagnostics. No new coverage or proof
+source is integrated by this review. The matrix retains 292 registered rows
+needing further evidence cross-reference; global review remains partial.
+
 The previously published acceptance receipt is `JET_ACCEPTANCE.md` at
 `61de9183` (319 registered contracts). This continuation has now passed its own full
 reviewed-snapshot acceptance (exit 0); integration/publication follows the

@@ -165,11 +165,15 @@ universally quantified public proofs.
 
 ## Inventory interpretation
 
-`JET_EQUIVALENCE_REVIEW_MATRIX.csv` has all 533 public declarations: 12 local
+At this review, `JET_EQUIVALENCE_REVIEW_MATRIX.csv` had all 533 public declarations: 12 local
 contracts reviewed here; 36 prior full-shift family reviews; one prior complete
 fe_normalize chain; 298 registered entries still needing evidence cross-reference;
 and 186 without final registrations. These statuses are not 49 newly accepted
 proofs and do not enlarge the 347-entry registry.
+
+The subsequent `JET_BITCOIN_SIMPLE_GETTERS_REVIEW.md` reviews six more existing
+contracts: the current matrix has 18 reviewed local contracts and 292 remaining
+registered rows requiring evidence cross-reference. Coverage is unchanged.
 
 `JET_INHERITED_DECLARATIONS.csv` indexes declaration locations and current source
 hashes across all 122 inherited `.v` modules and four generation inputs. It

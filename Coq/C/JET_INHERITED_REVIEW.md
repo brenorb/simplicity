@@ -168,3 +168,18 @@ precondition/conclusion review of 12 existing TimeLock/totals/fee chains and
 is retained and explained; transaction-constructor correctness is not claimed.
 No new discrepancy or coverage increase is reported for this family. The full
 inherited review remains partial.
+
+`JET_BITCOIN_SIMPLE_GETTERS_REVIEW.md` adds six existing local chains: version,
+lock_time, current_index, num_inputs, num_outputs and script_cmr. It reviews the
+actual linked bodies/lifecycle, unsigned-word/hash encoding, literal firstFail
+recursion, domains, initial representations and full output/framing conclusions.
+Nine closed diagnostics and a general literal-search domain lemma pass complete
+compilation and separate kernel checking. No new discrepancy or registration
+is reported. Constructor establishment and general memory-contract admissibility
+remain outside this local review.
+
+The current matrix has 18 reviewed local contracts, 36 prior family reviews,
+one prior complete chain, 292 registered rows requiring further evidence
+cross-reference and 186 missing final registrations. These are review statuses,
+not a change to the 347/533 registered inventory. Next are the remaining
+registered Bitcoin indexed/current/raw getters, then SHA/composed-hash boundaries.
