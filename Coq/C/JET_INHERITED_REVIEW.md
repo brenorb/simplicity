@@ -12,6 +12,26 @@ specification, representation predicate and precondition was independently
 compared with the canonical program. Compilation, stable snapshots and absence
 of admitted proofs do not supply that missing evidence.
 
+## Direct answer before further jet development
+
+The inherited correction is **partially complete**, not fully complete and not
+merely of unknown status. Concrete deviations have been corrected and scoped
+verification/review evidence exists; other concrete memory-domain exclusions
+remain pending, and the exhaustive review required by criteria 6–8 is unfinished.
+
+For the registered inventory, the answer to "was every complete chain reviewed
+without assuming execution/output, restricting legitimate inputs or weakening
+conclusions?" is **not yet**. The 347 entries are previously accepted contracts,
+not 347 independently recertified canonical-fidelity results. The evidence
+matrix distinguishes completed local reviews from pending rows; even a local
+review does not close unresolved shared memory-representation admissibility.
+
+The following four classifications remain separate: corrected inherited
+deviations; inherited declarations not yet fully reviewed; confirmed/suspected
+pending deviations; and additional coverage/support unrelated to repairing the
+earlier claims. Remaining fidelity review and corrections take priority over
+new jet coverage.
+
 ## Corrected deviations and evidence
 
 | Correction | Commit | Evidence and exact limit |
@@ -146,6 +166,18 @@ and independent kernel checking; input-array separation remains explicit and
 still needs scope review. Actual public-predicate/writer adaptation has begun
 in a separate candidate worktree. It is not integrated or published, and full
 consumer rebuilding/review/acceptance remains required.
+
+The range-separation candidate now has four private atomic commits:
+`4e3c738f` (bit/byte writers), `0414f7d5` (wide/carry writes), `02894d42`
+(canonical byte sequences and actual write8s), and `ee415533` (context/one8
+transports). Sixteen changed modules have scoped rebuild and independent kernel
+checks. Reviewed total statements/conclusions remain unchanged; intermediate
+block-disequality premises are replaced by separation of the actual byte ranges.
+The context/one8 transport changes alter proof scripts only. These commits are
+not integrated or published. Whole-consumer rebuilding, snapshot/type/definition/
+axiom review and independent full acceptance are still pending, so this is
+verified correction progress rather than a completed published repair. It adds
+zero registered jets. See `JET_SHARED_BLOCK_REVIEW.md` for receipts and limits.
 
 **Confirmed documentation overstatement corrected here:** earlier "accepted"
 and "completed consolidation review" wording could be read as completion of
