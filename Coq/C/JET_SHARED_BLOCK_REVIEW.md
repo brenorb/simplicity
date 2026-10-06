@@ -173,3 +173,37 @@ Evidence:
 These results are verified correction support, unpublished as repository proof
 modules. They add **zero** registered jets and do not complete the global
 inherited review or the public memory-contract repair.
+
+## Byte writer: both generated paths checked
+
+`review_frame_ranges_byte.v` adds five further completed correction-support
+results. Two store/load preservation lemmas use the actual byte intervals,
+crossing access is extracted from initial capacity, the noncrossing raw writer
+is generalized, and `eval_write8_ranges_total` derives the complete original
+`simplicity_write8` execution from initial range-separated frame permissions.
+The existing raw crossing proof is reused with all intermediate load/store
+premises discharged. The actual LSBclear/LSBkeep helpers and generated body
+are unchanged. No byte value or backing-word value is restricted.
+
+All original conclusions of `eval_write8_layout` are byte-identical in the
+new total theorem: canonical decoded byte, prefix, frame cursor, unchanged
+loads outside the cursor/data ranges, permissions and valid blocks. Both
+branches construct their stores from initial permissions. The crossing branch
+derives preservation of both data words and the two cursor updates from each
+word's separation from frame metadata; it assumes no execution or output.
+
+Complete compilation: `/tmp/jet-frame-ranges-byte-compile.log`, session 85401
+terminal exit 0. Separate kernel check:
+`/tmp/jet-frame-ranges-byte-kernel.log`, session 5977 terminal exit 0, no unsafe
+kernel modes; the total theorem retains the same six inherited assumptions.
+The receipt `/tmp/jet-frame-ranges-source-review.json` now records this source,
+its fresh compiled artifact and additional unchanged dependency hashes.
+Exact `Show`/qualified-import and pointer-chunk preservation diagnostics are
+in `/tmp/jet-frame-ranges-byte-debug.log` and
+`/tmp/jet-frame-ranges-byte-preserve-debug.log`. No statement was weakened.
+
+There are now 12 completed results in these four support modules, separate
+from the earlier two-result diagnostic. None is registered as a new jet or
+integrated as a public-contract repair. The shared public predicate has 200
+direct `.v` consumers; sequence/prefix preservation, reader transports and
+actual jet boundaries still require adaptation and substantive review.
