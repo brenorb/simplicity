@@ -18,6 +18,13 @@ and review analogous address/representation predicates before promoting new
 coverage. Ten registered Bitcoin raw getters and SHA/composed-hash boundaries
 also remain in the inherited review queue.
 
+`JET_SHARED_BLOCK_REVIEW.md` additionally records an actual original writeBit
+call with disjoint frame/data ranges in one 24-byte block, correct output/cursor
+and rejection by the shared bf <> bw predicate. Its generic range-separated
+writer proof and concrete witness compile and pass independent kernel checking.
+The public-contract generalization remains open; the endpoint candidate does
+not resolve it and no new coverage is registered.
+
 The previously published acceptance receipt is `JET_ACCEPTANCE.md` at
 `61de9183` (319 registered contracts). This continuation has now passed its own full
 reviewed-snapshot acceptance (exit 0); integration/publication follows the

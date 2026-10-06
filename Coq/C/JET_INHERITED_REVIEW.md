@@ -123,6 +123,14 @@ wider bound is being verified in a separate attached worktree; no proof or
 snapshot from it is yet accepted or published. The general memory-contract
 admissibility review remains open for every affected local contract.
 
+`JET_SHARED_BLOCK_REVIEW.md` validates another concrete exclusion: the original
+writeBit executes correctly with a frame and its data in disjoint byte ranges
+of a single 24-byte allocation, yet write_frame_at rejects it by bf <> bw.
+The actual call, cursor and output are derived from constructed initial memory.
+A generic writer proof using byte-range separation also passes compilation and
+kernel checking. These are correction-support/diagnostic results, not new jet
+coverage or a completed generalization of all public memory contracts.
+
 **Confirmed documentation overstatement corrected here:** earlier "accepted"
 and "completed consolidation review" wording could be read as completion of
 all eight criteria. Only the scoped verification/reviews were complete. The
