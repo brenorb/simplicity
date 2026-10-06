@@ -1,0 +1,72 @@
+(** Diagnostics for six inherited public contracts; no new jet coverage. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Alg Simplicity.Digest.
+Require Import Simplicity.Util.Option Simplicity.Util.Monad.Reader.
+Require Import C.jet_word_repr C.jet_firstFail_spec C.jet_forWhile_search C.jet_firstFail_list.
+Require Import C.jet_bitcoin_version_local C.jet_bitcoin_locktime_local.
+Require Import C.jet_bitcoin_current_index_local C.jet_bitcoin_count_local C.jet_bitcoin_script_cmr_local.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition review_word32 z := @fromZ (WordToZ 5) z.
+Definition review_threshold_probe count (w : tySem Word32) : option (tySem (Ty.Sum Ty.Unit Ty.Unit)) :=
+  Some (if Z.ltb (@toZ (WordToZ 5) w) count then inr tt else inl tt).
+Definition review_threshold_program count :=
+  @first_fail_program 5 Ty.Unit Ty.Unit
+    (Alg.AssertionSem (ReaderT_CIMonadZero Datatypes.unit option_Monad_Zero))
+    (fun w _ => review_threshold_probe count w) tt tt.
+Lemma review_literal_first_fail_full_count_domain count :
+  0 <= count < 4294967296 ->
+  review_threshold_program count = Some (review_word32 count).
+Proof.
+  intro Hcount. unfold review_threshold_program.
+  rewrite first_fail_program_reader_sem.
+  change (first_fail_run 5 (review_threshold_probe count) = Some (review_word32 count)).
+  assert (HT : @toZ (WordToZ 5) (review_word32 count) = count).
+  { unfold review_word32. rewrite to_fromZ, two_power_nat_equiv, word_bitSize.
+    change (count mod 4294967296 = count). apply Z.mod_small; exact Hcount. }
+  apply first_fail_run_first_left.
+  - intros w Hw. rewrite HT in Hw. exists tt. unfold review_threshold_probe.
+    rewrite (proj2 (Z.ltb_lt _ _) Hw). reflexivity.
+  - exists tt. unfold review_threshold_probe. rewrite HT, Z.ltb_irrefl. reflexivity.
+Qed.
+Example review_first_fail_zero : review_threshold_program 0 = Some (review_word32 0).
+Proof. apply review_literal_first_fail_full_count_domain; lia. Qed.
+Example review_first_fail_max : review_threshold_program 4294967295 = Some (review_word32 4294967295).
+Proof. apply review_literal_first_fail_full_count_domain; lia. Qed.
+Example review_first_fail_all_success_fails :
+  @first_fail_program 0 Ty.Unit Ty.Unit (Alg.AssertionSem option_Monad_Zero)
+    (fun _ => Some (inr tt)) tt = None.
+Proof. vm_compute; reflexivity. Qed.
+Example review_empty_indexed_list :
+  first_fail_run 5 (@indexed_list_primitive 5 Datatypes.unit Ty.Unit [] (fun _ => tt)) =
+    Some (review_word32 0).
+Proof. apply first_fail_list_count. cbn [length]. change (0 < 4294967296). lia. Qed.
+Example review_two_indexed_items :
+  first_fail_run 5 (@indexed_list_primitive 5 Datatypes.unit Ty.Unit [tt;tt] (fun _ => tt)) =
+    Some (review_word32 2).
+Proof. apply first_fail_list_count. cbn [length]. change (2 < 4294967296). lia. Qed.
+Example review_version_high_bit_word : review_word32 2147483648 = review_word32 (-2147483648).
+Proof. vm_compute; reflexivity. Qed.
+Example review_version_max_word : review_word32 4294967295 = review_word32 (-1).
+Proof. vm_compute; reflexivity. Qed.
+Example review_locktime_max_word :
+  @toZ (WordToZ 5) (review_word32 (Int.unsigned (Int.repr 4294967295))) = 4294967295.
+Proof. vm_compute; reflexivity. Qed.
+Definition review_hash_order := Hash256
+  [Int.repr 2147483648; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.one] eq_refl.
+Example review_hash_big_endian : @toZ (WordToZ 8) (from_hash256 review_hash_order) = 2^255 + 1.
+Proof. vm_compute; reflexivity. Qed.
+Check bitcoin_version_local_spec.
+Check bitcoin_locktime_local_spec.
+Check bitcoin_current_index_local_spec.
+Check bitcoin_num_inputs_local_spec.
+Check bitcoin_num_outputs_local_spec.
+Check bitcoin_script_cmr_local_spec.
+Print Assumptions bitcoin_version_local_spec.
+Print Assumptions bitcoin_locktime_local_spec.
+Print Assumptions bitcoin_current_index_local_spec.
+Print Assumptions bitcoin_num_inputs_local_spec.
+Print Assumptions bitcoin_num_outputs_local_spec.
+Print Assumptions bitcoin_script_cmr_local_spec.
