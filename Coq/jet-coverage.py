@@ -119,6 +119,11 @@ def inventory():
             # record these separately from direct execution proofs.
             contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b|"
                         rf"\bmemcpy_model\s*->\s*jet_separated_local_spec\s+f_{re.escape(name)}\b")
+            if name == "simplicity_fe_normalize":
+                # This reviewed whole-function contract executes in the
+                # original secp translation unit. Its full frame contract and
+                # literal canonical specialization have their own source gate.
+                contract = rf"\bsecp_jet_local_spec\s+f_{re.escape(name)}\b"
         elif family == "bitcoin":
             contract = (rf"\b(?:application_jet_local_spec|application_jet_partial_spec)\s+f_{re.escape(name)}\s+"
                         r"bitcoin_ge\s+Bitcoin\.env\b|"
