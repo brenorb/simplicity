@@ -114,6 +114,15 @@ the desired answer, failure conclusions and strengthened preconditions in parts
 without a complete source review. These are review questions, not confirmed
 new defects. Snapshot stability cannot dismiss them.
 
+`JET_SHARED_MEMORY_REVIEW.md` additionally validates a concrete shared-predicate
+restriction: frame_base_valid excludes an object whose exclusive end is
+max_unsigned+1 even though its field pointers, accessible bytes and actual
+Clight field expression are valid. This is a semantic-domain exclusion, not a
+proved wrong jet output or proved reachable Linux allocation. The candidate
+wider bound is being verified in a separate attached worktree; no proof or
+snapshot from it is yet accepted or published. The general memory-contract
+admissibility review remains open for every affected local contract.
+
 **Confirmed documentation overstatement corrected here:** earlier "accepted"
 and "completed consolidation review" wording could be read as completion of
 all eight criteria. Only the scoped verification/reviews were complete. The
@@ -192,6 +201,6 @@ The current matrix has 26 reviewed local contracts, 36 prior family reviews,
 one prior complete chain, 284 registered rows requiring further evidence
 cross-reference and 186 missing final registrations. These are review statuses,
 not a change to the 347/533 registered inventory. Next are the remaining
-ten registered Bitcoin raw getters, then SHA/composed-hash boundaries and the
-shared initial-representation/memory-contract review. None of the local review
-statuses closes the latter globally.
+shared frame/address-contract admissibility and its endpoint repair, followed
+by ten registered Bitcoin raw getters and SHA/composed-hash boundaries. None
+of the local review statuses closes the shared-contract review globally.

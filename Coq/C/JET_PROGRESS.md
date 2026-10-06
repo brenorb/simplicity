@@ -11,8 +11,12 @@ chains. `JET_BITCOIN_SIMPLE_GETTERS_REVIEW.md` and
 conclusion review and independent compiled/kernel-checked boundary diagnostics.
 No new coverage or proof source is integrated by these reviews. The matrix
 retains 284 registered rows needing further evidence; global review remains
-partial. Next are ten registered Bitcoin raw getters, SHA/composed-hash
-boundaries and the shared initial-memory/constructor review.
+partial. The shared memory review has now validated an extreme-address domain
+restriction in frame_base_valid; its wider exclusive-end bound is being
+verified separately (see `JET_SHARED_MEMORY_REVIEW.md`). Resolve that boundary
+and review analogous address/representation predicates before promoting new
+coverage. Ten registered Bitcoin raw getters and SHA/composed-hash boundaries
+also remain in the inherited review queue.
 
 The previously published acceptance receipt is `JET_ACCEPTANCE.md` at
 `61de9183` (319 registered contracts). This continuation has now passed its own full
