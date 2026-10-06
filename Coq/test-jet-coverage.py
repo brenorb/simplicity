@@ -105,6 +105,23 @@ def main():
             "raw_bitcoin_environment Ty.Unit Word256", "ext_environment Ty.Unit Word256", 1))
         rejects(coverage.inventory, "not a direct canonical jet theorem")
         raw_jets.write_text(raw_original)
+        # The secp contract is counted only for the reviewed public function
+        # and only as the entire proposition. Its linked environment and
+        # literal canonical program are checked by the specification gate.
+        secp = project / "C/jet_secp_normalize_local.v"
+        secp_original = secp.read_text()
+        declaration = "Theorem fe_normalize_local_spec :"
+        for old, new in (
+            ("secp_jet_local_spec f_simplicity_fe_normalize",
+             "secp_jet_local_spec f_read_fe"),
+            ("secp_jet_local_spec f_simplicity_fe_normalize",
+             "jet_local_spec f_simplicity_fe_normalize"),
+            (declaration, declaration + " False ->"),
+        ):
+            start = secp_original.index(declaration)
+            secp.write_text(secp_original[:start] + secp_original[start:].replace(old, new, 1))
+            rejects(coverage.inventory, "not a direct canonical jet theorem")
+        secp.write_text(secp_original)
         # Assertion jets must retain the exact linked program/environment and
         # be the whole proposition, including both success and failure.
         assertion = project / "C/jet_bitcoin_check_lock.v"
