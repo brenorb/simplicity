@@ -20,9 +20,10 @@ Theorem eval_write_wide_layout s m bf base bw edge cursor x :
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
   intros HFrame. pose proof (wide_bits_bounds s) as HNbound.
-  pose proof HFrame as [HB [[HF HO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HB [[HF HO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bf base bw edge cursor (wide_bits s) ltac:(lia) HFrame)
     as [HA0 [HA [PH [oldhigh HH]]]].
+  pose proof (write_frame_at_head_separate m bf base bw edge cursor (wide_bits s) ltac:(lia) HFrame) as HD.
   pose proof (write_layout_index cursor ltac:(lia)) as [_ [HK _]].
   unfold slice_output_at, slice_write_low.
   destruct (Z_le_dec (wide_bits s) (write_word_shift cursor)) as [HN | HX].
@@ -34,7 +35,7 @@ Proof.
     destruct (Mem.valid_access_store mw Mint64 bf (base + 8) (Vlong (Int64.repr (cursor - wide_bits s))) PDw)
       as [mf SF].
     assert (Houtput : Mem.load Mint64 mf bw (write_word_address edge cursor) = Some (Vlong output)).
-    { erewrite Mem.load_store_other; [|exact SF|auto]. exact (Mem.load_store_same _ _ _ _ _ _ SW). }
+    { erewrite frame_store_preserves_word_load; [|eassumption|exact SF]. exact (Mem.load_store_same _ _ _ _ _ _ SW). }
     exists mf. split.
     + eapply eval_write_wide_non_crossing_raw with (edge := edge) (old := oldhigh);
         eauto; try lia. split; assumption.
@@ -47,7 +48,7 @@ Proof.
         -- split.
            ++ split.
               ** erewrite Mem.load_store_other; [|exact SF|right; left; change (base + 8 <= base + 8); lia].
-                 erewrite Mem.load_store_other; [exact HF|exact SW|auto].
+                 erewrite word_store_preserves_frame_load; [exact HF|exact HD|lia|change (base + 8 <= base + 16); lia|exact SW].
               ** exact (Mem.load_store_same _ _ _ _ _ _ SF).
            ++ split.
               ** intros chunk b ofs Hbf Hbw.
@@ -58,6 +59,7 @@ Proof.
                  --- intros b HV. eauto using Mem.store_valid_block_1.
   - destruct (write_frame_at_slice_crossing (wide_bits s) m bf base bw edge cursor ltac:(lia) HFrame)
       as [HAL [PL [oldlow HL]]].
+    pose proof (write_frame_at_slice_crossing_separate (wide_bits s) m bf base bw edge cursor ltac:(lia) HFrame) as HDL.
     set (k := write_word_shift cursor).
     destruct (Mem.valid_access_store m Mint64 bw (write_word_address edge cursor)
         (Vlong (slice_high (wide_bits s) k oldhigh x)) PH) as [mh SH].
@@ -74,20 +76,20 @@ Proof.
     destruct (Mem.valid_access_store mw Mint64 bf (base + 8)
         (Vlong (Int64.repr (cursor - wide_bits s))) PDw) as [mf SF].
     assert (Hhigh : Mem.load Mint64 mf bw (write_word_address edge cursor) = Some (Vlong (slice_high (wide_bits s) k oldhigh x))).
-    { erewrite Mem.load_store_other; [|exact SF|auto].
+    { erewrite frame_store_preserves_word_load; [|eassumption|exact SF].
       erewrite Mem.load_store_other; [|exact SW|right; right; cbn; lia].
-      erewrite Mem.load_store_other; [|exact SO|auto].
+      erewrite frame_store_preserves_word_load; [|eassumption|exact SO].
       exact (Mem.load_store_same _ _ _ _ _ _ SH). }
     assert (Hlow : Mem.load Mint64 mf bw (write_word_address edge cursor - 8) = Some (Vlong (slice_low (wide_bits s) k x))).
-    { erewrite Mem.load_store_other; [|exact SF|auto]. exact (Mem.load_store_same _ _ _ _ _ _ SW). }
+    { erewrite frame_store_preserves_word_load; [|eassumption|exact SF]. exact (Mem.load_store_same _ _ _ _ _ _ SW). }
     exists mf. split.
     + eapply eval_write_wide_crossing_raw with (edge := edge) (k := k)
         (oldhigh := oldhigh) (oldlow := oldlow); eauto; try (unfold k; lia).
       * split; assumption.
-      * erewrite Mem.load_store_other; [exact HO|exact SH|auto].
-      * erewrite Mem.load_store_other; [|exact SO|auto].
+      * erewrite word_store_preserves_frame_load; [exact HO|exact HD|lia|change (base + 8 + 8 <= base + 16); lia|exact SH].
+      * erewrite frame_store_preserves_word_load; [|eassumption|exact SO].
         erewrite Mem.load_store_other; [exact HL|exact SH|right; left; cbn; lia].
-      * erewrite Mem.load_store_other; [|exact SW|auto]. exact (Mem.load_store_same _ _ _ _ _ _ SO).
+      * erewrite word_store_preserves_frame_load; [|exact HDL|lia|change (base + 8 + 8 <= base + 16); lia|exact SW]. exact (Mem.load_store_same _ _ _ _ _ _ SO).
     + split.
       * exists (slice_high (wide_bits s) k oldhigh x), (slice_low (wide_bits s) k x).
         split; [exact Hhigh|]. split; [exact Hlow|]. apply crossing_slice_projection; unfold k; lia.
@@ -97,9 +99,9 @@ Proof.
         -- split.
            ++ split.
               ** erewrite Mem.load_store_other; [|exact SF|right; left; change (base + 8 <= base + 8); lia].
-                 erewrite Mem.load_store_other; [|exact SW|auto].
+                 erewrite word_store_preserves_frame_load; [|exact HDL|lia|change (base + 8 <= base + 16); lia|exact SW].
                  erewrite Mem.load_store_other; [|exact SO|right; left; change (base + 8 <= base + 8); lia].
-                 erewrite Mem.load_store_other; [exact HF|exact SH|auto].
+                 erewrite word_store_preserves_frame_load; [exact HF|exact HD|lia|change (base + 8 <= base + 16); lia|exact SH].
               ** exact (Mem.load_store_same _ _ _ _ _ _ SF).
            ++ split.
               ** intros chunk b ofs Hbf Hbw.

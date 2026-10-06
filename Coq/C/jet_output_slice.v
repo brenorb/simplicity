@@ -47,10 +47,23 @@ Lemma write_frame_at_slice_crossing n m bf base bw edge cursor :
   Mem.valid_access m Mint64 bw (write_word_address edge cursor - 8) Writable /\
   exists w, Mem.load Mint64 m bw (write_word_address edge cursor - 8) = Some (Vlong w).
 Proof.
-  intros Hcross [_ [_ [_ [HC [HM [_ [_ HW]]]]]]].
+  intros Hcross (HB & HF & HE & HC & HM & PF & HW).
   assert (HK : 1 <= write_word_shift cursor <= 64).
   { unfold write_word_shift. pose proof (Z.mod_pos_bound (cursor - 1) 64 ltac:(lia)); lia. }
   specialize (HW (write_word_shift cursor) ltac:(lia)). cbn zeta in HW.
   rewrite slice_crossing_address in HW by reflexivity.
-  destruct HW as [HL [_ HW]]. split; [lia|exact HW].
+  destruct HW as (HA0 & HA & HD & PW & HL). split; [lia|]. split; assumption.
+Qed.
+
+Lemma write_frame_at_slice_crossing_separate n m bf base bw edge cursor :
+  write_word_shift cursor < n -> write_frame_at m bf base bw edge cursor n ->
+  bf <> bw \/ write_word_address edge cursor - 8 + 8 <= base \/
+    base + 16 <= write_word_address edge cursor - 8.
+Proof.
+  intros Hcross (HB & HF & HE & HC & HM & PF & HW).
+  assert (HK : 1 <= write_word_shift cursor <= 64).
+  { unfold write_word_shift. pose proof (Z.mod_pos_bound (cursor - 1) 64 ltac:(lia)); lia. }
+  specialize (HW (write_word_shift cursor) ltac:(lia)). cbn zeta in HW.
+  rewrite slice_crossing_address in HW by reflexivity.
+  exact (proj1 (proj2 (proj2 HW))).
 Qed.

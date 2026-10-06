@@ -40,7 +40,8 @@ Theorem eval_carry_byte_layout m bf base bw edge cursor (carry : bool) x :
     (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
-  intros HFrame. pose proof HFrame as [HB [HF [HE [HC [HM [HD Hrest]]]]]].
+  intros HFrame. pose proof HFrame as [HB [HF [HE [HC [HM Hrest]]]]].
+  pose proof (write_frame_at_head_separate m bf base bw edge cursor 9 ltac:(lia) HFrame) as HD.
   pose proof (write_layout_index cursor ltac:(lia)) as [_ [HK _]].
   assert (HFrame1 : write_frame_at m bf base bw edge cursor 1).
   { eapply write_frame_at_shorter; [|exact HFrame]; lia. }
@@ -56,7 +57,11 @@ Proof.
   { destruct (Z.eq_dec (write_word_shift cursor) 1) as [Hboundary|Hinside].
     - destruct (write_layout_previous_boundary edge cursor Hboundary) as [Hshift Haddr].
       exists bithigh. split.
-      + rewrite HMem8; [exact HBitLoad|left; congruence|right; right]. rewrite Haddr; lia.
+      + rewrite HMem8; [exact HBitLoad|
+          change (bw <> bf \/ write_word_address edge cursor + 8 <= base + 8 \/
+            base + 16 <= write_word_address edge cursor);
+          destruct HD as [HD|[HD|HD]]; [left; congruence|right; left; lia|right; right; exact HD]
+        |right; right]. rewrite Haddr; lia.
       + intros i Hi Hout; reflexivity.
     - destruct (write_layout_previous_inside edge cursor ltac:(lia)) as [Hshift Haddr].
       unfold write_prefix_at in HPrefix8. rewrite Hshift, Haddr in HPrefix8.
