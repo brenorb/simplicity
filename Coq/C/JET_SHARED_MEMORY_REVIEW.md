@@ -1,7 +1,9 @@
 # Shared memory-contract review: endpoint boundary
 
-Status: **partial; a semantic-domain restriction is validated and its repair
-is under verification**. This is part of inherited fidelity review, not new
+Status: **partial; two memory-domain restrictions are validated, with the
+endpoint repair under verification**. The same-block case and its separate
+obligations are documented in `JET_SHARED_BLOCK_REVIEW.md`. This is part of
+inherited fidelity review, not new
 jet coverage. It does not change the production C or canonical programs.
 
 ## Validated restriction and exact scope
@@ -68,14 +70,23 @@ do not modify the statement or weaken its conclusion.
 
 The attached isolated worktree
 `/Users/brenorb/.codex/worktrees/frame-memory-contract/simplicity` starts at
-`3fbfa722`. Its candidate changes only the shared frame-object exclusive-end
-bound to `base + 16 <= Ptrofs.max_unsigned + 1`. All C and canonical Haskell
+`3fbfa722`. Its semantic change widens the shared frame-object exclusive-end
+bound to `base + 16 <= Ptrofs.max_unsigned + 1`; the proof-normalization repair
+below changes no contract. All C and canonical Haskell
 sources remain unchanged. Pointer-field starts still fit within max_unsigned;
 the existing frame layout/address/evaluation/assignment lemmas compile with
 the wider domain.
 
-The full candidate audit is running in
-`/tmp/jet-frame-memory-candidate-audit.log`, session 60362. This is snapshot
+The first candidate audit terminated with exit 2 (session 60362) at a generic
+decoder rewrite in `jet_divmod128_branch_layout.v:125` that exceeded its tactic
+timeout. Its log is preserved in `/tmp/jet-frame-memory-candidate-audit.log`.
+The exact goal was inspected; the proof now isolates the closed all-ones
+payload from the open canonical division term, without changing the public
+statement/specification or increasing its timeout. The complete repaired
+module compiles (session 76385 terminal, exit 0).
+
+The subsequent candidate audit is running in
+`/tmp/jet-frame-memory-candidate-audit-retry.log`, session 47240. This is snapshot
 generation with an actual rebuild, kernel checking and AST comparisons; it
 is **not final acceptance**. No candidate proof or snapshot is integrated or
 published. After completion, inspect every changed public type/definition/
@@ -89,6 +100,9 @@ Next obligations:
    objects, distinguishing pointer starts from exclusive byte endpoints.
 3. Establish the legitimacy and reachability/domain of initial representations
    and separation/address premises; local equivalence is not a constructor proof.
+   The separately validated shared-block case requires particular attention:
+   actual correct execution in a 24-byte allocation is rejected by the blanket
+   bf <> bw premise. The endpoint candidate does not repair that restriction.
 4. Complete the remaining per-jet definition/hypothesis/canonical-chain review.
 
 The registered inventory remains 347/533, with 104 explicit libc conditions.
