@@ -131,6 +131,14 @@ A generic writer proof using byte-range separation also passes compilation and
 kernel checking. These are correction-support/diagnostic results, not new jet
 coverage or a completed generalization of all public memory contracts.
 
+The same report now records seven further compiled/kernel-checked correction
+support results: an initial predicate implied by every old write_frame_at,
+total original writeBit execution with all original conclusions, preservation
+of the remaining writable frame and a 24-byte shared-block instance for
+arbitrary initial word/Boolean values. Intermediate store facts are derived at
+the total boundary. The public predicates and downstream contracts are still
+unchanged, and their repair remains necessary; none of this adds jet coverage.
+
 **Confirmed documentation overstatement corrected here:** earlier "accepted"
 and "completed consolidation review" wording could be read as completion of
 all eight criteria. Only the scoped verification/reviews were complete. The
