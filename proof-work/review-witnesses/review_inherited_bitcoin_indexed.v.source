@@ -1,0 +1,146 @@
+(** Boundary diagnostics for eight existing contracts, not new jet coverage. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Alg Simplicity.Translate.
+Require Import Simplicity.Util.Option Simplicity.Primitive.Bitcoin.
+Require Import C.jet_bitcoin_input_value_local C.jet_bitcoin_indexed_scalar_jets.
+Require Import C.jet_bitcoin_indexed_scalar.
+Require Import C.jet_bitcoin_current_jets C.jet_bitcoin_indexed_ptr_jets C.jet_bitcoin_current_ptr_jets.
+Require Import C.jet_bitcoin_current_spec C.jet_bitcoin_input_value_spec C.jet_bitmachine_rep.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition rw32 z := @fromZ (WordToZ 5) z.
+Definition rw64 z := @fromZ (WordToZ 6) z.
+Definition rhash := Hash256
+  [Int.repr 2147483648; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.one] eq_refl.
+Definition rpoint : outpoint := {| opHash := rhash; opIndex := Int.repr 4294967295 |}.
+Definition rinput : sigTxInput :=
+  {| sigTxiPreviousOutpoint := rpoint; sigTxiValue := Int64.repr 9223372036854775808;
+     sigTxiSequence := Int.repr 4294967295 |}.
+Definition routput : txOutput.
+Proof.
+  refine {| txoValue := Int64.repr 18446744073709551615; txoScript := [] |}.
+  change (0 < 4294967296). lia.
+Defined.
+Definition rtx : sigTx.
+Proof.
+  refine {| sigTxVersion := Int.repr 2; sigTxIn := [rinput]; sigTxOut := [routput]; sigTxLock := Int.zero |}.
+  - change (0 < 1 < 4294967296). lia.
+  - change (0 <= 1 < 4294967296). lia.
+Defined.
+Definition remptytx : sigTx.
+Proof.
+  refine {| sigTxVersion := Int.repr 2; sigTxIn := [rinput]; sigTxOut := []; sigTxLock := Int.zero |}.
+  - change (0 < 1 < 4294967296). lia.
+  - change (0 <= 0 < 4294967296). lia.
+Defined.
+Definition renv : Bitcoin.env.
+Proof.
+  refine {| Bitcoin.envTx := rtx; Bitcoin.envIx := 0; Bitcoin.envScriptCMR := rhash |}.
+  change (0 < 1)%nat. lia.
+Defined.
+Definition remptyenv : Bitcoin.env.
+Proof.
+  refine {| Bitcoin.envTx := remptytx; Bitcoin.envIx := 0; Bitcoin.envScriptCMR := rhash |}.
+  change (0 < 1)%nat. lia.
+Defined.
+Lemma max_index_beyond_singleton {A} (x : A) :
+  nth_error [x] (Z.to_nat (toZ (rw32 4294967295))) = None.
+Proof.
+  apply nth_error_None. apply (proj2 (Nat2Z.inj_le _ _)).
+  rewrite Z2Nat.id.
+  - change (1 <= toZ (rw32 4294967295)). vm_compute; discriminate.
+  - change (0 <= toZ (rw32 4294967295)). vm_compute; discriminate.
+Qed.
+Example input_value_high_bit :
+  @bitcoin_input_value_spec (PrimitivePrimSem option_Monad_Zero) (rw32 0) renv =
+    Some (inr (rw64 9223372036854775808)).
+Proof. vm_compute; reflexivity. Qed.
+Example input_sequence_max :
+  @bitcoin_input_sequence_spec (PrimitivePrimSem option_Monad_Zero) (rw32 0) renv =
+    Some (inr (rw32 4294967295)).
+Proof. vm_compute; reflexivity. Qed.
+Example output_value_max :
+  @bitcoin_output_value_spec (PrimitivePrimSem option_Monad_Zero) (rw32 0) renv =
+    Some (inr (rw64 18446744073709551615)).
+Proof. vm_compute; reflexivity. Qed.
+Example input_value_first_missing :
+  @bitcoin_input_value_spec (PrimitivePrimSem option_Monad_Zero) (rw32 1) renv = Some (inl tt).
+Proof. vm_compute; reflexivity. Qed.
+Example input_sequence_max_index_missing :
+  @bitcoin_input_sequence_spec (PrimitivePrimSem option_Monad_Zero) (rw32 4294967295) renv = Some (inl tt).
+Proof.
+  rewrite bitcoin_input_sequence_sem. unfold indexed_scalar_result.
+  change (Some (match nth_error [rinput] (Z.to_nat (toZ (rw32 4294967295))) with
+    | Some txi => inr (bitcoin_input_sequence_specv txi) | None => inl tt end) = Some (inl tt)).
+  rewrite max_index_beyond_singleton. reflexivity.
+Qed.
+Example input_outpoint_max_index_missing :
+  @bitcoin_input_prev_outpoint_spec (PrimitivePrimSem option_Monad_Zero) (rw32 4294967295) renv = Some (inl tt).
+Proof.
+  rewrite bitcoin_input_prev_outpoint_sem. unfold bitcoin_input_prev_outpoint_result.
+  change (sigTxIn (Bitcoin.envTx renv)) with [rinput].
+  rewrite max_index_beyond_singleton. reflexivity.
+Qed.
+Example output_value_first_missing :
+  @bitcoin_output_value_spec (PrimitivePrimSem option_Monad_Zero) (rw32 1) renv = Some (inl tt).
+Proof. vm_compute; reflexivity. Qed.
+Example output_hash_max_index_missing :
+  @bitcoin_output_script_hash_spec (PrimitivePrimSem option_Monad_Zero) (rw32 4294967295) renv = Some (inl tt).
+Proof.
+  rewrite bitcoin_output_script_hash_sem. unfold bitcoin_output_script_hash_result.
+  change (sigTxOut (Bitcoin.envTx renv)) with [routput].
+  rewrite max_index_beyond_singleton. reflexivity.
+Qed.
+Example output_value_empty_outputs :
+  @bitcoin_output_value_spec (PrimitivePrimSem option_Monad_Zero) (rw32 0) remptyenv = Some (inl tt).
+Proof. vm_compute; reflexivity. Qed.
+Example output_hash_empty_outputs :
+  @bitcoin_output_script_hash_spec (PrimitivePrimSem option_Monad_Zero) (rw32 0) remptyenv = Some (inl tt).
+Proof. vm_compute; reflexivity. Qed.
+Example current_value_high_bit :
+  @bitcoin_current_value_spec (PrimitivePrimSem option_Monad_Zero) tt renv = Some (rw64 9223372036854775808).
+Proof. vm_compute; reflexivity. Qed.
+Example current_sequence_max :
+  @bitcoin_current_sequence_spec (PrimitivePrimSem option_Monad_Zero) tt renv = Some (rw32 4294967295).
+Proof. vm_compute; reflexivity. Qed.
+Example indexed_outpoint_word_order :
+  @bitcoin_input_prev_outpoint_spec (PrimitivePrimSem option_Monad_Zero) (rw32 0) renv =
+    Some (inr (@fromZ (WordToZ 8) (2^255 + 1), rw32 4294967295)).
+Proof. vm_compute; reflexivity. Qed.
+Example current_outpoint_word_order :
+  @bitcoin_current_prev_outpoint_spec (PrimitivePrimSem option_Monad_Zero) tt renv =
+    Some (@fromZ (WordToZ 8) (2^255 + 1), rw32 4294967295).
+Proof. vm_compute; reflexivity. Qed.
+Example indexed_empty_hash :
+  @bitcoin_output_script_hash_spec (PrimitivePrimSem option_Monad_Zero) (rw32 0) renv =
+    Some (inr (@fromZ (WordToZ 8)
+      102987336249554097029535212322581322789799900648198034993379397001115665086549)).
+Proof. vm_compute; reflexivity. Qed.
+Example missing_value_payload_is_padding :
+  @encode (Ty.Sum Ty.Unit Word64) (inl tt) = Some Datatypes.false :: repeat None 64.
+Proof. vm_compute; reflexivity. Qed.
+Example missing_outpoint_payload_is_padding :
+  @encode (Ty.Sum Ty.Unit (Ty.Prod Word256 Word32)) (inl tt) =
+    Some Datatypes.false :: repeat None 288.
+Proof. vm_compute; reflexivity. Qed.
+Example missing_hash_payload_is_padding :
+  @encode (Ty.Sum Ty.Unit Word256) (inl tt) = Some Datatypes.false :: repeat None 256.
+Proof. vm_compute; reflexivity. Qed.
+Check bitcoin_input_value_local_spec.
+Check bitcoin_input_sequence_local_spec.
+Check bitcoin_output_value_local_spec.
+Check bitcoin_current_value_local_spec.
+Check bitcoin_current_sequence_local_spec.
+Check bitcoin_input_prev_outpoint_local_spec.
+Check bitcoin_output_script_hash_local_spec.
+Check bitcoin_current_prev_outpoint_local_spec.
+Print Assumptions bitcoin_input_value_local_spec.
+Print Assumptions bitcoin_input_sequence_local_spec.
+Print Assumptions bitcoin_output_value_local_spec.
+Print Assumptions bitcoin_current_value_local_spec.
+Print Assumptions bitcoin_current_sequence_local_spec.
+Print Assumptions bitcoin_input_prev_outpoint_local_spec.
+Print Assumptions bitcoin_output_script_hash_local_spec.
+Print Assumptions bitcoin_current_prev_outpoint_local_spec.
