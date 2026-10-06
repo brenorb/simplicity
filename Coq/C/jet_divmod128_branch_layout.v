@@ -117,15 +117,12 @@ Proof.
     { unfold ones. apply Int64.unsigned_repr. split; [change (0 <= 18446744073709551615); lia|lia]. }
     assert (Hcells : wide_mixed_cells [(W64,ones);(W64,ones)] =
         encode (@div2n1n_word_spec 6 Alg.CoreFunSem ((xh,(xm,xl)),y))).
-    { change (encode (decode_wide W64 (Int64.zero_ext 64 ones)) ++
-        (encode (decode_wide W64 (Int64.zero_ext 64 ones)) ++ []) =
-        encode (@div2n1n_word_spec 6 Alg.CoreFunSem ((xh,(xm,xl)),y))).
-      rewrite app_nil_r, divmod128_wide_decode by apply Int64.unsigned_range.
-      rewrite HU.
-      change (@encode (Word 7) ((@fromZ (WordToZ 6) Int64.max_unsigned,
-        @fromZ (WordToZ 6) Int64.max_unsigned)) =
-        encode (@div2n1n_word_spec 6 Alg.CoreFunSem ((xh,(xm,xl)),y))).
-      apply f_equal. exact (divmod128_invalid_representation (xh,(xm,xl)) y Hcond). }
+    { (* Reduce only the closed writer payload. A generic decoder rewrite in
+         the open canonical division term performs unnecessary large reduction. *)
+      transitivity (@encode (Word 7) ((@fromZ (WordToZ 6) Int64.max_unsigned,
+        @fromZ (WordToZ 6) Int64.max_unsigned))).
+      - unfold ones. vm_compute; reflexivity.
+      - apply f_equal. exact (divmod128_invalid_representation (xh,(xm,xl)) y Hcond). }
     exists me, le. split.
     + eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := Datatypes.false).
       * apply eval_Etempvar; exact HG.
