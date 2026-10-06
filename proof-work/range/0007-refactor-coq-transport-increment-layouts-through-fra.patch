@@ -1,0 +1,71 @@
+From 2217368e002599d1fc295320ac11148002e78aa5 Mon Sep 17 00:00:00 2001
+From: Breno Brito <brenorb@gmail.com>
+Date: Tue, 6 Oct 2026 00:47:54 -0300
+Subject: [PATCH 07/20] refactor(coq): transport increment layouts through
+ frame byte ranges
+
+
+diff --git a/Coq/C/jet_increment16_layout.v b/Coq/C/jet_increment16_layout.v
+index 94c5532ef56959b3e36a0c9b08c0ea74c10a6fbe..32c8f25fe06a2ad1ed76445dcea91b2901f66cf1 100644
+--- a/Coq/C/jet_increment16_layout.v
++++ b/Coq/C/jet_increment16_layout.v
+@@ -37,9 +37,9 @@ Proof.
+       HReadCursor HInput HOutput.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [HDw [PD HW]]]]]]].
++  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [PD HW]]]]]].
+   pose proof (HW 0 ltac:(lia)) as HW0.
+-  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [initialword HInitialWord]]]].
++  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [_ [initialword HInitialWord]]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+   assert (HLs : bl <> bs).
+   { eapply fresh_frame_not_loaded; eauto. }
+diff --git a/Coq/C/jet_increment32_layout.v b/Coq/C/jet_increment32_layout.v
+index c6ae318b39035f0eb037c52cbe6db4a06fc48f23..0b0e36fe86b5438faaff7b25e006f4f2249bf4d9 100644
+--- a/Coq/C/jet_increment32_layout.v
++++ b/Coq/C/jet_increment32_layout.v
+@@ -37,9 +37,9 @@ Proof.
+       HReadCursor HInput HOutput.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [HDw [PD HW]]]]]]].
++  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [PD HW]]]]]].
+   pose proof (HW 0 ltac:(lia)) as HW0.
+-  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [initialword HInitialWord]]]].
++  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [_ [initialword HInitialWord]]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+   assert (HLs : bl <> bs).
+   { eapply fresh_frame_not_loaded; eauto. }
+diff --git a/Coq/C/jet_increment64_layout.v b/Coq/C/jet_increment64_layout.v
+index 37f19703428ef9ba4b672dce9071c551a5149682..ef6470ac99c00b28bb108b748ca4d9c181376989 100644
+--- a/Coq/C/jet_increment64_layout.v
++++ b/Coq/C/jet_increment64_layout.v
+@@ -38,9 +38,9 @@ Proof.
+       HReadCursor HInput HOutput.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [HDw [PD HW]]]]]]].
++  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [PD HW]]]]]].
+   pose proof (HW 0 ltac:(lia)) as HW0.
+-  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [initialword HInitialWord]]]].
++  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [_ [initialword HInitialWord]]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+   assert (HLs : bl <> bs).
+   { eapply fresh_frame_not_loaded; eauto. }
+diff --git a/Coq/C/jet_increment8_layout.v b/Coq/C/jet_increment8_layout.v
+index 9509b371878b5df839af970955e8f3641e369268..d4b72c323aed1f151ac7a6ba095481e936f75667 100644
+--- a/Coq/C/jet_increment8_layout.v
++++ b/Coq/C/jet_increment8_layout.v
+@@ -31,9 +31,9 @@ Proof.
+     as [HBase [[HSE HSO] HX]].
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [HDw [PD HW]]]]]]].
++  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [PD HW]]]]]].
+   pose proof (HW 0 ltac:(lia)) as HW0.
+-  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [initialword HInitialWord]]]].
++  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [_ [initialword HInitialWord]]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+   assert (HLs : bl <> bs) by (eapply fresh_frame_not_loaded; eauto).
+   assert (HLi : bl <> bi).

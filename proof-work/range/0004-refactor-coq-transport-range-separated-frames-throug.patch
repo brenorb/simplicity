@@ -1,0 +1,40 @@
+From ee415533fa2b46a229a1010529d3a3763bf261f5 Mon Sep 17 00:00:00 2001
+From: Breno Brito <brenorb@gmail.com>
+Date: Tue, 6 Oct 2026 00:37:06 -0300
+Subject: [PATCH 04/20] refactor(coq): transport range-separated frames through
+ context and one8
+
+
+diff --git a/Coq/C/jet_context.v b/Coq/C/jet_context.v
+index 75e8fe4177dd1045a3ba2aa46d907a2f0c39b55c..7396d1407222dbe8162335ea16aa150b872826a8 100644
+--- a/Coq/C/jet_context.v
++++ b/Coq/C/jet_context.v
+@@ -35,13 +35,13 @@ Proof.
+   assert (Hn0 : 0 <= write_size wf) by (unfold write_size; lia).
+   destruct (frame_words_bounds _ Hn0) as [Hfw0 Hfw].
+   unfold write_frame_at. split; [exact HB|]. split; [exact HF|]. split; [exact HE0|].
+-  split; [lia|]. split; [unfold write_size in HM; lia|]. split; [auto|]. split; [exact HV|].
++  split; [lia|]. split; [unfold write_size in HM; lia|]. split; [exact HV|].
+   intros i Hi. cbv zeta. unfold write_cell_address.
+   set (k := (Z.of_nat (writeEmpty wf) - 1 - i) / 64).
+   assert (Hk : 0 <= k < frame_words (write_size wf)).
+   { unfold k, write_size in *. split; [apply Z.div_pos; lia|].
+     apply Z.div_lt_upper_bound; lia. }
+-  split; [lia|]. split; [lia|]. split.
++  split; [lia|]. split; [lia|]. split; [left; congruence|]. split.
+   - split.
+     + intros ofs Hofs. apply HR. change (size_chunk Mint64) with 8 in Hofs. lia.
+     + change (align_chunk Mint64) with 8. apply Z.divide_add_r; [exact HA|].
+diff --git a/Coq/C/jet_one8_layout.v b/Coq/C/jet_one8_layout.v
+index 27af92779e6c61473dcb488babf45a057e1473b2..52357f8f98c75d6e219223d8014fb7bd68d93fbd 100644
+--- a/Coq/C/jet_one8_layout.v
++++ b/Coq/C/jet_one8_layout.v
+@@ -24,7 +24,7 @@ Theorem eval_one8_layout_matches_spec env m bd dbase bs sbase bw edge cursor byt
+       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+ Proof.
+   intros HSbase HSAlign HB HFrame.
+-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw edge cursor 8 ltac:(lia) HFrame)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   assert (HVs : Mem.valid_block m bs).

@@ -1,0 +1,59 @@
+From 00536113eb285b109f00c28a0fd22de66b05ec35 Mon Sep 17 00:00:00 2001
+From: Breno Brito <brenorb@gmail.com>
+Date: Tue, 6 Oct 2026 15:10:27 -0300
+Subject: [PATCH 20/20] fix(coq): allow the exclusive end of a valid frame
+ object
+
+
+diff --git a/Coq/C/jet_contracts.expected b/Coq/C/jet_contracts.expected
+index 847194455e35d4554c54e4da1621465a7d72710a..7ce219f7577168b35e6e5dfbdbc3dece82af5777 100644
+--- a/Coq/C/jet_contracts.expected
++++ b/Coq/C/jet_contracts.expected
+@@ -71364,7 +71364,7 @@ frame_base_valid =
+ fun base : BinNums.Z =>
+ and (BinInt.Z.le BinNums.Z0 base)
+   (BinInt.Z.le (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+-     Integers.Ptrofs.max_unsigned)
++     (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+      : forall _ : BinNums.Z, Prop
+ 
+ Arguments frame_base_valid base%Z_scope
+diff --git a/Coq/C/jet_divmod128_branch_layout.v b/Coq/C/jet_divmod128_branch_layout.v
+index 556c0547c39f59bc4a0c6065e939b5ca820efdc7..a3969e879ccbacfffa9f3378f77cae2ca3007ed1 100644
+--- a/Coq/C/jet_divmod128_branch_layout.v
++++ b/Coq/C/jet_divmod128_branch_layout.v
+@@ -117,15 +117,12 @@ Proof.
+     { unfold ones. apply Int64.unsigned_repr. split; [change (0 <= 18446744073709551615); lia|lia]. }
+     assert (Hcells : wide_mixed_cells [(W64,ones);(W64,ones)] =
+         encode (@div2n1n_word_spec 6 Alg.CoreFunSem ((xh,(xm,xl)),y))).
+-    { change (encode (decode_wide W64 (Int64.zero_ext 64 ones)) ++
+-        (encode (decode_wide W64 (Int64.zero_ext 64 ones)) ++ []) =
+-        encode (@div2n1n_word_spec 6 Alg.CoreFunSem ((xh,(xm,xl)),y))).
+-      rewrite app_nil_r, divmod128_wide_decode by apply Int64.unsigned_range.
+-      rewrite HU.
+-      change (@encode (Word 7) ((@fromZ (WordToZ 6) Int64.max_unsigned,
+-        @fromZ (WordToZ 6) Int64.max_unsigned)) =
+-        encode (@div2n1n_word_spec 6 Alg.CoreFunSem ((xh,(xm,xl)),y))).
+-      apply f_equal. exact (divmod128_invalid_representation (xh,(xm,xl)) y Hcond). }
++    { (* Reduce only the closed writer payload. A generic decoder rewrite in
++         the open canonical division term performs unnecessary large reduction. *)
++      transitivity (@encode (Word 7) ((@fromZ (WordToZ 6) Int64.max_unsigned,
++        @fromZ (WordToZ 6) Int64.max_unsigned))).
++      - unfold ones. vm_compute; reflexivity.
++      - apply f_equal. exact (divmod128_invalid_representation (xh,(xm,xl)) y Hcond). }
+     exists me, le. split.
+     + eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := Datatypes.false).
+       * apply eval_Etempvar; exact HG.
+diff --git a/Coq/C/jet_frame_layout.v b/Coq/C/jet_frame_layout.v
+index 376967460d6e8fb37e90ab2314a52e4577c95cd9..735cc676bcd57dc9c310bf26a69282e98ecef025 100644
+--- a/Coq/C/jet_frame_layout.v
++++ b/Coq/C/jet_frame_layout.v
+@@ -8,7 +8,7 @@ Local Open Scope Z_scope.
+ Local Transparent Archi.ptr64.
+ 
+ Definition frame_base_valid (base : Z) : Prop :=
+-  0 <= base /\ base + 16 <= Ptrofs.max_unsigned.
++  0 <= base /\ base + 16 <= Ptrofs.max_unsigned + 1.
+ 
+ Definition frame_fields_at (m : mem) (bf : block) (base : Z)
+     (bw : block) (edge cursor : Z) : Prop :=

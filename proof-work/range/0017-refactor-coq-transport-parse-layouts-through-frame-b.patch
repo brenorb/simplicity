@@ -1,0 +1,68 @@
+From 702cc43b7162ee01256c1dab244f321e7c69be0c Mon Sep 17 00:00:00 2001
+From: Breno Brito <brenorb@gmail.com>
+Date: Tue, 6 Oct 2026 15:19:14 -0300
+Subject: [PATCH 17/20] refactor(coq): transport parse layouts through frame
+ byte separation
+
+
+diff --git a/Coq/C/jet_parse_lock_layout.v b/Coq/C/jet_parse_lock_layout.v
+index 9b4f22ac001d94e51e28742510e9679c9352a854..0bdec0772066e608b5cd532d61d5094052f6602a 100644
+--- a/Coq/C/jet_parse_lock_layout.v
++++ b/Coq/C/jet_parse_lock_layout.v
+@@ -40,9 +40,9 @@ Proof.
+       HReadCursor HInput HOutput.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [HDw [PD HW]]]]]]].
++  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [PD HW]]]]]].
+   pose proof (HW 0 ltac:(lia)) as HW0.
+-  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [initialword HInitialWord]]]].
++  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [_ [initialword HInitialWord]]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+   assert (HLs : bl <> bs).
+   { eapply fresh_frame_not_loaded; eauto. }
+diff --git a/Coq/C/jet_parse_sequence_layout.v b/Coq/C/jet_parse_sequence_layout.v
+index a72a2a71ddf220b1d19583d00d34069bb2c166e4..611fe786af7b896fa2330cafcb2859b1cbc34d93 100644
+--- a/Coq/C/jet_parse_sequence_layout.v
++++ b/Coq/C/jet_parse_sequence_layout.v
+@@ -40,9 +40,9 @@ Proof.
+       HReadCursor HInput HOutput.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [HDw [PD HW]]]]]]].
++  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [PD HW]]]]]].
+   pose proof (HW 0 ltac:(lia)) as HW0.
+-  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [initialword HInitialWord]]]].
++  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [_ [initialword HInitialWord]]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+   assert (HLs : bl <> bs).
+   { eapply fresh_frame_not_loaded; eauto. }
+diff --git a/Coq/C/jet_parse_sequence_writer.v b/Coq/C/jet_parse_sequence_writer.v
+index e7c0415aee3816e545e07d65915da8d919d1cb32..0eb62da0db6a6bc2819c49eb91ec3d8826e0fdb6 100644
+--- a/Coq/C/jet_parse_sequence_writer.v
++++ b/Coq/C/jet_parse_sequence_writer.v
+@@ -32,7 +32,9 @@ Theorem eval_parse_sequence_writer m bf base bw edge cursor r :
+     (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
+     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+ Proof.
+-  intros HFrame. pose proof HFrame as [HB [HF [HE [HC [HM [HD [PD HW]]]]]]].
++  intros HFrame. pose proof HFrame as [HB [HF [HE [HC [HM [PD HW]]]]]].
++  pose proof (write_frame_at_head_separate m bf base bw edge cursor 18
++    ltac:(lia) HFrame) as HHeadSeparate.
+   pose proof (write_layout_index cursor ltac:(lia)) as [_ [HK _]].
+   assert (HFrame1 : write_frame_at m bf base bw edge cursor 1).
+   { eapply write_frame_at_shorter with (count := 18); [lia|exact HFrame]. }
+@@ -86,7 +88,12 @@ Proof.
+   { destruct (Z.eq_dec (write_word_shift cursor) 1) as [Hboundary|Hinside].
+     - destruct (write_layout_previous_boundary edge cursor Hboundary) as [Hshift Haddr].
+       exists bithigh. split.
+-      + rewrite HMemTail; [exact HBitLoad|left; congruence|right; right].
++      + rewrite HMemTail; [exact HBitLoad| |right; right].
++        * change (bw <> bf \/ write_word_address edge cursor + 8 <= base + 8 \/
++            base + 16 <= write_word_address edge cursor).
++          destruct HHeadSeparate as [HS|[HS|HS]];
++            [left; congruence|right; left; lia|right; right; exact HS].
++        *
+         rewrite Haddr. change (write_word_address edge cursor - 8 + 8 <=
+           write_word_address edge cursor). lia.
+       + intros i Hi Hout; reflexivity.

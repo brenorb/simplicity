@@ -1,0 +1,46 @@
+From 9324672e17f2b235cff5d2d110edc956c550337d Mon Sep 17 00:00:00 2001
+From: Breno Brito <brenorb@gmail.com>
+Date: Tue, 6 Oct 2026 15:19:14 -0300
+Subject: [PATCH 18/20] refactor(coq): transport Bitcoin getter layouts through
+ frame byte separation
+
+
+diff --git a/Coq/C/jet_bitcoin_current_index_layout.v b/Coq/C/jet_bitcoin_current_index_layout.v
+index 5e338bcace0415f60f6a716a11a381f265e8d6aa..61c9f53bd99744a177861871996c3f1cb9586441 100644
+--- a/Coq/C/jet_bitcoin_current_index_layout.v
++++ b/Coq/C/jet_bitcoin_current_index_layout.v
+@@ -29,7 +29,7 @@ Theorem eval_bitcoin_current_index_layout
+       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+ Proof.
+   intros HSbase HSAlign HB HEbase HEmax HIndex HFrame.
+-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw edge cursor 32 ltac:(lia) HFrame)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   assert (HVs : Mem.valid_block m bs).
+diff --git a/Coq/C/jet_bitcoin_getter32_layout.v b/Coq/C/jet_bitcoin_getter32_layout.v
+index 5f6ea3b83a946e035eab39e321f740c79251efeb..3ab5bd77525a8dc80bd9d5c99fec145f3171721b 100644
+--- a/Coq/C/jet_bitcoin_getter32_layout.v
++++ b/Coq/C/jet_bitcoin_getter32_layout.v
+@@ -39,7 +39,7 @@ Theorem eval_bitcoin_getter32_layout f field delta
+       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+ Proof.
+   intros HVars HParams HTemps HRet HBody HField HSbase HSAlign HB HEbase HTbase HDlt HTmax HEnv HVersion HFrame.
+-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw edge cursor 32 ltac:(lia) HFrame)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   assert (HVs : Mem.valid_block m bs).
+diff --git a/Coq/C/jet_bitcoin_version_layout.v b/Coq/C/jet_bitcoin_version_layout.v
+index 6d968c815947ac89eaa87ee56197ea2066b55571..ebf6b00c4149d579973b5666916ef7af779c9056 100644
+--- a/Coq/C/jet_bitcoin_version_layout.v
++++ b/Coq/C/jet_bitcoin_version_layout.v
+@@ -35,7 +35,7 @@ Theorem eval_bitcoin_version_layout_matches_primitive (environment : Bitcoin.env
+       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+ Proof.
+   intros HSbase HSAlign HB HEbase HTbase HTmax HEnv HVersion HR HFrame.
+-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw edge cursor 32 ltac:(lia) HFrame)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   assert (HVs : Mem.valid_block m bs).
