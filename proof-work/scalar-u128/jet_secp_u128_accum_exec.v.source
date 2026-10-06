@@ -1,0 +1,68 @@
+(** Actual u128_accum_u64 execution on owned storage, including wrapped low word. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_rep C.jet_sx_mem C.jet_sx_pure.
+Require Import C.jet_secp_fns C.jet_secp_fe_nv C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_u64_carry.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition u128_accum_initial_regs :=
+  [mkreg (u64_cells 0 [XLv 0; XLv 1]) true (Some 16)].
+Definition u128_accum_run :=
+  xfun (genv_cenv secp_ge) [] (int_table secp_pure) 100 f_secp256k1_u128_accum_u64
+    [XP 0 0; XLv 2] u128_accum_initial_regs [] 3.
+Definition u128_accum_tree := Eval vm_compute in u128_accum_run.
+Definition u128_accum_state :=
+  match u128_accum_tree with Some (RDone state _) => state
+  | _ => mkst (PTree.empty sx) [] [] 0 end.
+Definition u128_accum_lo := XLb Badd (XLv 0) (XLv 2).
+Definition u128_accum_hi := XLb Badd (XLv 1)
+  (XI2L Signed (XLcmp Clt Unsigned u128_accum_lo (XLv 2))).
+Lemma u128_accum_run_eq : u128_accum_run = Some (RDone u128_accum_state ONormal).
+Proof. reflexivity. Qed.
+Lemma u128_accum_return : (stemps u128_accum_state)!1%positive = None.
+Proof. reflexivity. Qed.
+Lemma u128_accum_output : sregs u128_accum_state =
+  [mkreg (u64_cells 0 [u128_accum_lo; u128_accum_hi]) true (Some 16)].
+Proof. reflexivity. Qed.
+Lemma u128_accum_lo_value rho layout :
+  den rho layout u128_accum_lo = Vlong (Int64.add (rho 0%nat) (rho 2%nat)).
+Proof. reflexivity. Qed.
+Lemma u128_accum_hi_value rho layout :
+  den rho layout u128_accum_hi = Vlong (Int64.add (rho 1%nat)
+    (Int64.repr (Int.signed
+      (if Int64.ltu (Int64.add (rho 0%nat) (rho 2%nat)) (rho 2%nat)
+       then Int.one else Int.zero)))).
+Proof. reflexivity. Qed.
+Lemma u128_accum_unsigned_values rho layout :
+  Int64.unsigned (il (den rho layout u128_accum_lo)) =
+    (Int64.unsigned (rho 0%nat) + Int64.unsigned (rho 2%nat)) mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout u128_accum_hi)) =
+    (Int64.unsigned (rho 1%nat) +
+      (Int64.unsigned (rho 0%nat) + Int64.unsigned (rho 2%nat)) / Int64.modulus) mod Int64.modulus.
+Proof.
+  rewrite u128_accum_lo_value, u128_accum_hi_value; cbn [il].
+  split; [exact (proj1 (u64_add_with_carry _ _))|].
+  rewrite Int64.add_unsigned, Int64.unsigned_repr_eq, u64_add_carry_bit_right; reflexivity.
+Qed.
+Local Opaque u128_accum_state.
+Theorem eval_u128_accum_from_owned_region rho layout m :
+  rep rho layout u128_accum_initial_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_u128_accum_u64)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0)); Vlong (rho 2%nat)] E0 mf Vundef /\
+    rep rho layout (sregs u128_accum_state) mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape u128_accum_initial_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  destruct (xfun_pure secp_ge secp_pure secp_pure_ok 100 f_secp256k1_u128_accum_u64
+    [XP 0 0; XLv 2] u128_accum_initial_regs 3 _ u128_accum_run_eq eq_refl rho layout m HRep)
+    as [mf [vres [HCall [HFinal [HReturn [HShape HFrame]]]]]].
+  cbn [rsel fst] in HFinal, HReturn.
+  rewrite u128_accum_return in HReturn; subst vres.
+  change (map (den rho (lay layout)) [XP 0 0; XLv 2]) with
+    [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0 + 0)); Vlong (rho 2%nat)] in HCall.
+  rewrite Z.add_0_r in HCall.
+  exists mf; split; [exact HCall|]; split; assumption.
+Qed.

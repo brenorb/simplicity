@@ -1,0 +1,68 @@
+(** Execute the original u128_rshift body at n=64 through its actual stores. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_exec C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_u128_shift64_expr.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition u128_shift64_then :=
+  Ssequence
+    (Ssequence (Sset jets_secp._t'4 (u128_field jets_secp._hi))
+      (Sassign (u128_field jets_secp._lo)
+        (Ebinop Oshr (Etempvar jets_secp._t'4 tulong) u128_shift_count tulong)))
+    (Sassign (u128_field jets_secp._hi) (Econst_int Int.zero tint)).
+Definition u128_shift64_else :=
+  match fn_body f_secp256k1_u128_rshift with
+  | Ssequence _ (Sifthenelse _ _ other) => other | _ => Sskip
+  end.
+Lemma u128_shift64_actual_body : fn_body f_secp256k1_u128_rshift =
+  Ssequence (Sloop Sskip Sbreak)
+    (Sifthenelse u128_shift_test u128_shift64_then u128_shift64_else).
+Proof. reflexivity. Qed.
+Theorem exec_u128_shift64_body m m1 mf le b value :
+  le!jets_secp._r = Some (Vptr b Ptrofs.zero) ->
+  le!jets_secp._n = Some (Vint (Int.repr 64)) ->
+  Mem.load Mint64 m b 8 = Some (Vlong value) ->
+  Mem.store Mint64 m b 0 (Vlong value) = Some m1 ->
+  Mem.store Mint64 m1 b 8 (Vlong Int64.zero) = Some mf ->
+  Clight2.exec_stmt secp_ge empty_env le m (fn_body f_secp256k1_u128_rshift)
+    E0 (PTree.set jets_secp._t'4 (Vlong value) le) mf Out_normal.
+Proof.
+  intros HR HN HLoad HStoreLo HStoreHi.
+  set (le' := PTree.set jets_secp._t'4 (Vlong value) le).
+  assert (HR' : le'!jets_secp._r = Some (Vptr b Ptrofs.zero)).
+  { unfold le'; rewrite PTree.gso by discriminate; exact HR. }
+  assert (HN' : le'!jets_secp._n = Some (Vint (Int.repr 64))).
+  { unfold le'; rewrite PTree.gso by discriminate; exact HN. }
+  assert (HT' : le'!jets_secp._t'4 = Some (Vlong value)).
+  { unfold le'; apply PTree.gss. }
+  rewrite u128_shift64_actual_body.
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m) (le1 := le).
+  - change E0 with (E0 ** E0).
+    eapply exec_Sloop_stop2 with (t1 := E0) (t2 := E0) (m1 := m) (le1 := le)
+      (out1 := Out_normal) (out2 := Out_break); constructor.
+  - eapply exec_Sifthenelse with (v1 := Vint Int.one) (b := true).
+    + apply eval_u128_shift_test64; exact HN.
+    + reflexivity.
+    + unfold u128_shift64_then.
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m1) (le1 := le').
+      * eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m) (le1 := le').
+        -- apply exec_Sset. apply eval_u128_hi with (b := b); assumption.
+        -- eapply exec_Sassign with (loc := b)
+             (ofs := Ptrofs.add Ptrofs.zero (Ptrofs.repr 0)) (bf := Full)
+             (v2 := Vlong value) (v := Vlong value).
+           ++ apply u128_field_lvalue; [exact HR'|left; split; reflexivity].
+           ++ apply eval_u128_shift_hi64; assumption.
+           ++ reflexivity.
+           ++ apply assign_loc_value with (chunk := Mint64); [reflexivity|].
+              change (Mem.store Mint64 m b 0 (Vlong value) = Some m1); exact HStoreLo.
+      * eapply exec_Sassign with (loc := b)
+          (ofs := Ptrofs.add Ptrofs.zero (Ptrofs.repr 8)) (bf := Full)
+          (v2 := Vint Int.zero) (v := Vlong Int64.zero).
+        -- apply u128_field_lvalue; [exact HR'|right; split; reflexivity].
+        -- constructor.
+        -- reflexivity.
+        -- apply assign_loc_value with (chunk := Mint64); [reflexivity|].
+           change (Mem.store Mint64 m1 b 8 (Vlong Int64.zero) = Some mf); exact HStoreHi.
+Qed.

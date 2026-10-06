@@ -1,0 +1,36 @@
+(** Statement execution with the proved original-C shift helper oracle. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem.
+Require Import C.jet_secp_linkage.
+Require Import OriginalC.jet_secp_shift64_executor.
+Import ListNotations.
+Set Default Timeout 10.
+Theorem xstmt_shift64_normal fuel initial stmt final rho layout m le :
+  xstmt (genv_cenv secp_ge) [] secp_shift64_table fuel [] initial stmt =
+    Some (RDone final ONormal) ->
+  rep rho layout (sregs initial) m -> tmatch rho layout (stemps initial) le ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge empty_env le m stmt E0 le' mf Out_normal /\
+    rep rho layout (sregs final) mf /\ tmatch rho layout (stemps final) le' /\
+    map rshape (sregs final) = map rshape (sregs initial) /\
+    lframe (fun b ofs => ~ foot layout (map rshape (sregs initial)) b ofs) m mf.
+Proof.
+  intros HRun HRep HTemps.
+  destruct (xstmt_sound secp_ge [] secp_shift64_table
+    (fun _ _ => True) (fun _ _ _ => True) (fun _ => False)
+    ltac:(auto) ltac:(intros; contradiction) secp_shift64_table_correct
+    fuel [] initial stmt (RDone final ONormal) HRun rho layout empty_env le m HRep HTemps)
+    as [le' [mf [out [HExec HPost]]]].
+  - intro id; split; [apply PTree.gempty|intros; discriminate].
+  - split; intros; discriminate.
+  - intros r _ [].
+  - exact I.
+  - apply Forall_forall; intros; exact I.
+  - cbn [post rsel fst snd] in HPost.
+    destruct HPost as [HR [HT [HO [HS [_ HF]]]]].
+    destruct out; cbn [outmatch] in HO; try contradiction.
+    exists le', mf; split; [exact HExec|]; split; [exact HR|]; split; [exact HT|]; split; [exact HS|].
+    eapply lframe_implies; [exact HF|].
+    intros b ofs HOutside HValid; split; [exact HValid|]; split; [exact HOutside|tauto].
+Qed.

@@ -1,0 +1,42 @@
+(** Exact Boolean interpretation of the original scalar overflow classifier. *)
+From Coq Require Import ZArith List Bool.
+From compcert Require Import Integers AST Ctypes Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec.
+Require Import OriginalC.jet_secp_scalar_overflow_exec.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition scalar_no3 := XIb Bor (XIc Int.zero)
+  (XLcmp Clt Unsigned (XLv 3) (XLc (Int64.repr (-1)))).
+Definition scalar_no2 := XIb Bor scalar_no3
+  (XLcmp Clt Unsigned (XLv 2) (XLc (Int64.repr (-2)))).
+Definition scalar_yes2 := XIb Bor (XIc Int.zero)
+  (XIb Band (XLcmp Cgt Unsigned (XLv 2) (XLc (Int64.repr (-2)))) (XInot scalar_no2)).
+Definition scalar_no1 := XIb Bor scalar_no2
+  (XLcmp Clt Unsigned (XLv 1) (XLc (Int64.repr (-4994812053365940165)))).
+Definition scalar_yes1 := XIb Bor scalar_yes2
+  (XIb Band (XLcmp Cgt Unsigned (XLv 1) (XLc (Int64.repr (-4994812053365940165)))) (XInot scalar_no1)).
+Definition scalar_yes0 := XIb Bor scalar_yes1
+  (XIb Band (XLcmp Cge Unsigned (XLv 0) (XLc (Int64.repr (-4624529908474429119)))) (XInot scalar_no1)).
+Lemma scalar_overflow_symbolic_return : scalar_overflow_return = scalar_yes0.
+Proof. reflexivity. Qed.
+Definition scalar_overflow_bool (rho : nat -> int64) : bool :=
+  let no3 := orb false (Int64.cmpu Clt (rho 3%nat) (Int64.repr (-1))) in
+  let no2 := orb no3 (Int64.cmpu Clt (rho 2%nat) (Int64.repr (-2))) in
+  let yes2 := orb false (andb (Int64.cmpu Cgt (rho 2%nat) (Int64.repr (-2))) (negb no2)) in
+  let no1 := orb no2 (Int64.cmpu Clt (rho 1%nat) (Int64.repr (-4994812053365940165))) in
+  let yes1 := orb yes2 (andb (Int64.cmpu Cgt (rho 1%nat) (Int64.repr (-4994812053365940165))) (negb no1)) in
+  orb yes1 (andb (Int64.cmpu Cge (rho 0%nat) (Int64.repr (-4624529908474429119))) (negb no1)).
+Lemma machine_bits_or a b : Int.or (b2i a) (b2i b) = b2i (orb a b).
+Proof. destruct a, b; reflexivity. Qed.
+Lemma machine_bits_and_not a b : Int.and (b2i a) (Int.not (b2i b)) = b2i (andb a (negb b)).
+Proof. destruct a, b; reflexivity. Qed.
+Lemma machine_zero_or_bit a : Int.or Int.zero (b2i a) = b2i a.
+Proof. destruct a; reflexivity. Qed.
+Lemma scalar_overflow_return_flag rho layout :
+  den rho layout scalar_overflow_return = Vint (b2i (scalar_overflow_bool rho)).
+Proof.
+  rewrite scalar_overflow_symbolic_return.
+  cbn [den scalar_yes0 scalar_yes1 scalar_yes2 scalar_no1 scalar_no2 scalar_no3 iop lcmp ii il].
+  rewrite !machine_zero_or_bit, !machine_bits_and_not, !machine_bits_or.
+  reflexivity.
+Qed.
