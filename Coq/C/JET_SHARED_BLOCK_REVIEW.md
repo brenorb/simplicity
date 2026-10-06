@@ -108,3 +108,68 @@ with Show; the statement was unchanged.
    review types/definitions/assumptions and perform independent final acceptance.
 4. Keep the registered inventory (347/533; 104 libc-conditional) distinct from
    exhaustive fidelity certification. No new registration is made here.
+
+## Total writer and sequencing support checked subsequently
+
+Three isolated modules now add seven completed results for the same correction,
+without changing the public predicates, production C, ASTs or canonical programs:
+
+| Module | Completed results | Exact role |
+| --- | --- | --- |
+| `review_frame_ranges_total` | 3 | Initial range-separated frame predicate, implication from the old predicate, head extraction and total actual writeBit execution |
+| `review_frame_ranges_step` | 3 | Capacity restriction, store-based preservation and total writer with a derived remaining-frame contract |
+| `review_frame_ranges_embedded` | 1 | Constructed 24-byte initial memory, arbitrary initial UWORD and both Boolean inputs, full writer conclusions and 63 remaining writable cells |
+
+The first module replaces blanket `bf <> bw` with separation of each word
+that can be touched from the frame's byte interval `[base,base+16)`. The old
+predicate implies this candidate for every old input. The total writer derives
+both actual stores from initial Writable permissions and proves the actual
+Clight function call; execution, stores, final memory and output are not
+preconditions of that total theorem. Its complete original output/framing/
+permission conclusion is byte-identical to `eval_writeBit_layout`'s conclusion.
+
+The step module additionally derives a valid range-separated frame at
+`cursor-1` with `count-1` cells. Its intermediate store-preservation lemma
+takes store facts, but the total theorem constructs and discharges those facts.
+Preservation handles both a repeated write within a word and a transition to
+another word; the proof derives separation between distinct UWORD addresses
+from their eight-byte spacing. No remembered output value is assumed for the
+remaining cells. This is sequencing support, not a complete multiwriter or
+whole-jet equivalence.
+
+The ordinary shared-block instance establishes the initial predicate for all
+64 cells of an arbitrary UWORD, executes the actual writer for either Boolean
+value, and derives the exact output bit, prefix preservation, cursor 63,
+unchanged loads outside the two modified ranges, preserved permissions/valid
+blocks and capacity for the next 63 writes. The existing public predicate still
+rejects this instance. Both the public predicate repair and all dependent
+reader/writer/caller transports remain outstanding.
+
+The candidate retains the old exclusive-end address bounds; it does not claim
+to settle the separately documented endpoint admissibility question. Adding
+the remaining-frame conclusion strengthens the support theorem; it does not
+weaken any existing output conclusion or alter a canonical specification.
+
+Evidence:
+
+- All three complete sources are in
+  `/Users/brenorb/.codex/jet-proof-scratch/original-c/` under the module names
+  above. Source/compiled hashes and 15 unchanged dependency/source hashes are
+  recorded in `/tmp/jet-frame-ranges-source-review.json`.
+- Complete compilation: `/tmp/jet-frame-ranges-total-compile.log` (session
+  55846), `/tmp/jet-frame-ranges-step-compile.log` (3711), and
+  `/tmp/jet-frame-ranges-embedded-compile.log` (25831), all terminal exit 0.
+- Independent kernel check of all three modules:
+  `/tmp/jet-frame-ranges-kernel.log`, session 70209 terminal exit 0; no unsafe
+  kernel modes. Total execution results retain the six inherited
+  classical/extensionality/CompCert assumptions and add no libc, execution or
+  output premise.
+- The first preservation rewrite needed explicit byte-range cases. Exact
+  `Show` evidence is in `/tmp/jet-frame-ranges-total-debug.log`. Two missing
+  imports were diagnosed with `Show` and qualified `Check` in
+  `/tmp/jet-frame-ranges-step-debug.log` and
+  `/tmp/jet-frame-ranges-step-import-debug.log`; statements stayed unchanged.
+
+These results are verified correction support, unpublished as repository proof
+modules. They add **zero** registered jets and do not complete the global
+inherited review or the public memory-contract repair.
