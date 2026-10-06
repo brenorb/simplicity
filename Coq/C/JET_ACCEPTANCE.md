@@ -1,4 +1,18 @@
-# Consolidation acceptance record
+# Latest repository consolidation acceptance
+
+The scoped endpoint correction is accepted with exit 0, observed
+2026-10-06 18:58:55 UTC.
+The inherited fidelity review remains **partially complete**. No new jet is
+registered. Build, 583 kernel modules, 3,534 assumption records, reviewed
+contracts, negative tests and four AST comparisons pass.
+
+Audited and integrated input SHA-256: `c92e9fba3f64de4713a8fcb317f9982f07f85afd162ee892af7e740d5679280c`.
+See `JET_CONSOLIDATION_2026-10-06.md` and its JSON for the precise source
+comparison, retained local artifacts and deferred range/secp candidates.
+The prior acceptance record below is historical. Its old temporary original
+consolidation log is unavailable; published Git receipts preserve that history.
+
+# Prior consolidation acceptance record
 
 Verification status: **accepted**, observed 2026-10-06 01:00:50 UTC.
 Inherited-work fidelity review: **partially complete**. See
