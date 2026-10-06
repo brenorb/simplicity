@@ -1,7 +1,7 @@
 # Shared memory-contract review: endpoint boundary
 
 Status: **partial; two memory-domain restrictions are validated, with the
-endpoint repair under verification**. The same-block case and its separate
+scoped endpoint repair accepted**. The same-block case and its separate
 obligations are documented in `JET_SHARED_BLOCK_REVIEW.md`. This is part of
 inherited fidelity review, not new
 jet coverage. It does not change the production C or canonical programs.
@@ -32,7 +32,7 @@ jet execution or desired canonical output is supplied as a premise.
 
 **What this proves:** the shared predicate excludes a range and field access
 which the chosen CompCert/Clight memory semantics accepts. It disproves the
-claim that the current bound follows merely from representability of the
+claim that the former bound follows merely from representability of the
 field pointers, accessibility of the object or absence of address wraparound.
 
 **What it does not prove:** a complete jet counterexample, a wrong output or
@@ -100,17 +100,17 @@ no declaration. Together with the constructed endpoint/field diagnostic above,
 this supports the scoped domain correction, not a complete inherited fidelity
 review.
 
-This is **not final acceptance**. A separate full `--accept`, with neither
-update nor no-build flags, is running as session 60514 in
-`/tmp/jet-frame-memory-final-accept.log`. Its inputs are frozen. No candidate
-proof or snapshot is integrated or published. Successful candidate generation
-and reviewed diffs do not substitute for observing that final process exit.
+The independent full acceptance now passes with **exit 0** in
+`/tmp/jet-20261006-consolidation-final-accept.log`. The earlier interrupted
+final run has no acceptance result. Frozen audited inputs match the integrated
+branch fingerprint `c92e9fba3f64de4713a8fcb317f9982f07f85afd162ee892af7e740d5679280c`.
+See `JET_CONSOLIDATION_2026-10-06.md` for the scoped receipt. The old rejection
+diagnostic refers to the former predicate, not the repaired bound.
 
 Next obligations:
 
-1. Complete independent full acceptance of the reviewed endpoint candidate
-   before integrating it. The candidate rebuild/snapshot comparison is complete;
-   the final acceptance process is still pending.
+1. The scoped endpoint correction and independent acceptance are complete.
+   The following broader admissibility obligations remain open.
 2. Review analogous exclusive-end bounds on UWORD output ranges and environment
    objects, distinguishing pointer starts from exclusive byte endpoints.
 3. Establish the legitimacy and reachability/domain of initial representations

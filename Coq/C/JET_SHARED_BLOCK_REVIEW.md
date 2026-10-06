@@ -366,3 +366,15 @@ linked in those receipts. Additional core-family transports are being rebuilt;
 they are not covered by these completed receipts. Whole-consumer verification,
 snapshot/assumption review and separate full acceptance remain required. The
 candidate is still neither integrated nor published.
+
+## Consolidation boundary, 2026-10-06
+
+The same-block repair remains private and unaccepted. Additional scoped
+receipts bring the previously kernel-checked changed-module count to 91.
+Another 12 modules were built and source-reviewed, then committed atomically
+as `18f1c31b`, `25ebb2c2`, `702cc43b`, `9324672e` and `1540220d`. Their separate
+kernel run was stopped; no pass is claimed. The full consumer build still
+fails, and the copy/executor consumers require further interface adaptation.
+See `JET_CONSOLIDATION_2026-10-06.md` for the retained candidate head and exact
+limits. The independently accepted endpoint correction does not settle these
+same-block obligations or change coverage.
