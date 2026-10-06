@@ -1,0 +1,33 @@
+From 1540220dadb1d9ffae6d247f32304b1e4121efb9 Mon Sep 17 00:00:00 2001
+From: Breno Brito <brenorb@gmail.com>
+Date: Tue, 6 Oct 2026 15:19:14 -0300
+Subject: [PATCH 19/20] refactor(coq): transport SHA layouts through frame byte
+ separation
+
+
+diff --git a/Coq/C/jet_sha256_iv_layout.v b/Coq/C/jet_sha256_iv_layout.v
+index 98099d737506397b31322d2963432e035ba576f1..e568e4232eeaf5b9b4007c3dfb229b40ab41487b 100644
+--- a/Coq/C/jet_sha256_iv_layout.v
++++ b/Coq/C/jet_sha256_iv_layout.v
+@@ -28,7 +28,7 @@ Theorem eval_sha256_iv_layout_matches_spec env m bd dbase bs sbase bw edge curso
+       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+ Proof.
+   intros HSbase HSAlign HB HFrame.
+-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw edge cursor 256 ltac:(lia) HFrame)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   assert (HVs : Mem.valid_block m bs).
+diff --git a/Coq/C/jet_sha_block_local.v b/Coq/C/jet_sha_block_local.v
+index 3960e399c0fa2831b2b0b5f062a10fc6ee0afc3c..17ef9b2163b849a635906d8254c81dc16adf89d0 100644
+--- a/Coq/C/jet_sha_block_local.v
++++ b/Coq/C/jet_sha_block_local.v
+@@ -124,7 +124,7 @@ Proof.
+   destruct HSource as [HSE HSO].
+   destruct (frame_loadbytes_at m bs sbase _ _ HSE HSO) as [bytes HB].
+   pose proof (Mem.loadbytes_length _ _ _ _ _ HB) as Hbyteslen.
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 256 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:A1.

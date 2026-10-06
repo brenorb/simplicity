@@ -1,0 +1,215 @@
+From f4c3a2da46a1a48576e4015d189fdc33499582de Mon Sep 17 00:00:00 2001
+From: Breno Brito <brenorb@gmail.com>
+Date: Tue, 6 Oct 2026 00:54:13 -0300
+Subject: [PATCH 13/20] refactor(coq): transport word transforms through frame
+ byte ranges
+
+
+diff --git a/Coq/C/jet_extend_wide_layout.v b/Coq/C/jet_extend_wide_layout.v
+index f51d87a4b10f30310ca380f63651920011392fdf..24590432166b6258cacba7138e31d93a55734e6f 100644
+--- a/Coq/C/jet_extend_wide_layout.v
++++ b/Coq/C/jet_extend_wide_layout.v
+@@ -37,7 +37,7 @@ Proof.
+   assert (Hwidth : 8 <= extend_wide_bits s) by (destruct s; cbn; lia).
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (extend_wide_bits s) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_extend_word8_layout.v b/Coq/C/jet_extend_word8_layout.v
+index 38df9d904fc2ae369fda013ce45ba08e12bf67b8..7a8a733cfb4a8799937cd8d81b12b1a2027a72c6 100644
+--- a/Coq/C/jet_extend_word8_layout.v
++++ b/Coq/C/jet_extend_word8_layout.v
+@@ -35,7 +35,7 @@ Proof.
+   assert (Hwidth : 8 <= extend_word8_bits s) by (destruct s; cbn; lia).
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (extend_word8_bits s) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_left_pad_bit8_layout.v b/Coq/C/jet_left_pad_bit8_layout.v
+index b69f65812ce7c327d47b6553b9cd6b554767a812..8b8ba8782ceb8a51851f18cbfc8952f666ababf4 100644
+--- a/Coq/C/jet_left_pad_bit8_layout.v
++++ b/Coq/C/jet_left_pad_bit8_layout.v
+@@ -31,7 +31,7 @@ Proof.
+   intros HSbase HSAlign [HSE HSO] HRC Hinput Hout.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 8 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_left_pad_bit_wide_layout.v b/Coq/C/jet_left_pad_bit_wide_layout.v
+index e10cfcf64ce58708030cd31fe9d963e44ec0d840..4622a712ea7935907ef8f25bcb1fb79eb11ace48 100644
+--- a/Coq/C/jet_left_pad_bit_wide_layout.v
++++ b/Coq/C/jet_left_pad_bit_wide_layout.v
+@@ -32,7 +32,7 @@ Proof.
+   pose proof (wide_bits_bounds s) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits s) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_left_rotate_wide_layout_machine.v b/Coq/C/jet_left_rotate_wide_layout_machine.v
+index 6ed4bf870e9c1ef1da81ed3b87e648d54421852a..732f4d68622de12a24c75e5d58111802b525c0f3 100644
+--- a/Coq/C/jet_left_rotate_wide_layout_machine.v
++++ b/Coq/C/jet_left_rotate_wide_layout_machine.v
+@@ -40,7 +40,7 @@ Proof.
+   pose proof (wide_bits_bounds (byte_rotate_width s)) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits (byte_rotate_width s)) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_right_extend_wide_layout.v b/Coq/C/jet_right_extend_wide_layout.v
+index b357acd36d60bdf5751e54336cb77024e519378d..efbde9b3fb869204d98f7abd3cb9bb7d91e42d08 100644
+--- a/Coq/C/jet_right_extend_wide_layout.v
++++ b/Coq/C/jet_right_extend_wide_layout.v
+@@ -38,7 +38,7 @@ Proof.
+   assert (Hwidth : 8 <= extend_wide_bits s) by (destruct s; cbn; lia).
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (extend_wide_bits s) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_right_extend_word8_layout.v b/Coq/C/jet_right_extend_word8_layout.v
+index 2b8888baf969e0d3b8b3b51ec8288e27ae5e2d51..092613674ddb870a28ebdadc94048267085aab57 100644
+--- a/Coq/C/jet_right_extend_word8_layout.v
++++ b/Coq/C/jet_right_extend_word8_layout.v
+@@ -35,7 +35,7 @@ Proof.
+   assert (Hwidth : 8 <= extend_word8_bits s) by (destruct s; cbn; lia).
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (extend_word8_bits s) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_right_rotate_wide_layout_machine.v b/Coq/C/jet_right_rotate_wide_layout_machine.v
+index d9819fafcfbd1841172f931a45115491df043ed0..26dd77bc7b957fc7739e425e2bd546c648b8943f 100644
+--- a/Coq/C/jet_right_rotate_wide_layout_machine.v
++++ b/Coq/C/jet_right_rotate_wide_layout_machine.v
+@@ -40,7 +40,7 @@ Proof.
+   pose proof (wide_bits_bounds (byte_rotate_width s)) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits (byte_rotate_width s)) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_rotate16_layout_machine.v b/Coq/C/jet_rotate16_layout_machine.v
+index fcf09250fb8d4e701e07f7606e930b7969506f2e..8417a5581dc8386d600c5f94d5259021c4a34cfb 100644
+--- a/Coq/C/jet_rotate16_layout_machine.v
++++ b/Coq/C/jet_rotate16_layout_machine.v
+@@ -40,7 +40,7 @@ Proof.
+   pose proof (wide_bits_bounds W16) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits W16) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_rotate8_layout_machine.v b/Coq/C/jet_rotate8_layout_machine.v
+index df10dbbd43536dd55bae9d0fc458e6289af3e1d0..9cf52cb6630966d45600b30db8cf7ea7e1320341 100644
+--- a/Coq/C/jet_rotate8_layout_machine.v
++++ b/Coq/C/jet_rotate8_layout_machine.v
+@@ -39,7 +39,7 @@ Proof.
+   assert (Hwidth : 1 <= 8 <= 64) by lia.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (8) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_shift16_layout_machine.v b/Coq/C/jet_shift16_layout_machine.v
+index e63351ff8b3f40b73a4fbcf71ef146d05d98a3ce..e79276eb06e98ff672c347ea0e6723798bfb6082 100644
+--- a/Coq/C/jet_shift16_layout_machine.v
++++ b/Coq/C/jet_shift16_layout_machine.v
+@@ -40,7 +40,7 @@ Proof.
+   pose proof (wide_bits_bounds W16) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits W16) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_shift16_with_layout_machine.v b/Coq/C/jet_shift16_with_layout_machine.v
+index 5bde04737100eb7798aadaf58af42dfe823776aa..889271d93eb1586b921bdc9450d0a5fe5ecfd11b 100644
+--- a/Coq/C/jet_shift16_with_layout_machine.v
++++ b/Coq/C/jet_shift16_with_layout_machine.v
+@@ -42,7 +42,7 @@ Proof.
+   pose proof (wide_bits_bounds W16) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits W16) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_shift8_layout_machine.v b/Coq/C/jet_shift8_layout_machine.v
+index 20b69c7d7c8a802c7e4eaa10acdc84dce3fb6ce1..d612b820fef6eb78c5d037c9c759cab6d0ace8f7 100644
+--- a/Coq/C/jet_shift8_layout_machine.v
++++ b/Coq/C/jet_shift8_layout_machine.v
+@@ -39,7 +39,7 @@ Proof.
+   assert (Hwidth : 1 <= 8 <= 64) by lia.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 8 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_shift8_with_layout_machine.v b/Coq/C/jet_shift8_with_layout_machine.v
+index cd35dd8a17310b46623b109ed6627973d669bc94..c64b7abfd26f16f60554256db313a5db4b674530 100644
+--- a/Coq/C/jet_shift8_with_layout_machine.v
++++ b/Coq/C/jet_shift8_with_layout_machine.v
+@@ -41,7 +41,7 @@ Proof.
+   assert (Hwidth : 1 <= 8 <= 64) by lia.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor 8 ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_shift_byte_layout_machine.v b/Coq/C/jet_shift_byte_layout_machine.v
+index d17506a590cf2ffc13e93bcd40be5592d687b524..9becdd4305c783efe9fa9ed33a7fdd52812ae278 100644
+--- a/Coq/C/jet_shift_byte_layout_machine.v
++++ b/Coq/C/jet_shift_byte_layout_machine.v
+@@ -40,7 +40,7 @@ Proof.
+   pose proof (wide_bits_bounds (byte_rotate_width s)) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits (byte_rotate_width s)) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
+diff --git a/Coq/C/jet_shift_byte_with_layout_machine.v b/Coq/C/jet_shift_byte_with_layout_machine.v
+index a3d30375d389716c687a531e05e933ad43dc8fdd..d9241d6c237259279d1be490f1cf1ce827418ca0 100644
+--- a/Coq/C/jet_shift_byte_with_layout_machine.v
++++ b/Coq/C/jet_shift_byte_with_layout_machine.v
+@@ -42,7 +42,7 @@ Proof.
+   pose proof (wide_bits_bounds (byte_rotate_width s)) as Hwidth.
+   assert (HLocalBase : frame_base_valid 0).
+   { split; [lia|change (16 <= 18446744073709551615); lia]. }
+-  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
++  pose proof Hout as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
+   destruct (write_frame_at_head m bd dbase bw outedge cursor (wide_bits (byte_rotate_width s)) ltac:(lia) Hout)
+     as [_ [_ [_ [initialword HInitialWord]]]].
+   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
