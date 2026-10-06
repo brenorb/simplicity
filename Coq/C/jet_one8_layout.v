@@ -24,7 +24,7 @@ Theorem eval_one8_layout_matches_spec env m bd dbase bs sbase bw edge cursor byt
       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros HSbase HSAlign HB HFrame.
-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bd dbase bw edge cursor 8 ltac:(lia) HFrame)
     as [_ [_ [_ [initialword HInitialWord]]]].
   assert (HVs : Mem.valid_block m bs).
