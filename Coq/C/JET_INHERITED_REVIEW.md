@@ -153,3 +153,18 @@ and registered contracts, followed by source/definition/hypothesis review of its
 unresolved rows and correction of concrete findings. New jet development and
 promotion are deferred. Completion requires that matrix and its substantive
 review, not another unchanged aggregate compilation.
+
+## Evidence matrix started after this assessment
+
+`JET_EQUIVALENCE_REVIEW_MATRIX.csv` now records every public C declaration and
+its actual registered theorem. `JET_INHERITED_DECLARATIONS.csv` indexes the
+122 inherited modules, including module namespaces, source locations/hashes and
+all their individually audited public names. Their pending statuses are explicit;
+enumeration is not completion of fidelity review.
+
+`JET_BITCOIN_TIMELOCK_VALUE_REVIEW.md` adds a per-contract source/definition/
+precondition/conclusion review of 12 existing TimeLock/totals/fee chains and
+15 kernel-checked semantic boundary diagnostics. Initial cache correspondence
+is retained and explained; transaction-constructor correctness is not claimed.
+No new discrepancy or coverage increase is reported for this family. The full
+inherited review remains partial.
