@@ -1,5 +1,33 @@
 # Original Jacobian infinity predicate: internal support
 
+## Latest completed boundary
+
+Flag-accessor independent kernel **39066 passes with exit 0**, 12 inherited
+allowlisted context axioms and all three unsafe categories empty.
+Three further modules now compile freshly: point reader run **71861** (seven
+results), actual execution **57143** (one result, six inherited assumptions),
+initial representation **15844** (one result, four logical assumptions).
+There are **12 compiled internal results / four modules**, no new public jet.
+Reader execution/run independent kernel **73173** is live, log
+`point-read-kernel.log`. The initial representation still needs its own
+independent kernel receipt; do not include it in 73173's scope.
+
+The field reader uses X/Y/Z offsets 0/40/80 inside a base-zero real local
+point allocation of 128 bytes and source local of 16 bytes. It retains the
+original field reader body, read event, output cursor invariant, regional
+representation and outside-footprint memory framing. Initial field cells are
+undefined, not assumed zero. Its representation is now derived directly from
+the two Freeable ranges, actual source frame fields and block separation.
+No helper call, result value, cursor update or memory change is assumed by
+that constructor.
+
+Next extract the normalized coordinate and actual updated source cursor from
+the selected point-reader representation, preserving the entire point's
+Freeable ownership. Compose three actual reads with cursor rebasing and
+other-coordinate/flag preservation. Derive the original Z zero test, flag
+store and `read_gej` call, then complete public lifecycle/specification.
+The exact public goal and original call chain below remain unchanged.
+
 Public target: `simplicity_gej_is_infinity`, arbitrary GEJ triple input,
 Bit output. Canonical CoreJets binds `GejIsInfinity` to the record
 `gej_is_infinity = drop fe_is_zero` (LibSecp256k1.hs:510), so only the Z
@@ -41,4 +69,3 @@ parameter/temp disjointness is not vacuous; set the exact field-load location
 before rewriting pointer representation; the return-result condition is a
 conjunction of nonvoid type and successful cast, not a reflexive equality.
 No source, domain, proof-integrity rule or timeout was weakened.
-
