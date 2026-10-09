@@ -2,6 +2,14 @@
 
 ## Latest completed boundary
 
+Point-reader run/execution independent kernel **73173 now passes with exit
+0**, 15 inherited allowlisted context axioms and all unsafe categories empty, log
+`point-read-kernel.log`. This covers the seven run results and actual
+execution result, not the separately added initial-representation theorem.
+Sources are in signed local commit **9e41f9f2**. Initial representation's
+independent kernel **96146** is live, log `point-read-initial-kernel.log`.
+Poll this handle; do not restart it.
+
 Flag-accessor independent kernel **39066 passes with exit 0**, 12 inherited
 allowlisted context axioms and all three unsafe categories empty.
 Three further modules now compile freshly: point reader run **71861** (seven
