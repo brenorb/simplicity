@@ -40,8 +40,12 @@ The actual source computes it from `point_write_run` separately for X/Y/Z;
 the kernel-checked `point_write_run_eq` proves each equality to the real
 symbolic run, and nonempty/storage/output-log lemmas constrain its use.
 Review of those interfaces does not claim a manual exhaustive inspection of
-every expanded trace node. Other helper-type review and standard snapshot
-extension comparison remain to be finished before full acceptance.
+every expanded trace node. All 71 helper/public interfaces were also inspected
+in the supplementary normal-printer output `interfaces-readable.out` (1005
+lines, compiler exit 0). This completes preliminary interface review, including
+from-stores/from-calls adapters versus owned constructors, bounds, separation,
+representation, field preservation, source copy and public cleanup. Standard
+project snapshot extension comparison remains to be done before acceptance.
 
 Actual assumption enumeration **18820 passes with exit 0**, log
 `/tmp/jet-gej-infinity.YrUC7w/assumptions-review.out`. All 71 named records
