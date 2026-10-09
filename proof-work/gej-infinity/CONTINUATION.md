@@ -2,6 +2,12 @@
 
 ## Latest continuation (2026-10-09)
 
+Field-add checkout acceptance **96671** stopped with exit 2 on two existing
+tactic timeouts; its inputs remain unchanged. See field-add continuation for
+exact locations and retry boundary. Infinity's **70735** is still live and
+progressing through the standard assumption inventory. Inputs are untouched.
+No new infinity registry/snapshot acceptance is claimed.
+
 The checkout has advanced separately: the accepted field-add extension is
 guarded-integrated (38 exact files), with new proof/checker sources in signed
 local commit `62350724` and archive receipt `dc87c54f`. Actual-checkout
