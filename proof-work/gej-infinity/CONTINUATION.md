@@ -2,6 +2,25 @@
 
 ## Latest continuation (2026-10-09)
 
+Whole public-chain independent kernel **58930 passes with exit 0**, log
+`/tmp/jet-gej-infinity.YrUC7w/gej-infinity-public-kernel.log`. Its 15 context
+axioms are on the inherited allowlist and all three unsafe categories are empty.
+All 71 archived results now have independent whole-chain kernel evidence.
+The pure scoped `check-infinity-wiring.py` passes, and
+`test-infinity-wiring.py` rejects 38 meaningful in-memory mutations. Both are
+archived with source hashes. They check the literal recursive zero/point ports,
+canonical record/catalog wiring, both application registrations, exact public
+theorem, original C writer/jet bodies and public allocation/copy/free call
+wiring. This supplements formal proofs and AST regeneration; it is not an
+exhaustive transitive fidelity or evaluator-domain certificate.
+
+Reproduce using `python3 -B` on the materialized checker/test, passing
+`--repo /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity`
+and `--candidates /tmp/jet-gej-infinity.YrUC7w`.
+Remaining promotion work: exact type/definition/assumption snapshot review,
+isolated complete acceptance, guarded integration and actual-checkout acceptance.
+The candidate remains unregistered; current coverage is not increased.
+
 The complete public contract now **compiles freshly with exit 0** (39500):
 `C.jet_secp_gej_infinity_local.gej_infinity_literal_local_spec` has type
 `secp_jet_local_spec f_simplicity_gej_infinity Ty.Unit
