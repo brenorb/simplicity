@@ -2,6 +2,20 @@
 
 ## Latest continuation (2026-10-09)
 
+Fresh exact-source build **9386 passes with exit 0**. Standard contract
+generation **48412 passes with exit 0**. Its actual extension adds 71 types
+and 22 definitions without changing any baseline line. All types and 20
+non-computed definitions match the prior deep prints modulo qualification/
+whitespace; the two computational witnesses retain standard depth truncation
+and are supplemented by deep prints and exact-source/kernel evidence.
+Standard assumptions **70735** are live; poll them. After terminal success,
+run `review-snapshots.py --baseline /tmp/jet-negate-accept.ftWsqQ/Coq
+--candidate /tmp/jet-infinity-accept.xBQOUj/Coq
+--preliminary /tmp/jet-gej-infinity.YrUC7w`, record its exact review, then
+launch separate `check-jets.sh --accept` with no update flags. No registration
+or checkout input has been changed. The checkout fingerprint still matches
+its accepted `f87884d8...` receipt.
+
 Isolated assembly is now `/tmp/jet-infinity-accept.xBQOUj`, based on the
 accepted isolated 350-entry negation baseline, not the field-add candidate.
 `ASSEMBLY.json` guards eight metadata files and all 22 exact proof/checker

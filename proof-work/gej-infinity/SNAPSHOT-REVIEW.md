@@ -4,6 +4,33 @@ This is isolated candidate review, not repository snapshot generation or full
 acceptance. Sources remain the archived, freshly compiled, independently
 kernel-checked chain. No accepted snapshot or registry is changed.
 
+## Standard isolated snapshot extension (2026-10-09)
+
+Exact-source candidate build **9386 passes with exit 0**, log
+`/tmp/jet-infinity-accept.xBQOUj/build-exact.log`. Standard contract generation
+**48412 passes with exit 0**, log `contracts-update.log` in that root.
+The actual standard snapshot adds 1322 type lines and 4159 definition lines,
+with no deletion or replacement: all 140783 baseline lines remain verbatim
+and in order. Candidate snapshot SHA-256:
+`814446b2c4a231982e419859005ad79719d648e079ca1a437e8487a3bb8d454b`.
+
+All 71 new standard theorem records match the reviewed deep preliminary
+prints modulo qualification and whitespace. All 22 definitions are accounted
+for; 20 likewise match. The ordinary printer truncates fuel and generated
+trace expressions with `...` in `point_write_run` and `point_write_tree`.
+The separate deep prints have neither truncation, and exact source guards plus
+the already kernel-checked run equality constrain those computed witnesses.
+This is not a claim to have manually reviewed every trace node. Do not change
+the ordinary snapshot printer or silently equate its truncated output with
+the full terms. The supplementary normal-print interfaces are 1005 lines,
+SHA-256 `50d2754a9105029c0164ac2194b31c5588397304f640ea6c1bf27f2670f1c13c`.
+
+Standard assumptions **70735** are still running; log
+`assumptions-update.log`. The read-only `review-snapshots.py` compares exact
+baseline preservation, all added interfaces/definitions, proof source guards
+and every assumption record. Run it only after 70735 finishes with exit 0.
+Full acceptance and guarded checkout integration remain open.
+
 Actual contract-print session **75319 passes with exit 0** using Coq 8.17.1,
 the checked negation baseline and narrow `-R` overlay. Its script is
 `/tmp/jet-gej-infinity.YrUC7w/infinity_contracts_review.v`; output is
