@@ -2,6 +2,36 @@
 
 ## Latest completed boundary
 
+**27 compiled internal results / nine modules**. Owned coordinate reader's
+whole-closure kernel **71421 passes with exit 0**, all 15 context axioms
+inherited/allowlisted and all unsafe categories empty. Same-point footprint/
+coordinate preservation compiles (56485 exit 0, two results), and the actual
+three-reader composition compiles (6534 exit 0, two results).
+It derives calls at offsets 0/40/80, all three normalized fields in final
+memory, the actual source cursor rc+768, both whole local Freeable ranges,
+the final cursor/output invariant and each call's precise memory frame.
+No call, cursor advancement or other-coordinate preservation is assumed.
+
+The generic preservation helper takes length <=5 for its arbitrary limb
+list; `point_canonical_limbs_length` discharges this for every Word256
+input, not by restricting the public input domain. Reads use the same
+point block; no false assumption of three distinct field allocations.
+Whole-three-reader independent kernel **37831** is live, log
+`point-three-read-kernel.log`. Do not edit its sources or dependencies.
+
+The older negation scratch baseline lacks the shared field-add rebase module.
+An exact copy of `proof-work/fe-add/jet_secp_read_fe_rebase.v.source` is
+materialized in the predicate overlay and compiles freshly (83850 exit 0).
+This reused module is not counted as a new predicate result. Materialize
+and compile it first when reproducing `jet_secp_point_three_reads`.
+
+Next derive original zero-test execution on Z inside the whole point region,
+the resulting canonical bit and actual flag store. Connect the exact
+`read_gej` body/call, then source allocation/copy, bit output, true return
+and freeing both public locals. The literal target remains the canonical
+record's `drop fe_is_zero`; do not register this internal three-read
+composition as a public jet.
+
 There are now **23 compiled internal results / seven modules**.
 Initial-storage independent kernel **96146 passes with exit 0**, all 15
 context axioms on the inherited allowlist and all three unsafe categories
