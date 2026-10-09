@@ -2,6 +2,24 @@
 
 ## Latest continuation (2026-10-09)
 
+The checkout has advanced separately: the accepted field-add extension is
+guarded-integrated (38 exact files), with new proof/checker sources in signed
+local commit `62350724` and archive receipt `dc87c54f`. Actual-checkout
+acceptance **96671** is live, frozen input fingerprint
+`16594c779a885f405041d02315d3cbaec414f439dc78c3d219dde3a8b425f631`.
+Do not edit its audited inputs. Infinity's isolated tree still uses the
+older accepted negation baseline; its inputs have not changed. Eventual
+infinity integration must preserve the newer field-add extension, not copy
+shared metadata/snapshots wholesale from the older infinity tree.
+
+Infinity standard assumptions **70735** are confirmed live and progressing
+through existing records; the output snapshot still equals the baseline.
+A premature read-only `review-snapshots.py` invocation **95220** exited 1
+at the exact-assumptions assertion for that reason. No proof, input or
+snapshot was changed by that invocation. Rerun only after generator 70735
+finishes with exit 0; do not mistake this pending-snapshot comparison for
+a completed review or an implementation-proof failure.
+
 Fresh exact-source build **9386 passes with exit 0**. Standard contract
 generation **48412 passes with exit 0**. Its actual extension adds 71 types
 and 22 definitions without changing any baseline line. All types and 20
