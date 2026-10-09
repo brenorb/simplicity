@@ -61,7 +61,7 @@ Proof.
         -- change (frame_fields_at m bf base bw edge (cursor - 0)).
            rewrite Z.sub_0_r. exact (proj1 (proj2 HW)).
         -- split; [unfold loads_outside_ranges; intros; reflexivity|]. split; auto.
-  - pose proof HW as [HFBase [HFields [HE [HC [HMax [Hfw [PW HWords]]]]]]].
+  - pose proof HW as [HFBase [HFields [HE [HC [HMax [PW HWords]]]]]].
     assert (HW32 : write_frame_at m bf base bw edge cursor 32).
     { eapply write_frame_at_shorter with (count := 32 * Z.of_nat (length (x :: xs)));
         [cbn [length]; lia|exact HW]. }
@@ -90,7 +90,14 @@ Proof.
     assert (HfirstFinal : frame_output_cells_at mf bw edge cursor
       (@encode (Word 5) (@fromZ (WordToZ 5) (Int.unsigned x)))).
     { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base)
-        (cursor := cursor - 32); [exact Hfw| |exact HPrefixTail|exact HMemTail|exact HFirst].
+        (cursor := cursor - 32); [| |exact HPrefixTail|exact HMemTail|exact HFirst].
+      - intros i Hi.
+        rewrite (encode_word_length 5 (@fromZ (WordToZ 5) (Int.unsigned x))) in Hi.
+        change (i < 32)%nat in Hi.
+        destruct (HWords (Z.of_nat i) ltac:(cbn [length] in HC |- *; lia))
+          as (HLower & HUpper & HSeparate & HAccess & HBacking).
+        exact HSeparate.
+      -
       rewrite (encode_word_length 5 (@fromZ (WordToZ 5) (Int.unsigned x))).
       change (0 <= cursor - 32 <= cursor - 32).
       cbn [length] in HC; lia. }
@@ -109,8 +116,9 @@ Proof.
       rewrite (encode_word_length 5 (@fromZ (WordToZ 5) (Int.unsigned x))).
       exact Htail.
     + split.
-      * eapply write_prefix_at_chain; [exact Hfw| |exact Hprefix|exact HPrefixTail|exact HMemTail].
-        cbn [length] in HC; lia.
+      * eapply write_prefix_at_chain; [| |exact Hprefix|exact HPrefixTail|exact HMemTail].
+        -- exact (write_frame_at_head_separate m bf base bw edge cursor 32 ltac:(lia) HW32).
+        -- cbn [length] in HC; lia.
       * split.
         -- replace (cursor - 32 * Z.of_nat (length (x :: xs))) with
              (cursor - 32 - 32 * Z.of_nat (length xs)) by (cbn [length]; lia). exact HFieldsTail.

@@ -25,7 +25,7 @@ Theorem eval_one_wide_layout_matches_spec env s m bd dbase bs sbase bw edge curs
       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros HSbase HSAlign HB HFrame. pose proof (wide_bits_bounds s) as HNbound.
-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bd dbase bw edge cursor (wide_bits s) ltac:(lia) HFrame)
     as [_ [_ [_ [initialword HInitialWord]]]].
   assert (HVs : Mem.valid_block m bs).

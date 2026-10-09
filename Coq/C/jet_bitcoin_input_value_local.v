@@ -106,7 +106,7 @@ Proof.
   { erewrite Mem.loadbytes_alloc_unchanged; eauto. }
   destruct (bitcoin_read_wide_step W32 m ma mc bl bs sbase bi edge read_cursor a bytes HRC HRF HIn
     HAlloc HBa HStore) as (mr & r & Hread & Hr & HRFields & HRMem & HRPerm & HRValid & HRLoads).
-  pose proof HFrame as [HDB [[HDE HDO] [HEd [HN [HMx [HDW [PD HWords]]]]]]].
+  pose proof HFrame as [HDB [[HDE HDO] [HEd [HN [HMx [PD HWords]]]]]].
   destruct (write_frame_at_head m bd dbase bw outedge cursor 65 ltac:(lia) HFrame)
     as [_ [_ [_ [w0 Hw0]]]].
   assert (HLd : bl <> bd) by (eapply fresh_frame_not_loaded; eauto).

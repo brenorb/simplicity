@@ -47,7 +47,7 @@ Proof.
         -- change (frame_fields_at m bf base bw edge (cursor - wide_bits s * 0)).
            rewrite Z.mul_0_r, Z.sub_0_r. exact (proj1 (proj2 HW)).
         -- split; [unfold loads_outside_ranges; intros; reflexivity|]. split; auto.
-  - pose proof HW as [HFBase [HFields [HE [HC [HMax [Hfw [PW HWords]]]]]]].
+  - pose proof HW as [HFBase [HFields [HE [HC [HMax [PW HWords]]]]]].
     assert (HW8 : write_frame_at m bf base bw edge cursor (wide_bits s)).
     { eapply write_frame_at_shorter with (count := wide_bits s * Z.of_nat (length (x :: xs)));
         [cbn [length]; nia|exact HW]. }
@@ -67,7 +67,16 @@ Proof.
     assert (HfirstFinal : frame_output_cells_at mf bw edge cursor
       (encode (decode_wide s (Int64.zero_ext (wide_bits s) x)))).
     { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base)
-        (cursor := cursor - wide_bits s); [exact Hfw| |exact HPrefixTail|exact HMemTail|exact HFirst].
+        (cursor := cursor - wide_bits s); [| |exact HPrefixTail|exact HMemTail|exact HFirst].
+      - intros i Hi.
+        rewrite (encode_word_length (wide_log s)
+          (decode_wide s (Int64.zero_ext (wide_bits s) x))) in Hi.
+        assert (HiZ : 0 <= Z.of_nat i < wide_bits s).
+        { rewrite wide_bits_pow. lia. }
+        destruct (HWords (Z.of_nat i) ltac:(cbn [length] in HC |- *; nia))
+          as (HLower & HUpper & HSeparate & HAccess & HBacking).
+        exact HSeparate.
+      -
       rewrite (encode_word_length (wide_log s) (decode_wide s (Int64.zero_ext (wide_bits s) x))), <- wide_bits_pow.
       change (0 <= cursor - wide_bits s <= cursor - wide_bits s).
       cbn [length] in HC; nia. }
@@ -86,8 +95,10 @@ Proof.
       rewrite (encode_word_length (wide_log s) (decode_wide s (Int64.zero_ext (wide_bits s) x))), <- wide_bits_pow.
       exact Htail.
     + split.
-      * eapply write_prefix_at_chain; [exact Hfw| |exact Hprefix|exact HPrefixTail|exact HMemTail].
-        cbn [length] in HC; nia.
+      * eapply write_prefix_at_chain; [| |exact Hprefix|exact HPrefixTail|exact HMemTail].
+        -- exact (write_frame_at_head_separate m bf base bw edge cursor
+             (wide_bits s) ltac:(nia) HW8).
+        -- cbn [length] in HC; nia.
       * split.
         -- replace (cursor - wide_bits s * Z.of_nat (length (x :: xs))) with
              (cursor - wide_bits s - wide_bits s * Z.of_nat (length xs)) by (cbn [length]; nia). exact HFieldsTail.

@@ -57,7 +57,7 @@ Proof.
         -- change (frame_fields_at m bf base bw edge (cursor - 0)).
            rewrite Z.sub_0_r. exact (proj1 (proj2 HW)).
         -- split; [unfold loads_outside_ranges; intros; reflexivity|]. split; auto.
-  - pose proof HW as [HFBase [HFields [HE [HC [HMax [Hfw [PW HWords]]]]]]].
+  - pose proof HW as [HFBase [HFields [HE [HC [HMax [PW HWords]]]]]].
     assert (HW8 : write_frame_at m bf base bw edge cursor 8).
     { eapply write_frame_at_shorter with (count := 8 * Z.of_nat (length (x :: xs)));
         [cbn [length]; lia|exact HW]. }
@@ -86,7 +86,12 @@ Proof.
     assert (HfirstFinal : frame_output_cells_at mf bw edge cursor
       (encode (decode_word8 (Int64.repr (Int.unsigned x))))).
     { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base)
-        (cursor := cursor - 8); [exact Hfw| |exact HPrefixTail|exact HMemTail|exact HFirst].
+        (cursor := cursor - 8); [| |exact HPrefixTail|exact HMemTail|exact HFirst].
+      - intros i Hi. rewrite (encode_word_length 3 (decode_word8 (Int64.repr (Int.unsigned x)))) in Hi.
+        change (i < 8)%nat in Hi.
+        destruct (HWords (Z.of_nat i) ltac:(cbn [length] in HC |- *; lia))
+          as (HWordLower & HWordUpper & HWordSeparate & HWordAccess & HWordBacking). exact HWordSeparate.
+      -
       rewrite (encode_word_length 3 (decode_word8 (Int64.repr (Int.unsigned x)))).
       change (0 <= cursor - 8 <= cursor - 8).
       cbn [length] in HC; lia. }
@@ -105,7 +110,9 @@ Proof.
       rewrite (encode_word_length 3 (decode_word8 (Int64.repr (Int.unsigned x)))).
       exact Htail.
     + split.
-      * eapply write_prefix_at_chain; [exact Hfw| |exact Hprefix|exact HPrefixTail|exact HMemTail].
+      * eapply write_prefix_at_chain; [| |exact Hprefix|exact HPrefixTail|exact HMemTail].
+        -- exact (write_frame_at_head_separate m bf base bw edge cursor 8 ltac:(lia) HW8).
+        --
         cbn [length] in HC; lia.
       * split.
         -- replace (cursor - 8 * Z.of_nat (length (x :: xs))) with

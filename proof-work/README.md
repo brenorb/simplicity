@@ -8,8 +8,8 @@ the inherited fidelity review.
 
 | Work | Preserved form | Status |
 | --- | --- | --- |
-| Frame range correction | 20 original commit patches; 19 unintegrated corrections and one already accepted endpoint fix | Consumer build and full acceptance remain open |
-| Field odd/zero predicates | Exact candidate patch, 18 modules, two source checkers, pending registration/snapshots | Candidate acceptance and inherited-review priorities remain open |
+| Frame range correction | Repaired sources integrated on `codex/range-integration`; original 20 patches retained as history | Exact accepted candidate fingerprint matches; full build, 603 kernel modules and all acceptance gates pass; inherited endpoint/evaluator/domain/fidelity review remains open |
+| Field odd/zero predicates | 18 modules, checkers and registration integrated in `cafb9b31`; original patch retained as history | Full acceptance passed; inherited domain/fidelity review remains open |
 | Scalar/uint128 | 22 complete helper sources and one historical literal-source checker | Public canonical and lifecycle chains incomplete; four sources need fresh verification |
 | SHA initialization/preservation | One complete source with 16 results | Kernel/contract review and consuming public chains remain open |
 | Review witnesses | 19 exact sources | Scoped diagnostic/review evidence; some require earlier contract revisions |

@@ -1,0 +1,67 @@
+diff --git a/Coq/C/jet_empty_buffer_segment.v b/Coq/C/jet_empty_buffer_segment.v
+index ba849b55..cdb0ffbf 100644
+--- a/Coq/C/jet_empty_buffer_segment.v
++++ b/Coq/C/jet_empty_buffer_segment.v
+@@ -19,17 +19,21 @@ Lemma write_frame_at_after_padding m mf bf base bw edge cursor n count :
+   (forall bb ofs kind p, Mem.perm m bb ofs kind p -> Mem.perm mf bb ofs kind p) ->
+   write_frame_at mf bf base bw edge (cursor - n) count.
+ Proof.
+-  intros Hn Hcount [HB [HF [HE [HC [HM [HD [PC HW]]]]]]] HF' HL HP.
++  intros Hn Hcount [HB [HF [HE [HC [HM [PC HW]]]]]] HF' HL HP.
+   split; [exact HB|]. split; [exact HF'|]. split; [exact HE|]. split; [lia|].
+-  split; [lia|]. split; [exact HD|]. split.
++  split; [lia|]. split.
+   - destruct PC as [P A]. split; [|exact A]. intros addr HR. apply HP, P; exact HR.
+   - intros i Hi.
+     assert (Haddr : write_cell_address edge (cursor - n) i = write_cell_address edge cursor (i + n)).
+     { unfold write_cell_address. replace (cursor - n - 1 - i) with (cursor - 1 - (i + n)) by lia; reflexivity. }
+-    rewrite Haddr. destruct (HW (i + n) ltac:(lia)) as [H0 [HA [PW [v LV]]]].
+-    split; [exact H0|]. split; [exact HA|]. split.
++    rewrite Haddr. destruct (HW (i + n) ltac:(lia)) as [H0 [HA [HD [PW [v LV]]]]].
++    split; [exact H0|]. split; [exact HA|]. split; [exact HD|]. split.
+     + destruct PW as [P A]. split; [|exact A]. intros addr HR. apply HP, P; exact HR.
+-    + exists v. rewrite HL by auto; exact LV.
++    + exists v. rewrite HL; [exact LV|].
++      change (bw <> bf \/ write_cell_address edge cursor (i + n) + 8 <= base + 8 \/
++        base + 16 <= write_cell_address edge cursor (i + n)).
++      destruct HD as [HD|[HD|HD]];
++        [left; congruence|right; left; lia|right; right; exact HD].
+ Qed.
+ 
+ Theorem eval_empty_buffer_segment m bf base bw edge cursor count tail :
+@@ -47,7 +51,14 @@ Theorem eval_empty_buffer_segment m bf base bw edge cursor count tail :
+     (forall bb ofs kind p, Mem.perm m bb ofs kind p -> Mem.perm mf bb ofs kind p) /\
+     (forall bb, Mem.valid_block m bb -> Mem.valid_block mf bb).
+ Proof.
+-  intros Htail HFrame. pose proof HFrame as [HB [HF [HE [HC [HM [HD [PD HW]]]]]]].
++  intros Htail HFrame.
++  pose proof (write_frame_at_head_separate m bf base bw edge cursor
++    (1 + Z.of_nat count + tail) ltac:(lia) HFrame) as HD.
++  pose proof HFrame as [HB [HF [HE [HC [HM [PD HW]]]]]].
++  assert (HheadOutside : bw <> bf \/ write_word_address edge cursor + 8 <= base + 8 \/
++      base + 16 <= write_word_address edge cursor).
++  { destruct HD as [HD|[HD|HD]];
++      [left; congruence|right; left; lia|right; right; exact HD]. }
+   assert (Hone : write_frame_at m bf base bw edge cursor 1)
+     by (eapply write_frame_at_shorter with (count := 1 + Z.of_nat count + tail); [lia|exact HFrame]).
+   destruct (eval_writeBit_layout m bf base bw edge cursor Datatypes.false Hone)
+@@ -67,15 +78,15 @@ Proof.
+     cbn [cell_matches]. split; [lia|]. exists bitword.
+     replace (cursor - 1 - Z.of_nat 0) with (cursor - 1) by lia. split.
+     - change (Mem.load Mint64 mf bw (write_word_address edge cursor) = Some (Vlong bitword)).
+-      rewrite HSkipMem by auto; exact HBitLoad.
++      rewrite HSkipMem; [exact HBitLoad|exact HheadOutside].
+     - symmetry; exact HBitValue. }
+   exists mb, mf. split; [exact HBit|]. split; [exact HSkip|]. split.
+   - change (frame_output_cells_at mf bw edge cursor ([Some Datatypes.false] ++ repeat None count)).
+     apply frame_output_cells_at_app. split; [exact HFirst|]. exact HCells.
+   - split.
+-    + eapply write_prefix_at_preserved; [| |exact HBitPrefix].
+-      * intros ofs v HL; exact HL.
+-      * intros ofs v HL. rewrite HSkipMem by auto; exact HL.
++    + intros old Hold. destruct (HBitPrefix old Hold) as [w [Hw Hsame]].
++      exists w. split; [|exact Hsame].
++      rewrite HSkipMem; [exact Hw|exact HheadOutside].
+     + split; [exact HTail|]. split.
+       * intros chunk bb ofs Hbf Hbw. rewrite HSkipMem by exact Hbf.
+         apply HBitMem; [exact Hbf|].

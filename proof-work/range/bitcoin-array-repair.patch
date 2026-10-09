@@ -1,0 +1,43 @@
+diff --git a/Coq/C/jet_bitcoin_write32s_layout.v b/Coq/C/jet_bitcoin_write32s_layout.v
+index 967c6c3f..c783d5cb 100644
+--- a/Coq/C/jet_bitcoin_write32s_layout.v
++++ b/Coq/C/jet_bitcoin_write32s_layout.v
+@@ -66,7 +66,9 @@ Proof.
+         -- change (frame_fields_at m bf base bw edge (cursor - 0)).
+            rewrite Z.sub_0_r. exact (proj1 (proj2 HW)).
+         -- split; [unfold loads_outside_ranges; intros; reflexivity|]. split; auto.
+-  - pose proof HW as [HFBase [HFields [HE [HC [HMax [Hfw [PW HWords]]]]]]].
++  - pose proof (write_frame_at_head_separate m bf base bw edge cursor
++      (32 * Z.of_nat (length (x :: xs))) ltac:(cbn [length]; lia) HW) as Hheadsep.
++    pose proof HW as [HFBase [HFields [HE [HC [HMax [PW HWords]]]]]].
+     assert (HW32 : write_frame_at m bf base bw edge cursor 32).
+     { eapply write_frame_at_shorter with (count := 32 * Z.of_nat (length (x :: xs)));
+         [cbn [length]; lia|exact HW]. }
+@@ -111,10 +113,14 @@ Proof.
+     assert (HfirstFinal : frame_output_cells_at mf bw edge cursor
+       (@encode (Word 5) (@fromZ (WordToZ 5) (Int.unsigned x)))).
+     { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base)
+-        (cursor := cursor - 32); [exact Hfw| |exact HPrefixTail|exact HMemTail|exact HFirst].
+-      rewrite (encode_word_length 5 (@fromZ (WordToZ 5) (Int.unsigned x))).
+-      change (0 <= cursor - 32 <= cursor - 32).
+-      cbn [length] in HC; lia. }
++        (cursor := cursor - 32); [| |exact HPrefixTail|exact HMemTail|exact HFirst].
++      - intros i Hi.
++        rewrite (encode_word_length 5 (@fromZ (WordToZ 5) (Int.unsigned x))) in Hi.
++        change (i < 32)%nat in Hi.
++        destruct (HWords (Z.of_nat i) ltac:(cbn [length]; lia)) as [_ [_ [HD _]]]. exact HD.
++      - rewrite (encode_word_length 5 (@fromZ (WordToZ 5) (Int.unsigned x))).
++        change (0 <= cursor - 32 <= cursor - 32).
++        cbn [length] in HC; lia. }
+     assert (HLo : edge + 8 * ((cursor - 32 * Z.of_nat (length (x :: xs))) / 64) <=
+       slice_write_low 32 edge cursor).
+     { pose proof (slice_write_low_bound 32 edge cursor ltac:(lia) ltac:(cbn [length] in HC; lia)) as HL.
+@@ -130,7 +136,7 @@ Proof.
+       rewrite (encode_word_length 5 (@fromZ (WordToZ 5) (Int.unsigned x))).
+       exact Htail.
+     + split.
+-      * eapply write_prefix_at_chain; [exact Hfw| |exact Hprefix|exact HPrefixTail|exact HMemTail].
++      * eapply write_prefix_at_chain; [exact Hheadsep| |exact Hprefix|exact HPrefixTail|exact HMemTail].
+         cbn [length] in HC; lia.
+       * split.
+         -- replace (cursor - 32 * Z.of_nat (length (x :: xs))) with

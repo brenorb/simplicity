@@ -37,8 +37,10 @@ Proof.
         -- split; [unfold loads_outside_ranges; intros; reflexivity|]. split; auto.
   - destruct Hchain as [HJ [Hhalf Hchain]].
     pose proof (buffer8_empty_bits_nonnegative xs Hchain) as HtailBits.
-    pose proof HW as [HFBase [HFields [HE [HC [HMax [Hfw [PW HWords]]]]]]].
+    pose proof HW as [HFBase [HFields [HE [HC [HMax [PW HWords]]]]]].
     set (width := 1 + 8 * j).
+    pose proof (write_frame_at_head_separate m bf base bw edge cursor
+      (buffer8_empty_bits (j :: xs) + tail) ltac:(cbn [buffer8_empty_bits]; lia) HW) as Hheadsep.
     assert (Hcount : Z.of_nat (Z.to_nat (8 * j)) = 8 * j) by (apply Z2Nat.id; lia).
     assert (HSegment : write_frame_at m bf base bw edge cursor
       (1 + Z.of_nat (Z.to_nat (8 * j)) + (buffer8_empty_bits xs + tail))).
@@ -59,8 +61,12 @@ Proof.
     assert (HfirstFinal : frame_output_cells_at mf bw edge cursor
       (Some Datatypes.false :: repeat None (Z.to_nat (8 * j)))).
     { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base)
-        (cursor := cursor - width); [exact Hfw| |exact HPrefixTail|exact HMemTail|exact HHead].
-      rewrite HHeadLength. cbn [buffer8_empty_bits] in HC. unfold width; lia. }
+        (cursor := cursor - width); [| |exact HPrefixTail|exact HMemTail|exact HHead].
+      - intros i Hi.
+        assert (HiWidth : Z.of_nat i < width) by lia.
+        destruct (HWords (Z.of_nat i) ltac:(cbn [buffer8_empty_bits]; unfold width in *; lia))
+          as (_ & _ & HD & _). exact HD.
+      - rewrite HHeadLength. cbn [buffer8_empty_bits] in HC. unfold width; lia. }
     assert (HLo : edge + 8 * ((cursor - buffer8_empty_bits (j :: xs)) / 64) <=
       edge + 8 * ((cursor - width) / 64)).
     { pose proof (Z.div_le_mono (cursor - buffer8_empty_bits (j :: xs)) (cursor - width) 64
@@ -75,7 +81,7 @@ Proof.
           ((Some Datatypes.false :: repeat None (Z.to_nat (8 * j))) ++ buffer8_empty_output_cells xs)).
         apply frame_output_cells_at_app. split; [exact HfirstFinal|]. rewrite HHeadLength. exact HTail.
       * split.
-        -- eapply write_prefix_at_chain; [exact Hfw| |exact HPrefix|exact HPrefixTail|exact HMemTail].
+        -- eapply write_prefix_at_chain; [exact Hheadsep| |exact HPrefix|exact HPrefixTail|exact HMemTail].
            cbn [buffer8_empty_bits] in HC. unfold width; lia.
         -- split.
            ++ change (write_frame_at mf bf base bw edge (cursor - (1 + 8 * j + buffer8_empty_bits xs)) tail).

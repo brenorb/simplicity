@@ -116,7 +116,9 @@ Proof.
     assert (HI : (i < length (map word8_array_value (byte_chunks_values (buffer_byte_chunks 5 buf))))%nat).
     { apply nth_error_Some; rewrite HX; discriminate. }
     rewrite map_length in HI. rewrite HMemFree by congruence.
-    erewrite Mem.load_store_other; [|exact HOverStore|right; left; change (size_chunk Mint8unsigned) with 1; lia].
+    assert (HIndexBound : Z.of_nat i < 63) by (clear - HI HBound; lia).
+    erewrite Mem.load_store_other;
+      [|exact HOverStore|right; left; change (size_chunk Mint8unsigned) with 1; clear - HIndexBound; lia].
     rewrite HMemS by (left; congruence). apply HArray; exact HX.
   }
   exists mf, r. split; [exact HCall|]. split; [exact Hr|]. split.

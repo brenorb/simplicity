@@ -1,0 +1,33 @@
+diff --git a/Coq/C/jet_present_buffer_segment.v b/Coq/C/jet_present_buffer_segment.v
+index 3c45c868..57979b4d 100644
+--- a/Coq/C/jet_present_buffer_segment.v
++++ b/Coq/C/jet_present_buffer_segment.v
+@@ -31,7 +31,9 @@ Theorem eval_present_buffer_segment m bi input bf base bw edge cursor xs tail :
+     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+ Proof.
+   intros HN HT HI HM Hif Hiw HA HFrame.
+-  pose proof HFrame as [HB [HF [HE [HC [HMax [HD [PD HW]]]]]]].
++  pose proof (write_frame_at_head_separate m bf base bw edge cursor
++    (1 + 8 * Z.of_nat (length xs) + tail) ltac:(lia) HFrame) as Hheadsep.
++  pose proof HFrame as [HB [HF [HE [HC [HMax [PD HW]]]]]].
+   assert (Hone : write_frame_at m bf base bw edge cursor 1)
+     by (eapply write_frame_at_shorter; [|exact HFrame]; lia).
+   destruct (eval_writeBit_layout m bf base bw edge cursor Datatypes.true Hone)
+@@ -68,13 +70,15 @@ Proof.
+     symmetry; exact HBitValue. }
+   assert (HFirstFinal : frame_output_cells_at mf bw edge cursor [Some Datatypes.true]).
+   { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base) (cursor := cursor - 1);
+-      [exact HD|cbn [length]; lia|exact HBytePrefix|exact HByteMem|exact HFirst]. }
++      [|cbn [length]; lia|exact HBytePrefix|exact HByteMem|exact HFirst].
++    intros i Hi. cbn [length] in Hi.
++    destruct (HW (Z.of_nat i) ltac:(lia)) as (_ & _ & HD & _). exact HD. }
+   exists mb, mf. split; [exact HBit|]. split; [exact HBytes|]. split.
+   - change (frame_output_cells_at mf bw edge cursor ([Some Datatypes.true] ++ concat (map (@encode (Word 3)) xs))).
+     apply frame_output_cells_at_app; split; [exact HFirstFinal|exact HCells].
+   - split.
+     + eapply write_prefix_at_chain with (next := cursor - 1);
+-        [exact HD|lia|exact HBitPrefix|exact HBytePrefix|exact HByteMem].
++        [exact Hheadsep|lia|exact HBitPrefix|exact HBytePrefix|exact HByteMem].
+     + split; [exact HTail|]. split.
+       * intros chunk b ofs Hbf Hbw. rewrite HByteMem.
+         -- apply HBitMem; [exact Hbf|].

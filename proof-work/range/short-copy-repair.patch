@@ -1,0 +1,180 @@
+diff --git a/Coq/C/jet_copyBits_helper_exec.v b/Coq/C/jet_copyBits_helper_exec.v
+index 75a00f35..a5b23c31 100644
+--- a/Coq/C/jet_copyBits_helper_exec.v
++++ b/Coq/C/jet_copyBits_helper_exec.v
+@@ -5,6 +5,7 @@ From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps.
+ From compcert Require Import ClightBigstep Memory Events Globalenvs.
+ Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_frame_access C.jet_frame_constants.
+ Require Import C.jet_read8_layout C.jet_write_layout C.jet_copyBits_exec.
++Require Import C.jet_output_layout.
+ Require Import C.jet_LSBclear_width C.jet_LSBkeep_width C.jet_word_bits.
+ Import Values Mem Ctypes ListNotations Clightdefs.
+ Local Open Scope Z_scope.
+@@ -468,7 +469,8 @@ Lemma eval_copy_helper_partial_from_tail m bd base bs sbase bi edge rc bw outedg
+   0 <= rc <= Int64.max_unsigned -> 1 <= cursor <= Int64.max_unsigned ->
+   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
+   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
+-  bd <> bw ->
++  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
++    base + 16 <= write_word_address outedge cursor) ->
+   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
+     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
+   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
+@@ -515,10 +517,14 @@ Proof.
+     + exact (Mem.load_store_same _ _ _ _ _ _ SF).
+     + split.
+       * destruct HW as [Hedge Hcursor]. split.
+-        -- erewrite Mem.load_store_other; [|exact SF|auto].
+-           erewrite Mem.load_store_other; [exact Hedge|exact SC|auto].
+-        -- erewrite Mem.load_store_other; [|exact SF|auto].
+-           erewrite Mem.load_store_other; [exact Hcursor|exact SC|auto].
++        -- erewrite word_store_preserves_frame_load;
++             [|exact Hbd|lia|change (base + 8 <= base + 16); lia|exact SF].
++           erewrite word_store_preserves_frame_load;
++             [exact Hedge|exact Hbd|lia|change (base + 8 <= base + 16); lia|exact SC].
++        -- erewrite word_store_preserves_frame_load;
++             [|exact Hbd|lia|change (base + 8 + 8 <= base + 16); lia|exact SF].
++           erewrite word_store_preserves_frame_load;
++             [exact Hcursor|exact Hbd|lia|change (base + 8 + 8 <= base + 16); lia|exact SC].
+       * split.
+         -- intros chunk b ofs Houtside.
+            erewrite Mem.load_store_other; [|exact SF|exact Houtside].
+@@ -535,7 +541,8 @@ Theorem eval_copy_helper_short_left m bd base bs sbase bi edge rc bw outedge cur
+   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
+   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
+   64 - rc mod 64 < cursor mod 64 -> 0 < n <= 64 - rc mod 64 ->
+-  bd <> bw ->
++  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
++    base + 16 <= write_word_address outedge cursor) ->
+   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
+     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
+   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
+diff --git a/Coq/C/jet_copyBits_helper_right.v b/Coq/C/jet_copyBits_helper_right.v
+index b2932fc4..0e1c4a74 100644
+--- a/Coq/C/jet_copyBits_helper_right.v
++++ b/Coq/C/jet_copyBits_helper_right.v
+@@ -150,7 +150,8 @@ Theorem eval_copy_helper_short_right m bd base bs sbase bi edge rc bw outedge cu
+   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
+   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
+   0 < cursor mod 64 -> cursor mod 64 <= 64 - rc mod 64 -> 0 < n <= cursor mod 64 ->
+-  bd <> bw ->
++  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
++    base + 16 <= write_word_address outedge cursor) ->
+   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
+     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
+   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
+diff --git a/Coq/C/jet_copyBits_short_exec.v b/Coq/C/jet_copyBits_short_exec.v
+index 01dbea3f..44205bd3 100644
+--- a/Coq/C/jet_copyBits_short_exec.v
++++ b/Coq/C/jet_copyBits_short_exec.v
+@@ -18,7 +18,8 @@ Theorem eval_copy_helper_short m bd base bs sbase bi edge rc bw outedge cursor n
+   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
+   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
+   0 < cursor mod 64 -> 0 < n <= 64 - rc mod 64 -> n <= cursor mod 64 ->
+-  bd <> bw ->
++  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
++    base + 16 <= write_word_address outedge cursor) ->
+   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
+     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
+   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
+@@ -51,7 +52,8 @@ Theorem eval_copyBits_short m bd base bs sbase bi edge rc bw outedge cursor n ol
+   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
+   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
+   0 < cursor mod 64 -> 0 < n <= 64 - rc mod 64 -> n <= cursor mod 64 ->
+-  bd <> bw ->
++  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
++    base + 16 <= write_word_address outedge cursor) ->
+   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
+     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
+   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
+@@ -83,7 +85,11 @@ Proof.
+     bw outedge cursor n HB Hncursor ltac:(lia) Hcall Hfields PCi)
+     as [mf [Hwrapper [Hfieldsf [HcursorOutside [Hpermf Hvalidf]]]]].
+   exists mf. split; [exact Hwrapper|]. split.
+-  - rewrite HcursorOutside; [exact Hword|left; congruence].
++  - rewrite HcursorOutside; [exact Hword|].
++    change (bw <> bd \/ write_word_address outedge cursor + 8 <= base + 8 \/
++      base + 16 <= write_word_address outedge cursor).
++    destruct Hbd as [Hbd|[Hbd|Hbd]];
++      [left; congruence|right; left; lia|right; right; exact Hbd].
+   - split; [exact Hfieldsf|]. split.
+     + intros chunk b ofs Hcursor HwordOutside.
+       rewrite HcursorOutside by exact Hcursor.
+diff --git a/Coq/C/jet_copyBits_short_cells.v b/Coq/C/jet_copyBits_short_cells.v
+index ed8f369a..a61367fc 100644
+--- a/Coq/C/jet_copyBits_short_cells.v
++++ b/Coq/C/jet_copyBits_short_cells.v
+@@ -133,7 +133,9 @@ Proof.
+   intros HS HF Hwrite Hlen Hn Hnd Hsep Hinput.
+   destruct (write_frame_at_head m bd base bw outedge cursor n ltac:(lia) Hwrite)
+     as [HA0 [HAmax [PW [old Hold]]]].
+-  destruct Hwrite as [HB [HW [HO [HNcursor [HC [Hbd [PC Hwords]]]]]]].
++  pose proof (write_frame_at_head_separate m bd base bw outedge cursor n
++    ltac:(lia) Hwrite) as Hbd.
++  destruct Hwrite as [HB [HW [HO [HNcursor [HC [PC Hwords]]]]]].
+   destruct (copy_input_cells_head m bi edge rc cells ltac:(lia) Hinput)
+     as [HR [HE [source Hsource]]].
+   destruct (eval_copyBits_short m bd base bs sbase bi edge rc bw outedge cursor n old source
+diff --git a/Coq/C/jet_copyBits_loop_exec.v b/Coq/C/jet_copyBits_loop_exec.v
+index edc7a3c6..be7b9f2e 100644
+--- a/Coq/C/jet_copyBits_loop_exec.v
++++ b/Coq/C/jet_copyBits_loop_exec.v
+@@ -6,6 +6,7 @@ From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps.
+ From compcert Require Import ClightBigstep Memory Events Globalenvs.
+ Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_frame_access C.jet_frame_constants.
+ Require Import C.jet_read8_layout C.jet_write_layout C.jet_copyBits_exec.
++Require Import C.jet_output_layout.
+ Require Import C.jet_LSBkeep_width C.jet_copyBits_helper_exec.
+ Import Values Mem Ctypes ListNotations Clightdefs.
+ Local Open Scope Z_scope.
+@@ -155,7 +156,8 @@ Theorem eval_copy_helper_aligned_short m bd base bs sbase bi edge rc bw outedge
+   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
+   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
+   0 < rc mod 64 -> cursor mod 64 = 0 -> 0 < n <= 64 - rc mod 64 -> n <= cursor ->
+-  bd <> bw ->
++  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
++    base + 16 <= write_word_address outedge cursor) ->
+   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
+   Mem.valid_access m Mint64 bw (write_word_address outedge cursor) Writable ->
+   exists mf,
+@@ -198,8 +200,10 @@ Proof.
+     + exact (Mem.load_store_same _ _ _ _ _ _ SF).
+     + split.
+       * destruct HW as [Hedge Hcursor]. split.
+-        -- erewrite Mem.load_store_other; [exact Hedge|exact SF|auto].
+-        -- erewrite Mem.load_store_other; [exact Hcursor|exact SF|auto].
++        -- erewrite word_store_preserves_frame_load;
++             [exact Hedge|exact Hbd|lia|change (base + 8 <= base + 16); lia|exact SF].
++        -- erewrite word_store_preserves_frame_load;
++             [exact Hcursor|exact Hbd|lia|change (base + 8 + 8 <= base + 16); lia|exact SF].
+       * split.
+         -- intros chunk b ofs Houtside. eapply Mem.load_store_other; eauto.
+         -- split.
+diff --git a/Coq/C/jet_copyBits_aligned_short.v b/Coq/C/jet_copyBits_aligned_short.v
+index 33e614c0..999955bf 100644
+--- a/Coq/C/jet_copyBits_aligned_short.v
++++ b/Coq/C/jet_copyBits_aligned_short.v
+@@ -112,7 +112,9 @@ Proof.
+   intros HS HF Hwrite Hlen Hsrc Hz Hn Hinput.
+   destruct (write_frame_at_head m bd base bw outedge cursor n ltac:(lia) Hwrite)
+     as [HA0 [HAmax [PW [old Hold]]]].
+-  destruct Hwrite as [HB [HW [HO [HNcursor [HC [Hbd [PC Hwords]]]]]]].
++  pose proof (write_frame_at_head_separate m bd base bw outedge cursor n
++    ltac:(lia) Hwrite) as Hbd.
++  destruct Hwrite as [HB [HW [HO [HNcursor [HC [PC Hwords]]]]]].
+   destruct (copy_input_cells_head m bi edge rc cells ltac:(lia) Hinput)
+     as [HR [HE [source Hsource]]].
+   destruct (eval_copy_helper_aligned_short m bd base bs sbase bi edge rc bw outedge cursor n source
+@@ -126,7 +128,11 @@ Proof.
+     as [mf [Hwrapper [Hfieldsf [HcursorOutside [Hpermf Hvalidf]]]]].
+   assert (Hresult : Mem.load Mint64 mf bw (write_word_address outedge cursor) =
+       Some (Vlong (copy_loop_value (64 - rc mod 64) source))).
+-  { rewrite HcursorOutside; [exact Hword|left; congruence]. }
++  { rewrite HcursorOutside; [exact Hword|].
++    change (bw <> bd \/ write_word_address outedge cursor + 8 <= base + 8 \/
++      base + 16 <= write_word_address outedge cursor).
++    destruct Hbd as [Hbd|[Hbd|Hbd]];
++      [left; congruence|right; left; lia|right; right; exact Hbd]. }
+   exists mf. split; [exact Hwrapper|]. split.
+   - eapply copy_aligned_short_output_cells; try eassumption; lia.
+   - split; [eapply copy_aligned_written_prefix; eassumption|].

@@ -1,0 +1,32 @@
+From Coq Require Import ZArith Lia.
+From compcert Require Import Integers AST Memory.
+Require Import C.jet_frame_spec C.jet_frame_layout C.jet_output_layout.
+Import Values Mem.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition accepted_write_frame_at (m : mem) (bf : block) (base : Z) (bw : block)
+    (edge cursor count : Z) : Prop :=
+  frame_base_valid base /\ frame_fields_at m bf base bw edge cursor /\
+  0 <= edge /\ 0 <= count <= cursor /\ cursor <= Int64.max_unsigned /\ bf <> bw /\
+  Mem.valid_access m Mint64 bf (base + 8) Writable /\
+  forall i, 0 <= i < count ->
+    let addr := write_cell_address edge cursor i in
+    0 <= addr /\ addr + 8 <= Ptrofs.max_unsigned /\
+    Mem.valid_access m Mint64 bw addr Writable /\
+    exists w, Mem.load Mint64 m bw addr = Some (Vlong w).
+
+Lemma accepted_write_frame_at_included m bf base bw edge cursor count :
+  accepted_write_frame_at m bf base bw edge cursor count ->
+  write_frame_at m bf base bw edge cursor count.
+Proof.
+  intros (HB & HF & HE & HC & HM & HD & PW & HW).
+  split; [exact HB|]. split; [exact HF|]. split; [exact HE|].
+  split; [exact HC|]. split; [exact HM|]. split; [exact PW|].
+  intros i Hi. destruct (HW i Hi) as (HLo & HMax & HAccess & w & HLoad).
+  split; [exact HLo|]. split; [exact HMax|].
+  split; [left; exact HD|]. split; [exact HAccess|].
+  exists w; exact HLoad.
+Qed.
+
+Print Assumptions accepted_write_frame_at_included.

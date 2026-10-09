@@ -130,7 +130,7 @@ Proof.
     HAlloc HBa HStore) as (mr & r & Hread & Hr & HRFields & HRMem & HRPerm & HRValid & HRLoads).
   assert (Hidx : Int64.unsigned r = toZ32 a) by exact Hr.
   clear Hr.
-  pose proof HFrame as [HDB [[HDE HDO] [HEd [HN [HMx [HDW [PD HWords]]]]]]].
+  pose proof HFrame as [HDB [[HDE HDO] [HEd [HN [HMx [PD HWords]]]]]].
   destruct (write_frame_at_head m bd dbase bw outedge cursor (1 + nbits) ltac:(slia) HFrame)
     as [_ [_ [_ [w0 Hw0]]]].
   assert (HLd : bl <> bd) by (eapply fresh_frame_not_loaded; eauto).

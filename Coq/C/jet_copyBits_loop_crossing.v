@@ -6,6 +6,7 @@ From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps.
 From compcert Require Import ClightBigstep Memory Events Globalenvs.
 Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_frame_access C.jet_frame_constants.
 Require Import C.jet_read8_layout C.jet_write_layout C.jet_copyBits_exec.
+Require Import C.jet_output_layout.
 Require Import C.jet_copyBits_helper_exec C.jet_copyBits_loop_exec.
 Import Values Mem Ctypes ListNotations Clightdefs.
 Local Open Scope Z_scope.
@@ -147,7 +148,8 @@ Theorem eval_copy_helper_aligned_full m bd base bs sbase bi edge rc bw outedge c
   8 * (2 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
   0 < rc mod 64 -> cursor mod 64 = 0 -> 64 - rc mod 64 < n <= 64 -> n <= cursor ->
-  bd <> bw ->
+  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
+    base + 16 <= write_word_address outedge cursor) ->
   (bi <> bw \/ edge - 8 * (2 + rc / 64) + 8 <= write_word_address outedge cursor \/
     write_word_address outedge cursor + 8 <= edge - 8 * (2 + rc / 64)) ->
   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
@@ -218,10 +220,14 @@ Proof.
     + exact (Mem.load_store_same _ _ _ _ _ _ SF).
     + split.
       * destruct HW as [Hedge Hcursor]. split.
-        -- erewrite Mem.load_store_other; [|exact SF|auto].
-           erewrite Mem.load_store_other; [exact Hedge|exact SI|auto].
-        -- erewrite Mem.load_store_other; [|exact SF|auto].
-           erewrite Mem.load_store_other; [exact Hcursor|exact SI|auto].
+        -- erewrite word_store_preserves_frame_load;
+             [|exact Hbd|lia|change (base + 8 <= base + 16); lia|exact SF].
+           erewrite word_store_preserves_frame_load;
+             [exact Hedge|exact Hbd|lia|change (base + 8 <= base + 16); lia|exact SI].
+        -- erewrite word_store_preserves_frame_load;
+             [|exact Hbd|lia|change (base + 8 + 8 <= base + 16); lia|exact SF].
+           erewrite word_store_preserves_frame_load;
+             [exact Hcursor|exact Hbd|lia|change (base + 8 + 8 <= base + 16); lia|exact SI].
       * split.
         -- intros chunk b ofs Houtside.
            erewrite Mem.load_store_other; [|exact SF|exact Houtside].

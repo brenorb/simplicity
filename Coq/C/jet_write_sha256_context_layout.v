@@ -55,7 +55,8 @@ Theorem eval_write_sha256_context_layout m bf base bw edge cursor bc cbase bi in
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
   intros HB HM HI HIM Hcf Hcw Hif Hiw HC HO HF HBuf HLen HA HW.
-  pose proof HW as [_ [_ [_ [HCurs [_ [Hfw _]]]]]].
+  pose proof (write_frame_at_head_separate m bf base bw edge cursor 830 ltac:(lia) HW) as Hheadsep.
+  pose proof HW as [_ [_ [_ [HCurs [_ [_ HWords]]]]]].
   assert (HStateLength : length (map word32_array_value (word32_chunks 3 state)) = 8%nat).
   { rewrite map_length, word32_chunks_length; reflexivity. }
   assert (HAddr : Ptrofs.add (Ptrofs.repr cbase) (Ptrofs.repr 16) = Ptrofs.repr (cbase + 16)).
@@ -86,7 +87,8 @@ Proof.
     apply buffer63_chunks_width. }
   assert (HFirstFinal : frame_output_cells_at mf bw edge cursor (encode buf)).
   { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base) (cursor := cursor - 510);
-      [exact Hfw|rewrite HBufLength; lia|exact HPrefixTail|exact HMemTail|exact HCells]. }
+      [|rewrite HBufLength; lia|exact HPrefixTail|exact HMemTail|exact HCells].
+    intros i Hi. destruct (HWords (Z.of_nat i) ltac:(lia)) as (_ & _ & HD & _). exact HD. }
   assert (HLo : edge + 8 * ((cursor - 830) / 64) <= edge + 8 * ((cursor - 510) / 64)).
   { pose proof (Z.div_le_mono (cursor - 830) (cursor - 510) 64 ltac:(lia) ltac:(lia)); lia. }
   assert (HPrev : write_word_address edge (cursor - 510) <= write_word_address edge cursor).
@@ -100,7 +102,7 @@ Proof.
       rewrite uint32_word_cells_encode, <- word32_chunks_encode in HTail; exact HTail.
     + split.
       * eapply write_prefix_at_chain with (next := cursor - 510);
-          [exact Hfw|lia|exact HPrefix|exact HPrefixTail|exact HMemTail].
+          [exact Hheadsep|lia|exact HPrefix|exact HPrefixTail|exact HMemTail].
       * split.
         -- replace (cursor - 830) with (cursor - 510 - 320) by lia; exact HFieldsTail.
         -- split.

@@ -39,9 +39,9 @@ Proof.
       HReadCursor HInput1 HInput2 HOutput.
   assert (HLocalBase : frame_base_valid 0).
   { split; [lia|change (16 <= 18446744073709551615); lia]. }
-  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [HDw [PD HW]]]]]]].
+  pose proof HOutput as [HDBase [[HDE HDO] [HOutEdge [HN [HMax [PD HW]]]]]].
   pose proof (HW 0 ltac:(lia)) as HW0.
-  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [initialword HInitialWord]]]].
+  cbn zeta in HW0. destruct HW0 as [_ [_ [_ [_ [initialword HInitialWord]]]]].
   destruct (Mem.alloc m 0 16) as [ma bl] eqn:HA.
   assert (HLs : bl <> bs).
   { eapply fresh_frame_not_loaded; eauto. }
