@@ -2,6 +2,27 @@
 
 ## Latest continuation (2026-10-09)
 
+Isolated assembly is now `/tmp/jet-infinity-accept.xBQOUj`, based on the
+accepted isolated 350-entry negation baseline, not the field-add candidate.
+`ASSEMBLY.json` guards eight metadata files and all 22 exact proof/checker
+sources. The isolated registry has 351 entries, but actual checkout remains
+350: this is not accepted coverage. All 71 preliminary interfaces have been
+reviewed, without claiming manual inspection of every generated trace node.
+Scoped source/38 mutation tests and extended coverage negative tests pass
+(38087 exit 0). Initial build 37054 passed with exit 0. Exact source hashes
+then exposed one extra trailing newline from assembly; it was removed using
+apply_patch after that build completed. Fresh exact-source build **9386**
+is pending; log `build-exact.log`. Poll that run, do not restart it.
+Next generate standard contracts and assumptions only in the isolated tree,
+review additions versus the accepted baseline, then run full acceptance.
+Do not integrate until that acceptance completes.
+
+Separate field-add acceptance **54093 now passes with terminal exit 0**,
+fingerprint `c4e91d0d6bbfb9d88fd63c40a802b5e052ecb8df2d54e51ec9b8a49e074b607d`.
+Log `/tmp/jet-add-accept.qwqWy1/accept.log` includes all four AST matches.
+Its guarded integration is still separate work, not an automatic overwrite
+of the newer infinity assembly or current checkout inputs.
+
 Preliminary actual-print checks now finish with exit 0: contracts 75319
 (71 types, 22 definitions, deep print without truncation) and assumptions
 18820 (all 71 records, 31 closed, each axiom set inherited-only). The final
