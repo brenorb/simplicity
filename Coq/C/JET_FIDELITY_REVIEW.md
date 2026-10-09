@@ -192,12 +192,20 @@ The candidate hash excludes the snapshots and is recorded in `JET_ACCEPTANCE.md`
 C and canonical Haskell sources, target flags and the external memcpy mechanism
 are unchanged.
 
-The next `fe_is_odd` and `fe_is_zero` full public proofs exist only in the
-isolated scratch namespace. Their ports preserve `fe_normalize >>> lsb256` and
-the canonical zero-or-field-order test respectively. Compilation, kernel and
-actual statements/assumptions were reviewed. They are not registered or accepted
-in this round; a subsequent candidate/snapshot review/separate acceptance is
-still required. No coverage is claimed for scalar helper support.
+Commit `cafb9b31` subsequently integrates and registers the complete `fe_is_odd`
+and `fe_is_zero` public proofs. Their ports preserve `fe_normalize >>> lsb256`
+and the canonical zero-or-field-order test respectively. Fresh kernel checks
+of both public modules pass with the matching Coq 8.17.1/OCaml 4.14.4 toolchain
+and 65,520 KiB stack. The source gate rejects 34 meaningful mutations. Review
+of the actual public contracts and lifecycle sources confirms that entry,
+copying, helper execution, output and final freeing are derived, not assumed.
+All prior printed contracts/definitions and 3,534 assumption records remain
+byte-identical, and no new axiom name is introduced. Independent full acceptance
+of this extension now passes with exit 0: 601 kernel modules, 3,577 assumption
+records, reviewed contracts, negative tests and four AST regenerations. The
+exact fingerprint is recorded in `JET_ACCEPTANCE.md`. The inherited shared-frame/domain and
+per-entry fidelity reviews are not completed by these checks. No coverage is
+claimed for scalar helper support.
 
 ## Remaining proof queue
 

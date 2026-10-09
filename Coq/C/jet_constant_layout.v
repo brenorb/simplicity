@@ -42,7 +42,7 @@ Theorem eval_constant_layout_matches_spec env s high m bd dbase bs sbase bw edge
       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros HSbase HSAlign HB HFrame. pose proof (constant_bits_bounds s) as HNbound.
-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bd dbase bw edge cursor (constant_bits s) ltac:(lia) HFrame)
     as [_ [_ [_ [initialword HInitialWord]]]].
   assert (HVs : Mem.valid_block m bs).

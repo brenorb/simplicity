@@ -20,5 +20,10 @@ Proof.
   destruct x as [[[[x0 x1] [x2 x3]] [[x4 x5] [x6 x7]]] [[[x8 x9] [x10 x11]] [[x12 x13] [x14 x15]]]].
   destruct fill, right; destruct amount as [[a b] [c d]];
     destruct a as [[]|[]], b as [[]|[]], c as [[]|[]], d as [[]|[]].
+  (* Each sentence checks sixteen control cases within the original deadline.
+     Keep payload bits symbolic and discharge all sixty-four cases. *)
+  1-16: cbn; repeat rewrite bit_flip_twice; reflexivity.
+  1-16: cbn; repeat rewrite bit_flip_twice; reflexivity.
+  1-16: cbn; repeat rewrite bit_flip_twice; reflexivity.
   all: cbn; repeat rewrite bit_flip_twice; reflexivity.
 Qed.

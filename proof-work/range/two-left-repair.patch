@@ -1,0 +1,112 @@
+diff --git a/Coq/C/jet_copyBits_two_words_left.v b/Coq/C/jet_copyBits_two_words_left.v
+index 7b243eae..5329bf78 100644
+--- a/Coq/C/jet_copyBits_two_words_left.v
++++ b/Coq/C/jet_copyBits_two_words_left.v
+@@ -6,6 +6,7 @@ From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Mem
+ Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_word_bits.
+ Require Import C.jet_copyBits_exec C.jet_copyBits_helper_exec C.jet_copyBits_partial_crossing.
+ Require Import C.jet_copyBits_loop_exec C.jet_copyBits_two_words_left_exec.
++Require Import C.jet_output_layout.
+ Import Values Mem Ctypes ListNotations.
+ Local Open Scope Z_scope.
+ Set Default Timeout 10.
+@@ -17,7 +18,10 @@ Theorem eval_copy_helper_two_left m bd base bs sbase bi edge rc bw outedge curso
+   8 * (2 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
+   0 <= outedge -> 8 <= write_word_address outedge cursor <= Ptrofs.max_unsigned ->
+   64 - rc mod 64 < cursor mod 64 -> cursor mod 64 < n <= 64 -> n <= cursor ->
+-  bd <> bw ->
++  ((bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
++      base + 16 <= write_word_address outedge cursor) /\
++   (bd <> bw \/ write_word_address outedge cursor - 8 + 8 <= base \/
++      base + 16 <= write_word_address outedge cursor - 8)) ->
+   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
+     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
+   (bi <> bw \/ edge - 8 * (2 + rc / 64) + 8 <= write_word_address outedge cursor \/
+@@ -41,6 +45,7 @@ Theorem eval_copy_helper_two_left m bd base bs sbase bi edge rc bw outedge curso
+     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+ Proof.
+   intros HS HB HF HW HR HC HE HO HA Hshift Hn Hnc Hbd Hsep Hsepnext Hsource Hnext Hold PW PWlow.
++  destruct Hbd as [Hheadsep Hlowsep].
+   pose proof (Z.mod_pos_bound rc 64 ltac:(lia)) as Hrm.
+   pose proof (Z.mod_pos_bound cursor 64 ltac:(lia)) as Hcm.
+   assert (HfirstEdge : 8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned) by lia.
+@@ -111,14 +116,22 @@ Proof.
+       right; right; change (write_word_address outedge cursor - 8 + 8 <= write_word_address outedge cursor); lia.
+     + split; [exact (Mem.load_store_same _ _ _ _ _ _ SF)|]. split.
+       * destruct HW as [Hedge Hcursor]. split.
+-        -- erewrite Mem.load_store_other; [|exact SF|auto].
+-           erewrite Mem.load_store_other; [|exact SP|auto].
+-           erewrite Mem.load_store_other; [|exact SL|auto].
+-           erewrite Mem.load_store_other; [exact Hedge|exact SC|auto].
+-        -- erewrite Mem.load_store_other; [|exact SF|auto].
+-           erewrite Mem.load_store_other; [|exact SP|auto].
+-           erewrite Mem.load_store_other; [|exact SL|auto].
+-           erewrite Mem.load_store_other; [exact Hcursor|exact SC|auto].
++        -- erewrite word_store_preserves_frame_load;
++             [|exact Hlowsep|lia|change (base + 8 <= base + 16); lia|exact SF].
++           erewrite word_store_preserves_frame_load;
++             [|exact Hheadsep|lia|change (base + 8 <= base + 16); lia|exact SP].
++           erewrite word_store_preserves_frame_load;
++             [|exact Hheadsep|lia|change (base + 8 <= base + 16); lia|exact SL].
++           erewrite word_store_preserves_frame_load;
++             [exact Hedge|exact Hheadsep|lia|change (base + 8 <= base + 16); lia|exact SC].
++        -- erewrite word_store_preserves_frame_load;
++             [|exact Hlowsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SF].
++           erewrite word_store_preserves_frame_load;
++             [|exact Hheadsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SP].
++           erewrite word_store_preserves_frame_load;
++             [|exact Hheadsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SL].
++           erewrite word_store_preserves_frame_load;
++             [exact Hcursor|exact Hheadsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SC].
+       * split.
+         -- intros chunk b ofs Houtside.
+            assert (HH : b <> bw \/ ofs + size_chunk chunk <= write_word_address outedge cursor \/
+diff --git a/Coq/C/jet_copyBits_two_words_left_cells.v b/Coq/C/jet_copyBits_two_words_left_cells.v
+index 1483e65b..6742a026 100644
+--- a/Coq/C/jet_copyBits_two_words_left_cells.v
++++ b/Coq/C/jet_copyBits_two_words_left_cells.v
+@@ -106,9 +106,11 @@ Proof.
+   pose proof (Z.mod_pos_bound cursor 64 ltac:(lia)) as Hcm.
+   destruct (write_frame_at_head m bd base bw outedge cursor n ltac:(lia) Hwrite)
+     as [HA0 [HAmax [PW [old Hold]]]].
+-  destruct Hwrite as [HB [HW [HO [HNcursor [HC [Hbd [PC Hwords]]]]]]].
+-  destruct (Hwords (cursor mod 64) ltac:(lia)) as [Hlow0 [Hlowmax [PWlow Hlowold]]].
+-  rewrite copy_partial_cross_write_address in Hlow0, Hlowmax, PWlow by lia.
++  pose proof (write_frame_at_head_separate m bd base bw outedge cursor n
++    ltac:(lia) Hwrite) as Hheadsep.
++  destruct Hwrite as [HB [HW [HO [HNcursor [HC [PC Hwords]]]]]].
++  destruct (Hwords (cursor mod 64) ltac:(lia)) as [Hlow0 [Hlowmax [Hlowsep [PWlow Hlowold]]]].
++  rewrite copy_partial_cross_write_address in Hlow0, Hlowmax, Hlowsep, PWlow by lia.
+   destruct (copy_input_cells_head m bi edge rc cells ltac:(lia) Hinput)
+     as [HR [HE [source Hsource]]].
+   destruct (copy_crossing_input_word m bi edge rc n cells ltac:(lia) ltac:(lia) Hlen Hinput)
+@@ -122,7 +124,7 @@ Proof.
+   rewrite Hq, Z.sub_0_r in Hsepnext.
+   replace (1 + (rc / 64 + 1)) with (2 + rc / 64) in Hsepnext by lia.
+   destruct (eval_copy_helper_two_left m bd base bs sbase bi edge rc bw outedge cursor n old source next
+-    HS HB HF HW HR ltac:(lia) HE2 HO ltac:(lia) Hshift Hn ltac:(lia) Hbd
++    HS HB HF HW HR ltac:(lia) HE2 HO ltac:(lia) Hshift Hn ltac:(lia) (conj Hheadsep Hlowsep)
+     Hsephead Hsepnext Hsource Hnext Hold PW PWlow)
+     as [mi [Hcall [Hhead [Hlow [Hfields [Houtside [Hperm Hvalid]]]]]]].
+   assert (PCi : Mem.valid_access mi Mint64 bd (base + 8) Writable).
+@@ -133,10 +135,18 @@ Proof.
+     as [mf [Hwrapper [Hfieldsf [HcursorOutside [Hpermf Hvalidf]]]]].
+   assert (Hheadf : Mem.load Mint64 mf bw (write_word_address outedge cursor) =
+       Some (Vlong (copy_partial_cross_value (64 - rc mod 64) (cursor mod 64) old source next))).
+-  { rewrite HcursorOutside; [exact Hhead|left; congruence]. }
++  { rewrite HcursorOutside; [exact Hhead|].
++    change (bw <> bd \/ write_word_address outedge cursor + 8 <= base + 8 \/
++      base + 16 <= write_word_address outedge cursor).
++    destruct Hheadsep as [HD|[HD|HD]];
++      [left; congruence|right; left; lia|right; right; exact HD]. }
+   assert (Hlowf : Mem.load Mint64 mf bw (write_word_address outedge cursor - 8) =
+       Some (Vlong (copy_loop_value (64 - (cursor mod 64 - (64 - rc mod 64))) next))).
+-  { rewrite HcursorOutside; [exact Hlow|left; congruence]. }
++  { rewrite HcursorOutside; [exact Hlow|].
++    change (bw <> bd \/ write_word_address outedge cursor - 8 + 8 <= base + 8 \/
++      base + 16 <= write_word_address outedge cursor - 8).
++    destruct Hlowsep as [HD|[HD|HD]];
++      [left; congruence|right; left; lia|right; right; exact HD]. }
+   exists mf. split; [exact Hwrapper|]. split.
+   - eapply copy_two_left_output_cells; try eassumption; lia.
+   - split; [eapply copy_partial_cross_written_prefix; eassumption|].

@@ -18,7 +18,8 @@ Theorem eval_copy_helper_short m bd base bs sbase bi edge rc bw outedge cursor n
   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
   0 < cursor mod 64 -> 0 < n <= 64 - rc mod 64 -> n <= cursor mod 64 ->
-  bd <> bw ->
+  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
+    base + 16 <= write_word_address outedge cursor) ->
   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
@@ -51,7 +52,8 @@ Theorem eval_copyBits_short m bd base bs sbase bi edge rc bw outedge cursor n ol
   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
   0 < cursor mod 64 -> 0 < n <= 64 - rc mod 64 -> n <= cursor mod 64 ->
-  bd <> bw ->
+  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
+    base + 16 <= write_word_address outedge cursor) ->
   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
@@ -83,7 +85,11 @@ Proof.
     bw outedge cursor n HB Hncursor ltac:(lia) Hcall Hfields PCi)
     as [mf [Hwrapper [Hfieldsf [HcursorOutside [Hpermf Hvalidf]]]]].
   exists mf. split; [exact Hwrapper|]. split.
-  - rewrite HcursorOutside; [exact Hword|left; congruence].
+  - rewrite HcursorOutside; [exact Hword|].
+    change (bw <> bd \/ write_word_address outedge cursor + 8 <= base + 8 \/
+      base + 16 <= write_word_address outedge cursor).
+    destruct Hbd as [Hbd|[Hbd|Hbd]];
+      [left; congruence|right; left; lia|right; right; exact Hbd].
   - split; [exact Hfieldsf|]. split.
     + intros chunk b ofs Hcursor HwordOutside.
       rewrite HcursorOutside by exact Hcursor.

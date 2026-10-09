@@ -273,7 +273,7 @@ Proof.
       (conj HSedge HSoff) Hin HAlloc HBa HStore)
       as (mr & Hread & HRMem & HRPerm & HRValid & HRLoads).
     fold az in Hread. fold iv in Hread.
-    pose proof HFrame as [HDB [[HDE HDO] [HEd [HN [HMx [HDW [PD HWords]]]]]]].
+    pose proof HFrame as [HDB [[HDE HDO] [HEd [HN [HMx [PD HWords]]]]]].
     destruct (write_frame_at_head m bd dbase bw outedge cursor 257 ltac:(lia) HFrame)
       as [_ [_ [_ [w0 Hw0]]]].
     assert (HLd : bl <> bd) by (eapply fresh_frame_not_loaded; eauto).

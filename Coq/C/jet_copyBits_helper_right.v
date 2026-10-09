@@ -150,7 +150,8 @@ Theorem eval_copy_helper_short_right m bd base bs sbase bi edge rc bw outedge cu
   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
   0 < cursor mod 64 -> cursor mod 64 <= 64 - rc mod 64 -> 0 < n <= cursor mod 64 ->
-  bd <> bw ->
+  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
+    base + 16 <= write_word_address outedge cursor) ->
   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->

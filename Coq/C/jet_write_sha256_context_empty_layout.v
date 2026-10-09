@@ -37,7 +37,8 @@ Theorem eval_write_sha256_context_empty_layout m bf base bw edge cursor bc cbase
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
   intros HB HM HI HIM Hcf Hcw Hif Hiw HC HO HF HA HW.
-  pose proof HW as [HFBase [HFields [HE [HCurs [HMax [Hfw [PW HWords]]]]]]].
+  pose proof (write_frame_at_head_separate m bf base bw edge cursor 830 ltac:(lia) HW) as Hheadsep.
+  pose proof HW as [HFBase [HFields [HE [HCurs [HMax [PW HWords]]]]]].
   destruct (buffer8_empty_calls_layout m bf base bw edge cursor buffer63_empty_counts 320
     ltac:(lia) buffer63_empty_counts_chain HW)
     as (mb & HRun & HCells & HPrefix & HWNext & HMem & HPerm & HValid).
@@ -63,8 +64,10 @@ Proof.
   { rewrite HMemTail by (left; assumption). rewrite HMem by (left; assumption); exact HF. }
   assert (HfirstFinal : frame_output_cells_at mf bw edge cursor (buffer_empty_cells (Word 3) 5)).
   { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base)
-      (cursor := cursor - 510); [exact Hfw| |exact HPrefixTail|exact HMemTail|exact HCells].
-    rewrite buffer63_byte_cells_length. change (0 <= cursor - 510 <= cursor - 510); lia. }
+      (cursor := cursor - 510); [| |exact HPrefixTail|exact HMemTail|exact HCells].
+    - intros i Hi. rewrite buffer63_byte_cells_length in Hi.
+      destruct (HWords (Z.of_nat i) ltac:(lia)) as (_ & _ & HD & _). exact HD.
+    - rewrite buffer63_byte_cells_length. change (0 <= cursor - 510 <= cursor - 510); lia. }
   assert (HLo : edge + 8 * ((cursor - 830) / 64) <= edge + 8 * ((cursor - 510) / 64)).
   { pose proof (Z.div_le_mono (cursor - 830) (cursor - 510) 64 ltac:(lia) ltac:(lia)); lia. }
   assert (HPrev : write_word_address edge (cursor - 510) <= write_word_address edge cursor).
@@ -76,7 +79,7 @@ Proof.
     + rewrite sha256_ctx8_init_spec_cells. apply frame_output_cells_at_app. split; [exact HfirstFinal|].
       rewrite buffer63_byte_cells_length. rewrite ctx8_zero_writer_value in HTail. exact HTail.
     + split.
-      * eapply write_prefix_at_chain; [exact Hfw| |exact HPrefix|exact HPrefixTail|exact HMemTail]. lia.
+      * eapply write_prefix_at_chain; [exact Hheadsep| |exact HPrefix|exact HPrefixTail|exact HMemTail]. lia.
       * split.
         -- replace (cursor - 830) with (cursor - 510 - 320) by ring; exact HFieldsTail.
         -- split.

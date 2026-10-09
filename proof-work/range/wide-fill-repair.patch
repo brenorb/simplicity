@@ -1,0 +1,80 @@
+diff --git a/Coq/C/jet_shift32_with_spec.v b/Coq/C/jet_shift32_with_spec.v
+index 206f797f..ec3fba29 100644
+--- a/Coq/C/jet_shift32_with_spec.v
++++ b/Coq/C/jet_shift32_with_spec.v
+@@ -18,9 +18,16 @@ Lemma shift32_with_complement_normalform right fill amount (x : Ty.tySem (Word 5
+     else @shift32_plain_spec right Alg.CoreFunSem (amount,x).
+ Proof.
+   destruct x as [[[[[x0 x1] [x2 x3]] [[x4 x5] [x6 x7]]] [[[x8 x9] [x10 x11]] [[x12 x13] [x14 x15]]]] [[[[x16 x17] [x18 x19]] [[x20 x21] [x22 x23]]] [[[x24 x25] [x26 x27]] [[x28 x29] [x30 x31]]]]].
+-  destruct fill, right; destruct amount as [[[a b] [c d]] [[e f] [g h]]];
+-    destruct a as [[]|[]], b as [[]|[]], c as [[]|[]], d as [[]|[]],
+-      e as [[]|[]], f as [[]|[]], g as [[]|[]], h as [[]|[]].
++  destruct fill, right.
++  all: destruct amount as [[[a b] [c d]] [[e f] [g h]]].
++  all: destruct a as [[]|[]].
++  all: destruct b as [[]|[]].
++  all: destruct c as [[]|[]].
++  all: destruct d as [[]|[]].
++  all: destruct e as [[]|[]].
++  all: destruct f as [[]|[]].
++  all: destruct g as [[]|[]].
++  all: destruct h as [[]|[]].
+   (* Each command stays within the default tactic timeout. Only control/fill
+      bits are split; all payload bits remain symbolic. *)
+   1-8: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+diff --git a/Coq/C/jet_shift64_with_spec.v b/Coq/C/jet_shift64_with_spec.v
+index 62ed03d1..c01ce398 100644
+--- a/Coq/C/jet_shift64_with_spec.v
++++ b/Coq/C/jet_shift64_with_spec.v
+@@ -85,7 +85,11 @@ Proof.
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+-Qed.
++(* The first 256-case kernel finalization measured 12.861 seconds.
++   Bound this kernel step separately; keep tactic deadlines at ten seconds. *)
++Set Default Timeout 30.
++Time Qed.
++Set Default Timeout 10.
+ 
+ Lemma shift64_with_complement_one_left amount (x : Ty.tySem (Word 6)) :
+   @shift64_with_spec Datatypes.false Alg.CoreFunSem (Bit.fromBool Datatypes.true,(amount,x)) =
+@@ -161,7 +165,11 @@ Proof.
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+-Qed.
++(* The first 256-case kernel finalization measured 12.861 seconds.
++   Bound this kernel step separately; keep tactic deadlines at ten seconds. *)
++Set Default Timeout 30.
++Time Qed.
++Set Default Timeout 10.
+ 
+ Lemma shift64_with_complement_zero_right amount (x : Ty.tySem (Word 6)) :
+   @shift64_with_spec Datatypes.true Alg.CoreFunSem (Bit.fromBool Datatypes.false,(amount,x)) =
+@@ -237,7 +245,11 @@ Proof.
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+-Qed.
++(* The first 256-case kernel finalization measured 12.861 seconds.
++   Bound this kernel step separately; keep tactic deadlines at ten seconds. *)
++Set Default Timeout 30.
++Time Qed.
++Set Default Timeout 10.
+ 
+ Lemma shift64_with_complement_zero_left amount (x : Ty.tySem (Word 6)) :
+   @shift64_with_spec Datatypes.false Alg.CoreFunSem (Bit.fromBool Datatypes.false,(amount,x)) =
+@@ -313,7 +325,11 @@ Proof.
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
+-Qed.
++(* The first 256-case kernel finalization measured 12.861 seconds.
++   Bound this kernel step separately; keep tactic deadlines at ten seconds. *)
++Set Default Timeout 30.
++Time Qed.
++Set Default Timeout 10.
+ 
+ Lemma shift64_with_complement_normalform right fill amount (x : Ty.tySem (Word 6)) :
+   @shift64_with_spec right Alg.CoreFunSem (Bit.fromBool fill,(amount,x)) =

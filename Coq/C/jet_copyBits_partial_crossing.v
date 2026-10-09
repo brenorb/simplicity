@@ -7,6 +7,7 @@ From compcert Require Import ClightBigstep Memory Events Globalenvs.
 Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_frame_access C.jet_frame_constants.
 Require Import C.jet_write_layout C.jet_copyBits_exec C.jet_copyBits_helper_exec.
 Require Import C.jet_copyBits_helper_right C.jet_copyBits_short_word C.jet_word_bits.
+Require Import C.jet_output_layout.
 Import Values Mem Ctypes ListNotations Clightdefs.
 Local Open Scope Z_scope.
 Local Transparent Archi.ptr64.
@@ -206,7 +207,8 @@ Theorem eval_copy_helper_partial_cross m bd base bs sbase bi edge rc bw outedge 
   8 * (2 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
   64 - rc mod 64 < n <= cursor mod 64 ->
-  bd <> bw ->
+  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
+    base + 16 <= write_word_address outedge cursor) ->
   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
   (bi <> bw \/ edge - 8 * (2 + rc / 64) + 8 <= write_word_address outedge cursor \/
@@ -279,12 +281,18 @@ Proof.
     + rewrite Ptrofs.unsigned_repr by exact Hdstaddr; exact SF.
   - split; [exact (Mem.load_store_same _ _ _ _ _ _ SF)|]. split.
     + destruct HW as [Hedge Hcursor]. split.
-      * erewrite Mem.load_store_other; [|exact SF|auto].
-        erewrite Mem.load_store_other; [|exact SL|auto].
-        erewrite Mem.load_store_other; [exact Hedge|exact SC|auto].
-      * erewrite Mem.load_store_other; [|exact SF|auto].
-        erewrite Mem.load_store_other; [|exact SL|auto].
-        erewrite Mem.load_store_other; [exact Hcursor|exact SC|auto].
+      * erewrite word_store_preserves_frame_load;
+          [|exact Hbd|lia|change (base + 8 <= base + 16); lia|exact SF].
+        erewrite word_store_preserves_frame_load;
+          [|exact Hbd|lia|change (base + 8 <= base + 16); lia|exact SL].
+        erewrite word_store_preserves_frame_load;
+          [exact Hedge|exact Hbd|lia|change (base + 8 <= base + 16); lia|exact SC].
+      * erewrite word_store_preserves_frame_load;
+          [|exact Hbd|lia|change (base + 8 + 8 <= base + 16); lia|exact SF].
+        erewrite word_store_preserves_frame_load;
+          [|exact Hbd|lia|change (base + 8 + 8 <= base + 16); lia|exact SL].
+        erewrite word_store_preserves_frame_load;
+          [exact Hcursor|exact Hbd|lia|change (base + 8 + 8 <= base + 16); lia|exact SC].
     + split.
       * intros chunk b ofs Houtside.
         erewrite Mem.load_store_other; [|exact SF|exact Houtside].

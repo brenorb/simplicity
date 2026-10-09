@@ -62,7 +62,9 @@ Lemma eval_write8_layout_non_crossing_raw m mw mf bf base bw edge cursor old x :
   Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong old) ->
   Mem.store Mint64 m bw (write_word_address edge cursor)
     (Vlong (put_byte (write_word_shift cursor) old (Int64.repr (Int.unsigned x)))) = Some mw ->
-  Mem.store Mint64 mw bf (base + 8) (Vlong (Int64.repr (cursor - 8))) = Some mf -> bf <> bw ->
+  Mem.store Mint64 mw bf (base + 8) (Vlong (Int64.repr (cursor - 8))) = Some mf ->
+  (bf <> bw \/ write_word_address edge cursor + 8 <= base \/
+    base + 16 <= write_word_address edge cursor) ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_simplicity_write8)
     [Vptr bf (Ptrofs.repr base); Vint x] E0 mf Vundef.
 Proof.
@@ -82,7 +84,10 @@ Proof.
       (Vlong (put_byte (write_word_shift cursor) old (Int64.repr (Int.unsigned x)))) = Some mw)
     by (rewrite Haddr; exact SW).
   assert (HOw : Mem.load Mint64 mw bf (base + 8) = Some (Vlong (Int64.repr cursor))).
-  { erewrite Mem.load_store_other; [exact HO|exact SW|auto]. }
+  { erewrite Mem.load_store_other; [exact HO|exact SW|].
+    change (bf <> bw \/ base + 8 + 8 <= write_word_address edge cursor \/
+      write_word_address edge cursor + 8 <= base + 8).
+    destruct HD as [HD|[HD|HD]]; [left; exact HD|right; right; lia|right; left; lia]. }
   pose proof (cursor_no_cross (write_word_shift cursor) ltac:(lia)) as Hcross.
   pose proof (cursor_sub (write_word_shift cursor) 8 ltac:(lia) ltac:(lia)) as Hshift_sub.
   assert (Hshift : Int64.ltu (Int64.repr (write_word_shift cursor - 8)) Int64.iwordsize = true).

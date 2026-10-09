@@ -32,7 +32,9 @@ Theorem eval_parse_sequence_writer m bf base bw edge cursor r :
     (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
-  intros HFrame. pose proof HFrame as [HB [HF [HE [HC [HM [HD [PD HW]]]]]]].
+  intros HFrame. pose proof HFrame as [HB [HF [HE [HC [HM [PD HW]]]]]].
+  pose proof (write_frame_at_head_separate m bf base bw edge cursor 18
+    ltac:(lia) HFrame) as HHeadSeparate.
   pose proof (write_layout_index cursor ltac:(lia)) as [_ [HK _]].
   assert (HFrame1 : write_frame_at m bf base bw edge cursor 1).
   { eapply write_frame_at_shorter with (count := 18); [lia|exact HFrame]. }
@@ -59,7 +61,11 @@ Proof.
         as [mt [mf [Htag [Hwrite [Hvalue [Hprefix [Hfields [Hmem [Hperm Hvalid]]]]]]]]].
       exists mf. split; [exists mt; auto|]. split.
       + apply (carry_wide_output_encode W16) in Hvalue; [|change (17 <= cursor - 1); lia].
-        destruct (parse_sequence_tag r); exact Hvalue.
+        assert (Hencode : forall (b : bool) (x : Ty.tySem (Word 4)),
+          @encode (Ty.Prod Bit (Word 4)) (if b then Bit.one else Bit.zero, x) =
+          Some b :: encode x).
+        { intros b x. destruct b; reflexivity. }
+        rewrite Hencode in Hvalue. exact Hvalue.
       + split; [exact Hprefix|]. split.
         * replace (cursor - 18) with (cursor - 1 - (1 + wide_bits W16))
             by (cbn [wide_bits]; lia).
@@ -86,7 +92,12 @@ Proof.
   { destruct (Z.eq_dec (write_word_shift cursor) 1) as [Hboundary|Hinside].
     - destruct (write_layout_previous_boundary edge cursor Hboundary) as [Hshift Haddr].
       exists bithigh. split.
-      + rewrite HMemTail; [exact HBitLoad|left; congruence|right; right].
+      + rewrite HMemTail; [exact HBitLoad| |right; right].
+        * change (bw <> bf \/ write_word_address edge cursor + 8 <= base + 8 \/
+            base + 16 <= write_word_address edge cursor).
+          destruct HHeadSeparate as [HS|[HS|HS]];
+            [left; congruence|right; left; lia|right; right; exact HS].
+        *
         rewrite Haddr. change (write_word_address edge cursor - 8 + 8 <=
           write_word_address edge cursor). lia.
       + intros i Hi Hout; reflexivity.

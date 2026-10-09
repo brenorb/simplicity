@@ -35,7 +35,7 @@ Theorem eval_bitcoin_version_layout_matches_primitive (environment : Bitcoin.env
       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros HSbase HSAlign HB HEbase HTbase HTmax HEnv HVersion HR HFrame.
-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bd dbase bw edge cursor 32 ltac:(lia) HFrame)
     as [_ [_ [_ [initialword HInitialWord]]]].
   assert (HVs : Mem.valid_block m bs).

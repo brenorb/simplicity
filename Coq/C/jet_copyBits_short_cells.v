@@ -133,7 +133,9 @@ Proof.
   intros HS HF Hwrite Hlen Hn Hnd Hsep Hinput.
   destruct (write_frame_at_head m bd base bw outedge cursor n ltac:(lia) Hwrite)
     as [HA0 [HAmax [PW [old Hold]]]].
-  destruct Hwrite as [HB [HW [HO [HNcursor [HC [Hbd [PC Hwords]]]]]]].
+  pose proof (write_frame_at_head_separate m bd base bw outedge cursor n
+    ltac:(lia) Hwrite) as Hbd.
+  destruct Hwrite as [HB [HW [HO [HNcursor [HC [PC Hwords]]]]]].
   destruct (copy_input_cells_head m bi edge rc cells ltac:(lia) Hinput)
     as [HR [HE [source Hsource]]].
   destruct (eval_copyBits_short m bd base bs sbase bi edge rc bw outedge cursor n old source

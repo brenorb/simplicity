@@ -57,7 +57,9 @@ Lemma eval_writeBit_layout_raw m mo mf bf base bw edge cursor old bit :
   Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong old) ->
   Mem.store Mint64 m bf (base + 8) (Vlong (Int64.repr (cursor - 1))) = Some mo ->
   Mem.store Mint64 mo bw (write_word_address edge cursor)
-    (Vlong (write_bit_value cursor old bit)) = Some mf -> bf <> bw ->
+    (Vlong (write_bit_value cursor old bit)) = Some mf ->
+    (bf <> bw \/ write_word_address edge cursor + 8 <= base \/
+      base + 16 <= write_word_address edge cursor) ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal f_writeBit)
     [Vptr bf (Ptrofs.repr base); Vint (if bit then Int.one else Int.zero)] E0 mf
     (Vint (if bit then Int.one else Int.zero)).
@@ -75,7 +77,11 @@ Proof.
   pose proof (Mem.load_store_same _ _ _ _ _ _ SO) as HOo.
   assert (HWp : Mem.load Mint64 mo bw
       (Ptrofs.unsigned (Ptrofs.repr (write_word_address edge cursor))) = Some (Vlong old)).
-  { rewrite Haddr. erewrite Mem.load_store_other; [exact HW|exact SO|auto]. }
+  { rewrite Haddr. erewrite Mem.load_store_other; [exact HW|exact SO|].
+    destruct HD as [Hne|[Hbefore|Hafter]].
+    - left; congruence.
+    - right; left. change (write_word_address edge cursor + 8 <= base + 8). lia.
+    - right; right. change (base + 8 + 8 <= write_word_address edge cursor). lia. }
   assert (SWp : Mem.store Mint64 mo bw
       (Ptrofs.unsigned (Ptrofs.repr (write_word_address edge cursor)))
       (Vlong (write_bit_value cursor old bit)) = Some mf) by (rewrite Haddr; exact SW).

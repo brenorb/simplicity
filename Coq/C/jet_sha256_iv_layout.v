@@ -28,7 +28,7 @@ Theorem eval_sha256_iv_layout_matches_spec env m bd dbase bs sbase bw edge curso
       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros HSbase HSAlign HB HFrame.
-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bd dbase bw edge cursor 256 ltac:(lia) HFrame)
     as [_ [_ [_ [initialword HInitialWord]]]].
   assert (HVs : Mem.valid_block m bs).

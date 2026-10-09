@@ -45,7 +45,7 @@ Lemma write_effect_seq m m1 m2 bf base bw edge cursor n1 n2 cells1 cells2 :
   write_effect m m2 bf base bw edge cursor (n1 + n2) (cells1 ++ cells2).
 Proof.
   intros HL1 Hn2 HFrame (O1 & P1 & F1 & L1 & Pm1 & V1) (O2 & P2 & F2 & L2 & Pm2 & V2).
-  pose proof HFrame as [HB [HF [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HB [HF [HE [HC [HM [PD HW]]]]]].
   assert (Hn1 : 0 <= n1) by (rewrite <- HL1; lia).
   assert (Hdiv1 : (cursor - n1 - n2) / 64 <= (cursor - n1) / 64)
     by (apply Z.div_le_mono; lia).
@@ -56,20 +56,28 @@ Proof.
   - apply frame_output_cells_at_app. split.
     + eapply frame_output_cells_prefix_preserved with (m := m1) (bf := bf) (base := base)
         (cursor := cursor - n1) (low := edge + 8 * ((cursor - n1 - n2) / 64)).
-      * exact HD.
+      * intros i Hi. destruct (HW (Z.of_nat i) ltac:(lia)) as (_ & _ & HD & _). exact HD.
       * rewrite HL1. lia.
       * exact P2.
       * exact L2.
       * exact O1.
     + rewrite HL1. exact O2.
   - split.
-    + eapply write_prefix_at_chain with (mi := m1) (next := cursor - n1)
+    + destruct (Z.eq_dec (n1 + n2) 0) as [Hzero|Hpositive].
+      * assert (Hn10 : n1 = 0) by lia. assert (Hn20 : n2 = 0) by lia.
+        replace (cursor - n1) with cursor in P2 by lia.
+        intros old Hold. destruct (P1 old Hold) as (middle & Hmiddle & Hsame).
+        destruct (P2 middle Hmiddle) as (last & Hlast & Hnew).
+        exists last. split; [exact Hlast|].
+        intros i Hi Houtside. rewrite Hnew; [apply Hsame; assumption|exact Hi|exact Houtside].
+      * eapply write_prefix_at_chain with (mi := m1) (next := cursor - n1)
         (low := edge + 8 * ((cursor - n1 - n2) / 64)).
-      * exact HD.
-      * lia.
-      * exact P1.
-      * exact P2.
-      * exact L2.
+        -- exact (write_frame_at_head_separate m bf base bw edge cursor
+             (n1 + n2) ltac:(lia) HFrame).
+        -- lia.
+        -- exact P1.
+        -- exact P2.
+        -- exact L2.
     + split.
       * replace (cursor - (n1 + n2)) with (cursor - n1 - n2) by lia. exact F2.
       * split.
@@ -95,26 +103,29 @@ Lemma write_frame_at_after_effect m mf bf base bw edge cursor n count cells :
   write_frame_at mf bf base bw edge (cursor - n) count.
 Proof.
   intros HL Hcount HF (O & P & F & L & Pm & V).
-  pose proof HF as [HB [HFl [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HF as [HB [HFl [HE [HC [HM [PD HW]]]]]].
   assert (Hn : 0 <= n) by (rewrite <- HL; lia).
   assert (HV : forall chunk b ofs p, Mem.valid_access m chunk b ofs p ->
     Mem.valid_access mf chunk b ofs p).
   { intros chunk b ofs p [HR HA]. split; [|exact HA]. intros addr HA'. apply Pm. apply HR; exact HA'. }
   split; [exact HB|]. split; [exact F|]. split; [exact HE|]. split; [lia|]. split; [lia|].
-  split; [exact HD|]. split; [auto|].
+  split; [auto|].
   intros i Hi. cbn zeta.
   assert (Haddr : write_cell_address edge (cursor - n) i = write_cell_address edge cursor (i + n)).
   { unfold write_cell_address. replace (cursor - n - 1 - i) with (cursor - 1 - (i + n)) by lia. reflexivity. }
-  rewrite Haddr. destruct (HW (i + n) ltac:(lia)) as [HA0 [HA [PW [old Hold]]]].
-  split; [exact HA0|]. split; [exact HA|]. split; [auto|].
+  rewrite Haddr. destruct (HW (i + n) ltac:(lia)) as [HA0 [HA [HD [PW [old Hold]]]]].
+  split; [exact HA0|]. split; [exact HA|]. split; [exact HD|]. split; [auto|].
+  assert (Hcursorsep : bw <> bf \/ write_cell_address edge cursor (i + n) + 8 <= base + 8 \/
+      base + 16 <= write_cell_address edge cursor (i + n)).
+  { destruct HD as [HD|[HD|HD]]; [left; congruence|right; left; lia|right; right; exact HD]. }
   set (addr := write_cell_address edge cursor (i + n)) in *.
   assert (Haddr_def : addr = edge + 8 * ((cursor - 1 - (i + n)) / 64)) by reflexivity.
   assert (Hmono : (cursor - 1 - (i + n)) / 64 <= (cursor - n) / 64)
     by (apply Z.div_le_mono; lia).
   destruct (Z_le_dec (addr + 8) (edge + 8 * ((cursor - n) / 64))) as [Hlow|Hnl].
-  - exists old. rewrite L; [exact Hold|left; exact (not_eq_sym HD)|right; left; exact Hlow].
+  - exists old. rewrite L; [exact Hold|exact Hcursorsep|right; left; exact Hlow].
   - destruct (Z_le_dec (write_word_address edge cursor + 8) addr) as [Hhigh|Hnh].
-    + exists old. rewrite L; [exact Hold|left; exact (not_eq_sym HD)|right; right; exact Hhigh].
+    + exists old. rewrite L; [exact Hold|exact Hcursorsep|right; right; exact Hhigh].
     + (* addr lies in the written word range *)
       unfold write_word_address in Hnh.
       assert (Hk : (cursor - 1 - (i + n)) / 64 = (cursor - n) / 64) by lia.

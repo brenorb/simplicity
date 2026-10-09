@@ -9,11 +9,12 @@ Local Open Scope Z_scope.
 Definition write_frame_at (m : mem) (bf : block) (base : Z) (bw : block)
     (edge cursor count : Z) : Prop :=
   frame_base_valid base /\ frame_fields_at m bf base bw edge cursor /\
-  0 <= edge /\ 0 <= count <= cursor /\ cursor <= Int64.max_unsigned /\ bf <> bw /\
+  0 <= edge /\ 0 <= count <= cursor /\ cursor <= Int64.max_unsigned /\
   Mem.valid_access m Mint64 bf (base + 8) Writable /\
   forall i, 0 <= i < count ->
     let addr := write_cell_address edge cursor i in
     0 <= addr /\ addr + 8 <= Ptrofs.max_unsigned /\
+    (bf <> bw \/ addr + 8 <= base \/ base + 16 <= addr) /\
     Mem.valid_access m Mint64 bw addr Writable /\
     exists w, Mem.load Mint64 m bw addr = Some (Vlong w).
 
@@ -61,13 +62,13 @@ Lemma write_frame_at_preserved m mf bf base bw edge cursor count :
   (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) ->
   write_frame_at m bf base bw edge cursor count -> write_frame_at mf bf base bw edge cursor count.
 Proof.
-  intros HL HP [HB [[HE HO] [Hedge [HC [HM [HD [PF HW]]]]]]].
+  intros HL HP [HB [[HE HO] [Hedge [HC [HM [PF HW]]]]]].
   assert (HV : forall chunk b ofs p, Mem.valid_access m chunk b ofs p -> Mem.valid_access mf chunk b ofs p).
   { intros chunk b ofs p [HR HA]. split; [|exact HA]. intros addr HA'. apply HP. apply HR; exact HA'. }
   split; [exact HB|]. split; [split; eapply HL; eauto|].
-  split; [exact Hedge|]. split; [exact HC|]. split; [exact HM|]. split; [exact HD|].
-  split; [auto|]. intros i Hi. destruct (HW i Hi) as [HA0 [HAM [PW [w Hword]]]].
-  split; [exact HA0|]. split; [exact HAM|]. split; [auto|]. exists w. eapply HL; eauto.
+  split; [exact Hedge|]. split; [exact HC|]. split; [exact HM|].
+  split; [auto|]. intros i Hi. destruct (HW i Hi) as [HA0 [HAM [HD [PW [w Hword]]]]].
+  split; [exact HA0|]. split; [exact HAM|]. split; [exact HD|]. split; [auto|]. exists w. eapply HL; eauto.
 Qed.
 
 Lemma byte_output_at_preserved m mf bw edge cursor x :
@@ -93,8 +94,10 @@ Lemma write_frame_at_head m bf base bw edge cursor count :
   Mem.valid_access m Mint64 bw (write_word_address edge cursor) Writable /\
   exists w, Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong w).
 Proof.
-  intros HC [_ [_ [_ [_ [_ [_ [_ HW]]]]]]]. specialize (HW 0 ltac:(lia)).
-  unfold write_cell_address in HW. rewrite Z.sub_0_r in HW. exact HW.
+  intros HC (HB & HF & HE & HN & HM & PF & HW). specialize (HW 0 ltac:(lia)).
+  unfold write_cell_address in HW. rewrite Z.sub_0_r in HW.
+  destruct HW as (HA0 & HA & HD & PW & HL). split; [exact HA0|].
+  split; [exact HA|]. split; assumption.
 Qed.
 
 Lemma write_frame_at_crossing m bf base bw edge cursor :
@@ -103,9 +106,54 @@ Lemma write_frame_at_crossing m bf base bw edge cursor :
   Mem.valid_access m Mint64 bw (write_word_address edge cursor - 8) Writable /\
   exists w, Mem.load Mint64 m bw (write_word_address edge cursor - 8) = Some (Vlong w).
 Proof.
-  intros Hcross [_ [_ [_ [HC [HM [_ [_ HW]]]]]]].
+  intros Hcross (HB & HF & HE & HC & HM & PF & HW).
   pose proof (write_layout_index cursor ltac:(lia)) as [_ [HK _]].
   specialize (HW (write_word_shift cursor) ltac:(lia)). cbn zeta in HW.
   rewrite write_word_crossing_address in HW by lia.
-  destruct HW as [HL [_ HW]]. split; [lia|exact HW].
+  destruct HW as (HA0 & HA & HD & PW & HL). split; [lia|]. split; assumption.
+Qed.
+
+(** Separation follows from initial capacity at the word actually accessed.
+    Distinct blocks are sufficient, but disjoint subobjects are also allowed. *)
+Lemma write_frame_at_head_separate m bf base bw edge cursor count :
+  0 < count -> write_frame_at m bf base bw edge cursor count ->
+  bf <> bw \/ write_word_address edge cursor + 8 <= base \/
+    base + 16 <= write_word_address edge cursor.
+Proof.
+  intros HC (HB & HF & HE & HN & HM & PF & HW).
+  specialize (HW 0 ltac:(lia)). unfold write_cell_address in HW.
+  rewrite Z.sub_0_r in HW. exact (proj1 (proj2 (proj2 HW))).
+Qed.
+
+Lemma write_frame_at_crossing_separate m bf base bw edge cursor :
+  write_word_shift cursor < 8 -> write_frame_at m bf base bw edge cursor 8 ->
+  bf <> bw \/ write_word_address edge cursor - 8 + 8 <= base \/
+    base + 16 <= write_word_address edge cursor - 8.
+Proof.
+  intros Hcross (HB & HF & HE & HC & HM & PF & HW).
+  pose proof (write_layout_index cursor ltac:(lia)) as [_ [HK _]].
+  specialize (HW (write_word_shift cursor) ltac:(lia)). cbn zeta in HW.
+  rewrite write_word_crossing_address in HW by lia.
+  exact (proj1 (proj2 (proj2 HW))).
+Qed.
+
+Lemma word_store_preserves_frame_load m mf bf base bw addr value chunk ofs :
+  (bf <> bw \/ addr + 8 <= base \/ base + 16 <= addr) ->
+  base <= ofs -> ofs + size_chunk chunk <= base + 16 ->
+  Mem.store Mint64 m bw addr (Vlong value) = Some mf ->
+  Mem.load chunk mf bf ofs = Mem.load chunk m bf ofs.
+Proof.
+  intros HD Hlo Hhi HS. eapply Mem.load_store_other; [exact HS|].
+  change (bf <> bw \/ ofs + size_chunk chunk <= addr \/ addr + 8 <= ofs).
+  destruct HD as [HD|[HD|HD]]; [left; exact HD|right; right; lia|right; left; lia].
+Qed.
+
+Lemma frame_store_preserves_word_load m mf bf base bw addr value :
+  (bf <> bw \/ addr + 8 <= base \/ base + 16 <= addr) ->
+  Mem.store Mint64 m bf (base + 8) (Vlong value) = Some mf ->
+  Mem.load Mint64 mf bw addr = Mem.load Mint64 m bw addr.
+Proof.
+  intros HD HS. eapply Mem.load_store_other; [exact HS|].
+  change (bw <> bf \/ addr + 8 <= base + 8 \/ base + 8 + 8 <= addr).
+  destruct HD as [HD|[HD|HD]]; [left; congruence|right; left; lia|right; right; lia].
 Qed.

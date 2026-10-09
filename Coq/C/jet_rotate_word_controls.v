@@ -19,19 +19,20 @@ Fixpoint rotate_low_controls_fun n i count (amount : Ty.tySem (Word 3)) (x : Ty.
        end)
   end.
 
-(* This sentence checks 256 finite control cases with a symbolic payload.
+(* This sentence checks 64 relevant control cases with a symbolic payload.
+   The two unused high control bits remain symbolic.
    Allow a bounded batch deadline, as for the 64-bit normal form below. *)
 Set Default Timeout 30.
 Lemma left_rotate32_controls_normalform (amount : Ty.tySem (Word 3)) (x : Ty.tySem (Word 5)) :
   @left_rotate_word_spec 3 5 Alg.CoreFunSem (amount, x) = rotate_low_controls_fun 5 0 5 amount x.
 Proof.
   destruct amount as [[[a b] [c d]] [[e f] [g h]]].
-  destruct a as [[]|[]], b as [[]|[]], c as [[]|[]], d as [[]|[]],
+  destruct c as [[]|[]], d as [[]|[]],
     e as [[]|[]], f as [[]|[]], g as [[]|[]], h as [[]|[]].
   all: reflexivity.
 Qed.
 
-(* The vernacular default bounds the entire 256-case tactic sentence, including
+(* The vernacular default bounds the entire 128-case tactic sentence, including
    an explicit inner Timeout. Give just this checked finite-control proof a
    larger bounded deadline; restore the usual short bound immediately below. *)
 Set Default Timeout 30.
@@ -39,9 +40,10 @@ Lemma left_rotate64_controls_normalform (amount : Ty.tySem (Word 3)) (x : Ty.tyS
   @left_rotate_word_spec 3 6 Alg.CoreFunSem (amount, x) = rotate_low_controls_fun 6 0 6 amount x.
 Proof.
   destruct amount as [[[a b] [c d]] [[e f] [g h]]].
-  destruct a as [[]|[]], b as [[]|[]], c as [[]|[]], d as [[]|[]],
+  destruct b as [[]|[]], c as [[]|[]], d as [[]|[]],
     e as [[]|[]], f as [[]|[]], g as [[]|[]], h as [[]|[]].
-  (* This one sentence checks all 256 control cases; retain a bounded batch
+  (* The unused highest control bit remains symbolic. This sentence checks
+     all 128 relevant cases; retain a bounded batch
      deadline without changing the symbolic-payload proof or its statement. *)
   Timeout 30 all: reflexivity.
 Qed.

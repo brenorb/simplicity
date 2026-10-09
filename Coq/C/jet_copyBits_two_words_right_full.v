@@ -6,6 +6,7 @@ From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Mem
 Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_word_bits.
 Require Import C.jet_copyBits_exec C.jet_copyBits_helper_exec C.jet_copyBits_helper_right.
 Require Import C.jet_copyBits_right_advance C.jet_copyBits_loop_exec C.jet_copyBits_loop_crossing C.jet_copyBits_two_words_right_exec.
+Require Import C.jet_output_layout.
 Import Values Mem Ctypes ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 10.
@@ -17,7 +18,10 @@ Theorem eval_copy_helper_two_right_full m bd base bs sbase bi edge rc bw outedge
   8 * (2 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
   0 <= outedge -> 8 <= write_word_address outedge cursor <= Ptrofs.max_unsigned ->
   0 < cursor mod 64 -> cursor mod 64 < 64 - rc mod 64 -> 64 - rc mod 64 < n <= 64 -> n <= cursor ->
-  bd <> bw ->
+  ((bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
+      base + 16 <= write_word_address outedge cursor) /\
+   (bd <> bw \/ write_word_address outedge cursor - 8 + 8 <= base \/
+      base + 16 <= write_word_address outedge cursor - 8)) ->
   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
   (bi <> bw \/ edge - 8 * (2 + rc / 64) + 8 <= write_word_address outedge cursor \/
@@ -43,6 +47,7 @@ Theorem eval_copy_helper_two_right_full m bd base bs sbase bi edge rc bw outedge
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
   intros HS HB HF HW HR HC HE HO HA Hpartial Hshift Hn Hnc Hbd Hsep Hsepnext Hsepnextlow Hsource Hnext Hold PW PWlow.
+  destruct Hbd as [Hheadsep Hlowsep].
   pose proof (Z.mod_pos_bound rc 64 ltac:(lia)) as Hrm.
   pose proof (Z.mod_pos_bound cursor 64 ltac:(lia)) as Hcm.
   assert (Hsrcaddr : 0 <= edge - 8 * (1 + rc / 64) <= Ptrofs.max_unsigned).
@@ -127,20 +132,32 @@ Proof.
       right; right; change (write_word_address outedge cursor - 8 + 8 <= write_word_address outedge cursor); lia.
     + split; [exact (Mem.load_store_same _ _ _ _ _ _ SF)|]. split.
       * destruct HW as [Hedge Hcursor]. split.
-        -- erewrite Mem.load_store_other; [|exact SF|auto].
-           erewrite Mem.load_store_other; [|exact SI|auto].
-           erewrite Mem.load_store_other; [|exact SP|auto].
-           erewrite Mem.load_store_other; [exact Hedge|exact SC|auto].
-        -- erewrite Mem.load_store_other; [|exact SF|auto].
-           erewrite Mem.load_store_other; [|exact SI|auto].
-           erewrite Mem.load_store_other; [|exact SP|auto].
-           erewrite Mem.load_store_other; [exact Hcursor|exact SC|auto].
+        -- erewrite word_store_preserves_frame_load;
+             [|exact Hlowsep|lia|change (base + 8 <= base + 16); lia|exact SF].
+           erewrite word_store_preserves_frame_load;
+             [|exact Hlowsep|lia|change (base + 8 <= base + 16); lia|exact SI].
+           erewrite word_store_preserves_frame_load;
+             [|exact Hheadsep|lia|change (base + 8 <= base + 16); lia|exact SP].
+           erewrite word_store_preserves_frame_load;
+             [exact Hedge|exact Hheadsep|lia|change (base + 8 <= base + 16); lia|exact SC].
+        -- erewrite word_store_preserves_frame_load;
+             [|exact Hlowsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SF].
+           erewrite word_store_preserves_frame_load;
+             [|exact Hlowsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SI].
+           erewrite word_store_preserves_frame_load;
+             [|exact Hheadsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SP].
+           erewrite word_store_preserves_frame_load;
+             [exact Hcursor|exact Hheadsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SC].
       * split.
         -- intros chunk b ofs Houtside.
            assert (HH : b <> bw \/ ofs + size_chunk chunk <= write_word_address outedge cursor \/
-               write_word_address outedge cursor + 8 <= ofs) by (intuition lia).
+               write_word_address outedge cursor + 8 <= ofs).
+           { destruct Houtside as [HD|[HD|HD]];
+               [left; exact HD|right; left; lia|right; right; exact HD]. }
            assert (HL : b <> bw \/ ofs + size_chunk chunk <= write_word_address outedge cursor - 8 \/
-               write_word_address outedge cursor - 8 + 8 <= ofs) by (intuition lia).
+               write_word_address outedge cursor - 8 + 8 <= ofs).
+           { destruct Houtside as [HD|[HD|HD]];
+               [left; exact HD|right; left; exact HD|right; right; lia]. }
            erewrite Mem.load_store_other; [|exact SF|exact HL].
            erewrite Mem.load_store_other; [|exact SI|exact HL].
            erewrite Mem.load_store_other; [|exact SP|exact HH].

@@ -39,7 +39,7 @@ Theorem eval_bitcoin_getter32_layout f field delta
       Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
 Proof.
   intros HVars HParams HTemps HRet HBody HField HSbase HSAlign HB HEbase HTbase HDlt HTmax HEnv HVersion HFrame.
-  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HDbase [[HDE HDO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bd dbase bw edge cursor 32 ltac:(lia) HFrame)
     as [_ [_ [_ [initialword HInitialWord]]]].
   assert (HVs : Mem.valid_block m bs).

@@ -1,0 +1,41 @@
+diff --git a/Coq/C/jet_write64_then32s_layout.v b/Coq/C/jet_write64_then32s_layout.v
+index f81ffe9e..0cfc366c 100644
+--- a/Coq/C/jet_write64_then32s_layout.v
++++ b/Coq/C/jet_write64_then32s_layout.v
+@@ -33,7 +33,9 @@ Theorem eval_write64_then32s_layout m bi input bf base bw edge cursor x xs :
+     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+ Proof.
+   intros HB HM Hif Hiw HA HW.
+-  pose proof HW as [HFBase [HFields [HE [HC [HMax [Hfw [PW HWords]]]]]]].
++  pose proof (write_frame_at_head_separate m bf base bw edge cursor
++    (64 + 32 * Z.of_nat (length xs)) ltac:(lia) HW) as Hheadsep.
++  pose proof HW as [HFBase [HFields [HE [HC [HMax [PW HWords]]]]]].
+   assert (HW64 : write_frame_at m bf base bw edge cursor 64).
+   { eapply write_frame_at_shorter with (count := 64 + 32 * Z.of_nat (length xs)); [lia|exact HW]. }
+   destruct (eval_write_wide_layout W64 m bf base bw edge cursor x HW64)
+@@ -52,9 +54,13 @@ Proof.
+     as (mf & HArray & HTail & HPrefixTail & HFieldsTail & HMemTail & HPermTail & HValidTail).
+   assert (HfirstFinal : frame_output_cells_at mf bw edge cursor (encode (decode_wide W64 (Int64.zero_ext 64 x)))).
+   { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base)
+-      (cursor := cursor - 64); [exact Hfw| |exact HPrefixTail|exact HMemTail|exact HFirst].
+-    rewrite (encode_word_length (wide_log W64) (decode_wide W64 (Int64.zero_ext 64 x))).
+-    change (0 <= cursor - 64 <= cursor - 64); lia. }
++      (cursor := cursor - 64); [| |exact HPrefixTail|exact HMemTail|exact HFirst].
++    - intros i Hi.
++      rewrite (encode_word_length (wide_log W64) (decode_wide W64 (Int64.zero_ext 64 x))) in Hi.
++      change (i < 64)%nat in Hi.
++      destruct (HWords (Z.of_nat i) ltac:(lia)) as [_ [_ [HD _]]]. exact HD.
++    - rewrite (encode_word_length (wide_log W64) (decode_wide W64 (Int64.zero_ext 64 x))).
++      change (0 <= cursor - 64 <= cursor - 64); lia. }
+   assert (HLo : edge + 8 * ((cursor - (64 + 32 * Z.of_nat (length xs))) / 64) <= slice_write_low 64 edge cursor).
+   { pose proof (slice_write_low_bound 64 edge cursor ltac:(lia) ltac:(lia)).
+     pose proof (Z.div_le_mono (cursor - (64 + 32 * Z.of_nat (length xs))) (cursor - 64) 64
+@@ -66,7 +72,7 @@ Proof.
+   - apply frame_output_cells_at_app. split; [exact HfirstFinal|].
+     rewrite (encode_word_length (wide_log W64) (decode_wide W64 (Int64.zero_ext 64 x))). exact HTail.
+   - split.
+-    + eapply write_prefix_at_chain; [exact Hfw| |exact HPrefix|exact HPrefixTail|exact HMemTail]. lia.
++    + eapply write_prefix_at_chain; [exact Hheadsep| |exact HPrefix|exact HPrefixTail|exact HMemTail]. lia.
+     + split.
+       * replace (cursor - (64 + 32 * Z.of_nat (length xs))) with
+           (cursor - 64 - 32 * Z.of_nat (length xs)) by ring. exact HFieldsTail.

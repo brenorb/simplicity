@@ -117,7 +117,9 @@ Lemma eval_write_wide_non_crossing_raw s m mw mf bf base bw edge cursor old x :
   Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong old) ->
   Mem.store Mint64 m bw (write_word_address edge cursor)
     (Vlong (put_slice (wide_bits s) (write_word_shift cursor) old x)) = Some mw ->
-  Mem.store Mint64 mw bf (base + 8) (Vlong (Int64.repr (cursor - wide_bits s))) = Some mf -> bf <> bw ->
+  Mem.store Mint64 mw bf (base + 8) (Vlong (Int64.repr (cursor - wide_bits s))) = Some mf ->
+  (bf <> bw \/ write_word_address edge cursor + 8 <= base \/
+    base + 16 <= write_word_address edge cursor) ->
   ClightBigstep.Clight2.eval_funcall ge0 m (Internal (wide_writer s))
     [Vptr bf (Ptrofs.repr base); Vlong x] E0 mf Vundef.
 Proof.
@@ -138,7 +140,10 @@ Proof.
       (Vlong (put_slice (wide_bits s) (write_word_shift cursor) old x)) = Some mw)
     by (rewrite Haddr; exact SW).
   assert (HOw : Mem.load Mint64 mw bf (base + 8) = Some (Vlong (Int64.repr cursor))).
-  { erewrite Mem.load_store_other; [exact HO|exact SW|auto]. }
+  { erewrite Mem.load_store_other; [exact HO|exact SW|].
+    change (bf <> bw \/ base + 8 + 8 <= write_word_address edge cursor \/
+      write_word_address edge cursor + 8 <= base + 8).
+    destruct HD as [HD|[HD|HD]]; [left; exact HD|right; right; lia|right; left; lia]. }
   assert (Hcross : Int64.ltu (Int64.repr (write_word_shift cursor)) (Int64.repr (wide_bits s)) = false).
   { unfold Int64.ltu. rewrite !cursor_unsigned by lia. rewrite zlt_false by lia; reflexivity. }
   pose proof (cursor_sub (write_word_shift cursor) (wide_bits s) ltac:(lia) ltac:(lia)) as Hshift_sub.

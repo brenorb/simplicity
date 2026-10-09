@@ -85,7 +85,11 @@ Proof.
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
-Qed.
+(* The first 256-case kernel finalization measured 12.861 seconds.
+   Bound this kernel step separately; keep tactic deadlines at ten seconds. *)
+Set Default Timeout 30.
+Time Qed.
+Set Default Timeout 10.
 
 Lemma shift64_with_complement_one_left amount (x : Ty.tySem (Word 6)) :
   @shift64_with_spec Datatypes.false Alg.CoreFunSem (Bit.fromBool Datatypes.true,(amount,x)) =
@@ -161,7 +165,11 @@ Proof.
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
-Qed.
+(* The first 256-case kernel finalization measured 12.861 seconds.
+   Bound this kernel step separately; keep tactic deadlines at ten seconds. *)
+Set Default Timeout 30.
+Time Qed.
+Set Default Timeout 10.
 
 Lemma shift64_with_complement_zero_right amount (x : Ty.tySem (Word 6)) :
   @shift64_with_spec Datatypes.true Alg.CoreFunSem (Bit.fromBool Datatypes.false,(amount,x)) =
@@ -237,7 +245,11 @@ Proof.
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
-Qed.
+(* The first 256-case kernel finalization measured 12.861 seconds.
+   Bound this kernel step separately; keep tactic deadlines at ten seconds. *)
+Set Default Timeout 30.
+Time Qed.
+Set Default Timeout 10.
 
 Lemma shift64_with_complement_zero_left amount (x : Ty.tySem (Word 6)) :
   @shift64_with_spec Datatypes.false Alg.CoreFunSem (Bit.fromBool Datatypes.false,(amount,x)) =
@@ -313,7 +325,11 @@ Proof.
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
   1-4: lazy; solve [repeat first [reflexivity | solve [symmetry; apply bit_flip_twice] | apply f_equal2]].
-Qed.
+(* The first 256-case kernel finalization measured 12.861 seconds.
+   Bound this kernel step separately; keep tactic deadlines at ten seconds. *)
+Set Default Timeout 30.
+Time Qed.
+Set Default Timeout 10.
 
 Lemma shift64_with_complement_normalform right fill amount (x : Ty.tySem (Word 6)) :
   @shift64_with_spec right Alg.CoreFunSem (Bit.fromBool fill,(amount,x)) =

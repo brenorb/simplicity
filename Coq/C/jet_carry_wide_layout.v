@@ -48,7 +48,8 @@ Theorem eval_carry_wide_layout (s : wide_size) m bf base bw edge cursor
 Proof.
   intros HFrame.
   pose proof (wide_bits_bounds s) as HN.
-  pose proof HFrame as [HB [HF [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HB [HF [HE [HC [HM [PD HW]]]]]].
+  pose proof (write_frame_at_head_separate m bf base bw edge cursor (1 + wide_bits s) ltac:(lia) HFrame) as HD.
   assert (HFrameNext : write_frame_at m bf base bw edge cursor (wide_bits s + 1)).
   { replace (wide_bits s + 1) with (1 + wide_bits s) by lia. exact HFrame. }
   pose proof (write_layout_index cursor ltac:(lia)) as [_ [HK _]].
@@ -74,7 +75,11 @@ Proof.
   { destruct (Z.eq_dec (write_word_shift cursor) 1) as [Hboundary|Hinside].
     - destruct (write_layout_previous_boundary edge cursor Hboundary) as [Hshift Haddr].
       exists bithigh. split.
-      + rewrite HMemWide; [exact HBitLoad|left; congruence|right; right].
+      + rewrite HMemWide; [exact HBitLoad|
+          change (bw <> bf \/ write_word_address edge cursor + 8 <= base + 8 \/
+            base + 16 <= write_word_address edge cursor);
+          destruct HD as [HD|[HD|HD]]; [left; congruence|right; left; lia|right; right; exact HD]
+        |right; right].
         rewrite Haddr. lia.
       + intros i Hi Hout. reflexivity.
     - destruct (write_layout_previous_inside edge cursor ltac:(lia)) as [Hshift Haddr].

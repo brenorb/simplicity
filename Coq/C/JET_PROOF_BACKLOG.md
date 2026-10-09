@@ -6,19 +6,21 @@ the active Coq tree. Unaccepted corrections, candidate registrations, helper
 sources and review witnesses are versioned in `../../proof-work/`, outside the
 accepted build. Consolidation is source preservation, not proof acceptance.
 
-The accepted inventory remains **347/533**, with **104** results conditional on
+The accepted inventory is **349/533**, with **104** results conditional on
 the explicit original `memcpy_model`. The inherited fidelity review is still
 **partial**. `JET_INHERITED_REVIEW.md` is the authoritative eight-criterion
 assessment; compilation, snapshots and absence of admissions do not complete it.
 
 ## Existing accepted correction and review evidence
 
-The frame exclusive-end correction is accepted as `063e3b04`, and the exact
-audited input fingerprint remains the one recorded in
+The frame exclusive-end correction is accepted as `063e3b04`, ; its historical
+audited input fingerprint is recorded in
 `JET_CONSOLIDATION_2026-10-06.json`. `JET_SHARED_MEMORY_REVIEW.md` records its
 definition/domain review. The production C, canonical Haskell, accepted ASTs,
-public theorem statements, conclusions and assumption sets are unchanged by
-this source-archive consolidation.
+canonical specifications and public execution/output/framing conclusions
+are retained by the repaired range integration. The support-interface and
+frozen-predicate changes are reviewed in
+`../../proof-work/range/RANGE-CONTRACT-REVIEW.md`.
 
 The original-C normalization result and its full public lifecycle are already
 integrated. The scope of its canonical review is recorded in
@@ -42,13 +44,12 @@ boundary diagnostic sources are now in `../../proof-work/review-witnesses/`.
 
 ## Corrections and inherited review, before additional coverage
 
-1. Complete the same-block range correction. Its 19 unique unintegrated commits
-   are preserved as a patch series in `../../proof-work/range/`. The whole
-   consumer build fails at `jet_full_multiply8_layout.v:122`; copy and symbolic
-   executor consumers retain the old separation interface. Prior scoped kernel
-   receipts and the 12 additional built/reviewed modules do not accept the full
-   candidate. Repair consumers, review actual definitions/conclusions/hypotheses
-   and snapshot differences, and finish independent acceptance.
+1. The repaired same-block range correction is integrated on
+   `codex/range-integration`: 149 exact reviewed files, complete acceptance
+   and a matching proof-input fingerprint. Its original 20 patches remain
+   historical recovery material. See `../../proof-work/range/RECONCILIATION.json`,
+   `RANGE-CONTRACT-REVIEW.md` and `JET_ACCEPTANCE.md`. The broader inherited
+   endpoint/evaluator/domain/fidelity obligations remain open.
 2. Finish analogous address/representation and constructor-domain review, plus
    every pending registered chain to the literal canonical specification. The
    inherited matrix retains 284 registered rows needing more evidence. Do not
@@ -57,13 +58,13 @@ boundary diagnostic sources are now in `../../proof-work/review-witnesses/`.
 3. Complete remaining raw Bitcoin getter and SHA/composed-hash boundary review
    identified in `JET_INHERITED_REVIEW.md`.
 
-## Additional coverage and support, preserved but unaccepted
+## Integrated extensions and pending support
 
-- Field odd/zero: 18 proof modules, two source checkers and pending
-  registration/snapshot changes are in the exact candidate patch under
-  `../../proof-work/secp-field-predicates/`. The candidate contains 43 support
-  results including two public results. Actual contract/snapshot review and
-  independent acceptance on the selected integration target remain necessary.
+- Field odd/zero: 18 proof modules, two source checkers and registration
+  changes are integrated in `cafb9b31`, with independent full acceptance.
+  The exact original candidate patch under `../../proof-work/secp-field-predicates/`
+  remains historical recovery material. The extension adds 43 support results,
+  including two public results; inherited domain/fidelity review remains open.
 - Scalar/uint128: 22 complete helper sources and the historical literal-source
   checker are in `../../proof-work/scalar-u128/`. Eighteen match historical
   compiled/kernel receipts. Four require fresh verification, including a known

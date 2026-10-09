@@ -555,9 +555,9 @@ Proof.
   { unfold outs. rewrite app_length, Nat2Z.inj_add, outsA_length. reflexivity. }
   pose proof (finv_wframe m0 bd dbase bw outedge cursor N bi HF0 m _ outs Hfinv) as Hwf.
   assert (Hwf' : write_frame_at m bd dbase bw outedge (cursor - Z.of_nat (length outs)) (8 * Z.of_nat (length ys))).
-  { destruct Hwf as (HB & HFl & HE & HC & HM & HD & PD & HW).
+  { destruct Hwf as (HB & HFl & HE & HC & HM & PD & HW).
     split; [exact HB|]. split; [exact HFl|]. split; [exact HE|]. split; [rewrite Hyl; lia|]. split; [exact HM|].
-    split; [exact HD|]. split; [exact PD|]. intros i Hi. apply HW. rewrite Hyl in Hi. lia. }
+    split; [exact PD|]. intros i Hi. apply HW. rewrite Hyl in Hi. lia. }
   destruct (secp_write8s_layout m bB ob bd dbase bw outedge (cursor - Z.of_nat (length outs)) ys)
     as (mf & Hevf & Heff); try assumption.
   { rewrite Hyl. exact Hmaxb. }
