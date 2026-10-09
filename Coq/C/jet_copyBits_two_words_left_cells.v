@@ -106,9 +106,11 @@ Proof.
   pose proof (Z.mod_pos_bound cursor 64 ltac:(lia)) as Hcm.
   destruct (write_frame_at_head m bd base bw outedge cursor n ltac:(lia) Hwrite)
     as [HA0 [HAmax [PW [old Hold]]]].
-  destruct Hwrite as [HB [HW [HO [HNcursor [HC [Hbd [PC Hwords]]]]]]].
-  destruct (Hwords (cursor mod 64) ltac:(lia)) as [Hlow0 [Hlowmax [PWlow Hlowold]]].
-  rewrite copy_partial_cross_write_address in Hlow0, Hlowmax, PWlow by lia.
+  pose proof (write_frame_at_head_separate m bd base bw outedge cursor n
+    ltac:(lia) Hwrite) as Hheadsep.
+  destruct Hwrite as [HB [HW [HO [HNcursor [HC [PC Hwords]]]]]].
+  destruct (Hwords (cursor mod 64) ltac:(lia)) as [Hlow0 [Hlowmax [Hlowsep [PWlow Hlowold]]]].
+  rewrite copy_partial_cross_write_address in Hlow0, Hlowmax, Hlowsep, PWlow by lia.
   destruct (copy_input_cells_head m bi edge rc cells ltac:(lia) Hinput)
     as [HR [HE [source Hsource]]].
   destruct (copy_crossing_input_word m bi edge rc n cells ltac:(lia) ltac:(lia) Hlen Hinput)
@@ -122,7 +124,7 @@ Proof.
   rewrite Hq, Z.sub_0_r in Hsepnext.
   replace (1 + (rc / 64 + 1)) with (2 + rc / 64) in Hsepnext by lia.
   destruct (eval_copy_helper_two_left m bd base bs sbase bi edge rc bw outedge cursor n old source next
-    HS HB HF HW HR ltac:(lia) HE2 HO ltac:(lia) Hshift Hn ltac:(lia) Hbd
+    HS HB HF HW HR ltac:(lia) HE2 HO ltac:(lia) Hshift Hn ltac:(lia) (conj Hheadsep Hlowsep)
     Hsephead Hsepnext Hsource Hnext Hold PW PWlow)
     as [mi [Hcall [Hhead [Hlow [Hfields [Houtside [Hperm Hvalid]]]]]]].
   assert (PCi : Mem.valid_access mi Mint64 bd (base + 8) Writable).
@@ -133,10 +135,18 @@ Proof.
     as [mf [Hwrapper [Hfieldsf [HcursorOutside [Hpermf Hvalidf]]]]].
   assert (Hheadf : Mem.load Mint64 mf bw (write_word_address outedge cursor) =
       Some (Vlong (copy_partial_cross_value (64 - rc mod 64) (cursor mod 64) old source next))).
-  { rewrite HcursorOutside; [exact Hhead|left; congruence]. }
+  { rewrite HcursorOutside; [exact Hhead|].
+    change (bw <> bd \/ write_word_address outedge cursor + 8 <= base + 8 \/
+      base + 16 <= write_word_address outedge cursor).
+    destruct Hheadsep as [HD|[HD|HD]];
+      [left; congruence|right; left; lia|right; right; exact HD]. }
   assert (Hlowf : Mem.load Mint64 mf bw (write_word_address outedge cursor - 8) =
       Some (Vlong (copy_loop_value (64 - (cursor mod 64 - (64 - rc mod 64))) next))).
-  { rewrite HcursorOutside; [exact Hlow|left; congruence]. }
+  { rewrite HcursorOutside; [exact Hlow|].
+    change (bw <> bd \/ write_word_address outedge cursor - 8 + 8 <= base + 8 \/
+      base + 16 <= write_word_address outedge cursor - 8).
+    destruct Hlowsep as [HD|[HD|HD]];
+      [left; congruence|right; left; lia|right; right; exact HD]. }
   exists mf. split; [exact Hwrapper|]. split.
   - eapply copy_two_left_output_cells; try eassumption; lia.
   - split; [eapply copy_partial_cross_written_prefix; eassumption|].

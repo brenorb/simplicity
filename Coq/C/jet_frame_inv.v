@@ -44,7 +44,7 @@ Hypothesis HF0 : write_frame_at m0 bd dbase bw outedge cursor N.
 Lemma fext_bd : fext bd.
 Proof.
   split; [left; reflexivity|].
-  destruct HF0 as (_ & _ & _ & _ & _ & _ & [Hp _] & _).
+  destruct HF0 as (_ & _ & _ & _ & _ & [Hp _] & _).
   eapply Mem.perm_valid_block. apply (Hp (dbase + 8)). simpl. lia.
 Qed.
 
@@ -57,7 +57,7 @@ Qed.
 Lemma finv_init : finv m0 false [].
 Proof.
   split; [intros b [_ H]; exact H|]. split; [exact HF0|].
-  destruct HF0 as (HB & HFl & HE & HC & HM & HD & PD & HW).
+  destruct HF0 as (HB & HFl & HE & HC & HM & PD & HW).
   split; [simpl; lia|]. split.
   - split; [intros i c Hi; destruct i; discriminate|].
     split; [intros old HL; exists old; split; [exact HL|unfold word_outside_eq; intros; reflexivity]|].
@@ -130,9 +130,9 @@ Lemma write_frame_at_le m count count' :
   0 <= count' <= count -> write_frame_at m bd dbase bw outedge cursor count ->
   write_frame_at m bd dbase bw outedge cursor count'.
 Proof.
-  intros Hc (HB & HFl & HE & HC & HM & HD & PD & HW).
+  intros Hc (HB & HFl & HE & HC & HM & PD & HW).
   split; [exact HB|]. split; [exact HFl|]. split; [exact HE|]. split; [lia|]. split; [exact HM|].
-  split; [exact HD|]. split; [exact PD|]. intros i Hi. apply HW. lia.
+  split; [exact PD|]. intros i Hi. apply HW. lia.
 Qed.
 
 (** The rest of the output frame is writable after the writes so far. *)
@@ -144,27 +144,31 @@ Proof.
   set (n := Z.of_nat (length outs)) in *. set (count := N - n).
   assert (HF : write_frame_at m0 bd dbase bw outedge cursor (n + count)) by (unfold count; replace (n + (N - n)) with N by lia; exact HF0).
   assert (Hcount : 0 <= count) by (unfold count; lia).
-  pose proof HF as [HB [HFl [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HF as [HB [HFl [HE [HC [HM [PD HW]]]]]].
   assert (Hn : 0 <= n) by (unfold n; lia).
   assert (HVA : forall chunk b ofs p, fext b -> Mem.valid_access m0 chunk b ofs p ->
     Mem.valid_access m chunk b ofs p).
   { intros chunk b ofs p Hb [HR HA]. split; [|exact HA]. intros addr HA'. apply Pm; [exact Hb|]. apply HR; exact HA'. }
   split; [exact HB|]. split; [exact F|]. split; [exact HE|]. split; [lia|]. split; [lia|].
-  split; [exact HD|]. split; [apply HVA; [exact fext_bd|exact PD]|].
+  split; [apply HVA; [exact fext_bd|exact PD]|].
   intros i Hi. cbn zeta.
   assert (Haddr : write_cell_address outedge (cursor - n) i = write_cell_address outedge cursor (i + n)).
   { unfold write_cell_address. replace (cursor - n - 1 - i) with (cursor - 1 - (i + n)) by lia. reflexivity. }
-  rewrite Haddr. destruct (HW (i + n) ltac:(lia)) as [HA0 [HA [PW [old Hold]]]].
+  rewrite Haddr. destruct (HW (i + n) ltac:(lia)) as [HA0 [HA [HD [PW [old Hold]]]]].
   assert (Hbw : fext bw) by (split; [right; left; reflexivity|exact (load_valid _ _ _ _ _ Hold)]).
-  split; [exact HA0|]. split; [exact HA|]. split; [apply HVA; assumption|].
+  split; [exact HA0|]. split; [exact HA|]. split; [exact HD|].
+  split; [apply HVA; assumption|].
+  assert (Hcursorsep : bw <> bd \/ write_cell_address outedge cursor (i + n) + 8 <= dbase + 8 \/
+      dbase + 16 <= write_cell_address outedge cursor (i + n)).
+  { destruct HD as [HD|[HD|HD]]; [left; congruence|right; left; lia|right; right; exact HD]. }
   set (addr := write_cell_address outedge cursor (i + n)) in *.
   assert (Haddr_def : addr = outedge + 8 * ((cursor - 1 - (i + n)) / 64)) by reflexivity.
   assert (Hmono : (cursor - 1 - (i + n)) / 64 <= (cursor - n) / 64)
     by (apply Z.div_le_mono; lia).
   destruct (Z_le_dec (addr + 8) (outedge + 8 * ((cursor - n) / 64))) as [Hlow|Hnl].
-  - exists old. rewrite L; [exact Hold|exact Hbw|left; exact (not_eq_sym HD)|right; left; exact Hlow].
+  - exists old. rewrite L; [exact Hold|exact Hbw|exact Hcursorsep|right; left; exact Hlow].
   - destruct (Z_le_dec (write_word_address outedge cursor + 8) addr) as [Hhigh|Hnh].
-    + exists old. rewrite L; [exact Hold|exact Hbw|left; exact (not_eq_sym HD)|right; right; exact Hhigh].
+    + exists old. rewrite L; [exact Hold|exact Hbw|exact Hcursorsep|right; right; exact Hhigh].
     + unfold write_word_address in Hnh.
       assert (Hk : (cursor - 1 - (i + n)) / 64 = (cursor - n) / 64) by lia.
       destruct (Z.eq_dec n 0) as [Hn0|Hn1].
@@ -197,7 +201,7 @@ Proof.
   set (n1 := Z.of_nat (length outs)) in *.
   assert (Hn2 : 0 <= n2) by lia. assert (Hn1 : 0 <= n1) by (unfold n1; lia).
   assert (HFrame : write_frame_at m0 bd dbase bw outedge cursor (n1 + n2)) by (apply (write_frame_at_le m0 N); [lia|exact HF0]).
-  pose proof HFrame as [HB [HF [HE [HC [HM [HD [PD HW]]]]]]].
+  pose proof HFrame as [HB [HF [HE [HC [HM [PD HW]]]]]].
   assert (Hdiv1 : (cursor - n1 - n2) / 64 <= (cursor - n1) / 64) by (apply Z.div_le_mono; lia).
   assert (Hdiv2 : write_word_address outedge (cursor - n1) <= write_word_address outedge cursor).
   { unfold write_word_address. pose proof (Z.div_le_mono (cursor - n1 - 1) (cursor - 1) 64 ltac:(lia) ltac:(lia)). lia. }
@@ -209,20 +213,29 @@ Proof.
   - apply frame_output_cells_at_app. split.
     + eapply frame_output_cells_prefix_preserved with (m := m) (bf := bd) (base := dbase)
         (cursor := cursor - n1) (low := outedge + 8 * ((cursor - n1 - n2) / 64)).
-      * exact HD.
+      * intros i Hi. destruct (HW (Z.of_nat i) ltac:(unfold n1 in *; lia))
+          as (_ & _ & HD & _). exact HD.
       * fold n1. lia.
       * exact P2.
       * exact L2.
       * exact O1.
     + fold n1. exact O2.
   - split.
-    + eapply write_prefix_at_chain with (mi := m) (next := cursor - n1)
+    + destruct (Z.eq_dec (n1 + n2) 0) as [Hzero|Hpositive].
+      * assert (Hn10 : n1 = 0) by lia. assert (Hn20 : n2 = 0) by lia.
+        replace (cursor - n1) with cursor in P2 by lia.
+        intros old Hold. destruct (P1 old Hold) as (middle & Hmiddle & Hsame).
+        destruct (P2 middle Hmiddle) as (last & Hlast & Hnew).
+        exists last. split; [exact Hlast|].
+        intros i Hi Houtside. rewrite Hnew; [apply Hsame; assumption|exact Hi|exact Houtside].
+      * eapply write_prefix_at_chain with (mi := m) (next := cursor - n1)
         (low := outedge + 8 * ((cursor - n1 - n2) / 64)).
-      * exact HD.
-      * lia.
-      * exact P1.
-      * exact P2.
-      * exact L2.
+        -- exact (write_frame_at_head_separate m0 bd dbase bw outedge cursor
+             (n1 + n2) ltac:(lia) HFrame).
+        -- lia.
+        -- exact P1.
+        -- exact P2.
+        -- exact L2.
     + split.
       * replace (cursor - (n1 + n2)) with (cursor - n1 - n2) by lia. exact F2.
       * split.

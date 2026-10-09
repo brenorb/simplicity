@@ -9,9 +9,9 @@ Lemma write_frame_at_shorter m bf base bw edge cursor count shorter :
   0 <= shorter <= count ->
   write_frame_at m bf base bw edge cursor count -> write_frame_at m bf base bw edge cursor shorter.
 Proof.
-  intros HS [HB [HF [HE [HC [HM [HD [PD HW]]]]]]].
+  intros HS [HB [HF [HE [HC [HM [PD HW]]]]]].
   split; [exact HB|]. split; [exact HF|]. split; [exact HE|]. split; [lia|].
-  split; [exact HM|]. split; [exact HD|]. split; [exact PD|]. intros i Hi; apply HW; lia.
+  split; [exact HM|]. split; [exact PD|]. intros i Hi; apply HW; lia.
 Qed.
 
 Lemma write_frame_at_after_bit m mf bf base bw edge cursor count w :
@@ -23,19 +23,22 @@ Lemma write_frame_at_after_bit m mf bf base bw edge cursor count w :
   (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) ->
   write_frame_at mf bf base bw edge (cursor - 1) count.
 Proof.
-  intros Hcount [HB [HF [HE [HC [HM [HD [PD HW]]]]]]] HF' Hhead Houtside HP.
+  intros Hcount [HB [HF [HE [HC [HM [PD HW]]]]]] HF' Hhead Houtside HP.
   assert (HV : forall chunk b ofs p, Mem.valid_access m chunk b ofs p -> Mem.valid_access mf chunk b ofs p).
   { intros chunk b ofs p [HR HA]. split; [|exact HA]. intros addr HA'. apply HP. apply HR; exact HA'. }
   split; [exact HB|]. split; [exact HF'|]. split; [exact HE|]. split; [lia|].
-  split; [lia|]. split; [exact HD|]. split; [auto|].
+  split; [lia|]. split; [auto|].
   intros i Hi. cbn zeta.
   assert (Haddr : write_cell_address edge (cursor - 1) i = write_cell_address edge cursor (i + 1)).
   { unfold write_cell_address. replace (cursor - 1 - 1 - i) with (cursor - 1 - (i + 1)) by lia. reflexivity. }
-  rewrite Haddr. destruct (HW (i + 1) ltac:(lia)) as [HA0 [HA [PW [old HL]]]].
-  split; [exact HA0|]. split; [exact HA|]. split; [auto|].
+  rewrite Haddr. destruct (HW (i + 1) ltac:(lia)) as [HA0 [HA [HDataSep [PW [old HL]]]]].
+  split; [exact HA0|]. split; [exact HA|]. split; [exact HDataSep|]. split; [auto|].
+  assert (Hcursorsep : bw <> bf \/ write_cell_address edge cursor (i + 1) + 8 <= base + 8 \/
+      base + 16 <= write_cell_address edge cursor (i + 1)).
+  { destruct HDataSep as [HD|[HD|HD]]; [left; congruence|right; left; lia|right; right; exact HD]. }
   destruct (Z.eq_dec (write_cell_address edge cursor (i + 1)) (write_word_address edge cursor)) as [Heq | Hneq].
   - rewrite Heq. exists w; exact Hhead.
-  - exists old. rewrite Houtside; [exact HL|left; congruence|].
+  - exists old. rewrite Houtside; [exact HL|exact Hcursorsep|].
     right. unfold write_cell_address, write_word_address in Hneq |- *.
     change (edge + 8 * ((cursor - 1 - (i + 1)) / 64) + 8 <= edge + 8 * ((cursor - 1) / 64) \/
       edge + 8 * ((cursor - 1) / 64) + 8 <= edge + 8 * ((cursor - 1 - (i + 1)) / 64)).

@@ -35,13 +35,13 @@ Proof.
   assert (Hn0 : 0 <= write_size wf) by (unfold write_size; lia).
   destruct (frame_words_bounds _ Hn0) as [Hfw0 Hfw].
   unfold write_frame_at. split; [exact HB|]. split; [exact HF|]. split; [exact HE0|].
-  split; [lia|]. split; [unfold write_size in HM; lia|]. split; [auto|]. split; [exact HV|].
+  split; [lia|]. split; [unfold write_size in HM; lia|]. split; [exact HV|].
   intros i Hi. cbv zeta. unfold write_cell_address.
   set (k := (Z.of_nat (writeEmpty wf) - 1 - i) / 64).
   assert (Hk : 0 <= k < frame_words (write_size wf)).
   { unfold k, write_size in *. split; [apply Z.div_pos; lia|].
     apply Z.div_lt_upper_bound; lia. }
-  split; [lia|]. split; [lia|]. split.
+  split; [lia|]. split; [lia|]. split; [left; congruence|]. split.
   - split.
     + intros ofs Hofs. apply HR. change (size_chunk Mint64) with 8 in Hofs. lia.
     + change (align_chunk Mint64) with 8. apply Z.divide_add_r; [exact HA|].

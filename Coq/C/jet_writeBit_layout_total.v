@@ -48,9 +48,10 @@ Theorem eval_writeBit_layout m bf base bw edge cursor (bit : bool) :
     (forall b ofs kind p, Mem.perm m b ofs kind p -> Mem.perm mf b ofs kind p) /\
     (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
 Proof.
-  intros HFrame. pose proof HFrame as [HB [[HF HO] [HE [HC [HM [HD [PD HW]]]]]]].
+  intros HFrame. pose proof HFrame as [HB [[HF HO] [HE [HC [HM [PD HW]]]]]].
   destruct (write_frame_at_head m bf base bw edge cursor 1 ltac:(lia) HFrame)
     as [HA0 [HA [PW [old HL]]]].
+  pose proof (write_frame_at_head_separate m bf base bw edge cursor 1 ltac:(lia) HFrame) as HD.
   destruct (Mem.valid_access_store m Mint64 bf (base + 8) (Vlong (Int64.repr (cursor - 1))) PD)
     as [mo SO].
   assert (PWo : Mem.valid_access mo Mint64 bw (write_word_address edge cursor) Writable)
@@ -66,9 +67,15 @@ Proof.
       exists (write_bit_value cursor old bit). split; [exact Hout|apply write_bit_value_prefix; lia].
     + split.
       * split.
-        -- erewrite Mem.load_store_other; [|exact SW|auto].
+        -- erewrite Mem.load_store_other; [|exact SW|
+             change (bf <> bw \/ base + 8 <= write_word_address edge cursor \/
+               write_word_address edge cursor + 8 <= base);
+             destruct HD as [HD|[HD|HD]]; [left; exact HD|right; right; exact HD|right; left; lia]].
            erewrite Mem.load_store_other; [exact HF|exact SO|right; left; change (base + 8 <= base + 8); lia].
-        -- erewrite Mem.load_store_other; [|exact SW|auto]. exact (Mem.load_store_same _ _ _ _ _ _ SO).
+        -- erewrite Mem.load_store_other; [|exact SW|
+             change (bf <> bw \/ base + 8 + 8 <= write_word_address edge cursor \/
+               write_word_address edge cursor + 8 <= base + 8);
+             destruct HD as [HD|[HD|HD]]; [left; exact HD|right; right; lia|right; left; lia]]. exact (Mem.load_store_same _ _ _ _ _ _ SO).
       * split.
         -- intros chunk b ofs Hbf Hbw.
            erewrite Mem.load_store_other; [|exact SW|cbn; lia].

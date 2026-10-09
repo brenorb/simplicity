@@ -9,6 +9,7 @@ Require Import C.jets C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_wor
 Require Import C.jet_copyBits_exec C.jet_copyBits_helper_exec C.jet_copyBits_helper_right.
 Require Import C.jet_copyBits_right_advance C.jet_copyBits_loop_exec C.jet_copyBits_loop_crossing.
 Require Import C.jet_copyBits_two_words_right_exec C.jet_memcpy_model C.jet_copyBits_memcpy_exec C.jet_copyWord.
+Require Import C.jet_output_layout.
 Import Values Mem Ctypes ListNotations Clightdefs.
 Local Open Scope Z_scope.
 Local Transparent Archi.ptr64.
@@ -90,7 +91,9 @@ Theorem eval_copy_helper_memcpy_aligned (Hmodel : memcpy_model) m bd base bs sba
   0 <= rc <= Int64.max_unsigned -> 1 <= cursor <= Int64.max_unsigned ->
   8 * (1 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
   0 <= outedge -> write_word_address outedge cursor <= Ptrofs.max_unsigned ->
-  rc mod 64 = 0 -> cursor mod 64 = 0 -> 0 < n <= 64 -> n <= cursor -> bd <> bw ->
+  rc mod 64 = 0 -> cursor mod 64 = 0 -> 0 < n <= 64 -> n <= cursor ->
+  (bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
+    base + 16 <= write_word_address outedge cursor) ->
   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
   Mem.load Mint64 m bi (edge - 8 * (1 + rc / 64)) = Some (Vlong source) ->
@@ -113,6 +116,11 @@ Proof.
   destruct (memcpy_word_effect Hmodel m bi (edge - 8 * (1 + rc / 64)) bw
     (write_word_address outedge cursor) source Hsource Hdst Hsrcaddr Hdstaddr Hsep)
     as (mf & Hext & Hword & Hother & Hperm & Hvalid).
+  assert (Hmeta : forall chunk ofs, base <= ofs -> ofs + size_chunk chunk <= base + 16 ->
+      Mem.load chunk mf bd ofs = Mem.load chunk m bd ofs).
+  { intros chunk ofs Hlo Hhi. apply Hother.
+    destruct Hbd as [HD|[HD|HD]];
+      [left; exact HD|right; right; lia|right; left; lia]. }
   exists mf. split.
   - eapply eval_copy_helper_prefix_composes with (out := Out_normal); try eassumption; [|left; reflexivity].
     rewrite copy_helper_tail_shape.
@@ -139,8 +147,8 @@ Proof.
         change (Ptrofs.repr 0) with Ptrofs.zero. rewrite Ptrofs.sub_zero_l. exact Hext.
   - split; [exact Hword|]. split.
     + destruct HW as [Hedge Hcursor]. split.
-      * rewrite Hother; [exact Hedge|left; exact Hbd].
-      * rewrite Hother; [exact Hcursor|left; exact Hbd].
+      * rewrite Hmeta; [exact Hedge|lia|change (base + 8 <= base + 16); lia].
+      * rewrite Hmeta; [exact Hcursor|lia|change (base + 8 + 8 <= base + 16); lia].
     + split; [exact Hother|]. split; [exact Hperm|exact Hvalid].
 Qed.
 
@@ -193,7 +201,10 @@ Theorem eval_copy_helper_memcpy_equal (Hmodel : memcpy_model) m bd base bs sbase
   8 * (2 + rc / 64) <= edge <= Ptrofs.max_unsigned ->
   0 <= outedge -> 8 <= write_word_address outedge cursor <= Ptrofs.max_unsigned ->
   0 < cursor mod 64 -> cursor mod 64 = 64 - rc mod 64 -> cursor mod 64 < n <= 64 -> n <= cursor ->
-  bd <> bw ->
+  ((bd <> bw \/ write_word_address outedge cursor + 8 <= base \/
+      base + 16 <= write_word_address outedge cursor) /\
+   (bd <> bw \/ write_word_address outedge cursor - 8 + 8 <= base \/
+      base + 16 <= write_word_address outedge cursor - 8)) ->
   (bi <> bw \/ edge - 8 * (1 + rc / 64) + 8 <= write_word_address outedge cursor \/
     write_word_address outedge cursor + 8 <= edge - 8 * (1 + rc / 64)) ->
   (bi <> bw \/ edge - 8 * (2 + rc / 64) + 8 <= write_word_address outedge cursor \/
@@ -219,6 +230,7 @@ Theorem eval_copy_helper_memcpy_equal (Hmodel : memcpy_model) m bd base bs sbase
 Proof.
   intros HS HB HF HW HR HC HE HO HA Hpartial Hshift Hn Hnc Hbd Hsep Hsepnext Hsepnextlow
     Hsource Hnext Hold PW PWlow.
+  destruct Hbd as [Hheadsep Hlowsep].
   pose proof (Z.mod_pos_bound rc 64 ltac:(lia)) as Hrm.
   pose proof (Z.mod_pos_bound cursor 64 ltac:(lia)) as Hcm.
   assert (Hsrcaddr : 0 <= edge - 8 * (1 + rc / 64) <= Ptrofs.max_unsigned).
@@ -253,6 +265,11 @@ Proof.
   destruct (memcpy_word_effect Hmodel mp bi (edge - 8 * (2 + rc / 64)) bw
     (write_word_address outedge cursor - 8) next HnextP PWlowP Hnextaddr Hlowaddr Hsepnextlow)
     as (mf & Hext & Hword & Hother & Hperm & Hvalid).
+  assert (Hmeta : forall chunk ofs, base <= ofs -> ofs + size_chunk chunk <= base + 16 ->
+      Mem.load chunk mf bd ofs = Mem.load chunk mp bd ofs).
+  { intros chunk ofs Hlo Hhi. apply Hother.
+    destruct Hlowsep as [HD|[HD|HD]];
+      [left; exact HD|right; right; lia|right; left; lia]. }
   assert (Hss : 64 - rc mod 64 = cursor mod 64) by lia.
   exists mf. split.
   - assert (HAmax : write_word_address outedge cursor <= Ptrofs.max_unsigned) by lia.
@@ -280,17 +297,25 @@ Proof.
       exact (Mem.load_store_same _ _ _ _ _ _ SP).
     + split; [exact Hword|]. split.
       * destruct HW as [Hedge Hcursor]. split.
-        -- rewrite Hother by (left; exact Hbd).
-           erewrite Mem.load_store_other; [|exact SP|auto].
-           erewrite Mem.load_store_other; [exact Hedge|exact SC|auto].
-        -- rewrite Hother by (left; exact Hbd).
-           erewrite Mem.load_store_other; [|exact SP|auto].
-           erewrite Mem.load_store_other; [exact Hcursor|exact SC|auto].
+        -- rewrite Hmeta; [|lia|change (base + 8 <= base + 16); lia].
+           erewrite word_store_preserves_frame_load;
+             [|exact Hheadsep|lia|change (base + 8 <= base + 16); lia|exact SP].
+           erewrite word_store_preserves_frame_load;
+             [exact Hedge|exact Hheadsep|lia|change (base + 8 <= base + 16); lia|exact SC].
+        -- rewrite Hmeta; [|lia|change (base + 8 + 8 <= base + 16); lia].
+           erewrite word_store_preserves_frame_load;
+             [|exact Hheadsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SP].
+           erewrite word_store_preserves_frame_load;
+             [exact Hcursor|exact Hheadsep|lia|change (base + 8 + 8 <= base + 16); lia|exact SC].
       * split.
         -- intros chunk b ofs Houtside.
            assert (HH : b <> bw \/ ofs + size_chunk chunk <= write_word_address outedge cursor \/
-               write_word_address outedge cursor + 8 <= ofs) by (intuition lia).
-           rewrite Hother by (intuition lia).
+               write_word_address outedge cursor + 8 <= ofs).
+           { destruct Houtside as [HD|[HD|HD]];
+               [left; exact HD|right; left; lia|right; right; exact HD]. }
+           rewrite Hother.
+           2: { destruct Houtside as [HD|[HD|HD]];
+                  [left; exact HD|right; left; exact HD|right; right; lia]. }
            erewrite Mem.load_store_other; [|exact SP|exact HH].
            eapply Mem.load_store_other; [exact SC|exact HH].
         -- split.

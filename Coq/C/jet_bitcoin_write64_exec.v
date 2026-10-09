@@ -3,6 +3,7 @@
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps ClightBigstep Memory Events.
 Require Import C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_frame_arith C.jet_word_slice.
+Require Import C.jet_output_layout.
 Require Import C.jet_frame_access C.jet_frame_constants C.jet_write_wide_layout C.jet_wide.
 Require Import C.jets_bitcoin C.jet_bitcoin_linkage C.jet_bitcoin_frame_access C.jet_bitcoin_word_helpers.
 Import Values Mem Ctypes ListNotations Clightdefs.
@@ -156,7 +157,9 @@ Lemma eval_bitcoin_write64_non_crossing_raw m mw mf bf base bw edge cursor old x
   Mem.load Mint64 m bw (write_word_address edge cursor) = Some (Vlong old) ->
   Mem.store Mint64 m bw (write_word_address edge cursor)
     (Vlong (put_slice 64 (write_word_shift cursor) old x)) = Some mw ->
-  Mem.store Mint64 mw bf (base + 8) (Vlong (Int64.repr (cursor - 64))) = Some mf -> bf <> bw ->
+  Mem.store Mint64 mw bf (base + 8) (Vlong (Int64.repr (cursor - 64))) = Some mf ->
+  (bf <> bw \/ write_word_address edge cursor + 8 <= base \/
+    base + 16 <= write_word_address edge cursor) ->
   Clight2.eval_funcall bitcoin_ge m (Internal f_simplicity_write64)
     [Vptr bf (Ptrofs.repr base); Vlong x] E0 mf Vundef.
 Proof.
@@ -172,7 +175,8 @@ Proof.
   assert (SWp : Mem.store Mint64 m bw (Ptrofs.unsigned (Ptrofs.repr (write_word_address edge cursor)))
     (Vlong (put_slice 64 (write_word_shift cursor) old x)) = Some mw) by (rewrite Haddr; exact SW).
   assert (HOw : Mem.load Mint64 mw bf (base + 8) = Some (Vlong (Int64.repr cursor))).
-  { erewrite Mem.load_store_other; [exact HO|exact SW|auto]. }
+  { erewrite word_store_preserves_frame_load; [exact HO|exact HD|lia|
+      change (base + 8 + 8 <= base + 16); lia|exact SW]. }
   assert (Hcross : Int64.ltu (Int64.repr (write_word_shift cursor)) (Int64.repr 64) = false).
   { unfold Int64.ltu. rewrite !cursor_unsigned by lia. rewrite zlt_false by lia; reflexivity. }
   pose proof (cursor_sub (write_word_shift cursor) 64 ltac:(lia) ltac:(lia)) as Hshift_sub.

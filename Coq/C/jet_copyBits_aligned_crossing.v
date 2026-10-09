@@ -137,7 +137,9 @@ Proof.
   pose proof (Z.mod_pos_bound rc 64 ltac:(lia)) as Hrm.
   destruct (write_frame_at_head m bd base bw outedge cursor n ltac:(lia) Hwrite)
     as [HA0 [HAmax [PW [old Hold]]]].
-  destruct Hwrite as [HB [HW [HO [HNcursor [HC [Hbd [PC Hwords]]]]]]].
+  pose proof (write_frame_at_head_separate m bd base bw outedge cursor n
+    ltac:(lia) Hwrite) as Hbd.
+  destruct Hwrite as [HB [HW [HO [HNcursor [HC [PC Hwords]]]]]].
   destruct (copy_input_cells_head m bi edge rc cells ltac:(lia) Hinput)
     as [HR [HE [source Hsource]]].
   destruct (copy_crossing_input_word m bi edge rc n cells Hsrc Hn Hlen Hinput)
@@ -153,7 +155,11 @@ Proof.
     as [mf [Hwrapper [Hfieldsf [HcursorOutside [Hpermf Hvalidf]]]]].
   assert (Hresult : Mem.load Mint64 mf bw (write_word_address outedge cursor) =
       Some (Vlong (copy_loop_join_value (64 - rc mod 64) source next))).
-  { rewrite HcursorOutside; [exact Hword|left; congruence]. }
+  { rewrite HcursorOutside; [exact Hword|].
+    change (bw <> bd \/ write_word_address outedge cursor + 8 <= base + 8 \/
+      base + 16 <= write_word_address outedge cursor).
+    destruct Hbd as [Hbd|[Hbd|Hbd]];
+      [left; congruence|right; left; lia|right; right; exact Hbd]. }
   exists mf. split; [exact Hwrapper|]. split.
   - eapply copy_aligned_crossing_output_cells; try eassumption; lia.
   - split; [eapply copy_aligned_written_prefix; eassumption|].

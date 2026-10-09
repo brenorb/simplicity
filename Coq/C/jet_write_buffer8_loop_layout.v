@@ -59,7 +59,9 @@ Proof.
     change (uint8_array_at m bi input (map word8_array_value (byte_chunk_values c ++ byte_chunks_values cs))) in HA.
     rewrite map_app in HA. apply uint8_array_at_app in HA. rewrite map_length in HA.
     destruct HA as [HAHead HATail].
-    pose proof HW as [_ [_ [_ [HFrameCount [HCursor [Hfw _]]]]]].
+    pose proof (write_frame_at_head_separate m bf base bw edge cursor
+      (byte_chunks_width (c :: cs) + tail) ltac:(cbn [byte_chunks_width]; lia) HW) as Hheadsep.
+    pose proof HW as [_ [_ [_ [HFrameCount [HCursor [_ HWords]]]]]].
     destruct (exec_buffer8_write_chunk_layout m le bi input bf base bw edge cursor
       (Z.of_nat (length (byte_chunks_values (c :: cs)))) c (byte_chunks_width cs + tail)
       HD HB HL HI ltac:(lia) HCSize ltac:(cbn [byte_chunks_capacity] in HValueBound; lia)
@@ -85,9 +87,13 @@ Proof.
     assert (HHeadFinal : frame_output_cells_at mf bw edge cursor (byte_chunk_cells c)).
     { eapply frame_output_cells_prefix_preserved with (bf := bf) (base := base)
         (cursor := cursor - (1 + 8 * Z.of_nat (fst c)));
-        [exact Hfw| |exact HPrefixTail|exact HMemoryTail|exact HHead].
-      rewrite byte_chunk_cells_width by exact HCSize.
-      cbn [byte_chunks_width] in HFrameCount; lia. }
+        [| |exact HPrefixTail|exact HMemoryTail|exact HHead].
+      - intros i Hi.
+        pose proof (byte_chunk_cells_width c HCSize) as Hwidth.
+        destruct (HWords (Z.of_nat i) ltac:(cbn [byte_chunks_width]; lia)) as (_ & _ & HDsep & _).
+        exact HDsep.
+      - rewrite byte_chunk_cells_width by exact HCSize.
+        cbn [byte_chunks_width] in HFrameCount; lia. }
     assert (HLo : edge + 8 * ((cursor - byte_chunks_width (c :: cs)) / 64) <=
       edge + 8 * ((cursor - (1 + 8 * Z.of_nat (fst c))) / 64)).
     { pose proof (Z.div_le_mono (cursor - byte_chunks_width (c :: cs))
@@ -105,7 +111,7 @@ Proof.
         rewrite byte_chunk_cells_width by exact HCSize; exact HTailCells.
       * split.
         -- eapply write_prefix_at_chain with (next := cursor - (1 + 8 * Z.of_nat (fst c)));
-             [exact Hfw|cbn [byte_chunks_width] in HFrameCount; lia|exact HPrefix|exact HPrefixTail|exact HMemoryTail].
+             [exact Hheadsep|cbn [byte_chunks_width] in HFrameCount; lia|exact HPrefix|exact HPrefixTail|exact HMemoryTail].
         -- split.
            ++ replace (cursor - byte_chunks_width (c :: cs)) with
                 (cursor - (1 + 8 * Z.of_nat (fst c)) - byte_chunks_width cs) by (cbn [byte_chunks_width]; lia).

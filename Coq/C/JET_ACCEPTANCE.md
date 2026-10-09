@@ -1,4 +1,29 @@
-# Latest repository consolidation acceptance
+# Range integration acceptance (2026-10-09)
+
+`codex/range-integration` integrates 149 reviewed files from the repaired
+range candidate, based on `cafb9b31`. All old/base and new/candidate file
+hashes match `../../proof-work/range/RECONCILIATION.json`. The complete
+proof-input fingerprint is identical to the candidate that passed full
+`check-jets.sh --accept` with exit 0 (54683):
+`dccfcbcd42e6b7c419992597362ebf4a2c2df407769183a217a27599718e8f07`.
+
+That acceptance includes a build, 603 kernel modules, 3,583 assumption
+records (1,860 closed), reviewed contract/definition snapshots, negative
+tests and all four original-source AST comparisons. The durable run log is
+`../../proof-work/range/reconciled-accept.log`. This integration reuses the
+receipt for byte-identical proof inputs; it does not claim a new compiler run.
+
+The range correction permits disjoint metadata and output words within one
+CompCert block. Public execution/output/framing conclusions and canonical
+specifications are retained. Six support results are added, with the same
+inherited axiom names and unchanged kernel allowlist. Coverage stays 349/533
+(245 without an extra libc premise, 104 conditional on `memcpy_model`).
+The field odd/zero proofs are already integrated by `cafb9b31`.
+Inherited endpoint/evaluator/domain and exhaustive fidelity review remain open.
+
+The records below describe earlier integration stages and are historical.
+
+# Historical repository consolidation acceptance
 
 The scoped endpoint correction is accepted with exit 0, observed
 2026-10-06 18:58:55 UTC.
