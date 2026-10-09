@@ -2,6 +2,39 @@
 
 ## Latest continuation (2026-10-09)
 
+The complete public contract now **compiles freshly with exit 0** (39500):
+`C.jet_secp_gej_infinity_local.gej_infinity_literal_local_spec` has type
+`secp_jet_local_spec f_simplicity_gej_infinity Ty.Unit
+  (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8))
+  (@literal_gej_infinity Alg.CoreFunSem)`.
+It derives the real 16/128-byte allocations, by-value source frame copy,
+initializer, three-coordinate writer, true return and actual freeing, followed
+by the common output/prefix/cursor/outside-memory conclusions. The final
+assumption print retains six inherited execution assumptions, no new names
+and no `memcpy_model` premise. Initial helper-call/output/freeing facts are not
+public premises. The Unit input is handled by destructing its sole value,
+not by narrowing any nontrivial input domain.
+
+The four new archived modules add 10 results (71 freshly compiled in total):
+`jet_secp_gej_public_lifecycle` (10393),
+`jet_secp_gej_public_prepare` (fresh compiler terminal exit 0),
+`jet_secp_gej_public_call` (62103), and
+`jet_secp_gej_infinity_local` (39500).
+Owned-remainder kernel 86825 passes with exit 0, inherited allowed context,
+all unsafe categories empty. Whole-public-chain independent kernel **58930**
+is pending, log `gej-infinity-public-kernel.log` in the scratch root; all its
+inputs are frozen. This is still **unregistered candidate coverage**.
+
+Next: poll 58930 rather than restart; inspect its inherited context/unsafe
+summary; cross-check the literal Haskell program, CoreJets binding/type and
+exact original public AST/lifecycle, with meaningful negative source-gate
+tests. Review actual new type/definition/assumption snapshots. Assemble an
+isolated full acceptance candidate, then guarded integration and separate
+checkout acceptance. Do not count this jet merely from compilation.
+
+Earlier entries below record superseded development boundaries, not the
+current remaining proof obligations.
+
 `exec_gej_public_rest_owned` now compiles freshly (23493 exit 0), with the
 same six inherited execution assumptions. Its archived source
 `jet_secp_gej_public_rest.v.source` derives both actual helper calls from
