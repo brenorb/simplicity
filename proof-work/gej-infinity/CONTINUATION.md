@@ -2,6 +2,16 @@
 
 ## Latest continuation (2026-10-09)
 
+Preliminary actual-print checks now finish with exit 0: contracts 75319
+(71 types, 22 definitions, deep print without truncation) and assumptions
+18820 (all 71 records, 31 closed, each axiom set inherited-only). The final
+public set retains six inherited execution assumptions. Exact inventories and
+parsed assumption records are archived with hashes; `SNAPSHOT-REVIEW.md`
+records the reviewed public/lifecycle interfaces and the still partial
+helper-type review. This does not replace standard project snapshot generation
+or extension comparison. Next finish that review and assemble an isolated
+acceptance candidate. Do not integrate into or modify the live field-add audit.
+
 Whole public-chain independent kernel **58930 passes with exit 0**, log
 `/tmp/jet-gej-infinity.YrUC7w/gej-infinity-public-kernel.log`. Its 15 context
 axioms are on the inherited allowlist and all three unsafe categories are empty.
