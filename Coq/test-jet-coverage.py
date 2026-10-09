@@ -122,6 +122,27 @@ def main():
             secp.write_text(secp_original[:start] + secp_original[start:].replace(old, new, 1))
             rejects(coverage.inventory, "not a direct canonical jet theorem")
         secp.write_text(secp_original)
+        # The two field predicates use the same complete public contract.
+        # Reject a helper, the wrong public function, a different contract,
+        # and vacuous extra premises independently for each registration.
+        for suffix in ("odd", "zero"):
+            predicate = project / f"C/jet_secp_{suffix}_local.v"
+            predicate_original = predicate.read_text()
+            declaration = f"Theorem fe_{suffix}_local_spec :"
+            contract = f"secp_jet_local_spec f_simplicity_fe_is_{suffix}"
+            for old, new in (
+                (contract, "secp_jet_local_spec f_read_fe"),
+                (contract, "secp_jet_local_spec f_simplicity_fe_normalize"),
+                (contract, f"jet_local_spec f_simplicity_fe_is_{suffix}"),
+                (declaration, declaration + " False ->"),
+            ):
+                start = predicate_original.index(declaration)
+                assert old in predicate_original[start:]
+                predicate.write_text(predicate_original[:start] +
+                                     predicate_original[start:].replace(old, new, 1))
+                rejects(coverage.inventory, "not a direct canonical jet theorem")
+            predicate.write_text(predicate_original)
+        assert coverage.inventory() == rows
         # Assertion jets must retain the exact linked program/environment and
         # be the whole proposition, including both success and failure.
         assertion = project / "C/jet_bitcoin_check_lock.v"
