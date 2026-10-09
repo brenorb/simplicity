@@ -2,6 +2,16 @@
 
 ## Current authoritative boundary
 
+Checkout run **96671 is terminal exit 2**, not live: unchanged
+`jet_copyBits_two_words_left.v:139` and `jet_shift16_with_spec.v:26`
+hit their existing tactic timeouts while the separate full assumption
+printer was consuming CPU. Both files remain byte-identical to the accepted
+negation baseline, and the integrated input fingerprint is unchanged.
+The log is retained. Diagnose/retry serially after heavy printing ends;
+do not raise timeouts blindly, skip proofs or claim checkout acceptance.
+Isolated field-add acceptance 54093 remains a valid separate receipt.
+The independent point-predicate accessor is developing outside audited trees.
+
 Latest integration boundary (2026-10-09): isolated full acceptance **54093
 passes with terminal exit 0**, including fresh build, kernel, reviewed
 snapshots, negative tests, four ASTs and unchanged input fingerprint
