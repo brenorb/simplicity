@@ -2,6 +2,35 @@
 
 ## Latest completed boundary
 
+There are now **23 compiled internal results / seven modules**.
+Initial-storage independent kernel **96146 passes with exit 0**, all 15
+context axioms on the inherited allowlist and all three unsafe categories
+empty. New compilers: values/offset bridge **18993** (six results), final
+field/source extraction **88519** (four results), owned coordinate call
+**53923** (one result), all terminal exit 0. Final-field extraction retains
+four inherited logical assumptions; the complete reader call retains six
+inherited execution assumptions. No new axiom or libc model is introduced.
+
+The complete `eval_point_read_fe_canonical` derives original `f_read_fe`
+execution at the selected coordinate, canonical normalized limb loads,
+actual source fields at rc+256, both real Freeable ranges and memory framing
+from initial frame/input/storage/separation/invariant facts. It does not take
+helper execution, normalized field data, a cursor update or final ownership
+as premises. Whole-owned-reader independent kernel **71421** is live, log
+`point-read-owned-kernel.log`; its closure includes the new values/final/
+initial/run/execution modules. Poll that handle, do not restart on yield.
+
+Next compose X/Y/Z reads using the field-add invariant rebasing lemma, and
+prove same-point other-coordinate preservation from the precise field
+footprints (do not require different blocks for the three coordinates).
+Then derive original Z zero-test call and flag store, `read_gej` call and
+public predicate allocation/copy/output/return/free chain. The intended
+literal specification remains `drop canonical_fe_is_zero`.
+The separately live infinity assumption generator is **70735**, still
+progressing through old records. Field-add checkout **96671** remains stopped
+on unchanged proof timeouts; serial unchanged-input retry follows heavy
+printing. These limitations do not reduce the public goal.
+
 Point-reader run/execution independent kernel **73173 now passes with exit
 0**, 15 inherited allowlisted context axioms and all unsafe categories empty, log
 `point-read-kernel.log`. This covers the seven run results and actual
