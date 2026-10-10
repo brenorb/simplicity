@@ -1,5 +1,30 @@
 # Original point negation: verified boundary and self-copy support
 
+## Current continuation (supersedes historical live-session notes below)
+
+74 internal results / thirty modules now compile. Reader closure kernel
+18155 exited 0, unchanged fifteen inherited context axioms and empty unsafe
+categories; log SHA256 matches the earlier whole-closure receipts.
+`eval_read_gej_canonical_fields` retains all three actual canonical fields
+through the zero helper and flag store. Use this stronger reader for public
+composition: the old owned reader drops those facts, so it is insufficient.
+Shared field transport and exact zero-helper preservation are proved, not
+assumed. No new public equivalence or coverage entry is claimed.
+
+Combined infinity/predicate build 86191 exited 0 with pinned Coq 8.17.1;
+log SHA256 a919c52810674d493f5dffe93db35af32e111c434b0b2b964b2cac0ec08fb2fc.
+Snapshot generation 20742 is running sequentially in
+`/tmp/jet-predicate-accept.EX7adj`: contract generation, then assumptions.
+This is generation, not acceptance. Review unchanged inherited records and
+all additions before a full isolated `check-jets.sh --accept` run.
+Do not restart finished checks or modify the live candidate's inputs.
+
+Next compose the stronger reader with `eval_gej_negate_point_output`,
+transport its invariant/source through outside-point framing, and feed the
+derived storage to `eval_write_gej_negated_literal`. Complete actual public
+entry/copy/true-return/free, then literal parametricity/source gates, complete
+type/definition/assumption review and full isolated acceptance.
+
 ## Latest owned-prefix milestone
 
 Latest verification: literal-writer closure **95168 exited 0**, unchanged
