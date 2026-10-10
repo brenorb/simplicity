@@ -1,5 +1,48 @@
 # Original point negation: verified boundary and self-copy support
 
+## Latest owned-prefix milestone
+
+**17 freshly compiled internal results / seven modules**. New field-address/
+owned field-assignment module (53693) and three-copy composition (93553) both
+compile, exit 0. Their whole closure kernel **86084 passes, exit 0**, with
+12 inherited allowlisted context axioms and all unsafe categories empty.
+The concrete field assignment derives the original `_r`/`_a` lvalues/rvalue,
+By_copy assignment and store from a real 128-byte Freeable point, valid cursor
+bounds and alignment. It applies uniformly to X/Y/Z at 0/40/80; no execution
+or preservation premise is assumed. Self-copy requires equal argument
+addresses, exactly as the public jet calls this helper, not a public input
+restriction. All three stores retain global observable contents and ownership.
+
+Actual helper entry/temp lookups and owned flag-prefix module (30497) compile,
+exit 0; the entry retains the generated undefined `_t'1`. The flag prefix
+derives its original load and real store, retains the typed flag/Freeable
+range and preserves other loads/permissions. The final prefix module (23166)
+compiles, exit 0: exact generated body plus composition of flag prefix and
+all three self-copies, retaining the flag and owned point before Y arithmetic.
+Its outside-flag load frame is for **valid pre-existing blocks**, matching
+the memory-framing contract, not a claim about arbitrary invalid/new blocks.
+All new execution theorems have the six inherited execution assumptions.
+
+Independent complete prefix whole-closure kernel **54432** is running.
+Log `prefix-kernel.log` in
+scratch. Do not treat compilation as kernel evidence until terminal exit 0.
+The existing eight-result receipts below remain valid. No public coverage or
+whole public equivalence is claimed by these internal results.
+
+Next prove the **actual Y weak-normalize and magnitude-1 negate calls at
+offset 40** from the reader's normalized field. Compose with this exact owned
+prefix and helper entry; then generalize the real three-coordinate writer
+and complete the canonical public lifecycle. Do not add a strong normalizer
+call in place of the original weak one, assume helper execution, or replace
+the target literal program with an integer formula.
+
+Proof-engineering corrections: an unconstrained assignment location did not
+infer the base/delta; inspect the leaf and set both source/destination pointers
+explicitly. Coq's `n > 0` and `0 < n` are propositionally equivalent but not
+convertible in this interface; retain the constructor's exact premise shape.
+The framing proof needs initial block validity, rather than inferring it from
+a possibly None load. None loads do not by themselves establish validity.
+
 Eight internal results in three modules compile freshly and pass independent
 whole-closure kernel checks. These are not a
 complete public equivalence theorem, and do not increase registered coverage.
