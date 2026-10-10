@@ -17,12 +17,15 @@ terminal, using the same Coq 8.17.1 baseline and narrow infinity/predicate C
 overlays; do not fabricate assumption rows. Output and exact standard snapshot
 diffs remain to be reviewed. No registry increase or acceptance is claimed.
 
-Next also implement the scoped canonical/source/lifecycle correspondence gate
-with meaningful mutation tests, reusing the existing comment-aware parser.
-Check canonical `GejIsInfinity` type/spec binding, `drop fe_is_zero`, literal
-Coq drop binding/full public statement, original public C/read_gej/flag helper
-and both Bitcoin/Elements registrations. Treat this as supplemental to kernel,
-pinned AST and full acceptance, not a transitive fidelity certificate.
+The supplemental scoped canonical/source/lifecycle correspondence gate now
+passes, and all **37 meaningful source mutations are rejected**, both terminal
+exit 0. Hashed gate and test sources are archived. It checks canonical
+`GejIsInfinity` type/spec/FFI binding, `drop fe_is_zero`, literal Coq drop
+binding/full public statement, original public C/read_gej/flag accessor,
+actual undefined initial temporaries, 16/128 entry, derived setup/rest/free
+bindings and both Bitcoin/Elements registrations. This is supplemental to
+inherited field-zero fidelity, pinned AST, kernel and full acceptance; not a
+transitive fidelity or evaluator-domain certificate. See `SOURCE-REVIEW.md`.
 Then reconcile accepted infinity and newer field-add dependencies carefully.
 Older development/status paragraphs below remain historical.
 
