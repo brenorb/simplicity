@@ -1,5 +1,45 @@
 # Original Jacobian infinity predicate: internal support
 
+## Original owned point reader now compiled
+
+**47 compiled internal results / fifteen modules**. New modules:
+`jet_secp_read_gej_body` (16367 exit 0, five results), source/invariant
+preservation (27287 exit 0, three results), and
+`eval_read_gej_canonical_owned` (38073 exit 0, one result).
+The complete owned reader derives the original `f_read_gej` call, including
+empty-local entry/cleanup, the three actual coordinate reads, original Z
+zero-test and actual flag store. Initial premises are frame/input storage,
+cursor representability, ownership/separation and the cursor/output invariant.
+There are no assumed intermediate calls, stores, normalized limbs, updated
+cursors or cleanup facts. The concluding flag equals the canonical
+`canonical_fe_is_zero z` bit for arbitrary Word256 triples; source fields
+advance to rc+768, whole 128/16-byte Freeable ranges and final cursor/output
+invariant are retained, and outside-local/external memory is framed.
+
+The body wrapper intentionally accepts intermediate call/statement premises;
+the owned theorem discharges every one of them. Source preservation across
+zero-test/flag store uses their actual outside-point framing, not old-memory
+loads silently reused after mutation. The final owned call has the same six
+inherited execution assumptions; preservation helpers have four inherited
+logical assumptions. No libc model or new axiom is added.
+
+Independent whole-owned-reader kernel **37531 is live**, log
+`/tmp/jet-gej-predicate.W2FtCz/read-gej-owned-kernel.log`. Freeze its dependencies
+and poll this handle. All earlier 38 results are already kernel-checked.
+`Print Assumptions` exceeded 10 seconds after the new theorem's `Qed`;
+only that reporting command now has an explicit 60-second limit and succeeds.
+Every proof tactic keeps the 10-second default; no acceptance deadline changes.
+
+Next connect original public `simplicity_gej_is_infinity`: real source-copy
+and 16/128-byte allocations (reuse/generalize infinity setup with one-bit
+capacity, not its 768-bit output restriction), owned reader, exact flag
+accessor, original bit writer, true return and final freeing of both locals.
+Add the literal `drop fe_is_zero` port and parametric/source-correspondence
+checks; do not replace it with a numeric spec or register these helper results
+as public coverage. Full checkout acceptance **86431** remains live on frozen
+inputs. Infinity's reviewed isolated snapshots still need separate full
+acceptance and newer field-add metadata reconciliation.
+
 ## Coordinate zero-test and flag store
 
 **38 compiled internal results / twelve modules**. Three-reader whole-closure
