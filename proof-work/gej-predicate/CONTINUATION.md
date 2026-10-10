@@ -1,5 +1,43 @@
 # Original Jacobian infinity predicate: internal support
 
+## Coordinate zero-test and flag store
+
+**38 compiled internal results / twelve modules**. Three-reader whole-closure
+kernel **37831 passed, exit 0**, with 15 inherited context axioms and all
+unsafe categories empty. Zero execution compiles (2198 exit 0, six results),
+canonical owned-coordinate zero compiles (84611 exit 0, three results), and
+the actual final flag assignment compiles (47932 exit 0, two results).
+Final execution theorems have the same six inherited execution assumptions;
+no new assumed declaration or libc model is introduced.
+
+`eval_point_zero_canonical` derives the original `fe_is_zero` call at any
+coordinate offset 0/40/80 within the same real 128-byte allocation. It returns
+the canonical `canonical_fe_is_zero` bit for every Word256 input, retaining
+whole-point Freeable ownership and outside-point memory framing. Its initial
+representation and numeric-to-canonical bridge are discharged, not premises.
+`exec_gej_read_flag_owned` derives the generated final assignment from actual
+point ownership, loads the stored flag, retains Freeable permissions and
+preserves unrelated loads, permissions and valid blocks. It does not take
+a successful store as a premise. The lower-level assignment lemma does,
+and that premise is discharged by the owned theorem.
+
+Independent whole zero/flag kernel **51921** is live; poll it rather than
+restart. Log: `/tmp/jet-gej-predicate.W2FtCz/point-zero-flag-kernel.log`.
+Its dependencies are frozen while the check runs.
+
+Next connect the exact original `read_gej` statement/call: use three-reader
+composition, zero-test at PointZ, and final flag assignment. Derive source
+cursor/frame preservation through zero-test (outside-point frame) and flag
+store (other-block loads and unchanged permissions). Then prove the public
+predicate's actual source allocation/copy, accessor, one-bit output, true
+return and freeing of both public locals. Keep `drop fe_is_zero` as the
+literal canonical target, not a numeric substitute. No new public predicate
+has been registered from these internal lemmas.
+
+The infinity standard assumption printer remains live (70735). Actual
+field-add acceptance remains failed (96671 exit 2) on unchanged tactic
+timeouts; retry unchanged inputs serially after heavy printing completes.
+
 ## Latest completed boundary
 
 **27 compiled internal results / nine modules**. Owned coordinate reader's
