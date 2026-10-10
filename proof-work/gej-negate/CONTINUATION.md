@@ -2,6 +2,14 @@
 
 ## Latest owned-prefix milestone
 
+Verification update: general writer closure **67676 exited 0**. Its context
+inventory is the same 15 inherited names as the preceding kernel receipts;
+all unsafe categories are empty and its log hash is
+`30fac0dd8293d97049546911c0d3fc3f316da314885947d25959bce5fba6c8f3`.
+No need to poll/restart that finished kernel. Full checkout acceptance **86431**
+was polled and confirmed live. Canonical adapters/public equivalence remain
+the next proof obligations; this verification does not increase coverage.
+
 Current milestone: **55 compiled internal results / twenty-four modules**.
 Full point-output helper closure **83837 exited 0**, unchanged 15-name context
 inventory/hash and empty unsafe categories. General field preservation across
