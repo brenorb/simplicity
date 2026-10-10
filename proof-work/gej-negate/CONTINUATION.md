@@ -2,6 +2,37 @@
 
 ## Latest owned-prefix milestone
 
+Latest continuation: **29 freshly compiled internal results / ten modules**.
+Weak execution whole-closure kernel **74014 exited 0**; its log hash is
+`30fac0dd8293d97049546911c0d3fc3f316da314885947d25959bce5fba6c8f3`,
+with the same 15 inherited context axioms as the boundary receipt and empty
+unsafe categories. `point_weak_cells_positioned_identity` is now proved over
+the actual output expressions, with no assumptions. Checked intervals cover
+every output expression. `point_weak_rep_preserved_loads` now derives exact
+CompCert loads of the original five machine limbs from final representation
+and positioned input bounds (four inherited logical assumptions).
+Compilers **75291** and **42412** exited 0. Value-module independent kernel
+**93019 exited 0**, with the same log hash and inherited context inventory as
+the weak execution check above. Load-module independent kernel **84724** is
+live (`weak-loads-kernel.log`); poll it, not a replacement run.
+All declarations use ordinary checked proofs.
+
+Next combine these with `point_zero_initial_rep`, deriving the variable bounds
+from `fe_limbs_of_ok`, and `eval_point_weak_from_owned_region`. Retain whole-point
+Freeable ownership and outside-point framing from the returned representation.
+This discharges the weak call for reader-produced fields; then continue the
+actual Y magnitude-1 negate call. The load theorem's bounds are intermediate
+obligations, not added public preconditions. Public equivalence remains open.
+The arithmetic identity is an implementation representation bridge, not a
+substitute for the required literal canonical Simplicity target.
+
+The range cleanup is already complete: signed `805cb19e` is an ancestor of
+the current branch, and its merged local branch/worktree were pruned earlier.
+Existing unrelated staged and unstaged work remains untouched.
+
+Older progress paragraphs below are historical; use this top continuation
+and the manifest for the latest verification state.
+
 **22 freshly compiled internal results / eight modules**. Complete prefix
 whole-closure kernel **54432 passes, terminal exit 0**, with 12 inherited
 allowlisted context axioms and all unsafe categories empty. This covers all
