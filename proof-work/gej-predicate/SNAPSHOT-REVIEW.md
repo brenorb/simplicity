@@ -38,8 +38,12 @@ toolchain / narrow C overlays once the current checkout build is terminal,
 avoiding a repeat of heavy assumption printing concurrent with timed tactics.
 Do not generate expected assumption rows from guessed theorem categories.
 
-Remaining: scoped source/lifecycle correspondence and meaningful negative
-fixtures, complete preliminary assumption and contract review, isolated
+Supplemental scoped source/lifecycle correspondence now passes and all 37
+meaningful negative fixtures are rejected, terminal exit 0. The exact scope
+and reproduction commands are recorded in `SOURCE-REVIEW.md`; this is not a
+replacement for inherited field-zero fidelity, AST or acceptance checks.
+
+Remaining: complete preliminary assumption and contract review, isolated
 standard snapshot generation, exact unchanged-old-record reconciliation and
 fresh full acceptance without update flags. Dependencies include the newer
 field-add rebase support and separately reviewed infinity support. No public
