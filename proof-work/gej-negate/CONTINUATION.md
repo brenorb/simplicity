@@ -2,6 +2,23 @@
 
 ## Current continuation (supersedes historical live-session notes below)
 
+Newest milestone: **77 compiled results / thirty-three modules**.
+`exec_gej_negate_rest_owned` (3855 exit 0) derives original read/helper/write
+calls, exact literal point output, ownership and framing. Full public call
+`eval_gej_negate_literal_public` (83391 exit 0) derives actual allocation,
+entry, source copy, true return and both frees. Final
+`gej_negate_literal_local_spec` (68515 exit 0) compiles against the unchanged
+literal Simplicity target for arbitrary input triples under the existing
+local frame contract. Six inherited execution assumptions, no new assumed
+calls/output/free and no public coverage registration.
+
+Independent public closure kernel **59664 is live** at
+`/tmp/jet-gej-negate.IMImaX/public-local-kernel.log`; poll this handle before
+claiming kernel verification. Next add literal parametricity and exact source
+correspondence gates, inspect final type/definition/assumption contracts, and
+assemble isolated full acceptance. General frame-domain obligations remain
+outside this local contract; do not claim all-frame coverage from it.
+
 74 internal results / thirty modules now compile. Reader closure kernel
 18155 exited 0, unchanged fifteen inherited context axioms and empty unsafe
 categories; log SHA256 matches the earlier whole-closure receipts.
