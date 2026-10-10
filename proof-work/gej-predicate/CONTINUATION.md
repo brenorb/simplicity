@@ -22,8 +22,17 @@ supplements, with retained text matching in order. No printing settings were
 changed. Actual rows, read-only review script and receipt are archived;
 see `SNAPSHOT-REVIEW.md` and `PRELIMINARY-REVIEW.json`.
 
-Next: isolated full-snapshot generation and unchanged-old-record review,
-followed by fresh full acceptance without update flags. Full checkout run
+The combined isolated candidate is now prepared at
+`/tmp/jet-predicate-accept.EX7adj`, based on accepted newer field-add rather
+than older infinity metadata. Exact-source/inherited-record preservation,
+source gates (38+37 mutations), production source gate, scanner and coverage
+tests pass. It contains 42 new modules, 133 result rows and 43 definition rows;
+353 provisional coverage entries are not accepted checkout coverage.
+`ASSEMBLY.json`, `ASSEMBLY-REVIEW.md` and the infrastructure patch record
+reproduction guards and the remaining build/snapshot/acceptance workflow.
+
+Next: isolated source build, full-snapshot generation and unchanged-old-record
+review, followed by fresh full acceptance without update flags. Full checkout run
 86431 remains live in independent kernel checking with inputs unchanged.
 Do not launch another whole build while it is live. No registry increase or
 acceptance is claimed by these preliminary reports.
