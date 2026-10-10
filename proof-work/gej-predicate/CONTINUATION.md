@@ -1,5 +1,49 @@
 # Original Jacobian infinity predicate: internal support
 
+## Public remainder, setup and entry compiled
+
+**57 compiled internal results / nineteen modules**. Owned-reader independent
+whole closure **37531 passed, terminal exit 0**: exact 15 unchanged allowlisted
+context axioms, all unsafe categories empty. All earlier 47 results now have
+whole-closure kernel evidence. New public adapters/body compile (59671 exit 0,
+five results), actual owned public remainder compiles (40355 exit 0, one result),
+generalized point-local setup compiles (22623 exit 0, one result), actual
+predicate entry/temp lookups compile (28882 exit 0, three results; entry closed).
+
+`exec_gej_predicate_rest_owned` derives the actual generated read/accessor/
+bit-write/true-return statement tree from initial owned state. Its output is
+the canonical `fe_is_zero z` bit, it preserves both Freeable local ranges and
+frames outside-local/non-external memory. No helper call/output premise is
+assumed. The accessor returns in exactly the same memory; the bit writer's
+derived permission preservation carries both locals to the eventual free_list.
+Final rest and setup have six inherited execution assumptions, no new axioms
+or libc model. The generic bit-write adapter requires no local shadowing of
+`_writeBit`; the concrete point environment discharges that premise exactly.
+
+`gej_prepare_owned_locals` reuses the actual 16/128-byte allocation/copy setup
+proof with arbitrary initial temporaries and output capacity. The earlier
+infinity-specific 768<=N premise was unused in setup; it is not imposed on
+this one-bit jet. This new theorem does not alter the earlier audited proof.
+Use `gej_predicate_temps`, not infinity/normalizer's temp environment: the
+generated predicate has an initial undefined `_t'1` temp. Actual entry and
+source/destination temp lookups are proved for that environment.
+
+Independent rest/setup/entry whole-closure kernel **85424 is live**; log
+`/tmp/jet-gej-predicate.W2FtCz/predicate-rest-entry-kernel.log`. Keep its
+dependencies frozen and poll this handle. Compile order for the new modules:
+body, rest (after owned reader), setup, entry; the last two are independent.
+
+Next compose entry + shared setup + rest + actual free_list into the original
+public call. Build initial invA from setup finv with capacity one; derive
+the three input segments from the actual encoded Word256 triple. Add the
+literal `drop canonical_fe_is_zero` program/parametric bridge and source
+correspondence, then prove the existing full `secp_jet_local_spec` without
+extra execution/output/free premises. Public coverage is still unchanged.
+Full checkout acceptance **86431** remains live on frozen input fingerprint
+`16594c779a885f405041d02315d3cbaec414f439dc78c3d219dde3a8b425f631`.
+Do not launch another whole build until it is terminal; isolated infinity
+acceptance still follows, then reconcile newer field-add metadata.
+
 ## Original owned point reader now compiled
 
 **47 compiled internal results / fifteen modules**. New modules:
