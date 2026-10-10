@@ -1,5 +1,16 @@
 # Combined isolated point-jet assembly
 
+Update: checkout acceptance **86431 exited 0** on unchanged fingerprint
+`16594c779a885f405041d02315d3cbaec414f439dc78c3d219dde3a8b425f631`.
+The candidate's first build **2296 exited 2** because the shell selected Rocq
+9.3 against Coq 8.17 dependencies; its diagnostic log is retained at
+`/tmp/jet-predicate-accept.EX7adj/combined-build.log`. This is not a proof failure
+or a reason to alter proofs/toolchain. A pinned Coq 8.17.1 serial build was
+then launched with stack limit 65520 KiB; its handle is recorded in the latest
+gej-negate continuation and its log is `combined-build-coq817.log` at the
+candidate root. Poll that handle, not a replacement build. Standard snapshots
+and full acceptance below remain pending, and coverage is still provisional.
+
 Candidate `/tmp/jet-predicate-accept.EX7adj` is based on the accepted field-add
 candidate `/tmp/jet-add-accept.qwqWy1`, not the older infinity assembly. This
 preserves newer field-add support and all its reviewed proof/metadata records.

@@ -2,6 +2,17 @@
 
 ## Current authoritative boundary
 
+Latest update: serial checkout acceptance **86431 exited 0**. Fresh compilation,
+652-module kernel check, 3733-result assumption audit (1948 closed), reviewed
+public contracts/definitions, negative gate tests and all four AST regeneration
+checks passed. Input fingerprint stayed exactly
+`16594c779a885f405041d02315d3cbaec414f439dc78c3d219dde3a8b425f631`.
+The receipt and log hash are in `INTEGRATED-ACCEPTANCE.json`. Its input freeze
+is released; do not restart the finished audit. Historical running/failure
+paragraphs below are superseded. Unregistered point candidates still require
+their own standard snapshot review and isolated acceptance; this does not
+complete the every-jet goal.
+
 Unchanged-input serial full acceptance retry **86431 is live**, log
 `/tmp/jet-add-integrated-accept-serial-2026-10-09.log`. It uses `JOBS=1`, all
 original tactic deadlines and all acceptance gates; no update/no-build flags.
