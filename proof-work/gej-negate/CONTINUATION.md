@@ -2,6 +2,28 @@
 
 ## Latest owned-prefix milestone
 
+Current milestone: **39 freshly compiled internal results / fourteen modules**.
+Weak-owned closure kernel **10301 exited 0** with the same inventory/hash as
+the weak execution/value/load receipts. Actual magnitude-one point-coordinate
+negation compiles (**79437**, **83031 exit 0**), including exact output limbs,
+whole-point Freeable and outside-coordinate framing. Both original Y calls
+are now sequentially derived by `point_y_arithmetic_calls` (**87739 exit 0**):
+weak normalization then magnitude-1 negate at offset 40, without extra assumed
+calls, outputs or intervals. All final execution results retain the six known
+inherited execution assumptions. Joint closure kernel **23369** is live,
+`y-arithmetic-kernel.log`; poll it. The modules are archived with hashes.
+
+Next derive the original two Scall statements from these calls using the
+generated Y field lvalues, then compose the owned flag/three-copy prefix with
+the actual helper entry. Preserve X/Z and flag through the coordinate frame;
+do not reuse loads from an earlier memory without proving preservation.
+The public general writer, canonical literal bridge, lifecycle/source gates
+and whole acceptance remain open. No public coverage is added here.
+
+Full unchanged checkout acceptance **86431** is still live: compilation and
+kernel (652 modules) passed; it has advanced to the assumption gate. Avoid
+editing its Coq/manifest/C/Haskell inputs or launching a duplicate whole audit.
+
 Newest milestone: **31 freshly compiled results / eleven modules**.
 `eval_point_weak_reader_owned` compiles (**67887 exit 0**): given a real
 reader-produced five-limb field and whole 128-byte Freeable point, it derives
