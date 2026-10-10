@@ -2,6 +2,16 @@
 
 ## Current authoritative boundary
 
+Unchanged-input serial full acceptance retry **86431 is live**, log
+`/tmp/jet-add-integrated-accept-serial-2026-10-09.log`. It uses `JOBS=1`, all
+original tactic deadlines and all acceptance gates; no update/no-build flags.
+Input fingerprint remains
+`16594c779a885f405041d02315d3cbaec414f439dc78c3d219dde3a8b425f631`.
+Heavy infinity assumption printing has completed (70735 exit 0), and its
+read-only standard snapshot review passes (56302 exit 0). Poll 86431,
+preserve the prior failed log and keep actual audited inputs frozen.
+Full checkout acceptance has not yet passed. Older milestones follow.
+
 Checkout run **96671 is terminal exit 2**, not live: unchanged
 `jet_copyBits_two_words_left.v:139` and `jet_shift16_with_spec.v:26`
 hit their existing tactic timeouts while the separate full assumption
