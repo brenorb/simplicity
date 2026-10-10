@@ -1,5 +1,38 @@
 # Original Jacobian infinity predicate: internal support
 
+## Full public literal equivalence candidate compiled
+
+**62 compiled results / twenty-two proof modules**. Rest/setup/entry independent
+whole closure **85424 passed, terminal exit 0**, with the exact unchanged
+15-name context allowlist and all unsafe categories empty. All earlier 57
+results have kernel evidence. New actual public lifecycle (68775), literal
+program/parametric bridges (22838, three results), and final complete
+`gej_is_infinity_literal_local_spec` (89446) all compile freshly, exit 0.
+Final public call/spec have the same six inherited execution assumptions;
+literal/parametric port is closed. No new axiom or libc model is introduced.
+
+The final existing `secp_jet_local_spec` is proved for arbitrary encoded
+Word256 triples against the literal `drop canonical_fe_is_zero`. It derives
+the real 16/128 allocations, source copy, all original reader/accessor/writer
+calls, actual canonical output/prefix/cursor, true return and free_list.
+Encoded input is split into the three actual reader segments formally; those
+segment facts are not additional final premises. No helper execution/output/
+free fact is assumed. `PUBLIC-CONTRACT-REVIEW.md` records exact scope.
+
+Independent final public whole-chain kernel **88320 is live**, log
+`/tmp/jet-gej-predicate.W2FtCz/predicate-public-kernel.log`. Freeze dependencies
+and poll this handle, not restart. No public registry entry is added yet.
+New compile order: public call after rest/setup/entry; literal port; final
+local spec after both. Sources are exact archived copies.
+
+Next: source-correspondence/mutation gate, complete named-result/transparent-
+definition inventory, preliminary deep type/body/assumption review, isolated
+standard snapshots and full acceptance, then guarded reconciliation with
+newer field-add/infinity dependencies and metadata. Do not count a compiled
+candidate or supplemental gate as accepted coverage. Full checkout acceptance
+86431 remains live on unchanged inputs; avoid another concurrent whole build.
+Older milestones below preserve their then-current status.
+
 ## Public remainder, setup and entry compiled
 
 **57 compiled internal results / nineteen modules**. Owned-reader independent
