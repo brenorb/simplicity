@@ -2,6 +2,23 @@
 
 ## Latest owned-prefix milestone
 
+Newest milestone: **31 freshly compiled results / eleven modules**.
+`eval_point_weak_reader_owned` compiles (**67887 exit 0**): given a real
+reader-produced five-limb field and whole 128-byte Freeable point, it derives
+the actual weak call, unchanged field, whole-point Freeable and outside-slice
+framing. The interval bounds are now derived from `fe_limbs_of_ok`, not passed
+as caller assumptions. Independent owned kernel **10301** is running
+(`weak-owned-kernel.log`); poll this handle. Final-load closure kernel
+**84724 exited 0**, with the same 15-name context inventory and log hash as
+the prior weak/value kernels. No new public coverage is claimed.
+
+Next derive the original magnitude-1 negate at Y offset 40. Scratch module
+`jet_secp_point_negate_exec.v` is under compilation **79437**, not yet archived
+or counted here; verify its terminal result before using it. Then derive the
+actual negative output limbs, whole-point ownership and framing. Compose both
+actual calls with the original helper prefix and function entry. Writer,
+literal target, lifecycle and acceptance obligations remain open.
+
 Latest continuation: **29 freshly compiled internal results / ten modules**.
 Weak execution whole-closure kernel **74014 exited 0**; its log hash is
 `30fac0dd8293d97049546911c0d3fc3f316da314885947d25959bce5fba6c8f3`,
