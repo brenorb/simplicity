@@ -1,5 +1,31 @@
 # Original Jacobian infinity predicate: internal support
 
+## Public kernel passes; snapshot inventories prepared
+
+Independent final public whole closure **88320 passed with terminal exit 0**.
+The 15 context axiom names exactly match the unchanged project allowlist and
+all unsafe categories are empty. All 62 results / 22 modules have kernel
+evidence. The actual 62-result and 21-transparent-definition inventories are
+now archived with hashes. Preliminary deep printing **5474 passes, exit 0**:
+68,924 lines / 6,505,926 bytes, no `(...)`, no stderr. Detailed evidence and
+the limited human-readable review scope are in `SNAPSHOT-REVIEW.md`.
+
+The per-result actual Print Assumptions driver is prepared in scratch but not
+run while the checkout's serial build 86431 is live. This avoids concurrent
+heavy printing against existing timed tactics. Start it after that build is
+terminal, using the same Coq 8.17.1 baseline and narrow infinity/predicate C
+overlays; do not fabricate assumption rows. Output and exact standard snapshot
+diffs remain to be reviewed. No registry increase or acceptance is claimed.
+
+Next also implement the scoped canonical/source/lifecycle correspondence gate
+with meaningful mutation tests, reusing the existing comment-aware parser.
+Check canonical `GejIsInfinity` type/spec binding, `drop fe_is_zero`, literal
+Coq drop binding/full public statement, original public C/read_gej/flag helper
+and both Bitcoin/Elements registrations. Treat this as supplemental to kernel,
+pinned AST and full acceptance, not a transitive fidelity certificate.
+Then reconcile accepted infinity and newer field-add dependencies carefully.
+Older development/status paragraphs below remain historical.
+
 ## Full public literal equivalence candidate compiled
 
 **62 compiled results / twenty-two proof modules**. Rest/setup/entry independent
