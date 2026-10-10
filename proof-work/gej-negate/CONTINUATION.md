@@ -2,6 +2,29 @@
 
 ## Latest owned-prefix milestone
 
+**22 freshly compiled internal results / eight modules**. Complete prefix
+whole-closure kernel **54432 passes, terminal exit 0**, with 12 inherited
+allowlisted context axioms and all unsafe categories empty. This covers all
+nine new prefix/field/flag results, not just their compilation. All earlier
+17 results now have independent whole-closure kernel evidence.
+
+Original weak-normalizer coordinate execution (36612) compiles, exit 0, five
+new results. `eval_point_weak_from_owned_region` uses the original
+`f_secp256k1_fe_normalize_weak` at X/Y/Z offsets 0/40/80 in the same actual
+128-byte point, retaining its exact final regional representation and framing;
+no helper call is assumed. This does not yet assert unchanged canonical
+limbs. Independent weak execution whole-closure kernel **74014** is live,
+`weak-kernel.log` in scratch; poll its recorded handle before claiming that
+receipt. Keep existing point support load paths/dependencies unchanged.
+
+Next derive canonical final limb values and whole-point ownership from the
+weak state (carry inputs vanish for the reader's normalized limbs), then
+derive the original magnitude-1 negate call at Y offset 40 and compose the
+exact owned prefix/helper entry. Do not replace weak normalization with the
+strong normalizer. Public writer/lifecycle/literal source/acceptance obligations
+remain as listed below. Historical milestone paragraphs retain their original
+counts and running-state notes; this top section is the current status.
+
 **17 freshly compiled internal results / seven modules**. New field-address/
 owned field-assignment module (53693) and three-copy composition (93553) both
 compile, exit 0. Their whole closure kernel **86084 passes, exit 0**, with
