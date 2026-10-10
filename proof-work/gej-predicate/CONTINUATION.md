@@ -34,9 +34,13 @@ return and freeing of both public locals. Keep `drop fe_is_zero` as the
 literal canonical target, not a numeric substitute. No new public predicate
 has been registered from these internal lemmas.
 
-The infinity standard assumption printer remains live (70735). Actual
-field-add acceptance remains failed (96671 exit 2) on unchanged tactic
-timeouts; retry unchanged inputs serially after heavy printing completes.
+The infinity standard assumption printer has completed (70735 exit 0);
+read-only standard snapshot review passes (56302 exit 0). Actual field-add
+acceptance failed previously (96671 exit 2) on unchanged tactic timeouts.
+Unchanged-input serial full retry **86431 is live**, with all deadlines and
+gates preserved; log `/tmp/jet-add-integrated-accept-serial-2026-10-09.log`.
+Do not modify checkout Coq audit inputs while it runs. Infinity's separate
+full acceptance follows this retry; no concurrent whole build is launched.
 
 ## Latest completed boundary
 
