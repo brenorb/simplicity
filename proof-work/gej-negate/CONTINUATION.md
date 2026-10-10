@@ -2,6 +2,29 @@
 
 ## Latest owned-prefix milestone
 
+Current milestone: **46 freshly compiled internal results / seventeen modules**.
+Y-arithmetic closure **23369 exited 0**, same unchanged 15-name inherited
+context inventory/hash as previous receipts. The generated Y `Scall` tail
+compiles (**6465 exit 0**) with both calls derived in its final owned theorem.
+The complete original helper body compiles (**75035 exit 0**), composing the
+real flag prefix, three self-copies and Y tail. The complete function call
+including actual entry, result conversion and empty free compiles
+(**21855 exit 0**). It derives negative Y limbs, retained flag and whole-point
+Freeable ownership. It does not yet expose preserved X/Z or general public
+framing. Independent full helper closure **80783** is live at
+`owned-helper-kernel.log`; poll its handle before claiming kernel verification.
+
+Next strengthen the owned prefix/body interfaces to retain global validity
+and framing outside the written flag/Y areas. Derive X/Z load preservation
+from that framing, rather than silently reusing old-memory loads. Reuse
+`exec_gej_negate_flag_owned`'s returned load/perms/valid facts and the three
+self-copies' `Mem.unchanged_on True`; the earlier prefix wrapper drops some of
+those facts. Keep the existing checked helper theorem as a compositional
+milestone; no public proof should assume its still-missing framing/output
+facts. Then generalize the three-coordinate writer and compose public
+entry/copy/reader/helper/writer/return/free against the literal canonical target.
+No coverage registration or public equivalence is claimed yet.
+
 Current milestone: **39 freshly compiled internal results / fourteen modules**.
 Weak-owned closure kernel **10301 exited 0** with the same inventory/hash as
 the weak execution/value/load receipts. Actual magnitude-one point-coordinate
