@@ -49,9 +49,12 @@ Compiled literals/parametric proofs are closed under the global context.
 ## Remaining acceptance work
 
 The 22-module archive has 62 completed compiled results. Earlier 57 results
-have independent whole-closure kernel receipts, most recently 85424 exit 0
-with the exact unchanged 15-name context allowlist and all unsafe categories
-empty. Independent final public kernel 88320 is live; poll it.
+have independent whole-closure kernel receipts, most recently 85424 exit 0.
+Independent final public kernel **88320 also passed, terminal exit 0**, with
+the exact unchanged 15-name context allowlist and all unsafe categories empty.
+All 62 results have whole-closure kernel evidence; standard acceptance remains
+separate. Complete result/definition inventories and preliminary deep printing
+are recorded in `SNAPSHOT-REVIEW.md`.
 
 Source-correspondence/mutation gates, reviewed standard type/definition/axiom
 snapshots, isolated fresh full acceptance and guarded checkout integration
