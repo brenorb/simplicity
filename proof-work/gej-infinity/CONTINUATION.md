@@ -2,6 +2,25 @@
 
 ## Latest continuation (2026-10-09)
 
+Standard assumption generation **70735 is terminal exit 0**. The read-only
+snapshot review **56302 passes, exit 0**: all 3670 old assumption records
+are exact, 71 reviewed new records yield 3741 total / 1948 closed; all old
+140783 contract lines remain exact with 1322 new type / 4159 new definition
+lines. All 71 types and 22 definitions satisfy the reviewed correspondence
+(two computed witnesses retain the documented deep-print supplements).
+Exact hashes and scope are recorded in `ASSEMBLY-REVIEW.json`.
+No audited input was weakened or modified by this read-only review.
+
+The current checkout's unchanged-input **serial** full acceptance retry is
+live as **86431**, log `/tmp/jet-add-integrated-accept-serial-2026-10-09.log`,
+fingerprint `16594c779a885f405041d02315d3cbaec414f439dc78c3d219dde3a8b425f631`.
+It retains all original deadlines and gates. Avoid another concurrent whole
+build. After this retry completes, launch infinity's separate frozen full
+`JOBS=1 bash check-jets.sh --accept` with no update flags. Infinity still
+requires full acceptance and reconciliation with the newer field-add metadata;
+snapshot review is not registration or acceptance. Paragraphs below preserve
+superseded milestones, including former live handles.
+
 Field-add checkout acceptance **96671** stopped with exit 2 on two existing
 tactic timeouts; its inputs remain unchanged. See field-add continuation for
 exact locations and retry boundary. Infinity's **70735** is still live and
