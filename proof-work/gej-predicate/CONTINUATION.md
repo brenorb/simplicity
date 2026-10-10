@@ -10,12 +10,23 @@ now archived with hashes. Preliminary deep printing **5474 passes, exit 0**:
 68,924 lines / 6,505,926 bytes, no `(...)`, no stderr. Detailed evidence and
 the limited human-readable review scope are in `SNAPSHOT-REVIEW.md`.
 
-The per-result actual Print Assumptions driver is prepared in scratch but not
-run while the checkout's serial build 86431 is live. This avoids concurrent
-heavy printing against existing timed tactics. Start it after that build is
-terminal, using the same Coq 8.17.1 baseline and narrow infinity/predicate C
-overlays; do not fabricate assumption rows. Output and exact standard snapshot
-diffs remain to be reviewed. No registry increase or acceptance is claimed.
+The actual per-result Print Assumptions driver **97828 passed, exit 0**:
+62 unique inventoried results, **34 closed**, exactly six inherited axiom
+names overall and on the final public contract; no new axiom/libc model.
+It started only after checkout compilation ended and that run moved to
+independent kernel checking, avoiding competition with timed proof tactics.
+Standard-depth preliminary printing **79041 passed, exit 0**. All 62 types
+and 21 definitions were compared against the deep report; 60/17 match exactly
+modulo whitespace. Two types/four computed definitions require deep ellipsis
+supplements, with retained text matching in order. No printing settings were
+changed. Actual rows, read-only review script and receipt are archived;
+see `SNAPSHOT-REVIEW.md` and `PRELIMINARY-REVIEW.json`.
+
+Next: isolated full-snapshot generation and unchanged-old-record review,
+followed by fresh full acceptance without update flags. Full checkout run
+86431 remains live in independent kernel checking with inputs unchanged.
+Do not launch another whole build while it is live. No registry increase or
+acceptance is claimed by these preliminary reports.
 
 The supplemental scoped canonical/source/lifecycle correspondence gate now
 passes, and all **37 meaningful source mutations are rejected**, both terminal
