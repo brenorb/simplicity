@@ -2,6 +2,38 @@
 
 ## Latest owned-prefix milestone
 
+Current milestone: **68 compiled internal results / twenty-seven modules**.
+Concrete canonical and negative field adapters compile (**3702 exit 0**),
+discharging wide writer bounds and deriving canonical field-program outputs.
+Field bridge kernel **86807 exited 0**, unchanged 15-name inherited context
+inventory, empty unsafe categories and same hash as earlier receipts.
+The exact literal `ge_negate = take fe_normalize &&& drop fe_negate` and
+`gej_negate = take ge_negate &&& drop fe_normalize` port now compiles, using
+the already audited literal field-negation port. No numeric public target was
+substituted. Its writer encoding bridge has one inherited functional
+extensionality assumption. `eval_write_gej_negated_literal` compiles
+(**24908 exit 0**), deriving the actual original writer and literal whole-point
+output from the helper-produced storage, with all field bounds discharged.
+It retains six inherited execution assumptions. Joint literal-writer closure
+**95168** is live at `literal-writer-kernel.log`; poll it before claiming kernel
+verification. No public coverage registration yet.
+
+Next compose the owned reader's normalized X/Y/Z outputs with
+`eval_gej_negate_point_output`, transporting `finv` through the helper's
+outside-point frame using the existing separation facts. Then feed actual
+helper storage to `eval_write_gej_negated_literal`, retain combined external
+framing, and complete original public entry/copy/true-return/free. Add literal
+parametricity and source correspondence before public registration. Review
+all types/definitions/assumptions and run isolated full acceptance. Full checkout
+audit **86431** was polled live this turn; its inputs remain frozen.
+
+Proof-engineering correction: unfolding product encoding by reflexivity hit
+the unchanged 10-second timeout. An explicit generic `point_encode_pair` proof
+and an `eq_trans`/`f_equal` term avoid expanding Word256 programs. Keep canonical
+programs opaque; do not lengthen the timeout or use unchecked computation.
+The failed debug file `debug_literal_encoding.v` is scratch-only, incomplete
+with `Show`, never compiled or counted.
+
 Verification update: general writer closure **67676 exited 0**. Its context
 inventory is the same 15 inherited names as the preceding kernel receipts;
 all unsafe categories are empty and its log hash is
