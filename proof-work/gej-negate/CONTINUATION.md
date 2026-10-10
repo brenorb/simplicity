@@ -2,6 +2,19 @@
 
 ## Current continuation (supersedes historical live-session notes below)
 
+Latest: **80 compiled results / thirty-four modules**. Literal normalize,
+ge-negate and gej-negate parametricity compile (44812 exit 0); final two
+assumption prints are closed under the global context. Independent closure
+kernel **33632 is live**, `parametric-kernel.log`; poll it. Source gates,
+contract review and full isolated acceptance remain next. Snapshot generation
+20742 was re-polled and confirmed live; contracts updated, assumptions ongoing.
+
+Proof-engineering correction: generic combinator automation expanded the
+word subtraction/scribe internals and timed out (67899 terminal exit 1).
+Prioritizing their existing parametricity lemmas avoids expansion and passes
+without changing the timeout or target. A premature kernel attempt after
+the failed compilation exited 1 and is not counted as evidence.
+
 Newest milestone: **77 compiled results / thirty-three modules**.
 `exec_gej_negate_rest_owned` (3855 exit 0) derives original read/helper/write
 calls, exact literal point output, ownership and framing. Full public call
@@ -12,9 +25,10 @@ literal Simplicity target for arbitrary input triples under the existing
 local frame contract. Six inherited execution assumptions, no new assumed
 calls/output/free and no public coverage registration.
 
-Independent public closure kernel **59664 is live** at
-`/tmp/jet-gej-negate.IMImaX/public-local-kernel.log`; poll this handle before
-claiming kernel verification. Next add literal parametricity and exact source
+Independent public closure kernel **59664 exited 0**, unchanged fifteen-name
+inherited context inventory and empty unsafe categories; log SHA256 is
+`30fac0dd8293d97049546911c0d3fc3f316da314885947d25959bce5fba6c8f3`.
+Do not poll/restart it. Next add literal parametricity and exact source
 correspondence gates, inspect final type/definition/assumption contracts, and
 assemble isolated full acceptance. General frame-domain obligations remain
 outside this local contract; do not claim all-frame coverage from it.
