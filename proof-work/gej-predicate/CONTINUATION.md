@@ -21,9 +21,12 @@ preserves unrelated loads, permissions and valid blocks. It does not take
 a successful store as a premise. The lower-level assignment lemma does,
 and that premise is discharged by the owned theorem.
 
-Independent whole zero/flag kernel **51921** is live; poll it rather than
-restart. Log: `/tmp/jet-gej-predicate.W2FtCz/point-zero-flag-kernel.log`.
-Its dependencies are frozen while the check runs.
+Independent whole zero/flag kernel **51921 passed, terminal exit 0**.
+Its 15 inherited context axioms match the unchanged project allowlist
+exactly; type-in-type, unsafe fixpoints and unchecked positivity are all
+absent. Log: `/tmp/jet-gej-predicate.W2FtCz/point-zero-flag-kernel.log`.
+All 38 internal results now have whole-closure kernel evidence. This does
+not establish the unfinished public predicate contract or add coverage.
 
 Next connect the exact original `read_gej` statement/call: use three-reader
 composition, zero-test at PointZ, and final flag assignment. Derive source
