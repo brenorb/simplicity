@@ -2,6 +2,30 @@
 
 ## Latest owned-prefix milestone
 
+Current milestone: **51 freshly compiled internal results / twenty-one modules**.
+Previous helper closure **80783 exited 0**, unchanged 15-name inherited context
+inventory and empty unsafe categories (same receipt hash as earlier checks).
+Stronger prefix, body and call now retain outside-point `lframe`, old-block
+validity and exact unchanged loads outside Y/flag writes. Compilers **79986**,
+**22536**, **11597** exited 0. `eval_gej_negate_point_output` (**19164 exit 0**)
+derives the whole actual helper call, preserved five-limb X/Z fields, exact
+negative Y, retained flag, whole-point Freeable and outside-point framing.
+Only actual representation/ownership input facts are required; no call/output/
+preservation premise was added. Final execution theorem retains the six known
+inherited assumptions. Independent whole output closure **83837** is live,
+`point-output-kernel.log`; poll it before claiming kernel verification.
+
+Next generalize the actual point writer to reader-normalized X/Z and wide
+negative Y. The existing wide field writer and literal field-negation bridge
+are reusable; preserve whole-point ownership and other coordinate fields
+between its three writes. Then compose public entry/copy/read/helper/write/
+return/free against canonical literal `take ge_negate &&& drop fe_normalize`.
+Do not replace the literal target with integer formulas. Source correspondence,
+inventories, type/definition/assumption reviews and isolated full acceptance
+remain required before any public coverage registration. No public coverage
+is claimed by this internal milestone. Full checkout audit **86431** remains
+live at the assumption gate on its frozen inputs.
+
 Current milestone: **46 freshly compiled internal results / seventeen modules**.
 Y-arithmetic closure **23369 exited 0**, same unchanged 15-name inherited
 context inventory/hash as previous receipts. The generated Y `Scall` tail
