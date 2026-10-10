@@ -2,6 +2,27 @@
 
 ## Latest owned-prefix milestone
 
+Latest verification: literal-writer closure **95168 exited 0**, unchanged
+15-name inherited context inventory, empty unsafe categories and the same log
+hash as earlier receipts. All 68 current internal results now have fresh
+compiler evidence and independent closure kernel evidence. Public point jet
+equivalence/lifecycle/source/acceptance is still unfinished and unregistered.
+
+Checkout full acceptance **86431 exited 0**: 652 kernel modules, 3733 audited
+results/1948 closed, reviewed contracts/definitions, negative tests and four
+ASTs all pass at the frozen input fingerprint. See the field-add integrated
+receipt. Its freeze is released. Do not poll/restart either finished check.
+
+The assembled infinity/predicate candidate build **86191 is live**, pinned
+Coq 8.17.1 with 65520 KiB stack and `-j1`, log
+`/tmp/jet-predicate-accept.EX7adj/combined-build-coq817.log`, no scratch overlays.
+First build 2296 terminated exit 2 after the shell selected Rocq 9.3 against
+8.17 dependency objects; the original diagnostic log is retained. No proof
+was weakened, and the retry followed a terminal failure with the actual
+version mismatch corrected. Poll 86191 and only generate/review standard
+candidate snapshots after it succeeds; full candidate acceptance remains
+pending. Continue public gej-negate proof work in the separate scratch tree.
+
 Current milestone: **68 compiled internal results / twenty-seven modules**.
 Concrete canonical and negative field adapters compile (**3702 exit 0**),
 discharging wide writer bounds and deriving canonical field-program outputs.
