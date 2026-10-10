@@ -2,6 +2,28 @@
 
 ## Latest owned-prefix milestone
 
+Current milestone: **55 compiled internal results / twenty-four modules**.
+Full point-output helper closure **83837 exited 0**, unchanged 15-name context
+inventory/hash and empty unsafe categories. General field preservation across
+another coordinate writer compiles (**25662 exit 0**); bounded-field adapter
+(**72830 exit 0**) packages the existing wide field writer without narrowing
+its domain. The three general writes and complete original `write_gej` now
+compile (**65324 exit 0**), deriving all calls, output concatenation, ownership
+and framing for arbitrary fields within the verified wide-limb bounds.
+Writer closure **67676** is live (`general-writer-kernel.log`); poll it before
+claiming kernel verification. Its output is the actual wide field writer
+output, not yet the canonical literal jet result. This is internal support,
+not a replacement public target. No coverage entry is added.
+
+Next build concrete field adapters for reader-normalized X/Z and negative Y,
+discharging the three bounded-field predicates and linking their outputs to
+the existing canonical normalize/negate programs. Then identify the literal
+whole `gej_negate` target and compose the public lifecycle. Reuse the existing
+`wide_negate_output` bridge and `canonical_fe_normalize_idempotent`; do not
+replace the literal target with formulas. Source/inventory/snapshot reviews
+and isolated acceptance still required. Full checkout audit **86431** remains
+live on frozen inputs at the assumption gate.
+
 Current milestone: **51 freshly compiled internal results / twenty-one modules**.
 Previous helper closure **80783 exited 0**, unchanged 15-name inherited context
 inventory and empty unsafe categories (same receipt hash as earlier checks).
