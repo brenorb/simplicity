@@ -1,0 +1,74 @@
+(** Big-endian byte value of the actual scalar_set_b32 parser. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_zval C.jet_sx_zrep.
+Require Import C.jet_secp_fe_math C.jet_secp_fe_nv C.jet_secp_fe_b32 C.jet_secp_b32_exec.
+Require Import OriginalC.jet_secp_scalar_set_shape OriginalC.jet_secp_scalar_overflow_numeric.
+Require Import OriginalC.jet_secp_canonical_scalar.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_set_raw_expression_checked i : (i < 4)%nat ->
+  zb byte_bnd (scalar_set_raw_sigma i) = Some (0, Int64.max_unsigned).
+Proof. destruct i as [|[|[|[|i]]]]; intro H; try lia; vm_compute; reflexivity. Qed.
+
+Definition scalar_set_raw_integer (rho : nat -> Z) :=
+  zval rho (scalar_set_raw_sigma 0) +
+  2 ^ 64 * zval rho (scalar_set_raw_sigma 1) +
+  2 ^ 128 * zval rho (scalar_set_raw_sigma 2) +
+  2 ^ 192 * zval rho (scalar_set_raw_sigma 3).
+
+Lemma scalar_set_raw_math bytes :
+  length bytes = 32%nat -> Forall (fun byte => 0 <= byte <= 255) bytes ->
+  scalar_set_raw_integer (fun n => nth n bytes 0) = be_val bytes.
+Proof.
+  intros HLen HB.
+  do 33 (destruct bytes as [|? bytes]; try discriminate). clear HLen.
+  repeat match goal with H : Forall _ (_ :: _) |- _ => inversion H; subst; clear H end.
+  cbv [scalar_set_raw_integer scalar_set_raw_sigma scalar_set_raw_expressions
+    scalar_set_raw_state scalar_set_raw_tree cells0 sregs hd rcells map cval zval zop zcmp nth
+    Int.unsigned Int64.unsigned Int.intval Int64.intval].
+  repeat match goal with |- context[?x mod 2 ^ 32] => rewrite (Z.mod_small x (2 ^ 32)) by lia end.
+  repeat match goal with |- context[?x mod 2 ^ 8] => rewrite (Z.mod_small x (2 ^ 8)) by lia end.
+  repeat lor1.
+  unfold be_val; cbn [fold_left].
+  change (2 ^ 64) with 18446744073709551616.
+  change (2 ^ 128) with 340282366920938463463374607431768211456.
+  change (2 ^ 192) with 6277101735386680763835789423207666416102355444464034512896.
+  lia.
+Qed.
+
+Lemma scalar_set_raw_unsigned rho layout i :
+  (forall n, fst (byte_bnd n) <= Int64.unsigned (rho n) <= snd (byte_bnd n)) ->
+  (i < 4)%nat ->
+  Int64.unsigned (scalar_set_raw_rho rho layout i) = zval (zrho rho) (scalar_set_raw_sigma i).
+Proof.
+  intros HB HI.
+  destruct (den_zval_long rho byte_bnd layout HB (scalar_set_raw_sigma i)
+    0 Int64.max_unsigned (scalar_set_raw_expression_checked i HI)
+    (scalar_set_raw_sigma_kind i)) as [HD HR].
+  unfold scalar_set_raw_rho; rewrite HD; cbn [il]; apply Int64.unsigned_repr; exact HR.
+Qed.
+
+Lemma scalar_set_raw_input_value bytes layout :
+  length bytes = 32%nat -> Forall (fun byte => 0 <= byte <= 255) bytes ->
+  scalar_limb_value (scalar_set_raw_rho (byte_rho bytes) layout) = be_val bytes.
+Proof.
+  intros HLen HB.
+  unfold scalar_limb_value.
+  rewrite !scalar_set_raw_unsigned by (try apply byte_rho_bound; try assumption; lia).
+  fold (scalar_set_raw_integer (zrho (byte_rho bytes))).
+  assert (HExt : forall n, zrho (byte_rho bytes) n = nth n bytes 0).
+  { intro n; apply byte_rho_unsigned; exact HB. }
+  unfold scalar_set_raw_integer; rewrite !(zval_ext _ _ _ HExt).
+  fold (scalar_set_raw_integer (fun n => nth n bytes 0)).
+  apply scalar_set_raw_math; assumption.
+Qed.
+
+Theorem scalar_set_bytes_mod_group bytes layout :
+  length bytes = 32%nat -> Forall (fun byte => 0 <= byte <= 255) bytes ->
+  scalar_limb_value (scalar_set_limb (byte_rho bytes) layout) = be_val bytes mod canonical_group_order.
+Proof.
+  intros HLen HB; rewrite scalar_set_value_mod_group, scalar_set_raw_input_value by assumption; reflexivity.
+Qed.

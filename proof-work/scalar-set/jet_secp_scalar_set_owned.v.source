@@ -1,0 +1,118 @@
+(** Original scalar_set_b32 call on the actual allocated 32-byte regions.
+    Ownership is retained for the reader to free its byte buffer afterwards. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Values Memory Events Maps Clight ClightBigstep.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_fe_b32 C.jet_secp_fe_nv C.jet_secp_b32_exec C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_fe_math.
+Require Import OriginalC.jet_secp_scalar_set_b32_exec OriginalC.jet_secp_scalar_set_shape.
+Require Import OriginalC.jet_secp_scalar_set_bytes OriginalC.jet_secp_scalar_reduce_numeric.
+Require Import OriginalC.jet_secp_scalar_overflow_numeric OriginalC.jet_secp_canonical_scalar.
+Require Import OriginalC.jet_secp_shift64_executor OriginalC.jet_secp_shift64_statement.
+Require Import OriginalC.jet_secp_statement_prefix.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_set_owned_regs :=
+  [mkreg [mkcell 0 Mint64 None; mkcell 8 Mint64 None;
+          mkcell 16 Mint64 None; mkcell 24 Mint64 None] true (Some 32);
+   mkreg (byte_cells 0 32 0) true (Some 32)].
+Definition scalar_set_owned_initial := mkst scalar_set_initial_temps scalar_set_owned_regs [] 32.
+Definition scalar_set_owned_run :=
+  xstmt (genv_cenv secp_ge) [] secp_shift64_table 1000 [] scalar_set_owned_initial scalar_set_prefix.
+Definition scalar_set_owned_tree := Eval vm_compute in scalar_set_owned_run.
+Definition scalar_set_owned_state :=
+  match scalar_set_owned_tree with Some (RDone state _) => state
+  | _ => mkst (PTree.empty sx) [] [] 0 end.
+Lemma scalar_set_owned_run_eq : scalar_set_owned_run = Some (RDone scalar_set_owned_state ONormal).
+Proof. reflexivity. Qed.
+Lemma scalar_set_owned_pointer : (stemps scalar_set_owned_state)!jets_secp._overflow = Some (XLc Int64.zero).
+Proof. reflexivity. Qed.
+Lemma scalar_set_owned_regions : sregs scalar_set_owned_state =
+  [mkreg (cells0 scalar_set_state) true (Some 32); mkreg (byte_cells 0 32 0) true (Some 32)].
+Proof. reflexivity. Qed.
+
+Local Opaque xstmt scalar_set_owned_state scalar_set_prefix scalar_set_initial_temps scalar_set_owned_regs.
+Theorem eval_scalar_set_b32_owned rho layout m :
+  rep rho layout scalar_set_owned_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_set_b32)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1)); Vlong Int64.zero] E0 mf Vundef /\
+    rep rho layout (sregs scalar_set_owned_state) mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_set_owned_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  pose proof scalar_set_owned_run_eq as HRun; unfold scalar_set_owned_run in HRun.
+  destruct (xstmt_shift64_normal 1000 scalar_set_owned_initial scalar_set_prefix scalar_set_owned_state
+    rho layout m (scalar_set_temps rho layout) HRun HRep
+    (scalar_set_initial_tmatch rho layout)) as [le [mf [HPrefix [HFinal [HTemp [_ HFrame]]]]]].
+  assert (HNull : le!jets_secp._overflow = Some (Vlong Int64.zero)).
+  { exact (HTemp jets_secp._overflow (XLc Int64.zero) scalar_set_owned_pointer). }
+  exists mf; split.
+  - assert (HArgs : map (den rho (lay layout)) [XP 0 0; XP 1 0; XLc Int64.zero] =
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1)); Vlong Int64.zero]).
+    { cbn [map den]; fold (blk layout 0) (bas layout 0) (blk layout 1) (bas layout 1).
+      rewrite !Z.add_0_r; reflexivity. }
+    rewrite <- HArgs.
+    eapply eval_funcall_internal with (e := empty_env) (le1 := scalar_set_temps rho layout)
+      (le2 := le) (m1 := m) (m2 := mf) (out := Out_normal).
+    + apply scalar_set_entry.
+    + rewrite scalar_set_body_exact; eapply exec_statement_prefix_then_last;
+        [exact HPrefix|apply exec_scalar_set_null_suffix; exact HNull].
+    + reflexivity.
+    + reflexivity.
+  - split; assumption.
+Qed.
+
+Lemma scalar_set_owned_loads rho layout m :
+  rep rho layout (sregs scalar_set_owned_state) m ->
+  forall i, (i < 4)%nat ->
+    Mem.load Mint64 m (blk layout 0) (bas layout 0 + 8 * Z.of_nat i) =
+      Some (Vlong (scalar_set_limb rho (lay layout) i)).
+Proof.
+  intro HRep; rewrite scalar_set_owned_regions in HRep.
+  pose proof (rep_region rho layout _ m 0 _ HRep eq_refl) as HR.
+  intros i HI; destruct i as [|[|[|[|i]]]]; try lia;
+    unfold scalar_set_limb; cbn [nth];
+    match goal with |- Mem.load _ _ _ (_ + ?ofs) = Some (Vlong (il (den _ _ ?x))) =>
+      pose proof (region_load rho layout m 0 (mkreg (cells0 scalar_set_state) true (Some 32))
+        ofs Mint64 x HR ltac:(cbn [rcells]; rewrite scalar_set_output_shape; cbn; auto)) as HL;
+      rewrite (den_KL rho (lay layout) x eq_refl) in HL; exact HL
+    end.
+Qed.
+
+Theorem eval_scalar_set_b32_bytes_owned bytes layout m :
+  length bytes = 32%nat -> Forall (fun byte => 0 <= byte <= 255) bytes ->
+  rep (byte_rho bytes) layout scalar_set_owned_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_set_b32)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1)); Vlong Int64.zero] E0 mf Vundef /\
+    (forall i, (i < 4)%nat ->
+      Mem.load Mint64 mf (blk layout 0) (bas layout 0 + 8 * Z.of_nat i) =
+        Some (Vlong (scalar_set_limb (byte_rho bytes) (lay layout) i))) /\
+    scalar_limb_value (scalar_set_limb (byte_rho bytes) (lay layout)) = be_val bytes mod canonical_group_order /\
+    rep (byte_rho bytes) layout (sregs scalar_set_owned_state) mf /\
+    Mem.range_perm mf (blk layout 0) 0 32 Cur Freeable /\
+    Mem.range_perm mf (blk layout 1) 0 32 Cur Freeable /\
+    bas layout 0 = 0 /\ bas layout 1 = 0 /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_set_owned_regs) b ofs) m mf.
+Proof.
+  intros HLen HB HRep.
+  destruct (eval_scalar_set_b32_owned (byte_rho bytes) layout m HRep)
+    as [mf [HCall [HFinal HFrame]]].
+  pose proof HFinal as HRegions; rewrite scalar_set_owned_regions in HRegions.
+  destruct (rep_region _ _ _ _ 0 _ HRegions eq_refl) as [_ [_ [_ [_ HOwned0]]]].
+  destruct (rep_region _ _ _ _ 1 _ HRegions eq_refl) as [_ [_ [_ [_ HOwned1]]]].
+  cbn [rfree rw] in HOwned0, HOwned1.
+  destruct HOwned0 as [HBase0 [_ [HFree0 _]]].
+  destruct HOwned1 as [HBase1 [_ [HFree1 _]]].
+  exists mf; split; [exact HCall|]; split.
+  - apply scalar_set_owned_loads; exact HFinal.
+  - split; [apply scalar_set_bytes_mod_group; assumption|].
+    split; [exact HFinal|]; split; [exact HFree0|]; split; [exact HFree1|].
+    split; [exact HBase0|]; split; assumption.
+Qed.
