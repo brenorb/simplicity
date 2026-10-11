@@ -113,6 +113,7 @@ Lemma alloc_word_run (m : mem) (vs : list val) :
       Mem.load Mint64 m' b (8 * Z.of_nat i) = Some (Val.load_result Mint64 v)) /\
     (forall i, (i < length vs)%nat ->
       Mem.valid_access m' Mint64 b (8 * Z.of_nat i) Writable) /\
+    Mem.range_perm m' b 0 (8 * Z.of_nat (length vs)) Cur Freeable /\
     (forall chunk b' ofs, Mem.valid_block m b' ->
       Mem.load chunk m' b' ofs = Mem.load chunk m b' ofs) /\
     (forall chunk b' ofs p, Mem.valid_block m b' ->
@@ -135,6 +136,8 @@ Proof.
   split; [intros i v H; exact (HL i v H)|]. split.
   { intros i Hi. destruct (HVA i Hi) as [HR HAl]. split; [|exact HAl].
     intros ofs Hofs. apply HP. apply HR. exact Hofs. }
+  split.
+  { intros ofs Hofs. apply HP. eapply Mem.perm_alloc_2; [exact HA|exact Hofs]. }
   split.
   { intros chunk b' ofs HV. rewrite HO by (left; intros ->; exact (HFresh HV)).
     eapply Mem.load_alloc_unchanged; [exact HA|exact HV]. }
@@ -169,13 +172,15 @@ Lemma input_run_length cells :
   length (input_run cells) = Z.to_nat (frame_words (Z.of_nat (length cells))).
 Proof. unfold input_run. rewrite map_length, seq_length. reflexivity. Qed.
 
-Lemma input_run_represents m bi (cells : list Cell) :
+Lemma input_run_represents_at m bi (base : Z) (cells : list Cell) :
   Z.of_nat (length cells) <= Int64.max_unsigned ->
+  0 <= base ->
+  base + 8 * frame_words (Z.of_nat (length cells)) <= Ptrofs.max_unsigned ->
   (forall i v, nth_error (input_run cells) i = Some v ->
-    Mem.load Mint64 m bi (8 * Z.of_nat i) = Some (Val.load_result Mint64 v)) ->
-  frame_input_cells_at m bi (8 * frame_words (Z.of_nat (length cells))) 0 cells.
+    Mem.load Mint64 m bi (base + 8 * Z.of_nat i) = Some (Val.load_result Mint64 v)) ->
+  frame_input_cells_at m bi (base + 8 * frame_words (Z.of_nat (length cells))) 0 cells.
 Proof.
-  intros HMax HLoads i c Hc.
+  intros HMax HBase HEnd HLoads i c Hc.
   set (N := Z.of_nat (length cells)) in *.
   set (words := frame_words N) in *.
   assert (Hi : (i < length cells)%nat) by (apply nth_error_Some; congruence).
@@ -194,13 +199,13 @@ Proof.
     rewrite nth_error_seq_in by exact Hs. unfold Datatypes.option_map. do 2 f_equal.
     unfold s. lia. }
   pose proof (HLoads s _ Hnth) as HL.
-  assert (HP : frame_input_bit_at m bi (8 * words) q (cell_bit cells q)).
+  assert (HP : frame_input_bit_at m bi (base + 8 * words) q (cell_bit cells q)).
   { unfold frame_input_bit_at.
-    change Int64.max_unsigned with 18446744073709551615 in *.
-    change Ptrofs.max_unsigned with 18446744073709551615.
+    assert (HM : Int64.max_unsigned = 18446744073709551615) by reflexivity.
     split; [lia|]. split; [lia|].
     eexists. split.
-    - replace (8 * words - 8 * (1 + q / 64)) with (8 * Z.of_nat s) by (unfold s; lia).
+    - replace (base + 8 * words - 8 * (1 + q / 64)) with (base + 8 * Z.of_nat s)
+        by (unfold s; lia).
       exact HL.
     - rewrite packed_word_testbit by lia. f_equal. lia. }
   assert (Hbit : cell_bit cells q = match c with Some b => b | None => false end).
@@ -208,6 +213,19 @@ Proof.
   destruct c as [b|]; cbn [cell_matches].
   - rewrite <- Hbit. exact HP.
   - eexists. exact HP.
+Qed.
+
+Lemma input_run_represents m bi (cells : list Cell) :
+  Z.of_nat (length cells) <= Int64.max_unsigned ->
+  (forall i v, nth_error (input_run cells) i = Some v ->
+    Mem.load Mint64 m bi (8 * Z.of_nat i) = Some (Val.load_result Mint64 v)) ->
+  frame_input_cells_at m bi (8 * frame_words (Z.of_nat (length cells))) 0 cells.
+Proof.
+  intros HMax HLoads.
+  destruct (frame_words_bounds (Z.of_nat (length cells)) ltac:(lia)) as [_ HW].
+  assert (HM : Int64.max_unsigned = 18446744073709551615) by reflexivity.
+  assert (HPM : Ptrofs.max_unsigned = 18446744073709551615) by reflexivity.
+  exact (input_run_represents_at m bi 0 cells HMax ltac:(lia) ltac:(lia) HLoads).
 Qed.
 
 (** ** The output buffer *)
@@ -274,13 +292,13 @@ Proof.
   intros HCells HCount.
   set (edge := 8 * frame_words (Z.of_nat (length cells))).
   destruct (alloc_word_run m0 (input_run cells))
-    as (m1 & bi & HF1 & HV1 & HL1 & _ & HO1 & _ & HQ1 & HVB1).
+    as (m1 & bi & HF1 & HV1 & HL1 & _ & _ & HO1 & _ & HQ1 & HVB1).
   destruct (alloc_word_run m1 (output_run count))
-    as (m2 & bw & HF2 & HV2 & HL2 & HA2 & HO2 & _ & HQ2 & HVB2).
+    as (m2 & bw & HF2 & HV2 & HL2 & HA2 & _ & HO2 & _ & HQ2 & HVB2).
   destruct (alloc_word_run m2 [Vptr bi (Ptrofs.repr edge); Vlong (Int64.repr 0)])
-    as (m3 & bs & HF3 & HV3 & HL3 & _ & HO3 & HP3 & HQ3 & HVB3).
+    as (m3 & bs & HF3 & HV3 & HL3 & _ & _ & HO3 & HP3 & HQ3 & HVB3).
   destruct (alloc_word_run m3 [Vptr bw (Ptrofs.repr 0); Vlong (Int64.repr count)])
-    as (m4 & bd & HF4 & HV4 & HL4 & HA4 & HO4 & HP4 & HQ4 & HVB4).
+    as (m4 & bd & HF4 & HV4 & HL4 & HA4 & _ & HO4 & HP4 & HQ4 & HVB4).
   assert (Hbi2 : Mem.valid_block m2 bi) by (apply HVB2; exact HV1).
   assert (Hbi3 : Mem.valid_block m3 bi) by (apply HVB3; exact Hbi2).
   assert (Hbw3 : Mem.valid_block m3 bw) by (apply HVB3; exact HV2).

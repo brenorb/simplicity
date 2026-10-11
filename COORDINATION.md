@@ -87,3 +87,13 @@ input `a`, fresh allocations and stores yield a memory satisfying all frame
 premises of `jet_local_spec` / `jet_separated_local_spec` (and the SHA
 shapes), so the shared contracts are non-vacuous on their whole input
 domain. Planned files: `Coq/C/jet_frame_constructible*.v`.
+
+### Claude addendum — 2026-10-11 (later)
+
+Committed: `Coq/C/jet_frame_constructible.v` (+`_jets.v`, generated
+`jet_frame_executable_registry.v`: 310 registered frame-only jets shown
+executable on fresh frames for every input). Extending the same reservation
+to the Bit Machine representation: `Coq/C/jet_frame_constructible_bm.v`
+(every `RunState` within addressability bounds has a memory and layout
+satisfying `bm_rep`, `bm_separated`, `active_write_writable`). New file only;
+existing predicates and modules are not edited.
