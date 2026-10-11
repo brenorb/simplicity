@@ -13,10 +13,13 @@ size 88; no 128-byte point ownership is assumed. Compiler sessions: run 7849,
 execution 78252, field adapter 71827, preservation 91818, two writes 64947,
 body 33230, complete writer 92175, literal bridge 66203, all exit 0. Independent
 three-target closure kernel 10648 exited 0 with unchanged fifteen context axioms
-and empty unsafe categories. Print driver affine_assumptions_review_91.v is
-running in session 17087; poll, then review all 91 actual reports, retain exact
-69 inherited sets and archive the receipt before claiming the new per-result
-assumption audit. Older 69-result audit below is the completed checkpoint.
+and empty unsafe categories. Print driver affine_assumptions_review_91.v
+finished in session 17087 with exit 0. Strict review passes for all 91 actual
+reports, 48 closed, unchanged six-name union, exact final reader/helper/writer
+sets, all 69 inherited sets unchanged and empty diagnostics. All thirty-two
+archived/materialized source hashes match actual declaration inventories.
+Reproduce with review-assumptions.py --work /tmp/jet-ge-negate.aFl8mr; receipt
+WRITER-ASSUMPTION-REVIEW.json. Older 69-result audit below is historical.
 
 The first field-adapter attempt timed out while inferring all arguments through
 eapply. Interactive Show confirmed that all five limb bounds, field loads and
