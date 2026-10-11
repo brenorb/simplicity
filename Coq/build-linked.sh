@@ -25,7 +25,11 @@ done
 # The accepted program, unchanged, under a second module name: the subject of
 # the CompCert linking theorem in jet_linked_program.v.
 ln -sf "$root/C/jets.v" "$tree/C/jets_unlinked.v"
-update() { cmp -s "$1" "$2" 2>/dev/null || cp "$1" "$2"; }
+# Never write through a link into the accepted sources: a derived file replaces
+# whatever is at the destination.
+update() {
+  if [[ -L "$2" ]] || ! cmp -s "$1" "$2"; then rm -f "$2"; cp "$1" "$2"; fi
+}
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/simplicity-linked.XXXXXX")
 mkdir "$tmp/C"
 python3 linked/gen-jets.py C/jets.v C/memcpy_exact.v "$tmp/C/jets.v"
