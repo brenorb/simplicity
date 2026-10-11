@@ -1,9 +1,34 @@
 # Affine negation: actual allocation support
 
-91 internal results in thirty-two modules compile and pass independent joint
-kernel checking (10648 exit 0). No public jet equivalence or coverage entry
-is claimed. This is support for proving original simplicity_ge_negate against
-the already ported literal ge_negate, not a numeric substitute specification.
+109 results in thirty-eight modules compile and pass independent public closure
+kernel checking (98418 exit 0). ge_negate_literal_local_spec proves original
+simplicity_ge_negate against the literal canonical Simplicity ge_negate under
+the unchanged inherited local-frame contract, for arbitrary Word256 pairs.
+No coverage entry, full isolated acceptance or general evaluator-domain result
+is claimed.
+
+Newest public milestone: shared lifecycle/setup lemmas parameterized by actual
+owned object type and size; exact public 16+88 entry/generated call tree;
+derived read_ge/ge_neg/write_ge remainder; actual source copy, true return
+and both frees; final literal local-spec theorem. Compiler sessions 13581,
+88693,94499,50379,18181,73283 all exited 0. Independent public plus inherited
+literal-parametricity closure 98418 exited 0 with the same fifteen imported
+context axioms and empty unsafe categories. Per-result 109-print 53162 is live;
+poll and review before treating its axiom report as complete. The completed
+91-result writer audit below remains the older checkpoint.
+
+Source correspondence gate plus 53 mutation fixtures pass separately. They are
+supplemental, not a compiler/kernel or transitive source-fidelity certificate.
+Next audit all 109 actual result dependencies, review exact type/definition
+contracts and canonical ports, then assemble a normal-load-path isolated
+candidate, review full snapshots and run full acceptance. Do not register the
+jet merely because this checked public theorem now exists.
+
+Boundary engineering correction: inversion on a pair containing a large Clight
+function record timed out while decomposing its implementation. Applying
+f_equal to fst/snd extracts only the identifier/function equalities; explicit
+secp_symbol_block gives the witness. It passes with the original ten-second
+limit and unchanged target. Incomplete Show scratch was never compiled/counted.
 
 Newest milestone: actual-size original field writer, other-coordinate and
 outside-owner framing, both original affine writes, complete write_ge entry/
