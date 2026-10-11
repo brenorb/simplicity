@@ -15,8 +15,8 @@ Inputs and previous output values are arbitrary int64s. The inherited
 contract requires distinct owned 64-/32-/32-byte regions; it is not an
 arbitrary-pointer/evaluator-frame theorem.
 
-**Not yet proved:** the combined eight-limb output equals the integer
-product; `scalar_reduce_512`; original public scalar multiply/square
+The full eight-limb product extension below now proves the integer product.
+**Not yet proved:** `scalar_reduce_512`; original public scalar multiply/square
 callers and their literal canonical Simplicity specification bridges.
 The output expressions are defined from the checked execution, not assumed
 correct. No public specification was substituted or coverage added.
@@ -96,9 +96,10 @@ observations and bounds, compose the column invariants, then reduce modulo
 the scalar order and connect the actual public caller to its literal program.
 No source in these three completed files has a failing Coq goal.
 
-Main coverage remains 351/533; isolated scalar-add 359/533 remains provisional
-while its full audit **38737** runs (now past kernel, at assumption gate).
-Follow `../scalar-add-integration/CONTINUATION.md`; do not restart/mutate it.
+Main coverage remains 351/533; isolated scalar-add 359/533 has passed full
+acceptance (**38737**, exit 0; signed receipt **eecd0139**). Exact main
+reconciliation and verification remain. Follow
+`../scalar-add-integration/CONTINUATION.md`; do not restart/mutate it.
 Claude owns Elements and shared obligations; no overlap, registries untouched.
 All-533 goal active and unfinished; local signed atomic commits, no pushes.
 
@@ -116,9 +117,10 @@ The low-word machine bridge reuses
 `MulC.jet_secp_umul128_numeric.umul128_unsigned_outputs` rather than reproving
 the multiplication algorithm. A small internal modular identity connects the
 first limb to the four-limb C value. This is not a public Simplicity spec.
-The remaining seven output limbs, full product identity, scalar reduction,
-public caller lifecycle and literal canonical-program equivalences remain
-open. This extension does not make `scalar_mul512` a completed public jet.
+This first-column checkpoint alone did not prove the remaining seven limbs
+or full product. The extension below does; scalar reduction, public caller
+lifecycle and literal canonical-program equivalences remain open.
+Neither helper extension is a completed public jet equivalence.
 
 Verification: final build direct **71d1db**, independent kernel **50870**,
 fail-fast assumption/contract drivers **33364**, all terminal exit 0. Five
@@ -137,3 +139,59 @@ existing product/carry facts. Do not unfold `den` across the entire eight-word
 array in an open goal. Maintain a radix-column invariant (including c2 bounds)
 across the actual accumulation/extraction steps and compose its conclusion
 with `eval_scalar_mul512_owned`.
+
+## Checked full eight-limb product extension
+
+Six additional modules / **50 results, 42 definitions** freshly compile;
+49 results are closed, and the execution root has exactly the same six
+inherited execution dependencies. Prior source/evidence archives stay
+byte-identical. Last verified declaration:
+`MulC.jet_secp_scalar_mul512_owned_product.eval_scalar_mul512_owned_product`.
+
+It takes only `rep rho beta scalar_mul512_initial_regs m`, and proves the
+actual original C function call, all eight `Mint64` loads in **final memory**,
+their full unsigned 512-bit value equals the product of the two unsigned
+256-bit inputs, final owned representation and outside framing. Previous
+output values and both inputs are arbitrary. This retains the initial
+distinct owned 64-/32-/32-byte region contract; it is not evaluator-wide or
+assertion-enabled coverage and does not replace a public Simplicity spec.
+
+Proof layering, reusable for reduction:
+
+1. `machine`: exact C macro operations, low/high word and uint32 top carry.
+2. `symbolic`: actual checked execution expressions match all eight machine
+   outputs. Product binding, casts, carry, accumulation and extraction each
+   have small representation lemmas. Avoid open whole-array `den` reduction.
+3. `columns`: exact radix value through multiply-add; top no-wrap guard,
+   extraction, and fast modulo/value lemmas.
+4. `accumulate`: finite sums of products. At most four products per column
+   and carried value below five words imply top carry safety; those guards
+   are derived, not added to the call theorem.
+5. `product`: follows the actual seven-column schedule and telescopes the
+   first six emitted digits. Both input bounds imply the final residual
+   fits two words, proving final fast-column exactness without a new premise.
+6. `owned_product`: composes execution, exact expression representation,
+   current-region loads and full product reconstruction.
+
+Fresh fail-fast six-module build **39075**, kernel **98027**, full-depth
+assumption/type/definition drivers **68641**: all terminal exit 0. Kernel
+context matches the inherited 15-axiom allowlist; unsafe categories are
+empty. Complete prints have no ellipses or diagnostics. `PRODUCT-REVIEW.json`
+pins sources, drivers, outputs and kernel log. Read-only reviewer also
+revalidates the low/execution/product/multiply-accumulate prerequisites;
+nine in-memory status/source/contract/dependency/kernel mutations are
+rejected. No new public result or coverage entry is registered.
+
+```sh
+python3 -B proof-work/scalar-mul512/review-product.py
+python3 -B proof-work/scalar-mul512/test-product.py
+```
+
+Next: prove original `scalar_reduce_512` execution and its three fold stages
+modulo the scalar order, reusing the column value lemmas and the checked
+original scalar-reduce/overflow helpers. The actual function allocates 15
+uint128 locals, reads eight limbs and calls u128 multiply/accumulate/shift/
+projection helpers plus scalar overflow/reduce. Inspect that AST and build
+small stage contracts; do not substitute an arithmetic reduction function
+for its execution. Then compose the original public multiply/square caller
+lifecycle with the existing canonical program/specification bridges.
