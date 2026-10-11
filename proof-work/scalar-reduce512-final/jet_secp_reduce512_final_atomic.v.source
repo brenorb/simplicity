@@ -1,0 +1,94 @@
+(** Bind the actual final suffix to the checked original overflow/reduce helpers. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers Ctypes Values.
+Require Import C.jet_sx_expr C.jet_sx_zval C.jet_secp_scalar_bind
+  C.jet_secp_scalar_overflow_exec C.jet_secp_scalar_overflow_flags C.jet_secp_scalar_overflow_numeric
+  C.jet_secp_scalar_reduce_exec C.jet_secp_scalar_reduce_numeric.
+Require Import C.jet_secp_canonical_scalar.
+Require Import MulC.jet_secp_reduce512_final_stage MulC.jet_secp_scalar_mul512_accumulate.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Section TYPED.
+Variable digits : nat -> int64.
+Variable carry : int64.
+Definition final_overflow_sx := scalar_bind (fun n => XL (digits n)) (XL2I (XL (digits 4%nat))) scalar_overflow_return.
+Definition final_flag_sx := XL2I (XLb Badd (XL carry) (XI2L Signed final_overflow_sx)).
+Definition final_sigma n := if Nat.eqb n 4 then XI2L Unsigned final_flag_sx else XL (digits n).
+Definition final_bind x := scalar_bind final_sigma final_flag_sx x.
+Definition final_symbolic_outputs := map final_bind
+  [scalar_reduce_low0; scalar_reduce_low1; scalar_reduce_low2; scalar_reduce_low3].
+Lemma final_symbolic_source : reduce512_final_limbs digits carry = final_symbolic_outputs.
+Proof. Timeout 10 reflexivity. Qed.
+Definition final_flag_integer := Int64.unsigned carry + b2z (scalar_overflow_bool digits).
+Definition final_rho n := if Nat.eqb n 4 then Int64.repr final_flag_integer else digits n.
+Lemma final_overflow_den rho beta : den rho beta final_overflow_sx =
+  Vint (b2i (scalar_overflow_bool digits)).
+Proof.
+  unfold final_overflow_sx.
+  rewrite (scalar_bind_den (fun n => XL (digits n)) (XL2I (XL (digits 4%nat))) rho digits beta
+    scalar_overflow_return ltac:(intro n; reflexivity) eq_refl).
+  apply scalar_overflow_return_flag.
+Qed.
+Lemma final_flag_integer_small : Int64.unsigned carry <= 1 -> 0 <= final_flag_integer <= 2.
+Proof. intro H; unfold final_flag_integer; pose proof (Int64.unsigned_range carry); pose proof (b2z_range (scalar_overflow_bool digits)); lia. Qed.
+Lemma final_flag_den rho beta : Int64.unsigned carry <= 1 ->
+  den rho beta final_flag_sx = Vint (Int.repr final_flag_integer).
+Proof.
+  intro H; pose proof (final_flag_integer_small H) as HB.
+  assert (HE : Int.signed (b2i (scalar_overflow_bool digits)) = b2z (scalar_overflow_bool digits))
+    by (destruct (scalar_overflow_bool digits); reflexivity).
+  change (Vint (Int64.loword (Int64.add carry
+    (Int64.repr (Int.signed (ii (den rho beta final_overflow_sx)))))) = Vint (Int.repr final_flag_integer)).
+  rewrite final_overflow_den; cbn [ii]; rewrite HE.
+  unfold Int64.loword; rewrite Int64.add_unsigned.
+  rewrite (Int64.unsigned_repr (b2z (scalar_overflow_bool digits))) by
+    (pose proof (b2z_range (scalar_overflow_bool digits)); change Int64.max_unsigned with 18446744073709551615; lia).
+  change (Vint (Int.repr (Int64.unsigned (Int64.repr final_flag_integer))) = Vint (Int.repr final_flag_integer)).
+  rewrite Int64.unsigned_repr; [reflexivity|change Int64.max_unsigned with 18446744073709551615; lia].
+Qed.
+Lemma final_bind_den rho beta x : Int64.unsigned carry <= 1 ->
+  den rho beta (final_bind x) = den final_rho beta x.
+Proof.
+  intro H; pose proof (final_flag_integer_small H) as HB; unfold final_bind.
+  apply scalar_bind_den.
+  - intro n; unfold final_sigma,final_rho; destruct (Nat.eqb n 4).
+    + change (Vlong (Int64.repr (Int.unsigned (ii (den rho beta final_flag_sx)))) = Vlong (Int64.repr final_flag_integer)).
+      rewrite final_flag_den by exact H; cbn [ii]; rewrite Int.unsigned_repr;
+        [reflexivity|change Int.max_unsigned with 4294967295; lia].
+    + reflexivity.
+  - rewrite final_flag_den by exact H.
+    unfold final_rho; cbn [Nat.eqb].
+    unfold Int64.loword; rewrite Int64.unsigned_repr;
+      [reflexivity|change Int64.max_unsigned with 18446744073709551615; lia].
+Qed.
+Definition final_output_value rho beta := column_words_value
+  (map (fun sy => il (den rho beta sy)) (reduce512_final_limbs digits carry)).
+Lemma final_output_weighted rho beta : Int64.unsigned carry <= 1 ->
+  forall b, final_flag_integer = b2z b ->
+  final_output_value rho beta =
+    (scalar_limb_value digits + b2z b * (2 ^ 256 - canonical_group_order)) mod 2 ^ 256.
+Proof.
+  intros HC b HF.
+  unfold final_output_value; rewrite final_symbolic_source.
+  unfold final_symbolic_outputs; rewrite map_map.
+  assert (HD : map (fun x => il (den rho beta (final_bind x)))
+    [scalar_reduce_low0; scalar_reduce_low1; scalar_reduce_low2; scalar_reduce_low3] =
+    map (fun x => il (den final_rho beta x))
+    [scalar_reduce_low0; scalar_reduce_low1; scalar_reduce_low2; scalar_reduce_low3])
+    by (apply map_ext; intro x; rewrite final_bind_den by exact HC; reflexivity).
+  rewrite HD.
+  assert (HV : column_words_value (map (fun x => il (den final_rho beta x))
+    [scalar_reduce_low0; scalar_reduce_low1; scalar_reduce_low2; scalar_reduce_low3]) =
+    scalar_reduce_output_value final_rho beta).
+  { unfold scalar_reduce_output_value; cbn [map column_words_value].
+    change Int64.modulus with 18446744073709551616.
+    change (2 ^ 64) with 18446744073709551616.
+    change (2 ^ 128) with 340282366920938463463374607431768211456.
+    change (2 ^ 192) with 6277101735386680763835789423207666416102355444464034512896.
+    ring. }
+  rewrite HV.
+  rewrite (scalar_reduce_weighted_value final_rho beta b ltac:(unfold final_rho; cbn [Nat.eqb]; rewrite HF; reflexivity)).
+  reflexivity.
+Qed.
+End TYPED.

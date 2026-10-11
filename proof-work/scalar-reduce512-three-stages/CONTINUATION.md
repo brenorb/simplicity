@@ -1,5 +1,12 @@
 # Continue with the final reduction and complete function boundary
 
+Update: the final reduction and complete original function entry/allocation/
+return/free/current-memory numeric boundary are now checked in
+`../scalar-reduce512-final/CONTINUATION.md`. Its fresh build, contract/assumption
+drivers and independent kernel check passed. The historical final-reduction
+and function-boundary TODOs below are superseded; public multiply/square and
+literal Simplicity/evaluator-frame composition remain open.
+
 Last verified declaration:
 `exec_reduce512_first_three_stages`. The six archived modules compile fully.
 Their receipt/reviewer record the fresh build, contracts, assumptions and
