@@ -18,7 +18,9 @@ Sequential full snapshot generation **20895 is live** in this candidate:
 Poll it, inspect both terminal generation statuses and completely review old/
 new types, definitions and assumptions before full isolated acceptance.
 Do not modify proof or metadata inputs during generation. Combined baseline
-acceptance **24487 is still live** on its frozen inputs.
+acceptance **24487 exited 0**; its isolated receipt is
+`../gej-predicate/COMBINED-ACCEPTANCE.json`. Do not count that receipt as
+acceptance of this separate point-negate candidate or checkout integration.
 
 Preliminary prints **7286 exited 0**; separate deep print also exited 0.
 Read-only review passes for all 80 types/26 definitions and 80 actual axiom
