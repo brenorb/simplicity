@@ -83,7 +83,8 @@ bash build-jets.sh --coqc \
 
 Session **45608** owns normal scalar-zero full acceptance under
 `/tmp/jet-scalar-zero-accept.smyVL2`. It was revalidated live in this turn;
-its log still ends at `== coqchk` after all earlier gates and normal build.
+its latest log reports `coqchk passed on 804 modules` followed by
+`== assumption gate`, after all earlier gates and normal build.
 Poll that existing handle, never infer completion/restart from silence.
 All its inputs remain frozen. Pre-acceptance fingerprint:
 `c4027e45b7c0b61edc21ee42e2e72a64a79ff4465002033dc18be5bb0cfc8657`.
