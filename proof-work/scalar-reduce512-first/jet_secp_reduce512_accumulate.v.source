@@ -1,0 +1,53 @@
+(** Finite mixed multiply/sum column accumulation, with derived top bounds. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require Import MulC.jet_secp_reduce512_wide.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Inductive wide_operation := Wmul (a b : int64) | Wsum (x : int64).
+Definition wide_operation_value op := match op with
+  Wmul a b => Int64.unsigned a * Int64.unsigned b | Wsum x => Int64.unsigned x end.
+Definition wide_operation_apply op s := match op with
+  Wmul a b => wide_muladd a b s | Wsum x => wide_sumadd x s end.
+Fixpoint wide_operation_sum ops := match ops with [] => 0 | h::t => wide_operation_value h + wide_operation_sum t end.
+Fixpoint wide_accumulate ops s := match ops with [] => s | h::t => wide_accumulate t (wide_operation_apply h s) end.
+Lemma wide_operation_bound op : 0 <= wide_operation_value op < Int64.modulus * Int64.modulus.
+Proof.
+  destruct op as [a b|x]; cbn [wide_operation_value]; pose proof Int64.modulus_pos.
+  - pose proof (Int64.unsigned_range a); pose proof (Int64.unsigned_range b); nia.
+  - pose proof (Int64.unsigned_range x).
+    assert (2 <= Int64.modulus) by (change (2 <= 18446744073709551616); lia); nia.
+Qed.
+Lemma wide_operation_exact op s : Int64.unsigned (wtop s) < Int64.max_unsigned ->
+  wide_value (wide_operation_apply op s) = wide_value s + wide_operation_value op.
+Proof. destruct op; [apply wide_muladd_value|apply wide_sumadd_value]. Qed.
+Lemma wide_operation_sum_bound ops :
+  0 <= wide_operation_sum ops <= Z.of_nat (length ops) * (Int64.modulus * Int64.modulus).
+Proof.
+  induction ops as [|h t IH]; cbn [wide_operation_sum length]; [lia|].
+  rewrite Nat2Z.inj_succ; pose proof (wide_operation_bound h); nia.
+Qed.
+Lemma wide_accumulate_value ops s :
+  wide_value s + wide_operation_sum ops < 5 * (Int64.modulus * Int64.modulus) ->
+  wide_value (wide_accumulate ops s) = wide_value s + wide_operation_sum ops.
+Proof.
+  revert s; induction ops as [|h t IH]; intro s; cbn [wide_operation_sum wide_accumulate]; intro HB; [lia|].
+  pose proof (wide_operation_bound h); pose proof (wide_operation_sum_bound t).
+  assert (HT : Int64.unsigned (wtop s) < Int64.max_unsigned) by (apply wide_top_small; nia).
+  pose proof (wide_operation_exact h s HT) as HV.
+  rewrite IH; [rewrite HV; lia|rewrite HV; lia].
+Qed.
+Lemma wide_accumulate_small ops s : (length ops <= 4)%nat -> wide_value s < 5 * Int64.modulus ->
+  wide_value (wide_accumulate ops s) = wide_value s + wide_operation_sum ops /\
+  wide_value (wide_accumulate ops s) < 5 * (Int64.modulus * Int64.modulus) /\
+  wide_value (wide_extract (wide_accumulate ops s)) < 5 * Int64.modulus.
+Proof.
+  intros HL HS; pose proof (wide_operation_sum_bound ops).
+  assert (HM : 5 <= Int64.modulus) by (change (5 <= 18446744073709551616); lia).
+  assert (Hlen : Z.of_nat (length ops) <= 4) by (exact (proj1 (Nat2Z.inj_le _ _) HL)).
+  assert (HB : wide_value s + wide_operation_sum ops < 5 * (Int64.modulus * Int64.modulus)) by nia.
+  pose proof (wide_accumulate_value ops s HB) as HV.
+  split; [exact HV|]. split; [rewrite HV; exact HB|].
+  rewrite wide_extract_value,HV; apply Z.div_lt_upper_bound; nia.
+Qed.
