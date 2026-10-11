@@ -1,0 +1,90 @@
+(** Original scalar_add call with real uint128 allocation/free, both caller
+    owned regions retained, exact output loads and unchanged second operand. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Maps Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_frame C.jet_secp_linkage C.jets_secp C.jet_secp_local_regions.
+Require Import C.jet_secp_shift64_executor.
+Require Import AddC.jet_secp_scalar_add_run.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_add_limbs : list sx :=
+  match sregs scalar_add_state with reg :: _ => map cell_sx (rcells reg) | _ => [] end.
+Lemma scalar_add_limbs_length : length scalar_add_limbs = 4%nat.
+Proof. reflexivity. Qed.
+Lemma scalar_add_regions_exact :
+  sregs scalar_add_state =
+    [mkreg (u64_cells 0 scalar_add_limbs) true (Some 32);
+     mkreg (u64_cells 0 [XLv 4; XLv 5; XLv 6; XLv 7]) true (Some 32)].
+Proof. reflexivity. Qed.
+Lemma scalar_add_limbs_long : Forall (fun x => isk KL x = true) scalar_add_limbs.
+Proof. repeat constructor; reflexivity. Qed.
+Lemma scalar_add_return_int : isk KI scalar_add_return_sx = true.
+Proof. reflexivity. Qed.
+
+Local Opaque secp_ge.
+Theorem eval_scalar_add_from_owned_regions rho layout m :
+  rep rho layout scalar_add_initial_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_add)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1))] E0 mf
+      (Vint (ii (den rho (lay layout) scalar_add_return_sx))) /\
+    rep rho layout (sregs scalar_add_state) mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_add_initial_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  destruct (xfun_shift64_sound 1200 f_secp256k1_scalar_add [XP 0 0; XP 0 0; XP 1 0]
+    scalar_add_initial_regs 8 _ scalar_add_run_eq rho layout m HRep)
+    as [mf [vres [HCall [HFinal [HReturn [HShape HFrame]]]]]].
+  rewrite scalar_add_selected in HFinal, HReturn, HShape.
+  cbn [fst] in HFinal, HReturn, HShape.
+  rewrite scalar_add_return in HReturn; subst vres.
+  rewrite (den_KI rho (lay layout) scalar_add_return_sx scalar_add_return_int) in HCall.
+  change (map (den rho (lay layout)) [XP 0 0; XP 0 0; XP 1 0]) with
+    [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0 + 0));
+     Vptr (blk layout 0) (Ptrofs.repr (bas layout 0 + 0));
+     Vptr (blk layout 1) (Ptrofs.repr (bas layout 1 + 0))] in HCall.
+  rewrite !Z.add_0_r in HCall.
+  exists mf; split; [exact HCall|]; split; assumption.
+Qed.
+
+Lemma scalar_add_final_storage rho layout m :
+  rep rho layout (sregs scalar_add_state) m ->
+  bas layout 0 = 0 /\ Mem.range_perm m (blk layout 0) 0 32 Cur Freeable /\
+  bas layout 1 = 0 /\ Mem.range_perm m (blk layout 1) 0 32 Cur Freeable /\
+  (forall i x, nth_error scalar_add_limbs i = Some x ->
+    Mem.load Mint64 m (blk layout 0) (8 * Z.of_nat i) =
+      Some (Vlong (il (den rho (lay layout) x)))) /\
+  (forall i x, nth_error [XLv 4; XLv 5; XLv 6; XLv 7] i = Some x ->
+    Mem.load Mint64 m (blk layout 1) (8 * Z.of_nat i) =
+      Some (den rho (lay layout) x)).
+Proof.
+  intro HRep.
+  destruct (rep_free_region _ _ _ _ 0 32 HRep
+    ltac:(rewrite scalar_add_regions_exact; change (0 < 2)%nat; lia)
+    ltac:(rewrite scalar_add_regions_exact; reflexivity)) as [HBase0 HFree0].
+  destruct (rep_free_region _ _ _ _ 1 32 HRep
+    ltac:(rewrite scalar_add_regions_exact; change (1 < 2)%nat; lia)
+    ltac:(rewrite scalar_add_regions_exact; reflexivity)) as [HBase1 HFree1].
+  split; [exact HBase0|]; split; [exact HFree0|];
+    split; [exact HBase1|]; split; [exact HFree1|]; split.
+  - intros i x HNth.
+    assert (HRegion : region_ok rho layout m 0 (mkreg (u64_cells 0 scalar_add_limbs) true (Some 32))).
+    { eapply rep_region; [exact HRep|rewrite scalar_add_regions_exact; reflexivity]. }
+    pose proof (region_load _ _ _ _ _ _ _ _ HRegion
+      (u64_cells_nth scalar_add_limbs 0 i x HNth)) as HLoad.
+    rewrite HBase0, Z.add_0_l, Z.add_0_l in HLoad; rewrite HLoad.
+    rewrite (den_KL rho (lay layout) x
+      (proj1 (Forall_forall _ _) scalar_add_limbs_long x (nth_error_In _ _ HNth))); reflexivity.
+  - intros i x HNth.
+    assert (HRegion : region_ok rho layout m 1
+      (mkreg (u64_cells 0 [XLv 4; XLv 5; XLv 6; XLv 7]) true (Some 32))).
+    { eapply rep_region; [exact HRep|rewrite scalar_add_regions_exact; reflexivity]. }
+    pose proof (region_load _ _ _ _ _ _ _ _ HRegion
+      (u64_cells_nth [XLv 4; XLv 5; XLv 6; XLv 7] 0 i x HNth)) as HLoad.
+    rewrite HBase1, Z.add_0_l, Z.add_0_l in HLoad; exact HLoad.
+Qed.

@@ -1,0 +1,120 @@
+(** Integer bridge for the actual scalar-add carry chain. Public literal
+    scalar-add correctness still requires the canonical and caller bridges. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers Values.
+Require Import C.jet_sx_expr C.jet_sx_eval.
+Require Import C.jet_secp_u64_carry C.jet_secp_scalar_reduce_numeric.
+Require Import C.jet_secp_scalar_overflow_numeric C.jet_secp_canonical_scalar.
+Require Import AddC.jet_secp_scalar_add_values.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_add_second_rho (rho : nat -> int64) (n : nat) := rho (4 + n)%nat.
+Definition scalar_add_input_value rho :=
+  scalar_limb_value rho + scalar_limb_value (scalar_add_second_rho rho).
+Definition scalar_add_raw_value rho layout := scalar_limb_value (scalar_add_raw_rho rho layout).
+Definition scalar_add_carry_value rho layout := Int64.unsigned (il (den rho layout scalar_add_high3)).
+
+Lemma scalar_add_raw_values rho layout :
+  let s0 := Int64.unsigned (rho 0%nat) + Int64.unsigned (rho 4%nat) in
+  let s1 := s0 / Int64.modulus + Int64.unsigned (rho 1%nat) + Int64.unsigned (rho 5%nat) in
+  let s2 := s1 / Int64.modulus + Int64.unsigned (rho 2%nat) + Int64.unsigned (rho 6%nat) in
+  let s3 := s2 / Int64.modulus + Int64.unsigned (rho 3%nat) + Int64.unsigned (rho 7%nat) in
+  Int64.unsigned (il (den rho layout scalar_add_low0)) = s0 mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout scalar_add_low1)) = s1 mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout scalar_add_low2)) = s2 mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout scalar_add_low3)) = s3 mod Int64.modulus /\
+  scalar_add_carry_value rho layout = s3 / Int64.modulus.
+Proof.
+  cbn zeta.
+  assert (HFirst :
+    Int64.unsigned (il (den rho layout scalar_add_low0)) =
+      (Int64.unsigned (rho 0%nat) + Int64.unsigned (rho 4%nat)) mod Int64.modulus /\
+    Int64.unsigned (il (den rho layout scalar_add_high0)) =
+      (Int64.unsigned (rho 0%nat) + Int64.unsigned (rho 4%nat)) / Int64.modulus).
+  { change (il (den rho layout scalar_add_low0)) with
+      (Int64.add (rho 0%nat) (rho 4%nat)).
+    change (il (den rho layout scalar_add_high0)) with
+      (Int64.add Int64.zero (scalar_carry64 (rho 0%nat) (rho 4%nat))).
+    rewrite Int64.add_zero_l, scalar_carry64_value.
+    split; [exact (proj1 (u64_add_with_carry _ _))|reflexivity]. }
+  destruct HFirst as [HL0 HH0].
+  pose proof (scalar_sum_values rho layout scalar_add_high0 (XLv 1) (XLv 5)) as HS1.
+  fold scalar_add_low1 scalar_add_high1 in HS1.
+  rewrite HH0 in HS1; change (il (den rho layout (XLv 1))) with (rho 1%nat) in HS1;
+    change (il (den rho layout (XLv 5))) with (rho 5%nat) in HS1.
+  destruct HS1 as [HL1 HH1].
+  pose proof (scalar_sum_values rho layout scalar_add_high1 (XLv 2) (XLv 6)) as HS2.
+  fold scalar_add_low2 scalar_add_high2 in HS2.
+  rewrite HH1 in HS2; change (il (den rho layout (XLv 2))) with (rho 2%nat) in HS2;
+    change (il (den rho layout (XLv 6))) with (rho 6%nat) in HS2.
+  destruct HS2 as [HL2 HH2].
+  pose proof (scalar_sum_values rho layout scalar_add_high2 (XLv 3) (XLv 7)) as HS3.
+  fold scalar_add_low3 scalar_add_high3 in HS3.
+  rewrite HH2 in HS3; change (il (den rho layout (XLv 3))) with (rho 3%nat) in HS3;
+    change (il (den rho layout (XLv 7))) with (rho 7%nat) in HS3.
+  destruct HS3 as [HL3 HH3].
+  repeat split; try assumption; exact HH3.
+Qed.
+
+Lemma scalar_add_input_range rho : 0 <= scalar_add_input_value rho < 2 * 2 ^ 256.
+Proof.
+  pose proof (scalar_limb_value_range rho).
+  pose proof (scalar_limb_value_range (scalar_add_second_rho rho)).
+  unfold scalar_add_input_value; lia.
+Qed.
+
+Lemma scalar_add_raw_decomposition rho layout :
+  scalar_add_raw_value rho layout + 2 ^ 256 * scalar_add_carry_value rho layout =
+    scalar_add_input_value rho.
+Proof.
+  destruct (scalar_add_raw_values rho layout) as [HL0 [HL1 [HL2 [HL3 HC]]]].
+  unfold scalar_add_raw_value, scalar_limb_value at 1.
+  change (Int64.unsigned (il (den rho layout scalar_add_low0)) +
+    2 ^ 64 * Int64.unsigned (il (den rho layout scalar_add_low1)) +
+    2 ^ 128 * Int64.unsigned (il (den rho layout scalar_add_low2)) +
+    2 ^ 192 * Int64.unsigned (il (den rho layout scalar_add_low3)) +
+    2 ^ 256 * scalar_add_carry_value rho layout = scalar_add_input_value rho).
+  rewrite HL0, HL1, HL2, HL3, HC.
+  set (s0 := Int64.unsigned (rho 0%nat) + Int64.unsigned (rho 4%nat)).
+  set (s1 := s0 / Int64.modulus + Int64.unsigned (rho 1%nat) + Int64.unsigned (rho 5%nat)).
+  set (s2 := s1 / Int64.modulus + Int64.unsigned (rho 2%nat) + Int64.unsigned (rho 6%nat)).
+  set (s3 := s2 / Int64.modulus + Int64.unsigned (rho 3%nat) + Int64.unsigned (rho 7%nat)).
+  assert (HB : Int64.modulus <> 0) by discriminate.
+  pose proof (Z.div_mod s0 Int64.modulus HB).
+  pose proof (Z.div_mod s1 Int64.modulus HB).
+  pose proof (Z.div_mod s2 Int64.modulus HB).
+  pose proof (Z.div_mod s3 Int64.modulus HB).
+  unfold scalar_add_input_value, scalar_limb_value, scalar_add_second_rho.
+  cbn [Nat.add].
+  change Int64.modulus with 18446744073709551616 in *.
+  change (2 ^ 64) with 18446744073709551616 in *.
+  change (2 ^ 128) with 340282366920938463463374607431768211456 in *.
+  change (2 ^ 192) with 6277101735386680763835789423207666416102355444464034512896 in *.
+  change (2 ^ 256) with 115792089237316195423570985008687907853269984665640564039457584007913129639936 in *.
+  unfold s3, s2, s1, s0 in *; lia.
+Qed.
+
+Lemma scalar_add_raw_and_carry rho layout :
+  scalar_add_raw_value rho layout = scalar_add_input_value rho mod 2 ^ 256 /\
+  scalar_add_carry_value rho layout = scalar_add_input_value rho / 2 ^ 256.
+Proof.
+  pose proof (scalar_limb_value_range (scalar_add_raw_rho rho layout)) as HR.
+  pose proof (scalar_add_raw_decomposition rho layout) as HE.
+  change (0 <= scalar_add_raw_value rho layout < 2 ^ 256) in HR.
+  split.
+  - apply Z.mod_unique with (q := scalar_add_carry_value rho layout); [left; exact HR|lia].
+  - apply Z.div_unique with (r := scalar_add_raw_value rho layout); [left; exact HR|lia].
+Qed.
+
+Lemma scalar_add_carry_bit rho layout : 0 <= scalar_add_carry_value rho layout <= 1.
+Proof.
+  pose proof (scalar_add_input_range rho) as HS.
+  pose proof (scalar_limb_value_range (scalar_add_raw_rho rho layout)) as HR.
+  pose proof (scalar_add_raw_decomposition rho layout) as HE.
+  change (0 <= scalar_add_raw_value rho layout < 2 ^ 256) in HR.
+  pose proof (Int64.unsigned_range (il (den rho layout scalar_add_high3))) as HC.
+  change (0 <= scalar_add_carry_value rho layout < Int64.modulus) in HC.
+  change (2 ^ 256) with 115792089237316195423570985008687907853269984665640564039457584007913129639936 in *.
+  lia.
+Qed.
