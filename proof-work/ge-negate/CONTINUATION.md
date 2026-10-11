@@ -9,6 +9,12 @@ Read ASSEMBLY-REVIEW.md/ASSEMBLY.json and run assemble-candidate.py --verify.
 Candidate 355/533 is provisional, not actual checkout coverage. Baseline point
 acceptance 77601 remains live and frozen. Full snapshot generation/review and
 full affine acceptance follow terminal generation and complete record review.
+Normal contract comparison has passed: all 109 types/37 definitions and
+byte-identical inherited text; NORMAL-CONTRACT-REVIEW.json/.md. Five actual
+full-context report mutations reject, without modifying frozen inputs. Once
+90113 exits 0, run review-full-snapshots.py WITHOUT --contracts-only and
+record the full receipt before launching acceptance. Whole-project guards
+now cover all 948 inherited `.v` sources, not only the 923 C modules.
 
 109 results in thirty-eight modules compile and pass independent public closure
 kernel checking (98418 exit 0). ge_negate_literal_local_spec proves original

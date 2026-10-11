@@ -29,13 +29,25 @@ def verify(archive):
     for p in inherited:
         if p.read_bytes() != (target / 'C' / p.name).read_bytes():
             raise ValueError('inherited source changed: ' + p.name)
+    all_inherited = sorted(source.rglob('*.v'))
+    if len(all_inherited) != receipt['inherited_all_v_sources_byte_identical']:
+        raise ValueError('inherited whole-project source count changed')
+    for p in all_inherited:
+        if p.read_bytes() != (target / p.relative_to(source)).read_bytes():
+            raise ValueError('inherited whole-project source changed: ' + str(p))
     manifest = json.loads((archive / 'manifest.json').read_text())
     for entry in manifest['files']:
         name = entry['materialized_name']
         relative = ('C/' if name.endswith('.v') else 'ge-negate-review/') + name
         if sha(archive / entry['path']) != entry['sha256'] or sha(target / relative) != entry['sha256']:
             raise ValueError('new archived/materialized source changed: ' + name)
+    expected_paths = {p.relative_to(source) for p in all_inherited}
+    expected_paths.update(Path('C') / e['materialized_name'] for e in manifest['files']
+                          if e['materialized_name'].endswith('.v'))
+    if {p.relative_to(target) for p in target.rglob('*.v')} != expected_paths:
+        raise ValueError('unregistered/missing candidate source modules')
     return {'metadata_hashes': len(receipt['files']), 'inherited_v_sources': len(inherited),
+            'inherited_all_v_sources': len(all_inherited),
             'new_module_hashes': 38, 'new_checker_hashes': 2, 'unchanged': True}
 
 
@@ -52,6 +64,12 @@ def assemble(base, candidate, archive):
     for p in inherited:
         if p.read_bytes() != (target / 'C' / p.name).read_bytes():
             raise ValueError('inherited source changed: ' + p.name)
+    all_sources = sorted(source.rglob('*.v'))
+    if len(all_sources) != 948:
+        raise ValueError('unexpected inherited whole-project module count')
+    for p in all_sources:
+        if p.read_bytes() != (target / p.relative_to(source)).read_bytes():
+            raise ValueError('inherited whole-project source changed: ' + str(p))
     additions = {}
     modules = []
     for entry in manifest['files']:
@@ -136,6 +154,7 @@ def assemble(base, candidate, archive):
     return {'baseline': str(base), 'candidate': str(candidate),
             'baseline_full_acceptance': '77601 still live; no acceptance inferred',
             'full_acceptance': False, 'inherited_sources_byte_identical': len(inherited),
+            'inherited_all_v_sources_byte_identical': len(all_sources),
             'new_modules': len(modules), 'new_checkers': len(additions) - len(modules),
             'new_results': 109, 'new_definitions': 37, 'new_coverage_entries': 1,
             'snapshots_unchanged': True,
