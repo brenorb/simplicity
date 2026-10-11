@@ -61,8 +61,10 @@ bash build-jets.sh --coqchk -silent -o -R /tmp/jet-scalar-mul.lkomWj MulC \
   MulC.jet_secp_u128_mul_exec
 ```
 
-Next: actual `u128_accum_mul` with its local high-word allocation and cleanup;
-then original `scalar_mul_512` column/carry execution and product value;
+The actual `u128_accum_mul` allocation/call/cleanup and full modulo-128-bit
+value observation are now checked in `../scalar-mul-accum` (11 further
+results, nine closed); this archive and its 17-result evidence stay unchanged.
+Next: original `scalar_mul_512` column/carry execution and product value;
 then `scalar_reduce_512`. Reuse existing reader, generic Word256 writer,
 owned public lifecycle, core product observations and literal-program
 bridges. Prove exact helper summaries before using them to limit symbolic
