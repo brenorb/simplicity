@@ -2,6 +2,18 @@
 
 ## Current continuation (supersedes historical live-session notes below)
 
+Isolated point-negate candidate assembled at
+`/tmp/jet-gej-negate-accept.5ZRUlU`, extending the frozen infinity/predicate
+candidate without changing it. All 36 new proof/checker files match archives;
+all 889 inherited modules match baseline. Coverage tests **71790 exited 0**,
+source gate plus 41 mutations pass, inventories strictly extend baseline.
+Provisional metadata is 354/533, not accepted/checkout coverage. Old standard
+snapshots are deliberately unchanged. See ASSEMBLY.json/ASSEMBLY-REVIEW.md.
+Normal-load-path build **91913 is live**, `normal-load-path-build.log`, pinned
+Coq 8.17.1, 65520 KiB stack, -j1, no scratch overlays. Poll it before full
+snapshot generation/review and full isolated acceptance. Combined baseline
+acceptance **24487 is still live** on its frozen inputs.
+
 Preliminary prints **7286 exited 0**; separate deep print also exited 0.
 Read-only review passes for all 80 types/26 definitions and 80 actual axiom
 reports: 40 closed, exactly six inherited execution assumptions. Standard
