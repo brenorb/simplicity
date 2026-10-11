@@ -54,6 +54,18 @@ build linked against another libc, the remaining assumption is that its
 `memcpy` behaves, on the calls the jets make, like that reference definition;
 this is outside Coq and is not claimed.
 
+## Consistency of the premise for the unchanged program
+
+Independently of linking, `C/jet_memcpy_model_consistent.v` shows that
+`memcpy_model` — a statement about CompCert's abstract parameter
+`external_functions_sem "memcpy"` — is consistent with CompCert's constraint
+`external_functions_properties`: an assignment of semantics to every external
+function exists that satisfies `extcall_properties` everywhere and makes the
+statement of `memcpy_model` true (`memcpy_model_consistent`, closed under
+the global context). The accepted conditional theorems are therefore not
+vacuous because of an inconsistent premise. It remains a premise: nothing
+identifies CompCert's parameter with the libc contract.
+
 ## How the linked proofs are built
 
 `bash Coq/build-linked.sh [-jN]` creates `Coq/linked/tree/` (ignored by git):

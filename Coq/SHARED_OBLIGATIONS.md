@@ -24,6 +24,15 @@ statement that inherits `Axioms.proof_irr` from CompCert's own `link_program`.
   `_linked` contracts (104 core, 20 SHA-unit) without `memcpy_model`; both
   linked programs are CompCert's `link` of the accepted program with the
   memcpy unit.
+- `C/jet_memcpy_model_consistent.v`: `memcpy_model_consistent` — there is an
+  assignment of semantics to all external functions satisfying CompCert's
+  `extcall_properties` for every name/signature under which the statement
+  of `memcpy_model` holds (memcpy interpreted as the libc contract). So the
+  premise of the 124 accepted conditional theorems does not contradict
+  CompCert's axioms on external functions and those theorems are not
+  vacuous on that account. Closed under the global context; coqchk exit 0;
+  SHA-256 `f9458776eda459f36eb9690bdb5ba7c48b4542d395ea5499555c84eac55de6af`.
+  This is model existence, not a discharge of the premise.
 - **Boundary:** theorems about the linked programs. The accepted theorems for
   the unchanged programs keep `memcpy_model`; nothing in Coq can discharge it
   for an external function.
