@@ -49,6 +49,11 @@ Lemma types_link :
     Some (prog_types jets_sha.prog).
 Proof. vm_compute. reflexivity. Qed.
 
+(** Injectivity of [Some] as a lemma: the [injection] tactic would normalize
+    the (large) definition lists. *)
+Lemma some_inj {T : Type} (a b : T) : Some a = Some b -> a = b.
+Proof. intros H. injection H as H. exact H. Qed.
+
 Lemma linked_public_equiv id l :
   l = AST.prog_public unlinked_ast ++ AST.prog_public memcpy_ast ->
   (In id l <-> In id (AST.prog_public linked_ast)).
@@ -77,7 +82,7 @@ Proof.
   unfold ast_link in Hdefs, Hmain, Hpub.
   destruct (link unlinked_ast memcpy_ast) as [pp|]; [|discriminate Hdefs].
   cbn [option_map] in Hdefs, Hmain, Hpub.
-  injection Hdefs as Hdefs. injection Hmain as Hmain. injection Hpub as Hpub.
+  apply some_inj in Hdefs. apply some_inj in Hmain. apply some_inj in Hpub.
   exists pp. split; [reflexivity|split; [|split; [exact Hmain|]]].
   - intros id.
     etransitivity; [|apply (PTree_Properties.of_list_elements (prog_defmap linked_ast) id)].
@@ -104,8 +109,7 @@ Proof.
   fold unlinked_ast memcpy_ast.
   destruct (link unlinked_ast memcpy_ast) as [pp|]; [|discriminate Hdefs].
   cbn [option_map] in Hdefs, Hmain, Hpub.
-  injection Hdefs as Hdefs. injection Hmain as Hmain. injection Hpub as Hpub.
-  cbv beta in Hdefs, Hmain, Hpub.
+  apply some_inj in Hdefs. apply some_inj in Hmain. apply some_inj in Hpub.
   destruct (lift_option (link (prog_types jets_sha_unlinked.prog) (prog_types memcpy_exact.prog)))
     as [[typs EQ]|EQ]; [|rewrite types_link in EQ; discriminate EQ].
   match goal with

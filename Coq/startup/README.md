@@ -70,6 +70,14 @@ and the remaining consumers, with one invariant shared by all jets.
   verdict, leaves the encoded result and re-establishes the invariant
   (`X_startup_runs` for the 18 total/assertion contracts).
 
+- `jet_sha_startup_lifecycle.v` — `sha_lifecycle_state`: along any lifecycle
+  that starts in the initial memory and interleaves caller operations on
+  caller-allocated blocks with *arbitrary* terminating Clight executions of
+  SHA-unit jets called on frames meeting their frame premises, the invariant
+  holds at every point. Jet steps quantify over any execution of the call;
+  Clight determinism (`eval_funcall_unique`) identifies it with the
+  contract's (`sha_total_call_preserves` etc.).
+
 ## Boundaries
 
 - The invariant is established for the initial memory of the SHA translation

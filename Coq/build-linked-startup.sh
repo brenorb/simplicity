@@ -23,7 +23,7 @@ while read -r hash name; do
   cmp -s "$SHA_SUPPORT/$name" "$dest" || { rm -f "$dest"; cp "$SHA_SUPPORT/$name" "$dest"; }
 done < startup/PREREQUISITES.sha256
 modules=(jet_sha_startup_globals jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets jet_sha_startup_setup jet_sha_startup_env_callers
-  jet_sha_startup_executable jet_sha_startup_runs)
+  jet_sha_startup_executable jet_sha_startup_runs jet_sha_startup_lifecycle)
 for name in "${modules[@]}"; do ln -sf "$root/startup/proofs/$name.v" "$tree/startup/proofs/$name.v"; done
 ln -sf "$root/linked/startup/jet_sha_startup_linked.v" "$tree/startup/proofs/jet_sha_startup_linked.v"
 modules+=(jet_sha_startup_linked)
