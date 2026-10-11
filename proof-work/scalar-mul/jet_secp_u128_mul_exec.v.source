@@ -1,0 +1,74 @@
+(** Original struct wrapper around the proved unsigned multiplication helper.
+    Both limbs are written by the actual internal call and assignment. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Maps Memory Events Globalenvs.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_sx_pure C.jet_secp_fns C.jet_secp_linkage C.jets_secp.
+Require Import MulC.jet_secp_umul128_exec MulC.jet_secp_umul128_numeric.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition u128_mul_functions := [(_secp256k1_umul128, f_secp256k1_umul128)].
+Lemma u128_mul_functions_ok id f : In (id,f) u128_mul_functions ->
+  exists b, Genv.find_symbol secp_ge id = Some b /\ Genv.find_funct_ptr secp_ge b = Some (Internal f).
+Proof.
+  intros [H|H]; [inversion H; subst|contradiction].
+  apply secp_pure_ok. unfold secp_pure; right; left; reflexivity.
+Qed.
+Definition u128_mul_initial_regs : list region :=
+  [mkreg (u64_cells 0 [XLv 2; XLv 3]) true (Some 16)].
+Definition u128_mul_run : option res :=
+  xfun (genv_cenv secp_ge) [] (int_table u128_mul_functions) 200 f_secp256k1_u128_mul
+    [XP 0 0; XLv 0; XLv 1] u128_mul_initial_regs [] 4.
+Definition u128_mul_tree := Eval vm_compute in u128_mul_run.
+Definition u128_mul_state : sstate :=
+  match u128_mul_tree with Some (RDone state _) => state
+  | _ => mkst (PTree.empty sx) [] [] 0 end.
+
+Lemma u128_mul_run_eq : u128_mul_run = Some (RDone u128_mul_state ONormal).
+Proof. reflexivity. Qed.
+Lemma u128_mul_return : (stemps u128_mul_state)!1%positive = None.
+Proof. reflexivity. Qed.
+Lemma u128_mul_output : sregs u128_mul_state =
+  [mkreg (u64_cells 0 [umul128_lo; umul128_hi]) true (Some 16)].
+Proof. reflexivity. Qed.
+Lemma u128_mul_log_nil : slog u128_mul_state = [].
+Proof. reflexivity. Qed.
+
+Local Opaque u128_mul_state.
+Theorem eval_u128_mul_owned_product rho layout m :
+  rep rho layout u128_mul_initial_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_u128_mul)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vlong (rho 0%nat); Vlong (rho 1%nat)] E0 mf Vundef /\
+    Mem.load Mint64 mf (blk layout 0) (bas layout 0) =
+      Some (Vlong (Int64.repr ((Int64.unsigned (rho 0%nat) * Int64.unsigned (rho 1%nat)) mod Int64.modulus))) /\
+    Mem.load Mint64 mf (blk layout 0) (bas layout 0 + 8) =
+      Some (Vlong (Int64.repr ((Int64.unsigned (rho 0%nat) * Int64.unsigned (rho 1%nat)) / Int64.modulus))) /\
+    rep rho layout [mkreg (u64_cells 0 [umul128_lo; umul128_hi]) true (Some 16)] mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape u128_mul_initial_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  destruct (xfun_pure secp_ge u128_mul_functions u128_mul_functions_ok 200
+    f_secp256k1_u128_mul [XP 0 0; XLv 0; XLv 1] u128_mul_initial_regs 4
+    (RDone u128_mul_state ONormal) u128_mul_run_eq eq_refl rho layout m HRep)
+    as (mf & vres & HCall & HFinal & HReturn & HShape & HFrame).
+  cbn [rsel fst] in HFinal, HReturn.
+  rewrite u128_mul_return in HReturn; subst vres.
+  rewrite u128_mul_output in HFinal.
+  pose proof (rep_region rho layout _ mf 0 _ HFinal eq_refl) as HRegion.
+  pose proof (region_load rho layout mf 0 _ 0 Mint64 umul128_lo HRegion
+    ltac:(cbn [rcells u64_cells]; left; reflexivity)) as HLow.
+  pose proof (region_load rho layout mf 0 _ 8 Mint64 umul128_hi HRegion
+    ltac:(cbn [rcells u64_cells]; right; left; reflexivity)) as HHigh.
+  rewrite Z.add_0_r, umul128_lo_carrier in HLow.
+  rewrite umul128_hi_carrier in HHigh.
+  change (map (den rho (lay layout)) [XP 0 0; XLv 0; XLv 1]) with
+    [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0 + 0));
+     Vlong (rho 0%nat); Vlong (rho 1%nat)] in HCall.
+  rewrite Z.add_0_r in HCall.
+  exists mf; split; [exact HCall|]; split; [exact HLow|]; split; [exact HHigh|];
+    split; [exact HFinal|exact HFrame].
+Qed.

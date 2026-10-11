@@ -1,0 +1,69 @@
+(** Reuse the checked core multiplication observation for the secp helper's
+    actual symbolic execution. No new arithmetic specification or call premise. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp.
+Require C.jet_umul128_value.
+Require Import MulC.jet_secp_umul128_exec.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition umul128_hi_machine a b :=
+  C.jet_umul128_value.umul128_hi
+    (C.jet_umul128_value.umul128_hh a b) (C.jet_umul128_value.umul128_lh a b)
+    (C.jet_umul128_value.umul128_hl a b)
+    (C.jet_umul128_value.umul128_mid (C.jet_umul128_value.umul128_ll a b)
+      (C.jet_umul128_value.umul128_lh a b) (C.jet_umul128_value.umul128_hl a b)).
+Definition umul128_lo_machine a b :=
+  C.jet_umul128_value.umul128_lo (C.jet_umul128_value.umul128_ll a b)
+    (C.jet_umul128_value.umul128_mid (C.jet_umul128_value.umul128_ll a b)
+      (C.jet_umul128_value.umul128_lh a b) (C.jet_umul128_value.umul128_hl a b)).
+
+Lemma umul128_hi_den rho layout : den rho layout umul128_hi =
+  Vlong (umul128_hi_machine (rho 0%nat) (rho 1%nat)).
+Proof. reflexivity. Qed.
+Lemma umul128_lo_den rho layout : den rho layout umul128_lo =
+  Vlong (umul128_lo_machine (rho 0%nat) (rho 1%nat)).
+Proof. reflexivity. Qed.
+Lemma umul128_unsigned_outputs a b :
+  Int64.unsigned (umul128_hi_machine a b) = (Int64.unsigned a * Int64.unsigned b) / Int64.modulus /\
+  Int64.unsigned (umul128_lo_machine a b) = (Int64.unsigned a * Int64.unsigned b) mod Int64.modulus.
+Proof. exact (C.jet_umul128_value.umul128_machine_observation a b). Qed.
+Lemma umul128_hi_carrier rho layout : den rho layout umul128_hi =
+  Vlong (Int64.repr ((Int64.unsigned (rho 0%nat) * Int64.unsigned (rho 1%nat)) / Int64.modulus)).
+Proof.
+  rewrite umul128_hi_den; f_equal.
+  rewrite <- (Int64.repr_unsigned (umul128_hi_machine (rho 0%nat) (rho 1%nat))).
+  rewrite (proj1 (umul128_unsigned_outputs (rho 0%nat) (rho 1%nat))); reflexivity.
+Qed.
+Lemma umul128_lo_carrier rho layout : den rho layout umul128_lo =
+  Vlong (Int64.repr ((Int64.unsigned (rho 0%nat) * Int64.unsigned (rho 1%nat)) mod Int64.modulus)).
+Proof.
+  rewrite umul128_lo_den; f_equal.
+  rewrite <- (Int64.repr_unsigned (umul128_lo_machine (rho 0%nat) (rho 1%nat))).
+  rewrite (proj2 (umul128_unsigned_outputs (rho 0%nat) (rho 1%nat))); reflexivity.
+Qed.
+
+Theorem eval_umul128_owned_product rho layout m :
+  rep rho layout umul128_initial_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal jets_secp.f_secp256k1_umul128)
+      [Vlong (rho 0%nat); Vlong (rho 1%nat);
+       Vptr (blk layout 0) (Ptrofs.repr (bas layout 0))] E0 mf
+      (Vlong (Int64.repr ((Int64.unsigned (rho 0%nat) * Int64.unsigned (rho 1%nat)) mod Int64.modulus))) /\
+    Mem.load Mint64 mf (blk layout 0) (bas layout 0) =
+      Some (Vlong (Int64.repr ((Int64.unsigned (rho 0%nat) * Int64.unsigned (rho 1%nat)) / Int64.modulus))) /\
+    rep rho layout [mkreg (u64_cells 0 [umul128_hi]) true (Some 8)] mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape umul128_initial_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  destruct (eval_umul128_from_owned_region rho layout m HRep) as (mf & HCall & HFinal & HFrame).
+  pose proof (rep_region rho layout _ mf 0 _ HFinal eq_refl) as HRegion.
+  pose proof (region_load rho layout mf 0 _ 0 Mint64 umul128_hi HRegion
+    ltac:(cbn [rcells u64_cells]; left; reflexivity)) as HLoad.
+  rewrite Z.add_0_r, umul128_hi_carrier in HLoad.
+  rewrite umul128_lo_carrier in HCall.
+  exists mf; split; [exact HCall|]; split; [exact HLoad|]; split; [exact HFinal|exact HFrame].
+Qed.
