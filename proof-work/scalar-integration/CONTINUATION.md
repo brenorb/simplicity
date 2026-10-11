@@ -8,7 +8,7 @@ in the older 22-module estimate; do not revert that correction.
 
 ## Live process
 
-**83287** owns the full acceptance process in
+**10545** owns the full acceptance retry in
 `/tmp/jet-scalar-integration.XAMDsw/Coq`:
 
 ```sh
@@ -16,7 +16,7 @@ export PATH=/nix/store/57myhb98wx8k9dr21cf51bsmvxjs67h6-coq-8.17.1/bin:$PATH
 export JET_C_REPO=/Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity
 ulimit -S -s 65520
 JOBS=1 bash check-jets.sh --accept \
-  > /tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance.log 2>&1
+  > /tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance-retry.log 2>&1
 ```
 
 Poll this same session and inspect its log. A quiet run is not failure and
@@ -24,6 +24,15 @@ does not justify restarting. Do not mutate sources, gates, project/result/
 definition/coverage inventories, snapshots or production C/Haskell inputs.
 Input fingerprint:
 `aa652e53f690b80bcdc03a263f11114d04b1e9743f3dac471a41b00e9dac42ec`.
+
+Session **83287** is terminal, exit **2**. Its original log is preserved.
+All proof gates passed; AST preprocessing failed on missing `../../C/frame.c`.
+The candidate had copied only `Coq`, unlike its accepted parent with sibling
+`C` / `Haskell` links. Those read-only links are now restored, normal review
+passed unchanged (40956, exit 0), and core AST regeneration passed. Neither
+partial gates nor this preflight authorize acceptance. For future candidate
+preparation, preserve the parent's sibling source layout and verify source
+links before launching a long audit. Do not restart **10545**.
 
 The previous scalar-zero process **45608** is terminal, exit **0**, with its
 fully reviewed receipt now in `../scalar-zero/ACCEPTANCE.json`. Do not wait
