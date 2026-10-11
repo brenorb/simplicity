@@ -49,7 +49,10 @@ Require Import C.jet_sha_u32be_exec C.jet_sha_ctxi_u32 C.jet_bitcoin_ctx_hash_sp
 Require Import C.jet_bitcoin_build_tapleaf_spec C.jet_bitcoin_input_hash_spec.
 Require Import C.jet_buffer_input C.jet_read8s_layout C.jet_word32_chunks C.jet_readBit_layout.
 Require Import C.jet_bitcoin_output_hash_jet C.jet_bitcoin_input_utxo_hash_jet C.jet_bitcoin_input_hash_jet.
-Require Import JetStartup.jet_sha_startup_jets JetStartup.jet_sha_startup_env_jets.
+Require Import JetStartupReview.jet_clight_forward JetStartupReview.jet_sha_initial_globals.
+Require Import JetStartup.jet_sha_startup_globals JetStartup.jet_sha_startup_state.
+Require Import JetStartup.jet_sha_startup_jets JetStartup.jet_sha_startup_env_jets JetStartup.jet_sha_startup_env_callers.
+Require Import JetStartup.jet_sha_startup_executable JetStartup.jet_sha_startup_runs.
 Import Values Mem ListNotations.
 Local Open Scope Z_scope.
 Import Ctypes Values ListNotations Clightdefs.
@@ -172,3 +175,94 @@ Theorem bitcoin_input_hash_startup_linked :
     (Word 5) (Ty.Sum Ty.Unit (Word 8)) input_hash_rep
     (fun a e => @input_hash_spec fullalg a e).
 Proof. exact (bitcoin_input_hash_startup_spec memcpy_model_holds). Qed.
+
+Theorem bitcoin_output_hash_startup_env_linked :
+  sha_startup_env_spec f_simplicity_bitcoin_output_hash ext_environment
+    (Word 5) (Ty.Sum Ty.Unit (Word 8)) output_hash_rep
+    (fun a e => @vh_hash_spec (BitcoinFull.Base Bitcoin.OutputValue)
+      (BitcoinFull.Base Bitcoin.OutputScriptHash) fullalg a e).
+Proof. exact (bitcoin_output_hash_startup_env_spec memcpy_model_holds). Qed.
+
+Theorem bitcoin_input_utxo_hash_startup_env_linked :
+  sha_startup_env_spec f_simplicity_bitcoin_input_utxo_hash ext_environment
+    (Word 5) (Ty.Sum Ty.Unit (Word 8)) input_utxo_hash_rep
+    (fun a e => @vh_hash_spec (BitcoinFull.Base Bitcoin.InputValue)
+      (BitcoinFull.Ext BitcoinExt.InputScriptHash) fullalg a e).
+Proof. exact (bitcoin_input_utxo_hash_startup_env_spec memcpy_model_holds). Qed.
+
+Theorem bitcoin_input_hash_startup_env_linked :
+  sha_startup_env_spec f_simplicity_bitcoin_input_hash ext_environment
+    (Word 5) (Ty.Sum Ty.Unit (Word 8)) input_hash_rep
+    (fun a e => @input_hash_spec fullalg a e).
+Proof. exact (bitcoin_input_hash_startup_env_spec memcpy_model_holds). Qed.
+
+(** Executability on fresh frames from any memory satisfying the invariant;
+    the statement is that of the corresponding [_startup_runs] theorem without
+    its [memcpy_model] premise. *)
+Theorem sha_256_ctx_8_add_1_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_1_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_1_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_2_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_2_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_2_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_4_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_4_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_4_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_8_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_8_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_8_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_16_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_16_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_16_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_32_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_32_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_32_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_64_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_64_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_64_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_128_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_128_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_128_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_256_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_256_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_256_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_512_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_512_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_512_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_add_buffer_511_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_add_buffer_511_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_add_buffer_511_startup_runs memcpy_model_holds). Qed.
+
+Theorem sha_256_ctx_8_finalize_startup_runs_linked :
+  ltac:(let T := type of (sha_256_ctx_8_finalize_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (sha_256_ctx_8_finalize_startup_runs memcpy_model_holds). Qed.
+
+Theorem tapdata_init_startup_runs_linked :
+  ltac:(let T := type of (tapdata_init_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (tapdata_init_startup_runs memcpy_model_holds). Qed.
+
+Theorem bitcoin_annex_hash_startup_runs_linked :
+  ltac:(let T := type of (bitcoin_annex_hash_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (bitcoin_annex_hash_startup_runs memcpy_model_holds). Qed.
+
+Theorem bitcoin_outpoint_hash_startup_runs_linked :
+  ltac:(let T := type of (bitcoin_outpoint_hash_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (bitcoin_outpoint_hash_startup_runs memcpy_model_holds). Qed.
+
+Theorem bitcoin_build_tapleaf_simplicity_startup_runs_linked :
+  ltac:(let T := type of (bitcoin_build_tapleaf_simplicity_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (bitcoin_build_tapleaf_simplicity_startup_runs memcpy_model_holds). Qed.
+
+Theorem bitcoin_build_tapbranch_startup_runs_linked :
+  ltac:(let T := type of (bitcoin_build_tapbranch_startup_runs memcpy_model_holds) in exact T).
+Proof. exact (bitcoin_build_tapbranch_startup_runs memcpy_model_holds). Qed.

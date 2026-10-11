@@ -22,6 +22,10 @@ while read -r hash name; do
   fi
   cmp -s "$SHA_SUPPORT/$name" "startup/prereq/${name%.source}" || cp "$SHA_SUPPORT/$name" "startup/prereq/${name%.source}"
 done < startup/PREREQUISITES.sha256
+tmpgen=$(mktemp "${TMPDIR:-/tmp}/simplicity-startup-runs.XXXXXX")
+python3 startup/gen-startup-runs.py startup/proofs/jet_sha_startup_jets.v "$tmpgen"
+cmp "$tmpgen" startup/proofs/jet_sha_startup_runs.v || { echo "stale generated module jet_sha_startup_runs.v" >&2; exit 1; }
+rm -f "$tmpgen"
 if grep -nE '\b(admit|Admitted|Axiom|Parameter|Conjecture)\b' startup/proofs/*.v; then
   echo "forbidden declaration in startup sources" >&2; exit 1
 fi
@@ -30,7 +34,8 @@ ulimit -s 65520 2>/dev/null || true
 for name in "${order[@]}"; do
   [[ "startup/prereq/$name.vo" -nt "startup/prereq/$name.v" ]] || bash build-jets.sh --coqc "${paths[@]}" "startup/prereq/$name.v"
 done
-modules=(jet_sha_startup_globals jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets jet_sha_startup_setup)
+modules=(jet_sha_startup_globals jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets jet_sha_startup_setup jet_sha_startup_env_callers
+  jet_sha_startup_executable jet_sha_startup_runs)
 for name in "${modules[@]}"; do
   bash build-jets.sh --coqc "${paths[@]}" "startup/proofs/$name.v"
 done

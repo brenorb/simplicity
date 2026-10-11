@@ -22,7 +22,8 @@ while read -r hash name; do
   dest="$tree/startup/prereq/${name%.source}"
   cmp -s "$SHA_SUPPORT/$name" "$dest" || { rm -f "$dest"; cp "$SHA_SUPPORT/$name" "$dest"; }
 done < startup/PREREQUISITES.sha256
-modules=(jet_sha_startup_globals jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets jet_sha_startup_setup)
+modules=(jet_sha_startup_globals jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets jet_sha_startup_setup jet_sha_startup_env_callers
+  jet_sha_startup_executable jet_sha_startup_runs)
 for name in "${modules[@]}"; do ln -sf "$root/startup/proofs/$name.v" "$tree/startup/proofs/$name.v"; done
 ln -sf "$root/linked/startup/jet_sha_startup_linked.v" "$tree/startup/proofs/jet_sha_startup_linked.v"
 modules+=(jet_sha_startup_linked)
@@ -36,11 +37,11 @@ if [[ "${1:-}" == --check ]]; then
     echo "Require JetStartup.jet_sha_startup_linked JetStartup.jet_sha_startup_state."
     echo 'Goal True. idtac "@@ sha_startup_state_initialized". Abort.'
     echo "Print Assumptions JetStartup.jet_sha_startup_state.sha_startup_state_initialized."
-    grep -o '^Theorem [a-z0-9_]*_startup_linked' "$root/linked/startup/jet_sha_startup_linked.v" |
+    grep -oE '^Theorem [a-z0-9_]*_startup(_env|_runs)?_linked' "$root/linked/startup/jet_sha_startup_linked.v" |
       awk '{print "Goal True. idtac \"@@ " $2 "\". Abort.\nPrint Assumptions JetStartup.jet_sha_startup_linked." $2 "."}'
   } > "$tmp/audit.v"
   bash build-jets.sh --coqc "${paths[@]}" -Q "$tmp" LinkedStartupAudit "$tmp/audit.v" > "$tmp/audit.log" 2>&1
-  python3 "$root/linked/audit-linked-startup.py" "$tmp/audit.log" 20
+  python3 "$root/linked/audit-linked-startup.py" "$tmp/audit.log" 40
   bash build-jets.sh --coqchk "${paths[@]}" -silent -o JetStartup.jet_sha_startup_linked > "$tmp/coqchk.log" 2>&1
   echo "coqchk passed for jet_sha_startup_linked and its dependencies"
   echo "logs: $tmp"
