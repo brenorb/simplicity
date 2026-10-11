@@ -1,0 +1,32 @@
+(** The literal scalar ports are independent of the chosen Core algebra. *)
+Require Import Simplicity.Alg Simplicity.Word.
+Require Import C.jet_multiply_spec C.jet_literal_division_parametric.
+Require Import NegC.jet_secp_canonical_scalar_negate.
+Set Default Timeout 10.
+
+Lemma canonical_scalar_normalize512_parametric :
+  Alg.Core.Parametric (@canonical_scalar_normalize512).
+Proof.
+  intros term1 term2 R; unfold canonical_scalar_normalize512.
+  apply Alg.comp_Parametric.
+  - apply Alg.pair_Parametric; [apply Alg.iden_Parametric|].
+    apply Alg.comp_Parametric; [apply Alg.unit_Parametric|].
+    apply Alg.pair_Parametric; [apply Word.zero_Parametric|apply Alg.scribe_Parametric].
+  - apply Alg.comp_Parametric; [apply literal_modulo_parametric|].
+    apply Alg.drop_Parametric, Alg.iden_Parametric.
+Qed.
+
+Lemma canonical_scalar_multiply_parametric : Alg.Core.Parametric (@canonical_scalar_multiply).
+Proof.
+  intros term1 term2 R; unfold canonical_scalar_multiply.
+  apply Alg.comp_Parametric; [apply multiply_word_spec_parametric|apply canonical_scalar_normalize512_parametric].
+Qed.
+
+Lemma canonical_scalar_negate_parametric : Alg.Core.Parametric (@canonical_scalar_negate).
+Proof.
+  intros term1 term2 R; unfold canonical_scalar_negate.
+  apply Alg.comp_Parametric.
+  - apply Alg.pair_Parametric; [|apply Alg.iden_Parametric].
+    apply Alg.comp_Parametric; [apply Alg.unit_Parametric|apply Alg.scribe_Parametric].
+  - apply canonical_scalar_multiply_parametric.
+Qed.
