@@ -1,9 +1,33 @@
 # Affine negation: actual allocation support
 
-69 internal results in twenty-four modules compile and pass independent joint
-kernel checking (55644 exit 0). No public jet equivalence or coverage entry
+91 internal results in thirty-two modules compile and pass independent joint
+kernel checking (10648 exit 0). No public jet equivalence or coverage entry
 is claimed. This is support for proving original simplicity_ge_negate against
 the already ported literal ge_negate, not a numeric substitute specification.
+
+Newest milestone: actual-size original field writer, other-coordinate and
+outside-owner framing, both original affine writes, complete write_ge entry/
+body/return/empty-local free, and literal ge_negate output bridge all compile.
+All 22 new results reuse point-field arithmetic while preserving real ownership
+size 88; no 128-byte point ownership is assumed. Compiler sessions: run 7849,
+execution 78252, field adapter 71827, preservation 91818, two writes 64947,
+body 33230, complete writer 92175, literal bridge 66203, all exit 0. Independent
+three-target closure kernel 10648 exited 0 with unchanged fifteen context axioms
+and empty unsafe categories. Print driver affine_assumptions_review_91.v is
+running in session 17087; poll, then review all 91 actual reports, retain exact
+69 inherited sets and archive the receipt before claiming the new per-result
+assumption audit. Older 69-result audit below is the completed checkpoint.
+
+The first field-adapter attempt timed out while inferring all arguments through
+eapply. Interactive Show confirmed that all five limb bounds, field loads and
+actual ownership were already present. Applying eval_owned_wide_write_fe with
+explicit size, limbs, memories and the established initial representation
+avoids expensive inference; no timeout increase or contract change was needed.
+The literal-step proof explicitly unfolds its program: do not mark that program
+opaque before this one-step proof. Debug Show files were never compiled/counted.
+Next compose read_ge/ge_neg/write_ge in the original public remainder, then
+prove actual 16+88 entry/source copy/true return/both frees against the literal
+target. No public coverage yet.
 
 The original affine object has size 88, X at 0, Y at 40, flag at 80. The new
 run actually owns 88 bytes: do not use point theorems requiring 128 bytes as
@@ -50,8 +74,9 @@ bash build-jets.sh --coqc \
   /tmp/jet-ge-negate.aFl8mr/jet_secp_read_ge_fields.v
 ```
 
-Use --coqchk -silent -o with the same overlays and both C.jet_secp_affine_negate_call
-and C.jet_secp_read_ge_fields for the complete twenty-four-module joint closure.
+Use --coqchk -silent -o with the same overlays and C.jet_secp_affine_negate_call,
+C.jet_secp_read_ge_fields and C.jet_secp_write_ge_negated_literal for the complete
+thirty-two-module joint closure.
 Pin PATH in every invocation;
 an unpinned slice-kernel attempt exited 1 because Rocq 9.3 cannot read 8.17
 objects. Corrected slice kernel 77501 exited 0; original weak kernel 31133
@@ -87,6 +112,7 @@ Combined infinity/predicate full acceptance 24487 exited 0: 694 kernel modules,
 AST checks. See ../gej-predicate/COMBINED-ACCEPTANCE.json; not checkout or affine
 acceptance. Point-negate
 normal-load-path build 91913 has exited 0 separately. Its sequential full
-snapshot generation 20895 is live; see ../gej-negate/NORMAL-BUILD-REVIEW.json.
+snapshot generation 20895 has exited 0; see ../gej-negate/NORMAL-BUILD-REVIEW.json.
+Full inherited/new snapshot review is still being completed, not acceptance.
 Poll existing handles; do not restart or edit either candidate's proof or
 metadata inputs while its check is running.
