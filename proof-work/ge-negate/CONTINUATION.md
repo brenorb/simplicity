@@ -22,10 +22,15 @@ PUBLIC-ASSUMPTION-REVIEW.json. The 91-result audit below is historical.
 
 Source correspondence gate plus 53 mutation fixtures pass separately. They are
 supplemental, not a compiler/kernel or transitive source-fidelity certificate.
-Next audit all 109 actual result dependencies, review exact type/definition
-contracts and canonical ports, then assemble a normal-load-path isolated
-candidate, review full snapshots and run full acceptance. Do not register the
-jet merely because this checked public theorem now exists.
+All 109 actual dependencies and 109 types/37 definition contracts are now
+reviewed: standard/deep generation 59947 exited 0, empty diagnostics, no deep
+ellipses, 108 types/29 definitions exact modulo whitespace, one reader type and
+eight run/tree definitions have explicit deep supplements. See
+PRELIMINARY-REVIEW.json and PUBLIC-CONTRACT-REVIEW.md. Eleven malformed report
+fixtures reject; inventories include the actual Inductive affine_coordinate.
+Next assemble a normal-load-path isolated candidate, review full snapshots and
+run full acceptance. Do not register the jet merely because this checked public
+theorem now exists. Frozen point-negate acceptance 77601 is still live.
 
 Boundary engineering correction: inversion on a pair containing a large Clight
 function record timed out while decomposing its implementation. Applying
