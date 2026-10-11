@@ -20,7 +20,11 @@ all inherited contracts byte-identical, 3866 inherited axiom sets unchanged,
 80 new sets match preliminary prints, all 106 new contract records reconcile
 with exact/deep supplements. All 889 old sources, 34 archived proofs and eight
 metadata hashes still match. See FULL-SNAPSHOT-REVIEW.json/.md and read-only
-review-full-snapshots.py. Next full isolated acceptance, without update/no-build.
+review-full-snapshots.py. Full isolated acceptance **77601 is live**, command
+JOBS=1 bash check-jets.sh --accept without update/no-build flags, log
+point-negate-full-acceptance.log, starting fingerprint
+9dff50a2fd4e9599a5bce1f87b31f8ef4f0aaad72b72d064af5a9fc587f665b0.
+See ACCEPTANCE-RUN.json. Poll this run; no terminal acceptance is claimed.
 Do not modify its proof or metadata inputs during acceptance. Combined baseline
 acceptance **24487 exited 0**; its isolated receipt is
 `../gej-predicate/COMBINED-ACCEPTANCE.json`. Do not count that receipt as

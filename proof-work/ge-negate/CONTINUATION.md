@@ -116,6 +116,8 @@ AST checks. See ../gej-predicate/COMBINED-ACCEPTANCE.json; not checkout or affin
 acceptance. Point-negate
 normal-load-path build 91913 has exited 0 separately. Its sequential full
 snapshot generation 20895 has exited 0; see ../gej-negate/NORMAL-BUILD-REVIEW.json.
-Full inherited/new snapshot review is still being completed, not acceptance.
+Full inherited/new snapshot review now passes; full isolated point-negate
+acceptance 77601 is live at point-negate-full-acceptance.log. No terminal
+acceptance is claimed. See ../gej-negate/ACCEPTANCE-RUN.json.
 Poll existing handles; do not restart or edit either candidate's proof or
 metadata inputs while its check is running.
