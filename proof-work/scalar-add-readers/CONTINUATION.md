@@ -1,5 +1,13 @@
 # Continue from checked scalar readers, not from scratch
 
+**Later checkpoint:** all caller obligations below are now proved in
+`../scalar-add-public`; its last verified result is
+`scalar_add_literal_local_spec` (independent kernel 72896, exit 0).
+Continue with its normal-integration guide, not by rebuilding this caller.
+The older acceptance session noted below is terminal exit 2 (missing sibling
+source layout); repaired full retry **10545** is the live audit. Consult
+`../scalar-integration/CONTINUATION.md` for current status.
+
 Last verified declaration:
 `AddC.jet_secp_scalar_add_two_reads.eval_scalar_add_two_readers`.
 All 15 results in this archive, eight in `../scalar-add-bridge`, and 37 in
