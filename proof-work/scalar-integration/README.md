@@ -66,8 +66,20 @@ registration; full normal acceptance is still required.
 
 ## Current acceptance and scope
 
-Full `JOBS=1 bash check-jets.sh --accept`, without update/no-build flags, is
-running as session **83287**. Preserve it and every candidate input.
+Full `JOBS=1 bash check-jets.sh --accept`, without update/no-build flags,
+session **83287**, terminated with exit **2** after the build, kernel check
+(829 modules), assumption audit (4,329 results / 2,292 closed), public
+contract comparison and negative gates passed. AST regeneration failed
+because the copied candidate lacked its sibling `C` directory, not because
+an AST or proof differed. This run is **not full acceptance**.
+
+Read-only source links `C` and `Haskell` now point to the main repository,
+matching the accepted parent's layout. The pinned normal reviewer completed
+again with exit 0 (session **40956**), and core AST regeneration then passed.
+No proof, inventory, snapshot, gate or production input was changed.
+The full acceptance retry is running as session **10545**; preserve it and
+every candidate input. Its separate log is
+`/tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance-retry.log`.
 Pre-acceptance fingerprint:
 `aa652e53f690b80bcdc03a263f11114d04b1e9743f3dac471a41b00e9dac42ec`.
 Log: `/tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance.log`.
