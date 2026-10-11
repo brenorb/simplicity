@@ -69,5 +69,7 @@ ports/build configuration and canonical specs are unchanged.
 
 Combined infinity/predicate full acceptance 24487 is still live on frozen
 inputs at the assumption gate after 694 kernel modules passed. Point-negate
-normal-load-path build 91913 is also live separately. Poll existing handles;
-do not restart or edit either candidate while its check is running.
+normal-load-path build 91913 has exited 0 separately. Its sequential full
+snapshot generation 20895 is live; see ../gej-negate/NORMAL-BUILD-REVIEW.json.
+Poll existing handles; do not restart or edit either candidate's proof or
+metadata inputs while its check is running.
