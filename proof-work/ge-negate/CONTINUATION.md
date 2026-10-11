@@ -1,13 +1,26 @@
 # Affine negation: actual allocation support
 
+## Current checkpoint (supersedes older pending-generation notes below)
+
+Full generation **90113 exited 0**; complete review passed: every 3946 inherited
+axiom set unchanged, all 109 new sets match preliminary review, inherited
+contracts byte-identical, all 146 new type/definition records reconciled and
+all source/metadata guards match. FULL-SNAPSHOT-REVIEW.json/.md. Baseline point
+acceptance **77601 exited 0**, archived in gej-negate/ACCEPTANCE.json.
+Full affine acceptance **13065 is live**, JOBS=1 bash check-jets.sh --accept,
+fingerprint e07f8b9914471ba13bb9e67d3a676b35667b5f6881f48e30e985f2325d88ce7d.
+Poll this handle; keep all candidate inputs immutable. ACCEPTANCE-RUN.json.
+No terminal affine acceptance or actual checkout registration is claimed yet.
+
 Isolated normal-build candidate `/tmp/jet-ge-negate-accept.5mtyZa` is now
 assembled. 923 inherited sources and all 40 new proof/checker hashes pass
 guards; coverage tests 63462 and 53 source mutations passed. Serial normal
 build **96488 exited 0**; post-build guards still match. Full contract then
-axiom generation **90113 is live**. Poll it, do not duplicate generation.
+axiom generation **90113 exited 0**. Do not duplicate the completed generation.
 Read ASSEMBLY-REVIEW.md/ASSEMBLY.json and run assemble-candidate.py --verify.
 Candidate 355/533 is provisional, not actual checkout coverage. Baseline point
-acceptance 77601 remains live and frozen. Full snapshot generation/review and
+acceptance **77601 exited 0**, all gates passed; baseline remains immutable.
+Full snapshot generation/review and
 full affine acceptance follow terminal generation and complete record review.
 Normal contract comparison has passed: all 109 types/37 definitions and
 byte-identical inherited text; NORMAL-CONTRACT-REVIEW.json/.md. Five actual

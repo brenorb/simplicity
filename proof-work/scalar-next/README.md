@@ -63,5 +63,6 @@ Step 1 is now completed: contract generation 26431 exited 0, and all 86 types/
 64 definitions plus every dependency set are reviewed. CONTRACT-REVIEW.json/.md,
 review-contracts.py and its fixtures record/reproduce the result. Step 2 is
 the current proof obligation; keep the literal public end-to-end theorem in view.
-Both older point acceptance 77601 and affine generation 90113 remain live in
-their own frozen candidates; this scratch does not change those inputs.
+Point acceptance **77601 exited 0**. Affine generation **90113 exited 0** and
+its complete snapshot review passed; full affine acceptance **13065 is live**
+in the frozen derived candidate. This scratch does not change those inputs.
