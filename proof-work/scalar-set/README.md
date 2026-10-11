@@ -42,12 +42,19 @@ without truncation and reviewed against the sources. The two computed trees
 are separately printed by 29777 (exit 0): their run equations, output shapes,
 NULL pointer and retained regions are kernel-checkable formal results, while
 the deep tree text is diagnostic data, not an omitted-term equality certificate.
-Independent kernel run 54545 is running until a terminal receipt records it.
+Independent kernel run **54545 exited 0**, with 15 imported context axioms and
+all three unsafe categories empty. The manifest pins the exact proof sources
+and output hashes. The imported-context list is not a per-result assumption set.
 
 Sources and review drivers are archived as `.source`, outside accepted load
 paths. Materialized files/logs are in `/tmp/jet-scalar-reverify.8hswEF`. Use the
 Coq 8.17.1 toolchain and the normal candidate's Coq directory as in scalar-reduce.
 No source or registry in the frozen affine acceptance candidate is changed.
+Run `review.py --work /tmp/jet-scalar-reverify.8hswEF` to recheck the pinned
+30-result evidence. This is not an acceptance shortcut or public-coverage gate.
+The in-memory negative fixtures in `test-review.py` pass: nine source, driver,
+contract, tree, dependency and kernel mutations are rejected without changing
+any real proof or audit input.
 
 Next: derive the initial owned representation from the allocated scalar and
 the real read8s byte array. Prove original read_scalar entry, allocation,
