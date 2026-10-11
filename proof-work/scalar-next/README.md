@@ -61,8 +61,15 @@ Next work is driven by the intended public scalar_is_zero theorem:
 No public entry, accepted coverage or new mathematical-only goal is claimed.
 Step 1 is now completed: contract generation 26431 exited 0, and all 86 types/
 64 definitions plus every dependency set are reviewed. CONTRACT-REVIEW.json/.md,
-review-contracts.py and its fixtures record/reproduce the result. Step 2 is
+review-contracts.py and its fixtures record/reproduce the result. Step 2 remains
 the current proof obligation; keep the literal public end-to-end theorem in view.
+Its reduction-value component is now checked in `../scalar-reduce`: 20 further
+results (18 closed), all 20 types/17 definitions reviewed, independent kernel
+session 56508 exit 0. The final internal theorem executes actual scalar_reduce
+and exposes current output loads, modulo-group-order value, return and framing.
+The caller must derive its overflow flag from the real classifier. Byte assembly
+and scalar_set_b32 composition remain open; these results do not add public scalar
+coverage. The scalar-next sources and 86-result review inventories are unchanged.
 Point acceptance **77601 exited 0**. Affine generation **90113 exited 0** and
 its complete snapshot review passed; full affine acceptance **13065 is live**
 in the frozen derived candidate. This scratch does not change those inputs.

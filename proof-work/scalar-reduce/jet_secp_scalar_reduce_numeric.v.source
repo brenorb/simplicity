@@ -1,0 +1,348 @@
+(** Integer value of the actual four-limb scalar reduction output.
+    Internal arithmetic bridge for read_scalar; not a public jet theorem. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Values Memory Events Clight ClightBigstep.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_zval.
+Require Import C.jet_secp_fe_nv.
+Require Import C.jet_sx_mem C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_u64_carry OriginalC.jet_secp_scalar_reduce_exec.
+Require Import OriginalC.jet_secp_scalar_overflow_numeric OriginalC.jet_secp_canonical_scalar.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_carry64 x y := Int64.repr (Int.signed
+  (b2i (Int64.ltu (Int64.add x y) y))).
+
+Lemma scalar_carry64_value x y :
+  Int64.unsigned (scalar_carry64 x y) =
+  (Int64.unsigned x + Int64.unsigned y) / Int64.modulus.
+Proof. apply u64_add_carry_bit_right. Qed.
+
+Lemma scalar_carry64_bounds x y :
+  0 <= Int64.unsigned (scalar_carry64 x y) <= 1.
+Proof.
+  unfold scalar_carry64, b2i.
+  destruct (Int64.ltu (Int64.add x y) y);
+    [change (0 <= 1 <= 1)|change (0 <= 0 <= 1)]; lia.
+Qed.
+
+Lemma u64_three_add_value x y z :
+  Int64.unsigned (Int64.add (Int64.add x y) z) =
+    (Int64.unsigned x + Int64.unsigned y + Int64.unsigned z) mod Int64.modulus /\
+  Int64.unsigned (Int64.add (scalar_carry64 x y)
+    (scalar_carry64 (Int64.add x y) z)) =
+    (Int64.unsigned x + Int64.unsigned y + Int64.unsigned z) / Int64.modulus.
+Proof.
+  pose proof (Int64.unsigned_range x) as HX.
+  pose proof (Int64.unsigned_range y) as HY.
+  pose proof (Int64.unsigned_range z) as HZ.
+  pose proof (Int64.unsigned_range (Int64.add (Int64.add x y) z)) as HL.
+  pose proof (scalar_carry64_bounds x y) as HC1.
+  pose proof (scalar_carry64_bounds (Int64.add x y) z) as HC2.
+  pose proof (Z.div_mod (Int64.unsigned x + Int64.unsigned y)
+    Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HD1.
+  pose proof (Z.div_mod (Int64.unsigned (Int64.add x y) + Int64.unsigned z)
+    Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HD2.
+  rewrite <- (proj1 (u64_add_with_carry x y)), <- scalar_carry64_value in HD1.
+  rewrite <- (proj1 (u64_add_with_carry (Int64.add x y) z)),
+    <- scalar_carry64_value in HD2.
+  assert (HEq : Int64.unsigned x + Int64.unsigned y + Int64.unsigned z =
+    (Int64.unsigned (scalar_carry64 x y) +
+     Int64.unsigned (scalar_carry64 (Int64.add x y) z)) * Int64.modulus +
+    Int64.unsigned (Int64.add (Int64.add x y) z)).
+  { change Int64.modulus with 18446744073709551616 in *; lia. }
+  split.
+  - apply Z.mod_unique with
+      (q := Int64.unsigned (scalar_carry64 x y) +
+            Int64.unsigned (scalar_carry64 (Int64.add x y) z));
+      [left; exact HL|rewrite Z.mul_comm; exact HEq].
+  - rewrite Int64.add_unsigned, Int64.unsigned_repr_eq.
+    rewrite Z.mod_small by (change Int64.modulus with 18446744073709551616; lia).
+    apply Z.div_unique with
+      (r := Int64.unsigned (Int64.add (Int64.add x y) z));
+      [left; exact HL|rewrite Z.mul_comm; exact HEq].
+Qed.
+
+Definition scalar_reduce_flag := XI2L Unsigned (XL2I (XLv 4)).
+Definition scalar_reduce_delta0 := XLb Bmul scalar_reduce_flag
+  (XLb Badd (XLnot (XLc (Int64.repr (-4624529908474429119))))
+    (XI2L Signed (XIc Int.one))).
+Definition scalar_reduce_delta1 := XLb Bmul scalar_reduce_flag
+  (XLnot (XLc (Int64.repr (-4994812053365940165)))).
+Definition scalar_reduce_delta2 := XI2L Unsigned (XIb Bmul (XL2I (XLv 4)) (XIc Int.one)).
+Definition scalar_carry_sx x y := XI2L Signed (XLcmp Clt Unsigned (XLb Badd x y) y).
+Definition scalar_reduce_low0 := XLb Badd (XLv 0) scalar_reduce_delta0.
+Definition scalar_reduce_high0 := XLb Badd (XI2L Signed (XIc Int.zero))
+  (scalar_carry_sx (XLv 0) scalar_reduce_delta0).
+Definition scalar_reduce_low1 := XLb Badd (XLb Badd scalar_reduce_high0 (XLv 1)) scalar_reduce_delta1.
+Definition scalar_reduce_high1 := XLb Badd
+  (XLb Badd (XLc Int64.zero) (scalar_carry_sx scalar_reduce_high0 (XLv 1)))
+  (scalar_carry_sx (XLb Badd scalar_reduce_high0 (XLv 1)) scalar_reduce_delta1).
+Definition scalar_reduce_low2 := XLb Badd (XLb Badd scalar_reduce_high1 (XLv 2)) scalar_reduce_delta2.
+Definition scalar_reduce_high2 := XLb Badd
+  (XLb Badd (XLc Int64.zero) (scalar_carry_sx scalar_reduce_high1 (XLv 2)))
+  (scalar_carry_sx (XLb Badd scalar_reduce_high1 (XLv 2)) scalar_reduce_delta2).
+Definition scalar_reduce_low3 := XLb Badd scalar_reduce_high2 (XLv 3).
+
+Lemma scalar_reduce_output_exact : cells0 scalar_reduce_state =
+  [mkcell 0 Mint64 (Some scalar_reduce_low0);
+   mkcell 8 Mint64 (Some scalar_reduce_low1);
+   mkcell 16 Mint64 (Some scalar_reduce_low2);
+   mkcell 24 Mint64 (Some scalar_reduce_low3)].
+Proof. reflexivity. Qed.
+
+Lemma scalar_reduce_delta0_constant :
+  Int64.add (Int64.not (Int64.repr (-4624529908474429119)))
+    (Int64.repr (Int.signed Int.one)) = Int64.repr 4624529908474429119.
+Proof. vm_compute; reflexivity. Qed.
+Lemma scalar_reduce_delta1_constant :
+  Int64.not (Int64.repr (-4994812053365940165)) = Int64.repr 4994812053365940164.
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma scalar_carry_sx_value rho layout x y :
+  den rho layout (scalar_carry_sx x y) =
+  Vlong (scalar_carry64 (il (den rho layout x)) (il (den rho layout y))).
+Proof. reflexivity. Qed.
+
+Definition scalar_sum_low x y z := XLb Badd (XLb Badd x y) z.
+Definition scalar_sum_high x y z := XLb Badd
+  (XLb Badd (XLc Int64.zero) (scalar_carry_sx x y))
+  (scalar_carry_sx (XLb Badd x y) z).
+
+Lemma scalar_sum_values rho layout x y z :
+  Int64.unsigned (il (den rho layout (scalar_sum_low x y z))) =
+    (Int64.unsigned (il (den rho layout x)) +
+     Int64.unsigned (il (den rho layout y)) +
+     Int64.unsigned (il (den rho layout z))) mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout (scalar_sum_high x y z))) =
+    (Int64.unsigned (il (den rho layout x)) +
+     Int64.unsigned (il (den rho layout y)) +
+     Int64.unsigned (il (den rho layout z))) / Int64.modulus.
+Proof.
+  change (il (den rho layout (scalar_sum_low x y z))) with
+    (Int64.add (Int64.add (il (den rho layout x))
+      (il (den rho layout y))) (il (den rho layout z))).
+  change (il (den rho layout (scalar_sum_high x y z))) with
+    (Int64.add (Int64.add Int64.zero
+      (scalar_carry64 (il (den rho layout x)) (il (den rho layout y))))
+      (scalar_carry64 (Int64.add (il (den rho layout x)) (il (den rho layout y)))
+        (il (den rho layout z)))).
+  rewrite Int64.add_zero_l; apply u64_three_add_value.
+Qed.
+
+Lemma scalar_reduce_deltas rho layout b :
+  rho 4%nat = Int64.repr (b2z b) ->
+  den rho layout scalar_reduce_delta0 = Vlong (Int64.repr (b2z b * 4624529908474429119)) /\
+  den rho layout scalar_reduce_delta1 = Vlong (Int64.repr (b2z b * 4994812053365940164)) /\
+  den rho layout scalar_reduce_delta2 = Vlong (Int64.repr (b2z b)).
+Proof.
+  intro HFlag.
+  cbn [den scalar_reduce_delta0 scalar_reduce_delta1 scalar_reduce_delta2 scalar_reduce_flag
+    lop iop il ii i2l].
+  rewrite HFlag, scalar_reduce_delta0_constant, scalar_reduce_delta1_constant.
+  destruct b; repeat split; reflexivity.
+Qed.
+
+Lemma scalar_reduce_delta_unsigned b :
+  Int64.unsigned (Int64.repr (b2z b * 4624529908474429119)) = b2z b * 4624529908474429119 /\
+  Int64.unsigned (Int64.repr (b2z b * 4994812053365940164)) = b2z b * 4994812053365940164 /\
+  Int64.unsigned (Int64.repr (b2z b)) = b2z b.
+Proof.
+  destruct b; cbn [b2z]; repeat split; apply Int64.unsigned_repr;
+    change Int64.max_unsigned with 18446744073709551615; lia.
+Qed.
+
+Lemma scalar_reduce_limbs_values rho layout b :
+  rho 4%nat = Int64.repr (b2z b) ->
+  let s0 := Int64.unsigned (rho 0%nat) + b2z b * 4624529908474429119 in
+  let s1 := s0 / Int64.modulus + Int64.unsigned (rho 1%nat) + b2z b * 4994812053365940164 in
+  let s2 := s1 / Int64.modulus + Int64.unsigned (rho 2%nat) + b2z b in
+  let s3 := s2 / Int64.modulus + Int64.unsigned (rho 3%nat) in
+  Int64.unsigned (il (den rho layout scalar_reduce_low0)) = s0 mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout scalar_reduce_low1)) = s1 mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout scalar_reduce_low2)) = s2 mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout scalar_reduce_low3)) = s3 mod Int64.modulus.
+Proof.
+  intro HFlag; cbn zeta.
+  destruct (scalar_reduce_deltas rho layout b HFlag) as [HD0 [HD1 HD2]].
+  destruct (scalar_reduce_delta_unsigned b) as [HU0 [HU1 HU2]].
+  assert (HFirst :
+    Int64.unsigned (il (den rho layout scalar_reduce_low0)) =
+      (Int64.unsigned (rho 0%nat) + b2z b * 4624529908474429119) mod Int64.modulus /\
+    Int64.unsigned (il (den rho layout scalar_reduce_high0)) =
+      (Int64.unsigned (rho 0%nat) + b2z b * 4624529908474429119) / Int64.modulus).
+  { change (il (den rho layout scalar_reduce_low0)) with
+      (Int64.add (rho 0%nat) (il (den rho layout scalar_reduce_delta0))).
+    change (il (den rho layout scalar_reduce_high0)) with
+      (Int64.add Int64.zero (scalar_carry64 (rho 0%nat)
+        (il (den rho layout scalar_reduce_delta0)))).
+    rewrite HD0; cbn [il].
+    rewrite Int64.add_zero_l, scalar_carry64_value.
+    split; [rewrite (proj1 (u64_add_with_carry _ _)), HU0|rewrite HU0]; reflexivity. }
+  destruct HFirst as [HL0 HH0].
+  pose proof (scalar_sum_values rho layout scalar_reduce_high0 (XLv 1) scalar_reduce_delta1) as HStep1.
+  unfold scalar_sum_low, scalar_sum_high in HStep1.
+  fold scalar_reduce_low1 scalar_reduce_high1 in HStep1.
+  rewrite HH0, HD1 in HStep1; change (il (den rho layout (XLv 1))) with (rho 1%nat) in HStep1.
+  cbn [il] in HStep1; rewrite HU1 in HStep1.
+  destruct HStep1 as [HL1 HH1].
+  pose proof (scalar_sum_values rho layout scalar_reduce_high1 (XLv 2) scalar_reduce_delta2) as HStep2.
+  unfold scalar_sum_low, scalar_sum_high in HStep2.
+  fold scalar_reduce_low2 scalar_reduce_high2 in HStep2.
+  rewrite HH1, HD2 in HStep2; change (il (den rho layout (XLv 2))) with (rho 2%nat) in HStep2.
+  cbn [il] in HStep2; rewrite HU2 in HStep2.
+  destruct HStep2 as [HL2 HH2].
+  repeat split; try assumption.
+  unfold scalar_reduce_low3.
+  change (il (den rho layout (XLb Badd scalar_reduce_high2 (XLv 3)))) with
+    (Int64.add (il (den rho layout scalar_reduce_high2)) (rho 3%nat)).
+  rewrite (proj1 (u64_add_with_carry _ _)), HH2; reflexivity.
+Qed.
+
+Definition scalar_reduce_output_value rho layout :=
+  Int64.unsigned (il (den rho layout scalar_reduce_low0)) +
+  2 ^ 64 * Int64.unsigned (il (den rho layout scalar_reduce_low1)) +
+  2 ^ 128 * Int64.unsigned (il (den rho layout scalar_reduce_low2)) +
+  2 ^ 192 * Int64.unsigned (il (den rho layout scalar_reduce_low3)).
+
+Lemma scalar_reduce_weighted_value rho layout b :
+  rho 4%nat = Int64.repr (b2z b) ->
+  scalar_reduce_output_value rho layout =
+    (scalar_limb_value rho + b2z b * (2 ^ 256 - canonical_group_order)) mod 2 ^ 256.
+Proof.
+  intro HFlag.
+  destruct (scalar_reduce_limbs_values rho layout b HFlag) as [HL0 [HL1 [HL2 HL3]]].
+  unfold scalar_reduce_output_value.
+  rewrite HL0, HL1, HL2, HL3.
+  set (s0 := Int64.unsigned (rho 0%nat) + b2z b * 4624529908474429119).
+  set (s1 := s0 / Int64.modulus + Int64.unsigned (rho 1%nat) + b2z b * 4994812053365940164).
+  set (s2 := s1 / Int64.modulus + Int64.unsigned (rho 2%nat) + b2z b).
+  set (s3 := s2 / Int64.modulus + Int64.unsigned (rho 3%nat)).
+  assert (HB : Int64.modulus <> 0) by discriminate.
+  pose proof (Z.div_mod s0 Int64.modulus HB) as HD0.
+  pose proof (Z.div_mod s1 Int64.modulus HB) as HD1.
+  pose proof (Z.div_mod s2 Int64.modulus HB) as HD2.
+  pose proof (Z.div_mod s3 Int64.modulus HB) as HD3.
+  pose proof (Z.mod_pos_bound s0 Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HM0.
+  pose proof (Z.mod_pos_bound s1 Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HM1.
+  pose proof (Z.mod_pos_bound s2 Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HM2.
+  pose proof (Z.mod_pos_bound s3 Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HM3.
+  unfold scalar_limb_value, canonical_group_order.
+  change Int64.modulus with 18446744073709551616 in *.
+  change (2 ^ 64) with 18446744073709551616 in *.
+  change (2 ^ 128) with 340282366920938463463374607431768211456 in *.
+  change (2 ^ 192) with 6277101735386680763835789423207666416102355444464034512896 in *.
+  change (2 ^ 256) with 115792089237316195423570985008687907853269984665640564039457584007913129639936 in *.
+  apply Z.mod_unique with (q := s3 / 18446744073709551616).
+  - left; lia.
+  - unfold s3, s2, s1, s0 in *; lia.
+Qed.
+
+Lemma scalar_limb_value_range rho : 0 <= scalar_limb_value rho < 2 ^ 256.
+Proof.
+  unfold scalar_limb_value.
+  pose proof (Int64.unsigned_range (rho 0%nat)).
+  pose proof (Int64.unsigned_range (rho 1%nat)).
+  pose proof (Int64.unsigned_range (rho 2%nat)).
+  pose proof (Int64.unsigned_range (rho 3%nat)).
+  change Int64.modulus with 18446744073709551616 in *.
+  change (2 ^ 64) with 18446744073709551616.
+  change (2 ^ 128) with 340282366920938463463374607431768211456.
+  change (2 ^ 192) with 6277101735386680763835789423207666416102355444464034512896.
+  change (2 ^ 256) with 115792089237316195423570985008687907853269984665640564039457584007913129639936.
+  lia.
+Qed.
+
+Lemma scalar_reduce_modulus_bridge v :
+  0 <= v < 2 ^ 256 ->
+  (v + b2z (Z.leb canonical_group_order v) * (2 ^ 256 - canonical_group_order)) mod 2 ^ 256 =
+  v mod canonical_group_order.
+Proof.
+  intro HV.
+  assert (HN : 0 < canonical_group_order < 2 ^ 256 /\ 2 ^ 256 < 2 * canonical_group_order).
+  { exact canonical_group_order_range. }
+  destruct (Z.leb_spec0 canonical_group_order v) as [HGe|HLt]; cbn [b2z].
+  - replace (v + 1 * (2 ^ 256 - canonical_group_order)) with
+      ((v - canonical_group_order) + 1 * 2 ^ 256) by ring.
+    rewrite Z.mod_add by lia.
+    rewrite Z.mod_small by lia.
+    replace v with ((v - canonical_group_order) + 1 * canonical_group_order) at 2 by ring.
+    rewrite Z.mod_add by lia; rewrite Z.mod_small by lia; reflexivity.
+  - rewrite Z.mul_0_l, Z.add_0_r; rewrite !Z.mod_small by lia; reflexivity.
+Qed.
+
+Theorem scalar_reduce_canonical_value rho layout :
+  rho 4%nat = Int64.repr (b2z (Z.leb canonical_group_order (scalar_limb_value rho))) ->
+  scalar_reduce_output_value rho layout = scalar_limb_value rho mod canonical_group_order.
+Proof.
+  intro HFlag; rewrite (scalar_reduce_weighted_value rho layout _ HFlag).
+  apply scalar_reduce_modulus_bridge; apply scalar_limb_value_range.
+Qed.
+
+Definition scalar_reduce_limb rho layout i := il (den rho layout
+  (nth i [scalar_reduce_low0; scalar_reduce_low1; scalar_reduce_low2; scalar_reduce_low3]
+    (XLc Int64.zero))).
+
+Lemma scalar_reduce_output_region :
+  nth_error (sregs scalar_reduce_state) 0 =
+    Some (mkreg (cells0 scalar_reduce_state) true None).
+Proof. reflexivity. Qed.
+
+Lemma scalar_reduce_return_value rho layout :
+  den rho layout scalar_reduce_return = Vint (Int.repr (Int64.unsigned (rho 4%nat))).
+Proof. reflexivity. Qed.
+
+Lemma scalar_reduce_output_loads rho layout m :
+  rep rho layout (sregs scalar_reduce_state) m ->
+  forall i, (i < 4)%nat ->
+  Mem.load Mint64 m (blk layout 0) (bas layout 0 + 8 * Z.of_nat i) =
+    Some (Vlong (scalar_reduce_limb rho (lay layout) i)).
+Proof.
+  intro HRep.
+  pose proof (proj2 (proj2 HRep) 0%nat _ scalar_reduce_output_region) as HR.
+  destruct HR as [_ [_ [_ [HCells _]]]].
+  cbn [rcells rw] in HCells; rewrite scalar_reduce_output_exact in HCells.
+  rewrite Forall_forall in HCells.
+  intros i HI.
+  destruct i as [|[|[|[|i]]]]; try lia;
+    unfold scalar_reduce_limb; cbn [nth Z.of_nat];
+    match goal with |- Mem.load _ _ _ (_ + ?ofs) = Some (Vlong (il (den _ _ ?x))) =>
+      pose proof (HCells (mkcell ofs Mint64 (Some x)) ltac:(cbn; auto)) as HC;
+      destruct HC as [_ [_ [_ HC]]];
+      destruct (HC x eq_refl) as [HL _];
+      rewrite (den_KL rho (lay layout) x eq_refl) in HL;
+      exact HL
+    end.
+Qed.
+
+Lemma scalar_reduce_limb_value rho layout :
+  scalar_limb_value (scalar_reduce_limb rho layout) = scalar_reduce_output_value rho layout.
+Proof. reflexivity. Qed.
+
+Theorem eval_scalar_reduce_numeric rho layout m :
+  rep rho layout scalar_reduce_initial_regs m ->
+  rho 4%nat = Int64.repr (b2z (Z.leb canonical_group_order (scalar_limb_value rho))) ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_reduce)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vint (Int.repr (Int64.unsigned (rho 4%nat)))] E0 mf
+      (Vint (Int.repr (Int64.unsigned (rho 4%nat)))) /\
+    (forall i, (i < 4)%nat ->
+      Mem.load Mint64 mf (blk layout 0) (bas layout 0 + 8 * Z.of_nat i) =
+        Some (Vlong (scalar_reduce_limb rho (lay layout) i))) /\
+    scalar_limb_value (scalar_reduce_limb rho (lay layout)) =
+      scalar_limb_value rho mod canonical_group_order /\
+    rep rho layout (sregs scalar_reduce_state) mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_reduce_initial_regs) b ofs) m mf.
+Proof.
+  intros HRep HFlag.
+  destruct (eval_scalar_reduce_from_initial_regions rho layout m HRep)
+    as [mf [HCall [HFinal [_ HFrame]]]].
+  rewrite scalar_reduce_return_value in HCall.
+  exists mf; split; [exact HCall|]; split.
+  - apply scalar_reduce_output_loads; exact HFinal.
+  - split.
+    + rewrite scalar_reduce_limb_value; apply scalar_reduce_canonical_value; exact HFlag.
+    + split; assumption.
+Qed.
