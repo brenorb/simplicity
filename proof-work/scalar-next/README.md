@@ -17,9 +17,13 @@ helper call's return flag from representation and discharged machine bounds;
 it does not assume a correct flag or replace the public jet specification.
 
 Four-module independent kernel checking 32260 exited 0 (twelve imported context
-axioms, empty unsafe categories). Full 23-module checking 44992 and the 86-result
-Print Assumptions run 8576 are live. Sources are frozen for these runs. Poll the
-actual handles, do not restart them or edit their proof inputs. Completed kernel
+axioms, empty unsafe categories). Full 23-module checking **44992 exited 0**
+with fifteen inherited imported context axioms and empty unsafe categories.
+The 86-result Print Assumptions run **8576 exited 0**. Strict review found 57
+closed results and exactly six inherited execution assumptions in the union;
+the new overflow flag bound is closed, and its Clight execution theorem has
+exactly those six assumptions. ASSUMPTION-REVIEW.json records every set.
+All 23 actual source hashes/declaration inventories match the archive. Completed kernel
 checking of these helpers still is not public scalar equivalence or coverage.
 
 Reproducible scratch load path, from the independent normal candidate Coq dir:
