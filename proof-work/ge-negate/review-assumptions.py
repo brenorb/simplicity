@@ -1,4 +1,4 @@
-"""Read-only review of compiled affine helper sources and actual axiom reports.
+"""Read-only review of compiled affine sources and actual axiom reports.
 
 Not a public jet contract, source fidelity or full acceptance certificate.
 Uses the existing tested strict marker/assumption parser.
@@ -26,15 +26,15 @@ def review(archive, work):
         if actual != item['results']:
             raise ValueError('source declaration inventory mismatch: ' + item['path'])
         wanted.update('C.' + item['materialized_name'][:-2] + '.' + name for name in actual)
-    if len(wanted) != 91 or len(manifest['files']) != 32:
+    if len(wanted) != 109 or sum(f['materialized_name'].endswith('.v') for f in manifest['files']) != 38:
         raise ValueError('unexpected helper inventory size')
-    if (work / 'assumptions-91-review.err').read_text():
+    if (work / 'assumptions-109-review.err').read_text():
         raise ValueError('nonempty assumption diagnostics')
     spec = importlib.util.spec_from_file_location(
         'strict_assumption_parser', archive.parent / 'gej-predicate/review-preliminary.py')
     parser = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(parser)
-    actual = parser.assumptions(work / 'assumptions-91-review.out', wanted)
+    actual = parser.assumptions(work / 'assumptions-109-review.out', wanted)
     final = 'C.jet_secp_affine_negate_call.eval_affine_negate_point_output'
     expected_final = {
         'ClassicalDedekindReals.sig_forall_dec',
@@ -52,9 +52,12 @@ def review(archive, work):
     writer = 'C.jet_secp_write_ge_negated_literal.eval_write_ge_negated_literal'
     if actual[writer] != expected_final:
         raise ValueError('unexpected final literal writer assumption set')
+    public = 'C.jet_secp_ge_negate_local.ge_negate_literal_local_spec'
+    if actual[public] != expected_final:
+        raise ValueError('unexpected public literal theorem assumption set')
     if set().union(*actual.values()) != expected_final:
         raise ValueError('unexpected complete helper assumption union')
-    if sum(not dependencies for dependencies in actual.values()) != 48:
+    if sum(not dependencies for dependencies in actual.values()) != 54:
         raise ValueError('unexpected closed-result inventory')
     old = json.loads((archive / 'ASSUMPTION-REVIEW.json').read_text())
     if any(actual[name] != set(dependencies) for name, dependencies in old['assumptions'].items()):
@@ -62,11 +65,14 @@ def review(archive, work):
     reader_old = json.loads((archive / 'READER-ASSUMPTION-REVIEW.json').read_text())
     if any(actual[name] != set(dependencies) for name, dependencies in reader_old['assumptions'].items()):
         raise ValueError('inherited reader/helper assumption set changed')
+    writer_old = json.loads((archive / 'WRITER-ASSUMPTION-REVIEW.json').read_text())
+    if any(actual[name] != set(dependencies) for name, dependencies in writer_old['assumptions'].items()):
+        raise ValueError('inherited writer assumption set changed')
     return {
         'results': len(actual),
         'closed': sum(not dependencies for dependencies in actual.values()),
         'axiom_union': sorted(set().union(*actual.values())),
-        'output_sha256': hashlib.sha256((work / 'assumptions-91-review.out').read_bytes()).hexdigest(),
+        'output_sha256': hashlib.sha256((work / 'assumptions-109-review.out').read_bytes()).hexdigest(),
         'assumptions': {name: sorted(dependencies) for name, dependencies in sorted(actual.items())},
         'full_acceptance': False,
         'public_coverage_added': 0,

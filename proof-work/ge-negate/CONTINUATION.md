@@ -13,9 +13,12 @@ derived read_ge/ge_neg/write_ge remainder; actual source copy, true return
 and both frees; final literal local-spec theorem. Compiler sessions 13581,
 88693,94499,50379,18181,73283 all exited 0. Independent public plus inherited
 literal-parametricity closure 98418 exited 0 with the same fifteen imported
-context axioms and empty unsafe categories. Per-result 109-print 53162 is live;
-poll and review before treating its axiom report as complete. The completed
-91-result writer audit below remains the older checkpoint.
+context axioms and empty unsafe categories. Per-result 109-print 53162 exited
+0; strict review passes: 109 actual reports, 54 closed, unchanged six-name union,
+exact final public/helper/reader/writer sets, all 91 older sets unchanged, empty
+diagnostics and exact 38-source hashes/declaration inventories. Reproduce with
+review-assumptions.py --work /tmp/jet-ge-negate.aFl8mr; receipt
+PUBLIC-ASSUMPTION-REVIEW.json. The 91-result audit below is historical.
 
 Source correspondence gate plus 53 mutation fixtures pass separately. They are
 supplemental, not a compiler/kernel or transitive source-fidelity certificate.
