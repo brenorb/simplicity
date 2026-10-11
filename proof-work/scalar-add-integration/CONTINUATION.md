@@ -1,4 +1,17 @@
-# Continue normal scalar-add verification, then reconcile
+# Reconcile accepted scalar-add, then verify main
+
+## Terminal status supersedes the historical checklist below
+
+Full scalar-add acceptance **38737** terminated with **exit 0** (terminal
+output `e0a58c`). All gates, the 853-module kernel check, 4,408 assumption
+records (2,343 closed), contract snapshots and all four ASTs passed.
+The input fingerprint is unchanged. Post-run normal/kernel reviews and
+mutation tests **54660** terminated with exit 0. `ACCEPTANCE.json` pins the
+receipt. There are no live audit handles: do not poll or restart them.
+
+Isolated coverage **359/533** is now accepted, not provisional; main is
+still **351/533**. The next integration action is step 6 below: recompute
+the read-only exact plan, reconcile preserved main work and verify main.
 
 Current last freshly compiled declaration:
 `C.jet_secp_scalar_add_local.scalar_add_literal_local_spec`.
@@ -7,9 +20,9 @@ Types, definitions and exact per-result dependencies match the checked
 archives. There is no failing Coq proof goal. Remaining verification is not
 an arithmetic/helper/entry/cleanup proof to redo.
 
-## One live handle and a completed kernel check
+## Completed handles
 
-- **38737**: full scalar-add acceptance, **live**.
+- **38737**: full scalar-add acceptance, **terminal exit 0**.
   Candidate `/tmp/jet-scalar-add-integration.RxsuOy/Coq`.
   Log `/tmp/jet-scalar-add-integration.RxsuOy/scalar-add-full-acceptance.log`.
   Command `JOBS=1 bash check-jets.sh --accept`, no update/no-build flags.
@@ -29,7 +42,8 @@ an arithmetic/helper/entry/cleanup proof to redo.
   `C.<name>` for all 24 module names in ASSEMBLY.json. Uses pinned compiler
   and `ulimit -S -s 65520`.
 
-A quiet log does not indicate termination. Poll the existing handles. Do not
+A quiet log alone does not indicate termination. These handles have confirmed
+terminal status; do not poll or restart them. Do not
 change either tree's audit inputs or production C/Haskell. Archive docs and
 new, disjoint experiments are not permission to change those inputs.
 
@@ -44,11 +58,10 @@ new, disjoint experiments are not permission to change those inputs.
 3. Default `review-normal.py` **without** preliminary/preparation flags passed
    (6372, terminal exit 0). `NORMAL-REVIEW.json` was pinned and is byte-identical
    to the preliminary report. Kernel/fingerprint revalidation also passed.
-4. Full scalar-add audit **38737** is already running. Poll it, never launch
-   another run or change its frozen inputs. Preserve `AUDIT-RUN.json` and log.
-5. On terminal full success, inspect all gates and fingerprint and re-review;
-   pin a signed acceptance receipt. This accepts an isolated candidate, not
-   main registration. On failure, inspect the first actual diagnostic.
+4. Full scalar-add audit **38737** and post-run checks **54660** are complete.
+   Preserve historical `AUDIT-RUN.json`, terminal `ACCEPTANCE.json` and log.
+5. The signed receipt accepts the isolated candidate, not main registration.
+   Keep its sources and evidence immutable.
 6. Reconcile accepted prerequisites and scalar-add into main: exact sources
    and append-only inventories, reviewed snapshots and gates, preserving the
    staged/unstaged registries and existing SHA work. Do not copy a whole
@@ -79,7 +92,7 @@ inherited snapshot was accepted. Deep prints reproduce the exact standard
 driver's full import context, not merely the new module imports.
 
 All-533 goal is active and unfinished. Main coverage 351/533; isolated
-359/533 is provisional. Scope is local frames / LP64 / RECKLESS, not all
+359/533 is accepted isolated coverage. Scope is local frames / LP64 / RECKLESS, not all
 evaluator frames or assertion-enabled builds. Leave Claude's Elements,
 memcpy/linkage, SHA startup and constructibility modules/registries alone.
 Signed local atomic commits; never push.
@@ -97,5 +110,5 @@ and actual original scalar_mul_512 entry/calls/cleanup/output representation.
 All compile and pass independent kernel/type/dependency review. The full
 numeric product and public multiply/square equivalences remain open. Read
 that archive's diagnosed no-op-branch duplication before replaying a full
-symbolic tree reduction. Audit **38737** has passed kernel on 853 modules and
-is now at the assumption gate; still not terminal acceptance.
+symbolic tree reduction. Audit **38737** has completed all acceptance gates;
+exact reconciliation and main verification remain.
