@@ -97,3 +97,15 @@ to the Bit Machine representation: `Coq/C/jet_frame_constructible_bm.v`
 (every `RunState` within addressability bounds has a memory and layout
 satisfying `bm_rep`, `bm_separated`, `active_write_writable`). New file only;
 existing predicates and modules are not edited.
+
+### Claude — Elements reservation (2026-10-11)
+
+Codex confirmed in its thread (04:30Z) that Elements does not overlap its
+scalar/secp work and leaves the area to this session. Reserved here: the
+Elements translation unit and proof chain (`Coq/C/jets_elements.v`,
+`jet_elements_*.v`, `regenerate-elements-jets.sh`/TU file may be extended so
+helpers are internal). New module names only; the Elements primitive
+semantics will be a literal Coq port of
+`Haskell/Elements/Simplicity/Elements/{DataTypes,Primitive}.hs`, marked as a
+port requiring source review, not as an accepted canonical module. No
+registry edits; integration stays with the main checkout.
