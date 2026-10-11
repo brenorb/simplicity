@@ -2,6 +2,13 @@
 
 ## Current continuation (supersedes historical live-session notes below)
 
+Full isolated acceptance **77601 exited 0**: build, kernel (728 modules),
+3946 dependency reports (2053 closed), reviewed contracts, negative fixtures
+and all four fresh AST checks passed. Log hash and unchanged fingerprint are
+in ACCEPTANCE.json. This is accepted candidate 354/533 metadata, not actual
+checkout integration. Keep its source/metadata immutable as the affine
+candidate's reference baseline. Old live-run claims below are historical.
+
 Isolated point-negate candidate assembled at
 `/tmp/jet-gej-negate-accept.5ZRUlU`, extending the frozen infinity/predicate
 candidate without changing it. All 36 new proof/checker files match archives;
@@ -20,12 +27,12 @@ all inherited contracts byte-identical, 3866 inherited axiom sets unchanged,
 80 new sets match preliminary prints, all 106 new contract records reconcile
 with exact/deep supplements. All 889 old sources, 34 archived proofs and eight
 metadata hashes still match. See FULL-SNAPSHOT-REVIEW.json/.md and read-only
-review-full-snapshots.py. Full isolated acceptance **77601 is live**, command
+review-full-snapshots.py. Full isolated acceptance **77601 exited 0**, command
 JOBS=1 bash check-jets.sh --accept without update/no-build flags, log
 point-negate-full-acceptance.log, starting fingerprint
 9dff50a2fd4e9599a5bce1f87b31f8ef4f0aaad72b72d064af5a9fc587f665b0.
-See ACCEPTANCE-RUN.json. Poll this run; no terminal acceptance is claimed.
-Do not modify its proof or metadata inputs during acceptance. Combined baseline
+See ACCEPTANCE.json/ACCEPTANCE-RUN.json. Do not restart the completed run.
+Retain its proof/metadata as an immutable derived-candidate baseline. Combined baseline
 acceptance **24487 exited 0**; its isolated receipt is
 `../gej-predicate/COMBINED-ACCEPTANCE.json`. Do not count that receipt as
 acceptance of this separate point-negate candidate or checkout integration.
