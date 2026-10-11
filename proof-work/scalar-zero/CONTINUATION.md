@@ -50,15 +50,21 @@ and both canonical parametricity results. Log hash:
 Initial assembled candidate fingerprint before snapshot generation:
 `ccb4fb0bf13a71d52c58539ff02e3e8ad2422366ed6cf6bf6ce83da9a818a699`.
 
-Two **snapshot-generation** checks are running, not accepted:
+**Snapshot generation/review** is not full acceptance:
 
-- contracts session **51658**, `bash audit-jet-contracts.sh --update`, log
-  `/tmp/jet-scalar-zero-accept.smyVL2/scalar-normal-contract-generation.log`;
-- assumptions session **29261**, `bash audit-jet-assumptions.sh --update`, log
+- contracts session **51658** exited **0**; independent high-depth supplement
+  session **9078** exited **0**. The 178 new types and 120 definitions were
+  reconciled; all inherited contract records remain byte-identical. All 178
+  types and 113 non-tree definitions have untruncated supplements. Seven tree
+  prints remain diagnostic, with actual source/run/shape proofs required.
+  See `NORMAL-CONTRACT-REVIEW.json` and archived driver. Eight in-memory
+  contract fixtures passed (session **81607**, exit **0**).
+- assumptions session **29261** is still running,
+  `bash audit-jet-assumptions.sh --update`, log
   `/tmp/jet-scalar-zero-accept.smyVL2/scalar-normal-assumption-generation.log`.
 
-Retain/poll these handles. They write separate candidate snapshots; no proof,
-canonical specification or infrastructure inputs may change during them.
+Retain/poll session 29261; do not regenerate it. No proof, canonical
+specification or infrastructure inputs may change during this audit.
 Generation success does not authorize full acceptance before diff review.
 
 ## Next checks
@@ -66,6 +72,9 @@ Generation success does not authorize full acceptance before diff review.
 1. After terminal snapshot-generation success, reconcile all 178 added
    dependency sets with their previously
    reviewed OriginalC reports and preserve all 4055 baseline sets.
+   `review-normal-assumptions.py` is prepared for that check, not yet run on
+   terminal generated output. It verifies the candidate's sources/infrastructure
+   and compares each exact set with hash-pinned OriginalC reports.
 2. Review full types/definitions against the OriginalC evidence modulo only
    the explicit namespace transport. The 120-definition inventory deliberately
    includes local aliases omitted from older partial inventories. Normal
@@ -73,6 +82,10 @@ Generation success does not authorize full acceptance before diff review.
    high-depth supplements and inspect every remaining non-diagnostic term;
    ellipsis-fragment matching does not certify omitted terms. Retain formal
    run/shape proofs for large diagnostic execution trees.
+   The present normal/deep printing reconciliation has passed, including exact
+   disambiguation of the inherited and new `u128_field` definitions without
+   stripping namespaces. Reproduce with `review-normal-contracts.py` and
+   `test-normal-contracts.py`; both pin the reviewed driver/output hashes.
 3. Preserve inherited snapshots except explicitly inspected printing-context
    qualification changes. Re-run source, registry, assumptions and contract
    negative fixtures. Confirm all unsafe kernel categories remain empty.
