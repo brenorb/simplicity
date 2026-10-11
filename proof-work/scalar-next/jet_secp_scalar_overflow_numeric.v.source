@@ -1,0 +1,62 @@
+(** Integer meaning of the actual original scalar overflow return flag.
+    Support for read_scalar, not a public jet equivalence theorem. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import AST Integers Values Ctypes Clight ClightBigstep Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_eval C.jet_sx_zval C.jet_sx_state C.jet_sx_exec C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp.
+Require Import OriginalC.jet_secp_scalar_overflow_exec OriginalC.jet_secp_scalar_overflow_flags.
+Require Import OriginalC.jet_secp_canonical_scalar.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_overflow_const3 : Int64.unsigned (Int64.repr (-1)) = 18446744073709551615.
+Proof. vm_compute; reflexivity. Qed.
+Lemma scalar_overflow_const2 : Int64.unsigned (Int64.repr (-2)) = 18446744073709551614.
+Proof. vm_compute; reflexivity. Qed.
+Lemma scalar_overflow_const1 : Int64.unsigned (Int64.repr (-4994812053365940165)) = 13451932020343611451.
+Proof. vm_compute; reflexivity. Qed.
+Lemma scalar_overflow_const0 : Int64.unsigned (Int64.repr (-4624529908474429119)) = 13822214165235122497.
+Proof. vm_compute; reflexivity. Qed.
+
+Definition scalar_limb_value (rho : nat -> int64) : Z :=
+  Int64.unsigned (rho 0%nat) + 2 ^ 64 * Int64.unsigned (rho 1%nat) +
+  2 ^ 128 * Int64.unsigned (rho 2%nat) + 2 ^ 192 * Int64.unsigned (rho 3%nat).
+
+Lemma scalar_overflow_matches_bound rho :
+  scalar_overflow_bool rho = Z.leb canonical_group_order (scalar_limb_value rho).
+Proof.
+  unfold scalar_overflow_bool, scalar_limb_value, canonical_group_order.
+  rewrite !cmpu64_zcmp.
+  rewrite scalar_overflow_const3, !scalar_overflow_const2,
+    !scalar_overflow_const1, scalar_overflow_const0.
+  cbn [zcmp].
+  pose proof (Int64.unsigned_range (rho 0%nat)) as H0.
+  pose proof (Int64.unsigned_range (rho 1%nat)) as H1.
+  pose proof (Int64.unsigned_range (rho 2%nat)) as H2.
+  pose proof (Int64.unsigned_range (rho 3%nat)) as H3.
+  change Int64.modulus with 18446744073709551616 in *.
+  change (2 ^ 64) with 18446744073709551616.
+  change (2 ^ 128) with 340282366920938463463374607431768211456.
+  change (2 ^ 192) with 6277101735386680763835789423207666416102355444464034512896.
+  repeat match goal with |- context[Z.ltb ?a ?b] => destruct (Z.ltb_spec a b) end;
+    cbn [orb andb negb];
+    match goal with |- context[Z.leb ?a ?b] => destruct (Z.leb_spec0 a b) end;
+    try reflexivity; exfalso; lia.
+Qed.
+
+Theorem eval_scalar_overflow_numeric rho layout m :
+  rep rho layout scalar_overflow_initial_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_check_overflow)
+      [Vptr (blk layout 0) (Integers.Ptrofs.repr (bas layout 0))] E0 mf
+      (Vint (b2i (Z.leb canonical_group_order (scalar_limb_value rho)))) /\
+    rep rho layout scalar_overflow_initial_regs mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_overflow_initial_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  destruct (eval_scalar_overflow_from_readable_region rho layout m HRep)
+    as [mf [HCall [HFinal HFrame]]].
+  rewrite scalar_overflow_return_flag, scalar_overflow_matches_bound in HCall.
+  exists mf; auto.
+Qed.
