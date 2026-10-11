@@ -1,0 +1,58 @@
+(** Actual second-fold statement slice with atomic intermediate digits.
+    The slice is not a replacement C function; its entry facts must be
+    established from the preceding original function execution. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers AST Ctypes Clight Maps Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix C.jet_secp_shift64_executor.
+Require Import MulC.jet_sx_compact MulC.jet_secp_scalar_reduce512_run
+  MulC.jet_secp_reduce512_first_run MulC.jet_secp_reduce512_second_run.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition reduce512_allocated :=
+  match xalloc (std_cells (genv_cenv secp_ge)) (genv_cenv secp_ge)
+    (fn_vars f_secp256k1_scalar_reduce_512) 2 with
+  | Some p => p | None => ([], []) end.
+Definition reduce512_typed_stage_spine := firstn
+  (reduce512_second_count - reduce512_first_count) (skipn reduce512_first_count reduce512_spine).
+Definition reduce512_typed_stage := statement_sequence reduce512_typed_stage_spine Sskip.
+Lemma reduce512_typed_stage_source :
+  statement_sequence reduce512_first_spine reduce512_typed_stage = reduce512_second_prefix.
+Proof. Timeout 10 reflexivity. Qed.
+Section TYPED.
+Variable digits : nat -> int64.
+Variable m6 : int.
+Definition reduce512_typed_stage_temps :=
+  PTree.set _m6 (XI m6)
+  (PTree.set _m5 (XL (digits 5%nat)) (PTree.set _m4 (XL (digits 4%nat))
+  (PTree.set _m3 (XL (digits 3%nat)) (PTree.set _m2 (XL (digits 2%nat))
+  (PTree.set _m1 (XL (digits 1%nat)) (PTree.set _m0 (XL (digits 0%nat))
+  (PTree.set _l (XP 1 0) (PTree.set _r (XP 0 0) (PTree.empty sx))))))))).
+Definition reduce512_typed_stage_initial := mkst reduce512_typed_stage_temps
+  (scalar_reduce512_initial_regs ++ fst reduce512_allocated) [] 12.
+Definition reduce512_typed_stage_run := compact_stmt (genv_cenv secp_ge) [] secp_shift64_table 300
+  (snd reduce512_allocated) reduce512_typed_stage_initial reduce512_typed_stage.
+Lemma reduce512_typed_stage_completes :
+  match reduce512_typed_stage_run with Some (RDone _ ONormal) => true | _ => false end = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Definition reduce512_typed_stage_state :=
+  match reduce512_typed_stage_run with Some (RDone st _) => st | _ => reduce512_typed_stage_initial end.
+Lemma reduce512_typed_stage_run_eq :
+  reduce512_typed_stage_run = Some (RDone reduce512_typed_stage_state ONormal).
+Proof.
+  pose proof reduce512_typed_stage_completes as H.
+  unfold reduce512_typed_stage_state; destruct reduce512_typed_stage_run as [r|]; [|discriminate].
+  destruct r; [destruct o; try discriminate; reflexivity|discriminate].
+Qed.
+Definition reduce512_typed_stage_temp id :=
+  match (stemps reduce512_typed_stage_state)!id with Some x => x | None => XV Vundef end.
+Definition reduce512_typed_stage_limbs :=
+  [reduce512_typed_stage_temp _p0; reduce512_typed_stage_temp _p1;
+   reduce512_typed_stage_temp _p2; reduce512_typed_stage_temp _p3;
+   XI2L Unsigned (reduce512_typed_stage_temp _p4)].
+Lemma reduce512_typed_stage_log : slog reduce512_typed_stage_state = [].
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Lemma reduce512_typed_stage_limb_kinds : forallb (isk KL) reduce512_typed_stage_limbs = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+End TYPED.
