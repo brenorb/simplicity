@@ -31,9 +31,12 @@ return and both frees, under the unchanged inherited local-frame contract.
 It applies to arbitrary Word256 pairs, without a curve-membership premise.
 General evaluator/all-frame scope remains open; no every-jet completion claim.
 
-Full isolated acceptance **13065 is live** with no update/no-build flags.
-Starting fingerprint e07f8b9914471ba13bb9e67d3a676b35667b5f6881f48e30e985f2325d88ce7d;
-log affine-full-acceptance.log at the candidate root. Poll this exact handle.
-Keep inputs frozen; do not restart because quiet checking takes time. Only
-terminal success and unchanged post-run fingerprint authorize an acceptance
-receipt. Candidate 355/533 is still provisional, not checkout integration.
+Full isolated acceptance **13065 exited 0** with no update/no-build flags:
+766 kernel modules, 4055 audited results/2107 closed, contract and negative
+gates, all four generated ASTs. The post-run fingerprint is identical to
+e07f8b9914471ba13bb9e67d3a676b35667b5f6881f48e30e985f2325d88ce7d;
+post-run source guards and this full snapshot review pass unchanged.
+`ACCEPTANCE.json` pins the terminal log. Candidate 355/533 is accepted only
+for this isolated configuration and inherited local-frame scope; it is not
+checkout integration or every-jet completion. Keep the candidate immutable
+as the reference baseline; do not restart the completed run.
