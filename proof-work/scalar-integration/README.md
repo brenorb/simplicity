@@ -2,7 +2,7 @@
 
 The two complete original-public-C-to-literal-Simplicity local contracts are
 now freshly compiled in the repository's normal logical namespace `C`.
-This is **not yet full acceptance or main-checkout registration**.
+Full isolated acceptance has passed; this is **not main-checkout registration**.
 
 Candidate: `/tmp/jet-scalar-integration.XAMDsw/Coq`.
 Parent: `/tmp/jet-scalar-zero-accept.smyVL2`, whose complete normal acceptance
@@ -77,14 +77,18 @@ Read-only source links `C` and `Haskell` now point to the main repository,
 matching the accepted parent's layout. The pinned normal reviewer completed
 again with exit 0 (session **40956**), and core AST regeneration then passed.
 No proof, inventory, snapshot, gate or production input was changed.
-The full acceptance retry is running as session **10545**; preserve it and
-every candidate input. Its separate log is
+The full acceptance retry **10545** terminated with **exit 0**. Build,
+kernel (829 modules), assumptions (4,329 results / 2,292 closed), exact
+contracts, negative gates and all four AST comparisons passed. Post-run
+normal review passed unchanged and the fingerprint is identical.
+`ACCEPTANCE.json` pins the terminal result and full log hash. Preserve the
+accepted candidate as an immutable reference. Its separate log is
 `/tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance-retry.log`.
 Pre-acceptance fingerprint:
 `aa652e53f690b80bcdc03a263f11114d04b1e9743f3dac471a41b00e9dac42ec`.
 Log: `/tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance.log`.
 
-358/533 is **provisional isolated candidate** coverage (254 entries without an
+358/533 is **accepted isolated candidate** coverage (254 entries without an
 extra library premise, 104 conditional on the original memcpy model), not
 main-checkout coverage. Main registration remains 351/533. These theorems
 retain inherited local-frame, LP64, RECKLESS/assertion-disabled scope; they
