@@ -117,7 +117,7 @@ Proof.
       destruct (link_build_composite_env a b c d e f g h) as [env [P Q]]
   end.
   eexists. split; [reflexivity|].
-  rewrite types_link in EQ. injection EQ as <-.
+  rewrite types_link in EQ. apply some_inj in EQ. subst typs.
   cbn [prog_types prog_main prog_public program_of_program].
   split; [|split; [reflexivity|split; [exact Hmain|]]].
   - intros id.
