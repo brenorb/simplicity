@@ -3,11 +3,12 @@
 Isolated normal-build candidate `/tmp/jet-ge-negate-accept.5mtyZa` is now
 assembled. 923 inherited sources and all 40 new proof/checker hashes pass
 guards; coverage tests 63462 and 53 source mutations passed. Serial normal
-build **96488 is live**. Poll that handle; do not start a duplicate compiler.
+build **96488 exited 0**; post-build guards still match. Full contract then
+axiom generation **90113 is live**. Poll it, do not duplicate generation.
 Read ASSEMBLY-REVIEW.md/ASSEMBLY.json and run assemble-candidate.py --verify.
 Candidate 355/533 is provisional, not actual checkout coverage. Baseline point
 acceptance 77601 remains live and frozen. Full snapshot generation/review and
-full affine acceptance follow terminal normal-build success.
+full affine acceptance follow terminal generation and complete record review.
 
 109 results in thirty-eight modules compile and pass independent public closure
 kernel checking (98418 exit 0). ge_negate_literal_local_spec proves original
