@@ -51,10 +51,14 @@ the checked public archive are revalidated on every closure plan.
 
 ## Live verification and status
 
-Independent normal kernel check **86561** is running, log
+Independent normal kernel check **86561** terminated with **exit 0**, log
 `/tmp/jet-scalar-add-integration.RxsuOy/normal-kernel.log`.
-Preserve it; do not edit candidate sources, inventories, gates or snapshots.
-Its completion is not full normal acceptance by itself.
+Its exact inherited 15-axiom context matches and all unsafe categories are
+empty. `review-kernel.py` rechecks that output against the unchanged source,
+contract, dependency and input-fingerprint evidence. This kernel success
+is not full normal acceptance by itself. Preserve candidate inputs.
+Seven in-memory status/hash/fingerprint/unsafe/context mutations are rejected
+by `test-kernel.py`; none changes the candidate or its audit inputs.
 
 Prepared input fingerprint:
 `951402aa40e88c34b42d24b9bd95725285670df885531ff555b8e290127d5ffc`.
