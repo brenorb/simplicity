@@ -1,5 +1,18 @@
 # Original Jacobian infinity predicate: internal support
 
+## Current authoritative acceptance (supersedes older live-run notes)
+
+Combined infinity/predicate full isolated acceptance **24487 exited 0**:
+694 kernel modules, 3866 audited results/2013 closed, reviewed full type/body/
+assumption snapshots, negative tests and four pinned AST regenerations pass.
+The final input fingerprint was rechecked after completion and still matches.
+See COMBINED-ACCEPTANCE.json. This accepts the isolated 353/533 candidate,
+not current-checkout integration or point-negate coverage. Its audit freeze
+is released. Do not poll/restart the completed process. Guarded integration
+must preserve newer dirty/staged checkout work and have its own full receipt.
+Separate point-negate snapshot generation **20895 remains live** on its
+unchanged inputs in /tmp/jet-gej-negate-accept.5ZRUlU.
+
 ## Public kernel passes; snapshot inventories prepared
 
 Independent final public whole closure **88320 passed with terminal exit 0**.
