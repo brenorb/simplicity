@@ -1,0 +1,120 @@
+(** Literal scalar_negate/multiply/normalize512 port from pinned
+    Programs/LibSecp256k1.hs. No public C execution is asserted here. *)
+From Coq Require Import ZArith Lia.
+Require Import Simplicity.Ty Simplicity.Alg Simplicity.Word Simplicity.Bit.
+Require Import C.jet_multiply_spec C.jet_literal_division_add.
+Require Import C.jet_division_core_spec C.jet_division_result_spec C.jet_division_value.
+Require Import C.jet_predicate_spec.
+Require Import OriginalC.jet_secp_canonical_scalar.
+Local Open Scope Z_scope.
+Local Open Scope term_scope.
+Set Default Timeout 10.
+
+Definition canonical_scalar_normalize512 {term : Alg.Core.Algebra} :
+    term (Word 9) (Word 8) :=
+  iden &&& (unit >>> (@Word.zero 8 term &&& Alg.scribe canonical_group_word))
+    >>> @literal_modulo_word_spec 9 term >>> I H.
+Definition canonical_scalar_multiply {term : Alg.Core.Algebra} :
+    term (Ty.Prod (Word 8) (Word 8)) (Word 8) :=
+  @multiply_word_spec 8 term >>> @canonical_scalar_normalize512 term.
+Definition canonical_scalar_negate_factor : Ty.tySem (Word 8) :=
+  @fromZ (WordToZ 8) ((-1) mod canonical_group_order).
+Definition canonical_scalar_negate {term : Alg.Core.Algebra} :
+    term (Word 8) (Word 8) :=
+  (unit >>> Alg.scribe canonical_scalar_negate_factor) &&& iden
+    >>> @canonical_scalar_multiply term.
+
+Lemma canonical_scalar_normalize512_step (x : Ty.tySem (Word 9)) :
+  @canonical_scalar_normalize512 Alg.CoreFunSem x =
+  snd (@literal_modulo_word_spec 9 Alg.CoreFunSem
+    (x, (@Word.zero 8 Alg.CoreFunSem tt, canonical_group_word))).
+Proof.
+  unfold canonical_scalar_normalize512.
+  cbn -[literal_modulo_word_spec Word.zero canonical_group_word Alg.scribe].
+  rewrite Alg.scribe_correct; reflexivity.
+Qed.
+
+Local Opaque modulo_word_spec literal_modulo_word_spec canonical_group_word.
+
+Lemma canonical_scalar_512_divisor_value :
+  @toZ (WordToZ 9) (@Word.zero 8 Alg.CoreFunSem tt, canonical_group_word) = canonical_group_order.
+Proof.
+  change (@toZ (WordToZ 8) (@Word.zero 8 Alg.CoreFunSem tt) * word_modulus 8 +
+    @toZ (WordToZ 8) canonical_group_word = canonical_group_order).
+  rewrite Word.zero_correct, canonical_group_word_value; ring.
+Qed.
+
+Lemma canonical_scalar_normalize512_numeric (x : Ty.tySem (Word 9)) :
+  @toZ (WordToZ 8) (@canonical_scalar_normalize512 Alg.CoreFunSem x) =
+  @toZ (WordToZ 9) x mod canonical_group_order.
+Proof.
+  rewrite canonical_scalar_normalize512_step, literal_modulo_matches.
+  set (r := @modulo_word_spec 9 Alg.CoreFunSem
+    (x, (@Word.zero 8 Alg.CoreFunSem tt, canonical_group_word))).
+  pose proof (division_word_spec_numeric 9 Datatypes.true x
+    (@Word.zero 8 Alg.CoreFunSem tt, canonical_group_word)) as HR.
+  change (@toZ (WordToZ 9) r =
+    division_numeric Datatypes.true (@toZ (WordToZ 9) x)
+      (@toZ (WordToZ 9) (@Word.zero 8 Alg.CoreFunSem tt, canonical_group_word))) in HR.
+  rewrite canonical_scalar_512_divisor_value in HR.
+  assert (HP : 0 < canonical_group_order) by (pose proof canonical_group_order_range; lia).
+  assert (E : (canonical_group_order =? 0) = Datatypes.false) by (apply Z.eqb_neq; lia).
+  unfold division_numeric in HR; rewrite E in HR.
+  destruct r as [hi lo].
+  change (@toZ (WordToZ 8) hi * word_modulus 8 + @toZ (WordToZ 8) lo =
+    @toZ (WordToZ 9) x mod canonical_group_order) in HR.
+  pose proof (word_value_bounds 8 hi) as HH.
+  pose proof (word_value_bounds 8 lo) as HL.
+  pose proof (Z.mod_pos_bound (@toZ (WordToZ 9) x) canonical_group_order HP) as HM.
+  pose proof canonical_group_order_range as HNRange.
+  change (@toZ (WordToZ 8) lo = @toZ (WordToZ 9) x mod canonical_group_order).
+  destruct (Z.eq_dec (@toZ (WordToZ 8) hi) 0) as [HZ|HZ].
+  - rewrite HZ in HR; lia.
+  - assert (1 <= @toZ (WordToZ 8) hi) by lia; exfalso; nia.
+Qed.
+
+Lemma canonical_scalar_negate_factor_value :
+  @toZ (WordToZ 8) canonical_scalar_negate_factor = canonical_group_order - 1.
+Proof.
+  destruct canonical_group_order_range as [[HP HM] _].
+  assert (HE : (-1) mod canonical_group_order = canonical_group_order - 1).
+  { replace (-1) with ((canonical_group_order - 1) + (-1) * canonical_group_order) by ring.
+    rewrite Z.mod_add by lia; apply Z.mod_small; lia. }
+  unfold canonical_scalar_negate_factor; rewrite HE, to_fromZ.
+  apply Z.mod_small; change (0 <= canonical_group_order - 1 < word_modulus 8); lia.
+Qed.
+
+Lemma canonical_scalar_negate_step (x : Ty.tySem (Word 8)) :
+  @canonical_scalar_negate Alg.CoreFunSem x =
+  @canonical_scalar_normalize512 Alg.CoreFunSem
+    (@multiply_word_spec 8 Alg.CoreFunSem (canonical_scalar_negate_factor, x)).
+Proof.
+  unfold canonical_scalar_negate, canonical_scalar_multiply.
+  cbn -[canonical_scalar_normalize512 multiply_word_spec canonical_scalar_negate_factor Alg.scribe].
+  rewrite Alg.scribe_correct; reflexivity.
+Qed.
+
+Lemma canonical_scalar_negate_numeric (x : Ty.tySem (Word 8)) :
+  @toZ (WordToZ 8) (@canonical_scalar_negate Alg.CoreFunSem x) =
+  (- @toZ (WordToZ 8) x) mod canonical_group_order.
+Proof.
+  rewrite canonical_scalar_negate_step, canonical_scalar_normalize512_numeric,
+    multiply_word_spec_numeric, canonical_scalar_negate_factor_value.
+  pose proof canonical_group_order_range as HP.
+  replace ((canonical_group_order - 1) * @toZ (WordToZ 8) x) with
+    (- @toZ (WordToZ 8) x + @toZ (WordToZ 8) x * canonical_group_order) by ring.
+  rewrite Z.mod_add by lia; reflexivity.
+Qed.
+
+Lemma canonical_scalar_negate_normalize_value (x : Ty.tySem (Word 8)) :
+  (- @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem x)) mod canonical_group_order =
+  @toZ (WordToZ 8) (@canonical_scalar_negate Alg.CoreFunSem x).
+Proof.
+  rewrite canonical_scalar_normalize_numeric, canonical_scalar_negate_numeric.
+  assert (HN : canonical_group_order <> 0) by (pose proof canonical_group_order_range; lia).
+  pose proof (Z.div_mod (@toZ (WordToZ 8) x) canonical_group_order HN) as HD.
+  replace (- @toZ (WordToZ 8) x) with
+    (- (@toZ (WordToZ 8) x mod canonical_group_order) +
+      (- (@toZ (WordToZ 8) x / canonical_group_order)) * canonical_group_order) by nia.
+  rewrite Z.mod_add by exact HN; reflexivity.
+Qed.
