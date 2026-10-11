@@ -195,3 +195,9 @@ projection helpers plus scalar overflow/reduce. Inspect that AST and build
 small stage contracts; do not substitute an arithmetic reduction function
 for its execution. Then compose the original public multiply/square caller
 lifecycle with the existing canonical program/specification bridges.
+
+That original reduce512 **execution** step now checks in `../scalar-reduce512`:
+13 results / five definitions, actual helper calls/entry/free, preserved input,
+and all four current output expression loads. The modulo-order value bridge
+and public canonical roots remain open. Read its continuation before reusing
+the product columns: reduction's top accumulator is **uint64**, not uint32.
