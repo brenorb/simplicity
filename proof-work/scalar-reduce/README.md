@@ -51,9 +51,11 @@ bash build-jets.sh --coqchk -silent -o \
   OriginalC.jet_secp_scalar_reduce_numeric
 ```
 
-Next: prove scalar_set_b32's byte assembly and its composition with the actual
-overflow/reduction expressions. Derive its output value from the real 32-byte
-reader buffer, without assuming correct output. Then prove read_scalar's
-allocation/read8s/NULL-set/free, the public scalar_is_zero lifecycle and the
-literal canonical specification/source gates. SHA and memcpy remain reserved
-for the coordinated separate session.
+The next milestone is now compiled in `../scalar-set`: actual scalar_set_b32
+byte assembly, derived overflow flag, reduced output loads and the owned NULL
+call preserving both allocated regions' Freeable permissions. Its independent
+kernel audit is tracked there; this archive's 20-result inputs are unchanged.
+Next: establish that owned input contract from the real allocated/read8s buffer,
+then read_scalar's allocation/read8s/NULL-set/free, the public scalar_is_zero
+lifecycle and literal canonical specification/source gates. SHA and memcpy
+remain reserved for the coordinated separate session.
