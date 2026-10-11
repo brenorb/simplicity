@@ -1,0 +1,85 @@
+(** Source-bound first-fold macro schedule, including the uint32 m6 cast. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers Values Ctypes.
+Require Import C.jet_sx_expr C.jets_secp.
+Require Import MulC.jet_secp_scalar_mul512_symbolic MulC.jet_secp_reduce512_symbolic
+  MulC.jet_secp_reduce512_wide MulC.jet_secp_reduce512_first_run.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition first_sy0 := wide_symbolic_muladd_fast (XLv 4) wide_symbolic_C0 (wide_symbolic_from_word (XLv 0)).
+Definition first_sy1 := wide_symbolic_muladd (XLv 4) wide_symbolic_C1
+  (wide_symbolic_muladd (XLv 5) wide_symbolic_C0
+    (wide_symbolic_sumadd_fast (XLv 1) (wide_symbolic_extract_fast first_sy0))).
+Definition first_sy2 := wide_symbolic_sumadd (XLv 4)
+  (wide_symbolic_muladd (XLv 5) wide_symbolic_C1
+    (wide_symbolic_muladd (XLv 6) wide_symbolic_C0
+      (wide_symbolic_sumadd (XLv 2) (wide_symbolic_extract first_sy1)))).
+Definition first_sy3 := wide_symbolic_sumadd (XLv 5)
+  (wide_symbolic_muladd (XLv 6) wide_symbolic_C1
+    (wide_symbolic_muladd (XLv 7) wide_symbolic_C0
+      (wide_symbolic_sumadd (XLv 3) (wide_symbolic_extract first_sy2)))).
+Definition first_sy4 := wide_symbolic_sumadd (XLv 6)
+  (wide_symbolic_muladd (XLv 7) wide_symbolic_C1 (wide_symbolic_extract first_sy3)).
+Definition first_sy5 := wide_symbolic_sumadd_fast (XLv 7) (wide_symbolic_extract first_sy4).
+Definition first_symbolic_outputs := [sc_lo first_sy0; sc_lo first_sy1; sc_lo first_sy2;
+  sc_lo first_sy3; sc_lo first_sy4; sc_lo first_sy5; XI2L Unsigned (XL2I (sc_hi first_sy5))].
+Lemma first_symbolic_source : reduce512_first_limbs = first_symbolic_outputs.
+Proof. Timeout 10 reflexivity. Qed.
+
+Definition first_ma0 (rho : nat -> int64) := wide_muladd_fast (rho 4%nat) wide_C0 (wide_from_word (rho 0%nat)).
+Definition first_ma1 rho := wide_muladd (rho 4%nat) wide_C1
+  (wide_muladd (rho 5%nat) wide_C0 (wide_sumadd_fast (rho 1%nat) (wide_extract_fast (first_ma0 rho)))).
+Definition first_ma2 rho := wide_sumadd (rho 4%nat)
+  (wide_muladd (rho 5%nat) wide_C1 (wide_muladd (rho 6%nat) wide_C0 (wide_sumadd (rho 2%nat) (wide_extract (first_ma1 rho))))).
+Definition first_ma3 rho := wide_sumadd (rho 5%nat)
+  (wide_muladd (rho 6%nat) wide_C1 (wide_muladd (rho 7%nat) wide_C0 (wide_sumadd (rho 3%nat) (wide_extract (first_ma2 rho))))).
+Definition first_ma4 rho := wide_sumadd (rho 6%nat) (wide_muladd (rho 7%nat) wide_C1 (wide_extract (first_ma3 rho))).
+Definition first_ma5 rho := wide_sumadd_fast (rho 7%nat) (wide_extract (first_ma4 rho)).
+Definition first_machine_outputs rho := [wlo (first_ma0 rho); wlo (first_ma1 rho); wlo (first_ma2 rho);
+  wlo (first_ma3 rho); wlo (first_ma4 rho); wlo (first_ma5 rho);
+  Int64.repr (Int.unsigned (Int64.loword (whi (first_ma5 rho))))].
+
+Lemma first_columns_rep rho beta :
+  wide_rep rho beta first_sy0 (first_ma0 rho) /\ wide_rep rho beta first_sy1 (first_ma1 rho) /\
+  wide_rep rho beta first_sy2 (first_ma2 rho) /\ wide_rep rho beta first_sy3 (first_ma3 rho) /\
+  wide_rep rho beta first_sy4 (first_ma4 rho) /\ wide_rep rho beta first_sy5 (first_ma5 rho).
+Proof.
+  assert (H0 : wide_rep rho beta first_sy0 (first_ma0 rho)).
+  { apply wide_muladd_fast_rep; [reflexivity|apply wide_C0_den|apply wide_from_word_rep; reflexivity]. }
+  assert (H1 : wide_rep rho beta first_sy1 (first_ma1 rho)).
+  { apply wide_muladd_rep; [reflexivity|apply wide_C1_den|].
+    apply wide_muladd_rep; [reflexivity|apply wide_C0_den|].
+    apply wide_sumadd_fast_rep; [reflexivity|apply wide_extract_fast_rep; exact H0]. }
+  assert (H2 : wide_rep rho beta first_sy2 (first_ma2 rho)).
+  { apply wide_sumadd_rep; [reflexivity|]. apply wide_muladd_rep; [reflexivity|apply wide_C1_den|].
+    apply wide_muladd_rep; [reflexivity|apply wide_C0_den|].
+    apply wide_sumadd_rep; [reflexivity|apply wide_extract_rep; exact H1]. }
+  assert (H3 : wide_rep rho beta first_sy3 (first_ma3 rho)).
+  { apply wide_sumadd_rep; [reflexivity|]. apply wide_muladd_rep; [reflexivity|apply wide_C1_den|].
+    apply wide_muladd_rep; [reflexivity|apply wide_C0_den|].
+    apply wide_sumadd_rep; [reflexivity|apply wide_extract_rep; exact H2]. }
+  assert (H4 : wide_rep rho beta first_sy4 (first_ma4 rho)).
+  { apply wide_sumadd_rep; [reflexivity|]. apply wide_muladd_rep; [reflexivity|apply wide_C1_den|].
+    apply wide_extract_rep; exact H3. }
+  assert (H5 : wide_rep rho beta first_sy5 (first_ma5 rho)).
+  { apply wide_sumadd_fast_rep; [reflexivity|apply wide_extract_rep; exact H4]. }
+  exact (conj H0 (conj H1 (conj H2 (conj H3 (conj H4 H5))))).
+Qed.
+Lemma first_outputs_machine rho beta :
+  map (den rho beta) reduce512_first_limbs = map Vlong (first_machine_outputs rho).
+Proof.
+  rewrite first_symbolic_source.
+  destruct (first_columns_rep rho beta) as [[H0 _] [[H1 _] [[H2 _] [[H3 _] [[H4 _] [H5 [HH _]]]]]]].
+  change ([den rho beta (sc_lo first_sy0); den rho beta (sc_lo first_sy1); den rho beta (sc_lo first_sy2);
+    den rho beta (sc_lo first_sy3); den rho beta (sc_lo first_sy4); den rho beta (sc_lo first_sy5);
+    den rho beta (XI2L Unsigned (XL2I (sc_hi first_sy5)))] =
+    [Vlong (wlo (first_ma0 rho)); Vlong (wlo (first_ma1 rho)); Vlong (wlo (first_ma2 rho));
+     Vlong (wlo (first_ma3 rho)); Vlong (wlo (first_ma4 rho)); Vlong (wlo (first_ma5 rho));
+     Vlong (Int64.repr (Int.unsigned (Int64.loword (whi (first_ma5 rho)))))]).
+  rewrite H0,H1,H2,H3,H4,H5.
+  assert (HC : den rho beta (XI2L Unsigned (XL2I (sc_hi first_sy5))) =
+    Vlong (Int64.repr (Int.unsigned (Int64.loword (whi (first_ma5 rho)))))).
+  { cbn [den]; rewrite HH; reflexivity. }
+  rewrite HC; reflexivity.
+Qed.
