@@ -2,6 +2,14 @@
 
 ## Current continuation (supersedes historical live-session notes below)
 
+Combined infinity/predicate snapshots are now reviewed (see
+`../gej-predicate/COMBINED-SNAPSHOT-REVIEW.json`): exact inherited records,
+133 new assumptions and 176 contract records reconciled. Source check passes
+for 46 new files and all 847 unchanged inherited modules. Full isolated
+acceptance **24487 is live** in `/tmp/jet-predicate-accept.EX7adj` at
+`combined-full-acceptance.log`; candidate inputs are frozen. Point-negate
+remains a separate candidate and is not counted by that acceptance run.
+
 Fresh parametricity closure kernel **73703 exited 0**, unchanged fifteen-name
 inherited context inventory and empty unsafe categories. Log SHA256 is
 `30fac0dd8293d97049546911c0d3fc3f316da314885947d25959bce5fba6c8f3`.
