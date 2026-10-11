@@ -1,5 +1,14 @@
 # Affine negation: actual allocation support
 
+Isolated normal-build candidate `/tmp/jet-ge-negate-accept.5mtyZa` is now
+assembled. 923 inherited sources and all 40 new proof/checker hashes pass
+guards; coverage tests 63462 and 53 source mutations passed. Serial normal
+build **96488 is live**. Poll that handle; do not start a duplicate compiler.
+Read ASSEMBLY-REVIEW.md/ASSEMBLY.json and run assemble-candidate.py --verify.
+Candidate 355/533 is provisional, not actual checkout coverage. Baseline point
+acceptance 77601 remains live and frozen. Full snapshot generation/review and
+full affine acceptance follow terminal normal-build success.
+
 109 results in thirty-eight modules compile and pass independent public closure
 kernel checking (98418 exit 0). ge_negate_literal_local_spec proves original
 simplicity_ge_negate against the literal canonical Simplicity ge_negate under
