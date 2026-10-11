@@ -56,9 +56,14 @@ The in-memory negative fixtures in `test-review.py` pass: nine source, driver,
 contract, tree, dependency and kernel mutations are rejected without changing
 any real proof or audit input.
 
-Next: derive the initial owned representation from the allocated scalar and
-the real read8s byte array. Prove original read_scalar entry, allocation,
-read8s, NULL scalar_set_b32 call, byte-buffer free, cursor/output/framing;
+The subsequent `../scalar-reader` milestone now composes actual read8s and
+the original NULL scalar_set_b32 call into the original reader body, with
+derived loads/value, cursor representation, framing and retained buffer
+ownership. Its 31 results are independently kernel checked; this archive's
+30-result evidence remains unchanged and still passes its guard.
+
+Next: compose original read_scalar entry and actual allocation around that
+body, then prove byte-buffer free, void return and retained caller regions;
 then the public scalar_is_zero lifecycle and literal canonical specification
 with its source/parametricity gates and full acceptance. SHA and memcpy remain
 reserved for the coordinated separate session. All work remains local.
