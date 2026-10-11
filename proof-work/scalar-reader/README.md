@@ -47,10 +47,23 @@ symbol/function lookup and a targeted `change` instead.
 
 All six current sources compile with Coq 8.17.1, pinned CompCert/VST, stack
 65520 KiB. The 31 types and 23 non-tree definitions (including five local
-frame aliases) printed without truncation and were reviewed. The independent
-kernel, exact per-result dependency reports and diagnostic tree printing are
-running; see manifest sessions. Until terminal receipts exist, this archive
-does not claim independent kernel success or full acceptance.
+frame aliases) printed without truncation and were reviewed. Independent
+kernel session **17676 exited 0**, with 15 inherited context axioms and all
+three unsafe categories empty. The 31 exact per-result dependency reports
+(50338 exited 0) contain 19 closed results, four results with the same four
+inherited classical/extensionality assumptions, and eight with the same six
+inherited execution assumptions. The five numeric/substitution results are
+closed. The imported context list is not a per-result assumption set.
+
+Diagnostic tree printing (81933 exited 0) contains two trees, 62479 lines,
+without truncation. Their actual run/region equations and original body
+decomposition are formal checked results; diagnostic text is not an omitted
+equality certificate. The manifest pins sources and exact output hashes.
+`review.py --work /tmp/jet-scalar-reverify.8hswEF` rechecks this internal
+evidence, not public coverage or full acceptance.
+Nine in-memory negative fixtures reject source, driver, diagnostic, contract,
+tree, dependency and unsafe-kernel mutations without changing any proof or
+running audit input. The earlier scalar-set evidence still passes its guard.
 
 Sources and drivers are `.source` archives outside accepted load paths.
 Materialized modules and logs are in `/tmp/jet-scalar-reverify.8hswEF`; invoke
