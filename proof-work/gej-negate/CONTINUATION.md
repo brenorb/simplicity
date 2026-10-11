@@ -9,9 +9,15 @@ all 889 inherited modules match baseline. Coverage tests **71790 exited 0**,
 source gate plus 41 mutations pass, inventories strictly extend baseline.
 Provisional metadata is 354/533, not accepted/checkout coverage. Old standard
 snapshots are deliberately unchanged. See ASSEMBLY.json/ASSEMBLY-REVIEW.md.
-Normal-load-path build **91913 is live**, `normal-load-path-build.log`, pinned
-Coq 8.17.1, 65520 KiB stack, -j1, no scratch overlays. Poll it before full
-snapshot generation/review and full isolated acceptance. Combined baseline
+Normal-load-path build **91913 exited 0**, `normal-load-path-build.log`, pinned
+Coq 8.17.1, 65520 KiB stack, -j1, no scratch overlays. All eight assembly
+metadata hashes, 889 inherited sources and 34 new archived module hashes
+were rechecked after completion. See NORMAL-BUILD-REVIEW.json.
+Sequential full snapshot generation **20895 is live** in this candidate:
+`normal-contract-generation.log`, then `normal-assumption-generation.log`.
+Poll it, inspect both terminal generation statuses and completely review old/
+new types, definitions and assumptions before full isolated acceptance.
+Do not modify proof or metadata inputs during generation. Combined baseline
 acceptance **24487 is still live** on its frozen inputs.
 
 Preliminary prints **7286 exited 0**; separate deep print also exited 0.
