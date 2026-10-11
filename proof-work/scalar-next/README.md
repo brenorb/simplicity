@@ -67,9 +67,13 @@ Its reduction-value component is now checked in `../scalar-reduce`: 20 further
 results (18 closed), all 20 types/17 definitions reviewed, independent kernel
 session 56508 exit 0. The final internal theorem executes actual scalar_reduce
 and exposes current output loads, modulo-group-order value, return and framing.
-The caller must derive its overflow flag from the real classifier. Byte assembly
-and scalar_set_b32 composition remain open; these results do not add public scalar
-coverage. The scalar-next sources and 86-result review inventories are unchanged.
+The caller must derive its overflow flag from the real classifier. This is now
+discharged by the checked byte-assembly and owned scalar_set_b32 composition in
+`../scalar-set`: 30 further results, 27 closed, independent kernel 54545 exit 0.
+Its actual NULL call retains both 32-byte regions' Freeable permissions and
+derives the stored value from all 32 input bytes. Reader/public lifecycle and
+literal source/specification gates remain open; no public scalar coverage is
+added. The scalar-next sources and 86-result review inventories are unchanged.
 Point acceptance **77601 exited 0**. Affine generation **90113 exited 0** and
 its complete snapshot review passed; full affine acceptance **13065 is live**
 in the frozen derived candidate. This scratch does not change those inputs.
