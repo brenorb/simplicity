@@ -7,10 +7,16 @@ axiom set unchanged, all 109 new sets match preliminary review, inherited
 contracts byte-identical, all 146 new type/definition records reconciled and
 all source/metadata guards match. FULL-SNAPSHOT-REVIEW.json/.md. Baseline point
 acceptance **77601 exited 0**, archived in gej-negate/ACCEPTANCE.json.
-Full affine acceptance **13065 is live**, JOBS=1 bash check-jets.sh --accept,
-fingerprint e07f8b9914471ba13bb9e67d3a676b35667b5f6881f48e30e985f2325d88ce7d.
-Poll this handle; keep all candidate inputs immutable. ACCEPTANCE-RUN.json.
-No terminal affine acceptance or actual checkout registration is claimed yet.
+Full affine acceptance **13065 exited 0**, JOBS=1 bash check-jets.sh --accept:
+766 kernel modules, 4055 audited results/2107 closed, reviewed contracts,
+negative tests and four AST checks. `ACCEPTANCE.json` pins the terminal log;
+post-run source/snapshot guards and fingerprint
+e07f8b9914471ba13bb9e67d3a676b35667b5f6881f48e30e985f2325d88ce7d
+match unchanged. Candidate 355/533 is accepted under the inherited local
+frame scope, not integrated checkout coverage. Do not poll or restart the
+completed handle. Keep the accepted candidate immutable for reconciliation.
+The remaining pending/live notes below are historical checkpoints, not
+instructions to repeat completed builds, generation, review or acceptance.
 
 Isolated normal-build candidate `/tmp/jet-ge-negate-accept.5mtyZa` is now
 assembled. 923 inherited sources and all 40 new proof/checker hashes pass
