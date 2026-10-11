@@ -9,9 +9,11 @@ The body is never replaced. The theorem starts in the actual three-region
 allocated context and does not assume the desired calls, output or framing.
 
 This is **not** a complete reader function or public jet equivalence theorem.
-Function entry, buffer allocation, void return and buffer free still need
-composition around the proved body. `scalar_reader_allocation` verifies the
-symbolic allocation layout; it is not alone a concrete allocation theorem.
+This archive contains only the body milestone. The separately checked
+`../scalar-reader-lifecycle` archive now composes actual function entry,
+buffer allocation, void return and buffer free around that body.
+`scalar_reader_allocation` here is only the symbolic allocation layout;
+the lifecycle module supplies its concrete use.
 The scalar/source caller regions are owned 32/16-byte zero-base blocks. The
 public jet must derive these and the frame hypotheses from its own lifecycle.
 Public coverage added: zero. Registered checkout coverage remains 351/533.
@@ -71,11 +73,8 @@ Materialized modules and logs are in `/tmp/jet-scalar-reverify.8hswEF`; invoke
 `-R /tmp/jet-scalar-reverify.8hswEF OriginalC` mapping. The frozen affine
 acceptance candidate has not been edited by this work.
 
-Next: use `xalloc_sound` with `scalar_reader_allocation` and the real
-`fn_vars f_read_scalar`, establish entry temps/env and extended separation,
-apply the numeric body theorem, use its retained buffer ownership to prove
-actual local free, and retain only the scalar/source regions. Do not assume
-the free, call or representation transition. Then prove public scalar_is_zero
+The next boundary is now public scalar_is_zero (reader lifecycle is checked
+in its separate archive). Prove public scalar_is_zero
 against its literal canonical term (including raw zero OR group-order input),
 with source/parametricity gates and normal full acceptance.
 
