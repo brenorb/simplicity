@@ -1,5 +1,12 @@
 # Continue from the checked whole reduce512 function
 
+Update: the whole original scalar_mul caller **body** for r=a, its fresh
+uninitialized product buffer, both actual helper calls, exact modulo output
+and framing are now checked in `../scalar-mul-caller/CONTINUATION.md`.
+Caller function entry/allocation/free and square's a=b alias remain open.
+Use that continuation next; the historical composition TODOs below are
+partially superseded. This adds no public jet coverage.
+
 Last verified declaration:
 `MulC.jet_secp_reduce512_function_numeric.eval_reduce512_numeric_owned_loads`.
 All eight archived modules compile; fresh build, drivers and independent
