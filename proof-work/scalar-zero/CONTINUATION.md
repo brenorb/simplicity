@@ -1,5 +1,18 @@
 # Scalar-zero integration continuation
 
+## Acceptance update — 2026-10-11
+
+The former live session **45608** is now terminal, exit **0**. Full normal
+`check-jets.sh --accept` passed: 804 kernel modules, 4,233 audited results
+(2,227 closed), exact reviewed contracts/dependencies, negative tests and all
+four regenerated AST matches. Ending and independently recomputed input
+fingerprints equal the starting fingerprint. Post-run source and snapshot
+reviewers passed. See `ACCEPTANCE.json`; preserve the accepted candidate.
+
+356/533 is accepted **isolated candidate** coverage, not main registration.
+The next namespace-C normalize/negate candidate is tracked separately in
+`../scalar-integration`. Historical live-run instructions below are superseded.
+
 ## Completed proof milestone
 
 Signed local commit `0ae8b786` contains the complete original-C scalar-zero
