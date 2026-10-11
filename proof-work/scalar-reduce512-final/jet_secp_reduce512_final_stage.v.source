@@ -1,0 +1,47 @@
+(** Original final suffix, with typed current-memory digits and carry. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers AST Ctypes Clight Maps Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix C.jet_secp_shift64_executor C.jet_secp_frame.
+Require Import MulC.jet_sx_compact MulC.jet_secp_scalar_reduce512_run
+  MulC.jet_secp_reduce512_first_run MulC.jet_secp_reduce512_typed_stage
+  MulC.jet_secp_reduce512_third_stage.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition reduce512_final_suffix :=
+  statement_sequence (skipn reduce512_third_count reduce512_spine) reduce512_last.
+Lemma reduce512_final_source :
+  statement_sequence reduce512_third_spine reduce512_final_suffix = fn_body f_secp256k1_scalar_reduce_512.
+Proof. Timeout 10 reflexivity. Qed.
+Section TYPED.
+Variable digits : nat -> int64.
+Variable carry : int64.
+Definition reduce512_final_temps :=
+  PTree.set _c (XL carry)
+    (PTree.set _l (XP 1 0) (PTree.set _r (XP 0 0) (PTree.empty sx))).
+Definition reduce512_final_regs :=
+  [mkreg (u64_cells 0 [XL (digits 0%nat); XL (digits 1%nat); XL (digits 2%nat); XL (digits 3%nat)])
+    true (Some 32)] ++ tl scalar_reduce512_initial_regs ++ fst reduce512_allocated.
+Definition reduce512_final_initial := mkst reduce512_final_temps reduce512_final_regs [] 12.
+Definition reduce512_final_run := compact_stmt (genv_cenv secp_ge) [] secp_shift64_table 300
+  (snd reduce512_allocated) reduce512_final_initial reduce512_final_suffix.
+Lemma reduce512_final_completes :
+  match reduce512_final_run with Some (RDone _ ONormal) => true | _ => false end = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Definition reduce512_final_state :=
+  match reduce512_final_run with Some (RDone st _) => st | _ => reduce512_final_initial end.
+Lemma reduce512_final_run_eq :
+  reduce512_final_run = Some (RDone reduce512_final_state ONormal).
+Proof.
+  pose proof reduce512_final_completes as H.
+  unfold reduce512_final_state; destruct reduce512_final_run as [r|]; [|discriminate].
+  destruct r; [destruct o; try discriminate; reflexivity|discriminate].
+Qed.
+Definition reduce512_final_limbs :=
+  map cell_sx (rcells (hd (mkreg [] false None) (sregs reduce512_final_state))).
+Lemma reduce512_final_log : slog reduce512_final_state = repeat (mkev 0 12 0 []) 3.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Lemma reduce512_final_limb_kinds : forallb (isk KL) reduce512_final_limbs = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+End TYPED.
