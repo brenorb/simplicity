@@ -1,0 +1,91 @@
+(** Actual public scalar_normalize read/write/return statement sequence.
+    The public entry, source copy and final freeing boundary are separate. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight Clightdefs ClightBigstep Integers Values Maps Memory Events Globalenvs.
+Require Import C.jet_exec C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_sx_state C.jet_sx_exec C.jet_sx_mem C.jet_secp_frame C.jet_secp_wrapper_run.
+Require Import C.jet_frame_layout C.jet_frame_inv C.jet_input_layout C.jet_output_layout C.jet_encoding.
+Require Import C.jet_secp_public_body.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import OriginalC.jet_secp_scalar_public_entry OriginalC.jet_secp_scalar_public_calls.
+Require Import OriginalC.jet_secp_canonical_scalar.
+Require Import WriterC.jet_secp_scalar_read_write.
+Import ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_normalize_write_stmt :=
+  match fn_body f_simplicity_scalar_normalize with
+  | Ssequence _ (Ssequence _ (Ssequence write _)) => write | _ => Sskip end.
+Definition scalar_normalize_rest :=
+  match fn_body f_simplicity_scalar_normalize with Ssequence _ rest => rest | _ => Sskip end.
+Lemma scalar_normalize_rest_eq :
+  scalar_normalize_rest = Ssequence scalar_public_read_stmt
+    (Ssequence scalar_normalize_write_stmt (Sreturn (Some (Econst_int (Int.repr 1) tint)))).
+Proof. reflexivity. Qed.
+Lemma scalar_normalize_write_symbols :
+  Genv.find_symbol secp_ge _write_scalar = Some (secp_symbol_block _write_scalar) /\
+  Genv.find_funct secp_ge (Vptr (secp_symbol_block _write_scalar) Ptrofs.zero) = Some (Internal f_write_scalar).
+Proof. vm_compute; split; reflexivity. Qed.
+Local Opaque secp_ge canonical_scalar_normalize encode.
+
+Lemma exec_scalar_normalize_write le m mf bl ba bd dbase :
+  le!_dst = Some (Vptr bd (Ptrofs.repr dbase)) ->
+  Clight2.eval_funcall secp_ge m (Internal f_write_scalar)
+    [Vptr bd (Ptrofs.repr dbase); Vptr ba Ptrofs.zero] E0 mf Vundef ->
+  Clight2.exec_stmt secp_ge (scalar_public_env bl ba) le m scalar_normalize_write_stmt E0 le mf Out_normal.
+Proof.
+  intros HD HCall; destruct scalar_normalize_write_symbols as [HS HF].
+  eapply ClightBigstep.exec_Scall with
+    (vf := Vptr (secp_symbol_block _write_scalar) Ptrofs.zero)
+    (vargs := [Vptr bd (Ptrofs.repr dbase); Vptr ba Ptrofs.zero])
+    (f := Internal f_write_scalar) (vres := Vundef).
+  - reflexivity.
+  - eapply eval_Elvalue.
+    + eapply eval_Evar_global; [reflexivity|exact HS].
+    + apply deref_loc_reference; reflexivity.
+  - eapply eval_Econs.
+    + apply eval_Etempvar; exact HD.
+    + reflexivity.
+    + eapply eval_Econs.
+      * apply eval_Eaddrof; apply eval_Evar_local; reflexivity.
+      * reflexivity.
+      * apply eval_Enil.
+  - exact HF.
+  - reflexivity.
+  - exact HCall.
+Qed.
+
+Theorem exec_scalar_normalize_rest_canonical le m0 bd dbase bw outedge cursor N bi edge rc
+    (value : Ty.tySem (Word 8)) m ba bl :
+  le!_dst = Some (Vptr bd (Ptrofs.repr dbase)) ->
+  write_frame_at m0 bd dbase bw outedge cursor N ->
+  frame_input_cells_at m0 bi edge rc (map Some (frame_input_word_bits value)) ->
+  0 <= rc -> rc + 256 <= Int64.max_unsigned ->
+  Mem.range_perm m ba 0 32 Cur Freeable -> Mem.range_perm m bl 0 16 Cur Freeable ->
+  frame_fields_at m bl 0 bi edge rc -> ba <> bl ->
+  xsep (extA m0 bd bw bi) [(ba, 0); (bl, 0)] ->
+  invA m0 bd dbase bw outedge cursor N bi rc false [] 256
+    (read_fe_rho (frame_input_word_bits value) rc) [] m ->
+  exists mf,
+    Clight2.exec_stmt secp_ge (scalar_public_env bl ba) le m scalar_normalize_rest E0 le mf
+      (Out_return (Some (Vint Int.one, tint))) /\
+    finv m0 bd dbase bw outedge cursor N bi mf true
+      (encode (@canonical_scalar_normalize Alg.CoreFunSem value)) /\
+    Mem.range_perm mf ba 0 32 Cur Freeable /\ Mem.range_perm mf bl 0 16 Cur Freeable /\
+    lframe (secp_locals_outside m0 bd bw bi ba bl) m mf.
+Proof.
+  intros HD HO HI Hrc HM HA HL HS HSeparate HSep HInv.
+  destruct (eval_scalar_read_write_canonical m0 bd dbase bw outedge cursor N bi edge rc
+    value m ba bl HO HI Hrc HM HA HL HS HSeparate HSep HInv)
+    as (mr & mf & HRead & HWrite & HFinal & HFreeA & HCursor & HFreeL & HFrame).
+  exists mf; split.
+  - rewrite scalar_normalize_rest_eq.
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mr) (le1 := le).
+    + apply exec_scalar_public_read; exact HRead.
+    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mf) (le1 := le).
+      * eapply exec_scalar_normalize_write; [exact HD|exact HWrite].
+      * apply exec_Sreturn_some; constructor.
+  - split; [exact HFinal|]; split; [exact HFreeA|]; split; assumption.
+Qed.
