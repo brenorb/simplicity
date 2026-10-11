@@ -2,6 +2,17 @@
 
 ## Current continuation (supersedes historical live-session notes below)
 
+Preliminary prints **7286 exited 0**; separate deep print also exited 0.
+Read-only review passes for all 80 types/26 definitions and 80 actual axiom
+reports: 40 closed, exactly six inherited execution assumptions. Standard
+78 types/20 definitions match deep reports modulo whitespace; the specific
+remaining 2 types/6 computed definitions have complete deep supplements.
+All diagnostics empty. See PUBLIC-CONTRACT-REVIEW.md and PRELIMINARY-REVIEW.json.
+Eleven malformed-report fixtures reject; implicit Check headers and Record
+prints are handled explicitly. Next assemble normal-load-path isolated
+point-negate acceptance, review inherited/new full snapshot records and retain
+the active combined infinity/predicate audit's frozen inputs.
+
 Point-negate preliminary contract/assumption generation **7286 is live**,
 sequential in `/tmp/jet-gej-negate.IMImaX` on its separate narrow overlays.
 Drivers: `negate_contracts_standard.v`, then `negate_assumptions_review.v`.
