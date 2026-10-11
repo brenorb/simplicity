@@ -11,6 +11,7 @@ tmp=$(mktemp -d "${TMPDIR:-/tmp}/simplicity-linked-audit.XXXXXX")
 mkdir "$tmp/C"
 python3 linked/gen-linked-theorems.py C "$tmp/C/jet_linked_memcpy_jets.v"
 python3 linked/gen-linked-sha-theorems.py C "$tmp/C"
+python3 linked/gen-linked-executable.py C/jet_frame_executable_registry.v "$tmp/C/jet_frame_executable_linked.v"
 for f in "$tmp"/C/*.v; do
   cmp "$f" "linked/C/$(basename "$f")" || { echo "stale generated module $(basename "$f")" >&2; exit 1; }
 done

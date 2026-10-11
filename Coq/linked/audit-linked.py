@@ -56,5 +56,6 @@ else:
             found = {"Axioms.proof_irr" if n.endswith(".Axioms.proof_irr") else n for n in found}
         if found != allowed:
             sys.exit("%s.%s: assumptions %s, expected %s" % (mod, name, sorted(found), sorted(allowed)))
-    print("assumption audit passed: %d theorems (%d linked jet contracts)" %
-          (len(items), len(items) - len(EXTRA)))
+    runs = sum(1 for _, name, _ in items if name.endswith("_executable_linked"))
+    print("assumption audit passed: %d theorems (%d linked jet contracts, %d linked executability results)" %
+          (len(items), len(items) - len(EXTRA) - runs, runs))

@@ -43,7 +43,8 @@ for f in linked/C/*.v; do
 done
 {
   cat _CoqProject.jets
-  for name in memcpy_impl jet_memcpy_impl memcpy_exact jet_memcpy_exact; do
+  for name in memcpy_impl jet_memcpy_impl memcpy_exact jet_memcpy_exact \
+      jet_frame_constructible jet_frame_constructible_jets jet_frame_executable_registry; do
     grep -qx "C/$name.v" _CoqProject.jets || printf 'C/%s.v\n' "$name"
   done
   printf 'C/jets_unlinked.v\nC/jets_sha_unlinked.v\n'
