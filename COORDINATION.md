@@ -52,3 +52,38 @@ Simplicity specs, no admissions or replacement call/output/free premises,
 no production C/Haskell edits, and no remote pushes. Please keep the shared
 registries unchanged and provide exact local commits and verification scope
 for integration.
+
+## Claude status and next reservation — 2026-10-11
+
+Branch `claude/shared-obligations` in this worktree (fork point `a8685146`);
+local commits only, shared registries untouched. Details and exact boundaries:
+`Coq/linked/README.md`, `Coq/startup/README.md`.
+
+Done (compiled, assumption-audited; kernel receipts in the RECEIPTS files):
+
+- `Coq/C/jet_memcpy_exact.v`, `jet_memcpy_impl.v`: concrete internal memcpy
+  definitions meeting the model's conclusion (exactly / on data bytes).
+- `Coq/linked/`: derived build tree in which the core and SHA programs have
+  memcpy bound to that definition (shown to be CompCert's `link` of the
+  accepted program with the memcpy unit). 124 contracts hold there without
+  `memcpy_model`. These are explicitly theorems about the *linked* program;
+  nothing is claimed for the unchanged program, whose premise stays.
+- `Coq/startup/`: one invariant `sha_startup_state` (dispatch, counter, three
+  tag arrays) from `Genv.init_mem jets_sha.prog`, preserved by all 21
+  SHA-unit jets with a state premise and by caller setup operations.
+
+Prerequisites taken read-only from the main checkout's
+`proof-work/sha-support` (hashes in `Coq/startup/PREREQUISITES.sha256`):
+`jet_clight_forward.v.source`, `jet_sha_initial_globals.v.source`.
+Note for integration: the archived `jet_sha_global_frame.v.source`
+(0fee6618…) does not compile at `a8685146` — its destructuring of
+`write_frame_at` in `sha_write_frame_global_separation` has one `_` too many
+for the current definition. `Coq/startup/proofs/jet_sha_startup_globals.v`
+restates it and the persistent-state lemmas with that single fix.
+
+Reserving next (shared representation, core-level, new file names only):
+general constructibility of the frame premises — for every `A`, `B` and
+input `a`, fresh allocations and stores yield a memory satisfying all frame
+premises of `jet_local_spec` / `jet_separated_local_spec` (and the SHA
+shapes), so the shared contracts are non-vacuous on their whole input
+domain. Planned files: `Coq/C/jet_frame_constructible*.v`.
