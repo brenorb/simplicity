@@ -67,8 +67,10 @@ C.jets_secp256k1 AST with different composite identifiers. The actual helper
 uses __6121 for affine storage and __5467 for field storage. Original source
 ports/build configuration and canonical specs are unchanged.
 
-Combined infinity/predicate full acceptance 24487 is still live on frozen
-inputs at the assumption gate after 694 kernel modules passed. Point-negate
+Combined infinity/predicate full acceptance 24487 exited 0: 694 kernel modules,
+3866 audited results/2013 closed, reviewed snapshots, negative tests and four
+AST checks. See ../gej-predicate/COMBINED-ACCEPTANCE.json; not checkout or affine
+acceptance. Point-negate
 normal-load-path build 91913 has exited 0 separately. Its sequential full
 snapshot generation 20895 is live; see ../gej-negate/NORMAL-BUILD-REVIEW.json.
 Poll existing handles; do not restart or edit either candidate's proof or
