@@ -1,0 +1,96 @@
+(** Typed checkpoint facts established from the actual first-fold expressions.
+    Original rho, memory and concrete temp environment are retained. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight Maps Values.
+Require Import C.jet_sx_expr C.jet_sx_eval C.jet_sx_state C.jets_secp.
+Require Import MulC.jet_secp_reduce512_first_run MulC.jet_secp_reduce512_first_symbolic
+  MulC.jet_secp_reduce512_first_value MulC.jet_secp_reduce512_fold_bounds
+  MulC.jet_secp_reduce512_wide MulC.jet_secp_scalar_mul512_symbolic
+  MulC.jet_secp_reduce512_typed_stage MulC.jet_secp_reduce512_typed_atomic
+  MulC.jet_secp_reduce512_typed_value MulC.jet_secp_scalar_mul512_accumulate.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Lemma tmatch_checkpoint_set rho beta ts le id x :
+  tmatch rho beta ts le -> le!id = Some (den rho (lay beta) x) ->
+  tmatch rho beta (PTree.set id x ts) le.
+Proof.
+  intros HT HL id' y HX; rewrite PTree.gsspec in HX.
+  destruct (peq id' id) as [->|Hne].
+  - inversion HX; subst y; exact HL.
+  - exact (HT id' y HX).
+Qed.
+Definition first_checkpoint_digits (rho : nat -> int64) n :=
+  match n with
+  | 0%nat => wlo (first_ma0 rho) | 1%nat => wlo (first_ma1 rho)
+  | 2%nat => wlo (first_ma2 rho) | 3%nat => wlo (first_ma3 rho)
+  | 4%nat => wlo (first_ma4 rho) | 5%nat => wlo (first_ma5 rho)
+  | _ => Int64.zero end.
+Definition first_checkpoint_m6 rho := Int64.loword (whi (first_ma5 rho)).
+Lemma first_checkpoint_m6_bound rho : 0 <= Int.unsigned (first_checkpoint_m6 rho) <= 1.
+Proof.
+  pose proof (first_m6_bound rho) as HB.
+  unfold first_checkpoint_m6,Int64.loword; rewrite Int.unsigned_repr;
+    [exact HB|change Int.max_unsigned with 4294967295; lia].
+Qed.
+Lemma first_checkpoint_values rho :
+  stage_low256 (first_checkpoint_digits rho) = first_low256 rho /\
+  stage_high256 (first_checkpoint_digits rho) (first_checkpoint_m6 rho) = first_high256 rho.
+Proof. split; reflexivity. Qed.
+Theorem first_checkpoint_second_value rho :
+  column_words_value (stage_machine_outputs (first_checkpoint_digits rho) (first_checkpoint_m6 rho)) =
+    second_fold_bridge_value rho.
+Proof.
+  destruct (first_checkpoint_values rho) as [HL HH].
+  rewrite stage_machine_value.
+  - rewrite HL,HH; reflexivity.
+  - exact (proj2 (first_checkpoint_m6_bound rho)).
+  - rewrite HH; exact (proj2 (first_high256_bound rho)).
+Qed.
+Lemma first_checkpoint_p4_bound rho :
+  0 <= stage_p4_integer (first_checkpoint_digits rho) (first_checkpoint_m6 rho) <= 2.
+Proof.
+  apply stage_p4_bound; [exact (proj2 (first_checkpoint_m6_bound rho))|].
+  rewrite (proj2 (first_checkpoint_values rho)); exact (proj2 (first_high256_bound rho)).
+Qed.
+Lemma first_raw_checkpoint_sources :
+  (stemps reduce512_first_state)!_r = Some (XP 0 0) /\
+  (stemps reduce512_first_state)!_l = Some (XP 1 0) /\
+  (stemps reduce512_first_state)!_m0 = Some (sc_lo first_sy0) /\
+  (stemps reduce512_first_state)!_m1 = Some (sc_lo first_sy1) /\
+  (stemps reduce512_first_state)!_m2 = Some (sc_lo first_sy2) /\
+  (stemps reduce512_first_state)!_m3 = Some (sc_lo first_sy3) /\
+  (stemps reduce512_first_state)!_m4 = Some (sc_lo first_sy4) /\
+  (stemps reduce512_first_state)!_m5 = Some (sc_lo first_sy5) /\
+  (stemps reduce512_first_state)!_m6 = Some (XL2I (sc_hi first_sy5)).
+Proof. Timeout 10 (repeat split; reflexivity). Qed.
+Local Opaque reduce512_first_state.
+Theorem first_checkpoint_tmatch rho beta le :
+  tmatch rho beta (stemps reduce512_first_state) le ->
+  tmatch rho beta (reduce512_typed_stage_temps (first_checkpoint_digits rho) (first_checkpoint_m6 rho)) le.
+Proof.
+  intro HT.
+  destruct first_raw_checkpoint_sources as (SR & SL & S0 & S1 & S2 & S3 & S4 & S5 & S6).
+  destruct (first_columns_rep rho (lay beta)) as [[D0 _] [[D1 _] [[D2 _] [[D3 _] [[D4 _] [D5 [DH _]]]]]]].
+  pose proof (HT _ _ SR) as LR; pose proof (HT _ _ SL) as LL.
+  pose proof (HT _ _ S0) as L0; rewrite D0 in L0.
+  pose proof (HT _ _ S1) as L1; rewrite D1 in L1.
+  pose proof (HT _ _ S2) as L2; rewrite D2 in L2.
+  pose proof (HT _ _ S3) as L3; rewrite D3 in L3.
+  pose proof (HT _ _ S4) as L4; rewrite D4 in L4.
+  pose proof (HT _ _ S5) as L5; rewrite D5 in L5.
+  pose proof (HT _ _ S6) as L6.
+  change (le!_m6 = Some (Vint (Int64.loword (il (den rho (lay beta) (sc_hi first_sy5)))))) in L6.
+  rewrite DH in L6.
+  unfold reduce512_typed_stage_temps.
+  apply tmatch_checkpoint_set; [|exact L6].
+  apply tmatch_checkpoint_set; [|exact L5].
+  apply tmatch_checkpoint_set; [|exact L4].
+  apply tmatch_checkpoint_set; [|exact L3].
+  apply tmatch_checkpoint_set; [|exact L2].
+  apply tmatch_checkpoint_set; [|exact L1].
+  apply tmatch_checkpoint_set; [|exact L0].
+  apply tmatch_checkpoint_set; [|exact LL].
+  apply tmatch_checkpoint_set; [|exact LR].
+  intros id x HX; rewrite PTree.gempty in HX; discriminate.
+Qed.
