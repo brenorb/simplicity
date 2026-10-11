@@ -89,3 +89,13 @@ multiplication / struct-wrapper results compile and pass independent kernel,
 type/definition/dependency review. No public multiply/square proof or extra
 coverage is claimed. Continue there while this audit runs, without editing
 the audited candidate.
+
+Further checked progress: `../scalar-mul-accum` (11 results, signed
+**9fd37502**) proves actual multiply-accumulate and the modulo-128-bit value.
+`../scalar-mul512` adds 19 results: a sound compact no-op-conditional executor
+and actual original scalar_mul_512 entry/calls/cleanup/output representation.
+All compile and pass independent kernel/type/dependency review. The full
+numeric product and public multiply/square equivalences remain open. Read
+that archive's diagnosed no-op-branch duplication before replaying a full
+symbolic tree reduction. Audit **38737** has passed kernel on 853 modules and
+is now at the assumption gate; still not terminal acceptance.

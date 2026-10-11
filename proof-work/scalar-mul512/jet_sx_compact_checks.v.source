@@ -1,0 +1,40 @@
+(** Closed regression proofs for the semantic boundary of compact execution. *)
+From Coq Require Import ZArith List.
+From compcert Require Import AST Ctypes Clight Clightdefs Integers Maps.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec.
+Require Import MulC.jet_sx_compact.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition compact_check_empty : sstate := mkst (PTree.empty sx) [] [] 0.
+Definition compact_check_symbolic : sstate :=
+  mkst (PTree.set 1%positive (XLv 0) (PTree.empty sx)) [] [] 1.
+
+Lemma compact_undefined_condition_rejected ce :
+  compact_stmt ce [] [] 10 [] compact_check_empty
+    (Sifthenelse (Etempvar 1%positive tulong) Sskip Sskip) = None.
+Proof. reflexivity. Qed.
+Lemma compact_unconvertible_condition_rejected ce :
+  compact_stmt ce [] [] 10 [] compact_check_empty
+    (Sifthenelse (Econst_int Int.one tvoid) Sskip Sskip) = None.
+Proof. reflexivity. Qed.
+Lemma compact_symbolic_noop_no_fork ce :
+  compact_stmt ce [] [] 10 [] compact_check_symbolic
+    (Sifthenelse (Etempvar 1%positive tulong) Sskip Sskip) =
+  Some (RDone compact_check_symbolic ONormal).
+Proof. reflexivity. Qed.
+Lemma compact_loop_return_preserved ce :
+  compact_stmt ce [] [] 10 [] compact_check_empty (Sloop (Sreturn None) Sbreak) =
+    Some (RDone compact_check_empty (OReturn None)).
+Proof. reflexivity. Qed.
+Lemma compact_loop_continue_exits ce :
+  compact_stmt ce [] [] 10 [] compact_check_empty (Sloop Scontinue Sbreak) =
+    Some (RDone compact_check_empty ONormal).
+Proof. reflexivity. Qed.
+Lemma compact_effectful_branches_not_erased ce :
+  match compact_stmt ce [] [] 10 [] compact_check_symbolic
+    (Sifthenelse (Etempvar 1%positive tulong)
+      (Sset 2%positive (Econst_int Int.one tint))
+      (Sset 2%positive (Econst_int (Int.repr 2) tint))) with
+  | Some (RIf _ _ _) => true | _ => false end = true.
+Proof. reflexivity. Qed.
