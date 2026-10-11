@@ -1,5 +1,11 @@
 # Continue with the actual third and final scalar reduction stages
 
+Superseded continuation: the actual third-stage source/value/execution and
+its internally discharged checkpoint are now checked in
+`../scalar-reduce512-three-stages/`. Follow that archive's `CONTINUATION.md`
+for the final reduction and full function/public boundaries. This pointer
+does not change these frozen Coq sources or verification receipts.
+
 Last verified: `exec_reduce512_first_two_stages`. All eight archived sources
 compile completely; kernel, type/definition/assumption and evidence checks are
 recorded in `REVIEW.json`. No failing goal remains in these files.
