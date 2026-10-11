@@ -112,3 +112,11 @@ numeric product and public multiply/square equivalences remain open. Read
 that archive's diagnosed no-op-branch duplication before replaying a full
 symbolic tree reduction. Audit **38737** has completed all acceptance gates;
 exact reconciliation and main verification remain.
+
+Full product continuation supersedes the earlier helper-only status:
+`../scalar-mul512/PRODUCT-REVIEW.json` pins six new modules / 50 results
+(49 closed), actual original `scalar_mul_512` execution, all eight current
+output loads and full 512-bit product identity. Fresh builds **39075**, kernel
+**98027**, drivers **68641** all terminated with exit 0. Read that archive's
+full-product section before starting `scalar_reduce_512`. Public multiply/
+square literal-specification bridges remain open; no main coverage added.
