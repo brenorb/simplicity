@@ -59,5 +59,9 @@ Next work is driven by the intended public scalar_is_zero theorem:
    complete audit inventories and isolated normal-build/full acceptance.
 
 No public entry, accepted coverage or new mathematical-only goal is claimed.
+Step 1 is now completed: contract generation 26431 exited 0, and all 86 types/
+64 definitions plus every dependency set are reviewed. CONTRACT-REVIEW.json/.md,
+review-contracts.py and its fixtures record/reproduce the result. Step 2 is
+the current proof obligation; keep the literal public end-to-end theorem in view.
 Both older point acceptance 77601 and affine generation 90113 remain live in
 their own frozen candidates; this scratch does not change those inputs.
