@@ -1,5 +1,18 @@
 # Next: normal candidate integration, not another scalar-negate caller proof
 
+## Superseding integration status — 2026-10-11
+
+Scalar-zero full acceptance session 45608 is now terminal, exit 0; its receipt
+is `../scalar-zero/ACCEPTANCE.json`. Both scalar-normalize and scalar-negate
+public local theorems freshly compiled in normal `C` namespace with their
+actual **25-module / 96-result** closure. The earlier 22-module estimate
+omitted the three original scalar getter modules. Exact normal type,
+definition and per-result dependency review passed with inherited snapshots
+unchanged except for reviewed additions. Full acceptance session **83287**
+now owns `/tmp/jet-scalar-integration.XAMDsw/Coq`; do not restart or edit it.
+The authoritative next guide is `../scalar-integration/CONTINUATION.md`.
+Historical live-run and unstarted-assembly instructions below are superseded.
+
 The all-533-jet goal remains active and incomplete. This turn completed the
 original scalar-negate **public local** implementation-to-literal theorem;
 it adds no main registered coverage yet. Main registration remains 351/533.
