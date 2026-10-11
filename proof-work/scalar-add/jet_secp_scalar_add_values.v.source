@@ -1,0 +1,79 @@
+(** Exact symbolic carry/overflow/reduction composition of the original
+    scalar-add helper. This reuses the checked reduction, not an output oracle. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Integers Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval.
+Require Import C.jet_secp_scalar_bind C.jet_secp_scalar_overflow_exec.
+Require Import C.jet_secp_scalar_overflow_flags C.jet_secp_scalar_overflow_numeric.
+Require Import C.jet_secp_scalar_reduce_numeric.
+Require Import C.jet_secp_canonical_scalar.
+Require Import AddC.jet_secp_scalar_add_run AddC.jet_secp_scalar_add_exec.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_add_low0 := XLb Badd (XLv 0) (XLv 4).
+Definition scalar_add_high0 := XLb Badd (XI2L Signed (XIc Int.zero))
+  (scalar_carry_sx (XLv 0) (XLv 4)).
+Definition scalar_add_low1 := scalar_sum_low scalar_add_high0 (XLv 1) (XLv 5).
+Definition scalar_add_high1 := scalar_sum_high scalar_add_high0 (XLv 1) (XLv 5).
+Definition scalar_add_low2 := scalar_sum_low scalar_add_high1 (XLv 2) (XLv 6).
+Definition scalar_add_high2 := scalar_sum_high scalar_add_high1 (XLv 2) (XLv 6).
+Definition scalar_add_low3 := scalar_sum_low scalar_add_high2 (XLv 3) (XLv 7).
+Definition scalar_add_high3 := scalar_sum_high scalar_add_high2 (XLv 3) (XLv 7).
+Definition scalar_add_raw := [scalar_add_low0; scalar_add_low1; scalar_add_low2; scalar_add_low3].
+Definition scalar_add_raw_sigma n := nth n scalar_add_raw (XLc Int64.zero).
+Definition scalar_add_overflow_sx :=
+  scalar_bind scalar_add_raw_sigma (XIc Int.zero) scalar_overflow_return.
+Definition scalar_add_flag := XL2I
+  (XLb Badd scalar_add_high3 (XI2L Signed scalar_add_overflow_sx)).
+Definition scalar_add_reduction_sigma n :=
+  if Nat.eqb n 4 then XI2L Signed scalar_add_flag else scalar_add_raw_sigma n.
+Definition scalar_add_instantiate := scalar_bind scalar_add_reduction_sigma scalar_add_flag.
+
+Lemma scalar_add_raw_length : length scalar_add_raw = 4%nat.
+Proof. reflexivity. Qed.
+Lemma scalar_add_raw_sigma_kind n : isk KL (scalar_add_raw_sigma n) = true.
+Proof. destruct n as [|[|[|[|n]]]]; try reflexivity; destruct n; reflexivity. Qed.
+Lemma scalar_add_overflow_kind : isk KI scalar_add_overflow_sx = true.
+Proof. reflexivity. Qed.
+Lemma scalar_add_flag_exact : scalar_add_return_sx = scalar_add_flag.
+Proof. reflexivity. Qed.
+Lemma scalar_add_reduction_exact : scalar_add_limbs =
+  map scalar_add_instantiate [scalar_reduce_low0; scalar_reduce_low1; scalar_reduce_low2; scalar_reduce_low3].
+Proof. reflexivity. Qed.
+
+Definition scalar_add_raw_rho rho layout n := il (den rho layout (scalar_add_raw_sigma n)).
+Definition scalar_add_reduction_rho rho layout n := il (den rho layout (scalar_add_reduction_sigma n)).
+Lemma scalar_add_raw_sigma_value rho layout n :
+  den rho layout (scalar_add_raw_sigma n) = Vlong (scalar_add_raw_rho rho layout n).
+Proof. apply den_KL; apply scalar_add_raw_sigma_kind. Qed.
+Lemma scalar_add_reduction_sigma_kind n : isk KL (scalar_add_reduction_sigma n) = true.
+Proof.
+  unfold scalar_add_reduction_sigma; destruct (Nat.eqb n 4);
+    [reflexivity|apply scalar_add_raw_sigma_kind].
+Qed.
+Lemma scalar_add_reduction_sigma_value rho layout n :
+  den rho layout (scalar_add_reduction_sigma n) = Vlong (scalar_add_reduction_rho rho layout n).
+Proof. apply den_KL; apply scalar_add_reduction_sigma_kind. Qed.
+Lemma scalar_add_bound_flag rho layout :
+  den rho layout scalar_add_flag = Vint (Int64.loword (scalar_add_reduction_rho rho layout 4)).
+Proof. apply scalar_flag_lift; reflexivity. Qed.
+Lemma scalar_add_bound_value rho layout x :
+  den rho layout (scalar_add_instantiate x) = den (scalar_add_reduction_rho rho layout) layout x.
+Proof. apply scalar_bind_den; [apply scalar_add_reduction_sigma_value|apply scalar_add_bound_flag]. Qed.
+Lemma scalar_add_actual_overflow rho layout :
+  den rho layout scalar_add_overflow_sx =
+    Vint (b2i (Z.leb canonical_group_order (scalar_limb_value (scalar_add_raw_rho rho layout)))).
+Proof.
+  unfold scalar_add_overflow_sx.
+  rewrite (scalar_bind_den scalar_add_raw_sigma (XIc Int.zero)
+    rho (scalar_add_raw_rho rho layout) layout scalar_overflow_return).
+  - rewrite scalar_overflow_return_flag, scalar_overflow_matches_bound; reflexivity.
+  - apply scalar_add_raw_sigma_value.
+  - reflexivity.
+Qed.
+Lemma scalar_add_reduction_input_value rho layout :
+  scalar_limb_value (scalar_add_reduction_rho rho layout) =
+    scalar_limb_value (scalar_add_raw_rho rho layout).
+Proof. reflexivity. Qed.
