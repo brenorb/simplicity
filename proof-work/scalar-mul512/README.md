@@ -101,3 +101,39 @@ while its full audit **38737** runs (now past kernel, at assumption gate).
 Follow `../scalar-add-integration/CONTINUATION.md`; do not restart/mutate it.
 Claude owns Elements and shared obligations; no overlap, registries untouched.
 All-533 goal active and unfinished; local signed atomic commits, no pushes.
+
+## Checked first-column value extension
+
+The original three-module / 19-result evidence above stays byte-identical.
+`jet_secp_scalar_mul512_low.v.source` adds **six results / two definitions**;
+last verified theorem `eval_scalar_mul512_owned_low_product` includes the
+actual original call and a **current-memory** `Mint64` load at output offset
+zero equal to the product of both full 256-bit C input values modulo 2^64.
+It takes only the original owned input representation, retains all final
+representation and framing, and imposes no arithmetic/helper/output premise.
+
+The low-word machine bridge reuses
+`MulC.jet_secp_umul128_numeric.umul128_unsigned_outputs` rather than reproving
+the multiplication algorithm. A small internal modular identity connects the
+first limb to the four-limb C value. This is not a public Simplicity spec.
+The remaining seven output limbs, full product identity, scalar reduction,
+public caller lifecycle and literal canonical-program equivalences remain
+open. This extension does not make `scalar_mul512` a completed public jet.
+
+Verification: final build direct **71d1db**, independent kernel **50870**,
+fail-fast assumption/contract drivers **33364**, all terminal exit 0. Five
+results are closed; the execution root has exactly the same six inherited
+dependencies. Complete six types/two definitions print without ellipses or
+diagnostics; the inherited 15-axiom kernel context matches, unsafe categories
+are empty. Exact evidence is in `LOW-REVIEW.json`; replay the read-only check:
+
+```sh
+python3 -B proof-work/scalar-mul512/review-low.py
+```
+
+For the next columns, retain `scalar_mul512_low_den` as a template: identify
+the observed C machine expression by bounded conversion, then apply the
+existing product/carry facts. Do not unfold `den` across the entire eight-word
+array in an open goal. Maintain a radix-column invariant (including c2 bounds)
+across the actual accumulation/extraction steps and compose its conclusion
+with `eval_scalar_mul512_owned`.
