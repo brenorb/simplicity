@@ -1,80 +1,55 @@
-# Preserve the live normal scalar acceptance
+# Accepted normal scalar baseline — continue scalar-add/main integration
 
-The all-533-jet goal is active, unfinished and not blocked. There is no new
-scalar caller proof to redo: both complete public local theorems and their
-exact 25-module normal-C closure compiled, with all new/inherited snapshot
-boundaries reviewed. The three getter modules were the missing dependency
-in the older 22-module estimate; do not revert that correction.
+The all-533 goal is active, unfinished and not blocked. The complete public
+scalar-normalize/negate contracts and their exact 25-module normal C closure
+have now passed full acceptance. No caller proof needs to be redone.
 
-## Live process
+## Terminal acceptance, not a live process
 
-**10545** owns the full acceptance retry in
-`/tmp/jet-scalar-integration.XAMDsw/Coq`:
+**10545** terminated with **exit 0**, using `JOBS=1 bash check-jets.sh --accept`
+without update/no-build flags, in `/tmp/jet-scalar-integration.XAMDsw/Coq`.
+Do not poll or restart it. `ACCEPTANCE.json` pins the terminal receipt:
 
-```sh
-export PATH=/nix/store/57myhb98wx8k9dr21cf51bsmvxjs67h6-coq-8.17.1/bin:$PATH
-export JET_C_REPO=/Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity
-ulimit -S -s 65520
-JOBS=1 bash check-jets.sh --accept \
-  > /tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance-retry.log 2>&1
-```
+- Log `/tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance-retry.log`.
+- Log SHA-256 `5d22cbc4ce4afb1111110b8c7b5d9cc79b747f2c077666941599b597bcd1381a`.
+- Unchanged input `aa652e53f690b80bcdc03a263f11114d04b1e9743f3dac471a41b00e9dac42ec`.
+- Build, 829-module kernel, 4,329-result assumption comparison (2,292 closed),
+  exact public types/definitions, negative gates and all four ASTs passed.
+- Post-run pinned normal review passed; inherited sources/contracts/axioms,
+  all new source/type/definition/dependency evidence remained unchanged.
 
-Poll this same session and inspect its log. A quiet run is not failure and
-does not justify restarting. Do not mutate sources, gates, project/result/
-definition/coverage inventories, snapshots or production C/Haskell inputs.
-Input fingerprint:
-`aa652e53f690b80bcdc03a263f11114d04b1e9743f3dac471a41b00e9dac42ec`.
+Original **83287** failed with exit 2 at missing sibling source layout and
+remains failed evidence. Only the retry is accepted. Its repaired read-only
+`C`/`Haskell` source links match the accepted parent's layout. Keep this
+accepted candidate immutable; scalar-add was prepared without modifying it.
 
-Session **83287** is terminal, exit **2**. Its original log is preserved.
-All proof gates passed; AST preprocessing failed on missing `../../C/frame.c`.
-The candidate had copied only `Coq`, unlike its accepted parent with sibling
-`C` / `Haskell` links. Those read-only links are now restored, normal review
-passed unchanged (40956, exit 0), and core AST regeneration passed. Neither
-partial gates nor this preflight authorize acceptance. For future candidate
-preparation, preserve the parent's sibling source layout and verify source
-links before launching a long audit. Do not restart **10545**.
+## Next
 
-The previous scalar-zero process **45608** is terminal, exit **0**, with its
-fully reviewed receipt now in `../scalar-zero/ACCEPTANCE.json`. Do not wait
-for or restart it. Its accepted immutable baseline remains unchanged.
+1. Scalar-add's default normal review now succeeds with this terminal parent
+   receipt; its source/snapshot report exactly matches the preliminary one.
+   See `../scalar-add-integration/CONTINUATION.md` for its current full audit.
+2. After scalar-add full acceptance, reconcile accepted prerequisites and
+   scalar-add into the dirty main checkout. Preserve mixed staged/unstaged
+   inventories, SHA-support work and main-only experiments. Read-only
+   `../scalar-add-integration/plan-main.py` found no source conflicts and
+   exact inherited contract/dependency preservation. Recompute before writes.
+3. Verify actual main scope separately; isolated acceptance is not main
+   registration. Do not copy whole trees or .vo/build outputs into Git.
+4. `../scalar-mul` has 17 newly compiled/kernel-checked actual multiplication
+   helper results and exact evidence. Continue from the original-C helper
+   contracts toward literal public multiply/square specs, not assumed calls.
 
-## On terminal completion
-
-1. On failure, inspect the first actual diagnostic and determine its source;
-   never weaken a statement, add an execution/output/free premise, broaden
-   axioms, or silently update expected snapshots.
-2. On exit 0, review the entire final log: build, kernel, exact assumption and
-   contract comparisons, negative gates and all four AST matches. Recompute
-   the source fingerprint and require it equal the initial value. Re-run
-   `python3 -B proof-work/scalar-integration/review-normal.py`; all hashes and
-   pinned source/evidence/definition/dependency records must match.
-3. Only then create a signed local `ACCEPTANCE.json` receipt. Provisional
-   358/533 becomes accepted **isolated** coverage, not main registration.
-4. Reconcile the accepted closure into the main checkout, preserving the
-   mixed staged/unstaged registry changes and existing SHA-support work.
-   Integration includes the earlier field/point/affine/scalar-zero accepted
-   prerequisites. Use immutable receipts/source manifests, do not copy a
-   whole scratch tree or generated build products into Git. Verify main
-   coverage and snapshots after exact source/inventory reconciliation.
-5. Continue easiest remaining scalar/other jets, reusing the proved actual
-   reader, serializer, owned-lifecycle and literal-program interfaces. Each
-   new jet still needs its own original C arithmetic and literal spec bridge.
-
-## Reproducible read-only checks
-
-From the main checkout:
+Reproduce read-only review from main:
 
 ```sh
 python3 -B proof-work/scalar-integration/review-normal.py
 python3 -B proof-work/scalar-integration/test-review.py
 ```
 
-`assemble-candidate.py --verify` is deliberately an **initial preparation**
-check: it requires inherited snapshots unchanged. It must reject the current
-reviewed snapshot extension. Use the pinned normal reviewer after preparation;
-do not bypass that distinction or rerun the assembler on the live candidate.
+`assemble-candidate.py --verify` remains an initial preparation check and
+must reject reviewed snapshot extensions; do not rerun the assembler.
 
-Scope remains local-frame / LP64 / RECKLESS, not full evaluator/all-frame or
-assertion-enabled execution. Claude owns shared linkage/startup/constructibility
-and Elements foundations; leave its worktree/modules untouched and write its
-COORDINATION.md only if an actual overlap arises. No remote pushes.
+Accepted isolated coverage **358/533**, main **351/533**. Local-frame / LP64 /
+RECKLESS scope remains; evaluator-wide/all-frame and assertion-enabled
+obligations are not discharged. Claude owns Elements/shared linkage/startup/
+constructibility; no overlap. Signed local atomic commits, no pushes.
