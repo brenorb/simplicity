@@ -1,7 +1,7 @@
 # Affine negation: actual allocation support
 
-39 internal results in twelve modules compile and pass independent closure
-kernel checking (75861 exit 0). No public jet equivalence or coverage entry
+69 internal results in twenty-four modules compile and pass independent joint
+kernel checking (55644 exit 0). No public jet equivalence or coverage entry
 is claimed. This is support for proving original simplicity_ge_negate against
 the already ported literal ge_negate, not a numeric substitute specification.
 
@@ -24,8 +24,13 @@ eval_affine_negate_point_output now derives the entire original ge_neg helper
 call: actual entry, 88-byte whole-struct self-copy, generated Y calls, return
 and empty-local free. It preserves X, flag, whole-object Freeable and framing,
 and derives exact negative Y storage. No execution, successful copy, output or
-free is assumed. Shared load/foot transport is size-parameterized. Next compose
-read_ge/ge_neg/write_ge and public 16+88 entry allocation/source copy/true return/
+free is assumed. eval_read_ge_canonical_fields now derives the entire original
+affine reader: entry, both reads, real zero-flag store, exact canonical X/Y,
+source cursor advancement by 512, 88/16-byte ownership, framing and return.
+The shared original field reader is parameterized by enclosing allocation
+size; concrete fit inequalities are discharged for the affine 88-byte layout.
+Shared load/foot transport is also size-parameterized. Next derive write_ge,
+then compose read_ge/ge_neg/write_ge and public 16+88 entry/source copy/true return/
 both frees. Reuse literal field bridges, not a replacement public formula.
 Only after complete literal output and lifecycle should source gates, literal
 parametricity, inventories, contracts/assumptions review and isolated acceptance
@@ -42,25 +47,35 @@ bash build-jets.sh --coqc \
   -R /tmp/jet-gej-predicate.W2FtCz C \
   -R /tmp/jet-gej-negate.IMImaX C \
   -R /tmp/jet-ge-negate.aFl8mr C \
-  /tmp/jet-ge-negate.aFl8mr/jet_secp_affine_negate_call.v
+  /tmp/jet-ge-negate.aFl8mr/jet_secp_read_ge_fields.v
 ```
 
-Use --coqchk -silent -o with the same overlays and C.jet_secp_affine_negate_call
-for the complete twelve-module kernel closure. Pin PATH in every invocation;
+Use --coqchk -silent -o with the same overlays and both C.jet_secp_affine_negate_call
+and C.jet_secp_read_ge_fields for the complete twenty-four-module joint closure.
+Pin PATH in every invocation;
 an unpinned slice-kernel attempt exited 1 because Rocq 9.3 cannot read 8.17
 objects. Corrected slice kernel 77501 exited 0; original weak kernel 31133
 and final owned closure 75855 exited 0. No failed run is counted as evidence.
 
-Per-result preliminary assumption printing 99605 exited 0 in the scratch tree,
-driver affine_assumptions_review.v, outputs assumptions-review.out/.err.
-Inventory was extracted from all 39 actual source declarations in twelve
+Per-result preliminary assumption printing 31866 exited 0 in the scratch tree,
+driver affine_assumptions_review_69.v, outputs assumptions-69-review.out/.err.
+Inventory was extracted from all 69 actual source declarations in twenty-four
 modules, not inferred from manifest counts. Read-only strict review passes:
-39 exact reports, 22 closed, unchanged six-name union and final helper set,
-empty diagnostics and all twelve compiled/archive hashes identical. Reproduce
+69 exact reports, 38 closed, unchanged six-name union and final helper/reader sets,
+all 39 inherited helper sets unchanged, empty diagnostics and all twenty-four
+compiled/archive hashes identical. Reproduce
 with review-assumptions.py --work /tmp/jet-ge-negate.aFl8mr. See
-ASSUMPTION-REVIEW.json. Kernel completion is separately recorded in
+READER-ASSUMPTION-REVIEW.json (the older ASSUMPTION-REVIEW.json records the 39-result
+checkpoint). Kernel completion is separately recorded in
 KERNEL-REVIEW.json. This is not
 a complete public-contract or full acceptance receipt.
+
+Proof-engineering diagnosis: the first full-reader compile stopped at an
+uninstantiated enclosing-size existential in owned_field_load_transport.
+The interactive goal was offset+40 <= ?size (not a missing mathematical fact).
+Supplying offset, actual size 88 and the current memories explicitly closes
+the proof without changing its preconditions. The incomplete Show scratch
+was never compiled or counted. Final compiler 99590 exited 0.
 
 Use C.jets_secp (the normalized pinned translation unit), not the older
 C.jets_secp256k1 AST with different composite identifiers. The actual helper
