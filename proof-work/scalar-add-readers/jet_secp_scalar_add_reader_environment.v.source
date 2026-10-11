@@ -1,0 +1,56 @@
+(** Combine the two canonical reader stores into the actual eight-limb add
+    environment. The existing scalar-radix proof establishes their values. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require Import Simplicity.Ty Simplicity.Alg Simplicity.Word.
+Require Import C.jet_word_repr C.jet_secp_canonical_scalar.
+Require Import C.jet_secp_scalar_get_b32_numeric C.jet_secp_scalar_overflow_numeric.
+Require Import C.jet_secp_scalar_negate_canonical.
+Require Import AddC.jet_secp_scalar_add_initial AddC.jet_secp_scalar_add_numeric.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_add_reader_rho (va vb : Z) (n : nat) : int64 :=
+  if (n <? 4)%nat then scalar_limb_rho va n else scalar_limb_rho vb (n-4)%nat.
+Definition scalar_add_normalized_rho (a b : Ty.tySem (Word 8)) :=
+  scalar_add_reader_rho
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem a))
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem b)).
+
+Lemma scalar_add_reader_first va vb n : (n < 4)%nat ->
+  scalar_add_reader_rho va vb n = scalar_limb_rho va n.
+Proof. intro H; do 4 (destruct n as [|n]; [reflexivity|]); lia. Qed.
+
+Lemma scalar_add_reader_second va vb n : (n < 4)%nat ->
+  scalar_add_reader_rho va vb (4+n)%nat = scalar_limb_rho vb n.
+Proof. intro H; do 4 (destruct n as [|n]; [reflexivity|]); lia. Qed.
+
+Lemma scalar_add_reader_values_first va vb :
+  scalar_add_values (scalar_add_reader_rho va vb) 0 = map Int64.repr (scalar_limbs_of va).
+Proof. reflexivity. Qed.
+
+Lemma scalar_add_reader_values_second va vb :
+  scalar_add_values (scalar_add_reader_rho va vb) 4 = map Int64.repr (scalar_limbs_of vb).
+Proof. reflexivity. Qed.
+
+Lemma scalar_add_reader_weighted_values va vb :
+  0 <= va < 2 ^ 256 -> 0 <= vb < 2 ^ 256 ->
+  scalar_limb_value (scalar_add_reader_rho va vb) = va /\
+  scalar_limb_value (scalar_add_second_rho (scalar_add_reader_rho va vb)) = vb.
+Proof.
+  intros HA HB.
+  change (scalar_limb_value (scalar_limb_rho va) = va /\
+    scalar_limb_value (scalar_limb_rho vb) = vb).
+  split; apply scalar_limb_rho_value; assumption.
+Qed.
+
+Lemma scalar_add_normalized_reader_values (a b : Ty.tySem (Word 8)) :
+  scalar_limb_value (scalar_add_normalized_rho a b) =
+    @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem a) /\
+  scalar_limb_value (scalar_add_second_rho (scalar_add_normalized_rho a b)) =
+    @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem b).
+Proof.
+  unfold scalar_add_normalized_rho; apply scalar_add_reader_weighted_values;
+    apply word_toZ_range.
+Qed.

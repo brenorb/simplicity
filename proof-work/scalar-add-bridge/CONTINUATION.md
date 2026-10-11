@@ -1,5 +1,11 @@
 # Next: two actual readers and the public scalar-add caller
 
+The owned-input representation and both actual scalar-reader calls are now
+compiled and independently audited in `../scalar-add-readers`. Its
+`CONTINUATION.md` supersedes steps 1--3 below. Resume at composing the
+read/read/add/write chain and original public lifecycle, not re-proving the
+reader or owned-input pieces. This older checkpoint remains immutable.
+
 Last verified declaration:
 `AddC.jet_secp_scalar_add_literal_owned.eval_scalar_add_literal_owned`.
 All eight results in this archive and all 37 helper results in `../scalar-add`
