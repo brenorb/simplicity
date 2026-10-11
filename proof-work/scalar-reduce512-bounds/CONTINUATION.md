@@ -1,5 +1,11 @@
 # Continue from sharp bounds to the actual second-fold value
 
+Superseded continuation: the second-stage source/value/concrete execution and
+its checkpoint are now checked in `../scalar-reduce512-two-stages/`. Follow
+that archive's `CONTINUATION.md` for the remaining third/final reduction.
+The failure below is historical; do not restart the monolithic p3 experiment.
+This pointer does not change these frozen Coq sources or verification receipts.
+
 The two archived modules compile completely. Last checked declarations:
 `second_fold_bridge_modulo_order` and `reduce512_second_limb_kinds`.
 The former concerns an explicitly named integer bridge, not actual C output.
