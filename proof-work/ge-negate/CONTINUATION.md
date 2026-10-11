@@ -1,7 +1,7 @@
 # Affine negation: actual allocation support
 
-15 internal results in four modules compile and pass independent closure
-kernel checking (75855 exit 0). No public jet equivalence or coverage entry
+28 internal results in nine modules compile and pass independent closure
+kernel checking (78337 exit 0). No public jet equivalence or coverage entry
 is claimed. This is support for proving original simplicity_ge_negate against
 the already ported literal ge_negate, not a numeric substitute specification.
 
@@ -20,8 +20,9 @@ representation proof print four inherited logical assumptions. The imported
 kernel closure contains the unchanged fifteen context axioms; its unsafe
 categories are empty. Distinguish closure imports from per-result dependencies.
 
-Next prove actual affine magnitude-one field negation, retain X and flag through
-Y updates, derive the real 88-byte struct self-copy, then compose original
+Actual magnitude-one field negation and both Y calls now retain X, flag and
+88-byte ownership. Shared load/foot transport is size-parameterized. Next
+derive the real 88-byte struct self-copy, then compose original
 read_ge/ge_neg/write_ge and public 16+88 entry allocation/source copy/true return/
 both frees. Reuse literal field bridges, not a replacement public formula.
 Only after complete literal output and lifecycle should source gates, literal
