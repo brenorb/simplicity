@@ -2,6 +2,16 @@
 
 ## Current continuation (supersedes historical live-session notes below)
 
+Point-negate preliminary contract/assumption generation **7286 is live**,
+sequential in `/tmp/jet-gej-negate.IMImaX` on its separate narrow overlays.
+Drivers: `negate_contracts_standard.v`, then `negate_assumptions_review.v`.
+Outputs: `contracts-standard.out/.err`, then `assumptions-review.out/.err`.
+Inventory covers all **80 actual Lemma/Theorem declarations and 26 top-level
+Definition/Fixpoint/Record declarations in 34 modules**, checked against exact
+archived sources, not just manifest counts. No expected snapshot is updated.
+Inspect terminal status, diagnostics, actual theorem premises/definitions,
+ellipsis/deep supplements and per-result axiom sets before any registration.
+
 Combined infinity/predicate snapshots are now reviewed (see
 `../gej-predicate/COMBINED-SNAPSHOT-REVIEW.json`): exact inherited records,
 133 new assumptions and 176 contract records reconciled. Source check passes
