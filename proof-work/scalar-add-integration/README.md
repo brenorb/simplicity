@@ -1,11 +1,11 @@
-# Normal scalar-add candidate: checked preparation
+# Normal scalar-add candidate: accepted isolated closure
 
 The complete original-public-C-to-literal-Simplicity scalar-add contract now
 freshly compiles in the normal logical namespace `C`:
 
 `C.jet_secp_scalar_add_local.scalar_add_literal_local_spec`.
 
-This is **not yet full acceptance or main-checkout registration**.
+Full isolated acceptance passed; this is **not main-checkout registration**.
 Candidate: `/tmp/jet-scalar-add-integration.RxsuOy/Coq`.
 Parent: accepted immutable `/tmp/jet-scalar-integration.XAMDsw`; full
 acceptance retry **10545** terminated with **exit 0**. Its pinned receipt is
@@ -52,14 +52,17 @@ the checked public archive are revalidated on every closure plan. After the
 parent passed, default review **6372** exited 0 without preparation flags;
 `NORMAL-REVIEW.json` is byte-identical to the earlier preliminary report.
 
-## Live verification and status
+## Completed verification and status
 
-Full scalar-add acceptance is now running as **38737**, using
+Full scalar-add acceptance **38737** terminated with **exit 0**, using
 `JOBS=1 bash check-jets.sh --accept` without update/no-build flags.
 Log `/tmp/jet-scalar-add-integration.RxsuOy/scalar-add-full-acceptance.log`.
-`AUDIT-RUN.json` pins the run and pre-audit fingerprint. Poll this same
-process; do not restart or mutate candidate/production inputs. No full
-scalar-add acceptance or main integration is claimed yet.
+`AUDIT-RUN.json` preserves the historical launch and pre-audit fingerprint.
+`ACCEPTANCE.json` records terminal success: 853 kernel modules, 4,408
+assumption records (2,343 closed), all contract/negative/identity gates and
+all four regenerated ASTs. Post-run fingerprint, normal/kernel reviews and
+their mutation tests passed (**54660**, exit 0). Do not restart this completed
+run or modify its accepted inputs. Main integration remains separate.
 
 Independent normal kernel check **86561** terminated with **exit 0**, log
 `/tmp/jet-scalar-add-integration.RxsuOy/normal-kernel.log`.
@@ -73,7 +76,7 @@ by `test-kernel.py`; none changes the candidate or its audit inputs.
 Prepared input fingerprint:
 `951402aa40e88c34b42d24b9bd95725285670df885531ff555b8e290127d5ffc`.
 
-Candidate 359/533 is **provisional isolated** coverage (255 without an extra
+Candidate 359/533 is **accepted isolated** coverage (255 without an extra
 library premise, 104 conditional on memcpy_model). Main remains **351/533**.
 These local-frame / LP64 / RECKLESS contracts do not establish evaluator-wide
 or assertion-enabled execution. No every-jet completion is claimed.
