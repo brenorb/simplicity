@@ -1,0 +1,103 @@
+(** Exact radix-column value lemmas for the observed C machine operations. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require Import C.jet_secp_u64_carry.
+Require Import MulC.jet_secp_umul128_numeric MulC.jet_secp_u128_accum_mul_numeric.
+Require Import MulC.jet_secp_scalar_mul512_machine.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma column_value_nonnegative s : 0 <= column_value s.
+Proof.
+  unfold column_value; pose proof (Int64.unsigned_range (col_lo s));
+    pose proof (Int64.unsigned_range (col_hi s)); pose proof (Int.unsigned_range (col_top s)).
+  pose proof Int64.modulus_pos; nia.
+Qed.
+Lemma column_value_zero : column_value column_zero = 0.
+Proof. reflexivity. Qed.
+Lemma column_top_small s : column_value s < 5 * (Int64.modulus * Int64.modulus) ->
+  Int.unsigned (col_top s) < Int.max_unsigned.
+Proof.
+  intro H; unfold column_value in H.
+  pose proof (Int64.unsigned_range (col_lo s)); pose proof (Int64.unsigned_range (col_hi s)).
+  pose proof (Int.unsigned_range (col_top s)); pose proof Int64.modulus_pos.
+  assert (Int.unsigned (col_top s) < 5) by nia.
+  change (Int.unsigned (col_top s) < 4294967295); lia.
+Qed.
+Lemma column_muladd_value a b s : Int.unsigned (col_top s) < Int.max_unsigned ->
+  column_value (column_muladd a b s) = column_value s + Int64.unsigned a * Int64.unsigned b.
+Proof.
+  intro HT.
+  pose proof (column_product_hi_add_value a b s) as Hth.
+  pose proof (proj1 (u64_add_with_carry (col_lo s) (umul128_lo_machine a b))) as Hlo.
+  rewrite (proj2 (umul128_unsigned_outputs a b)) in Hlo.
+  pose proof (proj1 (u64_add_with_carry (col_hi s) (column_product_hi_add a b s))) as Hhi.
+  assert (Htop : Int.unsigned (Int.add (col_top s)
+    (column_carry32 (col_hi s) (column_product_hi_add a b s))) =
+    Int.unsigned (col_top s) +
+      (Int64.unsigned (col_hi s) + Int64.unsigned (column_product_hi_add a b s)) / Int64.modulus).
+  { rewrite Int.add_unsigned,Int.unsigned_repr.
+    - rewrite column_carry32_value; reflexivity.
+    - pose proof (Int.unsigned_range (col_top s));
+      pose proof (column_carry32_bound (col_hi s) (column_product_hi_add a b s)); lia. }
+  unfold column_value; cbn [column_muladd col_lo col_hi col_top].
+  unfold column_product_lo; rewrite Hlo,Hhi,Htop,Hth.
+  set (P := Int64.unsigned a * Int64.unsigned b).
+  set (L := Int64.unsigned (col_lo s)); set (H := Int64.unsigned (col_hi s)).
+  pose proof (Z.div_mod P Int64.modulus ltac:(discriminate)) as HP.
+  pose proof (Z.div_mod (L + P mod Int64.modulus) Int64.modulus ltac:(discriminate)) as HL.
+  pose proof (Z.div_mod (H + (P / Int64.modulus + (L + P mod Int64.modulus) / Int64.modulus))
+    Int64.modulus ltac:(discriminate)) as HH.
+  change Int64.modulus with 18446744073709551616 in *; lia.
+Qed.
+Lemma column_extract_decomposition s :
+  column_value s = Int64.unsigned (col_lo s) + Int64.modulus * column_value (column_extract s).
+Proof.
+  unfold column_value; cbn [column_extract col_lo col_hi col_top].
+  rewrite Int64.unsigned_repr,Int.unsigned_zero.
+  - ring.
+  - pose proof (Int.unsigned_range (col_top s)).
+    change Int.modulus with 4294967296 in *.
+    change Int64.max_unsigned with 18446744073709551615; lia.
+Qed.
+Lemma column_extract_value s : column_value (column_extract s) = column_value s / Int64.modulus.
+Proof.
+  rewrite (column_extract_decomposition s).
+  replace (Int64.modulus * column_value (column_extract s)) with
+    (column_value (column_extract s) * Int64.modulus) by ring.
+  rewrite Z.div_add by discriminate.
+  rewrite Z.div_small by apply Int64.unsigned_range; lia.
+Qed.
+Lemma column_fast_mod a b s : col_top s = Int.zero ->
+  column_value (column_muladd_fast a b s) =
+    (column_value s + Int64.unsigned a * Int64.unsigned b) mod (Int64.modulus * Int64.modulus).
+Proof.
+  intro HT.
+  pose proof (accum_mul_numeric_value (fun n => match n with
+    | 0%nat => a | 1%nat => b | 2%nat => col_lo s | _ => col_hi s end)) as H.
+  change (Int64.unsigned (Int64.add (col_hi s) (column_product_hi_add a b s)) * Int64.modulus +
+    Int64.unsigned (column_product_lo a b s) =
+    (Int64.unsigned (col_hi s) * Int64.modulus + Int64.unsigned (col_lo s) +
+      Int64.unsigned a * Int64.unsigned b) mod (Int64.modulus * Int64.modulus)) in H.
+  unfold column_value; cbn [column_muladd_fast col_lo col_hi col_top]; rewrite HT,Int.unsigned_zero.
+  replace (Int64.unsigned (col_lo s) + Int64.modulus * (Int64.unsigned (col_hi s) + Int64.modulus * 0) +
+    Int64.unsigned a * Int64.unsigned b) with
+    (Int64.unsigned (col_hi s) * Int64.modulus + Int64.unsigned (col_lo s) +
+      Int64.unsigned a * Int64.unsigned b) by ring.
+  rewrite <- H; ring.
+Qed.
+Lemma column_fast_value a b s : col_top s = Int.zero ->
+  column_value s + Int64.unsigned a * Int64.unsigned b < Int64.modulus * Int64.modulus ->
+  column_value (column_muladd_fast a b s) = column_value s + Int64.unsigned a * Int64.unsigned b.
+Proof.
+  intros HT HB; rewrite column_fast_mod by exact HT.
+  apply Z.mod_small; split; [|exact HB].
+  pose proof (column_value_nonnegative s); pose proof (Int64.unsigned_range a);
+    pose proof (Int64.unsigned_range b); nia.
+Qed.
+Lemma column_fast_extract_decomposition s : col_top s = Int.zero ->
+  column_value s = Int64.unsigned (col_lo s) + Int64.modulus * column_value (column_extract_fast s).
+Proof.
+  intro HT; unfold column_value; cbn [column_extract_fast col_lo col_hi col_top].
+  rewrite HT,Int.unsigned_zero,Int64.unsigned_zero; ring.
+Qed.

@@ -1,0 +1,86 @@
+(** Bounded accumulation of actual column operations; guards are derived
+    for each finite C column, not assumed at the public call boundary. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require Import MulC.jet_secp_scalar_mul512_machine MulC.jet_secp_scalar_mul512_columns.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Fixpoint column_products (ps : list (int64 * int64)) : Z :=
+  match ps with [] => 0 | (a,b)::t => Int64.unsigned a * Int64.unsigned b + column_products t end.
+Fixpoint column_accumulate (ps : list (int64 * int64)) (s : mul_column) : mul_column :=
+  match ps with [] => s | (a,b)::t => column_accumulate t (column_muladd a b s) end.
+
+Lemma column_products_bound ps :
+  0 <= column_products ps <= Z.of_nat (length ps) * (Int64.modulus * Int64.modulus).
+Proof.
+  induction ps as [|[a b] t IH]; cbn [column_products length]; [lia|].
+  rewrite Nat2Z.inj_succ.
+  pose proof (Int64.unsigned_range a); pose proof (Int64.unsigned_range b); pose proof Int64.modulus_pos.
+  nia.
+Qed.
+Lemma column_accumulate_value ps s :
+  column_value s + column_products ps < 5 * (Int64.modulus * Int64.modulus) ->
+  column_value (column_accumulate ps s) = column_value s + column_products ps.
+Proof.
+  revert s; induction ps as [|[a b] t IH]; intro s; cbn [column_products column_accumulate]; intro HB.
+  - lia.
+  - pose proof (column_products_bound t) as HP.
+    pose proof (Int64.unsigned_range a); pose proof (Int64.unsigned_range b).
+    assert (HT : Int.unsigned (col_top s) < Int.max_unsigned).
+    { apply column_top_small; nia. }
+    pose proof (column_muladd_value a b s HT) as HV.
+    rewrite IH.
+    + rewrite HV; lia.
+    + rewrite HV; lia.
+Qed.
+Lemma column_accumulate_small ps s : (length ps <= 4)%nat ->
+  column_value s < 5 * Int64.modulus ->
+  column_value (column_accumulate ps s) = column_value s + column_products ps /\
+  column_value (column_accumulate ps s) < 5 * (Int64.modulus * Int64.modulus) /\
+  column_value (column_extract (column_accumulate ps s)) < 5 * Int64.modulus.
+Proof.
+  intros Hlen HS; pose proof (column_products_bound ps) as HP.
+  assert (HM : 5 <= Int64.modulus) by (change (5 <= 18446744073709551616); lia).
+  assert (HL : Z.of_nat (length ps) <= 4) by (exact (proj1 (Nat2Z.inj_le _ _) Hlen)).
+  assert (HB : column_value s + column_products ps < 5 * (Int64.modulus * Int64.modulus)) by nia.
+  pose proof (column_accumulate_value ps s HB) as HV.
+  split; [exact HV|]. split; [rewrite HV; exact HB|].
+  rewrite column_extract_value,HV.
+  apply Z.div_lt_upper_bound; nia.
+Qed.
+Lemma column_fast_carry_small a b :
+  column_value (column_extract_fast (column_muladd_fast a b column_zero)) < 5 * Int64.modulus.
+Proof.
+  unfold column_value; cbn [column_extract_fast column_muladd_fast column_zero col_lo col_hi col_top].
+  rewrite Int64.unsigned_zero,Int.unsigned_zero.
+  pose proof (Int64.unsigned_range (Int64.add Int64.zero (column_product_hi_add a b column_zero))).
+  pose proof Int64.modulus_pos; lia.
+Qed.
+Lemma column_fast_zero_product a b :
+  column_value (column_muladd_fast a b column_zero) = Int64.unsigned a * Int64.unsigned b.
+Proof.
+  rewrite column_fast_value; [rewrite column_value_zero; lia|reflexivity|].
+  rewrite column_value_zero; pose proof (Int64.unsigned_range a); pose proof (Int64.unsigned_range b).
+  pose proof Int64.modulus_pos; nia.
+Qed.
+
+Fixpoint column_words_value (xs : list int64) : Z :=
+  match xs with [] => 0 | x::t => Int64.unsigned x + Int64.modulus * column_words_value t end.
+Lemma column_words_bound xs :
+  0 <= column_words_value xs < Int64.modulus ^ Z.of_nat (length xs).
+Proof.
+  induction xs as [|x t IH]; cbn [column_words_value length].
+  - change (0 <= 0 < 1); lia.
+  - rewrite Nat2Z.inj_succ,Z.pow_succ_r by lia.
+    pose proof (Int64.unsigned_range x); pose proof Int64.modulus_pos; nia.
+Qed.
+Lemma column_words_append xs ys :
+  column_words_value (xs ++ ys) = column_words_value xs +
+    Int64.modulus ^ Z.of_nat (length xs) * column_words_value ys.
+Proof.
+  induction xs as [|x t IH]; cbn [column_words_value app length].
+  - change (column_words_value ys = 0 + 1 * column_words_value ys); ring.
+  - rewrite IH,Nat2Z.inj_succ,Z.pow_succ_r by lia; ring.
+Qed.
