@@ -80,10 +80,10 @@ C.jet_frame_constructible_bm` (after building the registered core modules).
    are done (`C/jet_env_rep_stable.v`, `C/jet_app_executable_registry.v`);
    *constructing* a representing memory for every logical environment is
    open (per-relation work).
-2. secp contract shape: executability instances (needs the secp unit built).
-3. Linked-tree instances of the executability registry (104 memcpy jets
-   become unconditional end to end): generator sketch in section 1's tree;
-   requires building the remaining core modules in `linked/tree`.
+2. (done) secp contract shape: `C/jet_frame_constructible_secp.v`; all 349
+   registered jets have an executability instance.
+3. (done) Linked executability: `linked/C/jet_frame_executable_linked.v` —
+   the 104 memcpy jets run unconditionally in the linked program.
 4. A plain-C memcpy link would need a data-byte frame invariant threaded
    through the copy family; not started.
 5. Integration: the archived `proof-work/sha-support/jet_sha_global_frame.v.source`
