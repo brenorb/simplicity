@@ -55,6 +55,11 @@ new, disjoint experiments are not permission to change those inputs.
    and append-only inventories, reviewed snapshots and gates, preserving the
    staged/unstaged registries and existing SHA work. Do not copy a whole
    scratch tree or .vo/build products into Git. Verify the actual main scope.
+   `MAIN-RECONCILIATION.md` and `plan-main.py` record a read-only checkpoint:
+   no source conflicts, exact append-only inventories, 5,611 inherited
+   contract records and 3,733 dependency records unchanged. Recompute it
+   before applying; match full declaration identity/occurrence, not short
+   printed names. `test-plan.py` checks duplicate and qualified-name cases.
 
 ## Reproduce read-only checks from main
 
