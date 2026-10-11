@@ -35,3 +35,17 @@ Lemma elements_env_tx_field :
   | None => False
   end.
 Proof. vm_compute; reflexivity. Qed.
+
+Lemma elements_tx_version_field :
+  match (Clight.genv_cenv elements_ge)!jets_elements._elementsTransaction with
+  | Some co => field_offset (Clight.genv_cenv elements_ge) jets_elements._version (co_members co) = OK (720, Full)
+  | None => False
+  end.
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma elements_tx_lockTime_field :
+  match (Clight.genv_cenv elements_ge)!jets_elements._elementsTransaction with
+  | Some co => field_offset (Clight.genv_cenv elements_ge) jets_elements._lockTime (co_members co) = OK (728, Full)
+  | None => False
+  end.
+Proof. vm_compute; reflexivity. Qed.
