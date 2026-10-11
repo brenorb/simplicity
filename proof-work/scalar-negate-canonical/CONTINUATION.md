@@ -1,5 +1,10 @@
 # Next: complete the public scalar-negate caller
 
+**Superseded proof work:** the public caller is now fully compiled and
+independently kernel-checked in `../scalar-negate-public`. Its continuation
+guide records the next integration work. The decomposition below is retained
+as historical guidance, not as unfinished proof work.
+
 The app goal remains active and incomplete. This checkpoint adds no main
 coverage. The main registered total is still 351/533; isolated candidates
 must not be substituted for it. No remote push is authorized.
