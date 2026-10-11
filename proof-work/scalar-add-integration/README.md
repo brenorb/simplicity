@@ -7,9 +7,10 @@ freshly compiles in the normal logical namespace `C`:
 
 This is **not yet full acceptance or main-checkout registration**.
 Candidate: `/tmp/jet-scalar-add-integration.RxsuOy/Coq`.
-Parent: frozen, reviewed `/tmp/jet-scalar-integration.XAMDsw`; its full
-acceptance retry **10545** remains live. The earlier failed run is not
-acceptance evidence. No parent input is modified.
+Parent: accepted immutable `/tmp/jet-scalar-integration.XAMDsw`; full
+acceptance retry **10545** terminated with **exit 0**. Its pinned receipt is
+`../scalar-integration/ACCEPTANCE.json`. The earlier failed run remains failed
+evidence. No parent input is modified.
 
 ## Exact namespace transport and reviews
 
@@ -44,12 +45,21 @@ with exit **0**, compiling all 24 modules.
   parent's missing-source-layout failure.
 
 The normal review defaults to requiring a terminal successful parent receipt;
-it currently **rejects** that missing receipt (90504, exit 1). Its explicit
+it formerly **rejected** the missing receipt (90504, exit 1). Its explicit
 `--preliminary` mode permits independent review/preparation while the parent
 audit runs, not acceptance or registration. The existing parent reviewer and
-the checked public archive are revalidated on every closure plan.
+the checked public archive are revalidated on every closure plan. After the
+parent passed, default review **6372** exited 0 without preparation flags;
+`NORMAL-REVIEW.json` is byte-identical to the earlier preliminary report.
 
 ## Live verification and status
+
+Full scalar-add acceptance is now running as **38737**, using
+`JOBS=1 bash check-jets.sh --accept` without update/no-build flags.
+Log `/tmp/jet-scalar-add-integration.RxsuOy/scalar-add-full-acceptance.log`.
+`AUDIT-RUN.json` pins the run and pre-audit fingerprint. Poll this same
+process; do not restart or mutate candidate/production inputs. No full
+scalar-add acceptance or main integration is claimed yet.
 
 Independent normal kernel check **86561** terminated with **exit 0**, log
 `/tmp/jet-scalar-add-integration.RxsuOy/normal-kernel.log`.

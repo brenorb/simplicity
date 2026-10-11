@@ -9,12 +9,16 @@ an arithmetic/helper/entry/cleanup proof to redo.
 
 ## One live handle and a completed kernel check
 
-- **10545**: parent scalar normalize/negate complete acceptance retry.
-  Candidate `/tmp/jet-scalar-integration.XAMDsw/Coq`.
-  Log `/tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance-retry.log`.
-  It is confirmed live; full kernel checking of 829 modules has passed and
-  the assumption gate is running. Parent input
-  fingerprint `aa652e53f690b80bcdc03a263f11114d04b1e9743f3dac471a41b00e9dac42ec`.
+- **38737**: full scalar-add acceptance, **live**.
+  Candidate `/tmp/jet-scalar-add-integration.RxsuOy/Coq`.
+  Log `/tmp/jet-scalar-add-integration.RxsuOy/scalar-add-full-acceptance.log`.
+  Command `JOBS=1 bash check-jets.sh --accept`, no update/no-build flags.
+  Input `951402aa40e88c34b42d24b9bd95725285670df885531ff555b8e290127d5ffc`.
+- **10545**: parent scalar normalize/negate acceptance, **terminal exit 0**.
+  All gates, 829-module kernel, 4,329 assumptions (2,292 closed) and all four
+  ASTs passed with unchanged fingerprint. Post-run pinned review passed.
+  `../scalar-integration/ACCEPTANCE.json` is committed as **3bdd03b7**.
+  Keep `/tmp/jet-scalar-integration.XAMDsw/Coq` immutable; do not restart it.
 - **86561**: terminal **exit 0**, independent normal scalar-add closure kernel check.
   Candidate `/tmp/jet-scalar-add-integration.RxsuOy/Coq`.
   Log `/tmp/jet-scalar-add-integration.RxsuOy/normal-kernel.log`.
@@ -35,19 +39,13 @@ new, disjoint experiments are not permission to change those inputs.
    `PREPARATION.json`; its log hash is
    `30fac0dd8293d97049546911c0d3fc3f316da314885947d25959bce5fba6c8f3`.
    Revalidate with `review-kernel.py`, preserving candidate sources.
-2. When parent **10545** exits 0, inspect **all** final gates, all four AST
-   matches and unchanged fingerprint; rerun its pinned normal reviewer.
-   Only then write signed `../scalar-integration/ACCEPTANCE.json` with
-   terminal status and log hash. Original **83287** exited 2 on missing source
-   layout; do not reuse it as successful evidence.
-3. Run `review-normal.py` **without** preliminary/preparation flags. It must
-   now find the valid terminal parent receipt. Compare its report with the
-   complete preliminary review and pin `NORMAL-REVIEW.json`.
-4. After all source/type/dependency/definition/gate records remain unchanged,
-   run the scalar-add candidate's full `JOBS=1 bash check-jets.sh --accept`
-   without update or no-build flags. Use a new log, retain its live handle,
-   and preserve input fingerprint
-   `951402aa40e88c34b42d24b9bd95725285670df885531ff555b8e290127d5ffc`.
+2. Parent **10545** has completed the full terminal/post-run review and its
+   signed receipt is present. Original **83287** remains failed evidence.
+3. Default `review-normal.py` **without** preliminary/preparation flags passed
+   (6372, terminal exit 0). `NORMAL-REVIEW.json` was pinned and is byte-identical
+   to the preliminary report. Kernel/fingerprint revalidation also passed.
+4. Full scalar-add audit **38737** is already running. Poll it, never launch
+   another run or change its frozen inputs. Preserve `AUDIT-RUN.json` and log.
 5. On terminal full success, inspect all gates and fingerprint and re-review;
    pin a signed acceptance receipt. This accepts an isolated candidate, not
    main registration. On failure, inspect the first actual diagnostic.
@@ -64,7 +62,7 @@ new, disjoint experiments are not permission to change those inputs.
 ## Reproduce read-only checks from main
 
 ```sh
-python3 -B proof-work/scalar-add-integration/review-normal.py --preliminary
+python3 -B proof-work/scalar-add-integration/review-normal.py
 python3 -B proof-work/scalar-add-integration/test-review.py
 python3 -B proof-work/scalar-add-integration/review-kernel.py
 python3 -B proof-work/scalar-add-integration/test-kernel.py
@@ -85,3 +83,9 @@ All-533 goal is active and unfinished. Main coverage 351/533; isolated
 evaluator frames or assertion-enabled builds. Leave Claude's Elements,
 memcpy/linkage, SHA startup and constructibility modules/registries alone.
 Signed local atomic commits; never push.
+
+Disjoint next-jet helper progress is in `../scalar-mul`: 17 actual unsigned
+multiplication / struct-wrapper results compile and pass independent kernel,
+type/definition/dependency review. No public multiply/square proof or extra
+coverage is claimed. Continue there while this audit runs, without editing
+the audited candidate.
