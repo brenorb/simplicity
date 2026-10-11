@@ -44,6 +44,22 @@ Counts: 104 core contracts (36 leftmost/rightmost, 32 pad, 36 full shift)
 and 20 SHA-unit contracts (10 `ctx_8_add_n`, `add_buffer_511`, `finalize`,
 `tapdata_init`, 7 Bitcoin hash/taproot jets).
 
+## 2026-10-11 (second pass) — `bash Coq/audit-linked.sh` (JOBS=-j4), exit 0 (21 min)
+
+Sources at commit `38501bec`; adds `jet_linked_sha_program.v` (the SHA-unit
+program is CompCert's link of the accepted SHA unit with the memcpy unit).
+
+- Generated modules fresh; no forbidden declarations.
+- `Print Assumptions` for 129 theorems: the 124 `_linked` contracts and
+  `memcpy_model_holds` as above; `linked_ast_is_compcert_link` closed for
+  both programs; `linked_program_is_compcert_link` depends only on
+  `Axioms.proof_irr` for both programs.
+- `coqchk -silent -o` on the 15 linked modules and their dependency chains:
+  passed.
+- `jet_linked_program.v` `5b0ebfa15adb14c846dc010b3e040545c4b75e5d77716d4c9fbd128f1c5e7b66`,
+  `jet_linked_sha_program.v` `67175bcbb458752255ee31947b16b373f05e71d389639f4e346f06eb50fdc344`,
+  `jet_memcpy_model.v` `57044542a6645c0d896ccdcfffb2bd351df562dd11dd405ddbcc14039d78b3df`.
+
 ## Standalone memcpy proofs (normal tree)
 
 - `C.jet_memcpy_impl`: compiled; `Print Assumptions eval_memcpy_impl` = the
