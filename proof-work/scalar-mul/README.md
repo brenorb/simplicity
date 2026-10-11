@@ -76,7 +76,8 @@ The initial helper compilation failed only because `repeat split` expanded
 already-established representation/framing; `coqtop Show` exposed the
 mismatch and explicit conjunction packaging fixed it, without new premises.
 
-Preserve parent full-audit handle **10545**, and follow
+Parent full-audit **10545** now passed with terminal exit 0; preserve its
+accepted candidate unchanged (do not restart it), and follow
 `../scalar-add-integration/CONTINUATION.md` for acceptance/integration.
 Claude owns Elements and the shared linkage/startup/constructibility work;
 this archive is disjoint. Signed local atomic commits only; no pushes.

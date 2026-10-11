@@ -6,8 +6,9 @@ accept proofs. The candidate still requires terminal full acceptance;
 integration then requires a separately verified main checkout.
 
 The checked candidate is `/tmp/jet-scalar-add-integration.RxsuOy/Coq`.
-Its live parent acceptance is **10545**; preserve that process and both
-candidate trees. No proof/inventory/snapshot input was changed by this check.
+Parent acceptance **10545** has now terminated with exit 0; its receipt is
+`../scalar-integration/ACCEPTANCE.json`. Preserve both candidate trees.
+No proof/inventory/snapshot input was changed by this check.
 
 ## Findings
 
