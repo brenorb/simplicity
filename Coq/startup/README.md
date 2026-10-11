@@ -1,0 +1,91 @@
+# SHA startup invariant for every SHA-unit jet
+
+Branch `claude/shared-obligations`. Unregistered; integration and coverage
+updates are left to the owner of `feat/jet-equivalence`.
+
+## Obligation addressed
+
+The accepted SHA-unit theorems take facts about C global objects as premises:
+
+| premise | object | jets |
+| --- | --- | --- |
+| `sha_dispatch_ok` | `simplicity_sha256_compression` function pointer | all |
+| `sha_globals_ok` | + `sha256_max_counter` | context, hash jets |
+| `sha_tag_ok` | `tagName` in `simplicity_tapdata_init` (const) | `tapdata_init` |
+| `sha_tapleaf_tag_ok` | static `tagName` of `make_tapleaf` (writable) | `build_tapleaf_simplicity` |
+| `sha_tapbranch_tag_ok` | static `tagName` of `make_tapbranch` (writable) | `build_tapbranch` |
+
+These are not input requirements of a jet; they are facts its callers must
+establish and keep true. The archived work in `proof-work/sha-support` (main
+checkout, unaccepted) does this for the dispatch pointer and the counter and
+for the twelve context jets. This directory completes it for the tag arrays
+and the remaining consumers, with one invariant shared by all jets.
+
+## Results (`Coq/startup/proofs`, logical name `JetStartup`)
+
+- `jet_sha_startup_globals.v` — the persistent dispatch/counter state and its
+  frame lemmas, restated from the archive against the current
+  `write_frame_at` (the archived `jet_sha_global_frame` no longer compiles at
+  `a8685146`; only a destructuring pattern differs, statements unchanged).
+- `jet_sha_startup_state.v`
+  - `sha_tag_initialized`, `sha_tapleaf_tag_initialized`,
+    `sha_tapbranch_tag_initialized`, `sha_tag_extents_initialized`: contents
+    and extents of the three arrays from `Genv.init_mem jets_sha.prog`.
+  - `sha_startup_state` = persistent globals + tag contents + tag extents;
+    `sha_startup_state_initialized : Genv.init_mem jets_sha.prog = Some m ->
+    sha_startup_state m`.
+  - `small_object_not_wide_frame`: an object of at most 10 bytes is neither
+    the frame record nor the word buffer of an output frame of more than 64
+    cells. This is what makes preservation of the two *writable* tag arrays
+    derivable from the jet contract itself, with no caller-supplied
+    separation premise.
+  - `sha_startup_state_frame_call`: the invariant survives any call that is
+    forward on memory and satisfies the public frame conclusion of a jet
+    whose output is wider than one word.
+  - Adapters `sha_startup_total_from_pre`, `sha_startup_total_from_local`,
+    `sha_startup_partial_from_local`, `sha_startup_application_from_sep`
+    from the four accepted contract shapes to contracts whose only state
+    premise is the invariant and whose conclusion re-establishes it (on
+    success and on assertion failure).
+- `jet_sha_startup_jets.v` — the instances: `sha_256_block`, the ten
+  `sha_256_ctx_8_add_n`, `add_buffer_511`, `finalize`, `tapdata_init`,
+  `bitcoin_annex_hash`, `bitcoin_outpoint_hash`,
+  `bitcoin_build_tapleaf_simplicity`, `bitcoin_build_tapbranch`,
+  `bitcoin_output_hash`, `bitcoin_input_hash`, `bitcoin_input_utxo_hash`.
+  Function, types and canonical specification are those of the accepted
+  theorem each is derived from; `memcpy_model` is kept as the explicit
+  premise it is in the accepted theorem.
+
+## Boundaries
+
+- The invariant is established for the initial memory of the SHA translation
+  unit `jets_sha.prog`. Linking it to the evaluator's actual setup (frame
+  allocation before the first jet) needs preservation by that setup; the
+  archive's `sha_private_setup` covers allocation/stores into fresh blocks
+  for the dispatch/counter part only. Preservation of the tag part by
+  `Mem.alloc`/stores to other blocks is not proved here yet.
+- Jets with outputs of at most 64 cells are not covered by
+  `sha_startup_state_frame_call` (a caller could, within the frame contract,
+  aim a one-word output at the 8-byte writable tag array). No such jet has
+  a SHA state premise today.
+- The environment representation relations of the three application jets
+  still contain their own `sha_globals_ok` conjunct and list the two global
+  blocks in the separation footprint; the adapter carries the invariant
+  through but does not remove those caller obligations.
+- `C/sha256.c` initializes the dispatch pointer statically to
+  `sha256_compression_portable`; a build that calls an optimizing
+  initializer at run time is a different program state and is not covered.
+
+## Prerequisites and build
+
+`SHA_SUPPORT=<main checkout>/proof-work/sha-support bash Coq/build-startup.sh [--check]`
+
+The script verifies the two archived prerequisites against
+`PREREQUISITES.sha256`, extracts them to `startup/prereq` (not committed
+here; they belong to the archive), compiles everything and with `--check`
+runs coqchk on the three modules and their whole dependency chains. The
+accepted SHA-unit modules must be built first in this tree.
+
+## Receipts
+
+See `RECEIPTS.md`.
