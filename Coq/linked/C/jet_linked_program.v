@@ -42,7 +42,7 @@ Lemma memcpy_public_included :
 Proof. vm_compute. reflexivity. Qed.
 
 Lemma unlinked_public : AST.prog_public unlinked_ast = AST.prog_public linked_ast.
-Proof. reflexivity. Qed.
+Proof. vm_compute. reflexivity. Qed.
 
 Lemma types_link :
   link (prog_types jets_unlinked.prog) (prog_types memcpy_exact.prog) =

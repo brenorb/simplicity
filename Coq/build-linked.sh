@@ -25,6 +25,7 @@ done
 # The accepted program, unchanged, under a second module name: the subject of
 # the CompCert linking theorem in jet_linked_program.v.
 ln -sf "$root/C/jets.v" "$tree/C/jets_unlinked.v"
+ln -sf "$root/C/jets_sha.v" "$tree/C/jets_sha_unlinked.v"
 # Never write through a link into the accepted sources: a derived file replaces
 # whatever is at the destination.
 update() {
@@ -45,7 +46,7 @@ done
   for name in memcpy_impl jet_memcpy_impl memcpy_exact jet_memcpy_exact; do
     grep -qx "C/$name.v" _CoqProject.jets || printf 'C/%s.v\n' "$name"
   done
-  printf 'C/jets_unlinked.v\n'
+  printf 'C/jets_unlinked.v\nC/jets_sha_unlinked.v\n'
   for f in linked/C/*.v; do
     grep -qx "C/$(basename "$f")" _CoqProject.jets || printf 'C/%s\n' "$(basename "$f")"
   done

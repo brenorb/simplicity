@@ -17,7 +17,9 @@ INHERITED = {
 }
 EXTRA = [("jet_memcpy_model", "memcpy_model_holds", INHERITED),
          ("jet_linked_program", "linked_ast_is_compcert_link", set()),
-         ("jet_linked_program", "linked_program_is_compcert_link", {"Axioms.proof_irr"})]
+         ("jet_linked_program", "linked_program_is_compcert_link", {"Axioms.proof_irr"}),
+         ("jet_linked_sha_program", "linked_ast_is_compcert_link", set()),
+         ("jet_linked_sha_program", "linked_program_is_compcert_link", {"Axioms.proof_irr"})]
 
 def theorems(directory):
     out = []
