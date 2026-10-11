@@ -1,0 +1,51 @@
+(** Second fold prefix from the unchanged generated body, through p4. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers AST Ctypes Clight Maps Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix C.jet_secp_shift64_executor.
+Require Import MulC.jet_sx_compact MulC.jet_secp_scalar_reduce512_run
+  MulC.jet_secp_reduce512_first_run.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition reduce512_second_count := spine_cut_after _p4 reduce512_spine.
+Definition reduce512_second_spine := firstn reduce512_second_count reduce512_spine.
+Definition reduce512_second_prefix := statement_sequence reduce512_second_spine Sskip.
+Definition reduce512_second_suffix := statement_sequence (skipn reduce512_second_count reduce512_spine) reduce512_last.
+Lemma reduce512_second_source :
+  statement_sequence reduce512_second_spine reduce512_second_suffix = fn_body f_secp256k1_scalar_reduce_512.
+Proof. Timeout 10 reflexivity. Qed.
+Lemma reduce512_second_boundary :
+  statement_ends_set _p4 (last reduce512_second_spine Sskip) = true /\
+  (reduce512_first_count < reduce512_second_count < length reduce512_spine)%nat.
+Proof. Timeout 10 (vm_compute; split; [reflexivity|lia]). Qed.
+Definition reduce512_second_run : option res :=
+  match xalloc (std_cells (genv_cenv secp_ge)) (genv_cenv secp_ge)
+      (fn_vars f_secp256k1_scalar_reduce_512) 2,
+    xbind (fn_params f_secp256k1_scalar_reduce_512) [XP 0 0; XP 1 0] (PTree.empty sx) with
+  | Some (locals, ve), Some ts =>
+    compact_stmt (genv_cenv secp_ge) [] secp_shift64_table 300 ve
+      (mkst ts (scalar_reduce512_initial_regs ++ locals) [] 12) reduce512_second_prefix
+  | _, _ => None end.
+Lemma reduce512_second_completes :
+  match reduce512_second_run with Some (RDone _ ONormal) => true | _ => false end = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Definition reduce512_second_state : sstate :=
+  match reduce512_second_run with Some (RDone st _) => st | _ => mkst (PTree.empty sx) [] [] 0 end.
+Lemma reduce512_second_run_eq : reduce512_second_run = Some (RDone reduce512_second_state ONormal).
+Proof.
+  pose proof reduce512_second_completes as H.
+  unfold reduce512_second_state; destruct reduce512_second_run as [r|]; [|discriminate].
+  destruct r; [destruct o; try discriminate; reflexivity|discriminate].
+Qed.
+Definition reduce512_second_temp (id : ident) : sx :=
+  match (stemps reduce512_second_state)!id with Some x => x | None => XV Vundef end.
+Definition reduce512_second_limbs :=
+  [reduce512_second_temp _p0; reduce512_second_temp _p1; reduce512_second_temp _p2;
+   reduce512_second_temp _p3; XI2L Unsigned (reduce512_second_temp _p4)].
+Lemma reduce512_second_temps_present :
+  forallb (fun id => match (stemps reduce512_second_state)!id with Some _ => true | _ => false end)
+    [_p0; _p1; _p2; _p3; _p4] = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Lemma reduce512_second_limb_kinds : forallb (isk KL) reduce512_second_limbs = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.

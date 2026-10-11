@@ -1,0 +1,81 @@
+(** Source-first-fold digits and the bounds needed by the remaining C folds.
+    Arithmetic bridge only: not a replacement public specification. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require Import C.jet_secp_canonical_scalar.
+Require Import MulC.jet_secp_reduce512_wide MulC.jet_secp_reduce512_symbolic
+  MulC.jet_secp_reduce512_first_symbolic MulC.jet_secp_reduce512_first_value
+  MulC.jet_secp_scalar_mul512_accumulate MulC.jet_secp_scalar_mul512_low
+  MulC.jet_secp_scalar_mul512_product.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition reduce512_radix := Int64.modulus ^ 4.
+Lemma reduce512_delta_order : first_delta = reduce512_radix - canonical_group_order.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Lemma reduce512_delta_bounds :
+  0 < first_delta < reduce512_radix /\
+  first_delta * first_delta < 2 * reduce512_radix /\
+  2 * first_delta < reduce512_radix /\
+  reduce512_radix + 2 * first_delta < 2 * canonical_group_order.
+Proof. Timeout 10 (vm_compute; repeat split; discriminate). Qed.
+Definition first_low256 rho := column_words_value
+  [wlo (first_ma0 rho); wlo (first_ma1 rho); wlo (first_ma2 rho); wlo (first_ma3 rho)].
+Definition first_high256 rho := column_words_value
+  [wlo (first_ma4 rho); wlo (first_ma5 rho);
+    Int64.repr (Int.unsigned (Int64.loword (whi (first_ma5 rho))))].
+Lemma first_machine_split rho :
+  column_words_value (first_machine_outputs rho) =
+    first_low256 rho + reduce512_radix * first_high256 rho.
+Proof.
+  change (column_words_value
+    ([wlo (first_ma0 rho); wlo (first_ma1 rho); wlo (first_ma2 rho); wlo (first_ma3 rho)] ++
+    [wlo (first_ma4 rho); wlo (first_ma5 rho);
+      Int64.repr (Int.unsigned (Int64.loword (whi (first_ma5 rho))))]) =
+    first_low256 rho + reduce512_radix * first_high256 rho).
+  rewrite column_words_append; reflexivity.
+Qed.
+Lemma first_low256_bound rho : 0 <= first_low256 rho < reduce512_radix.
+Proof. apply (column_words_bound [wlo (first_ma0 rho); wlo (first_ma1 rho); wlo (first_ma2 rho); wlo (first_ma3 rho)]). Qed.
+Lemma first_high256_bound rho : 0 <= first_high256 rho <= first_delta.
+Proof.
+  pose proof (first_machine_value rho) as HE; rewrite first_machine_split in HE.
+  pose proof (first_low256_bound rho) as HL.
+  pose proof (column_words_bound [wlo (first_ma4 rho); wlo (first_ma5 rho);
+    Int64.repr (Int.unsigned (Int64.loword (whi (first_ma5 rho))))]) as HH.
+  change (0 <= first_high256 rho < Int64.modulus ^ 3) in HH.
+  pose proof (mul512_input_bound rho 0) as HX; pose proof (mul512_input_bound rho 4) as HY.
+  fold reduce512_radix in HX,HY.
+  destruct reduce512_delta_bounds as [HD _].
+  assert (HR : 0 < reduce512_radix) by (unfold reduce512_radix; change (0 < 115792089237316195423570985008687907853269984665640564039457584007913129639936); lia).
+  nia.
+Qed.
+Definition second_fold_bridge_value rho := first_low256 rho + first_high256 rho * first_delta.
+Lemma second_fold_bridge_bound rho :
+  0 <= second_fold_bridge_value rho < 3 * reduce512_radix.
+Proof.
+  pose proof (first_low256_bound rho); pose proof (first_high256_bound rho).
+  destruct reduce512_delta_bounds as [HD [HS _]].
+  unfold second_fold_bridge_value; nia.
+Qed.
+Lemma first_fold_modulo_order rho :
+  column_words_value (first_machine_outputs rho) mod canonical_group_order =
+    (scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 * reduce512_radix)
+      mod canonical_group_order.
+Proof.
+  rewrite first_machine_value,reduce512_delta_order.
+  replace (scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 * reduce512_radix)
+    with ((scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 *
+      (reduce512_radix - canonical_group_order)) + scalar_mul512_input_value rho 4 * canonical_group_order) by ring.
+  rewrite Z.mod_add by (unfold canonical_group_order; discriminate); reflexivity.
+Qed.
+Lemma second_fold_bridge_modulo_order rho :
+  second_fold_bridge_value rho mod canonical_group_order =
+    column_words_value (first_machine_outputs rho) mod canonical_group_order.
+Proof.
+  rewrite first_machine_split; unfold second_fold_bridge_value; rewrite reduce512_delta_order.
+  replace (first_low256 rho + reduce512_radix * first_high256 rho) with
+    ((first_low256 rho + first_high256 rho * (reduce512_radix - canonical_group_order)) +
+      first_high256 rho * canonical_group_order) by ring.
+  rewrite Z.mod_add by (unfold canonical_group_order; discriminate); reflexivity.
+Qed.
