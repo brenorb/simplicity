@@ -1,0 +1,64 @@
+(** Construct the writer representation from actual reader storage; no
+    serializer execution or output is assumed by this bridge. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Integers Values Memory.
+Require Import Simplicity.Ty Simplicity.Word.
+Require Simplicity.Alg.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_local_regions C.jet_secp_wrapper_run C.jet_input_layout.
+Require Import OriginalC.jet_secp_scalar_get_b32_numeric OriginalC.jet_secp_scalar_get_b32_storage.
+Require Import OriginalC.jet_secp_scalar_reader_lifecycle OriginalC.jet_secp_canonical_scalar.
+Require Import WriterC.jet_secp_scalar_limb_bridge WriterC.jet_secp_scalar_writer_run.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_writer_cells_size :
+  Forall (fun c => cofs c + size_chunk (cchunk c) <= 32)
+    (u64_cells 0 [XLv 0; XLv 1; XLv 2; XLv 3]).
+Proof. repeat constructor; cbn; lia. Qed.
+
+Lemma scalar_writer_initial_rep_from_storage value m b :
+  scalar_at m b 0 (map Int64.repr (scalar_limbs_of value)) ->
+  Mem.range_perm m b 0 32 Cur Freeable ->
+  rep (scalar_limb_rho value) [(b, 0)] scalar_writer_initial_regs m.
+Proof.
+  intros [HLength [HBase [HAlign [HMax [HPerm HLoad]]]]] HFree.
+  apply (rep_add _ [] [] m b 0); [apply rep_nil|cbn; tauto|].
+  change (region_ok (scalar_limb_rho value) [(b, 0)] m 0
+    (free_region (mkreg (u64_cells 0 [XLv 0; XLv 1; XLv 2; XLv 3]) true None) 32)).
+  apply region_with_freeable.
+  - apply region_u64; cbn [blk bas lay nth fst snd].
+    + exact HBase.
+    + exact HAlign.
+    + exact HMax.
+    + eapply Mem.perm_valid_block; apply (HFree 0); lia.
+    + change (Mem.range_perm m b 0 32 Cur Writable); apply freeable_range_writable; exact HFree.
+    + intros i x HNth; destruct (scalar_variables_nth i x HNth) as [HIndex ->].
+      split; [|reflexivity].
+      change (Mem.load Mint64 m b (0 + 8 * Z.of_nat i) =
+        Some (Vlong (Int64.repr (nth i (scalar_limbs_of value) 0)))).
+      apply HLoad; rewrite nth_error_map, (nth_error_nth' _ 0).
+      * reflexivity.
+      * change (i < 4)%nat; exact HIndex.
+  - reflexivity.
+  - reflexivity.
+  - exact HFree.
+  - apply scalar_writer_cells_size.
+Qed.
+
+Theorem scalar_writer_initial_rep_from_reader value rc layout bi edge m :
+  rep (read_fe_rho (frame_input_word_bits value) rc) layout
+    (scalar_reader_final_regs bi edge) m ->
+  rep (scalar_limb_rho (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)))
+    [(blk layout 0, bas layout 0)] scalar_writer_initial_regs m.
+Proof.
+  intro HRep.
+  destruct (scalar_reader_storage_for_serializer value rc layout bi edge m HRep) as [HScalar HFree].
+  destruct (rep_free_region _ _ _ _ 0 32 HRep) as [HBase _].
+  - rewrite scalar_reader_final_length; lia.
+  - unfold scalar_reader_final_regs;
+      rewrite OriginalC.jet_secp_scalar_reader_set.scalar_reader_set_regions; reflexivity.
+  - rewrite HBase in HScalar |- *.
+    apply scalar_writer_initial_rep_from_storage; assumption.
+Qed.
