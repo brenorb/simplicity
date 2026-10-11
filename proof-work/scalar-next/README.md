@@ -1,0 +1,59 @@
+# Scalar reader/zero continuation
+
+This archive continues the preserved scalar-u128 work without changing its
+historical sources or namespace. The current 23 helper modules have 86 actual
+completed Lemma/Theorem declarations and fresh compilation on Coq 8.17.1,
+CompCert 3.14 and the current selected C.jets_secp AST. Two small export wrappers
+resolve the old OriginalC dependencies to their checked C counterparts; they
+introduce no definitions, premises or proof results.
+
+The two new/changed proof sources here are the corrected overflow Boolean
+interpretation and the new original-C overflow-to-group-order bridge. All
+other 21 sources are reused by exact hash from ../scalar-u128, not duplicated.
+The flags correction first collapses machine ORs before matching AND/NOT on
+Boolean bits; the previous one-shot rewrite order missed those nested forms.
+The numeric bridge handles arbitrary four int64 limbs. It derives the actual
+helper call's return flag from representation and discharged machine bounds;
+it does not assume a correct flag or replace the public jet specification.
+
+Four-module independent kernel checking 32260 exited 0 (twelve imported context
+axioms, empty unsafe categories). Full 23-module checking 44992 and the 86-result
+Print Assumptions run 8576 are live. Sources are frozen for these runs. Poll the
+actual handles, do not restart them or edit their proof inputs. Completed kernel
+checking of these helpers still is not public scalar equivalence or coverage.
+
+Reproducible scratch load path, from the independent normal candidate Coq dir:
+
+```sh
+export PATH=/nix/store/57myhb98wx8k9dr21cf51bsmvxjs67h6-coq-8.17.1/bin:$PATH
+ulimit -S -s 65520
+bash build-jets.sh --coqc -R /tmp/jet-scalar-reverify.8hswEF OriginalC \
+  /tmp/jet-scalar-reverify.8hswEF/jet_secp_scalar_overflow_numeric.v
+```
+
+The final checked declaration is eval_scalar_overflow_numeric. Two earlier
+failed new-module compilations were notation/import mismatches after the
+numeric flag proof, not successful completion of the module. Only the final
+86360 exit-0 run counts. The incomplete flags-debug.v was used with coqtop Show
+only and is neither archived proof input nor a compiled result.
+
+Next work is driven by the intended public scalar_is_zero theorem:
+
+1. Finish independent kernel/per-result reviews; review every helper type and
+   contract definition, especially external-model/NULL branch/ownership scope.
+2. Derive scalar_set_b32's current output limb value as the input modulo the
+   group order. It already executes the real overflow and reduce calls; do not
+   add correct-output, overflow or successful-copy premises to the public result.
+3. Prove read_scalar's real byte-buffer allocation, secp_read8s_layout call,
+   scalar_set_b32 NULL call and free. The current secp_frame module already
+   transports read8s to the correct secp environment: reuse that theorem.
+4. Compose read_scalar, scalar_is_zero and the real writeBit call with full
+   public entry/source-copy/return/local-free/framing. Reuse the actual-size
+   owned public lifecycle helpers where their interfaces fit.
+5. Bind the public result to literal canonical Simplicity scalar_is_zero,
+   including its raw group-order-equality branch; add parametricity/source gates,
+   complete audit inventories and isolated normal-build/full acceptance.
+
+No public entry, accepted coverage or new mathematical-only goal is claimed.
+Both older point acceptance 77601 and affine generation 90113 remain live in
+their own frozen candidates; this scratch does not change those inputs.
