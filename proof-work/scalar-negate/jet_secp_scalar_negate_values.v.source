@@ -1,0 +1,142 @@
+(** Exact machine-limb meaning of the unchanged scalar negation helper.
+    This internal numeric bridge does not replace the literal public spec. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_zval.
+Require Import C.jet_secp_zero_numeric C.jet_predicate_wide_exec.
+Require Import OriginalC.jet_secp_u64_carry OriginalC.jet_secp_scalar_reduce_numeric.
+Require Import OriginalC.jet_secp_scalar_overflow_numeric OriginalC.jet_secp_canonical_scalar.
+Require Import NegC.jet_secp_scalar_negate_exec.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_negate_mask := XLb Bmul (XLc (Int64.repr (-1)))
+  (XI2L Signed (XIcmp Ceq Signed
+    (XLcmp Ceq Unsigned (XLb Bor (XLb Bor (XLb Bor (XLv 0) (XLv 1)) (XLv 2)) (XLv 3))
+      (XI2L Signed (XIc Int.zero))) (XIc Int.zero))).
+Definition scalar_negate_delta0 := XLb Badd (XLc (Int64.repr (-4624529908474429119)))
+  (XI2L Signed (XIc Int.one)).
+Definition scalar_negate_low0 := XLb Badd (XLnot (XLv 0)) scalar_negate_delta0.
+Definition scalar_negate_high0 := XLb Badd (XI2L Signed (XIc Int.zero))
+  (scalar_carry_sx (XLnot (XLv 0)) scalar_negate_delta0).
+Definition scalar_negate_low1 := scalar_sum_low scalar_negate_high0 (XLnot (XLv 1))
+  (XLc (Int64.repr (-4994812053365940165))).
+Definition scalar_negate_high1 := scalar_sum_high scalar_negate_high0 (XLnot (XLv 1))
+  (XLc (Int64.repr (-4994812053365940165))).
+Definition scalar_negate_low2 := scalar_sum_low scalar_negate_high1 (XLnot (XLv 2))
+  (XLc (Int64.repr (-2))).
+Definition scalar_negate_high2 := scalar_sum_high scalar_negate_high1 (XLnot (XLv 2))
+  (XLc (Int64.repr (-2))).
+Definition scalar_negate_low3 := scalar_sum_low scalar_negate_high2 (XLnot (XLv 3))
+  (XLc (Int64.repr (-1))).
+Definition scalar_negate_raw :=
+  [scalar_negate_low0; scalar_negate_low1; scalar_negate_low2; scalar_negate_low3].
+
+Lemma scalar_negate_output_exact :
+  scalar_negate_limbs = map (fun x => XLb Band x scalar_negate_mask) scalar_negate_raw.
+Proof. reflexivity. Qed.
+
+Lemma scalar_negate_delta0_value :
+  Int64.add (Int64.repr (-4624529908474429119)) (Int64.repr (Int.signed Int.one)) =
+  Int64.repr 13822214165235122498.
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma scalar_negate_or_zero rho :
+  Int64.eq (Int64.or (Int64.or (Int64.or (rho 0%nat) (rho 1%nat)) (rho 2%nat)) (rho 3%nat))
+    Int64.zero = Z.eqb (scalar_limb_value rho) 0.
+Proof.
+  rewrite !int64_or_zero_bool, !int64_eq_numeric, Int64.unsigned_zero.
+  apply Bool.eq_true_iff_eq; rewrite !Bool.andb_true_iff, !Z.eqb_eq.
+  unfold scalar_limb_value.
+  pose proof (Int64.unsigned_range (rho 0%nat)).
+  pose proof (Int64.unsigned_range (rho 1%nat)).
+  pose proof (Int64.unsigned_range (rho 2%nat)).
+  pose proof (Int64.unsigned_range (rho 3%nat)).
+  change (2 ^ 64) with 18446744073709551616.
+  change (2 ^ 128) with 340282366920938463463374607431768211456.
+  change (2 ^ 192) with 6277101735386680763835789423207666416102355444464034512896.
+  intuition lia.
+Qed.
+
+Lemma scalar_negate_mask_value rho layout :
+  den rho layout scalar_negate_mask =
+  Vlong (if Z.eqb (scalar_limb_value rho) 0 then Int64.zero else Int64.mone).
+Proof.
+  change (Vlong (Int64.mul (Int64.repr (-1)) (Int64.repr (Int.signed
+    (b2i (Int.eq (b2i (Int64.eq
+      (Int64.or (Int64.or (Int64.or (rho 0%nat) (rho 1%nat)) (rho 2%nat)) (rho 3%nat))
+      Int64.zero)) Int.zero))))) =
+    Vlong (if Z.eqb (scalar_limb_value rho) 0 then Int64.zero else Int64.mone)).
+  rewrite scalar_negate_or_zero.
+  destruct (Z.eqb (scalar_limb_value rho) 0).
+  - change (Vlong (Int64.mul (Int64.repr (-1)) Int64.zero) = Vlong Int64.zero).
+    rewrite Int64.mul_zero; reflexivity.
+  - change (Vlong (Int64.mul (Int64.repr (-1)) Int64.one) = Vlong Int64.mone).
+    rewrite Int64.mul_one; reflexivity.
+Qed.
+
+Lemma scalar_negate_limb_masked rho layout x :
+  il (den rho layout (XLb Band x scalar_negate_mask)) =
+  if Z.eqb (scalar_limb_value rho) 0 then Int64.zero else il (den rho layout x).
+Proof.
+  change (Int64.and (il (den rho layout x)) (il (den rho layout scalar_negate_mask)) =
+    if Z.eqb (scalar_limb_value rho) 0 then Int64.zero else il (den rho layout x)).
+  rewrite scalar_negate_mask_value; cbn [il].
+  destruct (Z.eqb (scalar_limb_value rho) 0);
+    [apply Int64.and_zero|apply Int64.and_mone].
+Qed.
+
+Lemma scalar_negate_raw_values rho layout :
+  let s0 := Int64.max_unsigned - Int64.unsigned (rho 0%nat) + 13822214165235122498 in
+  let s1 := s0 / Int64.modulus + (Int64.max_unsigned - Int64.unsigned (rho 1%nat)) + 13451932020343611451 in
+  let s2 := s1 / Int64.modulus + (Int64.max_unsigned - Int64.unsigned (rho 2%nat)) + 18446744073709551614 in
+  let s3 := s2 / Int64.modulus + (Int64.max_unsigned - Int64.unsigned (rho 3%nat)) + 18446744073709551615 in
+  Int64.unsigned (il (den rho layout scalar_negate_low0)) = s0 mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout scalar_negate_low1)) = s1 mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout scalar_negate_low2)) = s2 mod Int64.modulus /\
+  Int64.unsigned (il (den rho layout scalar_negate_low3)) = s3 mod Int64.modulus.
+Proof.
+  cbn zeta.
+  assert (HD0 : il (den rho layout scalar_negate_delta0) = Int64.repr 13822214165235122498).
+  { change (Int64.add (Int64.repr (-4624529908474429119))
+      (Int64.repr (Int.signed Int.one)) = Int64.repr 13822214165235122498);
+    apply scalar_negate_delta0_value. }
+  assert (HU0 : Int64.unsigned (Int64.repr 13822214165235122498) = 13822214165235122498).
+  { apply Int64.unsigned_repr; change Int64.max_unsigned with 18446744073709551615; lia. }
+  assert (HFirst :
+    Int64.unsigned (il (den rho layout scalar_negate_low0)) =
+      (Int64.max_unsigned - Int64.unsigned (rho 0%nat) + 13822214165235122498) mod Int64.modulus /\
+    Int64.unsigned (il (den rho layout scalar_negate_high0)) =
+      (Int64.max_unsigned - Int64.unsigned (rho 0%nat) + 13822214165235122498) / Int64.modulus).
+  { change (il (den rho layout scalar_negate_low0)) with
+      (Int64.add (Int64.not (rho 0%nat)) (il (den rho layout scalar_negate_delta0))).
+    change (il (den rho layout scalar_negate_high0)) with
+      (Int64.add Int64.zero (scalar_carry64 (Int64.not (rho 0%nat))
+        (il (den rho layout scalar_negate_delta0)))).
+    rewrite HD0, Int64.add_zero_l, scalar_carry64_value.
+    rewrite (proj1 (u64_add_with_carry _ _)), Int64.unsigned_not, HU0; split; reflexivity. }
+  destruct HFirst as [HL0 HH0].
+  pose proof (scalar_sum_values rho layout scalar_negate_high0 (XLnot (XLv 1))
+    (XLc (Int64.repr (-4994812053365940165)))) as HStep1.
+  fold scalar_negate_low1 scalar_negate_high1 in HStep1.
+  change (il (den rho layout (XLnot (XLv 1)))) with (Int64.not (rho 1%nat)) in HStep1.
+  change (il (den rho layout (XLc (Int64.repr (-4994812053365940165))))) with
+    (Int64.repr (-4994812053365940165)) in HStep1.
+  rewrite HH0, Int64.unsigned_not, scalar_overflow_const1 in HStep1.
+  destruct HStep1 as [HL1 HH1].
+  pose proof (scalar_sum_values rho layout scalar_negate_high1 (XLnot (XLv 2))
+    (XLc (Int64.repr (-2)))) as HStep2.
+  fold scalar_negate_low2 scalar_negate_high2 in HStep2.
+  change (il (den rho layout (XLnot (XLv 2)))) with (Int64.not (rho 2%nat)) in HStep2.
+  change (il (den rho layout (XLc (Int64.repr (-2))))) with (Int64.repr (-2)) in HStep2.
+  rewrite HH1, Int64.unsigned_not, scalar_overflow_const2 in HStep2.
+  destruct HStep2 as [HL2 HH2].
+  pose proof (proj1 (scalar_sum_values rho layout scalar_negate_high2 (XLnot (XLv 3))
+    (XLc (Int64.repr (-1))))) as HL3.
+  fold scalar_negate_low3 in HL3.
+  change (il (den rho layout (XLnot (XLv 3)))) with (Int64.not (rho 3%nat)) in HL3.
+  change (il (den rho layout (XLc (Int64.repr (-1))))) with (Int64.repr (-1)) in HL3.
+  rewrite HH2, Int64.unsigned_not, scalar_overflow_const3 in HL3.
+  repeat split; assumption.
+Qed.
