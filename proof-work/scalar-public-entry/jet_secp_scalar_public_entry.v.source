@@ -1,0 +1,140 @@
+(* Actual public scalar-zero entry and reader input ownership. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib AST Ctypes Clight Clightdefs ClightBigstep Integers Values Memory Maps Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_b32_exec C.jet_secp_local_regions C.jet_secp_wrapper_storage.
+Require Import C.jet_secp_wrapper_run C.jet_frame_layout C.jet_secp_frame.
+Require Import C.jet_exec C.jet_sx_mem C.jet_frame_copy_layout.
+Require Import OriginalC.jet_secp_scalar_reader_run.
+Import ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge.
+
+Lemma scalar_undefined_owned_from_storage rho layout m :
+  bas layout 0 = 0 -> Mem.range_perm m (blk layout 0) 0 32 Cur Freeable ->
+  region_ok rho layout m 0
+    (mkreg [mkcell 0 Mint64 None; mkcell 8 Mint64 None;
+            mkcell 16 Mint64 None; mkcell 24 Mint64 None] true (Some 32)).
+Proof.
+  intros HBase HFree.
+  split; [lia|]; split.
+  - eapply Mem.perm_valid_block; apply (HFree 0); lia.
+  - split; [reflexivity|]; split.
+    + apply Forall_forall; intros c HIn; cbn [rcells In] in HIn.
+      repeat match goal with H : _ \/ _ |- _ => destruct H as [H|H] end;
+        try contradiction; subst c; apply writable_undefined_cell; rewrite HBase;
+        cbn [size_chunk align_chunk]; try (change (32 <= 18446744073709551615); lia).
+      all: try solve [exists 0; lia].
+      all: try solve [exists 1; lia].
+      all: try solve [exists 2; lia].
+      all: try solve [exists 3; lia].
+      all: try solve [change (8 <= 18446744073709551615); lia].
+      all: try solve [change (16 <= 18446744073709551615); lia].
+      all: try solve [change (24 <= 18446744073709551615); lia].
+      all: intros pos HRange; eapply Mem.perm_implies; [apply HFree; lia|constructor].
+    + split; [exact HBase|]; split; [reflexivity|]; split; [exact HFree|].
+      repeat constructor; cbn; lia.
+Qed.
+
+Theorem scalar_reader_initial_rep_from_storage bits rc m ba bl bi edge :
+  Mem.range_perm m ba 0 32 Cur Freeable -> Mem.range_perm m bl 0 16 Cur Freeable ->
+  frame_fields_at m bl 0 bi edge rc -> ba <> bl ->
+  rep (read_fe_rho bits rc) [(ba,0);(bl,0)]
+    (scalar_reader_initial_regs bi (Ptrofs.repr edge)) m.
+Proof.
+  intros HScalarFree HFrameFree HFrame HSeparate.
+  apply two_region_rep_separate; [reflexivity|exact HSeparate| |].
+  - apply scalar_undefined_owned_from_storage; [reflexivity|exact HScalarFree].
+  - apply (region_with_freeable _ _ _ _
+      (mkreg (mk_frame_cells (XA bi (Ptrofs.repr edge)) Int64.zero) true None) 16).
+    + apply read_fe_region_from_frame; cbn [bas blk lay nth fst snd].
+      * lia.
+      * exists 0; reflexivity.
+      * change (16 <= 18446744073709551615); lia.
+      * apply freeable_range_writable; exact HFrameFree.
+      * exact HFrame.
+    + reflexivity.
+    + reflexivity.
+    + exact HFrameFree.
+    + apply frame_cells_storage_size.
+Qed.
+
+Definition scalar_public_env bl ba : env :=
+  PTree.set _a (ba, Tstruct __5826 noattr)
+    (PTree.set _src (bl, Tstruct _frameItem noattr) empty_env).
+Definition scalar_public_temps (v_env : val) bd dbase bs sbase : temp_env :=
+  PTree.set _env v_env
+    (PTree.set _src (Vptr bs (Ptrofs.repr sbase))
+      (PTree.set _dst (Vptr bd (Ptrofs.repr dbase))
+        (create_undef_temps (fn_temps f_simplicity_scalar_is_zero)))).
+
+Lemma scalar_zero_public_entry v_env m ma mb bl ba bd dbase bs sbase :
+  Mem.alloc m 0 16 = (ma,bl) -> Mem.alloc ma 0 32 = (mb,ba) ->
+  function_entry2 secp_ge f_simplicity_scalar_is_zero
+    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); v_env] m
+    (scalar_public_env bl ba) (scalar_public_temps v_env bd dbase bs sbase) mb.
+Proof.
+  intros HA HB; constructor.
+  - cbn; repeat constructor; cbn; intuition discriminate.
+  - cbn; repeat constructor; cbn; intuition discriminate.
+  - intros x y HX HY HE; cbn in HX, HY.
+    repeat match goal with H : _ \/ _ |- _ => destruct H end; subst;
+      first [contradiction|vm_compute in HE; discriminate|congruence].
+  - eapply alloc_variables_cons with (m1 := ma) (b1 := bl).
+    + change (Mem.alloc m 0 16 = (ma,bl)); exact HA.
+    + eapply alloc_variables_cons with (m1 := mb) (b1 := ba).
+      * change (Mem.alloc ma 0 32 = (mb,ba)); exact HB.
+      * constructor.
+  - reflexivity.
+Qed.
+
+Lemma scalar_public_blocks bl ba :
+  blocks_of_env secp_ge (scalar_public_env bl ba) = [(bl,0,16);(ba,0,32)].
+Proof. reflexivity. Qed.
+
+Lemma scalar_public_src_temp v_env bd dbase bs sbase :
+  (scalar_public_temps v_env bd dbase bs sbase)!_src =
+    Some (Vptr bs (Ptrofs.repr sbase)).
+Proof.
+  unfold scalar_public_temps; rewrite PTree.gso by discriminate; apply PTree.gss.
+Qed.
+
+Lemma exec_scalar_public_copy m mc bl ba bs sbase bytes le :
+  frame_base_valid sbase -> (8 | sbase) -> bl <> bs ->
+  le!_src = Some (Vptr bs (Ptrofs.repr sbase)) ->
+  Mem.loadbytes m bs sbase 16 = Some bytes -> Mem.storebytes m bl 0 bytes = Some mc ->
+  Clight2.exec_stmt secp_ge (scalar_public_env bl ba) le m
+    (Sassign (Evar _src (Tstruct _frameItem noattr))
+      (Etempvar _src (Tstruct _frameItem noattr))) E0 le mc Out_normal.
+Proof.
+  intros HBase HAlign HSeparate HTemp HLoad HStore.
+  assert (HUnsigned : Ptrofs.unsigned (Ptrofs.repr sbase) = sbase).
+  { apply Ptrofs.unsigned_repr; unfold frame_base_valid in HBase; lia. }
+  eapply exec_Sassign_copy.
+  - apply eval_Evar_local; reflexivity.
+  - apply eval_Etempvar; exact HTemp.
+  - reflexivity.
+  - eapply assign_loc_copy with (b' := bs) (ofs' := Ptrofs.repr sbase) (bytes := bytes).
+    + reflexivity.
+    + intros _; change (8 | Ptrofs.unsigned (Ptrofs.repr sbase)); rewrite HUnsigned; exact HAlign.
+    + intros _; change (8 | 0); exists 0; reflexivity.
+    + left; congruence.
+    + change (Mem.loadbytes m bs (Ptrofs.unsigned (Ptrofs.repr sbase)) 16 = Some bytes).
+      rewrite HUnsigned; exact HLoad.
+    + exact HStore.
+Qed.
+
+Lemma scalar_free_public_locals m bl ba :
+  ba <> bl -> Mem.range_perm m bl 0 16 Cur Freeable -> Mem.range_perm m ba 0 32 Cur Freeable ->
+  exists mf, Mem.free_list m (blocks_of_env secp_ge (scalar_public_env bl ba)) = Some mf /\
+    lframe (fun b _ => b <> ba /\ b <> bl) m mf.
+Proof.
+  intros HSeparate HL HA.
+  destruct (free_list_exists [(bl,0,16);(ba,0,32)] m) as [mf [HFree HUnchanged]].
+  - cbn; repeat constructor; cbn; intuition congruence.
+  - intros b lo hi [H|[H|H]]; [inversion H; subst; exact HL|inversion H; subst; exact HA|contradiction].
+  - exists mf; split; [rewrite scalar_public_blocks; exact HFree|].
+    eapply lframe_implies; [apply lframe_unchanged; exact HUnchanged|].
+    intros b pos [HA' HL'] HValid; cbn; intuition congruence.
+Qed.
