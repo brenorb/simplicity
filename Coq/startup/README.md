@@ -47,7 +47,7 @@ and the remaining consumers, with one invariant shared by all jets.
     from the four accepted contract shapes to contracts whose only state
     premise is the invariant and whose conclusion re-establishes it (on
     success and on assertion failure).
-- `jet_sha_startup_jets.v` — the instances: `sha_256_block`, the ten
+- `jet_sha_startup_jets.v`, `jet_sha_startup_env_jets.v` — the instances: `sha_256_block`, the ten
   `sha_256_ctx_8_add_n`, `add_buffer_511`, `finalize`, `tapdata_init`,
   `bitcoin_annex_hash`, `bitcoin_outpoint_hash`,
   `bitcoin_build_tapleaf_simplicity`, `bitcoin_build_tapbranch`,
@@ -59,11 +59,14 @@ and the remaining consumers, with one invariant shared by all jets.
 ## Boundaries
 
 - The invariant is established for the initial memory of the SHA translation
-  unit `jets_sha.prog`. Linking it to the evaluator's actual setup (frame
-  allocation before the first jet) needs preservation by that setup; the
-  archive's `sha_private_setup` covers allocation/stores into fresh blocks
-  for the dispatch/counter part only. Preservation of the tag part by
-  `Mem.alloc`/stores to other blocks is not proved here yet.
+  unit `jets_sha.prog` and carried through a caller's setup by
+  `jet_sha_startup_setup.v`: `sha_startup_state_preserved` (any forward
+  transition that leaves loads from the five state objects unchanged),
+  its instances for `Mem.alloc`, `Mem.store`, `Mem.storebytes` and
+  `Mem.free` on other blocks, and `sha_owned_setup_state` for setups that
+  only touch memory they allocated. What is *not* proved is that the actual
+  evaluator (`eval.c`, not part of any translation unit here) is such a
+  setup.
 - Jets with outputs of at most 64 cells are not covered by
   `sha_startup_state_frame_call` (a caller could, within the frame contract,
   aim a one-word output at the 8-byte writable tag array). No such jet has

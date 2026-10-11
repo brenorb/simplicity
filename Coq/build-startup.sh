@@ -30,7 +30,7 @@ ulimit -s 65520 2>/dev/null || true
 for name in "${order[@]}"; do
   [[ "startup/prereq/$name.vo" -nt "startup/prereq/$name.v" ]] || bash build-jets.sh --coqc "${paths[@]}" "startup/prereq/$name.v"
 done
-modules=(jet_sha_startup_globals jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets)
+modules=(jet_sha_startup_globals jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets jet_sha_startup_setup)
 for name in "${modules[@]}"; do
   bash build-jets.sh --coqc "${paths[@]}" "startup/proofs/$name.v"
 done
