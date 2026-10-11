@@ -2,6 +2,17 @@
 
 ## Current continuation (supersedes historical live-session notes below)
 
+2026-10-10: scoped original point-negate source gate and **41 mutation
+fixtures pass**; scripts are archived, hashed, and described in SOURCE-REVIEW.md.
+Old kernel handle 33632 and snapshot-generation handle 20742 are missing.
+Relevant process inventory confirms no live matching compiler/audit. Their
+logs have completed summaries/update messages, but lost terminal status is
+not counted as an exit-0 receipt. Fresh parametricity kernel **73703 is live**,
+`parametric-kernel-recheck.log`; poll it, not a replacement run.
+Combined candidate snapshots exist and still require a complete record diff
+review before full isolated acceptance. Do not regenerate simply because
+their handles were lost. No new public registration yet.
+
 Latest: **80 compiled results / thirty-four modules**. Literal normalize,
 ge-negate and gej-negate parametricity compile (44812 exit 0); final two
 assumption prints are closed under the global context. Independent closure
