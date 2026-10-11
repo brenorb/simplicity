@@ -7,16 +7,20 @@ Types, definitions and exact per-result dependencies match the checked
 archives. There is no failing Coq proof goal. Remaining verification is not
 an arithmetic/helper/entry/cleanup proof to redo.
 
-## Two live handles: preserve, do not restart
+## One live handle and a completed kernel check
 
 - **10545**: parent scalar normalize/negate complete acceptance retry.
   Candidate `/tmp/jet-scalar-integration.XAMDsw/Coq`.
   Log `/tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance-retry.log`.
-  It is confirmed live, currently in full kernel checking. Parent input
+  It is confirmed live; full kernel checking of 829 modules has passed and
+  the assumption gate is running. Parent input
   fingerprint `aa652e53f690b80bcdc03a263f11114d04b1e9743f3dac471a41b00e9dac42ec`.
-- **86561**: independent normal scalar-add closure kernel check.
+- **86561**: terminal **exit 0**, independent normal scalar-add closure kernel check.
   Candidate `/tmp/jet-scalar-add-integration.RxsuOy/Coq`.
   Log `/tmp/jet-scalar-add-integration.RxsuOy/normal-kernel.log`.
+  The inherited 15-axiom context matches and all unsafe categories are empty.
+  Do not poll or restart this completed check. Its pinned evidence can be
+  revalidated with `review-kernel.py`.
   Exact command: `bash build-jets.sh --coqchk -silent -o` followed by
   `C.<name>` for all 24 module names in ASSEMBLY.json. Uses pinned compiler
   and `ulimit -S -s 65520`.
@@ -27,10 +31,10 @@ new, disjoint experiments are not permission to change those inputs.
 
 ## On completion
 
-1. Record independent kernel terminal status; inspect the exact inherited
-   15-axiom context and all empty unsafe categories. Pin the log/hash only on
-   terminal success. Failure needs the actual diagnostic, not broader axioms
-   or proof/premise weakening.
+1. Independent kernel terminal success is already recorded in
+   `PREPARATION.json`; its log hash is
+   `30fac0dd8293d97049546911c0d3fc3f316da314885947d25959bce5fba6c8f3`.
+   Revalidate with `review-kernel.py`, preserving candidate sources.
 2. When parent **10545** exits 0, inspect **all** final gates, all four AST
    matches and unchanged fingerprint; rerun its pinned normal reviewer.
    Only then write signed `../scalar-integration/ACCEPTANCE.json` with
@@ -57,6 +61,8 @@ new, disjoint experiments are not permission to change those inputs.
 ```sh
 python3 -B proof-work/scalar-add-integration/review-normal.py --preliminary
 python3 -B proof-work/scalar-add-integration/test-review.py
+python3 -B proof-work/scalar-add-integration/review-kernel.py
+python3 -B proof-work/scalar-add-integration/test-kernel.py
 ```
 
 `assemble-candidate.py --verify` is an **initial preparation** check requiring
