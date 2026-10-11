@@ -1,0 +1,59 @@
+(** Numeric byte output and retained actual ownership of the unchanged
+    scalar_get_b32 helper. These are internal writer-support contracts. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_rep C.jet_sx_mem C.jet_sx_zval C.jet_sx_zrep.
+Require Import C.jet_secp_fe_b32 C.jet_secp_fe_nv C.jet_secp_b32_exec C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_local_regions C.jet_read8s_layout.
+Require Import OriginalC.jet_secp_scalar_get_b32_exec OriginalC.jet_secp_scalar_get_b32_numeric.
+Require Import WriterC.jet_secp_scalar_get_owned.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_get_owned_storage rho layout m :
+  rep rho layout (sregs scalar_get_owned_state) m ->
+  bas layout 0 = 0 /\ bas layout 1 = 0 /\
+  Mem.range_perm m (blk layout 0) 0 32 Cur Freeable /\
+  Mem.range_perm m (blk layout 1) 0 32 Cur Freeable.
+Proof.
+  intro HRep; rewrite scalar_get_owned_regions in HRep.
+  pose proof (rep_free_region _ _ _ _ 0 32 HRep ltac:(cbn; lia) eq_refl) as [H0 HP0].
+  pose proof (rep_free_region _ _ _ _ 1 32 HRep ltac:(cbn; lia) eq_refl) as [H1 HP1].
+  repeat split; assumption.
+Qed.
+
+Theorem eval_scalar_get_b32_numeric_owned m layout value :
+  0 <= value < 2 ^ 256 ->
+  rep (scalar_limb_rho value) layout scalar_get_owned_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_get_b32)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1))] E0 mf Vundef /\
+    uint8_array_at mf (blk layout 0) (bas layout 0) (map Int.repr (be_bytes value)) /\
+    rep (scalar_limb_rho value) layout (sregs scalar_get_owned_state) mf /\
+    bas layout 0 = 0 /\ bas layout 1 = 0 /\
+    Mem.range_perm mf (blk layout 0) 0 32 Cur Freeable /\
+    Mem.range_perm mf (blk layout 1) 0 32 Cur Freeable /\
+    lframe (fun b pos => ~ foot layout (map rshape scalar_get_owned_regs) b pos) m mf.
+Proof.
+  intros HValue HRep.
+  destruct (eval_scalar_get_b32_owned m layout (scalar_limb_rho value) HRep)
+    as [mf [HCall [HFinal HFrame]]].
+  pose proof HFinal as HRegions; rewrite scalar_get_owned_regions in HRegions.
+  pose proof (rep_region _ _ _ _ 0 _ HRegions eq_refl) as HRegion.
+  destruct HRegion as [_ [_ [_ [HCells _]]]].
+  destruct (scalar_get_owned_storage _ _ _ HFinal) as [HB0 [HB1 [HP0 HP1]]].
+  exists mf; split; [exact HCall|]; split.
+  - unfold uint8_array_at; intros i byte HNth.
+    rewrite nth_error_map in HNth.
+    destruct (nth_error (be_bytes value) i) as [z|] eqn:HZ; [|discriminate].
+    inversion HNth; subst byte.
+    replace (bas layout 0 + Z.of_nat i) with (bas layout 0 + (0 + Z.of_nat i)) by lia.
+    eapply (zbyte_region_load (scalar_limb_rho value) scalar_u64_bounds layout
+      ltac:(intro n; apply Int64.unsigned_range_2) mf 0%nat true (cells0 scalar_get_state) 0
+      scalar_get_output_checked HCells).
+    rewrite scalar_get_zcells_numeric by exact HValue; exact HZ.
+  - split; [exact HFinal|]. split; [exact HB0|]. split; [exact HB1|].
+    split; [exact HP0|]. split; [exact HP1|exact HFrame].
+Qed.
