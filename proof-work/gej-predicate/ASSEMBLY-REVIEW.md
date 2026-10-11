@@ -1,5 +1,33 @@
 # Combined isolated point-jet assembly
 
+## Current verification (supersedes historical live-session notes below)
+
+Pinned combined build 86191 exited 0. Generated full standard snapshots are
+now reviewed by `review-combined-snapshots.py`: removing exactly the 133 added
+type and 43 definition records recovers the inherited contracts byte-for-byte.
+All 3733 inherited assumption records are identical. Every added assumption
+record matches its earlier per-result report. Preliminary contract comparisons
+cover all 176 added records with explicit printed-global qualification
+normalization; two computed infinity writer definitions additionally use deep
+ellipsis supplements. These diagnostics are not equality certificates for
+omitted terms. Exact archived source and kernel evidence remain required.
+The receipt stores the two generated snapshot hashes and says full acceptance
+is false. Generation's vanished process handle is not an exit-status receipt.
+
+Source recheck: all 46 added proof/checker files match exact archives and all
+847 inherited Coq source modules match the accepted field-add baseline.
+An initial recheck guessed checker files at the Coq root and failed before
+finishing; resolving their actual `infinity-review`/`predicate-review` paths
+passed the complete check. This was a path-check issue, not altered inputs.
+
+Full acceptance **24487 is live** on frozen candidate inputs at
+`/tmp/jet-predicate-accept.EX7adj/combined-full-acceptance.log`, using pinned
+Coq 8.17.1, 65520 KiB stack and `JOBS=1 bash check-jets.sh --accept` with no
+update/no-build flags. Poll that handle; do not restart or edit its inputs.
+Registration in the actual checkout remains unchanged and guarded integration
+is still pending. Point-negate's separate 80-result candidate is not included
+in this two-jet acceptance run.
+
 Update: checkout acceptance **86431 exited 0** on unchanged fingerprint
 `16594c779a885f405041d02315d3cbaec414f439dc78c3d219dde3a8b425f631`.
 The candidate's first build **2296 exited 2** because the shell selected Rocq
