@@ -13,11 +13,15 @@ Normal-load-path build **91913 exited 0**, `normal-load-path-build.log`, pinned
 Coq 8.17.1, 65520 KiB stack, -j1, no scratch overlays. All eight assembly
 metadata hashes, 889 inherited sources and 34 new archived module hashes
 were rechecked after completion. See NORMAL-BUILD-REVIEW.json.
-Sequential full snapshot generation **20895 is live** in this candidate:
+Sequential full snapshot generation **20895 exited 0** in this candidate:
 `normal-contract-generation.log`, then `normal-assumption-generation.log`.
-Poll it, inspect both terminal generation statuses and completely review old/
-new types, definitions and assumptions before full isolated acceptance.
-Do not modify proof or metadata inputs during generation. Combined baseline
+Full inherited/new types, definitions and assumptions have been reconciled:
+all inherited contracts byte-identical, 3866 inherited axiom sets unchanged,
+80 new sets match preliminary prints, all 106 new contract records reconcile
+with exact/deep supplements. All 889 old sources, 34 archived proofs and eight
+metadata hashes still match. See FULL-SNAPSHOT-REVIEW.json/.md and read-only
+review-full-snapshots.py. Next full isolated acceptance, without update/no-build.
+Do not modify its proof or metadata inputs during acceptance. Combined baseline
 acceptance **24487 exited 0**; its isolated receipt is
 `../gej-predicate/COMBINED-ACCEPTANCE.json`. Do not count that receipt as
 acceptance of this separate point-negate candidate or checkout integration.
