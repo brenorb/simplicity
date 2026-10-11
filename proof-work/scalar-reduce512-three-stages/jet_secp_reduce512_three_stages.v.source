@@ -1,0 +1,53 @@
+(** Actual first three body stages: checkpoint and carry guards are discharged. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_canonical_scalar C.jet_secp_statement_prefix.
+Require Import MulC.jet_sx_forget_cells MulC.jet_secp_reduce512_two_stages
+  MulC.jet_secp_reduce512_third_stage MulC.jet_secp_reduce512_third_atomic
+  MulC.jet_secp_reduce512_third_value MulC.jet_secp_reduce512_third_exec
+  MulC.jet_secp_reduce512_third_checkpoint MulC.jet_secp_reduce512_typed_stage
+  MulC.jet_secp_reduce512_checkpoint MulC.jet_secp_reduce512_fold_bounds
+  MulC.jet_secp_reduce512_wide MulC.jet_secp_scalar_mul512_accumulate.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque reduce512_allocated reduce512_third_stage reduce512_third_state.
+Theorem exec_reduce512_first_three_stages rho beta e le m :
+  rep rho beta (sregs reduce512_first_initial) m ->
+  tmatch rho beta reduce512_initial_temps le ->
+  ematch beta (snd reduce512_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m reduce512_third_prefix E0 le' mf Out_normal /\
+    rep rho beta (sregs (reduce512_third_state (second_checkpoint_digits rho) (second_checkpoint_p4 rho))) mf /\
+    (forall i x, nth_error (third_machine_outputs (second_checkpoint_digits rho) (second_checkpoint_p4 rho)) i = Some x ->
+      Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 8 * Z.of_nat i) = Some (Vlong x)) /\
+    le'!_c = Some (Vlong (whi (third_ma3 (second_checkpoint_digits rho) (second_checkpoint_p4 rho)))) /\
+    column_words_value (third_machine_outputs (second_checkpoint_digits rho) (second_checkpoint_p4 rho)) +
+      reduce512_radix * Int64.unsigned (whi (third_ma3 (second_checkpoint_digits rho) (second_checkpoint_p4 rho))) =
+      third_fold_value (second_checkpoint_digits rho) (second_checkpoint_p4 rho) /\
+    0 <= third_fold_value (second_checkpoint_digits rho) (second_checkpoint_p4 rho) < 2 * canonical_group_order /\
+    0 <= Int64.unsigned (whi (third_ma3 (second_checkpoint_digits rho) (second_checkpoint_p4 rho))) <= 1 /\
+    third_fold_value (second_checkpoint_digits rho) (second_checkpoint_p4 rho) mod canonical_group_order =
+      second_fold_bridge_value rho mod canonical_group_order /\
+    tmatch rho beta (stemps (reduce512_third_state (second_checkpoint_digits rho) (second_checkpoint_p4 rho))) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs reduce512_first_initial)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (exec_reduce512_first_two_stages rho beta e le m HR HT HE)
+    as (le2 & m2 & Hex2 & HR2 & L0 & L1 & L2 & L3 & L4 & HV2 & HP & HT2 & HF2).
+  pose proof (rep_forget_after rho beta _ m2 2 HR2) as HR3.
+  rewrite second_checkpoint_forget_stack in HR3.
+  pose proof (second_checkpoint_tmatch rho beta le2 HT2) as HT3.
+  destruct (exec_typed_third_stage (second_checkpoint_digits rho) (second_checkpoint_p4 rho)
+    rho beta e le2 m2 HR3 HT3 HE) as (le3 & m3 & Hex3 & HR4 & Hloads & LC & HT4 & HF3).
+  assert (Hex : Clight2.exec_stmt secp_ge e le m reduce512_third_prefix E0 le3 m3 Out_normal).
+  { rewrite <- reduce512_third_source.
+    eapply exec_statement_prefix_then_last; [exact Hex2|exact Hex3]. }
+  pose proof (proj2 (second_checkpoint_p4_bound rho)) as HP4.
+  exists le3,m3; split; [exact Hex|]. split; [exact HR4|]. split; [exact Hloads|].
+  split; [exact LC|]. split; [apply third_reconstruction; exact HP4|].
+  split; [apply third_fold_bound; exact HP4|]. split; [apply third_c_bound; exact HP4|].
+  split; [apply second_checkpoint_third_modulo|]. split; [exact HT4|].
+  eapply lframe_trans; [exact HF2|exact HF3].
+Qed.

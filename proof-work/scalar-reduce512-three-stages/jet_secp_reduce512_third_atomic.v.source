@@ -1,0 +1,69 @@
+(** Source-bound third-fold u128 schedule, including the original stores and carry. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers Values Ctypes Maps.
+Require Import C.jet_sx_expr C.jets_secp.
+Require Import MulC.jet_secp_scalar_mul512_symbolic MulC.jet_secp_reduce512_symbolic
+  MulC.jet_secp_reduce512_wide MulC.jet_secp_reduce512_third_stage.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition third_symbolic_shift s := scolumn (sc_hi s) (XLc Int64.zero) (XLc Int64.zero).
+Lemma third_shift_rep rho beta sy ma : wide_rep rho beta sy ma ->
+  wide_rep rho beta (third_symbolic_shift sy) (wide_from_word (whi ma)).
+Proof. intros (_ & H & _); split; [exact H|]; split; reflexivity. Qed.
+Section TYPED.
+Variable digits : nat -> int64.
+Variable p4 : int.
+Definition third_sy_p4 := XI2L Unsigned (XI p4).
+Definition third_ma_p4 := Int64.repr (Int.unsigned p4).
+Definition third_sy0 := wide_symbolic_muladd_fast wide_symbolic_C0 third_sy_p4
+  (wide_symbolic_from_word (XL (digits 0%nat))).
+Definition third_sy1 := wide_symbolic_muladd_fast wide_symbolic_C1 third_sy_p4
+  (wide_symbolic_sumadd_fast (XL (digits 1%nat)) (third_symbolic_shift third_sy0)).
+Definition third_sy2 := wide_symbolic_sumadd_fast third_sy_p4
+  (wide_symbolic_sumadd_fast (XL (digits 2%nat)) (third_symbolic_shift third_sy1)).
+Definition third_sy3 := wide_symbolic_sumadd_fast (XL (digits 3%nat)) (third_symbolic_shift third_sy2).
+Definition third_symbolic_outputs := [sc_lo third_sy0; sc_lo third_sy1; sc_lo third_sy2; sc_lo third_sy3].
+Lemma third_symbolic_source : reduce512_third_limbs digits p4 = third_symbolic_outputs.
+Proof.
+  Timeout 10 reflexivity.
+Qed.
+Lemma third_c_source : reduce512_third_c digits p4 = sc_hi third_sy3.
+Proof. Timeout 10 reflexivity. Qed.
+Definition third_ma0 := wide_muladd_fast wide_C0 third_ma_p4 (wide_from_word (digits 0%nat)).
+Definition third_ma1 := wide_muladd_fast wide_C1 third_ma_p4
+  (wide_sumadd_fast (digits 1%nat) (wide_from_word (whi third_ma0))).
+Definition third_ma2 := wide_sumadd_fast third_ma_p4
+  (wide_sumadd_fast (digits 2%nat) (wide_from_word (whi third_ma1))).
+Definition third_ma3 := wide_sumadd_fast (digits 3%nat) (wide_from_word (whi third_ma2)).
+Definition third_machine_outputs := [wlo third_ma0; wlo third_ma1; wlo third_ma2; wlo third_ma3].
+Lemma third_p4_den rho beta : den rho beta third_sy_p4 = Vlong third_ma_p4.
+Proof. reflexivity. Qed.
+Lemma third_columns_rep rho beta :
+  wide_rep rho beta third_sy0 third_ma0 /\
+  wide_rep rho beta third_sy1 third_ma1 /\
+  wide_rep rho beta third_sy2 third_ma2 /\
+  wide_rep rho beta third_sy3 third_ma3.
+Proof.
+  assert (H0 : wide_rep rho beta third_sy0 third_ma0).
+  { apply wide_muladd_fast_rep; [apply wide_C0_den|apply third_p4_den|apply wide_from_word_rep; reflexivity]. }
+  assert (H1 : wide_rep rho beta third_sy1 third_ma1).
+  { apply wide_muladd_fast_rep; [apply wide_C1_den|apply third_p4_den|].
+    apply wide_sumadd_fast_rep; [reflexivity|apply third_shift_rep; exact H0]. }
+  assert (H2 : wide_rep rho beta third_sy2 third_ma2).
+  { apply wide_sumadd_fast_rep; [apply third_p4_den|].
+    apply wide_sumadd_fast_rep; [reflexivity|apply third_shift_rep; exact H1]. }
+  assert (H3 : wide_rep rho beta third_sy3 third_ma3).
+  { apply wide_sumadd_fast_rep; [reflexivity|apply third_shift_rep; exact H2]. }
+  exact (conj H0 (conj H1 (conj H2 H3))).
+Qed.
+Lemma third_outputs_machine rho beta :
+  map (den rho beta) (reduce512_third_limbs digits p4) = map Vlong third_machine_outputs /\
+  den rho beta (reduce512_third_c digits p4) = Vlong (whi third_ma3).
+Proof.
+  rewrite third_symbolic_source,third_c_source.
+  destruct (third_columns_rep rho beta) as [[H0 _] [[H1 _] [[H2 _] [H3 [HC _]]]]].
+  unfold third_symbolic_outputs,third_machine_outputs; cbn [map].
+  rewrite H0,H1,H2,H3; split; [reflexivity|exact HC].
+Qed.
+End TYPED.
