@@ -191,3 +191,16 @@ accepted hashing proofs recompile for it. Goal: `simplicity_bitcoin_mallocTapEnv
 establishes the taproot part of the environment relation, including the
 cached `tapLeafHash`, `tappathHash`, `tapEnvHash` that the accepted hash-getter
 jets take as a relation premise; then `mallocTransaction`. No registry edits.
+
+### Claude — Bitcoin taproot environment builder proved (2026-10-12, later)
+
+`Coq/bitcoin-env/` (README there; unregistered, new files only): the actual
+`simplicity_bitcoin_mallocTapEnv` of `C/bitcoin/env.c` is proved to return a
+fresh block holding leaf version, internal key, script CMR, path array and
+the cached `tapLeafHash`, `tappathHash`, `tapEnvHash` as computed by the C
+code, for every `pathLen <= 128` (`eval_mallocTapEnv`, commit `d4e58f00`; six
+inherited assumptions, `memcpy_model` explicit). Reusable for integration:
+`ctxo` (SHA context with output at any writable location), `eval_hashBuffer`,
+`eval_sha256_toMidstate`, `eval_malloc`. Next here: linking the stored words
+to `tapleaf_hash_of` / `words_hash_of` / `tap_env_hash_of`, then
+`mallocTransaction`.

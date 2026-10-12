@@ -38,44 +38,62 @@ unit's global environment.
 | `C/jet_bitcoin_env_tapenv_key.v` | `te_key`: statements 11-12 (internal key into the local, `path` pointer) |
 | `C/jet_bitcoin_env_tapenv_fill.v` | `te_fill`: statement 13 (compound literal and struct copy to the allocated block) |
 
-The `mallocTapEnv` lemmas are continuation-style: `te_restK` names the body
-after the statements already executed (`te_body`, `te_rest1`, `te_rest2`,
-`te_rest3`), and each lemma turns an execution of the remainder into an
-execution of the larger statement. Remaining: `te_rest3 = P4; P5; P6; P7; P8`
-with P4 `sha256_toMidstate(env->scriptCMR.s, rawEnv->scriptCMR)`, P5 the
-`tappathHash` loop, P6 `make_tapleaf` and its struct copy, P7 `tapEnvHash`,
-P8 `return env`; then function entry/exit (seven locals) and the link from
-the stored words to `tapleaf_hash_of`, `words_hash_of 5 3 (tappath_of e)`,
-`tap_env_hash_of`.
+| `C/jet_bitcoin_env_tapenv_cmr.v` | `te_cmr`: `sha256_toMidstate(env->scriptCMR.s, rawEnv->scriptCMR)` |
+| `C/jet_bitcoin_env_tapenv_loop.v` | `te_loop_exec`: the tap-path loop, by induction over iterations, for every path length |
+| `C/jet_bitcoin_env_tapenv_path.v` | `te_path`: `tappathHash` (init, loop, finalize) |
+| `C/jet_bitcoin_env_tapenv_tail.v` | `te_tail`: `make_tapleaf` with its struct copy, `tapEnvHash`, `return env` |
+| `C/jet_bitcoin_env_tapenv.v` | **`eval_mallocTapEnv`**: the whole function |
 
-## Plan for `simplicity_bitcoin_mallocTapEnv`
+### `eval_mallocTapEnv`
 
-Structure of the generated body (offsets: `bitcoinTapEnv` is 176 bytes,
-`path` 0, `tapLeafHash` 8, `tappathHash` 40, `tapEnvHash` 72, `internalKey`
-104, `scriptCMR` 136, `pathLen` 168, `leafVersion` 169; `rawBitcoinTapEnv`:
-`controlBlock` 0, `scriptCMR` 8, `pathLen` 16):
+For a raw taproot environment whose structure, control block
+(`33 + 32 * pathLen` bytes) and script CMR (32 bytes) are readable and whose
+`pathLen` is at most 128, the call
+`simplicity_bitcoin_mallocTapEnv(rawEnv)` returns a pointer to a fresh block
+`bA` such that (`tapenv_built`):
 
-1. guards and size arithmetic, `malloc` (CompCert's `EF_malloc`, concrete semantics);
-2. `sha256_toMidstate(internalKey.s, &controlBlock[1])`;
-3. compound literal into the local `__compound`, struct copy to `*env`;
-4. `sha256_toMidstate(env->scriptCMR.s, rawEnv->scriptCMR)`;
-5. `tappathHash`: `sha256_init`, loop of `sha256_toMidstate`/`sha256_hash`, `sha256_finalize`;
-6. `tapLeafHash = simplicity_bitcoin_make_tapleaf(...)` (accepted `eval_make_tapleaf`);
-7. `tapEnvHash`: `sha256_init`, three `sha256_hash`, `sha256_finalize`.
+- offset 0: `path` (null for an empty path, else `bA + 176`);
+- offset 8: `tapLeafHash` = `make_tapleaf_regs (controlBlock[0] & 0xfe) cmr`;
+- offset 40: `tappathHash` = `te_tappath_regs` (the branch hashes absorbed, then padding);
+- offset 72: `tapEnvHash` = `te_tapenv_regs` (leaf hash, path hash, internal key absorbed, then padding);
+- offset 104: `internalKey`, 136: `scriptCMR` (big-endian words of the raw bytes);
+- offset 168: `pathLen`, 169: `leafVersion`; from 176: the path array;
 
-Target statement: for a well-formed raw environment the returned block holds
-the fields that the accepted relations (`hash_getter_rep tapleaf_hash_of 8 8
-176`, `… words_hash_of 5 3 (tappath_of e) … 8 40 176`, `… tap_env_hash_of 8
-72 176`, and the scalar getters) require of the taproot structure.
+and every load from a block that existed before the call is unchanged.
+Premises that are facts about program start-up rather than inputs: the SHA
+dispatch pointer, the maximum counter and the "TapLeaf" tag array hold their
+initial values (`sha_dispatch_ok`, the `GM` load, `sha_tapleaf_tag_ok`) —
+exactly the start-up invariant of `Coq/startup`. `memcpy_model` is an
+explicit premise. Six inherited assumptions.
 
-Legitimate input requirements that stay premises: the raw structure is
-readable, `pathLen <= 128`, the control block has `33 + 32 * pathLen`
-readable bytes, the script CMR has 32. Composite lookups of late structures
-must not be normalised with `vm_compute` (the composite records carry large
-proof terms); use `envu_field_at`.
+Not covered: the NULL-return paths (null argument, `pathLen > 128`, the
+overflow checks, `malloc` failure — CompCert's `malloc` cannot fail).
+
+The step lemmas are continuation-style: `te_restK` names the body after the
+statements already executed, and each lemma turns an execution of the
+remainder into an execution of the larger statement.
+
+## Next
+
+1. Link the stored words to the canonical values the accepted relations use:
+   `hash256_reg (tapleaf_hash_of e)`, `hash256_reg (words_hash_of 5 3
+   (tappath_of e))`, `hash256_reg (tap_env_hash_of e)` (pure reasoning about
+   `absorb_i`/`sha_stream`; `btl_prefix_regs` and `absorb_i_fst/snd` of the
+   accepted modules are the bridges), and conclude the `hash_getter_rep`
+   instances for a `txEnv` whose `taproot` field points at the block.
+2. `simplicity_bitcoin_mallocTransaction` (same toolkit: `eval_hashBuffer`,
+   `ctxo`, `eval_malloc`).
+3. The same for `elements/env.c`.
 
 ## Build
 
 ```bash
 bash Coq/build-bitcoin-env.sh -j4
 ```
+
+```bash
+bash Coq/audit-bitcoin-env.sh
+```
+
+Never `vm_compute` a composite lookup of a late structure (the records carry
+large proof terms); use `envu_field_at`.
