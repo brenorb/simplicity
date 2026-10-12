@@ -26,7 +26,7 @@ txo 136, sequence 248, issuance 256, hasAnnex 536, isPegin 537); `sigOutput`
 `elementsTapEnv` 176 (path 0, internalKey 104, scriptCMR 136, pathLen 168,
 leafVersion 169).
 
-## Proved jets (50), each against its specification in `Haskell/Simplicity/Elements/Jets.hs`
+## Proved jets (52), each against its specification in `Haskell/Simplicity/Elements/Jets.hs`
 
 | C function | primitive | theorem (module) |
 | --- | --- | --- |
@@ -80,6 +80,8 @@ leafVersion 169).
 | `simplicity_check_lock_time` | program `checkLockTime` | `elements_check_lock_time_local_spec` (same) |
 | `simplicity_num_inputs` | `firstFail word32 (primitive InputScriptHash)` | `elements_num_inputs_local_spec` (`jet_elements_count_local`, ported) |
 | `simplicity_num_outputs` | `firstFail word32 (primitive OutputScriptHash)` | `elements_num_outputs_local_spec` (same) |
+| `simplicity_issuance_token_amount` | IssuanceTokenAmount | `elements_issuance_token_amount_local_spec` (`forward/proofs/jet_elements_issuance_token_jets`) |
+| `simplicity_current_issuance_token_amount` | `CurrentIndex >>> assert IssuanceTokenAmount` | `elements_current_issuance_token_amount_local_spec` (same) |
 
 Contracts are `application_jet_local_spec` / `application_jet_local_spec_sep`
 in `elements_ge` over `Elements.env`. Boundaries that apply to all of them:
@@ -190,12 +192,12 @@ verify `C/elements/env.c`, which builds the real environment.
 
 ## Next (in rough order of reuse)
 
-1. Remaining primitive jets: `issuance_token_amount` (its static helper
-   passes a stack-allocated compound literal for reissuances, so the proof
-   needs the local-variable allocation and release around the `amt` call),
-   `output_null_datum` (script parsing).
-2. Program-specified jets: `current_issuance_token_amount` (blocked with
-   item 1), `total_fee`, `output_is_fee`, the four distance jets,
+1. Remaining primitive jet: `output_null_datum` (script parsing). The two
+   token-amount jets are in `Coq/forward/` (stack-allocated local in the
+   static helper; eight assumptions instead of six, see `forward/README.md`;
+   audit and coqchk by `build-elements-forward.sh --check`: 6 theorems
+   within the eight inherited assumptions, coqchk exit 0, 96 s).
+2. Program-specified jets: `total_fee`, `output_is_fee`, the four distance jets,
    `lbtc_asset`, issuance (`issuance`, `issuance_asset`, `issuance_token`,
    `issuance_entropy`, `calculate_*`), time locks, hash and sig-hash jets. These need the
    Simplicity programs of `Haskell/Core/Simplicity/Programs/Elements*.hs`

@@ -147,13 +147,14 @@ C.jet_frame_constructible_bm` (after building the registered core modules).
 50 Elements jets proved in `elements_ge` against their canonical
 specifications, each with an executability instance; the canonical side is
 a Coq port of the Haskell primitive semantics that still needs source
-review. Blocked there: `issuance_token_amount` and its `current_` variant.
-The static helper passes a stack-allocated compound literal; the helper
-contract (`write_effect`) requires loads on *every* block outside the
-output ranges to be unchanged, and for the released local block that needs
-"Clight execution never adds permissions to an existing block", which the
-accepted step lemmas do not provide (the archived `jet_clight_forward`
-does, but it is not an accepted module).
+review. `issuance_token_amount` and its `current_` variant, whose static
+helper passes a stack-allocated compound literal, were blocked on the
+closed-world shape of `write_effect` (all loads outside the output ranges);
+they are now proved in `forward/` (see `forward/README.md`) with
+`write_effect_x` (effects up to one private block,
+`C/jet_elements_effects_local.v`) and the archived forward-memory property
+of Clight executions, at the price of the two CompCert `_properties`
+assumptions the accepted SHA-unit results already inherit.
 
 ## Build notes
 
