@@ -26,7 +26,7 @@ txo 136, sequence 248, issuance 256, hasAnnex 536, isPegin 537); `sigOutput`
 `elementsTapEnv` 176 (path 0, internalKey 104, scriptCMR 136, pathLen 168,
 leafVersion 169).
 
-## Proved jets (29), each against its specification in `Haskell/Simplicity/Elements/Jets.hs`
+## Proved jets (43), each against its specification in `Haskell/Simplicity/Elements/Jets.hs`
 
 | C function | primitive | theorem (module) |
 | --- | --- | --- |
@@ -59,6 +59,20 @@ leafVersion 169).
 | `simplicity_new_issuance_contract` | NewIssuanceContract | `elements_new_issuance_contract_local_spec` (same) |
 | `simplicity_reissuance_entropy` | ReissuanceEntropy | `elements_reissuance_entropy_local_spec` (same) |
 | `simplicity_issuance_asset_amount` | IssuanceAssetAmount | `elements_issuance_asset_amount_local_spec` (`jet_elements_issuance_amount_jets`) |
+| `simplicity_current_prev_outpoint` | `CurrentIndex >>> assert InputPrevOutpoint` | `elements_current_prev_outpoint_local_spec` (`jet_elements_current_input_jets`, generated) |
+| `simplicity_current_asset` | `CurrentIndex >>> assert InputAsset` | `elements_current_asset_local_spec` (same) |
+| `simplicity_current_script_hash` | `CurrentIndex >>> assert InputScriptHash` | `elements_current_script_hash_local_spec` (same) |
+| `simplicity_current_script_sig_hash` | `CurrentIndex >>> assert InputScriptSigHash` | `elements_current_script_sig_hash_local_spec` (same) |
+| `simplicity_current_issuance_asset_proof` | `CurrentIndex >>> assert IssuanceAssetProof` | `elements_current_issuance_asset_proof_local_spec` (same) |
+| `simplicity_current_issuance_token_proof` | `CurrentIndex >>> assert IssuanceTokenProof` | `elements_current_issuance_token_proof_local_spec` (same) |
+| `simplicity_current_reissuance_blinding` | `CurrentIndex >>> assert ReissuanceBlinding` | `elements_current_reissuance_blinding_local_spec` (same) |
+| `simplicity_current_new_issuance_contract` | `CurrentIndex >>> assert NewIssuanceContract` | `elements_current_new_issuance_contract_local_spec` (same) |
+| `simplicity_current_reissuance_entropy` | `CurrentIndex >>> assert ReissuanceEntropy` | `elements_current_reissuance_entropy_local_spec` (same) |
+| `simplicity_current_issuance_asset_amount` | `CurrentIndex >>> assert IssuanceAssetAmount` | `elements_current_issuance_asset_amount_local_spec` (same) |
+| `simplicity_current_sequence` | `CurrentIndex >>> assert InputSequence` | `elements_current_sequence_local_spec` (`jet_elements_current_jets`, ported) |
+| `simplicity_current_amount` | `CurrentIndex >>> assert Prog.inputAmount` | `elements_current_amount_local_spec` (`jet_elements_current_gen_jets`) |
+| `simplicity_current_pegin` | `CurrentIndex >>> assert InputPegin` | `elements_current_pegin_local_spec` (same) |
+| `simplicity_current_annex_hash` | `CurrentIndex >>> assert InputAnnexHash` | `elements_current_annex_hash_local_spec` (same) |
 
 Contracts are `application_jet_local_spec` / `application_jet_local_spec_sep`
 in `elements_ge` over `Elements.env`. Boundaries that apply to all of them:
@@ -86,12 +100,24 @@ access), `jet_elements_issuance_helper.v` (the four tag-dispatched static
 issuance helpers as one parametric function), `jet_elements_indexed_gen.v`
 (generated: indexed getter over an arbitrary success statement),
 `jet_elements_indexed_ptr2.v` (two helper calls on the selected element).
-Executability on fresh frames: `jet_elements_executable.v` (first 20) and
-`jet_elements_executable_conf.v` (these nine).
+Executability on fresh frames: `jet_elements_executable.v` (first 20),
+`jet_elements_executable_conf.v` (these nine) and
+`jet_elements_executable_current.v` (the fourteen current-input jets).
+
+Current-input jets (`if (numInputs <= ix) return false; ...; return true`):
+the specification is `primitive CurrentIndex >>> assert SPEC` with the
+literal `Programs.Bit.assert` (`jet_elements_current_spec.v`, ported from
+the Bitcoin unit; one generic lemma `elements_current_sem` evaluates it for
+any per-input primitive). The contracts are total: `envIx < length inputs`
+is an invariant of `Elements.env` (the check of `primEnv`), and `envIx` is
+a 32-bit word as in Haskell (`envIxWord32`, added to the port for this).
+`jet_elements_current_ptr.v` / `_ptr_jets.v` are the ported single-helper
+theorem, `jet_elements_current_gen.v` its generalization to an arbitrary
+tail statement (footprint then includes the re-read environment words).
 
 ## Receipts
 
-- All 29 theorems: `Print Assumptions` = the six inherited assumptions
+- All 43 theorems: `Print Assumptions` = the six inherited assumptions
   (`sig_forall_dec`, `sig_not_dec`, `classic`, `functional_extensionality_dep`,
   `external_functions_sem`, `inline_assembly_sem`); no `admit`/`Admitted`/
   `Axiom`/`Parameter` in `jet_elements_*.v` (2026-10-12).
@@ -106,8 +132,10 @@ Executability on fresh frames: `jet_elements_executable.v` (first 20) and
    passes a stack-allocated compound literal for reissuances, so the proof
    needs the local-variable allocation and release around the `amt` call),
    `output_null_datum` (script parsing).
-2. Program-specified jets (72): `current_*`, `num_inputs`, `num_outputs`,
-   `total_fee`, issuance, time locks, hash and sig-hash jets. These need the
+2. Program-specified jets: `current_issuance_token_amount` (blocked with
+   item 1), `num_inputs`, `num_outputs`, `total_fee`, `output_is_fee`,
+   `lbtc_asset`, issuance (`issuance`, `issuance_asset`, `issuance_token`,
+   `issuance_entropy`, `calculate_*`), time locks, hash and sig-hash jets. These need the
    Simplicity programs of `Haskell/Core/Simplicity/Programs/Elements*.hs`
    ported and evaluated, as was done for Bitcoin's totals/time locks/hashes.
 3. Source review of `jet_elements_prim.v` semantics clauses; a second gate

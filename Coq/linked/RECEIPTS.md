@@ -77,6 +77,11 @@ theorems (124 linked jet contracts, 104 linked executability results);
 `coqchk passed for 16 linked modules and their dependencies` (first kernel
 pass that includes `jet_frame_executable_linked`).
 
+`SHA_SUPPORT=<main>/proof-work/sha-support bash Coq/build-linked-startup.sh
+--check` at the same commit: exit 0 in 17m12s. Assumption audit passed: 40
+linked startup contracts and the initialization theorem; `coqchk passed for
+jet_sha_startup_linked and its dependencies`.
+
 ## Standalone memcpy proofs (normal tree)
 
 - `C.jet_memcpy_impl`: compiled; `Print Assumptions eval_memcpy_impl` = the

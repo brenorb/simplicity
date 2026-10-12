@@ -109,3 +109,23 @@ semantics will be a literal Coq port of
 `Haskell/Elements/Simplicity/Elements/{DataTypes,Primitive}.hs`, marked as a
 port requiring source review, not as an accepted canonical module. No
 registry edits; integration stays with the main checkout.
+
+### Claude status — 2026-10-12
+
+Elements (reserved here, unregistered, new modules only): 43 jets proved in
+`elements_ge` against their canonical specifications, each with an
+executability instance; index and boundaries in `Coq/C/JET_ELEMENTS.md`.
+Since the last note: confidential-value jets (`input_asset`, `output_asset`,
+`output_nonce`, `input_amount`, `output_amount`), issuance jets
+(`reissuance_blinding`, `new_issuance_contract`, `reissuance_entropy`,
+`issuance_asset_amount`) and fourteen `current_*` jets. The ported
+`Elements.env` record gained `envIxWord32` (Haskell's `envIx :: Word32`).
+
+For integration: these modules depend only on accepted core modules and on
+the Bitcoin-unit proof modules they were ported from (read, not edited).
+Fresh kernel receipts for the linked and startup trees at `fa06716b` are in
+`Coq/linked/RECEIPTS.md` and `Coq/startup/RECEIPTS.md`.
+
+Open in this area (unclaimed): `issuance_token_amount` and its `current_`
+variant (stack-allocated compound literal in the static helper),
+`output_null_datum`, and the remaining program-specified Elements jets.
