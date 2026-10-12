@@ -1,0 +1,88 @@
+(** Several live SHA-256 contexts whose outputs are distinct 32-byte fields
+    of one block (the transaction being built): a memory change that leaves
+    the context blocks, the two SHA globals and the output fields alone keeps
+    all of them.  This is the invariant shape of the two loops of
+    [simplicity_bitcoin_mallocTransaction]. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Values Memory.
+Require Import C.jet_sha_linkage C.jet_sha_block_local C.jet_sha_ctx_abs C.jet_bitmachine_rep.
+Require Import C.jets_sha C.jet_bitcoin_env_ctxo.
+Import ListNotations.
+Local Open Scope Z_scope.
+
+(** Context block, output offset, pending bytes, state, counter, overflow. *)
+Definition ctx_entry : Type := (block * Z * list int * list int * int64 * bool)%type.
+
+Definition ctx_holds (m : mem) (bo : block) (c : ctx_entry) : Prop :=
+  let '(bx, ob, l, regs, cnt, ovf) := c in ctxo m bx bo ob l regs cnt ovf.
+
+Definition ctxs (m : mem) (bo : block) (cs : list ctx_entry) : Prop := Forall (ctx_holds m bo) cs.
+
+Definition ctx_block (c : ctx_entry) : block := let '(bx, _, _, _, _, _) := c in bx.
+Definition ctx_out (c : ctx_entry) : Z := let '(_, ob, _, _, _, _) := c in ob.
+
+Lemma ctx_holds_other m m' bo (c : ctx_entry) :
+  ctx_holds m bo c ->
+  (forall ch b ofs,
+     b = ctx_block c \/ b = GC \/ b = GM \/ (b = bo /\ ctx_out c <= ofs /\ ofs + size_chunk ch <= ctx_out c + 32) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs k p, b = ctx_block c \/ b = bo -> Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) ->
+  ctx_holds m' bo c.
+Proof.
+  destruct c as [[[[[bx ob] l] regs] cnt] ovf]. cbn [ctx_holds ctx_block ctx_out].
+  intros (HOut & HCnt & HOvf & HBlk & HRegs & HMod & HLen & Hr & PX & Hdisp & HMax) HL HP.
+  split; [rewrite HL by tauto; exact HOut|]. split; [rewrite HL by tauto; exact HCnt|].
+  split; [rewrite HL by tauto; exact HOvf|].
+  split; [intros i Hi; rewrite HL by tauto; apply HBlk; exact Hi|].
+  split.
+  { intros i Hi. destruct (HRegs i Hi) as [H1 [H2 H3]]. split.
+    - rewrite HL; [exact H1|]. right; right; right. change (size_chunk Mint32) with 4. lia.
+    - split; [|exact H3]. intros ofs Hr0. apply HP; [tauto|apply H2, Hr0]. }
+  split; [exact HMod|]. split; [exact HLen|]. split; [exact Hr|].
+  split; [intros ofs Hr0; apply HP; [tauto|apply PX, Hr0]|].
+  split; [unfold sha_dispatch_ok; rewrite HL by tauto; exact Hdisp|rewrite HL by tauto; exact HMax].
+Qed.
+
+Theorem ctxs_other m m' bo (cs : list ctx_entry) :
+  ctxs m bo cs ->
+  (forall c ch b ofs, In c cs ->
+     b = ctx_block c \/ b = GC \/ b = GM \/ (b = bo /\ ctx_out c <= ofs /\ ofs + size_chunk ch <= ctx_out c + 32) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall c b ofs k p, In c cs -> b = ctx_block c \/ b = bo -> Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) ->
+  ctxs m' bo cs.
+Proof.
+  intros HC HL HP. unfold ctxs in *. rewrite Forall_forall in *. intros c Hc.
+  eapply ctx_holds_other; [apply HC, Hc|intros ch b ofs; apply HL, Hc|intros b ofs k p; apply HP, Hc].
+Qed.
+
+(** The usual frame of a context operation (on block [bx0] with output field
+    [ob0] of [bo]) keeps every other context. *)
+Theorem ctxs_frame m m' bo (cs : list ctx_entry) (bx0 : block) (ob0 : Z) :
+  ctxs m bo cs ->
+  GC <> bx0 -> GM <> bx0 -> bo <> bx0 -> GC <> bo -> GM <> bo ->
+  (forall c, In c cs -> ctx_block c <> bx0 /\ ctx_block c <> bo /\
+     (ctx_out c + 32 <= ob0 \/ ob0 + 32 <= ctx_out c)) ->
+  (forall ch b ofs, Mem.valid_block m b -> b <> bx0 ->
+     (b <> bo \/ ofs + size_chunk ch <= ob0 \/ ob0 + 32 <= ofs) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs k p, Mem.valid_block m b -> Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) ->
+  ctxs m' bo cs.
+Proof.
+  intros HC NG NM NB NGo NMo HD HL HP.
+  assert (HV : forall c, In c cs -> Mem.valid_block m (ctx_block c) /\ Mem.valid_block m bo /\
+    Mem.valid_block m GC /\ Mem.valid_block m GM).
+  { intros c Hc. unfold ctxs in HC. rewrite Forall_forall in HC. specialize (HC c Hc).
+    destruct c as [[[[[bx ob] l] regs] cnt] ovf]. cbn [ctx_holds ctx_block] in *.
+    destruct HC as (HOut & _ & _ & _ & HRegs & _ & _ & _ & _ & Hdisp & HMax).
+    split; [eapply load_valid_block; exact HOut|].
+    split; [eapply load_valid_block; exact (proj1 (HRegs 0%nat ltac:(lia)))|].
+    split; eapply load_valid_block; eassumption. }
+  eapply ctxs_other; [exact HC| |].
+  - intros c ch b ofs Hc Hb. destruct (HV c Hc) as (V1 & V2 & V3 & V4). destruct (HD c Hc) as (D1 & D0 & D2).
+    destruct Hb as [->|[->|[->|[-> Hr]]]].
+    + apply HL; [exact V1|exact D1|left; exact D0].
+    + apply HL; [exact V3|exact NG|left; exact NGo].
+    + apply HL; [exact V4|exact NM|left; exact NMo].
+    + apply HL; [exact V2|exact NB|right; lia].
+  - intros c b ofs k p Hc _ Hp. apply HP; [eapply Mem.perm_valid_block; exact Hp|exact Hp].
+Qed.
