@@ -60,6 +60,16 @@ program is CompCert's link of the accepted SHA unit with the memcpy unit).
   `jet_linked_sha_program.v` `67175bcbb458752255ee31947b16b373f05e71d389639f4e346f06eb50fdc344`,
   `jet_memcpy_model.v` `57044542a6645c0d896ccdcfffb2bd351df562dd11dd405ddbcc14039d78b3df`.
 
+## 2026-10-11 — `bash Coq/build-linked-startup.sh --check`, exit 0 (18 min)
+
+Sources at commit `38501bec`. Startup modules compiled against the linked SHA
+program; generated `linked/startup/jet_sha_startup_linked.v` fresh;
+`Print Assumptions` for the 40 `_linked` startup theorems (20 contracts over
+the invariant, 3 caller-side environment contracts, 17 executability
+results) and `sha_startup_state_initialized`: within the eight inherited
+assumptions, no `memcpy_model`; `coqchk -silent -o
+JetStartup.jet_sha_startup_linked` with its whole dependency chain: passed.
+
 ## Standalone memcpy proofs (normal tree)
 
 - `C.jet_memcpy_impl`: compiled; `Print Assumptions eval_memcpy_impl` = the
