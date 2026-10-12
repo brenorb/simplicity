@@ -36,7 +36,7 @@ for name in "${order[@]}"; do
 done
 modules=(jet_sha_startup_globals jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets jet_sha_startup_setup jet_sha_startup_env_callers
   jet_sha_startup_executable jet_sha_startup_runs jet_sha_startup_lifecycle
-  jet_sha_startup_init)
+  jet_sha_startup_init jet_sha_startup_env_runs)
 for name in "${modules[@]}"; do
   bash build-jets.sh --coqc "${paths[@]}" "startup/proofs/$name.v"
 done
