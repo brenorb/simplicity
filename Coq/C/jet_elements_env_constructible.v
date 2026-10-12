@@ -56,8 +56,8 @@ Proof.
   { eapply built_range_perm; [exact B4|]. eapply built_range_perm; [exact B3|].
     eapply built_range_perm; [exact B2|]. eapply built_range_perm; [exact B1|]. exact Pi. }
   { apply Z.divide_0_r. }
-  destruct B1 as (_ & _ & V1). destruct B2 as (LB2 & _ & V2). destruct B3 as (LB3 & _ & V3).
-  destruct B4 as (LB4 & _ & V4). destruct B5 as (LB5 & _ & V5).
+  destruct B1 as (_ & _ & V1 & _). destruct B2 as (LB2 & _ & V2 & _). destruct B3 as (LB3 & _ & V3 & _).
+  destruct B4 as (LB4 & _ & V4 & _). destruct B5 as (LB5 & _ & V5 & _).
   exists m5, be, bt, bin.
   split; [exact (V5 _ (V4 _ (V3 _ (V2 _ (V1 _ Ve)))))|].
   split; [exact (V5 _ (V4 _ (V3 _ (V2 _ (V1 _ Vt)))))|].

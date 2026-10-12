@@ -58,9 +58,9 @@ Proof.
   pose proof (built_range_perm _ _ _ _ _ bin 0 _ Cur Writable B5 Pi4) as Pi5.
   destruct (array_buildable R sz Hsz Hal HL HB xs m5 bin 0 Pi5 (Z.divide_0_r 8)) as (m6 & B6 & HR).
   exists m6, be, bt, bin.
-  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj2 (proj2 B)) end; exact Ve|].
-  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj2 (proj2 B)) end; exact Vt|].
-  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj2 (proj2 B)) end; exact Vi|].
+  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj1 (proj2 (proj2 B))) end; exact Ve|].
+  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj1 (proj2 (proj2 B))) end; exact Vt|].
+  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj1 (proj2 (proj2 B))) end; exact Vi|].
   split. { keepx B6. keepx B5. keepx B4. keepx B3. keepx B2. exact L1. }
   split. { keepx B6. keepx B5. keepx B4. keepx B3. exact L2. }
   split. { keepx B6. keepx B5. keepx B4. exact L3. }

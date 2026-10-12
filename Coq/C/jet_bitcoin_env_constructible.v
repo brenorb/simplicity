@@ -76,8 +76,8 @@ Proof.
   destruct (built_store_bool m8 bt 480 final 480 481) as (m9 & B9 & L9);
     [intros o Ho; apply Pt8; lia|lia|lia|].
   exists m9, be, bt.
-  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj2 (proj2 B)) end; exact Ve|].
-  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj2 (proj2 B)) end; exact Vt|].
+  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj1 (proj2 (proj2 B))) end; exact Ve|].
+  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj1 (proj2 (proj2 B))) end; exact Vt|].
   split; [keep B9; keep B8; keep B7; keep B6; keep B5; keep B4; keep B3; keep B2; exact L1|].
   split; [keep B9; keep B8; keep B7; keep B6; keep B5; keep B4; keep B3; exact L2|].
   split; [keep B9; keep B8; keep B7; keep B6; keep B5; keep B4; exact L3|].

@@ -99,9 +99,9 @@ Proof.
     (elem_buildable_align 4 8 _ _ ltac:(exists 2; reflexivity) hash_elem_buildable) path m6 bp 0 Pp6
     (Z.divide_0_r 8)) as (m7 & B7 & HR).
   exists m7, be, bt, bp.
-  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj2 (proj2 B)) end; exact Ve|].
-  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj2 (proj2 B)) end; exact Vt|].
-  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj2 (proj2 B)) end; exact Vp|].
+  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj1 (proj2 (proj2 B))) end; exact Ve|].
+  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj1 (proj2 (proj2 B))) end; exact Vt|].
+  split; [repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj1 (proj2 (proj2 B))) end; exact Vp|].
   split. { keepr B7. keepr B6. keepr B5. keepr B4. keepr B3. keepr B2. exact L1. }
   split. { keepr B7. keepr B6. keepr B5. keepr B4. keepr B3. exact L2. }
   split. { keepr B7. keepr B6. keepr B5. keepr B4. exact L3. }
@@ -180,7 +180,7 @@ Proof.
   { exists be, 0, bt, 0. rewrite ?ptrofs_max. repeat split; try first [reflexivity | lia | assumption].
     keepr B2. exact L1. }
   repeat constructor;
-    repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj2 (proj2 B)) end; assumption.
+    repeat match goal with B : built _ _ _ _ _ |- _ => apply (proj1 (proj2 (proj2 B))) end; assumption.
 Qed.
 
 (** * Per-input arrays of the extended environment *)

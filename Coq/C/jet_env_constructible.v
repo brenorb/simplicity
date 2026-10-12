@@ -19,7 +19,8 @@ Definition built (m m' : mem) (b : block) (lo hi : Z) : Prop :=
   (forall c b' o, b' <> b \/ o + size_chunk c <= lo \/ hi <= o ->
     Mem.load c m' b' o = Mem.load c m b' o) /\
   (forall b' o k p, Mem.perm m b' o k p -> Mem.perm m' b' o k p) /\
-  (forall b', Mem.valid_block m b' -> Mem.valid_block m' b').
+  (forall b', Mem.valid_block m b' -> Mem.valid_block m' b') /\
+  (forall b' o k p, Mem.perm m' b' o k p -> Mem.perm m b' o k p).
 
 Lemma built_refl m b lo hi : built m m b lo hi.
 Proof. repeat split; auto. Qed.
@@ -27,17 +28,18 @@ Proof. repeat split; auto. Qed.
 Lemma built_weaken m m' b lo hi lo' hi' :
   lo' <= lo -> hi <= hi' -> built m m' b lo hi -> built m m' b lo' hi'.
 Proof.
-  intros H1 H2 (L & P & V). split; [|split; assumption].
+  intros H1 H2 (L & P & V & Q). split; [|split; [|split]; assumption].
   intros c b' o H. apply L. destruct H as [H|[H|H]]; [left; exact H|right; left; lia|right; right; lia].
 Qed.
 
 Lemma built_trans m m1 m2 b lo hi :
   built m m1 b lo hi -> built m1 m2 b lo hi -> built m m2 b lo hi.
 Proof.
-  intros (L1 & P1 & V1) (L2 & P2 & V2). split; [|split].
+  intros (L1 & P1 & V1 & Q1) (L2 & P2 & V2 & Q2). split; [|split; [|split]].
   - intros c b' o H. rewrite (L2 c b' o H). exact (L1 c b' o H).
   - intros b' o k p H. exact (P2 _ _ _ _ (P1 _ _ _ _ H)).
   - intros b' H. exact (V2 _ (V1 _ H)).
+  - intros b' o k p H. exact (Q1 _ _ _ _ (Q2 _ _ _ _ H)).
 Qed.
 
 (** A step on another block is a (trivial) step on any range of this one. *)
@@ -46,14 +48,14 @@ Lemma built_other m m' b b' lo hi :
   (forall c o, Mem.load c m' b' o = Mem.load c m b' o) /\
   (forall o k p, Mem.perm m b' o k p -> Mem.perm m' b' o k p).
 Proof.
-  intros Hb (L & P & V). split.
+  intros Hb (L & P & V & Q). split.
   - intros c o. apply L. left. exact (not_eq_sym Hb).
   - intros o k p H. exact (P _ _ _ _ H).
 Qed.
 
 Lemma built_range_perm m m' b lo hi b' l h k p :
   built m m' b lo hi -> Mem.range_perm m b' l h k p -> Mem.range_perm m' b' l h k p.
-Proof. intros (_ & P & _) H o Ho. exact (P _ _ _ _ (H o Ho)). Qed.
+Proof. intros (_ & P & _ & _) H o Ho. exact (P _ _ _ _ (H o Ho)). Qed.
 
 Lemma built_load_some m m' b lo hi c b' o v :
   built m m' b lo hi -> b' <> b \/ o + size_chunk c <= lo \/ hi <= o ->
@@ -68,11 +70,12 @@ Proof.
   intros HP HA Hlo Hhi.
   destruct (Mem.valid_access_store m c b o v (conj HP HA)) as [m' HS].
   exists m'. split; [|exact (Mem.load_store_same _ _ _ _ _ _ HS)].
-  split; [|split].
+  split; [|split; [|split]].
   - intros c' b' o' H. eapply Mem.load_store_other; [exact HS|].
     destruct H as [H|[H|H]]; [left; exact H|right; left; lia|right; right; lia].
   - intros b' o' k p H. eapply Mem.perm_store_1; eauto.
   - intros b' H. eapply Mem.store_valid_block_1; eauto.
+  - intros b' o' k p H. eapply Mem.perm_store_2; eauto.
 Qed.
 
 (** Eight-bit, 32-bit, 64-bit and pointer cells store their value exactly. *)
