@@ -71,3 +71,86 @@ Lemma ci_fill_shape : ci_fill =
       ci_sequence)
     ci_hasAnnex.
 Proof. reflexivity. Qed.
+
+Lemma ci_sizeof_SIN : sizeof sha_ge SIN = 160.
+Proof. vm_compute; reflexivity. Qed.
+Lemma ci_blockcopy_SIN : alignof_blockcopy sha_ge SIN = 8.
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma envu_sigInput_annexHash : envu_field_at _sigInput _annexHash 0.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_sigInput_scriptSigHash : envu_field_at _sigInput _scriptSigHash 32.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_sigInput_prevOutpoint : envu_field_at _sigInput _prevOutpoint 64.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_sigInput_txo : envu_field_at _sigInput _txo 104.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_sigInput_sequence : envu_field_at _sigInput _sequence 144.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_sigInput_hasAnnex : envu_field_at _sigInput _hasAnnex 152.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_outpoint_txid : envu_field_at _outpoint _txid 0.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_outpoint_ix : envu_field_at _outpoint _ix 32.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_rawInput_annex : envu_field_at _rawInput _annex 0.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_rawInput_prevTxid : envu_field_at _rawInput _prevTxid 8.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_rawInput_txo : envu_field_at _rawInput _txo 16.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_rawInput_scriptSig : envu_field_at _rawInput _scriptSig 40.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_rawInput_prevIx : envu_field_at _rawInput _prevIx 56.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+Lemma envu_rawInput_sequence : envu_field_at _rawInput _sequence 60.
+Proof. apply envu_field_offset_at. vm_compute; reflexivity. Qed.
+
+Local Opaque sha_ge.
+
+(** Zero runs through an arbitrary midstate-typed expression. *)
+Section ZeroRun.
+Variables (e : env) (b : block) (a : expr) (delta : Z).
+Hypothesis Ha : forall le m, eval_expr sha_ge e le m a (Vptr b (Ptrofs.repr delta)).
+Hypothesis Hty : typeof a = MID.
+Hypothesis Hd : 0 <= delta <= 4000.
+
+Lemma exec_zero_g le m m' k :
+  (k < 8)%nat ->
+  Mem.store Mint32 m b (delta + 4 * Z.of_nat k) (Vint Int.zero) = Some m' ->
+  Clight2.exec_stmt sha_ge e le m (zero_g a k) E0 le m' Out_normal.
+Proof.
+  intros Hk HS.
+  eapply exec_Sassign with (v2 := Vint Int.zero) (v := Vint Int.zero).
+  - pose proof (eval_envu_field_array e le m a _sha256_midstate _s 0 A8 b (Ptrofs.repr delta)
+      Hty envu_sha256_midstate_s ltac:(intros chunk; discriminate) eq_refl (Ha le m)) as HE.
+    rewrite Ptrofs.add_zero in HE.
+    eapply eval_Ederef. eapply eval_Ebinop; [exact HE|apply eval_Econst_int|reflexivity].
+  - apply eval_Econst_int.
+  - reflexivity.
+  - eapply assign_loc_value; [reflexivity|]. unfold Mem.storev.
+    assert (HU : Ptrofs.unsigned (Ptrofs.repr delta) = delta)
+      by (apply Ptrofs.unsigned_repr; change Ptrofs.max_unsigned with 18446744073709551615; lia).
+    rewrite ptr_word_offset_from by (rewrite ?HU; change Ptrofs.max_unsigned with 18446744073709551615; lia).
+    rewrite HU. exact HS.
+Qed.
+
+Lemma zsr_exec n : forall lo, (lo + n <= 8)%nat ->
+  forall acc le0 le m0 m1 m2,
+  Clight2.exec_stmt sha_ge e le0 m0 acc E0 le m1 Out_normal ->
+  store_words m1 b (delta + 4 * Z.of_nat lo) (repeat Int.zero n) = Some m2 ->
+  Clight2.exec_stmt sha_ge e le0 m0 (zsr acc a lo n) E0 le m2 Out_normal.
+Proof.
+  induction n as [|n IH]; intros lo Hn acc le0 le m0 m1 m2 HA HS.
+  - cbn in HS. injection HS as <-. exact HA.
+  - rewrite repeat_snoc in HS. destruct (store_words_app_inv _ _ _ _ _ _ HS) as (mm & H1 & H2).
+    rewrite repeat_length in H2. cbn [store_words] in H2.
+    destruct (Mem.store Mint32 mm b (delta + 4 * Z.of_nat lo + 4 * Z.of_nat n) (Vint Int.zero)) as [mx|] eqn:HSt;
+      [|discriminate].
+    injection H2 as <-.
+    cbn [zsr]. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0).
+    + eapply IH; [lia|exact HA|exact H1].
+    + eapply exec_zero_g; [lia|].
+      replace (delta + 4 * Z.of_nat (lo + n)) with (delta + 4 * Z.of_nat lo + 4 * Z.of_nat n) by lia. exact HSt.
+Qed.
+End ZeroRun.
