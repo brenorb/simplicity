@@ -107,6 +107,12 @@ C.jet_frame_constructible_bm` (after building the registered core modules).
      `linked/startup/jet_sha_startup_linked.v`). Constructed memories are
      extensions (`C/jet_env_constructible_ext.v`), which is what carries
      the invariant through the environment construction.
+   Kernel receipt for this item after the `built` strengthening (all
+   dependents rebuilt): `coqchk -silent -o` on the four Bitcoin environment
+   modules, `jet_env_constructible_ext`, both Elements `runs_everywhere`
+   modules and the five Elements executability modules, with whole
+   dependency chains, at `e4655dcf`: exit 0. `Print Assumptions`: the six
+   inherited assumptions for each of the 36 + 50 no-premise theorems.
    What these results do not say: that `C/bitcoin/env.c` builds such a
    memory from a serialized transaction (it is in no proof translation
    unit); they show the relations are satisfiable for every logical
