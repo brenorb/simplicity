@@ -98,6 +98,7 @@ Definition in_inv (k : nat) (le : temp_env) (m : mem) : Prop :=
   le!_tx = Some (Vptr bA Ptrofs.zero) /\
   le!_input = Some (Vptr bA (Ptrofs.repr 488)) /\
   le!_rawTx = Some rawv /\
+  le!_output = Some (Vptr bA (Ptrofs.repr (488 + 160 * ni))) /\
   LS m bA (cores k) allL /\
   Mem.load Mint64 m bA 432 = Some (Vlong (in_tot data k)) /\
   Mem.load Mint8unsigned m bA 480 = Some (Vint (in_final data k)) /\
@@ -130,7 +131,7 @@ Lemma in_exit le m : in_inv Nn le m ->
   exists le', in_inv Nn le' m /\
     Clight2.exec_stmt sha_ge e le m (Sloop mt_in_s1 mt_in_s2) E0 le' m Out_normal.
 Proof.
-  intros (Hi & Htx & Hin & Hraw & HLS & HT & HFi & HR & HFo & HFa & HPm & HV).
+  intros (Hi & Htx & Hin & Hraw & Hout & HLS & HT & HFi & HR & HFo & HFa & HPm & HV).
   exists (PTree.set _t'17 (Vlong (Int64.repr ni)) le). split.
   { unfold in_inv. rewrite !PTree.gso by discriminate. repeat (split; [assumption|]). assumption. }
   eapply exec_Sloop_stop1 with (out' := Out_break); [|constructor].
@@ -153,7 +154,7 @@ Lemma in_step k le m : (k < Nn)%nat -> in_inv k le m ->
     Clight2.exec_stmt sha_ge e le m mt_in_s1 E0 le1 m1 Out_normal /\
     Clight2.exec_stmt sha_ge e le1 m1 mt_in_s2 E0 le' m' Out_normal.
 Proof.
-  intros Hk (Hi & Htx & Hin & Hraw & HLS & HT & HFi & HR & HFo & HFa & HPm & HV).
+  intros Hk (Hi & Htx & Hin & Hraw & Hout & HLS & HT & HFi & HR & HFo & HFa & HPm & HV).
   pose proof in_NnN as HNn.
   set (kz := Z.of_nat k) in *.
   assert (Hkz : 0 <= kz < ni) by (unfold kz; flia).
@@ -302,6 +303,7 @@ Proof.
     split; [rewrite GF' by discriminate; exact Htx|].
     split; [rewrite GF' by discriminate; exact Hin|].
     split; [rewrite GF' by discriminate; exact Hraw|].
+    split; [rewrite GF' by discriminate; exact Hout|].
     split; [exact HLS4|].
     split.
     { cbn [in_tot]. rewrite L4A by (right; flia). rewrite HL3 by (right; left; change (size_chunk Mint64) with 8; flia).
