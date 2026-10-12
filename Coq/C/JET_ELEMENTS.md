@@ -199,6 +199,13 @@ all with asserted substitutions), and that the primitive signature matches
 - `Print Assumptions` rerun in full for the 30 theorems added on 2026-10-12:
   the same six assumptions each.
 
+## SHA-unit jets of the Elements program
+
+Seventeen further jets (the 14 SHA jets, `annex_hash`,
+`build_tapleaf_simplicity`, `build_tapbranch`) are proved for `elements_ge`
+in the derived tree `Coq/elements-sha/` (see its README for boundaries and
+the receipt). They are not counted in the table above.
+
 ## Next (in rough order of reuse)
 
 1. Remaining primitive jet: `output_null_datum` (script parsing). The two

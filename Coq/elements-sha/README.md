@@ -71,3 +71,8 @@ Never rebuild objects in `tree/` while `coqchk` is reading them.
 ## Receipts
 
 See the end of this file; appended by hand from audit runs.
+
+| Commit | Command | Result |
+|---|---|---|
+| `1a4b15fc` | `bash Coq/audit-elements-sha.sh` (first version) | assumption audit passed, 15 reports; `coqchk` passed for `jet_elements_sha_jets` and dependencies; 15 min |
+| `d4214a5e` | `bash Coq/audit-elements-sha.sh` | generated modules current; assumption audit passed: 55 reports (18 within the six inherited assumptions, 37 start-up reports within eight); `coqchk` passed for `C.jet_elements_sha_jets`, `C.jet_elements_hash_jets` and the five `ElementsStartup` modules with dependencies; exit 0; 17 min |
