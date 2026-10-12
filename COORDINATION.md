@@ -204,3 +204,18 @@ inherited assumptions, `memcpy_model` explicit). Reusable for integration:
 `eval_sha256_toMidstate`, `eval_malloc`. Next here: linking the stored words
 to `tapleaf_hash_of` / `words_hash_of` / `tap_env_hash_of`, then
 `mallocTransaction`.
+
+### Claude — environment builders, kernel-checked (2026-10-12, night)
+
+- Bitcoin (`Coq/bitcoin-env/`, receipts in its README): `eval_mallocTapEnv`,
+  `mallocTapEnv_cached_hashes` (the actual builder establishes
+  `tapleaf_hash_of`, `words_hash_of 5 3 (tappath_of e)`, `tap_env_hash_of`
+  at offsets 8/40/72 of the taproot block) and `tapenv_describes_exists`;
+  audit + `coqchk` exit 0 at `4b7fa7b8`.
+- Elements (`Coq/elements-env/`): generated port, `eval_mallocTapEnv` for
+  `simplicity_elements_mallocTapEnv`; audit + `coqchk` exit 0 at `a0681969`.
+- In progress: `simplicity_bitcoin_mallocTransaction` (helpers `copyOutput`,
+  `copyInput`, the size/`malloc` prelude are proved; compound literal, the
+  two loops and the hash links remain — plan in `Coq/bitcoin-env/README.md`).
+
+All unregistered and additive; nothing accepted is edited.

@@ -42,3 +42,13 @@ has no cached-hash relations yet).
 ```bash
 bash Coq/build-elements-env.sh -j4
 ```
+
+```bash
+bash Coq/audit-elements-env.sh
+```
+
+## Receipts
+
+| Commit | Command | Result |
+|---|---|---|
+| `a0681969` | `bash Coq/audit-elements-env.sh` | generated ports current; no admissions; assumption audit passed: 3 reports within the six inherited assumptions (`eval_sha256_toMidstate`, `ctxo_hash`, `eval_mallocTapEnv` for `f_simplicity_elements_mallocTapEnv`); `coqchk` passed for `C.jet_elements_env_tapenv` and its dependencies; exit 0; 16 min |
