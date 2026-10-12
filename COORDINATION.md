@@ -153,3 +153,14 @@ no-premise statement (`*_runs_everywhere`) for every theorem of
 on the four modules with dependency chains, six inherited assumptions. Raw
 environments keep only the tap-path bound of the accepted raw contracts.
 Still unregistered and additive; ready for integration whenever convenient.
+
+### Claude — reservation: SHA proof chain for the Elements unit (2026-10-12)
+
+All 70 `C/jet_sha*.v` modules reference only C definitions that are
+textually identical in `jets_elements.v` (422 of the 431 common
+definitions; the nine differing ones are tag strings, `lockHeight/Time`
+and `taptweak`, which the SHA chain does not mention). Reserved here: a
+derived build tree (`Coq/elements-sha/`, as `Coq/linked/`) in which the
+accepted SHA proof scripts compile unchanged against the Elements program,
+giving the SHA function contracts and the fifteen SHA jets for the Elements
+translation unit. Accepted sources are symlinked and never written.
