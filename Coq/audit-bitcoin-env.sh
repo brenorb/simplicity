@@ -18,7 +18,8 @@ results=(jet_bitcoin_env_tomidstate.eval_sha256_toMidstate jet_bitcoin_env_hashb
   jet_bitcoin_env_malloc.eval_malloc jet_bitcoin_env_ctxo.ctxo_init jet_bitcoin_env_ctxo.ctxo_hash
   jet_bitcoin_env_ctxo.ctxo_finalize jet_bitcoin_env_tapenv.eval_mallocTapEnv
   jet_bitcoin_env_tapenv_link.tapleaf_hash_link jet_bitcoin_env_tapenv_link.tappath_hash_link
-  jet_bitcoin_env_tapenv_link.tap_env_hash_link jet_bitcoin_env_tapenv_link.mallocTapEnv_cached_hashes)
+  jet_bitcoin_env_tapenv_link.tap_env_hash_link jet_bitcoin_env_tapenv_link.mallocTapEnv_cached_hashes
+  jet_bitcoin_env_tapenv_describe.tapenv_describes_exists)
 {
   for r in "${results[@]}"; do echo "Require C.${r%%.*}."; done
   for r in "${results[@]}"; do
@@ -29,6 +30,6 @@ cd "$root/bitcoin-env/tree"
 ulimit -s 65520 2>/dev/null || true
 bash build-jets.sh --coqc -Q "$tmp" BitcoinEnvAudit "$tmp/audit.v" > "$tmp/audit.log" 2>&1
 python3 "$root/elements-sha/audit.py" "$tmp/audit.log" ${#results[@]}
-bash build-jets.sh --coqchk -silent -o C.jet_bitcoin_env_tapenv_link C.jet_bitcoin_env_hashbuffer > "$tmp/coqchk.log" 2>&1
-echo "coqchk passed for C.jet_bitcoin_env_tapenv_link (which requires C.jet_bitcoin_env_tapenv), C.jet_bitcoin_env_hashbuffer and their dependencies"
+bash build-jets.sh --coqchk -silent -o C.jet_bitcoin_env_tapenv_link C.jet_bitcoin_env_tapenv_describe C.jet_bitcoin_env_hashbuffer > "$tmp/coqchk.log" 2>&1
+echo "coqchk passed for C.jet_bitcoin_env_tapenv_link (which requires C.jet_bitcoin_env_tapenv), C.jet_bitcoin_env_tapenv_describe, C.jet_bitcoin_env_hashbuffer and their dependencies"
 echo "logs: $tmp"

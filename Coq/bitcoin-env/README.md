@@ -99,8 +99,11 @@ half of the environment.
 
 ## Next
 
-1. `tapenv_describes` is a hypothesis about `e`; a constructor of `e` from
-   the raw bytes (so that it holds by definition) would close the loop.
+1. (done) `tapenv_describes_exists` (`C/jet_bitcoin_env_tapenv_describe.v`):
+   for every raw taproot environment and any transaction-side data there is a
+   logical environment satisfying `tapenv_describes`, built from the bytes
+   the builder read. The hypothesis of `mallocTapEnv_cached_hashes` is thus a
+   definition of the logical environment, not an assumption.
 2. `simplicity_bitcoin_mallocTransaction` (same toolkit: `eval_hashBuffer`,
    `ctxo`, `eval_malloc`).
 3. The same for `elements/env.c`.
