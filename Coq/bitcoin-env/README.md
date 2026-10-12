@@ -73,14 +73,34 @@ The step lemmas are continuation-style: `te_restK` names the body after the
 statements already executed, and each lemma turns an execution of the
 remainder into an execution of the larger statement.
 
+### The cached hashes are the canonical ones (`C/jet_bitcoin_env_tapenv_link.v`)
+
+`C/jet_bitcoin_env_stream.v` expresses `sha_stream` (the hash value used by
+the accepted relations) through the integer-level absorbing state. With it:
+
+- `tapleaf_hash_link`: `hash256_reg (tapleaf_hash_of e) = make_tapleaf_regs v cmr`;
+- `tappath_hash_link`: `hash256_reg (words_hash_of 5 3 (tappath_of e)) = te_tappath_regs pb n`;
+- `tap_env_hash_link`: `hash256_reg (tap_env_hash_of e) = te_tapenv_regs …`
+
+(all three closed under the global context), and
+
+- **`mallocTapEnv_cached_hashes`**: for a logical environment `e` that
+  describes the raw data the builder read (`tapenv_describes`: same leaf
+  version, script CMR, path and internal key), the block returned by the
+  actual C function satisfies `uint32_array_at m' bA 8 (hash256_reg
+  (tapleaf_hash_of e))`, `… 40 (… words_hash_of 5 3 (tappath_of e))` and
+  `… 72 (… tap_env_hash_of e)` — the taproot part of
+  `hash_getter_rep … 8 8 176`, `… 8 40 176`, `… 8 72 176`. Six inherited
+  assumptions; `memcpy_model` and the start-up state explicit.
+
+What is still the caller's: making `txEnv.taproot` point at the block
+(`simplicity_bitcoin_build_txEnv`, not in this unit) and the transaction
+half of the environment.
+
 ## Next
 
-1. Link the stored words to the canonical values the accepted relations use:
-   `hash256_reg (tapleaf_hash_of e)`, `hash256_reg (words_hash_of 5 3
-   (tappath_of e))`, `hash256_reg (tap_env_hash_of e)` (pure reasoning about
-   `absorb_i`/`sha_stream`; `btl_prefix_regs` and `absorb_i_fst/snd` of the
-   accepted modules are the bridges), and conclude the `hash_getter_rep`
-   instances for a `txEnv` whose `taproot` field points at the block.
+1. `tapenv_describes` is a hypothesis about `e`; a constructor of `e` from
+   the raw bytes (so that it holds by definition) would close the loop.
 2. `simplicity_bitcoin_mallocTransaction` (same toolkit: `eval_hashBuffer`,
    `ctxo`, `eval_malloc`).
 3. The same for `elements/env.c`.
