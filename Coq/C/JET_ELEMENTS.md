@@ -140,6 +140,19 @@ a 32-bit word as in Haskell (`envIxWord32`, added to the port for this).
 theorem, `jet_elements_current_gen.v` its generalization to an arbitrary
 tail statement (footprint then includes the re-read environment words).
 
+## No-premise statements
+
+`jet_elements_runs_everywhere.v`: for 30 of the jets (all those over the
+indexed, current-pointer and current-generic relations),
+`runs_everywhere f A B spec` — for every input and every logical
+environment there are a memory, frames and an environment pointer on which
+the C jet returns true and leaves the encoding of the canonical result.
+The environment relation is discharged by `jet_elements_env_constructible.v`
+and `jet_elements_elem_buildable.v`. Not yet covered: the 20 jets whose
+relations have their own shape (version, lock time, hash getters, tappath,
+input_sequence, input_annex_hash, input_pegin, lock and count jets,
+current_sequence, current_index).
+
 ## Receipts
 
 - All 50 theorems: `Print Assumptions` = the six inherited assumptions
@@ -161,6 +174,10 @@ tail statement (footprint then includes the re-read environment words).
   (`jet_elements_executable{,_conf,_current,_lock,_count}`) with dependency
   chains at `6d556838` (all 50 jet theorems and their executability
   instances): exit 0 (84 s). This pass supersedes the earlier ones.
+- `coqchk -silent -o` on the five executability modules and
+  `C.jet_elements_runs_everywhere` with dependency chains at `1fe00a21`:
+  exit 0 (80 s); `Print Assumptions` of the 30 `_runs_everywhere`
+  theorems: the six inherited assumptions each.
 - `Print Assumptions` rerun in full for the 30 theorems added on 2026-10-12:
   the same six assumptions each.
 

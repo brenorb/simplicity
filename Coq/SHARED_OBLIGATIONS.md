@@ -76,10 +76,21 @@ C.jet_frame_constructible_bm` (after building the registered core modules).
 
 ## Open items (unclaimed unless noted in `../COORDINATION.md`)
 
-1. Environment relations of the 36 Bitcoin jets: stability and executability
-   are done (`C/jet_env_rep_stable.v`, `C/jet_app_executable_registry.v`);
-   *constructing* a representing memory for every logical environment is
-   open (per-relation work).
+1. Environment relations: stability and executability are done
+   (`C/jet_env_rep_stable.v`, `C/jet_app_executable_registry.v`).
+   *Constructing* a representing memory for every logical environment:
+   - generic steps: `C/jet_env_constructible.v` (stores into fresh blocks,
+     word arrays, record parts, arrays of structured elements; `built`,
+     `elem_local`, `elem_buildable`), independent of any translation unit;
+   - Elements: `C/jet_elements_env_constructible.v` (indexed, current-pointer
+     and current-generic relations), `C/jet_elements_elem_buildable.v`
+     (every element relation), `C/jet_elements_runs_everywhere.v` — 30 jets
+     with statements that carry no memory, frame or environment premise
+     (`runs_everywhere`). Six inherited assumptions; coqchk exit 0 at
+     `1fe00a21` together with all other Elements modules (80 s);
+   - open: the 36 registered Bitcoin application jets (same construction,
+     Bitcoin layouts) and the Elements relations with their own shape
+     (scalar getters, hash getters, lock/count relations, pegin/annex).
 2. (done) secp contract shape: `C/jet_frame_constructible_secp.v`; all 349
    registered jets have an executability instance.
 3. (done) Linked executability: `linked/C/jet_frame_executable_linked.v` —
@@ -89,6 +100,19 @@ C.jet_frame_constructible_bm` (after building the registered core modules).
 5. Integration: the archived `proof-work/sha-support/jet_sha_global_frame.v.source`
    does not compile at `a8685146`; `startup/proofs/jet_sha_startup_globals.v`
    carries the one-line fix.
+
+## Elements (unregistered; `C/JET_ELEMENTS.md`)
+
+50 Elements jets proved in `elements_ge` against their canonical
+specifications, each with an executability instance; the canonical side is
+a Coq port of the Haskell primitive semantics that still needs source
+review. Blocked there: `issuance_token_amount` and its `current_` variant.
+The static helper passes a stack-allocated compound literal; the helper
+contract (`write_effect`) requires loads on *every* block outside the
+output ranges to be unchanged, and for the released local block that needs
+"Clight execution never adds permissions to an existing block", which the
+accepted step lemmas do not provide (the archived `jet_clight_forward`
+does, but it is not an accepted module).
 
 ## Build notes
 
