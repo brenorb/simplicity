@@ -70,6 +70,18 @@ and the remaining consumers, with one invariant shared by all jets.
   verdict, leaves the encoded result and re-establishes the invariant
   (`X_startup_runs` for the 18 total/assertion contracts).
 
+- `jet_sha_startup_env_runs.v` — the three environment-reading hash jets
+  (`bitcoin_output_hash`, `bitcoin_input_utxo_hash`, `bitcoin_input_hash`)
+  for **every** logical environment: on top of any memory satisfying the
+  invariant an environment (records and input/output array) and frames are
+  constructed, the jet returns true and leaves the canonical result, the
+  invariant holds again and the given memory is untouched
+  (`sha_env_runs_everywhere`, `X_startup_runs_everywhere`). The environment
+  relation is discharged (`sha_env_built`); constructed memories are
+  extensions of the given one (`C/jet_env_constructible_ext.v`), which is
+  why the invariant survives (`sha_startup_state_extension`). Linked
+  variants without `memcpy_model`: `X_startup_runs_everywhere_linked`.
+
 - `jet_sha_startup_lifecycle.v` — `sha_lifecycle_state`: along any lifecycle
   that starts in the initial memory and interleaves caller operations on
   caller-allocated blocks with *arbitrary* terminating Clight executions of
@@ -93,9 +105,11 @@ and the remaining consumers, with one invariant shared by all jets.
   `sha_startup_state_frame_call` (a caller could, within the frame contract,
   aim a one-word output at the 8-byte writable tag array). No such jet has
   a SHA state premise today.
-- For the three application jets the remaining caller obligation is the
-  environment relation itself (transaction data and cached values in C
-  memory), which is an input representation, not a fact about SHA globals.
+- For the three application jets the environment relation (transaction data
+  and cached values in C memory) is shown satisfiable for every logical
+  environment and the jets run on the constructed memory
+  (`jet_sha_startup_env_runs.v`). That `C/bitcoin/env.c` produces such a
+  memory from a serialized transaction is not proved.
 - `C/sha256.c` initializes the dispatch pointer statically to
   `sha256_compression_portable`; a build that calls an optimizing
   initializer at run time is a different program state and is not covered.
