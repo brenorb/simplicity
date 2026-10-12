@@ -334,6 +334,7 @@ Definition _simplicity_bitcoin_annex_hash : ident := $"simplicity_bitcoin_annex_
 Definition _simplicity_bitcoin_build_tapbranch : ident := $"simplicity_bitcoin_build_tapbranch".
 Definition _simplicity_bitcoin_build_tapleaf_simplicity : ident := $"simplicity_bitcoin_build_tapleaf_simplicity".
 Definition _simplicity_bitcoin_build_taptweak : ident := $"simplicity_bitcoin_build_taptweak".
+Definition _simplicity_bitcoin_build_txEnv : ident := $"simplicity_bitcoin_build_txEnv".
 Definition _simplicity_bitcoin_check_lock_distance : ident := $"simplicity_bitcoin_check_lock_distance".
 Definition _simplicity_bitcoin_check_lock_duration : ident := $"simplicity_bitcoin_check_lock_duration".
 Definition _simplicity_bitcoin_check_lock_height : ident := $"simplicity_bitcoin_check_lock_height".
@@ -47778,6 +47779,196 @@ Definition f_simplicity_bitcoin_freeTapEnv := {|
   ((Etempvar _env (tptr (Tstruct _bitcoinTapEnv noattr))) :: nil))
 |}.
 
+Definition f_simplicity_bitcoin_build_txEnv := {|
+  fn_return := tvoid;
+  fn_callconv := {|cc_vararg:=None; cc_unproto:=false; cc_structret:=true|};
+  fn_params := ((__res, (tptr (Tstruct _txEnv noattr))) ::
+                (_tx, (tptr (Tstruct _bitcoinTransaction noattr))) ::
+                (_taproot, (tptr (Tstruct _bitcoinTapEnv noattr))) ::
+                (_ix, tulong) :: nil);
+  fn_vars := ((_result, (Tstruct _txEnv noattr)) ::
+              (_ctx, (Tstruct _sha256_context noattr)) ::
+              (__res__1, (Tstruct _sha256_context noattr)) :: nil);
+  fn_temps := nil;
+  fn_body :=
+(Ssequence
+  (Sassign
+    (Efield (Evar _result (Tstruct _txEnv noattr)) _tx
+      (tptr (Tstruct _bitcoinTransaction noattr)))
+    (Etempvar _tx (tptr (Tstruct _bitcoinTransaction noattr))))
+  (Ssequence
+    (Sassign
+      (Efield (Evar _result (Tstruct _txEnv noattr)) _taproot
+        (tptr (Tstruct _bitcoinTapEnv noattr)))
+      (Etempvar _taproot (tptr (Tstruct _bitcoinTapEnv noattr))))
+    (Ssequence
+      (Sassign
+        (Ederef
+          (Ebinop Oadd
+            (Efield
+              (Efield (Evar _result (Tstruct _txEnv noattr)) _sigAllHash
+                (Tstruct _sha256_midstate noattr)) _s (tarray tuint 8))
+            (Econst_int (Int.repr 0) tint) (tptr tuint)) tuint)
+        (Econst_int (Int.repr 0) tint))
+      (Ssequence
+        (Sassign
+          (Ederef
+            (Ebinop Oadd
+              (Efield
+                (Efield (Evar _result (Tstruct _txEnv noattr)) _sigAllHash
+                  (Tstruct _sha256_midstate noattr)) _s (tarray tuint 8))
+              (Econst_int (Int.repr 1) tint) (tptr tuint)) tuint)
+          (Econst_int (Int.repr 0) tint))
+        (Ssequence
+          (Sassign
+            (Ederef
+              (Ebinop Oadd
+                (Efield
+                  (Efield (Evar _result (Tstruct _txEnv noattr)) _sigAllHash
+                    (Tstruct _sha256_midstate noattr)) _s (tarray tuint 8))
+                (Econst_int (Int.repr 2) tint) (tptr tuint)) tuint)
+            (Econst_int (Int.repr 0) tint))
+          (Ssequence
+            (Sassign
+              (Ederef
+                (Ebinop Oadd
+                  (Efield
+                    (Efield (Evar _result (Tstruct _txEnv noattr))
+                      _sigAllHash (Tstruct _sha256_midstate noattr)) _s
+                    (tarray tuint 8)) (Econst_int (Int.repr 3) tint)
+                  (tptr tuint)) tuint) (Econst_int (Int.repr 0) tint))
+            (Ssequence
+              (Sassign
+                (Ederef
+                  (Ebinop Oadd
+                    (Efield
+                      (Efield (Evar _result (Tstruct _txEnv noattr))
+                        _sigAllHash (Tstruct _sha256_midstate noattr)) _s
+                      (tarray tuint 8)) (Econst_int (Int.repr 4) tint)
+                    (tptr tuint)) tuint) (Econst_int (Int.repr 0) tint))
+              (Ssequence
+                (Sassign
+                  (Ederef
+                    (Ebinop Oadd
+                      (Efield
+                        (Efield (Evar _result (Tstruct _txEnv noattr))
+                          _sigAllHash (Tstruct _sha256_midstate noattr)) _s
+                        (tarray tuint 8)) (Econst_int (Int.repr 5) tint)
+                      (tptr tuint)) tuint) (Econst_int (Int.repr 0) tint))
+                (Ssequence
+                  (Sassign
+                    (Ederef
+                      (Ebinop Oadd
+                        (Efield
+                          (Efield (Evar _result (Tstruct _txEnv noattr))
+                            _sigAllHash (Tstruct _sha256_midstate noattr)) _s
+                          (tarray tuint 8)) (Econst_int (Int.repr 6) tint)
+                        (tptr tuint)) tuint) (Econst_int (Int.repr 0) tint))
+                  (Ssequence
+                    (Sassign
+                      (Ederef
+                        (Ebinop Oadd
+                          (Efield
+                            (Efield (Evar _result (Tstruct _txEnv noattr))
+                              _sigAllHash (Tstruct _sha256_midstate noattr))
+                            _s (tarray tuint 8))
+                          (Econst_int (Int.repr 7) tint) (tptr tuint)) tuint)
+                      (Econst_int (Int.repr 0) tint))
+                    (Ssequence
+                      (Sassign
+                        (Efield (Evar _result (Tstruct _txEnv noattr)) _ix
+                          tulong) (Etempvar _ix tulong))
+                      (Ssequence
+                        (Ssequence
+                          (Scall None
+                            (Evar _sha256_init (Tfunction
+                                                 (Tcons
+                                                   (tptr (Tstruct _sha256_context noattr))
+                                                   (Tcons (tptr tuint) Tnil))
+                                                 tvoid
+                                                 {|cc_vararg:=None; cc_unproto:=false; cc_structret:=true|}))
+                            ((Eaddrof
+                               (Evar __res__1 (Tstruct _sha256_context noattr))
+                               (tptr (Tstruct _sha256_context noattr))) ::
+                             (Efield
+                               (Efield (Evar _result (Tstruct _txEnv noattr))
+                                 _sigAllHash
+                                 (Tstruct _sha256_midstate noattr)) _s
+                               (tarray tuint 8)) :: nil))
+                          (Sassign
+                            (Evar _ctx (Tstruct _sha256_context noattr))
+                            (Evar __res__1 (Tstruct _sha256_context noattr))))
+                        (Ssequence
+                          (Scall None
+                            (Evar _sha256_hash (Tfunction
+                                                 (Tcons
+                                                   (tptr (Tstruct _sha256_context noattr))
+                                                   (Tcons
+                                                     (tptr (Tstruct _sha256_midstate noattr))
+                                                     Tnil)) tvoid cc_default))
+                            ((Eaddrof
+                               (Evar _ctx (Tstruct _sha256_context noattr))
+                               (tptr (Tstruct _sha256_context noattr))) ::
+                             (Eaddrof
+                               (Efield
+                                 (Ederef
+                                   (Etempvar _tx (tptr (Tstruct _bitcoinTransaction noattr)))
+                                   (Tstruct _bitcoinTransaction noattr))
+                                 _txHash (Tstruct _sha256_midstate noattr))
+                               (tptr (Tstruct _sha256_midstate noattr))) ::
+                             nil))
+                          (Ssequence
+                            (Scall None
+                              (Evar _sha256_hash (Tfunction
+                                                   (Tcons
+                                                     (tptr (Tstruct _sha256_context noattr))
+                                                     (Tcons
+                                                       (tptr (Tstruct _sha256_midstate noattr))
+                                                       Tnil)) tvoid
+                                                   cc_default))
+                              ((Eaddrof
+                                 (Evar _ctx (Tstruct _sha256_context noattr))
+                                 (tptr (Tstruct _sha256_context noattr))) ::
+                               (Eaddrof
+                                 (Efield
+                                   (Ederef
+                                     (Etempvar _taproot (tptr (Tstruct _bitcoinTapEnv noattr)))
+                                     (Tstruct _bitcoinTapEnv noattr))
+                                   _tapEnvHash
+                                   (Tstruct _sha256_midstate noattr))
+                                 (tptr (Tstruct _sha256_midstate noattr))) ::
+                               nil))
+                            (Ssequence
+                              (Scall None
+                                (Evar _sha256_u32be (Tfunction
+                                                      (Tcons
+                                                        (tptr (Tstruct _sha256_context noattr))
+                                                        (Tcons tulong Tnil))
+                                                      tbool cc_default))
+                                ((Eaddrof
+                                   (Evar _ctx (Tstruct _sha256_context noattr))
+                                   (tptr (Tstruct _sha256_context noattr))) ::
+                                 (Etempvar _ix tulong) :: nil))
+                              (Ssequence
+                                (Scall None
+                                  (Evar _sha256_finalize (Tfunction
+                                                           (Tcons
+                                                             (tptr (Tstruct _sha256_context noattr))
+                                                             Tnil) tbool
+                                                           cc_default))
+                                  ((Eaddrof
+                                     (Evar _ctx (Tstruct _sha256_context noattr))
+                                     (tptr (Tstruct _sha256_context noattr))) ::
+                                   nil))
+                                (Ssequence
+                                  (Sassign
+                                    (Ederef
+                                      (Etempvar __res (tptr (Tstruct _txEnv noattr)))
+                                      (Tstruct _txEnv noattr))
+                                    (Evar _result (Tstruct _txEnv noattr)))
+                                  (Sreturn None))))))))))))))))))
+|}.
+
 Definition composites : list composite_definition :=
 (Composite _bitstring Struct
    (Member_plain _arr (tptr tuchar) :: Member_plain _len tulong ::
@@ -48672,11 +48863,12 @@ Definition global_definitions : list (ident * globdef fundef type) :=
  (_simplicity_bitcoin_freeTransaction, Gfun(Internal f_simplicity_bitcoin_freeTransaction)) ::
  (_simplicity_bitcoin_mallocTapEnv, Gfun(Internal f_simplicity_bitcoin_mallocTapEnv)) ::
  (_simplicity_bitcoin_freeTapEnv, Gfun(Internal f_simplicity_bitcoin_freeTapEnv)) ::
+ (_simplicity_bitcoin_build_txEnv, Gfun(Internal f_simplicity_bitcoin_build_txEnv)) ::
  nil).
 
 Definition public_idents : list ident :=
-(_simplicity_bitcoin_freeTapEnv :: _simplicity_bitcoin_mallocTapEnv ::
- _simplicity_bitcoin_freeTransaction ::
+(_simplicity_bitcoin_build_txEnv :: _simplicity_bitcoin_freeTapEnv ::
+ _simplicity_bitcoin_mallocTapEnv :: _simplicity_bitcoin_freeTransaction ::
  _simplicity_bitcoin_mallocTransaction :: _simplicity_bitcoin_sig_all_hash ::
  _simplicity_bitcoin_tap_env_hash :: _simplicity_bitcoin_tappath_hash ::
  _simplicity_bitcoin_tapleaf_hash :: _simplicity_bitcoin_tx_hash ::

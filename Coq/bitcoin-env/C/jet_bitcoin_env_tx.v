@@ -203,7 +203,10 @@ Theorem eval_mallocTransaction (Hmodel : memcpy_model) m braw oraw btx otx bri o
     tx_built m' bA niv nov ver lt txb data val spb /\
     (forall ch b ofs, Mem.valid_block m b -> Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
     (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
-    (forall b, Mem.valid_block m b -> Mem.valid_block m' b).
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b) /\
+    Mem.load Mptr m' bA (-8) =
+      Some (Vlong (Int64.repr (488 + 160 * Int.unsigned niv + 40 * Int.unsigned nov))) /\
+    Mem.range_perm m' bA (-8) (488 + 160 * Int.unsigned niv + 40 * Int.unsigned nov) Cur Freeable.
 Proof.
   intros Horaw HTx HInP HOutP HNi HNo HVer HLt Hotx HTxB Hori HRaw Horo HVals HBufs Hdisp HMax.
   set (ni := Int.unsigned niv) in *. set (no := Int.unsigned nov) in *.
@@ -282,8 +285,12 @@ Proof.
   { intros b ofs k p Hp. eapply Mem.perm_store_1; [exact HS|]. eapply Mem.perm_alloc_1; [exact HA|exact Hp]. }
   assert (V2 : forall b, Mem.valid_block m0 b -> Mem.valid_block m2 b).
   { intros b Hb. eapply Mem.store_valid_block_1; [exact HS|]. eapply Mem.valid_block_alloc; [exact HA|exact Hb]. }
+  assert (PH2 : Mem.range_perm m2 bA (-8) (488 + 160 * ni + 40 * no) Cur Freeable).
+  { intros o Ho. eapply Mem.perm_store_1; [exact HS|]. eapply Mem.perm_alloc_2; [exact HA|exact Ho]. }
   assert (PA2 : Mem.range_perm m2 bA 0 (488 + 160 * ni + 40 * no) Cur Freeable).
-  { intros o Ho. eapply Mem.perm_store_1; [exact HS|]. eapply Mem.perm_alloc_2; [exact HA|lia]. }
+  { intros o Ho. apply PH2. lia. }
+  assert (HH2 : Mem.load Mptr m2 bA (-8) = Some (Vlong (Int64.repr (488 + 160 * ni + 40 * no)))).
+  { rewrite (Mem.load_store_same _ _ _ _ _ _ HS). reflexivity. }
   assert (VA2 : Mem.valid_block m2 bA).
   { eapply Mem.store_valid_block_1; [exact HS|]. eapply Mem.valid_new_block; exact HA. }
   assert (Kold2 : forall ch b ofs, Mem.valid_block m b -> Mem.load ch m2 b ofs = Mem.load ch m b ofs).
@@ -440,7 +447,7 @@ Proof.
   assert (LAf : forall ch ofs, Mem.load ch mf bA ofs = Mem.load ch m7 bA ofs).
   { intros ch ofs. apply HLf. intros HIn. exact (NAl (Hsub bA HIn)). }
   exists mf, bA.
-  split; [|split; [|split; [|split; [|split]]]].
+  split; [|split; [|split; [|split; [|split; [|split; [|split]]]]]].
   - eapply eval_funcall_internal with (e := e) (m1 := m0) (m2 := m7)
       (out := Out_return (Some (Vptr bA Ptrofs.zero, tptr TX))).
     + apply mt_entry. exact HAL.
@@ -481,7 +488,7 @@ Proof.
     split.
     { intros j Hj. eapply in_rec_frame; [exact (IRec j Hj)|]. intros ch ofs H1 H2.
       assert (Hj' : Z.of_nat j < ni) by (unfold Nn in Hj; clear - Hj Hni; lia).
-      rewrite LAf, T7 by (right; clear - H1; lia). apply OFrame; [clear - H1; lia|clear - H2 Hj'; lia|right; right; clear - H1; lia]. }
+      rewrite LAf, T7 by (right; clear - H1; lia). apply OFrame; [clear - H2 Hj'; lia|right; right; clear - H1; lia]. }
     intros j Hj. destruct (ORec j Hj) as [HOv HOs]. split.
     + rewrite LAf, T7 by (right; clear - Hni; lia). exact HOv.
     + intros i Hi. rewrite LAf, T7 by (right; clear - Hni; lia). apply HOs, Hi.
@@ -490,4 +497,8 @@ Proof.
   - intros b ofs k p Hp. apply HPf; [|apply Pall7, XP, Hp].
     intros HIn. exact (Fresh b (Mem.perm_valid_block _ _ _ _ _ Hp) (Hsub b HIn)).
   - intros b Hb. apply HVf, V7, OValid, Vold5, Hb.
+  - rewrite LAf, T7 by rng. rewrite OFrame by rng. rewrite IFrame by rng. rewrite L4 by rng.
+    rewrite L3; [exact HH2|sepb|right; left; cbn; lia].
+  - intros o Ho. apply HPf; [intros HIn; exact (NAl (Hsub bA HIn))|].
+    apply P7, OPerm, IPerm, P4, P3, PH2, Ho.
 Qed.

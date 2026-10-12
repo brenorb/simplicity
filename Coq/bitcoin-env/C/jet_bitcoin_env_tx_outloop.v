@@ -136,7 +136,7 @@ Definition out_inv (k : nat) (le : temp_env) (m : mem) : Prop :=
        Mem.load Mint32 m bA (OB + 40 * Z.of_nat j + 8 + 4 * Z.of_nat i) =
          Some (Vint (nth i (hash_buffer_regs (spb j)) Int.zero))) /\
   (forall ch b ofs, oldb b -> Mem.load ch m b ofs = Mem.load ch m0 b ofs) /\
-  (forall ch ofs, 0 <= ofs -> ofs + size_chunk ch <= OB ->
+  (forall ch ofs, ofs + size_chunk ch <= OB ->
      (ofs + size_chunk ch <= 16 \/ (112 <= ofs /\ ofs + size_chunk ch <= 440) \/ 448 <= ofs) ->
      Mem.load ch m bA ofs = Mem.load ch m0 bA ofs) /\
   (forall b ofs kk p, Mem.perm m0 b ofs kk p -> Mem.perm m b ofs kk p) /\
@@ -169,14 +169,14 @@ Proof. unfold OB. lia. Qed.
 
 Lemma out_numOutputs le m :
   le!_tx = Some (Vptr bA Ptrofs.zero) ->
-  (forall ch ofs, 0 <= ofs -> ofs + size_chunk ch <= OB ->
+  (forall ch ofs, ofs + size_chunk ch <= OB ->
      (ofs + size_chunk ch <= 16 \/ (112 <= ofs /\ ofs + size_chunk ch <= 440) \/ 448 <= ofs) ->
      Mem.load ch m bA ofs = Mem.load ch m0 bA ofs) ->
   eval_expr sha_ge e le m (Efield TXD _numOutputs tulong) (Vlong (Int64.repr no)).
 Proof.
   intros Hle HF. pose proof out_OB.
   eapply ev_tx_field with (delta := 456) (chunk := Mint64); [exact Hle|exact envu_tx_numOutputs|reflexivity|lia|].
-  rewrite HF; [exact HNo0|lia|change (size_chunk Mint64) with 8; lia|right; right; lia].
+  rewrite HF; [exact HNo0|change (size_chunk Mint64) with 8; lia|right; right; lia].
 Qed.
 
 Lemma out_exit le m : out_inv Nn le m ->
@@ -371,7 +371,7 @@ Proof.
       rewrite (Mem.load_store_other _ _ _ _ _ _ SS) by (left; exact NbA).
       rewrite HL1; [apply HFo, Hb|apply HV, Vb|left; exact NbA]. }
     split.
-    { intros ch ofs H0 HB Hz. rewrite KA; [apply HFa; assumption|exact Hz|left; unfold X; flia]. }
+    { intros ch ofs HB Hz. rewrite KA; [apply HFa; assumption|exact Hz|left; unfold X; flia]. }
     split.
     { intros b ofs kk p Hp.
       assert (Hp2 : Mem.perm m2 b ofs kk p) by (eapply Mem.perm_store_1; [exact SS|apply HP1, HPm, Hp]).

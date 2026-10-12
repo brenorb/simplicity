@@ -8,3 +8,4 @@
 #include "../../C/bitcoin/ops.c"
 #include "../../C/bitcoin/bitcoinJets.c"
 #include "../../C/bitcoin/env.c"
+#include "../../C/bitcoin/txEnv.c"

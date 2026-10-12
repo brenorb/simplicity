@@ -87,7 +87,7 @@ Theorem mt_outblock_exec le m :
          Mem.load Mint32 m' bA (OB + 40 * Z.of_nat j + 8 + 4 * Z.of_nat i) =
            Some (Vint (nth i (hash_buffer_regs (spb j)) Int.zero))) /\
     (forall ch b ofs, oldb b -> Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
-    (forall ch ofs, 0 <= ofs -> ofs + size_chunk ch <= OB ->
+    (forall ch ofs, ofs + size_chunk ch <= OB ->
        (ofs + size_chunk ch <= 16 \/ (112 <= ofs /\ ofs + size_chunk ch <= 440) \/ 448 <= ofs) ->
        Mem.load ch m' bA ofs = Mem.load ch m bA ofs) /\
     (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
@@ -232,7 +232,7 @@ Proof.
     rewrite HL3; [|exact Vb2|exact NbV|left; exact NbA].
     rewrite HFo2 by exact Hb. apply Ko1, Hb. }
   split.
-  { intros ch ofs H0 HB Hz.
+  { intros ch ofs HB Hz.
     rewrite KA by (clear - Hz; lia). rewrite HFa2 by assumption. apply Ka1. clear - Hz; lia. }
   split.
   { intros b ofs k p Hp.
