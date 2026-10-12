@@ -14,6 +14,7 @@ Require Import C.jet_bitcoin_indexed_ptr C.jet_bitcoin_indexed_ptr_jets.
 Require Import C.jet_bitcoin_current_jets C.jet_bitcoin_current_ptr_jets.
 Require Import C.jet_bitcoin_ext_ptr_jets C.jet_bitcoin_input_value_local C.jet_bitcoin_distance_local.
 Require Import C.jet_bitcoin_annex_local C.jet_bitcoin_current_annex_local.
+Require Import C.jet_sha_add_n_exec C.jet_bitcoin_input_hash_jet C.jet_bitcoin_input_utxo_hash_jet C.jet_bitcoin_output_hash_jet.
 Require Import C.jet_bitcoin_env_tomidstate C.jet_bitcoin_env_hashbuffer.
 Require Import C.jet_bitcoin_env_tx_indefs C.jet_bitcoin_env_tx.
 Require Import C.jet_bitcoin_env_tx_link C.jet_bitcoin_env_build C.jet_bitcoin_env_relations.
@@ -361,5 +362,52 @@ Proof.
   split; [exact F456|]. split; [rewrite len_out; exact cnt_out|].
   split; [|reflexivity].
   intros j o Hj. exact (proj2 (out_at j o Hj)).
+Qed.
+
+(** *** The SHA-based element hashes
+
+    These three jets run SHA code, so their relations also carry the SHA
+    start-up state [sha_globals_ok] (dispatch pointer and maximum counter),
+    which is not part of the environment structure. *)
+Theorem ready_input_hash : sha_globals_ok m -> exists fp, input_hash_rep m env e fp.
+Proof.
+  intros HG. eexists. exists bD, oD, bT, 0, bT, 488, (Int64.repr ni).
+  pose proof bound_in. pose proof tx_fields as (F0 & _ & F448 & _).
+  split; [reflexivity|]. split; [lia|]. split; [lia|]. split; [lia|]. split; [exact max488'|].
+  split; [lia|]. split; [rewrite len_in; lia|]. split; [exact env_ptr|]. split; [exact F0|].
+  split; [exact F448|]. split; [rewrite len_in; exact cnt_in|].
+  split; [|split; [exact HG|reflexivity]].
+  intros j txi ax Hj Ha.
+  destruct (el_outpoint j txi Hj) as (O1 & O2). destruct (el_annex j ax Ha) as (A1 & A2).
+  split; [exact O1|].
+  split.
+  { replace (488 + 160 * Z.of_nat j + 96) with (488 + 160 * Z.of_nat j + 64 + 32) by lia. exact O2. }
+  split; [exact (el_sequence j txi Hj)|].
+  split; [destruct ax; exact A1|].
+  intros h Hh. rewrite Z.add_0_r. exact (A2 h Hh).
+Qed.
+
+Theorem ready_input_utxo_hash : sha_globals_ok m -> exists fp, input_utxo_hash_rep m env e fp.
+Proof.
+  intros HG. eexists. exists bD, oD, bT, 0, bT, 488, (Int64.repr ni).
+  pose proof bound_in. pose proof tx_fields as (F0 & _ & F448 & _).
+  split; [reflexivity|]. split; [lia|]. split; [lia|]. split; [lia|]. split; [exact max488'|].
+  split; [lia|]. split; [rewrite len_in; lia|]. split; [exact env_ptr|]. split; [exact F0|].
+  split; [exact F448|]. split; [rewrite len_in; exact cnt_in|].
+  split; [|split; [exact HG|reflexivity]].
+  intros j txi sh Hj Hs. split; [exact (el_value j txi Hj)|].
+  replace (488 + 160 * Z.of_nat j + 104 + 8) with (488 + 160 * Z.of_nat j + 112) by lia.
+  exact (el_script_hash j sh Hs).
+Qed.
+
+Theorem ready_output_hash : sha_globals_ok m -> exists fp, output_hash_rep m env e fp.
+Proof.
+  intros HG. eexists. exists bD, oD, bT, 0, bT, OB, (Int64.repr no).
+  pose proof bound_out. pose proof tx_fields as (_ & F8 & _ & F456 & _).
+  split; [reflexivity|]. split; [lia|]. split; [lia|]. split; [lia|]. split; [exact max488'|].
+  split; [lia|]. split; [rewrite len_out; lia|]. split; [exact env_ptr|]. split; [exact F8|].
+  split; [exact F456|]. split; [rewrite len_out; exact cnt_out|].
+  split; [|split; [exact HG|reflexivity]].
+  intros j o Hj. exact (out_at j o Hj).
 Qed.
 End Ready.
