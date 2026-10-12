@@ -1,0 +1,198 @@
+(** The C streaming SHA-256 of a byte buffer is the canonical
+    [byteStringHash]: the state [hash_buffer_regs] that [hashBuffer] leaves
+    (the bytes absorbed block by block, then [sha_pad]) equals the registers
+    of [Digest.byteStringHash], i.e. the functional SHA-256
+    ([process_msg init_registers (generate_and_pad_alt x)]).  Pure reasoning;
+    no program. *)
+From Coq Require Import ZArith List Lia PeanoNat.
+From compcert Require Import Coqlib Integers.
+Require sha.SHA256 sha.general_lemmas sha.functional_prog sha.common_lemmas.
+Require Import Simplicity.Digest.
+Require Import C.jet_sha256_iv_init C.jet_sha_ctx8_model C.jet_sha_be32_write C.jet_sha_be32_exec C.jet_sha_be64_exec.
+Require Import C.jet_sha_uchars_prep C.jet_sha_finalize_exec C.jet_sha_finalize_bridge.
+Require Import C.jet_bitcoin_env_hashbuffer.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 120.
+
+Definition byte_int (b : byte) : int := Int.repr (Byte.unsigned b).
+
+Lemma be32_bytes_to_Int (a b c d : byte) :
+  be32 (byte_int a) (byte_int b) (byte_int c) (byte_int d) = general_lemmas.bytes_to_Int a b c d.
+Proof.
+  assert (H : general_lemmas.intlist_to_bytelist [be32 (byte_int a) (byte_int b) (byte_int c) (byte_int d)] =
+              general_lemmas.intlist_to_bytelist [general_lemmas.bytes_to_Int a b c d]).
+  { rewrite general_lemmas.intlist_to_bytelist_bytes_to_int_cons.
+    cbn [general_lemmas.intlist_to_bytelist]. unfold general_lemmas.Shr, be32, byte_int.
+    pose proof (Byte.unsigned_range a) as Ha. pose proof (Byte.unsigned_range b) as Hb.
+    pose proof (Byte.unsigned_range c) as Hc. pose proof (Byte.unsigned_range d) as Hd.
+    change Byte.modulus with 256 in *.
+    set (ua := Byte.unsigned a) in *. set (ub := Byte.unsigned b) in *.
+    set (uc := Byte.unsigned c) in *. set (ud := Byte.unsigned d) in *.
+    rewrite !(Int.unsigned_repr ua), !(Int.unsigned_repr ub), !(Int.unsigned_repr uc), !(Int.unsigned_repr ud)
+      by (change Int.max_unsigned with 4294967295; lia).
+    set (T := ua * 16777216 + ub * 65536 + uc * 256 + ud).
+    assert (HT : 0 <= T <= Int.max_unsigned) by (change Int.max_unsigned with 4294967295; unfold T; lia).
+    rewrite !Int.shru_div_two_p, !(Int.unsigned_repr T) by exact HT.
+    change (two_p (Int.unsigned (Int.repr 24))) with 16777216.
+    change (two_p (Int.unsigned (Int.repr 16))) with 65536.
+    change (two_p (Int.unsigned (Int.repr 8))) with 256.
+    assert (E24 : T / 16777216 = ua) by (symmetry; apply (Z.div_unique T 16777216 ua (ub * 65536 + uc * 256 + ud)); unfold T; lia).
+    assert (E16 : T / 65536 = ua * 256 + ub) by (symmetry; apply (Z.div_unique T 65536 (ua * 256 + ub) (uc * 256 + ud)); unfold T; lia).
+    assert (E8 : T / 256 = ua * 65536 + ub * 256 + uc) by (symmetry; apply (Z.div_unique T 256 (ua * 65536 + ub * 256 + uc) ud); unfold T; lia).
+    rewrite E24, E16, E8.
+    rewrite !Int.unsigned_repr by (change Int.max_unsigned with 4294967295; lia).
+    f_equal; [unfold ua; apply Byte.repr_unsigned|].
+    f_equal; [rewrite <- (Byte.repr_unsigned b); apply Byte.eqm_samerepr; exists ua; change Byte.modulus with 256; fold ub; lia|].
+    f_equal; [rewrite <- (Byte.repr_unsigned c); apply Byte.eqm_samerepr; exists (ua * 256 + ub); change Byte.modulus with 256; fold uc; lia|].
+    f_equal. rewrite <- (Byte.repr_unsigned d). apply Byte.eqm_samerepr.
+    exists (ua * 65536 + ub * 256 + uc). change Byte.modulus with 256. fold ud. unfold T. lia. }
+  apply general_lemmas.intlist_to_bytelist_inj in H. exact (f_equal (fun l => hd Int.zero l) H).
+Qed.
+
+Lemma be_words_bytes : forall l : list byte, be_words (map byte_int l) = general_lemmas.bytelist_to_intlist l.
+Proof.
+  fix IH 1. intros [|a [|b [|c [|d t]]]]; try reflexivity.
+  cbn [map be_words general_lemmas.bytelist_to_intlist]. rewrite be32_bytes_to_Int, IH. reflexivity.
+Qed.
+
+Lemma be_words_app4 (n : nat) : forall b1 b2 : list int, length b1 = (4 * n)%nat ->
+  be_words (b1 ++ b2) = be_words b1 ++ be_words b2.
+Proof.
+  induction n as [|n IH]; intros b1 b2 HL.
+  - destruct b1; [reflexivity|discriminate].
+  - destruct b1 as [|a [|b [|c [|d t]]]]; cbn [length] in HL; try lia.
+    cbn [app be_words]. f_equal. apply IH. lia.
+Qed.
+
+Lemma hash_blocks_app (r W1 W2 : list int) : length W1 = 16%nat ->
+  SHA256.hash_blocks r (W1 ++ W2) = SHA256.hash_blocks (SHA256.hash_block r W1) W2.
+Proof.
+  intros H.
+  assert (F : firstn 16 (W1 ++ W2) = W1).
+  { rewrite firstn_app, H, Nat.sub_diag, firstn_O, app_nil_r. apply firstn_all2. lia. }
+  assert (K : skipn 16 (W1 ++ W2) = W2).
+  { rewrite skipn_app, H, Nat.sub_diag. rewrite skipn_all2 by lia. reflexivity. }
+  rewrite (SHA256.hash_blocks_equation r (W1 ++ W2)).
+  destruct W1 as [|w t]; [discriminate|].
+  change ((w :: t) ++ W2) with (w :: t ++ W2) at 1. cbv iota.
+  change (w :: t ++ W2) with ((w :: t) ++ W2). rewrite F, K. reflexivity.
+Qed.
+
+(** Whole blocks absorbed from an empty buffer are [hash_blocks]. *)
+Lemma absorb_blocks (k : nat) : forall (B r : list int), length r = 8%nat -> length B = (64 * k)%nat ->
+  absorb_i [] r B = ([], SHA256.hash_blocks r (be_words B)).
+Proof.
+  induction k as [|k IH]; intros B r Hr HB.
+  - destruct B; [|discriminate]. rewrite SHA256.hash_blocks_equation. reflexivity.
+  - rewrite <- (firstn_skipn 64 B).
+    assert (H1 : length (firstn 64 B) = 64%nat) by (rewrite firstn_length; lia).
+    assert (H2 : length (skipn 64 B) = (64 * k)%nat) by (rewrite skipn_length; lia).
+    set (B1 := firstn 64 B) in *. set (B2 := skipn 64 B) in *.
+    assert (HW1 : length (be_words B1) = 16%nat) by (apply be_words_length; rewrite H1; reflexivity).
+    assert (N1 : B1 <> []) by (intros E; rewrite E in H1; discriminate).
+    assert (HL1 : (length (@nil int) + length B1 = 64)%nat) by (cbn [length]; lia).
+    rewrite absorb_i_app, (absorb_i_fill [] r B1 HL1 N1).
+    cbn [fst snd app].
+    rewrite (IH B2 _ (common_lemmas.length_hash_block _ _ Hr HW1) H2).
+    f_equal. rewrite (be_words_app4 16 B1 B2) by (rewrite H1; reflexivity).
+    symmetry. apply hash_blocks_app. exact HW1.
+Qed.
+
+(** The 64-bit big-endian length as two words. *)
+Lemma be64_words (V : Z) : 0 <= V < 18446744073709551616 ->
+  be_words (c_be64_bytes (Int64.repr V)) = [Int.repr (V / 4294967296); Int.repr V].
+Proof.
+  intros HV.
+  assert (HU : Int64.unsigned (Int64.repr V) = V)
+    by (apply Int64.unsigned_repr; change Int64.max_unsigned with 18446744073709551615; lia).
+  unfold c_be64_bytes. rewrite !c_be64_shift_value by lia. rewrite c_be64_low_value, HU.
+  cbn [be_words]. unfold be32.
+  change (2 ^ 56) with (256 * 256 * 256 * 256 * 256 * 256 * 256).
+  change (2 ^ 48) with (256 * 256 * 256 * 256 * 256 * 256).
+  change (2 ^ 40) with (256 * 256 * 256 * 256 * 256).
+  change (2 ^ 32) with (256 * 256 * 256 * 256).
+  change (2 ^ 24) with (256 * 256 * 256).
+  change (2 ^ 16) with (256 * 256).
+  change (2 ^ 8) with 256.
+  rewrite <- !Z.div_div by lia.
+  set (a1 := V / 256). set (a2 := a1 / 256). set (a3 := a2 / 256). set (a4 := a3 / 256).
+  set (a5 := a4 / 256). set (a6 := a5 / 256). set (a7 := a6 / 256).
+  pose proof (Z.div_mod V 256 ltac:(lia)) as D0. pose proof (Z.mod_pos_bound V 256 ltac:(lia)) as M0.
+  pose proof (Z.div_mod a1 256 ltac:(lia)) as D1. pose proof (Z.mod_pos_bound a1 256 ltac:(lia)) as M1.
+  pose proof (Z.div_mod a2 256 ltac:(lia)) as D2. pose proof (Z.mod_pos_bound a2 256 ltac:(lia)) as M2.
+  pose proof (Z.div_mod a3 256 ltac:(lia)) as D3. pose proof (Z.mod_pos_bound a3 256 ltac:(lia)) as M3.
+  pose proof (Z.div_mod a4 256 ltac:(lia)) as D4. pose proof (Z.mod_pos_bound a4 256 ltac:(lia)) as M4.
+  pose proof (Z.div_mod a5 256 ltac:(lia)) as D5. pose proof (Z.mod_pos_bound a5 256 ltac:(lia)) as M5.
+  pose proof (Z.div_mod a6 256 ltac:(lia)) as D6. pose proof (Z.mod_pos_bound a6 256 ltac:(lia)) as M6.
+  fold a1 in D0. fold a2 in D1. fold a3 in D2. fold a4 in D3. fold a5 in D4. fold a6 in D5. fold a7 in D6.
+  assert (H7 : 0 <= a7 < 256) by lia.
+  rewrite (Z.mod_small a7 256) by lia.
+  rewrite !Int.unsigned_repr by (change Int.max_unsigned with 4294967295; lia).
+  assert (E4 : V / 4294967296 = a4).
+  { unfold a4, a3, a2, a1. rewrite !Z.div_div by lia. reflexivity. }
+  rewrite E4. f_equal; [f_equal; lia|]. f_equal.
+  apply Int.eqm_samerepr. exists (- a4). change Int.modulus with 4294967296. lia.
+Qed.
+
+Lemma firstn_repeat_le {A} (a : A) : forall m n, (m <= n)%nat -> firstn m (repeat a n) = repeat a m.
+Proof.
+  induction m as [|m IH]; intros n H; [reflexivity|].
+  destruct n as [|n]; [lia|]. cbn [repeat firstn]. f_equal. apply IH. lia.
+Qed.
+
+(** The padding the C code appends is the standard one. *)
+Lemma pad_bytes_spec (n : Z) : 0 <= n < 18446744073709551616 ->
+  pad_bytes (Int64.repr n) = map byte_int (Byte.repr 128 :: repeat Byte.zero (Z.to_nat (- (n + 9) mod 64))).
+Proof.
+  intros Hn. unfold pad_bytes.
+  rewrite pad_count_unsigned, Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia).
+  assert (Ek : (119 - n mod 64) mod 64 = - (n + 9) mod 64).
+  { rewrite Zminus_mod_idemp_r. replace (119 - n) with (- (n + 9) + 2 * 64) by lia.
+    apply Z_mod_plus_full. }
+  rewrite Ek. pose proof (Z.mod_pos_bound (- (n + 9)) 64 ltac:(lia)) as Hk.
+  set (k := - (n + 9) mod 64) in *.
+  rewrite Z2Nat.inj_add by lia. change (Z.to_nat 1 + Z.to_nat k)%nat with (S (Z.to_nat k)).
+  unfold pad_source. cbn [firstn map]. f_equal.
+  rewrite firstn_repeat_le by lia. rewrite map_repeat. reflexivity.
+Qed.
+
+Theorem hash_buffer_bytestring (x : list byte) :
+  Zlength x < 2305843009213693952 ->
+  hash_buffer_regs (map byte_int x) = hash256_reg (byteStringHash x).
+Proof.
+  intros Hx. assert (Hx0 : 0 <= Zlength x) by (rewrite Zlength_correct; lia).
+  assert (Hn : Z.of_nat (length x) = Zlength x) by (rewrite Zlength_correct; reflexivity).
+  set (n := Zlength x) in *.
+  unfold hash_buffer_regs. rewrite <- absorb_i_app, map_length, Hn.
+  unfold sha_pad. rewrite pad_bytes_spec by lia.
+  assert (Em : Int64.mul (Int64.repr n) (Int64.repr 8) = Int64.repr (n * 8)).
+  { unfold Int64.mul. rewrite !Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia).
+    reflexivity. }
+  rewrite Em.
+  pose proof (Z.mod_pos_bound (- (n + 9)) 64 ltac:(lia)) as Hk.
+  pose proof (Z.div_mod (- (n + 9)) 64 ltac:(lia)) as D.
+  set (k := - (n + 9) mod 64) in *. set (dq := - (n + 9) / 64) in *.
+  set (q := - dq - 1).
+  assert (Hq : n + 1 + k = 64 * q + 56) by (unfold q; lia).
+  assert (Hq0 : 0 <= q) by lia.
+  set (P := x ++ Byte.repr 128 :: repeat Byte.zero (Z.to_nat k)).
+  assert (HPl : Z.of_nat (length P) = n + 1 + k).
+  { unfold P. rewrite app_length. cbn [length]. rewrite repeat_length, Nat2Z.inj_add, Nat2Z.inj_succ, Z2Nat.id by lia. lia. }
+  rewrite app_assoc, <- map_app. fold P.
+  set (T := c_be64_bytes (Int64.repr (n * 8))).
+  assert (HP4 : length (map byte_int P) = (4 * Z.to_nat (16 * q + 14))%nat).
+  { apply Nat2Z.inj. rewrite map_length, HPl, Nat2Z.inj_mul, Z2Nat.id by lia. lia. }
+  assert (HB : length (map byte_int P ++ T) = (64 * Z.to_nat (q + 1))%nat).
+  { apply Nat2Z.inj. rewrite app_length, map_length, Nat2Z.inj_add, HPl, Nat2Z.inj_mul, Z2Nat.id by lia.
+    change (Z.of_nat (length T)) with 8. lia. }
+  rewrite (absorb_blocks (Z.to_nat (q + 1)) _ sha256_iv_words eq_refl HB). cbn [snd].
+  rewrite (be_words_app4 _ _ T HP4), be_words_bytes.
+  unfold T. rewrite be64_words by lia.
+  unfold byteStringHash. cbn [hash256_reg].
+  rewrite <- functional_prog.generate_and_pad'_eq.
+  rewrite functional_prog.process_msg_hash_blocks.
+  - rewrite sha256_iv_words_registers. reflexivity.
+  - rewrite functional_prog.length_generate_and_pad. apply functional_prog.roundup_divide. lia.
+  - reflexivity.
+Qed.
