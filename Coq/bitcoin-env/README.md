@@ -121,7 +121,18 @@ half of the environment.
    other live contexts across an operation, and the continuation-style
    method (`drop_seq`, `te_restK`) used for `mallocTapEnv`. Stages:
    - (done) `copyOutput`, `copyInput`;
-   - prelude: sizes with two paddings and four overflow checks, `malloc`;
+   - prelude: sizes with two paddings and four overflow checks, `malloc`.
+     Layout (computed with `envu_field_offset`): `bitcoinTransaction` —
+     `input` 0, `output` 8, then thirteen midstates 32 bytes apart from
+     `outputValuesHash` 16 (`outputScriptsHash` 48, `outputsHash` 80,
+     `inputOutpointsHash` 112, `inputValuesHash` 144, `inputScriptsHash` 176,
+     `inputUTXOsHash` 208, `inputSequencesHash` 240, `inputAnnexesHash` 272,
+     `inputScriptSigsHash` 304, `inputsHash` 336, `txHash` 368), `txid` 400,
+     `totalInputValue` 432, `totalOutputValue` 440, `numInputs` 448,
+     `numOutputs` 456, `version` 464, `lockTime` 472, `isFinal` 480;
+     `sigInput` is 160 bytes, `sigOutput` 40, both 8-aligned, so both
+     paddings are 0 and the allocation is
+     `sizeof(bitcoinTransaction) + 160 * numInputs + 40 * numOutputs`;
    - the transaction compound literal and copy, `toMidstate` of the txid;
    - eight `sha256_init`, the input loop (invariant: eight `ctxo` states on
      disjoint 32-byte fields of the allocated block, `totalInputValue`,
