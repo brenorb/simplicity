@@ -129,3 +129,18 @@ Fresh kernel receipts for the linked and startup trees at `fa06716b` are in
 Open in this area (unclaimed): `issuance_token_amount` and its `current_`
 variant (stack-allocated compound literal in the static helper),
 `output_null_datum`, and the remaining program-specified Elements jets.
+
+### Claude — environment premises of registered application jets (2026-10-12)
+
+New, unregistered, new files only (nothing accepted is edited):
+`Coq/C/jet_env_constructible.v`, `jet_env_constructible_array.v` (generic
+memory construction), `jet_bitcoin_env_constructible.v`,
+`jet_bitcoin_env_constructible_indexed.v`. For 21 of the 36 registered
+Bitcoin application jets they give `X_runs_everywhere`: for every input and
+every `Bitcoin.env` there are a memory, frames and an environment pointer on
+which the C jet returns the canonical verdict and leaves the canonical
+encoding — the environment relation and frame premises are discharged, not
+assumed. They consume `jet_app_executable_registry.v` and the accepted
+contracts unchanged. Commits `95d424e5`, `5f7f615f`; coqchk exit 0 on both
+with dependency chains; six inherited assumptions. Remaining 15 (script_cmr,
+raw-environment jets, distance jets) are next here unless you object.

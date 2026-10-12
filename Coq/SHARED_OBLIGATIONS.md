@@ -88,9 +88,19 @@ C.jet_frame_constructible_bm` (after building the registered core modules).
      with statements that carry no memory, frame or environment premise
      (`runs_everywhere`). Six inherited assumptions; coqchk exit 0 at
      `1fe00a21` together with all other Elements modules (80 s);
-   - open: the 36 registered Bitcoin application jets (same construction,
-     Bitcoin layouts) and the Elements relations with their own shape
-     (scalar getters, hash getters, lock/count relations, pegin/annex).
+   - Bitcoin (registered jets): `C/jet_bitcoin_env_constructible.v` (13 jets
+     over the record-only relations: version, lock time, current index,
+     counts, totals, fee, finality, lock height/time and their checks) and
+     `C/jet_bitcoin_env_constructible_indexed.v` (8 jets: input_value,
+     input_sequence, output_value, current_value, current_sequence,
+     output_script_hash, input_prev_outpoint, current_prev_outpoint), over
+     `C/jet_env_constructible_array.v`. Statements `bitcoin_runs_everywhere`
+     / `bitcoin_partial_runs_everywhere`: no memory, frame or environment
+     premise. Six inherited assumptions each; coqchk exit 0 with whole
+     dependency chains at `95d424e5` (90 s) and `5f7f615f` (90 s);
+   - open: 15 registered Bitcoin jets (script_cmr, the ten raw-environment
+     jets, the four distance jets) and the Elements relations with their own
+     shape (scalar getters, hash getters, lock/count relations, pegin/annex).
 2. (done) secp contract shape: `C/jet_frame_constructible_secp.v`; all 349
    registered jets have an executability instance.
 3. (done) Linked executability: `linked/C/jet_frame_executable_linked.v` —
