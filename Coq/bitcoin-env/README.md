@@ -57,6 +57,11 @@ unit's global environment.
 | `C/jet_bitcoin_env_tx_fill.v` | `mt_fill_exec`: the transaction compound literal and its copy (`mt_filled`); `zsl_exec` |
 | `C/jet_bitcoin_env_ctxs.v` | `ctxs`: several live contexts writing distinct fields of one block; `ctxs_other`, `ctxs_frame` |
 | `C/jet_bitcoin_env_tx_init.v` | `mt_init_step`, `inits_exec`: any run of `ctx_X = sha256_init(tx->X.s)` statements (all twelve of the function) |
+| `C/jet_bitcoin_env_ctxs_ops.v`, `…_ctxs_calls.v` | `ctxs_live`, `live_step`, `live_kill`; `live_hash`, `live_u32be`, `live_u64be`, `live_uchar`, `live_finalize` on one of several live contexts |
+| `C/jet_bitcoin_env_tx_calls.v` | Clight call wrappers for the context operations, for any context variable |
+| `C/jet_bitcoin_env_tx_txid.v`, `…_tx_inblock.v` | the txid step; the input block is `inits_stmt` of eight items followed by `mt_in_tail` |
+| `C/jet_bitcoin_env_tx_txhash.v` | `mt_txhash`: the `txHash` block and `return tx` (`mt_rest5`) |
+| `C/jet_bitcoin_env_tx_outdefs.v`, `…_tx_outloop.v` | `out_loop`: the output loop for every output count (invariant `out_inv`) |
 
 ### `eval_mallocTapEnv`
 
@@ -128,25 +133,16 @@ half of the environment.
    - (done) `copyOutput`, `copyInput`, the prelude (`mt_rest1`), the compound
      literal and copy (`mt_rest2` is the body from `sha256_toMidstate(tx->txid.s, …)`);
    - (done) the multi-context invariant `ctxs` and `inits_exec`;
-   - next: `sha256_toMidstate(tx->txid.s, rawTx->txid)`; instantiate
-     `inits_exec` for the eight input contexts (`__res__11` …
-     `__res__4` with `ctx_inputOutpointsHash` 112, `…ValuesHash` 144,
-     `…ScriptsHash` 176, `…UTXOsHash` 208, `…SequencesHash` 240,
-     `…AnnexesHash` 272, `…ScriptSigsHash` 304, `ctx_inputsHash` 336); then
-     the input loop with invariant `ctxs` + array contents + totals;
-   - prelude: sizes with two paddings and four overflow checks, `malloc`.
-     Layout (computed with `envu_field_offset`): `bitcoinTransaction` —
-     `input` 0, `output` 8, then thirteen midstates 32 bytes apart from
-     `outputValuesHash` 16 (`outputScriptsHash` 48, `outputsHash` 80,
-     `inputOutpointsHash` 112, `inputValuesHash` 144, `inputScriptsHash` 176,
-     `inputUTXOsHash` 208, `inputSequencesHash` 240, `inputAnnexesHash` 272,
-     `inputScriptSigsHash` 304, `inputsHash` 336, `txHash` 368), `txid` 400,
-     `totalInputValue` 432, `totalOutputValue` 440, `numInputs` 448,
-     `numOutputs` 456, `version` 464, `lockTime` 472, `isFinal` 480;
-     `sigInput` is 160 bytes, `sigOutput` 40, both 8-aligned, so both
-     paddings are 0 and the allocation is
-     `sizeof(bitcoinTransaction) + 160 * numInputs + 40 * numOutputs`;
-   - the transaction compound literal and copy, `toMidstate` of the txid;
+   - next: wrap `out_loop` into the output block (`inits_exec` with
+     `out_specs`, then `live_finalize` twice, two `live_hash`, `live_finalize`
+     for `outputsHash`); the input loop in the same style (invariant with
+     eight live contexts, `eval_copyInput`, `totalInputValue`, `isFinal`,
+     the annex case split); the input block tail; assembly of
+     `mt_prelude`, `mt_fill_exec`, `mt_txid`, the two blocks and
+     `mt_txhash` with the 25 locals; then the links.
+     In these large contexts plain `lia` takes minutes: use `flia`
+     (`zkeep; lia`, defined in `…_tx_outloop.v`), and give disequalities
+     explicitly instead of `congruence`.
    - eight `sha256_init`, the input loop (invariant: eight `ctxo` states on
      disjoint 32-byte fields of the allocated block, `totalInputValue`,
      `isFinal`), six `finalize`, the two derived hashes;
