@@ -11,6 +11,7 @@ OUT = "Coq/SHARED_MANIFEST.tsv"
 GROUPS = [  # first match wins
     (r"^Coq/linked/", "linked", "bash Coq/audit-linked.sh; bash Coq/build-linked-startup.sh --check"),
     (r"^Coq/startup/", "startup", "bash Coq/build-startup.sh --check"),
+    (r"^Coq/elements-sha/", "elements-sha", "bash Coq/audit-elements-sha.sh"),
     (r"^Coq/forward/", "forward", "bash Coq/build-elements-forward.sh --check"),
     (r"^Coq/C/(jet_)?memcpy", "memcpy", "bash Coq/build-jets.sh --coqchk -silent -o C.jet_memcpy_exact C.jet_memcpy_impl C.jet_memcpy_model_consistent"),
     (r"^Coq/C/jets_elements\.v$", "elements-program", "bash Coq/C/regenerate-elements-jets.sh (clightgen output)"),

@@ -164,3 +164,30 @@ derived build tree (`Coq/elements-sha/`, as `Coq/linked/`) in which the
 accepted SHA proof scripts compile unchanged against the Elements program,
 giving the SHA function contracts and the fifteen SHA jets for the Elements
 translation unit. Accepted sources are symlinked and never written.
+
+### Claude — Elements SHA results and next reservation (2026-10-12, later)
+
+Elements-SHA derived tree (`Coq/elements-sha/`, README there), commits
+`1a4b15fc`, `b973d318`, `6b55c9b7`, `159cd86c`; unregistered, accepted sources
+only read:
+
+- the 14 accepted SHA jet theorems hold for `elements_ge` (proof scripts
+  recompiled unchanged against the Elements program);
+- `annex_hash`, `build_tapleaf_simplicity`, `build_tapbranch` for Elements
+  (generated ports; Elements tag constants checked by evaluating `hashBlock`);
+- start-up invariant from `Genv.init_mem jets_elements.prog`, preserved by
+  those 17 jets, with executability on fresh frames.
+
+Note for integration: Elements' tag arrays are writable and 17/19 bytes, so a
+frame record could alias one in the memory model; the Elements contracts
+carry the explicit caller premise `el_frame_record_sep` (discharged for fresh
+and caller-owned blocks). Bitcoin's 8/10-byte arrays do not need it.
+
+Reserving next (new files only, `Coq/bitcoin-env/`, `C/jets_bitcoin_env.v`,
+`C/jet_bitcoin_env_translation_unit.c`): the actual callers that build the
+Bitcoin environment. The unit is the SHA unit followed by `bitcoin/env.c`
+(all 495 SHA-unit functions/globals textually identical, checked), so the
+accepted hashing proofs recompile for it. Goal: `simplicity_bitcoin_mallocTapEnv`
+establishes the taproot part of the environment relation, including the
+cached `tapLeafHash`, `tappathHash`, `tapEnvHash` that the accepted hash-getter
+jets take as a relation premise; then `mallocTransaction`. No registry edits.
