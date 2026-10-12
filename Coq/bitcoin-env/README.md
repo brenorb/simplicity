@@ -55,6 +55,8 @@ unit's global environment.
 | `C/jet_bitcoin_env_tx_arith.v` | size arithmetic: no overflow check fires, both paddings are zero |
 | `C/jet_bitcoin_env_tx_prelude.v` | `mt_prelude`: statements 1-21 of `mallocTransaction` (guards, sizes, `malloc`, `tx`/`input`/`output`) |
 | `C/jet_bitcoin_env_tx_fill.v` | `mt_fill_exec`: the transaction compound literal and its copy (`mt_filled`); `zsl_exec` |
+| `C/jet_bitcoin_env_ctxs.v` | `ctxs`: several live contexts writing distinct fields of one block; `ctxs_other`, `ctxs_frame` |
+| `C/jet_bitcoin_env_tx_init.v` | `mt_init_step`, `inits_exec`: any run of `ctx_X = sha256_init(tx->X.s)` statements (all twelve of the function) |
 
 ### `eval_mallocTapEnv`
 
@@ -125,10 +127,13 @@ half of the environment.
    method (`drop_seq`, `te_restK`) used for `mallocTapEnv`. Stages:
    - (done) `copyOutput`, `copyInput`, the prelude (`mt_rest1`), the compound
      literal and copy (`mt_rest2` is the body from `sha256_toMidstate(tx->txid.s, …)`);
-   - next: a multi-context invariant (a list of `ctxo` states with pairwise
-     distinct context blocks and disjoint 32-byte output fields of the
-     allocated block; an operation on one context preserves the others by
-     `ctxo_other` and the operation's frame condition) for the two loops;
+   - (done) the multi-context invariant `ctxs` and `inits_exec`;
+   - next: `sha256_toMidstate(tx->txid.s, rawTx->txid)`; instantiate
+     `inits_exec` for the eight input contexts (`__res__11` …
+     `__res__4` with `ctx_inputOutpointsHash` 112, `…ValuesHash` 144,
+     `…ScriptsHash` 176, `…UTXOsHash` 208, `…SequencesHash` 240,
+     `…AnnexesHash` 272, `…ScriptSigsHash` 304, `ctx_inputsHash` 336); then
+     the input loop with invariant `ctxs` + array contents + totals;
    - prelude: sizes with two paddings and four overflow checks, `malloc`.
      Layout (computed with `envu_field_offset`): `bitcoinTransaction` —
      `input` 0, `output` 8, then thirteen midstates 32 bytes apart from
