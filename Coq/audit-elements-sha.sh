@@ -42,13 +42,20 @@ report() { printf 'Goal True. idtac "@@ %s". Abort.\nPrint Assumptions %s.\n' "$
     for name in $(grep -oE '^Theorem [a-z0-9_]*_startup_spec' elements-sha/startup/jet_elements_startup_jets.v | awk '{print $2}'); do
       report "$name forward" "ElementsStartup.jet_elements_startup_jets.$name"
     done
+    echo "Require ElementsStartup.jet_elements_startup_runs ElementsStartup.jet_elements_startup_setup."
+    report "el_sha_owned_setup_state forward" ElementsStartup.jet_elements_startup_setup.el_sha_owned_setup_state
+    report "el_owned_record_sep forward" ElementsStartup.jet_elements_startup_setup.el_owned_record_sep
+    for name in $(grep -oE '^Theorem [a-z0-9_]*_startup_runs' elements-sha/startup/jet_elements_startup_runs.v | awk '{print $2}'); do
+      report "$name forward" "ElementsStartup.jet_elements_startup_runs.$name"
+    done
   fi
 } > "$tmp/audit.v"
 expected=18
 if [[ $startup == 1 ]]; then
-  expected=36
+  expected=55
   paths=(-Q startup/prereq JetStartupReview -Q startup/proofs JetStartup -Q startup/elements ElementsStartup)
-  modules+=(ElementsStartup.jet_elements_startup_state ElementsStartup.jet_elements_startup_jets)
+  modules+=(ElementsStartup.jet_elements_startup_state ElementsStartup.jet_elements_startup_jets
+    ElementsStartup.jet_elements_startup_setup ElementsStartup.jet_elements_startup_executable ElementsStartup.jet_elements_startup_runs)
 fi
 cd "$root/elements-sha/tree"
 ulimit -s 65520 2>/dev/null || true
