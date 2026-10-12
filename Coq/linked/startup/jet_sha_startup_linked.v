@@ -53,6 +53,7 @@ Require Import JetStartupReview.jet_clight_forward JetStartupReview.jet_sha_init
 Require Import JetStartup.jet_sha_startup_globals JetStartup.jet_sha_startup_state.
 Require Import JetStartup.jet_sha_startup_jets JetStartup.jet_sha_startup_env_jets JetStartup.jet_sha_startup_env_callers.
 Require Import JetStartup.jet_sha_startup_executable JetStartup.jet_sha_startup_runs.
+Require Import JetStartup.jet_sha_startup_env_runs.
 Import Values Mem ListNotations.
 Local Open Scope Z_scope.
 Import Ctypes Values ListNotations Clightdefs.
@@ -266,3 +267,22 @@ Proof. exact (bitcoin_build_tapleaf_simplicity_startup_runs memcpy_model_holds).
 Theorem bitcoin_build_tapbranch_startup_runs_linked :
   ltac:(let T := type of (bitcoin_build_tapbranch_startup_runs memcpy_model_holds) in exact T).
 Proof. exact (bitcoin_build_tapbranch_startup_runs memcpy_model_holds). Qed.
+
+(** The environment-reading jets for every logical environment, from any memory
+    satisfying the invariant: no libc, global-object or environment premise. *)
+Theorem bitcoin_output_hash_startup_runs_everywhere_linked :
+  sha_env_runs_everywhere f_simplicity_bitcoin_output_hash (Word 5) (Ty.Sum Ty.Unit (Word 8))
+    (fun a e => @vh_hash_spec (BitcoinFull.Base Bitcoin.OutputValue)
+      (BitcoinFull.Base Bitcoin.OutputScriptHash) fullalg a e).
+Proof. exact (bitcoin_output_hash_startup_runs_everywhere memcpy_model_holds). Qed.
+
+Theorem bitcoin_input_utxo_hash_startup_runs_everywhere_linked :
+  sha_env_runs_everywhere f_simplicity_bitcoin_input_utxo_hash (Word 5) (Ty.Sum Ty.Unit (Word 8))
+    (fun a e => @vh_hash_spec (BitcoinFull.Base Bitcoin.InputValue)
+      (BitcoinFull.Ext BitcoinExt.InputScriptHash) fullalg a e).
+Proof. exact (bitcoin_input_utxo_hash_startup_runs_everywhere memcpy_model_holds). Qed.
+
+Theorem bitcoin_input_hash_startup_runs_everywhere_linked :
+  sha_env_runs_everywhere f_simplicity_bitcoin_input_hash (Word 5) (Ty.Sum Ty.Unit (Word 8))
+    (fun a e => @input_hash_spec fullalg a e).
+Proof. exact (bitcoin_input_hash_startup_runs_everywhere memcpy_model_holds). Qed.
