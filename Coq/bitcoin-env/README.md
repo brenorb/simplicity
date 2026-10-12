@@ -44,6 +44,15 @@ unit's global environment.
 | `C/jet_bitcoin_env_tapenv_tail.v` | `te_tail`: `make_tapleaf` with its struct copy, `tapEnvHash`, `return env` |
 | `C/jet_bitcoin_env_tapenv.v` | **`eval_mallocTapEnv`**: the whole function |
 
+### Helpers of `mallocTransaction` (proved; six inherited assumptions)
+
+| Module | Result |
+|---|---|
+| `C/jet_bitcoin_env_ctxo_more.v` | `ctxo_uchar`, `ctxo_u32be`, `ctxo_u64be` |
+| `C/jet_bitcoin_env_copyoutput.v` | `eval_copyOutput`: script hash and value of a `sigOutput` |
+| `C/jet_bitcoin_env_copyinput_fill.v` | `ci_fill_exec`: the `sigInput` compound literal and its copy; `zsr_exec` (zero runs through any midstate expression) |
+| `C/jet_bitcoin_env_copyinput.v` | **`eval_copyInput`**: annex hash (or zeros and `hasAnnex = 0` for a null annex), scriptSig hash, previous txid, output index, spent output, sequence |
+
 ### `eval_mallocTapEnv`
 
 For a raw taproot environment whose structure, control block
@@ -111,12 +120,7 @@ half of the environment.
    (`C/jet_bitcoin_env_ctxo.v`, `…_ctxo_more.v`), `ctxo_other` to carry the
    other live contexts across an operation, and the continuation-style
    method (`drop_seq`, `te_restK`) used for `mallocTapEnv`. Stages:
-   - `copyInput`: compound literal for `sigInput` (160 bytes: `annexHash` 0,
-     `scriptSigHash` 32, `prevOutpoint` 64 (`txid` 64, `ix` 96), `txo` 104
-     (`value` 104, `scriptPubKey` 112), `sequence` 144, `hasAnnex` 152; check
-     with `envu_field_offset`), struct copy, optional `hashBuffer` of the
-     annex, `toMidstate` of the previous txid, `copyOutput`, `hashBuffer` of
-     the scriptSig;
+   - (done) `copyOutput`, `copyInput`;
    - prelude: sizes with two paddings and four overflow checks, `malloc`;
    - the transaction compound literal and copy, `toMidstate` of the txid;
    - eight `sha256_init`, the input loop (invariant: eight `ctxo` states on
