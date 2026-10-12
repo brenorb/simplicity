@@ -123,8 +123,16 @@ tail statement (footprint then includes the re-read environment words).
   `Axiom`/`Parameter` in `jet_elements_*.v` (2026-10-12).
 - `coqchk -silent -o` on the twelve theorem modules present at commit
   `0d5d45e3` (17 jets) and their dependency chains: exit 0 (69 s).
-- Kernel check of `jet_elements_{tappath,annex,pegin}_local`: see the dated
-  entry appended below when it completes.
+- `coqchk -silent -o` on `jet_elements_{tappath,annex,pegin}_local` and
+  their dependency chains at `261b207c`: exit 0 (77 s).
+- `coqchk -silent -o C.jet_elements_executable C.jet_elements_executable_conf`
+  with dependency chains at `bffd9501` (29 jets): exit 0 (74 s).
+- After the `envIxWord32` change every Elements module was rebuilt; `coqchk
+  -silent -o C.jet_elements_executable C.jet_elements_executable_conf
+  C.jet_elements_executable_current` with dependency chains at `fd4cb95e`
+  (all 43 jet theorems and their executability instances): exit 0 (82 s).
+- `Print Assumptions` rerun in full for the 23 theorems added on 2026-10-12:
+  the same six assumptions each.
 
 ## Next (in rough order of reuse)
 
