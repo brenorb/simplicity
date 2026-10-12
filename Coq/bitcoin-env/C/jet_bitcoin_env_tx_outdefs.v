@@ -89,11 +89,12 @@ Proof.
 Qed.
 
 (** [base + i] for an array of [sz]-byte elements at offset [ob] of a block. *)
-Lemma ptr_index_long ob sz k : 0 <= ob <= 1000000000000 -> 0 <= sz <= 1000 -> 0 <= k <= 4294967295 ->
+Lemma ptr_index_long ob sz k : 0 <= ob -> 0 <= sz <= 1000 -> 0 <= k <= 4294967295 ->
+  ob + sz * k <= 18446744073709551615 ->
   Ptrofs.add (Ptrofs.repr ob) (Ptrofs.mul (Ptrofs.repr sz) (Ptrofs.of_int64 (Int64.repr k))) =
     Ptrofs.repr (ob + sz * k).
 Proof.
-  intros Ho Hs Hk. unfold Ptrofs.of_int64.
+  intros Ho Hs Hk Hb. unfold Ptrofs.of_int64.
   rewrite Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia).
   unfold Ptrofs.add, Ptrofs.mul.
   rewrite (Ptrofs.unsigned_repr sz), (Ptrofs.unsigned_repr k), (Ptrofs.unsigned_repr ob)
