@@ -162,6 +162,15 @@ and `jet_elements_elem_buildable.v` over the generic `jet_env_constructible*.v`.
 This shows the relations are satisfiable for every environment; it does not
 verify `C/elements/env.c`, which builds the real environment.
 
+## Provenance of the proof modules
+
+`python3 C/check-elements-generated.py` (from `Coq/`) verifies that 32
+modules are exact outputs of `port-bitcoin-to-elements.py` on the accepted
+Bitcoin-unit modules, that 17 more are exactly what their generators
+produce (`gen-elements-*.py`, `port-bitcoin-{timelock,count}-to-elements.py`,
+all with asserted substitutions), and that the primitive signature matches
+`Primitive.hs`. The remaining modules are written by hand.
+
 ## Receipts
 
 - All 50 theorems: `Print Assumptions` = the six inherited assumptions
