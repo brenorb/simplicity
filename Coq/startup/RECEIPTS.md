@@ -57,3 +57,17 @@ jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets
 jet_sha_startup_setup jet_sha_startup_env_callers jet_sha_startup_executable
 jet_sha_startup_runs jet_sha_startup_lifecycle jet_sha_startup_init and their
 dependencies` (first kernel pass that includes `jet_sha_startup_init`).
+
+## Pass at commit `a5dc34e7` (2026-10-12): environment jets for every environment
+
+`SHA_SUPPORT=<main>/proof-work/sha-support bash Coq/build-startup.sh --check`:
+exit 0 in 17m48s. Assumption audit passed: 118 results, 21 jet contracts
+over the invariant (the 23 added reports are those of
+`jet_sha_startup_env_runs.v`, within the eight inherited assumptions).
+coqchk passed for the eleven modules, now including
+`jet_sha_startup_env_runs`, and their dependencies (accepted SHA unit,
+`C/jet_env_constructible`, `C/jet_env_constructible_ext`).
+
+| module | SHA-256 |
+| --- | --- |
+| `jet_sha_startup_env_runs.v` | `c2dc9d66a86dde900464998005b330d090e3fdcaa799e15cd4c4c7fddf88aee5` |
