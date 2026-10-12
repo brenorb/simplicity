@@ -321,13 +321,14 @@ Definition txid (tx : sigTx) : hash256 := byteStringDoubleHash (putNoWitnessTx t
 (** * Primitives ([Primitive.hs]) *)
 
 (** [Bit] as in [Simplicity.Bit] (not imported: it rebinds [true]/[false]). *)
-Notation Bit := (Sum Unit Unit).
-Notation Word2 := (Word 1).
-Notation Word4 := (Word 2).
+Local Notation Bit := (Sum Unit Unit).
+Local Notation Word2 := (Word 1).
+Local Notation Word4 := (Word 2).
 (** [type S a = Either () a], [type Conf a = Either (Bit, Word256) a],
-    [type PubKey = Word256]. *)
-Notation S a := (Sum Unit a).
-Notation Conf a := (Sum (Prod Bit Word256) a).
+    [type PubKey = Word256].  Local: [S] must not shadow the successor of
+    [nat] in importing modules. *)
+Local Notation S a := (Sum Unit a).
+Local Notation Conf a := (Sum (Prod Bit Word256) a).
 
 Module Elements <: PrimitiveSig.
 
