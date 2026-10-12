@@ -62,6 +62,50 @@ unit's global environment.
 | `C/jet_bitcoin_env_tx_txid.v`, `…_tx_inblock.v` | the txid step; the input block is `inits_stmt` of eight items followed by `mt_in_tail` |
 | `C/jet_bitcoin_env_tx_txhash.v` | `mt_txhash`: the `txHash` block and `return tx` (`mt_rest5`) |
 | `C/jet_bitcoin_env_tx_outdefs.v`, `…_tx_outloop.v` | `out_loop`: the output loop for every output count (invariant `out_inv`) |
+| `C/jet_bitcoin_env_tx_outblock.v` | `mt_outblock_exec`: the output block (three initialisations, the loop, two finalisations, `outputsHash`) |
+| `C/jet_bitcoin_env_ctxs_core.v` | `LS`, `mfrP`: live contexts without overflow flags and separation side conditions; `LS_hash`, `LS_u32be`, `LS_u64be`, `LS_uchar`, `LS_finalize`, `LS_other` |
+| `C/jet_bitcoin_env_tx_indefs.v` | per-input data (`in_data`), the six running states, `in_cores`, the stored record `in_rec`, the raw input `raw_in_at` |
+| `C/jet_bitcoin_env_tx_inops.v` | `in_ops`: the context operations of one input iteration, with the annex case split (`in_annex`) |
+| `C/jet_bitcoin_env_tx_inloop.v` | `in_loop`: the input loop for every input count (invariant `in_inv`) |
+| `C/jet_bitcoin_env_tx_inexec.v` | `mt_inblock_exec`: the input block (eight initialisations, the loop, six finalisations, `inputUTXOsHash`, `inputsHash`); `items_wf_sep` |
+| `C/jet_bitcoin_env_tx.v` | **`eval_mallocTransaction`**: the whole function |
+
+### `eval_mallocTransaction`
+
+For a raw transaction whose structure, txid (32 bytes), input array
+(`numInputs` entries of 64 bytes, with their annexes, previous txids and
+script buffers) and output array (`numOutputs` entries of 24 bytes with
+their script buffers) are readable, the call
+`simplicity_bitcoin_mallocTransaction(rawTx)` returns a pointer to a fresh
+block `bA` such that (`tx_built`):
+
+- offsets 0, 8: `input = bA + 488`, `output = bA + 488 + 160 * numInputs`;
+- offsets 16, 48, 80: `outputValuesHash`, `outputScriptsHash`, `outputsHash`
+  (`out_regsV`, `out_regsS`, `out_regsO`);
+- offsets 112 … 336: `inputOutpointsHash`, `inputValuesHash`,
+  `inputScriptsHash`, `inputUTXOsHash`, `inputSequencesHash`,
+  `inputAnnexesHash`, `inputScriptSigsHash`, `inputsHash`
+  (`in_regsP/V/S/U/Q/N/G/I`: the bytes each context absorbed, then padding);
+- offset 368: `txHash` (`mt_txhash_regs` of version, lock time, `inputsHash`,
+  `outputsHash`, `inputUTXOsHash`); offset 400: `txid` (big-endian words);
+- offsets 432 … 480: `totalInputValue`, `totalOutputValue`, `numInputs`,
+  `numOutputs`, `version`, `lockTime`, `isFinal` (cleared by any input whose
+  sequence is below `0xffffffff`);
+- the `sigInput` records (`in_rec`) and the `sigOutput` records;
+
+and every load from a block that existed before the call is unchanged.
+Legitimate input requirements: readability of the raw data and the two
+array-extent bounds (`ori + 64 * numInputs`, `oro + 24 * numOutputs` inside
+the address space). The array pointers are required only for non-empty
+arrays, so a null pointer with a zero count is covered. Start-up facts
+(`sha_dispatch_ok`, the `GM` load) and `memcpy_model` are explicit premises.
+Six inherited assumptions.
+
+Not covered: `malloc` failure (CompCert's `malloc` cannot fail). The size
+computation is proved not to overflow for every pair of 32-bit counts.
+
+The loops are proved by invariant and induction on the remaining
+iterations; the stages are continuation-style (`mt_rest1 … mt_rest5`).
 
 ### `eval_mallocTapEnv`
 
@@ -123,33 +167,22 @@ half of the environment.
    logical environment satisfying `tapenv_describes`, built from the bytes
    the builder read. The hypothesis of `mallocTapEnv_cached_hashes` is thus a
    definition of the logical environment, not an assumption.
-2. `simplicity_bitcoin_mallocTransaction` (3200 lines of Clight). Toolkit in
-   place: `eval_malloc`, `eval_sha256_toMidstate`, `eval_hashBuffer`,
-   `eval_copyOutput` (`C/jet_bitcoin_env_copyoutput.v`), `ctxo` with
-   `ctxo_init/hash/uchar/u32be/u64be/finalize`
-   (`C/jet_bitcoin_env_ctxo.v`, `…_ctxo_more.v`), `ctxo_other` to carry the
-   other live contexts across an operation, and the continuation-style
-   method (`drop_seq`, `te_restK`) used for `mallocTapEnv`. Stages:
-   - (done) `copyOutput`, `copyInput`, the prelude (`mt_rest1`), the compound
-     literal and copy (`mt_rest2` is the body from `sha256_toMidstate(tx->txid.s, …)`);
-   - (done) the multi-context invariant `ctxs` and `inits_exec`;
-   - next: wrap `out_loop` into the output block (`inits_exec` with
-     `out_specs`, then `live_finalize` twice, two `live_hash`, `live_finalize`
-     for `outputsHash`); the input loop in the same style (invariant with
-     eight live contexts, `eval_copyInput`, `totalInputValue`, `isFinal`,
-     the annex case split); the input block tail; assembly of
-     `mt_prelude`, `mt_fill_exec`, `mt_txid`, the two blocks and
-     `mt_txhash` with the 25 locals; then the links.
-     In these large contexts plain `lia` takes minutes: use `flia`
-     (`zkeep; lia`, defined in `…_tx_outloop.v`), and give disequalities
-     explicitly instead of `congruence`.
-   - eight `sha256_init`, the input loop (invariant: eight `ctxo` states on
-     disjoint 32-byte fields of the allocated block, `totalInputValue`,
-     `isFinal`), six `finalize`, the two derived hashes;
-   - three `sha256_init`, the output loop, two `finalize`, `outputsHash`;
-   - `txHash`; return; then the links to `input_outpoints_hash_of`,
-     `words_hash_of …`, `inputs_hash_of`, `outputs_hash_of`, `tx_hash_of`
-     of the accepted modules (`sha_stream_absorb_i` is the bridge).
+2. (done) `simplicity_bitcoin_mallocTransaction`: `eval_mallocTransaction`
+   (`C/jet_bitcoin_env_tx.v`), see above. Method notes: in these large
+   contexts plain `lia` takes minutes — use `flia` (`zkeep; lia`, defined in
+   `…_tx_outloop.v`) and give disequalities explicitly instead of
+   `congruence`; work with `LS` (`…_ctxs_core.v`) rather than `ctxs_live`;
+   never let a tactic try a wrong field offset (`hoff` computes the index:
+   a failed unification of two `envu_field_at` instances unfolds the
+   composite environment).
+   Remaining for the transaction half:
+   - links from `tx_built` to the canonical hashes of the accepted modules
+     (`words_hash_of 3 5 (output_values_of e)`, `input_outpoints_hash_of`,
+     `input_annexes_hash_of`, `inputs_hash_of`, `outputs_hash_of`,
+     `tx_hash_of`, …) for a logical environment that describes the raw
+     transaction; `sha_stream_absorb_i` is the bridge, the counters
+     `in_cnt`/`in_cntOP`/`in_nAn` need their closed forms;
+   - `simplicity_bitcoin_freeTransaction` and the `txEnv` builder.
 3. The same for `elements/env.c` (`Coq/elements-env`: the C-side
    `mallocTapEnv` port is generated; links need Elements cached-hash
    relations).

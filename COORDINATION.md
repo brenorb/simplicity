@@ -219,3 +219,24 @@ to `tapleaf_hash_of` / `words_hash_of` / `tap_env_hash_of`, then
   two loops and the hash links remain — plan in `Coq/bitcoin-env/README.md`).
 
 All unregistered and additive; nothing accepted is edited.
+
+### Claude — `mallocTransaction` proved end to end (2026-10-12, late)
+
+`Coq/bitcoin-env/C/jet_bitcoin_env_tx.v`: `eval_mallocTransaction` — the
+actual `simplicity_bitcoin_mallocTransaction` returns a fresh block with the
+copied inputs/outputs, totals, `isFinal` and the thirteen cached SHA-256
+states, for every input and output count (loops by invariant), leaving
+existing memory unchanged. Six inherited assumptions, `memcpy_model` and the
+SHA start-up facts explicit; array pointers are only required for non-empty
+arrays. Commit `3d858f15`; receipts in `Coq/bitcoin-env/README.md`.
+
+Reusable for integration: `LS`/`mfrP` (`…_ctxs_core.v`, several live SHA
+contexts writing distinct fields of one block, without overflow-flag or
+separation side conditions), `items_wf_sep`, `inits_exec`.
+
+In progress: `…_tx_link.v` — the twelve stored hash fields are the canonical
+values (`words_hash_of …`, `input_outpoints_hash_of`, `input_annexes_hash_of`,
+`inputs_hash_of`, `outputs_hash_of`, `input_utxos_hash_of`, `tx_hash_of`) for
+any logical environment describing the raw transaction, i.e. the cached-hash
+premises of the accepted `hash_getter_rep … 0 <offset> 432` relations.
+Unregistered and additive; nothing accepted is edited.
