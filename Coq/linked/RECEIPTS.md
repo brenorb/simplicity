@@ -70,6 +70,13 @@ results) and `sha_startup_state_initialized`: within the eight inherited
 assumptions, no `memcpy_model`; `coqchk -silent -o
 JetStartup.jet_sha_startup_linked` with its whole dependency chain: passed.
 
+## Pass at commit `fa06716b` (2026-10-12)
+
+`bash Coq/audit-linked.sh`: exit 0 in 20m11s. Assumption audit passed: 233
+theorems (124 linked jet contracts, 104 linked executability results);
+`coqchk passed for 16 linked modules and their dependencies` (first kernel
+pass that includes `jet_frame_executable_linked`).
+
 ## Standalone memcpy proofs (normal tree)
 
 - `C.jet_memcpy_impl`: compiled; `Print Assumptions eval_memcpy_impl` = the

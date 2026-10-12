@@ -26,7 +26,7 @@ txo 136, sequence 248, issuance 256, hasAnnex 536, isPegin 537); `sigOutput`
 `elementsTapEnv` 176 (path 0, internalKey 104, scriptCMR 136, pathLen 168,
 leafVersion 169).
 
-## Proved jets (20), each against `primitive Prim.X` as in `Haskell/Simplicity/Elements/Jets.hs`
+## Proved jets (29), each against its specification in `Haskell/Simplicity/Elements/Jets.hs`
 
 | C function | primitive | theorem (module) |
 | --- | --- | --- |
@@ -50,6 +50,15 @@ leafVersion 169).
 | `simplicity_output_range_proof` | OutputRangeProof | `elements_output_range_proof_local_spec` (same) |
 | `simplicity_input_annex_hash` | InputAnnexHash | `elements_input_annex_hash_local_spec` (`jet_elements_annex_local`) |
 | `simplicity_input_pegin` | InputPegin | `elements_input_pegin_hash_local_spec` (`jet_elements_pegin_local`, generated) |
+| `simplicity_input_asset` | InputAsset | `elements_input_asset_local_spec` (`jet_elements_asset_jets`) |
+| `simplicity_output_asset` | OutputAsset | `elements_output_asset_local_spec` (same) |
+| `simplicity_output_nonce` | OutputNonce | `elements_output_nonce_local_spec` (same) |
+| `simplicity_input_amount` | program `Prog.inputAmount` | `elements_input_amount_local_spec` (`jet_elements_amount_jets`) |
+| `simplicity_output_amount` | program `Prog.outputAmount` | `elements_output_amount_local_spec` (same) |
+| `simplicity_reissuance_blinding` | ReissuanceBlinding | `elements_reissuance_blinding_local_spec` (`jet_elements_issuance_jets`) |
+| `simplicity_new_issuance_contract` | NewIssuanceContract | `elements_new_issuance_contract_local_spec` (same) |
+| `simplicity_reissuance_entropy` | ReissuanceEntropy | `elements_reissuance_entropy_local_spec` (same) |
+| `simplicity_issuance_asset_amount` | IssuanceAssetAmount | `elements_issuance_asset_amount_local_spec` (`jet_elements_issuance_amount_jets`) |
 
 Contracts are `application_jet_local_spec` / `application_jet_local_spec_sep`
 in `elements_ge` over `Elements.env`. Boundaries that apply to all of them:
@@ -62,10 +71,27 @@ in `elements_ge` over `Elements.env`. Boundaries that apply to all of them:
 - `tappath` requires at most 128 path elements in its relation (the Haskell
   `TapEnv` has no explicit bound; the C field is an `unsigned char`).
 - The canonical side is the ported `jet_elements_prim.v`, pending review.
+- Confidential values: the relations state the C prefix tag (EXPLICIT = 1,
+  EVEN_Y = 2, ODD_Y = 3; NONE = 0 for an absent nonce) and the data words;
+  an explicit amount is its 64-bit union member. Data words are only
+  required where the C code reads them (not for an absent nonce, and for
+  issuance fields only when the primitive yields a value).
+- `input_amount` / `output_amount` are specified by the two-primitive
+  programs of `Programs/Transaction.hs`, written with the core combinators
+  in `jet_elements_amount_jets.v` (`elements_amount_pair_spec`).
+
+Supporting modules for these nine: `jet_elements_asset_helper.v` (static
+`asset` and `nonce`), `jet_elements_amt_helper.v` (static `amt`, union
+access), `jet_elements_issuance_helper.v` (the four tag-dispatched static
+issuance helpers as one parametric function), `jet_elements_indexed_gen.v`
+(generated: indexed getter over an arbitrary success statement),
+`jet_elements_indexed_ptr2.v` (two helper calls on the selected element).
+Executability on fresh frames: `jet_elements_executable.v` (first 20) and
+`jet_elements_executable_conf.v` (these nine).
 
 ## Receipts
 
-- All 20 theorems: `Print Assumptions` = the six inherited assumptions
+- All 29 theorems: `Print Assumptions` = the six inherited assumptions
   (`sig_forall_dec`, `sig_not_dec`, `classic`, `functional_extensionality_dep`,
   `external_functions_sem`, `inline_assembly_sem`); no `admit`/`Admitted`/
   `Axiom`/`Parameter` in `jet_elements_*.v` (2026-10-12).
@@ -76,16 +102,14 @@ in `elements_ge` over `Elements.env`. Boundaries that apply to all of them:
 
 ## Next (in rough order of reuse)
 
-1. Remaining primitive jets: `input_asset`, `input_amount`, `output_asset`,
-   `output_amount`, `output_nonce` (confidential encodings: new payload
-   shape), `reissuance_blinding`, `new_issuance_contract`,
-   `reissuance_entropy`, `issuance_asset_amount`, `issuance_token_amount`
-   (branch on issuance type), `output_null_datum`.
+1. Remaining primitive jets: `issuance_token_amount` (its static helper
+   passes a stack-allocated compound literal for reissuances, so the proof
+   needs the local-variable allocation and release around the `amt` call),
+   `output_null_datum` (script parsing).
 2. Program-specified jets (72): `current_*`, `num_inputs`, `num_outputs`,
    `total_fee`, issuance, time locks, hash and sig-hash jets. These need the
    Simplicity programs of `Haskell/Core/Simplicity/Programs/Elements*.hs`
    ported and evaluated, as was done for Bitcoin's totals/time locks/hashes.
 3. Source review of `jet_elements_prim.v` semantics clauses; a second gate
    for `primSem` would strengthen it.
-4. Executability/stability instances for the Elements relations (the generic
-   theorems of `jet_frame_constructible_app.v` apply unchanged).
+4. (done) Executability/stability instances for the Elements relations.

@@ -47,3 +47,13 @@ context; `sha_startup_state_exists`: the four logic axioms;
 `sha_lifecycle_exists`: those plus `external_functions_sem`,
 `inline_assembly_sem`. Included in the module list of `build-startup.sh`
 from the next pass on (see the dated entries below).
+
+## Pass at commit `fa06716b` (2026-10-12, startup and linked trees unchanged since)
+
+`SHA_SUPPORT=<main>/proof-work/sha-support bash Coq/build-startup.sh --check`:
+exit 0 in 18m13s. Assumption audit passed: 95 results, 21 jet contracts
+over the invariant. `coqchk passed for jet_sha_startup_globals
+jet_sha_startup_state jet_sha_startup_jets jet_sha_startup_env_jets
+jet_sha_startup_setup jet_sha_startup_env_callers jet_sha_startup_executable
+jet_sha_startup_runs jet_sha_startup_lifecycle jet_sha_startup_init and their
+dependencies` (first kernel pass that includes `jet_sha_startup_init`).
