@@ -1,5 +1,5 @@
-(** Generic proof of the Elements "current input" jets over an arbitrary body:
-      [if (numInputs <= ix) return false; BODY; return true]
+(** Generic proof of the Elements "current input" jets over an arbitrary tail:
+      [if (numInputs <= ix) return false; TAIL]   (TAIL ends in [return true])
     with the statement forms the bodies are built from (reload of
     [env->tx], the array pointer and [env->ix]; a pointer-taking helper
     call).  Adapted from the single-helper theorem of
@@ -34,9 +34,14 @@ Definition elements_current_guard (ta tb tc countfield : ident) : statement :=
         (Sifthenelse (Ebinop Ole (Etempvar tb tulong) (Etempvar tc tulong) tint)
           (Sreturn (Some (Econst_int (Int.repr 0) tint))) Sskip))).
 
-Definition elements_current_gen_rest (ta tb tc countfield : ident) (body : statement) : statement :=
-  Ssequence (elements_current_guard ta tb tc countfield)
-    (Ssequence body (Sreturn (Some (Econst_int (Int.repr 1) tint)))).
+Definition elements_current_gen_rest (ta tb tc countfield : ident) (tail : statement) : statement :=
+  Ssequence (elements_current_guard ta tb tc countfield) tail.
+
+Definition elements_return_one : statement := Sreturn (Some (Econst_int (Int.repr 1) tint)).
+
+Lemma exec_elements_return_one e le m :
+  Clight2.exec_stmt elements_ge e le m elements_return_one E0 le m elements_returned_one.
+Proof. apply exec_Sreturn_some, eval_Econst_int. Qed.
 
 (** [t1 = env->tx; t2 = t1->ARRAY; t3 = env->ix; S] *)
 Definition elements_current_load3 (t1 t2 t3 arrfield sid : ident) (s : statement) : statement :=
@@ -206,7 +211,7 @@ Theorem elements_current_gen_local {A} (elems_of : Elements.env -> list A) (nbit
         (inbase + sz * Int64.unsigned ixv + sz) ->
       write_frame_at mc bd dbase bw outedge cur nbits ->
       exists le' me,
-        Clight2.exec_stmt elements_ge (elements_version_locals bl) le mc body E0 le' me Out_normal /\
+        Clight2.exec_stmt elements_ge (elements_version_locals bl) le mc body E0 le' me elements_returned_one /\
         write_effect mc me bd dbase bw outedge cur nbits (pcells x))
     (Hshape : elements_wrapper_shape f (elements_current_gen_rest ta tb tc countfield body))
     (HB : Z.of_nat (bitSize Bpay) = nbits)
@@ -280,9 +285,7 @@ Proof.
     exists le1, me.
     refine (conj _ (conj c (conj p (conj fl (conj _ (conj pm vv)))))).
     - unfold elements_current_gen_rest.
-      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mc) (le1 := leg); [exact HG|].
-      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := me) (le1 := le1); [exact HEx|].
-      apply exec_Sreturn_some, eval_Econst_int.
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mc) (le1 := leg); [exact HG|exact HEx].
     - intros chunk b ofs' _ H1' H2'. exact (l chunk b ofs' H1' H2'). }
   destruct (elements_wrapper_layout f (elements_current_gen_rest ta tb tc countfield body)
     (pcells x) (Vptr be (Ptrofs.repr ebase)) m bd dbase bs sbase bw outedge cursor nbits bytes
