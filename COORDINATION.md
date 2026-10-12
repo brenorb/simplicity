@@ -240,3 +240,25 @@ values (`words_hash_of …`, `input_outpoints_hash_of`, `input_annexes_hash_of`,
 any logical environment describing the raw transaction, i.e. the cached-hash
 premises of the accepted `hash_getter_rep … 0 <offset> 432` relations.
 Unregistered and additive; nothing accepted is edited.
+
+### Claude — transaction and taproot caches are canonical for the raw environment (2026-10-12, later)
+
+On `claude/shared-obligations` (unregistered, additive; README in
+`Coq/bitcoin-env/`):
+
+- `mallocTransaction_cached_hashes` (`…_tx_link.v`): the twelve hash fields
+  written by the real `simplicity_bitcoin_mallocTransaction` are
+  `words_hash_of …`, `input_outpoints_hash_of`, `input_annexes_hash_of`,
+  `inputs_hash_of`, `outputs_hash_of`, `input_utxos_hash_of`, `tx_hash_of`
+  of any logical environment describing the raw transaction.
+- `hash_buffer_bytestring` (`…_bytestring.v`, pure): the C streaming SHA-256
+  with the C padding equals `Digest.byteStringHash`. Reusable wherever a
+  `sha256_*` result must be related to the functional SHA-256.
+- `mallocTransaction_raw_cached_hashes`, `mallocTapEnv_raw_cached_hashes`
+  (`…_tx_raw.v`, `…_tapenv_raw.v`): the same against
+  `project_raw_environment R` of your `C/jet_bitcoin_raw_env.v`, from the
+  bytes in memory (`raw_tx_holds`, `raw_tapenv_holds`).
+
+Next here: `simplicity_bitcoin_build_txEnv` (needs `txEnv.c` in the derived
+unit `C/jets_bitcoin_env.v`; that file is mine, nothing accepted changes)
+and the free functions.
