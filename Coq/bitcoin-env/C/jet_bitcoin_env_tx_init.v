@@ -128,3 +128,112 @@ Proof.
   - exact HVx.
 Qed.
 End InitStep.
+
+(** ** A run of initialisations *)
+
+(** Result temporary, context variable, member, its offset, and the blocks of
+    the two local variables. *)
+Definition init_item : Type := (ident * ident * ident * Z * block * block)%type.
+
+Definition item_stmt (it : init_item) : statement :=
+  let '(r, c, f, d, bR, bC) := it in
+  Ssequence
+    (Scall None (Evar _sha256_init
+       (Tfunction (Tcons CTXP (Tcons (tptr tuint) Tnil)) tvoid
+          {| cc_vararg := None; cc_unproto := false; cc_structret := true |}))
+       [Eaddrof (Evar r CTX) CTXP; Efield (Efield TXD f MID) _s A8])
+    (Sassign (Evar c CTX) (Evar r CTX)).
+
+Fixpoint inits_stmt (its : list init_item) (rest : statement) : statement :=
+  match its with
+  | [] => rest
+  | it :: l => Ssequence (item_stmt it) (inits_stmt l rest)
+  end.
+
+Definition item_entry (it : init_item) : ctx_entry :=
+  let '(r, c, f, d, bR, bC) := it in (bC, d, [], sha256_iv_words, Int64.zero, false).
+
+Section Inits.
+Variables (e : env) (bA : block).
+Hypothesis HeI : e!_sha256_init = None.
+Hypothesis NGA : GC <> bA.
+Hypothesis NMA : GM <> bA.
+
+Definition item_ok (it : init_item) : Prop :=
+  let '(r, c, f, d, bR, bC) := it in
+  e!r = Some (bR, CTX) /\ e!c = Some (bC, CTX) /\
+  envu_field_at _bitcoinTransaction f d /\ (0 <= d /\ d + 32 <= 488) /\ (4 | d) /\
+  bA <> bC /\ bA <> bR /\ bR <> bC /\ GC <> bC /\ GM <> bC /\ GC <> bR /\ GM <> bR.
+
+Definition item_sep (it : init_item) (c : ctx_entry) : Prop :=
+  let '(r, cx, f, d, bR, bC) := it in
+  ctx_block c <> bR /\ ctx_block c <> bC /\ ctx_block c <> bA /\
+  (ctx_out c + 32 <= d \/ d + 32 <= ctx_out c).
+
+Fixpoint items_wf (its : list init_item) (cs : list ctx_entry) : Prop :=
+  match its with
+  | [] => True
+  | it :: l => item_ok it /\ (forall c, In c cs -> item_sep it c) /\ items_wf l (item_entry it :: cs)
+  end.
+
+Definition item_perms (m : mem) (it : init_item) : Prop :=
+  let '(r, c, f, d, bR, bC) := it in
+  Mem.range_perm m bR 0 88 Cur Freeable /\ Mem.range_perm m bC 0 88 Cur Freeable /\
+  Mem.range_perm m bA d (d + 32) Cur Writable.
+
+Definition item_untouched (it : init_item) (ch : memory_chunk) (b : block) (ofs : Z) : Prop :=
+  let '(r, c, f, d, bR, bC) := it in
+  b <> bR /\ b <> bC /\ (b <> bA \/ ofs + size_chunk ch <= d \/ d + 32 <= ofs).
+
+Lemma item_perms_mono m m' it :
+  (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) -> item_perms m it -> item_perms m' it.
+Proof.
+  destruct it as [[[[[r c] f] d] bR] bC]. intros HP (P1 & P2 & P3).
+  repeat split; intros o Ho; apply HP; [apply P1|apply P2|apply P3]; exact Ho.
+Qed.
+
+Theorem inits_exec (its : list init_item) : forall (cs : list ctx_entry) le m,
+  items_wf its cs -> le!_tx = Some (Vptr bA Ptrofs.zero) ->
+  (forall it, In it its -> item_perms m it) ->
+  sha_dispatch_ok m -> Mem.load Mint64 m GM 0 = Some (Vlong sha_max_counter) ->
+  ctxs m bA cs ->
+  exists m',
+    ctxs m' bA (rev (map item_entry its) ++ cs) /\
+    (forall ch b ofs, Mem.valid_block m b -> (forall it, In it its -> item_untouched it ch b ofs) ->
+       Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b) /\
+    (forall rest t le' mf out,
+       Clight2.exec_stmt sha_ge e le m' rest t le' mf out ->
+       Clight2.exec_stmt sha_ge e le m (inits_stmt its rest) t le' mf out).
+Proof.
+  induction its as [|it l IH]; intros cs le m HWf Hle HPerm Hdisp HMax HCs.
+  - exists m. cbn [map rev app inits_stmt]. repeat split; auto.
+  - destruct HWf as (HOk & HSep & HWf').
+    pose proof (HPerm it (or_introl eq_refl)) as HPit.
+    destruct it as [[[[[r c] f] d] bR] bC].
+    destruct HOk as (HeR & HeC & Hf & Hd & HdA & NAC & NAR & NRC & NGC & NMC & NGR & NMR).
+    destruct HPit as (PR & PC & PA).
+    assert (VG : Mem.valid_block m GC) by (eapply load_valid_block; exact Hdisp).
+    assert (VM : Mem.valid_block m GM) by (eapply load_valid_block; exact HMax).
+    destruct (mt_init_step e bA HeI NGA NMA le m r c f bR bC d cs HeR HeC Hle Hf Hd HdA
+      NAC NAR NRC NGC NMC NGR NMR PR PC PA Hdisp HMax HCs)
+      as (m1 & HEx1 & HCs1 & HL1 & HP1 & HV1).
+    { intros c0 Hc0. exact (HSep c0 Hc0). }
+    destruct (IH ((bC, d, [], sha256_iv_words, Int64.zero, false) :: cs) le m1 HWf' Hle)
+      as (m' & HCs' & HL' & HP' & HV' & HK').
+    { intros it' Hit'. eapply item_perms_mono; [exact HP1|]. apply HPerm. right. exact Hit'. }
+    { unfold sha_dispatch_ok. rewrite HL1; [exact Hdisp|exact VG|exact NGR|exact NGC|left; exact NGA]. }
+    { rewrite HL1; [exact HMax|exact VM|exact NMR|exact NMC|left; exact NMA]. }
+    { exact HCs1. }
+    exists m'. split; [|split; [|split; [|split]]].
+    + cbn [map rev]. rewrite <- app_assoc. exact HCs'.
+    + intros ch b ofs Hb HU.
+      rewrite HL'; [|apply HV1, Hb|intros it' Hit'; apply HU; right; exact Hit'].
+      destruct (HU _ (or_introl eq_refl)) as (U1 & U2 & U3). apply HL1; assumption.
+    + intros b ofs k p Hp. apply HP', HP1, Hp.
+    + intros b Hb. apply HV', HV1, Hb.
+    + intros rest t le' mf out HR. cbn [inits_stmt].
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := t); [exact HEx1|apply HK'; exact HR].
+Qed.
+End Inits.
