@@ -141,10 +141,16 @@ Definition elem_local {X : Type} (rep : mem -> block -> Z -> X -> Prop) (psz : Z
     (forall c o v, ofs <= o -> o + size_chunk c <= ofs + psz ->
       Mem.load c m1 b o = Some v -> Mem.load c m2 b o = Some v) -> rep m2 b ofs x.
 
-(** [rep] can be established at any 8-aligned writable place of size [psz]. *)
-Definition elem_buildable {X : Type} (rep : mem -> block -> Z -> X -> Prop) (psz : Z) : Prop :=
-  forall x m b ofs, Mem.range_perm m b ofs (ofs + psz) Cur Writable -> (8 | ofs) ->
+(** [rep] can be established at any [al]-aligned writable place of size [psz]. *)
+Definition elem_buildable {X : Type} (al : Z) (rep : mem -> block -> Z -> X -> Prop) (psz : Z) : Prop :=
+  forall x m b ofs, Mem.range_perm m b ofs (ofs + psz) Cur Writable -> (al | ofs) ->
     exists m', built m m' b ofs (ofs + psz) /\ rep m' b ofs x.
+
+Lemma elem_buildable_align {X : Type} al al' (rep : mem -> block -> Z -> X -> Prop) psz :
+  (al | al') -> elem_buildable al rep psz -> elem_buildable al' rep psz.
+Proof.
+  intros Hd HB x m b ofs HP HA. exact (HB x m b ofs HP (Z.divide_trans _ _ _ Hd HA)).
+Qed.
 
 Lemma elem_local_built {X : Type} (rep : mem -> block -> Z -> X -> Prop) psz m m' b lo hi b' ofs x :
   elem_local rep psz -> built m m' b lo hi ->
@@ -157,16 +163,16 @@ Proof.
   pose proof (size_chunk_pos c). lia.
 Qed.
 
-Lemma elem_buildable_impl {X : Type} (rep rep' : mem -> block -> Z -> X -> Prop) psz :
+Lemma elem_buildable_impl {X : Type} al (rep rep' : mem -> block -> Z -> X -> Prop) psz :
   (forall m b ofs x, rep m b ofs x -> rep' m b ofs x) ->
-  elem_buildable rep psz -> elem_buildable rep' psz.
+  elem_buildable al rep psz -> elem_buildable al rep' psz.
 Proof.
   intros HI HB x m b ofs HP HA. destruct (HB x m b ofs HP HA) as (m' & H1 & H2).
   exists m'. split; [exact H1|exact (HI _ _ _ _ H2)].
 Qed.
 
-Lemma elem_buildable_larger {X : Type} (rep : mem -> block -> Z -> X -> Prop) psz psz' :
-  psz <= psz' -> elem_buildable rep psz -> elem_buildable rep psz'.
+Lemma elem_buildable_larger {X : Type} al (rep : mem -> block -> Z -> X -> Prop) psz psz' :
+  psz <= psz' -> elem_buildable al rep psz -> elem_buildable al rep psz'.
 Proof.
   intros Hle HB x m b ofs HP HA.
   destruct (HB x m b ofs ltac:(intros o Ho; apply HP; lia) HA) as (m' & H1 & H2).
@@ -181,9 +187,9 @@ Proof.
 Qed.
 
 (** The element placed [off] bytes into a record. *)
-Lemma elem_buildable_shift {X : Type} (rep : mem -> block -> Z -> X -> Prop) psz off :
-  0 <= off -> (8 | off) -> elem_buildable rep psz ->
-  elem_buildable (fun m b ofs x => rep m b (ofs + off) x) (off + psz).
+Lemma elem_buildable_shift {X : Type} al (rep : mem -> block -> Z -> X -> Prop) psz off :
+  0 <= off -> (al | off) -> elem_buildable al rep psz ->
+  elem_buildable al (fun m b ofs x => rep m b (ofs + off) x) (off + psz).
 Proof.
   intros H0 Ha HB x m b ofs HP HA.
   destruct (HB x m b (ofs + off)) as (m' & H1 & H2).
@@ -201,11 +207,11 @@ Proof.
 Qed.
 
 (** Two parts of a record at disjoint places. *)
-Lemma elem_buildable_pair {X : Type} (rep1 rep2 : mem -> block -> Z -> X -> Prop) off1 psz1 off2 psz2 psz :
-  0 <= off1 -> (8 | off1) -> off1 + psz1 <= off2 -> (8 | off2) -> off2 + psz2 <= psz ->
+Lemma elem_buildable_pair {X : Type} al (rep1 rep2 : mem -> block -> Z -> X -> Prop) off1 psz1 off2 psz2 psz :
+  0 <= off1 -> (al | off1) -> off1 + psz1 <= off2 -> (al | off2) -> off2 + psz2 <= psz ->
   0 <= psz1 -> 0 <= psz2 ->
-  elem_local rep1 psz1 -> elem_buildable rep1 psz1 -> elem_buildable rep2 psz2 ->
-  elem_buildable (fun m b ofs x => rep1 m b (ofs + off1) x /\ rep2 m b (ofs + off2) x) psz.
+  elem_local rep1 psz1 -> elem_buildable al rep1 psz1 -> elem_buildable al rep2 psz2 ->
+  elem_buildable al (fun m b ofs x => rep1 m b (ofs + off1) x /\ rep2 m b (ofs + off2) x) psz.
 Proof.
   intros H0 Ha1 Hd Ha2 Hin Hp1 Hp2 HL1 HB1 HB2 x m b ofs HP HA.
   destruct (HB1 x m b (ofs + off1)) as (m1 & HBu1 & Hr1).
@@ -230,9 +236,9 @@ Proof.
 Qed.
 
 (** A part that is only required for some values. *)
-Lemma elem_buildable_option {X Y : Type} (g : X -> option Y) (rep : mem -> block -> Z -> Y -> Prop) psz :
-  0 <= psz -> elem_buildable rep psz ->
-  elem_buildable (fun m b ofs x => forall y, g x = Some y -> rep m b ofs y) psz.
+Lemma elem_buildable_option {X Y : Type} al (g : X -> option Y) (rep : mem -> block -> Z -> Y -> Prop) psz :
+  0 <= psz -> elem_buildable al rep psz ->
+  elem_buildable al (fun m b ofs x => forall y, g x = Some y -> rep m b ofs y) psz.
 Proof.
   intros Hp HB x m b ofs HP HA. destruct (g x) as [y|] eqn:Hg.
   - destruct (HB y m b ofs HP HA) as (m' & H1 & H2). exists m'. split; [exact H1|].
@@ -250,12 +256,12 @@ Qed.
 (** Basic parts: a word array and single cells. *)
 Lemma words_buildable {X : Type} (W : X -> list int) :
   (forall x, length (W x) = 8%nat) ->
-  elem_buildable (fun m b ofs x => uint32_array_at m b ofs (W x)) 32.
+  elem_buildable 4 (fun m b ofs x => uint32_array_at m b ofs (W x)) 32.
 Proof.
   intros HW x m b ofs HP HA.
   destruct (built_uint32_array (W x) m b ofs) as (m' & H1 & H2).
   { rewrite HW. exact HP. }
-  { destruct HA as [k Hk]. exists (2 * k). lia. }
+  { exact HA. }
   exists m'. rewrite HW in H1. split; [exact H1|exact H2].
 Qed.
 
@@ -269,22 +275,21 @@ Proof.
 Qed.
 
 Lemma int32_buildable {X : Type} (v : X -> int) :
-  elem_buildable (fun m b ofs x => Mem.load Mint32 m b ofs = Some (Vint (v x))) 4.
+  elem_buildable 4 (fun m b ofs x => Mem.load Mint32 m b ofs = Some (Vint (v x))) 4.
 Proof.
   intros x m b ofs HP HA.
-  exact (built_store_int32 m b ofs (v x) ofs (ofs + 4) HP
-    ltac:(destruct HA as [k Hk]; exists (2 * k); lia) ltac:(lia) ltac:(lia)).
+  exact (built_store_int32 m b ofs (v x) ofs (ofs + 4) HP HA ltac:(lia) ltac:(lia)).
 Qed.
 
 Lemma int64_buildable {X : Type} (v : X -> int64) :
-  elem_buildable (fun m b ofs x => Mem.load Mint64 m b ofs = Some (Vlong (v x))) 8.
+  elem_buildable 8 (fun m b ofs x => Mem.load Mint64 m b ofs = Some (Vlong (v x))) 8.
 Proof.
   intros x m b ofs HP HA.
   exact (built_store_int64 m b ofs (v x) ofs (ofs + 8) HP HA ltac:(lia) ltac:(lia)).
 Qed.
 
 Lemma bool_buildable {X : Type} (v : X -> bool) :
-  elem_buildable (fun m b ofs x =>
+  elem_buildable 1 (fun m b ofs x =>
     Mem.load Mint8unsigned m b ofs = Some (Vint (if v x then Int.one else Int.zero))) 1.
 Proof.
   intros x m b ofs HP HA.
@@ -297,7 +302,7 @@ Proof. intros m1 m2 b ofs x Hr Hl. apply Hl; [lia|lia|exact Hr]. Qed.
 
 (** An array of elements of size [sz]. *)
 Lemma array_buildable {X : Type} (rep : mem -> block -> Z -> X -> Prop) (sz : Z) :
-  0 <= sz -> (8 | sz) -> elem_local rep sz -> elem_buildable rep sz ->
+  0 <= sz -> (8 | sz) -> elem_local rep sz -> elem_buildable 8 rep sz ->
   forall (xs : list X) m b base,
     Mem.range_perm m b base (base + sz * Z.of_nat (length xs)) Cur Writable -> (8 | base) ->
     exists m', built m m' b base (base + sz * Z.of_nat (length xs)) /\
