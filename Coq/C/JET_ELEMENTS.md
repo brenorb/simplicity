@@ -26,7 +26,7 @@ txo 136, sequence 248, issuance 256, hasAnnex 536, isPegin 537); `sigOutput`
 `elementsTapEnv` 176 (path 0, internalKey 104, scriptCMR 136, pathLen 168,
 leafVersion 169).
 
-## Proved jets (48), each against its specification in `Haskell/Simplicity/Elements/Jets.hs`
+## Proved jets (50), each against its specification in `Haskell/Simplicity/Elements/Jets.hs`
 
 | C function | primitive | theorem (module) |
 | --- | --- | --- |
@@ -78,6 +78,8 @@ leafVersion 169).
 | `simplicity_tx_lock_time` | program `txLockTime` | `elements_tx_lock_time_local_spec` (same) |
 | `simplicity_check_lock_height` | program `checkLockHeight` | `elements_check_lock_height_local_spec` (`jet_elements_check_lock`, ported; partial contract) |
 | `simplicity_check_lock_time` | program `checkLockTime` | `elements_check_lock_time_local_spec` (same) |
+| `simplicity_num_inputs` | `firstFail word32 (primitive InputScriptHash)` | `elements_num_inputs_local_spec` (`jet_elements_count_local`, ported) |
+| `simplicity_num_outputs` | `firstFail word32 (primitive OutputScriptHash)` | `elements_num_outputs_local_spec` (same) |
 
 Contracts are `application_jet_local_spec` / `application_jet_local_spec_sep`
 in `elements_ge` over `Elements.env`. Boundaries that apply to all of them:
@@ -122,6 +124,11 @@ the accepted `Bitcoin.sigTx` (`sigTxInBounds`). Executability:
 jets are not ported: Elements caches the distance in the transaction
 record and specifies it by different programs than Bitcoin.
 
+Count jets: ported by `port-bitcoin-count-to-elements.py` from the Bitcoin
+count modules, with the searched primitive changed to the script-hash
+primitives Elements uses; they need `sigTxOutBounds` as well.
+Executability: `jet_elements_executable_count.v`.
+
 Current-input jets (`if (numInputs <= ix) return false; ...; return true`):
 the specification is `primitive CurrentIndex >>> assert SPEC` with the
 literal `Programs.Bit.assert` (`jet_elements_current_spec.v`, ported from
@@ -135,7 +142,7 @@ tail statement (footprint then includes the re-read environment words).
 
 ## Receipts
 
-- All 48 theorems: `Print Assumptions` = the six inherited assumptions
+- All 50 theorems: `Print Assumptions` = the six inherited assumptions
   (`sig_forall_dec`, `sig_not_dec`, `classic`, `functional_extensionality_dep`,
   `external_functions_sem`, `inline_assembly_sem`); no `admit`/`Admitted`/
   `Axiom`/`Parameter` in `jet_elements_*.v` (2026-10-12).
@@ -159,7 +166,7 @@ tail statement (footprint then includes the re-read environment words).
    needs the local-variable allocation and release around the `amt` call),
    `output_null_datum` (script parsing).
 2. Program-specified jets: `current_issuance_token_amount` (blocked with
-   item 1), `num_inputs`, `num_outputs`, `total_fee`, `output_is_fee`,
+   item 1), `total_fee`, `output_is_fee`, the four distance jets,
    `lbtc_asset`, issuance (`issuance`, `issuance_asset`, `issuance_token`,
    `issuance_entropy`, `calculate_*`), time locks, hash and sig-hash jets. These need the
    Simplicity programs of `Haskell/Core/Simplicity/Programs/Elements*.hs`
