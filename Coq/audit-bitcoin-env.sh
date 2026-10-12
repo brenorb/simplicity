@@ -22,7 +22,10 @@ results=(jet_bitcoin_env_tomidstate.eval_sha256_toMidstate jet_bitcoin_env_hashb
   jet_bitcoin_env_tapenv_describe.tapenv_describes_exists
   jet_bitcoin_env_copyoutput.eval_copyOutput jet_bitcoin_env_copyinput.eval_copyInput
   jet_bitcoin_env_tx_inexec.mt_inblock_exec jet_bitcoin_env_tx_outblock.mt_outblock_exec
-  jet_bitcoin_env_tx_txhash.mt_txhash jet_bitcoin_env_tx.eval_mallocTransaction)
+  jet_bitcoin_env_tx_txhash.mt_txhash jet_bitcoin_env_tx.eval_mallocTransaction
+  jet_bitcoin_env_tx_link.tx_cached_hashes jet_bitcoin_env_tx_link.mallocTransaction_cached_hashes
+  jet_bitcoin_env_bytestring.hash_buffer_bytestring jet_bitcoin_env_tx_raw.raw_tx_describes
+  jet_bitcoin_env_tx_raw.mallocTransaction_raw_cached_hashes)
 {
   for r in "${results[@]}"; do echo "Require C.${r%%.*}."; done
   for r in "${results[@]}"; do
@@ -33,6 +36,6 @@ cd "$root/bitcoin-env/tree"
 ulimit -s 65520 2>/dev/null || true
 bash build-jets.sh --coqc -Q "$tmp" BitcoinEnvAudit "$tmp/audit.v" > "$tmp/audit.log" 2>&1
 python3 "$root/elements-sha/audit.py" "$tmp/audit.log" ${#results[@]}
-bash build-jets.sh --coqchk -silent -o C.jet_bitcoin_env_tapenv_link C.jet_bitcoin_env_tapenv_describe C.jet_bitcoin_env_hashbuffer C.jet_bitcoin_env_tx > "$tmp/coqchk.log" 2>&1
-echo "coqchk passed for C.jet_bitcoin_env_tapenv_link (which requires C.jet_bitcoin_env_tapenv), C.jet_bitcoin_env_tapenv_describe, C.jet_bitcoin_env_hashbuffer, C.jet_bitcoin_env_tx (which requires every mallocTransaction stage) and their dependencies"
+bash build-jets.sh --coqchk -silent -o C.jet_bitcoin_env_tapenv_link C.jet_bitcoin_env_tapenv_describe C.jet_bitcoin_env_hashbuffer C.jet_bitcoin_env_tx_raw > "$tmp/coqchk.log" 2>&1
+echo "coqchk passed for C.jet_bitcoin_env_tapenv_link (which requires C.jet_bitcoin_env_tapenv), C.jet_bitcoin_env_tapenv_describe, C.jet_bitcoin_env_hashbuffer, C.jet_bitcoin_env_tx_raw (which requires C.jet_bitcoin_env_tx with every mallocTransaction stage, the hash links and the byteStringHash equivalence) and their dependencies"
 echo "logs: $tmp"
