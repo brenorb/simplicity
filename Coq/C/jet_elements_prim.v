@@ -20,6 +20,9 @@
     - Haskell's [Vector]/lazy [ByteString] become lists; the length bounds
       stated in comments of the Haskell records ("strictly less than 2^32")
       are record fields here, as in [Bitcoin.txOutput].
+    - [sigTx] carries [sigTxInBounds], the input-count bound of the accepted
+      [Bitcoin.sigTx] (non-empty, below 2^32): the C interface passes counts
+      as 32-bit words and the Simplicity loops over inputs range over Word32.
     - [envIx] (a [Word32] in Haskell) is a [nat] with its 32-bit range and
       the bound that [primEnv] checks. *)
 From Coq Require Import ZArith String List.
@@ -117,6 +120,7 @@ Record sigTx : Set :=
  ; sigTxIn : list sigTxInput
  ; sigTxOut : list txOutput
  ; sigTxLock : int
+ ; sigTxInBounds : (0 < Zlength sigTxIn < Int.modulus)%Z
  }.
 
 Record tapEnv : Set :=

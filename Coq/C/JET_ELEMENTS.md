@@ -26,7 +26,7 @@ txo 136, sequence 248, issuance 256, hasAnnex 536, isPegin 537); `sigOutput`
 `elementsTapEnv` 176 (path 0, internalKey 104, scriptCMR 136, pathLen 168,
 leafVersion 169).
 
-## Proved jets (43), each against its specification in `Haskell/Simplicity/Elements/Jets.hs`
+## Proved jets (48), each against its specification in `Haskell/Simplicity/Elements/Jets.hs`
 
 | C function | primitive | theorem (module) |
 | --- | --- | --- |
@@ -73,6 +73,11 @@ leafVersion 169).
 | `simplicity_current_amount` | `CurrentIndex >>> assert Prog.inputAmount` | `elements_current_amount_local_spec` (`jet_elements_current_gen_jets`) |
 | `simplicity_current_pegin` | `CurrentIndex >>> assert InputPegin` | `elements_current_pegin_local_spec` (same) |
 | `simplicity_current_annex_hash` | `CurrentIndex >>> assert InputAnnexHash` | `elements_current_annex_hash_local_spec` (same) |
+| `simplicity_tx_is_final` | program `txIsFinal` (loop over input sequences) | `elements_tx_is_final_local_spec` (`jet_elements_is_final_local`, ported) |
+| `simplicity_tx_lock_height` | program `txLockHeight` | `elements_tx_lock_height_local_spec` (`jet_elements_lock_local`, ported) |
+| `simplicity_tx_lock_time` | program `txLockTime` | `elements_tx_lock_time_local_spec` (same) |
+| `simplicity_check_lock_height` | program `checkLockHeight` | `elements_check_lock_height_local_spec` (`jet_elements_check_lock`, ported; partial contract) |
+| `simplicity_check_lock_time` | program `checkLockTime` | `elements_check_lock_time_local_spec` (same) |
 
 Contracts are `application_jet_local_spec` / `application_jet_local_spec_sep`
 in `elements_ge` over `Elements.env`. Boundaries that apply to all of them:
@@ -104,6 +109,19 @@ Executability on fresh frames: `jet_elements_executable.v` (first 20),
 `jet_elements_executable_conf.v` (these nine) and
 `jet_elements_executable_current.v` (the fourteen current-input jets).
 
+Lock-time jets: `Programs/TimeLock.hs` defines `txIsFinal`, `txLockHeight`,
+`txLockTime`, `checkLockHeight` and `checkLockTime` with the same text for
+Bitcoin and Elements, and the C jets are the same; the proofs are the
+Bitcoin-unit modules ported by `port-bitcoin-timelock-to-elements.py`
+(layout: `isFinal` at 752, `lockTime` at 728). The relation states that
+the cached C `isFinal` byte is `forallb sequence_final inputs` and that
+`lockTime` is the logical lock time. The loop over inputs ranges over
+Word32, which is why the ported `sigTx` carries the input-count bound of
+the accepted `Bitcoin.sigTx` (`sigTxInBounds`). Executability:
+`jet_elements_executable_lock.v`. The four `broken_do_not_use_*` distance
+jets are not ported: Elements caches the distance in the transaction
+record and specifies it by different programs than Bitcoin.
+
 Current-input jets (`if (numInputs <= ix) return false; ...; return true`):
 the specification is `primitive CurrentIndex >>> assert SPEC` with the
 literal `Programs.Bit.assert` (`jet_elements_current_spec.v`, ported from
@@ -117,7 +135,7 @@ tail statement (footprint then includes the re-read environment words).
 
 ## Receipts
 
-- All 43 theorems: `Print Assumptions` = the six inherited assumptions
+- All 48 theorems: `Print Assumptions` = the six inherited assumptions
   (`sig_forall_dec`, `sig_not_dec`, `classic`, `functional_extensionality_dep`,
   `external_functions_sem`, `inline_assembly_sem`); no `admit`/`Admitted`/
   `Axiom`/`Parameter` in `jet_elements_*.v` (2026-10-12).
