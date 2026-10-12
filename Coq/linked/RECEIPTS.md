@@ -82,6 +82,16 @@ pass that includes `jet_frame_executable_linked`).
 linked startup contracts and the initialization theorem; `coqchk passed for
 jet_sha_startup_linked and its dependencies`.
 
+## Pass at commit `d7682fdc` (2026-10-12): environment jets for every environment
+
+`SHA_SUPPORT=<main>/proof-work/sha-support bash Coq/build-linked-startup.sh
+--check` (after `build-linked.sh --tree-only`): exit 0 in 18m. Assumption
+audit passed: 43 linked startup contracts and the initialization theorem —
+the 40 earlier ones and the three `X_startup_runs_everywhere_linked`
+(environment-reading hash jets for every logical environment, no libc,
+global-object or environment premise). `coqchk passed for
+jet_sha_startup_linked and its dependencies`.
+
 ## Standalone memcpy proofs (normal tree)
 
 - `C.jet_memcpy_impl`: compiled; `Print Assumptions eval_memcpy_impl` = the
