@@ -167,11 +167,18 @@ record in the memory model, so `el_frame_record_sep` is an explicit caller
 premise there (discharged for fresh and caller-owned blocks). Audit and
 `coqchk` receipt at `d4214a5e` in the README.
 
-## Actual environment builders — `bitcoin-env/README.md` (in progress)
+## Actual environment builders — `bitcoin-env/README.md`, `elements-env/README.md`
 
-`C/jets_bitcoin_env.v` = SHA unit + `bitcoin/env.c`. Proved: `sha256_toMidstate`
-and `hashBuffer`. Next: `simplicity_bitcoin_mallocTapEnv` establishing the
-cached taproot hashes that the accepted hash-getter relations assume.
+The accepted hash-getter relations assume that the cached fields of the C
+environment hold the canonical hashes. For the taproot half this is now
+derived from the caller: `C/jets_bitcoin_env.v` (SHA unit + `bitcoin/env.c`)
+and `eval_mallocTapEnv` / `mallocTapEnv_cached_hashes` show that the actual
+`simplicity_bitcoin_mallocTapEnv` returns a block holding
+`hash256_reg (tapleaf_hash_of e)`, `(words_hash_of 5 3 (tappath_of e))` and
+`(tap_env_hash_of e)` (offsets 8, 40, 72) for a logical environment `e`
+built from the raw data (`tapenv_describes_exists`). Kernel receipt in the
+README. Open: `mallocTransaction` (the transaction half), the `txEnv`
+builder, the Elements links.
 
 ## Manifest for integration
 
