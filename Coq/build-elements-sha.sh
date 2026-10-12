@@ -40,10 +40,27 @@ for f in "$root"/C/*.vo; do
     done
   fi
 done
+# start-up invariant modules: only when the archived prerequisites have been
+# extracted by build-startup.sh (startup/prereq is not part of this branch)
+startup=0
+if [[ -e startup/prereq/jet_clight_forward.v && -e startup/prereq/jet_sha_initial_globals.v ]]; then
+  startup=1
+  mkdir -p "$tree/startup/prereq" "$tree/startup/proofs" "$tree/startup/elements"
+  for name in jet_clight_forward jet_sha_initial_globals; do
+    ln -sf "$root/startup/prereq/$name.v" "$tree/startup/prereq/$name.v"
+  done
+  ln -sf "$root/startup/proofs/jet_sha_startup_globals.v" "$tree/startup/proofs/jet_sha_startup_globals.v"
+  for f in elements-sha/startup/*.v; do ln -sf "$root/$f" "$tree/startup/elements/$(basename "$f")"; done
+fi
 {
   cat _CoqProject.jets
   printf 'C/jets_elements.v\n'
   for f in elements-sha/C/*.v; do printf 'C/%s\n' "$(basename "$f")"; done
+  if [[ $startup == 1 ]]; then
+    printf -- '-Q startup/prereq JetStartupReview\n-Q startup/proofs JetStartup\n-Q startup/elements ElementsStartup\n'
+    printf 'startup/prereq/jet_clight_forward.v\nstartup/prereq/jet_sha_initial_globals.v\nstartup/proofs/jet_sha_startup_globals.v\n'
+    for f in elements-sha/startup/*.v; do printf 'startup/elements/%s\n' "$(basename "$f")"; done
+  fi
 } > "$tree/_CoqProject.jets.new"
 update "$tree/_CoqProject.jets.new" "$tree/_CoqProject.jets"; rm -f "$tree/_CoqProject.jets.new"
 cd "$tree"
@@ -69,5 +86,8 @@ if [[ $targets == 0 ]]; then
     set -- "$@" "C/${name%.v}.vo"
   done
   for f in "$root"/elements-sha/C/*.v; do name=$(basename "$f"); set -- "$@" "C/${name%.v}.vo"; done
+  if [[ $startup == 1 ]]; then
+    for f in "$root"/elements-sha/startup/*.v; do name=$(basename "$f"); set -- "$@" "startup/elements/${name%.v}.vo"; done
+  fi
 fi
 exec make -f JetMakefile "$@"
