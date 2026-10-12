@@ -1,7 +1,6 @@
 (** Generic proof of the Elements getters of the shape
       t = env->PTR; write32s(dst, t->HASH.s, 8);
-    parametric in the logical environment type, so it applies to both the base
-    [Elements.env] and the extended environment of [jet_elements_ext_prim]. *)
+    parametric in the logical environment type and in the field identifiers. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Maps Errors Events.
 Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Translate Simplicity.BitMachine.
