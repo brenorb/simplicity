@@ -83,6 +83,15 @@ Proof.
     destruct odd; [rewrite asset_cells_odd|rewrite asset_cells_even]; reflexivity.
 Qed.
 
+Lemma encode_conf_cells (a : assetWith unit) :
+  @encode (ConfTy Word256) (encode_asset a) = asset_cells (conf_prefix a) (asset_words a).
+Proof.
+  pose proof (encode_asset_cells a) as H.
+  change (@encode (Ty.Sum Ty.Unit (ConfTy Word256)) (inr (encode_asset a))) with
+    (Some true :: @encode (ConfTy Word256) (encode_asset a)) in H.
+  congruence.
+Qed.
+
 Definition asset_pcells (a : assetWith unit) : list Cell := asset_cells (conf_prefix a) (asset_words a).
 
 Lemma asset_rep_mono m1 m2 b ofs a : asset_rep m1 b ofs a ->
@@ -245,5 +254,128 @@ Proof.
     + unfold elements_output_asset_result, indexed_ptr_cells. unfold toZ32.
       destruct (nth_error (sigTxOut (Elements.envTx environment)) (Z.to_nat (toZ a))) as [txo|].
       * apply encode_asset_cells.
+      * vm_compute. reflexivity.
+Qed.
+
+(** * output_nonce *)
+
+Lemma elements_sigOutput_nonce : elements_field_at _sigOutput _nonce 144.
+Proof. vm_compute; reflexivity. Qed.
+
+Definition elements_output_nonce_spec {alg : Primitive.Algebra} :
+    alg Word32 (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (ConfTy Word256))) :=
+  Primitive.Combinators.prim Elements.OutputNonce.
+
+(** A present nonce as a confidential value: [(parity, x)] or an explicit hash. *)
+Definition nonce_conf (x : nonce) : assetWith unit :=
+  match x with
+  | inl (odd, w) => Confidential (Point odd w) tt
+  | inr h => Explicit h
+  end.
+
+Definition nonce_prefix (n : option nonce) : int :=
+  match n with Some x => conf_prefix (nonce_conf x) | None => Int.repr 0 end.
+
+Definition nonce_words (n : option nonce) : list int :=
+  match n with Some x => asset_words (nonce_conf x) | None => repeat Int.zero 8 end.
+
+Lemma nonce_words_length n : length (nonce_words n) = 8%nat.
+Proof. destruct n; [apply asset_words_length|reflexivity]. Qed.
+
+(** The data words are only required when a nonce is present. *)
+Definition nonce_rep (m : mem) (b : block) (ofs : Z) (n : option nonce) : Prop :=
+  (n <> None -> uint32_array_at m b ofs (nonce_words n)) /\
+  Mem.load Mint32 m b (ofs + 32) = Some (Vint (nonce_prefix n)).
+
+Definition encode_nonce (n : option nonce) : Ty.tySem (Ty.Sum Ty.Unit (ConfTy Word256)) :=
+  match n with
+  | Some x => inr (encode_asset (nonce_conf x))
+  | None => inl tt
+  end.
+
+Definition elements_output_nonce_result (environment : Elements.env) (a : Ty.tySem Word32) :
+    Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (ConfTy Word256))) :=
+  match nth_error (sigTxOut (Elements.envTx environment)) (Z.to_nat (toZ a)) with
+  | Some txo => inr (encode_nonce (txoNonce txo))
+  | None => inl tt
+  end.
+
+Lemma elements_output_nonce_sem environment a :
+  @elements_output_nonce_spec (PrimitivePrimSem option_Monad_Zero) a environment =
+    Some (elements_output_nonce_result environment a).
+Proof.
+  assert (H : @elements_output_nonce_spec (PrimitivePrimSem option_Monad_Zero) a environment =
+    Elements.sem Elements.OutputNonce a environment) by reflexivity.
+  rewrite H. unfold Elements.sem, elements_output_nonce_result. cbv zeta.
+  destruct (nth_error (sigTxOut (Elements.envTx environment)) (Z.to_nat (toZ a))) as [txo|]; [|reflexivity].
+  unfold Datatypes.option_map. destruct (txoNonce txo) as [[[odd w]|h]|]; reflexivity.
+Qed.
+
+Lemma conf_prefix_nonzero {A : Set} (c : confidential unit A) : Int.eq (Int.repr 0) (conf_prefix c) = false.
+Proof. destruct c as [x|[[] x] p]; reflexivity. Qed.
+
+Definition nonce_pcells (n : option nonce) : list Cell := nonce_cells (nonce_prefix n) (nonce_words n).
+
+Lemma encode_nonce_cells (n : option nonce) :
+  @encode (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (ConfTy Word256))) (inr (encode_nonce n)) =
+    Some true :: nonce_pcells n.
+Proof.
+  unfold nonce_pcells, nonce_cells, encode_nonce. destruct n as [x|].
+  - unfold nonce_prefix, nonce_words. rewrite conf_prefix_nonzero.
+    change (@encode (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (ConfTy Word256))) (inr (inr (encode_asset (nonce_conf x)))))
+      with (Some true :: Some true :: @encode (ConfTy Word256) (encode_asset (nonce_conf x))).
+    rewrite encode_conf_cells. reflexivity.
+  - reflexivity.
+Qed.
+
+Definition elements_output_nonce_pexpr : expr :=
+  Eaddrof (Efield (Ederef (Ebinop Oadd (Etempvar _t'4 (tptr (Tstruct _sigOutput noattr))) (Etempvar _i tulong)
+    (tptr (Tstruct _sigOutput noattr))) (Tstruct _sigOutput noattr)) _nonce
+    (Tstruct _confidential noattr)) (tptr (Tstruct _confidential noattr)).
+
+Lemma elements_output_nonce_shape :
+  elements_wrapper_shape f_simplicity_output_nonce
+    (elements_indexed_rest _t'5 _t'6 _numOutputs
+      (elements_indexed_then_ptr _t'3 _t'4 _output _sigOutput elements_output_nonce_pexpr
+        _nonce (Tstruct _confidential noattr)) (elements_skip_stmt 259)).
+Proof. repeat split; try reflexivity. apply elements_ptr_disjoint. Qed.
+
+Theorem elements_output_nonce_local_spec :
+  application_jet_local_spec_sep f_simplicity_output_nonce elements_ge Elements.env Word32
+    (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (ConfTy Word256)))
+    (indexed_ptr_rep (fun e => sigTxOut (Elements.envTx e))
+      (fun m b ofs txo => nonce_rep m b ofs (txoNonce txo)) 248 144 8 704)
+    (fun a environment => @elements_output_nonce_spec (PrimitivePrimSem option_Monad_Zero) a environment).
+Proof.
+  refine (elements_indexed_ptr_local (fun e => sigTxOut (Elements.envTx e)) 259
+    (fun txo => nonce_pcells (txoNonce txo))
+    (fun m b ofs txo => nonce_rep m b ofs (txoNonce txo)) (Ty.Sum Ty.Unit (ConfTy Word256))
+    _t'5 _t'6 _t'3 _t'4 _numOutputs _output _sigOutput _nonce (Tstruct _confidential noattr)
+    704 8 248 144 36 elements_output_nonce_pexpr f_nonce f_simplicity_output_nonce
+    ltac:(repeat split; discriminate) ltac:(repeat split; discriminate)
+    ltac:(discriminate) ltac:(discriminate) ltac:(discriminate) ltac:(discriminate)
+    ltac:(split; lia) _ ltac:(reflexivity) ltac:(intros bl; reflexivity)
+    elements_nonce_symbol elements_nonce_funct ltac:(reflexivity)
+    elements_elementsTransaction_numOutputs elements_elementsTransaction_output
+    ltac:(split; lia) ltac:(split; lia) ltac:(split; lia) ltac:(split; lia)
+    _ _ _ elements_output_nonce_shape ltac:(reflexivity) _ _).
+  - intros x. apply nonce_cells_length_Z. apply nonce_words_length.
+  - intros m1 m2 b ofs x [Hr Hp] Hl. split.
+    + intros Hn. eapply uint32_array_at_mono; [apply nonce_words_length|exact (Hr Hn)|].
+      intros chunk o v H1 H2. apply Hl; [exact H1|lia].
+    + apply (Hl Mint32 (ofs + 32) _); [lia|change (size_chunk Mint32) with 4; lia|exact Hp].
+  - intros bd dbase bw outedge m' bin ofs x cur [Hr Hp] H0 HM HSep HF.
+    refine (eval_elements_nonce_layout m' bin ofs bd dbase bw outedge cur (nonce_words (txoNonce x))
+      (nonce_prefix (txoNonce x)) (nonce_words_length _) H0 HM HSep _ Hp HF).
+    intros Hz. apply Hr. intros Hnone. rewrite Hnone in Hz. discriminate Hz.
+  - intros e le' m' bin inbase r H4 HI Hi0 HM. unfold elements_output_nonce_pexpr.
+    exact (eval_elements_elem_field_addr e le' m' _t'4 _i _sigOutput 248 _nonce 144 _confidential bin inbase r
+      elements_sizeof_sigOutput elements_sigOutput_nonce H4 HI Hi0 ltac:(split; lia) ltac:(lia)
+      ltac:(clear - HM; lia) ltac:(clear - HM; lia)).
+  - intros a environment. exists (elements_output_nonce_result environment a). split.
+    + apply elements_output_nonce_sem.
+    + unfold elements_output_nonce_result, indexed_ptr_cells. unfold toZ32.
+      destruct (nth_error (sigTxOut (Elements.envTx environment)) (Z.to_nat (toZ a))) as [txo|].
+      * apply encode_nonce_cells.
       * vm_compute. reflexivity.
 Qed.
