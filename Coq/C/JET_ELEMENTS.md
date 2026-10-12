@@ -142,16 +142,23 @@ tail statement (footprint then includes the re-read environment words).
 
 ## No-premise statements
 
-`jet_elements_runs_everywhere.v`: for 30 of the jets (all those over the
-indexed, current-pointer and current-generic relations),
-`runs_everywhere f A B spec` — for every input and every logical
-environment there are a memory, frames and an environment pointer on which
-the C jet returns true and leaves the encoding of the canonical result.
-The environment relation is discharged by `jet_elements_env_constructible.v`
-and `jet_elements_elem_buildable.v`. Not yet covered: the 20 jets whose
-relations have their own shape (version, lock time, hash getters, tappath,
-input_sequence, input_annex_hash, input_pegin, lock and count jets,
-current_sequence, current_index).
+Every proved jet has a statement without memory, frame or environment
+premise: for every input and every logical environment there are a memory,
+frames and an environment pointer on which the C jet returns the canonical
+verdict and leaves the encoding of the canonical result.
+
+- `jet_elements_runs_everywhere.v`: 30 jets over the indexed,
+  current-pointer and current-generic relations (`runs_everywhere`).
+- `jet_elements_runs_everywhere_rest.v`: the other 20 (record-only
+  relations, taproot record, transaction id, genesis hash, scalar input
+  relations, annex/pegin arrays); `partial_runs_everywhere` for the two
+  lock checks; `elements_tappath_runs_for_bounded_paths` keeps the bound
+  its relation states (at most 128 path elements).
+
+The environment relations are discharged by `jet_elements_env_constructible.v`
+and `jet_elements_elem_buildable.v` over the generic `jet_env_constructible*.v`.
+This shows the relations are satisfiable for every environment; it does not
+verify `C/elements/env.c`, which builds the real environment.
 
 ## Receipts
 

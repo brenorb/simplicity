@@ -100,8 +100,13 @@ C.jet_frame_constructible_bm` (after building the registered core modules).
      contracts, a tap path of at most 128 elements. Six inherited
      assumptions each; `coqchk -silent -o` on the four modules with whole
      dependency chains at `72bec58e`: exit 0 (90 s);
-   - open: the 20 Elements jets whose relations have their own shape
-     (scalar getters, hash getters, lock/count relations, pegin/annex).
+   - Elements: all 50 proved jets (`C/jet_elements_runs_everywhere{,_rest}.v`);
+   - SHA unit: the three environment-reading hash jets, on top of any memory
+     with the startup invariant (`startup/proofs/jet_sha_startup_env_runs.v`,
+     `sha_env_runs_everywhere`; linked variants without `memcpy_model` in
+     `linked/startup/jet_sha_startup_linked.v`). Constructed memories are
+     extensions (`C/jet_env_constructible_ext.v`), which is what carries
+     the invariant through the environment construction.
    What these results do not say: that `C/bitcoin/env.c` builds such a
    memory from a serialized transaction (it is in no proof translation
    unit); they show the relations are satisfiable for every logical
