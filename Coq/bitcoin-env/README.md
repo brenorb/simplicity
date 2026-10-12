@@ -120,3 +120,9 @@ bash Coq/audit-bitcoin-env.sh
 
 Never `vm_compute` a composite lookup of a late structure (the records carry
 large proof terms); use `envu_field_at`.
+
+## Receipts
+
+| Commit | Command | Result |
+|---|---|---|
+| `d4e58f00` | `bash Coq/audit-bitcoin-env.sh` | generated module current; no admissions; assumption audit passed: 7 reports within the six inherited assumptions (`eval_sha256_toMidstate`, `eval_hashBuffer`, `eval_malloc`, `ctxo_init`, `ctxo_hash`, `ctxo_finalize`, `eval_mallocTapEnv`); `coqchk` passed for `C.jet_bitcoin_env_tapenv`, `C.jet_bitcoin_env_hashbuffer` and their dependencies; exit 0; 13 min |
