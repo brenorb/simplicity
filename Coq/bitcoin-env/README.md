@@ -104,9 +104,31 @@ half of the environment.
    logical environment satisfying `tapenv_describes`, built from the bytes
    the builder read. The hypothesis of `mallocTapEnv_cached_hashes` is thus a
    definition of the logical environment, not an assumption.
-2. `simplicity_bitcoin_mallocTransaction` (same toolkit: `eval_hashBuffer`,
-   `ctxo`, `eval_malloc`).
-3. The same for `elements/env.c`.
+2. `simplicity_bitcoin_mallocTransaction` (3200 lines of Clight). Toolkit in
+   place: `eval_malloc`, `eval_sha256_toMidstate`, `eval_hashBuffer`,
+   `eval_copyOutput` (`C/jet_bitcoin_env_copyoutput.v`), `ctxo` with
+   `ctxo_init/hash/uchar/u32be/u64be/finalize`
+   (`C/jet_bitcoin_env_ctxo.v`, `…_ctxo_more.v`), `ctxo_other` to carry the
+   other live contexts across an operation, and the continuation-style
+   method (`drop_seq`, `te_restK`) used for `mallocTapEnv`. Stages:
+   - `copyInput`: compound literal for `sigInput` (160 bytes: `annexHash` 0,
+     `scriptSigHash` 32, `prevOutpoint` 64 (`txid` 64, `ix` 96), `txo` 104
+     (`value` 104, `scriptPubKey` 112), `sequence` 144, `hasAnnex` 152; check
+     with `envu_field_offset`), struct copy, optional `hashBuffer` of the
+     annex, `toMidstate` of the previous txid, `copyOutput`, `hashBuffer` of
+     the scriptSig;
+   - prelude: sizes with two paddings and four overflow checks, `malloc`;
+   - the transaction compound literal and copy, `toMidstate` of the txid;
+   - eight `sha256_init`, the input loop (invariant: eight `ctxo` states on
+     disjoint 32-byte fields of the allocated block, `totalInputValue`,
+     `isFinal`), six `finalize`, the two derived hashes;
+   - three `sha256_init`, the output loop, two `finalize`, `outputsHash`;
+   - `txHash`; return; then the links to `input_outpoints_hash_of`,
+     `words_hash_of …`, `inputs_hash_of`, `outputs_hash_of`, `tx_hash_of`
+     of the accepted modules (`sha_stream_absorb_i` is the bridge).
+3. The same for `elements/env.c` (`Coq/elements-env`: the C-side
+   `mallocTapEnv` port is generated; links need Elements cached-hash
+   relations).
 
 ## Build
 
