@@ -152,3 +152,4 @@ large proof terms); use `envu_field_at`.
 | Commit | Command | Result |
 |---|---|---|
 | `d4e58f00` | `bash Coq/audit-bitcoin-env.sh` | generated module current; no admissions; assumption audit passed: 7 reports within the six inherited assumptions (`eval_sha256_toMidstate`, `eval_hashBuffer`, `eval_malloc`, `ctxo_init`, `ctxo_hash`, `ctxo_finalize`, `eval_mallocTapEnv`); `coqchk` passed for `C.jet_bitcoin_env_tapenv`, `C.jet_bitcoin_env_hashbuffer` and their dependencies; exit 0; 13 min |
+| `4b7fa7b8` | `bash Coq/audit-bitcoin-env.sh` | assumption audit passed: 12 reports within the six inherited assumptions (the seven above, `tapleaf_hash_link`, `tappath_hash_link`, `tap_env_hash_link`, `mallocTapEnv_cached_hashes`, `tapenv_describes_exists`); `coqchk` passed for `C.jet_bitcoin_env_tapenv_link` (which requires `C.jet_bitcoin_env_tapenv`), `C.jet_bitcoin_env_tapenv_describe`, `C.jet_bitcoin_env_hashbuffer` and their dependencies; exit 0; 16 min |
