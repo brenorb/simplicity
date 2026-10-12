@@ -156,7 +156,12 @@ tail statement (footprint then includes the re-read environment words).
   -silent -o C.jet_elements_executable C.jet_elements_executable_conf
   C.jet_elements_executable_current` with dependency chains at `fd4cb95e`
   (all 43 jet theorems and their executability instances): exit 0 (82 s).
-- `Print Assumptions` rerun in full for the 23 theorems added on 2026-10-12:
+- After the `sigTxInBounds`/`sigTxOutBounds` additions every Elements module
+  was rebuilt again; `coqchk -silent -o` on the five executability modules
+  (`jet_elements_executable{,_conf,_current,_lock,_count}`) with dependency
+  chains at `6d556838` (all 50 jet theorems and their executability
+  instances): exit 0 (84 s). This pass supersedes the earlier ones.
+- `Print Assumptions` rerun in full for the 30 theorems added on 2026-10-12:
   the same six assumptions each.
 
 ## Next (in rough order of reuse)
