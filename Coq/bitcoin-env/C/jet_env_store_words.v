@@ -91,3 +91,20 @@ Proof.
     cbn [length] in H2. replace (base + 4 + 4 * Z.of_nat (length ws1)) with (base + 4 * Z.of_nat (S (length ws1))) by lia.
     exact H2.
 Qed.
+
+Lemma store_words_app_inv ws1 : forall ws2 m b base m2,
+  store_words m b base (ws1 ++ ws2) = Some m2 ->
+  exists m1, store_words m b base ws1 = Some m1 /\
+    store_words m1 b (base + 4 * Z.of_nat (length ws1)) ws2 = Some m2.
+Proof.
+  induction ws1 as [|w ws1 IH]; intros ws2 m b base m2 H.
+  - exists m. split; [reflexivity|]. cbn [length]. rewrite Z.mul_0_r, Z.add_0_r. exact H.
+  - cbn [app store_words] in H |- *.
+    destruct (Mem.store Mint32 m b base (Vint w)) as [m0|] eqn:HS; [|discriminate].
+    destruct (IH _ _ _ _ _ H) as (m1 & H1 & H2). exists m1. split; [exact H1|].
+    cbn [length]. replace (base + 4 * Z.of_nat (S (length ws1))) with (base + 4 + 4 * Z.of_nat (length ws1)) by lia.
+    exact H2.
+Qed.
+
+Lemma repeat_snoc {A} (x : A) n : repeat x (S n) = repeat x n ++ [x].
+Proof. induction n; [reflexivity|]. cbn [repeat app] in *. f_equal. exact IHn. Qed.

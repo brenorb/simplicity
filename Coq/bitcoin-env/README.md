@@ -32,6 +32,22 @@ unit's global environment.
 | `C/jet_bitcoin_env_tomidstate.v` | `eval_sha256_toMidstate`: stores the eight big-endian words of 32 bytes |
 | `C/jet_bitcoin_env_hashbuffer.v` | `eval_hashBuffer`: writes the SHA-256 state of a raw buffer to any writable midstate |
 
+| `C/jet_bitcoin_env_malloc.v` | `eval_malloc`: the `malloc` call (CompCert's defined `EF_malloc` semantics) |
+| `C/jet_bitcoin_env_ctxo.v` | `ctxo`: SHA context whose output midstate is any writable location; `ctxo_init`, `ctxo_hash`, `ctxo_finalize` |
+| `C/jet_bitcoin_env_tapenv_prelude.v` | `te_prelude`: statements 1-10 of `mallocTapEnv` (guards, overflow checks, `malloc` of `176 + 32 * pathLen`) |
+| `C/jet_bitcoin_env_tapenv_key.v` | `te_key`: statements 11-12 (internal key into the local, `path` pointer) |
+| `C/jet_bitcoin_env_tapenv_fill.v` | `te_fill`: statement 13 (compound literal and struct copy to the allocated block) |
+
+The `mallocTapEnv` lemmas are continuation-style: `te_restK` names the body
+after the statements already executed (`te_body`, `te_rest1`, `te_rest2`,
+`te_rest3`), and each lemma turns an execution of the remainder into an
+execution of the larger statement. Remaining: `te_rest3 = P4; P5; P6; P7; P8`
+with P4 `sha256_toMidstate(env->scriptCMR.s, rawEnv->scriptCMR)`, P5 the
+`tappathHash` loop, P6 `make_tapleaf` and its struct copy, P7 `tapEnvHash`,
+P8 `return env`; then function entry/exit (seven locals) and the link from
+the stored words to `tapleaf_hash_of`, `words_hash_of 5 3 (tappath_of e)`,
+`tap_env_hash_of`.
+
 ## Plan for `simplicity_bitcoin_mallocTapEnv`
 
 Structure of the generated body (offsets: `bitcoinTapEnv` is 176 bytes,
