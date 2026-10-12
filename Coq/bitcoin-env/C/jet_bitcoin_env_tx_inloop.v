@@ -87,8 +87,8 @@ Hypothesis Hori : 0 <= ori /\ ori + 64 * ni <= Ptrofs.max_unsigned.
 Hypothesis HNA : ~ In bA blocks.
 Hypothesis Hold : forall b, oldb b -> Mem.valid_block m0 b /\ b <> bA /\ ~ In b blocks.
 Hypothesis HoRaw : oldb braw.
-Hypothesis HoRi : oldb bri.
-Hypothesis HRi : Mem.load Mptr m0 braw (oraw + 8) = Some (Vptr bri (Ptrofs.repr ori)).
+Hypothesis HoRi0 : 0 < ni -> oldb bri.
+Hypothesis HRi0 : 0 < ni -> Mem.load Mptr m0 braw (oraw + 8) = Some (Vptr bri (Ptrofs.repr ori)).
 Hypothesis HRaw : forall j, (j < Nn)%nat -> raw_in_at oldb m0 bri (ori + 64 * Z.of_nat j) (data j).
 Hypothesis PA0 : Mem.range_perm m0 bA 0 (488 + 160 * ni) Cur Writable.
 Hypothesis HNi0 : Mem.load Mint64 m0 bA 448 = Some (Vlong (Int64.repr ni)).
@@ -156,6 +156,8 @@ Lemma in_step k le m : (k < Nn)%nat -> in_inv k le m ->
 Proof.
   intros Hk (Hi & Htx & Hin & Hraw & Hout & HLS & HT & HFi & HR & HFo & HFa & HPm & HV).
   pose proof in_NnN as HNn.
+  assert (Hpos : 0 < ni) by (clear - Hk HNn; lia).
+  pose proof (HoRi0 Hpos) as HoRi. pose proof (HRi0 Hpos) as HRi.
   set (kz := Z.of_nat k) in *.
   assert (Hkz : 0 <= kz < ni) by (unfold kz; flia).
   set (X := 488 + 160 * kz).

@@ -113,9 +113,9 @@ Proof. intros H. eapply ctxs_sep_shape; [|exact HSepB]. rewrite H. reflexivity. 
 
 Hypothesis Hold : forall b, oldb b -> Mem.valid_block m0 b /\ b <> bA /\ b <> bCO /\ b <> bCS /\ b <> bCV.
 Hypothesis HoRaw : oldb braw.
-Hypothesis HoRo : oldb bro.
+Hypothesis HoRo0 : 0 < no -> oldb bro.
 Hypothesis HoSp : forall j, (j < Nn)%nat -> oldb (bsp j).
-Hypothesis HRo : Mem.load Mptr m0 braw (oraw + 16) = Some (Vptr bro (Ptrofs.repr oro)).
+Hypothesis HRo0 : 0 < no -> Mem.load Mptr m0 braw (oraw + 16) = Some (Vptr bro (Ptrofs.repr oro)).
 Hypothesis HVals : forall j, (j < Nn)%nat -> Mem.load Mint64 m0 bro (oro + 24 * Z.of_nat j) = Some (Vlong (val j)).
 Hypothesis HBufs : forall j, (j < Nn)%nat ->
   raw_buffer_at m0 bro (oro + 24 * Z.of_nat j + 8) (bsp j) (osp j) (spb j).
@@ -208,6 +208,8 @@ Lemma out_step k le m : (k < Nn)%nat -> out_inv k le m ->
 Proof.
   intros Hk (Hi & Htx & Hout & Hraw & (oS & oV & HC) & HT & HO & HFo & HFa & HPm & HV).
   pose proof out_NnN as HNn. pose proof out_OB as HOB.
+  assert (Hpos : 0 < no) by (clear - Hk HNn; lia).
+  pose proof (HoRo0 Hpos) as HoRo. pose proof (HRo0 Hpos) as HRo.
   set (kz := Z.of_nat k) in *.
   assert (Hkz : 0 <= kz < no) by (unfold kz; flia).
   set (X := OB + 40 * kz).

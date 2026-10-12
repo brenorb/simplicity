@@ -68,8 +68,8 @@ Theorem mt_outblock_exec le m :
   sha_dispatch_ok m -> Mem.load Mint64 m GM 0 = Some (Vlong sha_max_counter) ->
   (forall b, oldb b -> Mem.valid_block m b /\ b <> bA /\
      b <> bRV /\ b <> bCV /\ b <> bRS /\ b <> bCS /\ b <> bRO /\ b <> bCO) ->
-  oldb braw -> oldb bro -> (forall j, (j < Nn)%nat -> oldb (bsp j)) ->
-  Mem.load Mptr m braw (oraw + 16) = Some (Vptr bro (Ptrofs.repr oro)) ->
+  oldb braw -> (0 < no -> oldb bro) -> (forall j, (j < Nn)%nat -> oldb (bsp j)) ->
+  (0 < no -> Mem.load Mptr m braw (oraw + 16) = Some (Vptr bro (Ptrofs.repr oro))) ->
   (forall j, (j < Nn)%nat -> Mem.load Mint64 m bro (oro + 24 * Z.of_nat j) = Some (Vlong (val j))) ->
   (forall j, (j < Nn)%nat -> raw_buffer_at m bro (oro + 24 * Z.of_nat j + 8) (bsp j) (osp j) (spb j)) ->
   Mem.range_perm m bA 0 (OB + 40 * no) Cur Writable ->
@@ -132,10 +132,10 @@ Proof.
   destruct (out_loop Hmodel e bA bCO bCS bCV braw bro oraw oro ni no val bsp osp spb oldb m1
     HeCS HeCV HeH HeU HeCp Hni Hno Horaw Horo HSepB Hold1 HoRaw HoRo HoSp) with (d := Nn) (k := 0%nat) (le := le0) (m := m1)
     as (le2 & m2 & HI2 & HLoop).
-  { rewrite Ko1 by exact HoRaw. exact HRo. }
-  { intros j Hj. rewrite Ko1 by exact HoRo. apply HVals, Hj. }
+  { intros Hp. rewrite Ko1 by exact HoRaw. exact (HRo Hp). }
+  { intros j Hj. rewrite Ko1 by (apply HoRo; unfold Nn in Hj; clear - Hj; lia). apply HVals, Hj. }
   { intros j Hj. destruct (HBufs j Hj) as (len & B1 & B2 & B3 & B4 & B5 & B6). exists len.
-    rewrite !Ko1 by exact HoRo. repeat (split; [assumption|]). split; [apply HV1, B5|].
+    rewrite !Ko1 by (apply HoRo; unfold Nn in Hj; clear - Hj; lia). repeat (split; [assumption|]). split; [apply HV1, B5|].
     intros i Hi. rewrite Ko1 by (apply HoSp; exact Hj). apply B6, Hi. }
   { intros o Ho. apply HP1, PA, Ho. }
   { apply HV1, VA. }

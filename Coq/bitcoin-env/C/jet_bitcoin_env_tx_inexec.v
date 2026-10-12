@@ -144,8 +144,8 @@ Theorem mt_inblock_exec le m :
   (forall it, In it items -> item_perms bA m it) ->
   sha_dispatch_ok m -> Mem.load Mint64 m GM 0 = Some (Vlong sha_max_counter) ->
   (forall b, oldb b -> Mem.valid_block m b /\ b <> bA /\ ~ In b allb) ->
-  oldb braw -> oldb bri ->
-  Mem.load Mptr m braw (oraw + 8) = Some (Vptr bri (Ptrofs.repr ori)) ->
+  oldb braw -> (0 < ni -> oldb bri) ->
+  (0 < ni -> Mem.load Mptr m braw (oraw + 8) = Some (Vptr bri (Ptrofs.repr ori))) ->
   (forall j, (j < Nn)%nat -> raw_in_at oldb m bri (ori + 64 * Z.of_nat j) (data j)) ->
   Mem.range_perm m bA 0 (488 + 160 * ni) Cur Writable ->
   Mem.load Mint64 m bA 448 = Some (Vlong (Int64.repr ni)) ->
@@ -228,8 +228,8 @@ Proof.
   destruct (in_loop Hmodel e bA bI bG bN bQ bU bS bV bP braw bri oraw ori ni data oldb m1
     HeCP HeCV HeCS HeCQ HeCN HeCG HeH HeU4 HeU8 HeUc HeCp Hni Horaw Hori HNA Hold1 HoRaw HoRi)
     with (dd := Nn) (k := 0%nat) (le := le0) (m := m1) as (le2 & m2 & HI2 & HLoop).
-  { rewrite Ko1 by exact HoRaw. exact HRi. }
-  { intros j Hj. eapply raw_in_frame; [exact (HRaw j Hj)|exact HoRi|exact Ko1|exact HV1]. }
+  { intros Hp. rewrite Ko1 by exact HoRaw. exact (HRi Hp). }
+  { intros j Hj. eapply raw_in_frame; [exact (HRaw j Hj)|apply HoRi; unfold Nn in Hj; clear - Hj; lia|exact Ko1|exact HV1]. }
   { intros o Ho. apply HP1, PA, Ho. }
   { rewrite Ka1 by (right; clear; lia). exact HNi. }
   { reflexivity. }
