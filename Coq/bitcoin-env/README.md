@@ -52,6 +52,9 @@ unit's global environment.
 | `C/jet_bitcoin_env_copyoutput.v` | `eval_copyOutput`: script hash and value of a `sigOutput` |
 | `C/jet_bitcoin_env_copyinput_fill.v` | `ci_fill_exec`: the `sigInput` compound literal and its copy; `zsr_exec` (zero runs through any midstate expression) |
 | `C/jet_bitcoin_env_copyinput.v` | **`eval_copyInput`**: annex hash (or zeros and `hasAnnex = 0` for a null annex), scriptSig hash, previous txid, output index, spent output, sequence |
+| `C/jet_bitcoin_env_tx_arith.v` | size arithmetic: no overflow check fires, both paddings are zero |
+| `C/jet_bitcoin_env_tx_prelude.v` | `mt_prelude`: statements 1-21 of `mallocTransaction` (guards, sizes, `malloc`, `tx`/`input`/`output`) |
+| `C/jet_bitcoin_env_tx_fill.v` | `mt_fill_exec`: the transaction compound literal and its copy (`mt_filled`); `zsl_exec` |
 
 ### `eval_mallocTapEnv`
 
@@ -120,7 +123,12 @@ half of the environment.
    (`C/jet_bitcoin_env_ctxo.v`, `…_ctxo_more.v`), `ctxo_other` to carry the
    other live contexts across an operation, and the continuation-style
    method (`drop_seq`, `te_restK`) used for `mallocTapEnv`. Stages:
-   - (done) `copyOutput`, `copyInput`;
+   - (done) `copyOutput`, `copyInput`, the prelude (`mt_rest1`), the compound
+     literal and copy (`mt_rest2` is the body from `sha256_toMidstate(tx->txid.s, …)`);
+   - next: a multi-context invariant (a list of `ctxo` states with pairwise
+     distinct context blocks and disjoint 32-byte output fields of the
+     allocated block; an operation on one context preserves the others by
+     `ctxo_other` and the operation's frame condition) for the two loops;
    - prelude: sizes with two paddings and four overflow checks, `malloc`.
      Layout (computed with `envu_field_offset`): `bitcoinTransaction` —
      `input` 0, `output` 8, then thirteen midstates 32 bytes apart from
