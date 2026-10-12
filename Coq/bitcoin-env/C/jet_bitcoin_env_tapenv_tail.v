@@ -1,0 +1,315 @@
+(** [simplicity_bitcoin_mallocTapEnv], last part:
+      env->tapLeafHash = simplicity_bitcoin_make_tapleaf(env->leafVersion, &env->scriptCMR);
+      { sha256_context ctx = sha256_init(env->tapEnvHash.s);
+        sha256_hash(&ctx, &env->tapLeafHash); sha256_hash(&ctx, &env->tappathHash);
+        sha256_hash(&ctx, &env->internalKey); sha256_finalize(&ctx); }
+      return env;
+    Conditional on [memcpy_model]. *)
+From Coq Require Import ZArith List Lia PeanoNat.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_uint32_array_init C.jet_sha256_iv_init C.jet_struct_copy_loads.
+Require C.jets.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_block_local C.jet_bitmachine_rep.
+Require Import C.jet_sha_add_n_init C.jet_sha_be32_exec C.jet_sha_ctx8_model.
+Require Import C.jet_sha_be32_write C.jet_sha_uchars_prep C.jet_sha_uchars_exec C.jet_sha_add_n_calls.
+Require Import C.jet_sha_hash_exec C.jet_sha_finalize_exec C.jet_sha_tapdata_prep C.jet_sha_ctx_abs.
+Require Import C.jet_bitcoin_make_tapleaf_exec.
+Require Import C.jet_env_store_words C.jet_bitcoin_env_field_eval C.jet_bitcoin_env_tomidstate C.jet_bitcoin_env_ctxo.
+Require Import C.jet_bitcoin_env_tapenv_prelude C.jet_bitcoin_env_tapenv_key C.jet_bitcoin_env_tapenv_fill.
+Require Import C.jet_bitcoin_env_tapenv_cmr C.jet_bitcoin_env_tapenv_loop C.jet_bitcoin_env_tapenv_path.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 300.
+
+Lemma sha_make_tapleaf_symbol :
+  Genv.find_symbol (Clight.genv_genv sha_ge) _simplicity_bitcoin_make_tapleaf =
+    Some (sha_symbol_block _simplicity_bitcoin_make_tapleaf).
+Proof. vm_compute; reflexivity. Qed.
+Lemma sha_make_tapleaf_funct :
+  Genv.find_funct (Clight.genv_genv sha_ge)
+    (Vptr (sha_symbol_block _simplicity_bitcoin_make_tapleaf) Ptrofs.zero) =
+    Some (Internal f_simplicity_bitcoin_make_tapleaf).
+Proof. vm_compute; reflexivity. Qed.
+
+Local Opaque sha_ge.
+
+Lemma te_call_hash1 e le m m' bx (a2 : expr) bt ot :
+  e!_sha256_hash = None -> e!_ctx__1 = Some (bx, CTX) ->
+  eval_expr sha_ge e le m a2 (Vptr bt ot) -> typeof a2 = tptr MID ->
+  Clight2.eval_funcall sha_ge m (Internal f_sha256_hash) [Vptr bx (Ptrofs.repr 0); Vptr bt ot] E0 m' Vundef ->
+  Clight2.exec_stmt sha_ge e le m
+    (Scall None (Evar _sha256_hash (Tfunction (Tcons CTXP (Tcons (tptr MID) Tnil)) tvoid cc_default))
+       [Eaddrof (Evar _ctx__1 CTX) CTXP; a2]) E0 le m' Out_normal.
+Proof.
+  intros He Hc H2 T2 HC. change le with (set_opttemp None Vundef le) at 2.
+  eapply exec_Scall with (vf := Vptr (sha_symbol_block _sha256_hash) Ptrofs.zero)
+    (vargs := [Vptr bx Ptrofs.zero; Vptr bt ot]) (f := Internal f_sha256_hash).
+  - reflexivity.
+  - eapply eval_Elvalue; [apply eval_Evar_global; [exact He|exact sha_hash_symbol]|].
+    apply deref_loc_reference; reflexivity.
+  - eapply eval_Econs; [eapply eval_Eaddrof; apply eval_Evar_local; exact Hc|reflexivity|].
+    eapply eval_Econs; [exact H2|rewrite T2; reflexivity|apply eval_Enil].
+  - exact sha_hash_funct.
+  - reflexivity.
+  - exact HC.
+Qed.
+
+(** The first eight entries of a list (the words a midstate holds). *)
+Definition norm8 (R : list int) : list int := map (fun j => nth j R Int.zero) (List.seq 0 8).
+
+Lemma norm8_nth R j : (j < 8)%nat -> nth j (norm8 R) Int.zero = nth j R Int.zero.
+Proof.
+  intros Hj. unfold norm8.
+  do 8 (destruct j as [|j]; [reflexivity|]). lia.
+Qed.
+
+(** The SHA-256 state written to [env->tapEnvHash]: the three midstates
+    absorbed as big-endian bytes, then the padding for 96 bytes. *)
+Definition te_tapenv_regs (L P K : list int) : list int :=
+  let s1 := absorb_i [] sha256_iv_words (be_bytes (norm8 L)) in
+  let s2 := absorb_i (fst s1) (snd s1) (be_bytes (norm8 P)) in
+  let s3 := absorb_i (fst s2) (snd s2) (be_bytes (norm8 K)) in
+  snd (absorb_i (fst s3) (snd s3)
+    (sha_pad (Int64.add (Int64.add (Int64.add Int64.zero (Int64.repr 32)) (Int64.repr 32)) (Int64.repr 32)))).
+
+Section Tail.
+Variable Hmodel : memcpy_model.
+Variables (e : env) (bC1 bR bR1 bA braw : block) (oraw : Z) (N : Z) (v : int) (cmr P K : list int).
+Hypothesis HeH : e!_sha256_hash = None.
+Hypothesis HeI : e!_sha256_init = None.
+Hypothesis HeF : e!_sha256_finalize = None.
+Hypothesis HeL : e!_simplicity_bitcoin_make_tapleaf = None.
+Hypothesis HeC1 : e!_ctx__1 = Some (bC1, CTX).
+Hypothesis HeR : e!__res = Some (bR, CTX).
+Hypothesis HeR1 : e!__res__1 = Some (bR1, MID).
+Hypothesis NAC : bA <> bC1.
+Hypothesis NGC : GC <> bC1.
+Hypothesis NGA : GC <> bA.
+Hypothesis NMC : GM <> bC1.
+Hypothesis NMA : GM <> bA.
+Hypothesis NRA : bR <> bA.
+Hypothesis NRC : bR <> bC1.
+Hypothesis NGR : GC <> bR.
+Hypothesis NMR : GM <> bR.
+Hypothesis N1A : bR1 <> bA.
+Hypothesis N1C : bR1 <> bC1.
+Hypothesis N1R : bR1 <> bR.
+Hypothesis NG1 : GC <> bR1.
+Hypothesis NM1 : GM <> bR1.
+Hypothesis Hv : Int.zero_ext 8 v = v.
+Hypothesis Hcmr : length cmr = 8%nat.
+
+Let rawv := Vptr braw (Ptrofs.repr oraw).
+Let L := make_tapleaf_regs v cmr.
+
+Theorem te_tail le5 m :
+  te_le2 le5 rawv N bA ->
+  Mem.load Mint8unsigned m bA 169 = Some (Vint v) ->
+  (forall j, (j < 8)%nat -> Mem.load Mint32 m bA (136 + 4 * Z.of_nat j) = Some (Vint (nth j cmr Int.zero))) ->
+  (forall j, (j < 8)%nat -> Mem.load Mint32 m bA (40 + 4 * Z.of_nat j) = Some (Vint (nth j P Int.zero))) ->
+  (forall j, (j < 8)%nat -> Mem.load Mint32 m bA (104 + 4 * Z.of_nat j) = Some (Vint (nth j K Int.zero))) ->
+  Mem.range_perm m bA 0 176 Cur Writable ->
+  Mem.range_perm m bR1 0 32 Cur Freeable ->
+  Mem.range_perm m bC1 0 88 Cur Freeable -> Mem.range_perm m bR 0 88 Cur Freeable ->
+  sha_dispatch_ok m -> Mem.load Mint64 m GM 0 = Some (Vlong sha_max_counter) ->
+  sha_tapleaf_tag_ok m ->
+  exists m' le',
+    Clight2.exec_stmt sha_ge e le5 m te_rest5 E0 le' m' (Out_return (Some (Vptr bA Ptrofs.zero, tptr TE))) /\
+    (forall j, (j < 8)%nat -> Mem.load Mint32 m' bA (8 + 4 * Z.of_nat j) = Some (Vint (nth j L Int.zero))) /\
+    (forall j, (j < 8)%nat ->
+       Mem.load Mint32 m' bA (72 + 4 * Z.of_nat j) = Some (Vint (nth j (te_tapenv_regs L P K) Int.zero))) /\
+    (forall ch b ofs, Mem.valid_block m b -> b <> bR1 -> b <> bC1 -> b <> bR ->
+       (b <> bA \/ ofs + size_chunk ch <= 8 \/ (40 <= ofs /\ ofs + size_chunk ch <= 72) \/ 104 <= ofs) ->
+       Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b).
+Proof.
+  intros (HlRaw & HlEnv & HlPath) HVer HCmr HPw HKw PA P1 PC PR Hdisp HMax HTag.
+  assert (VG : Mem.valid_block m GC) by (eapply load_valid_block; exact Hdisp).
+  assert (VM : Mem.valid_block m GM) by (eapply load_valid_block; exact HMax).
+  assert (VA : Mem.valid_block m bA) by (eapply load_valid_block; exact HVer).
+  set (ocmr := Ptrofs.add Ptrofs.zero (Ptrofs.repr 136)).
+  assert (Hocmr : Ptrofs.unsigned ocmr = 136) by (apply te_off; lia).
+  (* make_tapleaf into the result temporary *)
+  destruct (eval_make_tapleaf Hmodel m bR1 0 v bA ocmr cmr Hv ltac:(lia)
+    ltac:(change Ptrofs.max_unsigned with 18446744073709551615; lia) ltac:(exists 0; reflexivity))
+    as (mL & HCallL & HRegL & HLL & HPL & HVL).
+  { intros o Ho. eapply Mem.perm_implies; [apply P1, Ho|constructor]. }
+  { exact Hcmr. }
+  { rewrite Hocmr. change Ptrofs.max_unsigned with 18446744073709551615. lia. }
+  { intros j Hj. rewrite Hocmr. apply HCmr. exact Hj. }
+  { exact Hdisp. } { exact HMax. } { exact HTag. }
+  fold L in HRegL.
+  assert (KL : forall ch b ofs, Mem.valid_block m b -> b <> bR1 -> Mem.load ch mL b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb Hn. apply HLL; [exact Hb|left; exact Hn]. }
+  (* the struct copy into env->tapLeafHash *)
+  destruct (Mem.range_perm_loadbytes mL bR1 0 32) as (lb & HLB).
+  { intros o Ho. eapply Mem.perm_implies; [apply HPL, P1, Ho|constructor]. }
+  pose proof (Mem.loadbytes_length _ _ _ _ _ HLB) as HLBL.
+  destruct (Mem.range_perm_storebytes mL bA 8 lb) as (mS & HSB).
+  { rewrite HLBL. intros o Ho. change (Z.of_nat (Z.to_nat 32)) with 32 in Ho. apply HPL, PA. lia. }
+  assert (HSL : Mem.loadbytes mS bA 8 32 = Some lb).
+  { pose proof (Mem.loadbytes_storebytes_same _ _ _ _ _ HSB) as H. rewrite HLBL in H. exact H. }
+  assert (KS : forall ch b ofs, Mem.valid_block m b -> b <> bR1 ->
+    (b <> bA \/ ofs + size_chunk ch <= 8 \/ 40 <= ofs) -> Mem.load ch mS b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb Hn Hr. rewrite (Mem.load_storebytes_other _ _ _ _ _ HSB).
+    - apply KL; assumption.
+    - rewrite HLBL. change (Z.of_nat (Z.to_nat 32)) with 32.
+      destruct Hr as [Hr|[Hr|Hr]]; [left; exact Hr|right; left; exact Hr|right; right; lia]. }
+  assert (PS : forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm mS b ofs k p).
+  { intros b ofs k p Hp. eapply Mem.perm_storebytes_1; [exact HSB|apply HPL, Hp]. }
+  assert (VS : forall b, Mem.valid_block m b -> Mem.valid_block mS b).
+  { intros b Hb. eapply Mem.storebytes_valid_block_1; [exact HSB|apply HVL, Hb]. }
+  assert (HLeafS : forall j, (j < 8)%nat ->
+    Mem.load Mint32 mS bA (8 + 4 * Z.of_nat j) = Some (Vint (nth j L Int.zero))).
+  { intros j Hj. apply (equal_loadbytes_field Mint32 mL mS bR1 bA 0 8 32 (4 * Z.of_nat j) lb);
+      [lia|change (size_chunk Mint32) with 4; lia|exact HLB|exact HSL| |apply HRegL; exact Hj].
+    change (align_chunk Mint32) with 4. exists (2 + Z.of_nat j). lia. }
+  (* the tap environment hash *)
+  assert (Hob72 : 0 <= 72 /\ 72 + 32 <= Ptrofs.max_unsigned)
+    by (change Ptrofs.max_unsigned with 18446744073709551615; lia).
+  destruct (ctxo_init bC1 bA 72 NAC NGC NGA NMC NMA Hob72 mS bR NRA NRC ltac:(exists 18; reflexivity)
+    (VS _ VG) (VS _ VM) NGR NMR)
+    as (mi & mx & bytes & HInit & HIB & HISB & HC0 & HLx & HPx & HVx).
+  { intros o Ho. apply PS, PR, Ho. }
+  { intros o Ho. apply PS, PC, Ho. }
+  { intros o Ho. apply PS, PA. lia. }
+  { unfold sha_dispatch_ok. rewrite KS; [exact Hdisp|exact VG|exact NG1|left; exact NGA]. }
+  { rewrite KS; [exact HMax|exact VM|exact NM1|left; exact NMA]. }
+  assert (Kx : forall ch b ofs, Mem.valid_block m b -> b <> bR1 -> b <> bC1 -> b <> bR ->
+    (b <> bA \/ ofs + size_chunk ch <= 8 \/ (40 <= ofs /\ ofs + size_chunk ch <= 72) \/ 104 <= ofs) ->
+    Mem.load ch mx b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb H1 H2 H3 Hr.
+    rewrite HLx; [|apply VS, Hb|exact H3|exact H2|destruct Hr as [Hr|[Hr|[Hr|Hr]]]; [left; exact Hr|right; left; lia|right; left; lia|right; right; lia]].
+    apply KS; [exact Hb|exact H1|destruct Hr as [Hr|[Hr|[Hr|Hr]]]; [left; exact Hr|right; left; exact Hr|right; right; lia|right; right; lia]]. }
+  set (o8 := Ptrofs.add Ptrofs.zero (Ptrofs.repr 8)).
+  set (o40 := Ptrofs.add Ptrofs.zero (Ptrofs.repr 40)).
+  set (o104 := Ptrofs.add Ptrofs.zero (Ptrofs.repr 104)).
+  assert (Ho8 : Ptrofs.unsigned o8 = 8) by (apply te_off; lia).
+  assert (Ho40 : Ptrofs.unsigned o40 = 40) by (apply te_off; lia).
+  assert (Ho104 : Ptrofs.unsigned o104 = 104) by (apply te_off; lia).
+  assert (Hn8 : forall R, length (norm8 R) = 8%nat) by reflexivity.
+  assert (VAx : Mem.valid_block mx bA) by (apply HVx, VS, VA).
+  (* hash 1: the leaf hash *)
+  assert (H1L : forall j, (j < 8)%nat ->
+    Mem.load Mint32 mx bA (Ptrofs.unsigned o8 + 4 * Z.of_nat j) = Some (Vint (nth j (norm8 L) Int.zero))).
+  { intros j Hj. rewrite Ho8, norm8_nth by exact Hj.
+    rewrite HLx; [apply HLeafS; exact Hj|apply VS, VA|exact (not_eq_sym NRA)|exact NAC|].
+    right; left. change (size_chunk Mint32) with 4. lia. }
+  assert (Ho8M : Ptrofs.unsigned o8 + 32 <= Ptrofs.max_unsigned)
+    by (rewrite Ho8; change Ptrofs.max_unsigned with 18446744073709551615; lia).
+  edestruct (ctxo_hash bC1 bA 72 NAC NGC NGA NMC NMA Hob72 Hmodel mx bA o8) with (regsH := norm8 L)
+    as (m1 & HCall1 & HC1 & HL1 & HP1 & HV1); try eassumption; [apply Hn8|].
+  (* hash 2: the tap-path hash *)
+  assert (H2L : forall j, (j < 8)%nat ->
+    Mem.load Mint32 m1 bA (Ptrofs.unsigned o40 + 4 * Z.of_nat j) = Some (Vint (nth j (norm8 P) Int.zero))).
+  { intros j Hj. rewrite Ho40, norm8_nth by exact Hj.
+    rewrite HL1; [|exact VAx|exact NAC|right; left; change (size_chunk Mint32) with 4; lia].
+    rewrite Kx; [apply HPw; exact Hj|exact VA|congruence|exact NAC|congruence|].
+    right; right; left. change (size_chunk Mint32) with 4. lia. }
+  assert (Ho40M : Ptrofs.unsigned o40 + 32 <= Ptrofs.max_unsigned)
+    by (rewrite Ho40; change Ptrofs.max_unsigned with 18446744073709551615; lia).
+  edestruct (ctxo_hash bC1 bA 72 NAC NGC NGA NMC NMA Hob72 Hmodel m1 bA o40) with (regsH := norm8 P)
+    as (m2 & HCall2 & HC2 & HL2 & HP2 & HV2); try eassumption; [apply Hn8|].
+  (* hash 3: the internal key *)
+  assert (H3L : forall j, (j < 8)%nat ->
+    Mem.load Mint32 m2 bA (Ptrofs.unsigned o104 + 4 * Z.of_nat j) = Some (Vint (nth j (norm8 K) Int.zero))).
+  { intros j Hj. rewrite Ho104, norm8_nth by exact Hj.
+    rewrite HL2; [|apply HV1, VAx|exact NAC|right; right; lia].
+    rewrite HL1; [|exact VAx|exact NAC|right; right; lia].
+    rewrite Kx; [apply HKw; exact Hj|exact VA|congruence|exact NAC|congruence|].
+    right; right; right. lia. }
+  assert (Ho104M : Ptrofs.unsigned o104 + 32 <= Ptrofs.max_unsigned)
+    by (rewrite Ho104; change Ptrofs.max_unsigned with 18446744073709551615; lia).
+  edestruct (ctxo_hash bC1 bA 72 NAC NGC NGA NMC NMA Hob72 Hmodel m2 bA o104) with (regsH := norm8 K)
+    as (m3 & HCall3 & HC3 & HL3 & HP3 & HV3); try eassumption; [apply Hn8|].
+  destruct (ctxo_finalize bC1 bA 72 NAC NGC NGA NMC NMA Hob72 Hmodel m3 _ _ _ _ HC3)
+    as (m4 & HFin & HReg4 & HL4 & HP4 & HV4).
+  fold (te_tapenv_regs L P K) in HReg4.
+  set (le6 := PTree.set _t'2 (Vint v) le5).
+  assert (Henv6 : le6!_env = Some (Vptr bA Ptrofs.zero)).
+  { unfold le6. rewrite PTree.gso by discriminate. exact HlEnv. }
+  exists m4, le6.
+  split; [|split; [|split; [|split; [|split]]]].
+  - change te_rest5 with (Ssequence (match te_rest5 with Ssequence s _ => s | _ => Sskip end)
+      (match te_rest5 with Ssequence _ r => r | _ => Sskip end)).
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le6) (m1 := mS).
+    { cbv delta [te_rest5] beta iota.
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le6) (m1 := mL).
+      - eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le6) (m1 := m).
+        + apply exec_Sset. eapply ev_env_field with (delta := 169) (chunk := Mint8unsigned);
+            [exact HlEnv|exact envu_bitcoinTapEnv_leafVersion|reflexivity|lia|exact HVer].
+        + change le6 with (set_opttemp None Vundef le6) at 2.
+          eapply exec_Scall with (vf := Vptr (sha_symbol_block _simplicity_bitcoin_make_tapleaf) Ptrofs.zero)
+            (vargs := [Vptr bR1 Ptrofs.zero; Vint v; Vptr bA ocmr])
+            (f := Internal f_simplicity_bitcoin_make_tapleaf).
+          * reflexivity.
+          * eapply eval_Elvalue; [apply eval_Evar_global; [exact HeL|exact sha_make_tapleaf_symbol]|].
+            apply deref_loc_reference; reflexivity.
+          * eapply eval_Econs; [eapply eval_Eaddrof; apply eval_Evar_local; exact HeR1|reflexivity|].
+            eapply eval_Econs; [apply eval_Etempvar; apply PTree.gss|cbn; rewrite Hv; reflexivity|].
+            eapply eval_Econs;
+              [apply ev_env_mid_addr; [exact Henv6|exact envu_bitcoinTapEnv_scriptCMR]|reflexivity|apply eval_Enil].
+          * exact sha_make_tapleaf_funct.
+          * reflexivity.
+          * exact HCallL.
+      - eapply exec_Sassign with (v2 := Vptr bR1 Ptrofs.zero) (v := Vptr bR1 Ptrofs.zero).
+        + eapply eval_envu_field_lvalue; [reflexivity|exact envu_bitcoinTapEnv_tapLeafHash
+                                         |apply eval_envu_deref_struct; exact Henv6].
+        + eapply eval_Elvalue; [apply eval_Evar_local; exact HeR1|apply deref_loc_copy; reflexivity].
+        + reflexivity.
+        + eapply assign_loc_copy with (bytes := lb); cbn [typeof].
+          * reflexivity.
+          * intros _. rewrite te_blockcopy_MID. exists 0. reflexivity.
+          * intros _. rewrite te_blockcopy_MID, te_off by lia. exists 2. reflexivity.
+          * left. exact N1A.
+          * rewrite te_sizeof_MID_Z. exact HLB.
+          * rewrite te_off by lia. exact HSB. }
+    cbv delta [te_rest5] beta iota.
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le6) (m1 := m4).
+    { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le6) (m1 := mx).
+      - eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le6) (m1 := mi).
+        + eapply te_call_init with (br := bR) (bo := bA) (oo := Ptrofs.repr 72);
+            [exact HeI|exact HeR| |reflexivity|exact HInit].
+          pose proof (ev_env_mid_s e le6 mS bA _tapEnvHash 72 Henv6 envu_bitcoinTapEnv_tapEnvHash) as HE.
+          rewrite Ptrofs.add_zero_l in HE. exact HE.
+        + eapply (exec_ctx_struct_copy e le6 mi mx _ctx__1 __res bC1 bR bytes);
+            [exact HeC1|exact HeR|congruence|exact HIB|exact HISB].
+      - eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le6) (m1 := m1).
+        { eapply te_call_hash1 with (bx := bC1) (bt := bA) (ot := o8); [exact HeH|exact HeC1| |reflexivity|exact HCall1].
+          apply ev_env_mid_addr; [exact Henv6|exact envu_bitcoinTapEnv_tapLeafHash]. }
+        eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le6) (m1 := m2).
+        { eapply te_call_hash1 with (bx := bC1) (bt := bA) (ot := o40); [exact HeH|exact HeC1| |reflexivity|exact HCall2].
+          apply ev_env_mid_addr; [exact Henv6|exact envu_bitcoinTapEnv_tappathHash]. }
+        eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le6) (m1 := m3).
+        { eapply te_call_hash1 with (bx := bC1) (bt := bA) (ot := o104); [exact HeH|exact HeC1| |reflexivity|exact HCall3].
+          apply ev_env_mid_addr; [exact Henv6|exact envu_bitcoinTapEnv_internalKey]. }
+        eapply te_call_finalize; [exact HeF|exact HeC1|exact HFin]. }
+    apply exec_Sreturn_some. apply eval_Etempvar. exact Henv6.
+  - intros j Hj.
+    rewrite HL4; [|apply HV3, HV2, HV1, VAx|exact NAC|right; left; change (size_chunk Mint32) with 4; lia].
+    rewrite HL3; [|apply HV2, HV1, VAx|exact NAC|right; left; change (size_chunk Mint32) with 4; lia].
+    rewrite HL2; [|apply HV1, VAx|exact NAC|right; left; change (size_chunk Mint32) with 4; lia].
+    rewrite HL1; [|exact VAx|exact NAC|right; left; change (size_chunk Mint32) with 4; lia].
+    rewrite HLx; [apply HLeafS; exact Hj|apply VS, VA|exact (not_eq_sym NRA)|exact NAC|].
+    right; left. change (size_chunk Mint32) with 4. lia.
+  - intros j Hj. apply HReg4. exact Hj.
+  - intros ch b ofs Hb H1 H2 H3 Hr.
+    assert (Hr' : b <> bA \/ ofs + size_chunk ch <= 72 \/ 72 + 32 <= ofs).
+    { destruct Hr as [Hr|[Hr|[Hr|Hr]]]; [left; exact Hr|right; left; lia|right; left; lia|right; right; lia]. }
+    assert (Vbx : Mem.valid_block mx b) by (apply HVx, VS, Hb).
+    rewrite HL4; [|apply HV3, HV2, HV1, Vbx|exact H2|exact Hr'].
+    rewrite HL3; [|apply HV2, HV1, Vbx|exact H2|exact Hr'].
+    rewrite HL2; [|apply HV1, Vbx|exact H2|exact Hr'].
+    rewrite HL1; [|exact Vbx|exact H2|exact Hr'].
+    apply Kx; assumption.
+  - intros b ofs k p Hp.
+    assert (Hpx : Mem.perm mx b ofs k p) by (apply HPx, PS, Hp).
+    assert (Hp1 : Mem.perm m1 b ofs k p) by (apply HP1; [eapply Mem.perm_valid_block; exact Hpx|exact Hpx]).
+    assert (Hp2 : Mem.perm m2 b ofs k p) by (apply HP2; [eapply Mem.perm_valid_block; exact Hp1|exact Hp1]).
+    assert (Hp3 : Mem.perm m3 b ofs k p) by (apply HP3; [eapply Mem.perm_valid_block; exact Hp2|exact Hp2]).
+    apply HP4; [eapply Mem.perm_valid_block; exact Hp3|exact Hp3].
+  - intros b Hb. apply HV4, HV3, HV2, HV1, HVx, VS, Hb.
+Qed.
+End Tail.
