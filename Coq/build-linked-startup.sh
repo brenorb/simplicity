@@ -32,7 +32,8 @@ cd "$tree"
 paths=(-Q startup/prereq JetStartupReview -Q startup/proofs JetStartup)
 ulimit -s 65520 2>/dev/null || true
 # shared frame-construction module (accepted-tree source, compiled here against the linked tree)
-for name in jet_word_repr jet_frame_constructible jet_frame_constructible_app jet_env_constructible jet_env_constructible_ext; do
+for name in jet_word_repr jet_frame_constructible jet_partial jet_application_contract jet_application_partial \
+    jet_frame_constructible_app jet_env_constructible jet_env_constructible_ext; do
   [[ "C/$name.vo" -nt "C/$name.v" ]] || bash build-jets.sh --coqc "C/$name.v"
 done
 for name in "${order[@]}"; do bash build-jets.sh --coqc "${paths[@]}" "startup/prereq/$name.v"; done
