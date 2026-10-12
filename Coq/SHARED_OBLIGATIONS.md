@@ -111,8 +111,22 @@ C.jet_frame_constructible_bm` (after building the registered core modules).
    registered jets have an executability instance.
 3. (done) Linked executability: `linked/C/jet_frame_executable_linked.v` —
    the 104 memcpy jets run unconditionally in the linked program.
-4. A plain-C memcpy link would need a data-byte frame invariant threaded
-   through the copy family; not started.
+4. Plain-C memcpy link — characterized, blocked for the frame copies.
+   The jet units call `memcpy` at `frame.c:237` (bulk copy of frame words)
+   and `sha256.h:213/230/238` (hash words and message bytes). A byte loop
+   `*d++ = *s++` is only defined in CompCert's Clight when every source byte
+   is a data byte (`C/jet_memcpy_impl.v` has exactly that premise): the
+   implicit cast of an undefined or pointer-fragment byte has no semantics
+   there, although ISO C allows copying such bytes through `unsigned char`.
+   Frame words legitimately contain undefined cells (the contracts carry
+   `None` cells, e.g. after `skipBits`), so the bulk frame copy cannot be
+   linked to a plain loop without changing the frame contracts; this is a
+   limit of the memory model, not of the C code. The exact variant
+   (`EF_memcpy`) has no such premise and is what `linked/` uses. For the
+   three SHA call sites the copied bytes are always data, so a plain-loop
+   link is possible in principle there, but it needs the data-byte fact at
+   each call site and therefore re-proving those call sites rather than
+   reusing the accepted scripts; not started.
 5. Integration: the archived `proof-work/sha-support/jet_sha_global_frame.v.source`
    does not compile at `a8685146`; `startup/proofs/jet_sha_startup_globals.v`
    carries the one-line fix.
