@@ -20,7 +20,8 @@
     - Haskell's [Vector]/lazy [ByteString] become lists; the length bounds
       stated in comments of the Haskell records ("strictly less than 2^32")
       are record fields here, as in [Bitcoin.txOutput].
-    - [envIx] is a [nat] with the bound that [primEnv] checks. *)
+    - [envIx] (a [Word32] in Haskell) is a [nat] with its 32-bit range and
+      the bound that [primEnv] checks. *)
 From Coq Require Import ZArith String List.
 From compcert Require Import Integers.
 Require Import Simplicity.Util.List.
@@ -416,13 +417,15 @@ Definition tag {A B} (p : t A B) := Eval vm_compute in (tag_def p).
 
 End Tag.
 
-(** [data PrimEnv]; the bound is the condition checked by [primEnv]. *)
+(** [data PrimEnv]: [envIx :: Word32], hence its range; [envIxBounded] is the
+    condition checked by [primEnv]. *)
 Record environment : Set :=
 { envTx : sigTx
 ; envIx : nat
 ; envTap : tapEnv
 ; envGenesisBlock : hash256
 ; envIxBounded : (envIx < length (sigTxIn envTx))%nat
+; envIxWord32 : (Z.of_nat envIx < 4294967296)%Z
 }.
 Definition env := environment.
 
