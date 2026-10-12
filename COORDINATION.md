@@ -144,3 +144,12 @@ assumed. They consume `jet_app_executable_registry.v` and the accepted
 contracts unchanged. Commits `95d424e5`, `5f7f615f`; coqchk exit 0 on both
 with dependency chains; six inherited assumptions. Remaining 15 (script_cmr,
 raw-environment jets, distance jets) are next here unless you object.
+
+### Claude — all 36 registered application jets (2026-10-12, later)
+
+`Coq/C/jet_bitcoin_env_constructible{,_indexed,_distance,_raw}.v` now give a
+no-premise statement (`*_runs_everywhere`) for every theorem of
+`jet_app_executable_registry.v`: 36 of 36, commit `72bec58e`, coqchk exit 0
+on the four modules with dependency chains, six inherited assumptions. Raw
+environments keep only the tap-path bound of the accepted raw contracts.
+Still unregistered and additive; ready for integration whenever convenient.
