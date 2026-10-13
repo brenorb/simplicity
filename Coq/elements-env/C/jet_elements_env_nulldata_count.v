@@ -203,6 +203,9 @@ Lemma nd_bool_val (b : bool) m : bool_val (Val.of_bool b) tint m = Some b.
 Proof. destruct b; reflexivity. Qed.
 
 Section CountNullData.
+(** The lemmas hold in any local environment [e]: [parseNullData] reuses
+    the script-reading idioms with its own locals. *)
+Variable e : env.
 Variables (m : mem) (bsp : block) (osp : Z) (len : int) (bb : block) (ob : ptrofs) (bs : list int).
 Hypothesis Hosp : 0 <= osp /\ osp + 16 <= Ptrofs.max_unsigned.
 Hypothesis HLen : Mem.load Mint32 m bsp (osp + 8) = Some (Vint len).
@@ -284,32 +287,32 @@ Proof.
 Qed.
 
 Lemma nd_seq_ret le s1 s2 le1 :
-  Clight2.exec_stmt sha_ge empty_env le m s1 E0 le1 m RET0 ->
-  Clight2.exec_stmt sha_ge empty_env le m (Ssequence s1 s2) E0 le1 m RET0.
+  Clight2.exec_stmt sha_ge e le m s1 E0 le1 m RET0 ->
+  Clight2.exec_stmt sha_ge e le m (Ssequence s1 s2) E0 le1 m RET0.
 Proof. intros H. eapply exec_Sseq_2; [exact H|discriminate]. Qed.
 
 Lemma nd_seq le s1 s2 le1 le2 out :
-  Clight2.exec_stmt sha_ge empty_env le m s1 E0 le1 m Out_normal ->
-  Clight2.exec_stmt sha_ge empty_env le1 m s2 E0 le2 m out ->
-  Clight2.exec_stmt sha_ge empty_env le m (Ssequence s1 s2) E0 le2 m out.
+  Clight2.exec_stmt sha_ge e le m s1 E0 le1 m Out_normal ->
+  Clight2.exec_stmt sha_ge e le1 m s2 E0 le2 m out ->
+  Clight2.exec_stmt sha_ge e le m (Ssequence s1 s2) E0 le2 m out.
 Proof. intros H1 H2. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); eassumption. Qed.
 
 Lemma nd_if le a (b : bool) s1 s2 le' out :
-  eval_expr sha_ge empty_env le m a (Val.of_bool b) -> typeof a = tint ->
-  Clight2.exec_stmt sha_ge empty_env le m (if b then s1 else s2) E0 le' m out ->
-  Clight2.exec_stmt sha_ge empty_env le m (Sifthenelse a s1 s2) E0 le' m out.
+  eval_expr sha_ge e le m a (Val.of_bool b) -> typeof a = tint ->
+  Clight2.exec_stmt sha_ge e le m (if b then s1 else s2) E0 le' m out ->
+  Clight2.exec_stmt sha_ge e le m (Sifthenelse a s1 s2) E0 le' m out.
 Proof.
   intros HE HT HX. eapply exec_Sifthenelse with (v1 := Val.of_bool b) (b := b);
     [exact HE|rewrite HT; apply nd_bool_val|exact HX].
 Qed.
 
-Lemma nd_ret0 le : Clight2.exec_stmt sha_ge empty_env le m RET0S E0 le m RET0.
+Lemma nd_ret0 le : Clight2.exec_stmt sha_ge e le m RET0S E0 le m RET0.
 Proof. apply exec_Sreturn_some. apply eval_Econst_int. Qed.
 
 (** Expressions. *)
 Lemma nd_ev_len le :
   le!_scriptPubKey = Some spv ->
-  eval_expr sha_ge empty_env le m (Efield SPK _len tuint) (Vint len).
+  eval_expr sha_ge e le m (Efield SPK _len tuint) (Vint len).
 Proof.
   intros HS. eapply eval_envu_field_value;
     [reflexivity|exact envu_rawElementsBuffer_len|reflexivity|apply eval_envu_deref_struct; exact HS|].
@@ -318,7 +321,7 @@ Qed.
 
 Lemma nd_ev_buf le :
   le!_scriptPubKey = Some spv -> 0 < L ->
-  eval_expr sha_ge empty_env le m (Efield SPK _buf (tptr tuchar)) (Vptr bb ob).
+  eval_expr sha_ge e le m (Efield SPK _buf (tptr tuchar)) (Vptr bb ob).
 Proof.
   intros HS HL. eapply eval_envu_field_value;
     [reflexivity|exact envu_rawElementsBuffer_buf|reflexivity|apply eval_envu_deref_struct; exact HS|].
@@ -327,7 +330,7 @@ Qed.
 
 Lemma nd_ev_byte le tp tt i :
   le!tp = Some (Vptr bb ob) -> le!tt = Some (Vlong (Int64.repr i)) -> 0 <= i < L ->
-  eval_expr sha_ge empty_env le m
+  eval_expr sha_ge e le m
     (Ederef (Ebinop Oadd (Etempvar tp (tptr tuchar)) (Etempvar tt tulong) (tptr tuchar)) tuchar)
     (Vint (nd_b i)).
 Proof.
@@ -339,7 +342,7 @@ Qed.
 
 Lemma nd_ev_len_eq_i le tl i :
   le!tl = Some (Vint len) -> le!_i = Some (Vlong (Int64.repr i)) -> 0 <= i <= L ->
-  eval_expr sha_ge empty_env le m (Ebinop Oeq (Etempvar tl tuint) (Etempvar _i tulong) tint)
+  eval_expr sha_ge e le m (Ebinop Oeq (Etempvar tl tuint) (Etempvar _i tulong) tint)
     (Val.of_bool (L =? i)).
 Proof.
   intros Hl Hi Hr. pose proof nd_L.
@@ -351,7 +354,7 @@ Qed.
 
 Lemma nd_ev_code_lt le c k :
   le!_code = Some (Vint c) -> 0 <= k < 256 -> 0 <= Int.unsigned c < 256 ->
-  eval_expr sha_ge empty_env le m (Ebinop Olt (Etempvar _code tuchar) (Econst_int (Int.repr k) tint) tint)
+  eval_expr sha_ge e le m (Ebinop Olt (Etempvar _code tuchar) (Econst_int (Int.repr k) tint) tint)
     (Val.of_bool (Int.unsigned c <? k)).
 Proof.
   intros Hc Hk Hr. eapply eval_Ebinop; [apply eval_Etempvar; exact Hc|apply eval_Econst_int|].
@@ -361,7 +364,7 @@ Qed.
 
 Lemma nd_ev_lt_code le c k :
   le!_code = Some (Vint c) -> 0 <= k < 256 -> 0 <= Int.unsigned c < 256 ->
-  eval_expr sha_ge empty_env le m (Ebinop Olt (Econst_int (Int.repr k) tint) (Etempvar _code tuchar) tint)
+  eval_expr sha_ge e le m (Ebinop Olt (Econst_int (Int.repr k) tint) (Etempvar _code tuchar) tint)
     (Val.of_bool (k <? Int.unsigned c)).
 Proof.
   intros Hc Hk Hr. eapply eval_Ebinop; [apply eval_Econst_int|apply eval_Etempvar; exact Hc|].
@@ -371,7 +374,7 @@ Qed.
 
 Lemma nd_ev_le_code le c k :
   le!_code = Some (Vint c) -> 0 <= k < 256 -> 0 <= Int.unsigned c < 256 ->
-  eval_expr sha_ge empty_env le m (Ebinop Ole (Econst_int (Int.repr k) tint) (Etempvar _code tuchar) tint)
+  eval_expr sha_ge e le m (Ebinop Ole (Econst_int (Int.repr k) tint) (Etempvar _code tuchar) tint)
     (Val.of_bool (k <=? Int.unsigned c)).
 Proof.
   intros Hc Hk Hr. eapply eval_Ebinop; [apply eval_Econst_int|apply eval_Etempvar; exact Hc|].
@@ -384,7 +387,7 @@ Qed.
 Lemma nd_eof_exec tl le i c s a :
   nd_keeps tl -> nd_st le i c s a -> 0 <= i <= L ->
   exists le',
-    Clight2.exec_stmt sha_ge empty_env le m (nd_eof_stmt tl) E0 le' m
+    Clight2.exec_stmt sha_ge e le m (nd_eof_stmt tl) E0 le' m
       (if L =? i then RET0 else Out_normal) /\
     nd_st le' i c s a.
 Proof.
@@ -412,8 +415,8 @@ Definition nd_read_le (tt tp tb : ident) (le : temp_env) (i : Z) : temp_env :=
 Lemma nd_read_exec tt tp tb last le i le' out :
   nd_trip tt tp tb ->
   le!_i = Some (Vlong (Int64.repr i)) -> le!_scriptPubKey = Some spv -> 0 <= i < L ->
-  Clight2.exec_stmt sha_ge empty_env (nd_read_le tt tp tb le i) m last E0 le' m out ->
-  Clight2.exec_stmt sha_ge empty_env le m (nd_read_stmt tt tp tb last) E0 le' m out.
+  Clight2.exec_stmt sha_ge e (nd_read_le tt tp tb le i) m last E0 le' m out ->
+  Clight2.exec_stmt sha_ge e le m (nd_read_stmt tt tp tb last) E0 le' m out.
 Proof.
   intros (Kt & Kp & Kb & Hpt & Hit) Hli Hsp Hi HX. pose proof nd_L.
   unfold nd_read_stmt, nd_read_le in *.
@@ -473,7 +476,7 @@ Proof. apply PTree.gss. Qed.
 Lemma nd_read_skip1 tt tp tb le i c s a :
   nd_trip tt tp tb -> nd_st le i c s a -> 0 <= i < L ->
   exists le',
-    Clight2.exec_stmt sha_ge empty_env le m (nd_read_stmt tt tp tb (nd_skip_set1 tb)) E0 le' m Out_normal /\
+    Clight2.exec_stmt sha_ge e le m (nd_read_stmt tt tp tb (nd_skip_set1 tb)) E0 le' m Out_normal /\
     nd_st le' (i + 1) c (nd_byte i) a.
 Proof.
   intros HT (HC & Hc & Hk) Hi. pose proof HC as (Hli & Hr & Hsp).
@@ -490,7 +493,7 @@ Qed.
 Lemma nd_read_skipk tt tp tb k le i c s a :
   nd_trip tt tp tb -> nd_st le i c s a -> 0 <= i < L -> 0 <= s < 4294967296 -> 8 <= k <= 24 ->
   exists le',
-    Clight2.exec_stmt sha_ge empty_env le m (nd_read_stmt tt tp tb (nd_skip_add tb k)) E0 le' m Out_normal /\
+    Clight2.exec_stmt sha_ge e le m (nd_read_stmt tt tp tb (nd_skip_add tb k)) E0 le' m Out_normal /\
     nd_st le' (i + 1) c (s + nd_byte i * 2 ^ k) a.
 Proof.
   intros HT (HC & Hc & Hk) Hi Hs Hkr. pose proof HC as (Hli & Hr & Hsp).
@@ -537,9 +540,9 @@ Lemma nd_skipcalc_exec le i c a :
   nd_st le i c 0 a -> 1 <= i <= L -> 0 <= Int.unsigned c < 256 ->
   match nd_skip (Int.unsigned c) i with
   | Some (i', s') =>
-      exists le', Clight2.exec_stmt sha_ge empty_env le m nd_skipcalc E0 le' m Out_normal /\
+      exists le', Clight2.exec_stmt sha_ge e le m nd_skipcalc E0 le' m Out_normal /\
         nd_st le' i' c s' a /\ i <= i' <= L /\ 0 <= s' < 4294967296
-  | None => exists le', Clight2.exec_stmt sha_ge empty_env le m nd_skipcalc E0 le' m RET0
+  | None => exists le', Clight2.exec_stmt sha_ge e le m nd_skipcalc E0 le' m RET0
   end.
 Proof.
   intros HS Hi Hc. pose proof HS as ((Hli & Hr & Hsp) & Hcd & Hk). pose proof nd_L as HLr.
@@ -555,7 +558,7 @@ Proof.
   2: { exists le. split; [|split; [exact HS|lia]].
        eapply nd_if; [exact E1|reflexivity|]. eapply nd_if; [exact E2|reflexivity|]. apply exec_Sskip. }
   assert (HOuter : forall le' out,
-    Clight2.exec_stmt sha_ge empty_env le m
+    Clight2.exec_stmt sha_ge e le m
       (Ssequence (nd_eof_stmt _t'19)
         (Ssequence (nd_read_stmt _t'3 _t'17 _t'18 (nd_skip_set1 _t'18))
           (Sifthenelse (Ebinop Ole (Econst_int (Int.repr 77) tint) (Etempvar _code tuchar) tint)
@@ -568,7 +571,7 @@ Proof.
                         (nd_read_stmt _t'6 _t'8 _t'9 (nd_skip_add _t'9 24)))))
                   Sskip)))
             Sskip))) E0 le' m out ->
-    Clight2.exec_stmt sha_ge empty_env le m nd_skipcalc E0 le' m out).
+    Clight2.exec_stmt sha_ge e le m nd_skipcalc E0 le' m out).
   { intros le' out HX. unfold nd_skipcalc.
     eapply nd_if; [exact E1|reflexivity|]. eapply nd_if; [exact E2|reflexivity|]. exact HX. }
   (* one length byte *)
@@ -635,13 +638,13 @@ Qed.
 Lemma nd_tail_exec le i c s a :
   nd_st le i c s a -> 0 <= i <= L -> 0 <= s < 4294967296 -> 0 <= a <= 4294967296 ->
   if L - i <? s
-  then exists le', Clight2.exec_stmt sha_ge empty_env le m nd_tail E0 le' m RET0
-  else exists le', Clight2.exec_stmt sha_ge empty_env le m nd_tail E0 le' m Out_normal /\
+  then exists le', Clight2.exec_stmt sha_ge e le m nd_tail E0 le' m RET0
+  else exists le', Clight2.exec_stmt sha_ge e le m nd_tail E0 le' m Out_normal /\
          nd_core le' (i + s) (a + 1).
 Proof.
   intros ((Hli & Hr & Hsp) & Hcd & Hk) Hi Hs Ha. pose proof nd_L as HLr.
   set (le1 := PTree.set _t'7 (Vint len) le).
-  assert (HC : eval_expr sha_ge empty_env le1 m
+  assert (HC : eval_expr sha_ge e le1 m
     (Ebinop Olt (Ebinop Osub (Etempvar _t'7 tuint) (Etempvar _i tulong) tulong) (Etempvar _skip tulong) tint)
     (Val.of_bool (L - i <? s))).
   { eapply eval_Ebinop with (v1 := Vlong (Int64.repr (L - i))) (v2 := Vlong (Int64.repr s)).
@@ -652,7 +655,7 @@ Proof.
     - change (Some (Val.of_bool (Int64.ltu (Int64.repr (L - i)) (Int64.repr s))) =
               Some (Val.of_bool (L - i <? s))).
       rewrite nd_i64_ltu by lia. reflexivity. }
-  assert (H1 : Clight2.exec_stmt sha_ge empty_env le m (nd_len_set _t'7) E0 le1 m Out_normal).
+  assert (H1 : Clight2.exec_stmt sha_ge e le m (nd_len_set _t'7) E0 le1 m Out_normal).
   { apply exec_Sset. apply nd_ev_len. exact Hsp. }
   unfold nd_tail.
   destruct (L - i <? s) eqn:ET.
@@ -683,9 +686,9 @@ Lemma nd_iter le i a :
   nd_core le i a -> 1 <= i < L -> 0 <= a <= i ->
   match nd_op i with
   | Some i' =>
-      exists le', Clight2.exec_stmt sha_ge empty_env le m nd_s1 E0 le' m Out_normal /\
+      exists le', Clight2.exec_stmt sha_ge e le m nd_s1 E0 le' m Out_normal /\
         nd_core le' i' (a + 1) /\ i < i' <= L
-  | None => exists le', Clight2.exec_stmt sha_ge empty_env le m nd_s1 E0 le' m RET0
+  | None => exists le', Clight2.exec_stmt sha_ge e le m nd_s1 E0 le' m RET0
   end.
 Proof.
   intros (Hli & Hr & Hsp) Hi Ha. pose proof nd_L as HLr.
@@ -702,8 +705,8 @@ Proof.
     unfold nd_st, nd_core, leC. rewrite PTree.gss, !PTree.gso by discriminate.
     fold leR in C1, C2, C3, O2. rewrite O2. unfold leS. rewrite PTree.gss. repeat split; assumption. }
   assert (HPre : forall rest le' out,
-    Clight2.exec_stmt sha_ge empty_env leC m rest E0 le' m out ->
-    Clight2.exec_stmt sha_ge empty_env le m
+    Clight2.exec_stmt sha_ge e leC m rest E0 le' m out ->
+    Clight2.exec_stmt sha_ge e le m
       (Ssequence
         (Ssequence (nd_len_set _t'22)
            (Sifthenelse (Ebinop Olt (Etempvar _i tulong) (Etempvar _t'22 tuint) tint) Sskip Sbreak))
@@ -752,13 +755,13 @@ Lemma nd_loop_exec fuel : forall i a le,
   nd_core le i a -> 1 <= i <= L -> 0 <= a <= i -> L - i <= Z.of_nat fuel ->
   match nd_loop fuel i a with
   | Some r =>
-      exists le', Clight2.exec_stmt sha_ge empty_env le m (Sloop nd_s1 Sskip) E0 le' m Out_normal /\
+      exists le', Clight2.exec_stmt sha_ge e le m (Sloop nd_s1 Sskip) E0 le' m Out_normal /\
         le'!_result = Some (Vlong (Int64.repr r))
-  | None => exists le', Clight2.exec_stmt sha_ge empty_env le m (Sloop nd_s1 Sskip) E0 le' m RET0
+  | None => exists le', Clight2.exec_stmt sha_ge e le m (Sloop nd_s1 Sskip) E0 le' m RET0
   end.
 Proof.
   assert (HExit : forall i a le, nd_core le i a -> i = L ->
-    exists le', Clight2.exec_stmt sha_ge empty_env le m (Sloop nd_s1 Sskip) E0 le' m Out_normal /\
+    exists le', Clight2.exec_stmt sha_ge e le m (Sloop nd_s1 Sskip) E0 le' m Out_normal /\
       le'!_result = Some (Vlong (Int64.repr a))).
   { intros i a le (Hli & Hr & Hsp) ->. pose proof nd_L as HLr.
     exists (PTree.set _t'22 (Vint len) le). split; [|rewrite PTree.gso by discriminate; exact Hr].
@@ -824,18 +827,18 @@ Qed.
 Lemma nd_head_exec le :
   le!_scriptPubKey = Some spv ->
   exists le',
-    Clight2.exec_stmt sha_ge empty_env le m nd_head E0 le' m
+    Clight2.exec_stmt sha_ge e le m nd_head E0 le' m
       (if L =? 0 then RET0 else if negb (106 =? nd_byte 0) then RET0 else Out_normal) /\
     le'!_scriptPubKey = Some spv.
 Proof.
   intros Hsp. pose proof nd_L as HLr.
   set (leA := PTree.set _t'23 (Vint len) le).
-  assert (EA : eval_expr sha_ge empty_env leA m
+  assert (EA : eval_expr sha_ge e leA m
     (Ebinop Oeq (Econst_int (Int.repr 0) tint) (Etempvar _t'23 tuint) tint) (Val.of_bool (L =? 0))).
   { eapply eval_Ebinop; [apply eval_Econst_int|apply eval_Etempvar; apply PTree.gss|].
     change (Some (Val.of_bool (Int.eq (Int.repr 0) len)) = Some (Val.of_bool (L =? 0))).
     rewrite nd_int_eq by lia. fold L. rewrite Z.eqb_sym. reflexivity. }
-  assert (HA : Clight2.exec_stmt sha_ge empty_env le m (nd_len_set _t'23) E0 leA m Out_normal).
+  assert (HA : Clight2.exec_stmt sha_ge e le m (nd_len_set _t'23) E0 leA m Out_normal).
   { apply exec_Sset. apply nd_ev_len. exact Hsp. }
   unfold nd_head.
   destruct (L =? 0) eqn:EL0.
@@ -881,19 +884,20 @@ Proof.
   - reflexivity.
 Qed.
 
-Theorem eval_countNullDataCodes :
+Theorem eval_countNullDataCodes_gen :
+  e = empty_env ->
   Clight2.eval_funcall sha_ge m (Internal f_countNullDataCodes) [spv] E0 m (Vlong (Int64.repr nd_count)).
 Proof.
-  pose proof nd_L as HLr.
+  intros He. pose proof nd_L as HLr.
   set (le0 := PTree.set _scriptPubKey spv (create_undef_temps (fn_temps f_countNullDataCodes))).
   destruct (nd_head_exec le0 (PTree.gss _ _ _)) as (le1 & XH & Hsp1).
   assert (HRet0 : forall le',
-    Clight2.exec_stmt sha_ge empty_env le0 m (fn_body f_countNullDataCodes) E0 le' m RET0 ->
+    Clight2.exec_stmt sha_ge e le0 m (fn_body f_countNullDataCodes) E0 le' m RET0 ->
     nd_count = 0 ->
     Clight2.eval_funcall sha_ge m (Internal f_countNullDataCodes) [spv] E0 m (Vlong (Int64.repr nd_count))).
   { intros le' HX HZ. rewrite HZ.
-    eapply eval_funcall_internal with (e := empty_env) (le1 := le0) (m1 := m) (m2 := m) (le2 := le') (out := RET0);
-      [apply nd_entry; reflexivity|exact HX|cbn; split; [discriminate|reflexivity]|reflexivity]. }
+    eapply eval_funcall_internal with (e := e) (le1 := le0) (m1 := m) (m2 := m) (le2 := le') (out := RET0);
+      [rewrite He; apply nd_entry; reflexivity|exact HX|cbn; split; [discriminate|reflexivity]|rewrite He; reflexivity]. }
   destruct (L =? 0) eqn:EL0.
   { apply (HRet0 le1); [rewrite nd_body_shape; apply nd_seq_ret; exact XH|].
     unfold nd_count. rewrite EL0. reflexivity. }
@@ -906,10 +910,10 @@ Proof.
   assert (HC : nd_core leI 1 0).
   { unfold nd_core, leI, leR. rewrite PTree.gss. rewrite PTree.gso by discriminate. rewrite PTree.gss.
     rewrite !PTree.gso by discriminate. repeat split; try reflexivity. exact Hsp1. }
-  assert (HR : Clight2.exec_stmt sha_ge empty_env le1 m
+  assert (HR : Clight2.exec_stmt sha_ge e le1 m
     (Sset _result (Ecast (Econst_int (Int.repr 0) tint) tulong)) E0 leR m Out_normal).
   { apply exec_Sset. eapply eval_Ecast; [apply eval_Econst_int|reflexivity]. }
-  assert (HI : Clight2.exec_stmt sha_ge empty_env leR m
+  assert (HI : Clight2.exec_stmt sha_ge e leR m
     (Sset _i (Ecast (Econst_int (Int.repr 1) tint) tulong)) E0 leI m Out_normal).
   { apply exec_Sset. eapply eval_Ecast; [apply eval_Econst_int|reflexivity]. }
   pose proof (nd_loop_exec (Z.to_nat L) 1 0 leI HC ltac:(lia) ltac:(lia) ltac:(lia)) as HLp.
@@ -917,9 +921,9 @@ Proof.
   { unfold nd_count. rewrite (proj2 (Z.eqb_neq L 0) EL0), <- EbN. reflexivity. }
   destruct (nd_loop (Z.to_nat L) 1 0) as [r|] eqn:ELp.
   - destruct HLp as (le2 & X2 & R). rewrite HCnt.
-    eapply eval_funcall_internal with (e := empty_env) (le1 := le0) (m1 := m) (m2 := m) (le2 := le2)
+    eapply eval_funcall_internal with (e := e) (le1 := le0) (m1 := m) (m2 := m) (le2 := le2)
       (out := Out_return (Some (Vlong (Int64.repr r), tulong)));
-      [apply nd_entry; reflexivity| |cbn; split; [discriminate|reflexivity]|reflexivity].
+      [rewrite He; apply nd_entry; reflexivity| |cbn; split; [discriminate|reflexivity]|rewrite He; reflexivity].
     rewrite nd_body_shape.
     eapply nd_seq; [exact XH|]. eapply nd_seq; [exact HR|].
     eapply nd_seq with (le1 := le2); [eapply nd_seq; [exact HI|exact X2]|].
@@ -940,3 +944,17 @@ Proof.
   exact (nd_loop_bound (Z.to_nat L) 1 0 r ltac:(lia) ltac:(lia) E).
 Qed.
 End CountNullData.
+
+Theorem eval_countNullDataCodes m bsp osp (len : int) bb ob (bs : list int) :
+  0 <= osp /\ osp + 16 <= Ptrofs.max_unsigned ->
+  Mem.load Mint32 m bsp (osp + 8) = Some (Vint len) ->
+  (0 < Int.unsigned len -> Mem.load Mptr m bsp osp = Some (Vptr bb ob)) ->
+  Ptrofs.unsigned ob + Int.unsigned len <= Ptrofs.max_unsigned ->
+  (forall i, 0 <= i < Int.unsigned len ->
+     Mem.load Mint8unsigned m bb (Ptrofs.unsigned ob + i) = Some (Vint (nth (Z.to_nat i) bs Int.zero))) ->
+  Clight2.eval_funcall sha_ge m (Internal f_countNullDataCodes) [Vptr bsp (Ptrofs.repr osp)] E0 m
+    (Vlong (Int64.repr (nd_count len bs))).
+Proof.
+  intros Hosp HLen HBuf HobM HBs.
+  exact (eval_countNullDataCodes_gen empty_env m bsp osp len bb ob bs Hosp HLen HBuf HobM HBs eq_refl).
+Qed.
