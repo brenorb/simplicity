@@ -39,3 +39,12 @@ Main's full Elements-Version acceptance receipt must remain historical to its
 frozen inputs after this additive support import. Do not claim that its earlier
 fingerprint includes newly imported SHA startup sources. The independent SHA
 kernel receipt and source reconciliation are the verification for this batch.
+
+`post-check.py` verifies the exact imported source and proof-object/report
+hashes, checks the terminal Version log, and reconstructs its historical input
+fingerprint by excluding only these thirteen already-verified additions. It
+does not alter the normal audit or claim a new combined full-acceptance run.
+It also checks that the original staged patch is unchanged. Three in-memory
+fixtures (`test-post-check.py`) reject SHA source, production C and registry
+drift. Replay the independent build with `stage.py`, then `check.py --candidate
+DIR`; staging permits existing byte-identical support sources.
