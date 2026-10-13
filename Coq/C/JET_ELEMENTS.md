@@ -236,3 +236,20 @@ the receipt). They are not counted in the table above.
   `el_ready_tapleaf_version`, `el_ready_tappath` (every path length).
 
 Receipt (`f8fa597c`): `bash Coq/audit-elements-env.sh` — generated ports current; no admissions; assumption audit passed: 8 reports within the six inherited assumptions (`eval_sha256_toMidstate`, `ctxo_hash`, `eval_mallocTapEnv`, `elements_tappath_nullable_local_spec`, `el_ready_script_cmr`, `el_ready_internal_key`, `el_ready_tapleaf_version`, `el_ready_tappath`); `coqchk` passed for `C.jet_elements_env_tapenv`, `C.jet_elements_env_tapenv_relations` (with `C.jet_elements_tappath_nullable`) and their dependencies; exit 0; 19 min.
+
+## Elements environment unit: more of the real callers (2026-10-13)
+
+The Elements environment unit (`Coq/C/jets_elements_env.v`) now also
+contains `elements/txEnv.c`; `gen-elements-env-ports.py` additionally ports
+the live-context toolkit (`…_ctxs*`, `…_tx_calls`) and the free functions.
+
+- `jet_elements_env_free.v` (generated): `eval_freeTransaction`, `eval_freeTapEnv`.
+- `jet_elements_env_txenv.v` (hand-written): `eval_build_txEnv` — the real
+  `simplicity_elements_build_txEnv` stores both pointers, a copy of the
+  genesis hash, the index and `sigAllHash` (`el_sigall_regs`: genesis hash
+  twice, transaction hash, taproot environment hash, big-endian index).
+- `jet_elements_env_txenv_relations.v`: `el_ready_genesis_block_hash`,
+  `el_ready_current_index` from that result.
+
+Open for Elements: `simplicity_elements_mallocTransaction` and the links of
+the Elements cached hashes to specification values.
