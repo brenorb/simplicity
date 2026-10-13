@@ -47,6 +47,11 @@ def check():
             raise ValueError('invalid terminal acceptance')
         if sha(Path(receipt['log'])) != receipt['log_sha256']:
             raise ValueError('acceptance log drift')
+        candidate = Path(meta['candidate'])
+        for name, field in [('new_contracts.v', 'new_deep_driver_sha256'),
+                            ('new_contracts.out', 'new_deep_report_sha256')]:
+            if sha(candidate / name) != receipt[field]:
+                raise ValueError('fully expanded nullable record evidence drift')
         text = Path(receipt['log']).read_text()
         if not text.rstrip().endswith('all jet acceptance checks passed (build, kernel, reviewed snapshots, negative tests, four ASTs)'):
             raise ValueError('incomplete acceptance log')
