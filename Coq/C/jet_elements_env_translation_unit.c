@@ -9,3 +9,4 @@
 #include "../../C/sha256.c"
 #include "../../C/elements/ops.c"
 #include "../../C/elements/env.c"
+#include "../../C/elements/txEnv.c"

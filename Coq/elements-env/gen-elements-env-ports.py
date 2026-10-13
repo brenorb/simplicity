@@ -14,11 +14,14 @@ MODULES = ["jet_env_store_words", "jet_bitcoin_env_field_eval", "jet_bitcoin_env
            "jet_bitcoin_env_malloc", "jet_bitcoin_env_ctxo", "jet_bitcoin_env_tapenv_prelude",
            "jet_bitcoin_env_tapenv_key", "jet_bitcoin_env_tapenv_fill", "jet_bitcoin_env_tapenv_cmr",
            "jet_bitcoin_env_tapenv_loop", "jet_bitcoin_env_tapenv_path", "jet_bitcoin_env_tapenv_tail",
-           "jet_bitcoin_env_tapenv", "jet_bitcoin_env_free"]
+           "jet_bitcoin_env_tapenv", "jet_bitcoin_env_free",
+           "jet_bitcoin_env_ctxo_more", "jet_bitcoin_env_ctxs", "jet_bitcoin_env_ctxs_ops",
+           "jet_bitcoin_env_ctxs_calls", "jet_bitcoin_env_ctxs_core", "jet_bitcoin_env_tx_calls"]
 SUBS = [("jet_bitcoin_env_", "jet_elements_env_"),
         ("simplicity_bitcoin_freeTransaction", "simplicity_elements_freeTransaction"),
         ("simplicity_bitcoin_freeTapEnv", "simplicity_elements_freeTapEnv"),
         ("_bitcoinTransaction", "_elementsTransaction"),
+        ("simplicity_bitcoin_mallocTransaction", "simplicity_elements_mallocTransaction"),
         ("C.jet_bitcoin_make_tapleaf_exec", "C.jet_elements_make_tapleaf_exec"),
         ("f_simplicity_bitcoin_mallocTapEnv", "f_simplicity_elements_mallocTapEnv"),
         ("simplicity_bitcoin_mallocTapEnv", "simplicity_elements_mallocTapEnv"),

@@ -461,6 +461,7 @@ Definition _simplicity_divides_16 : ident := $"simplicity_divides_16".
 Definition _simplicity_divides_32 : ident := $"simplicity_divides_32".
 Definition _simplicity_divides_64 : ident := $"simplicity_divides_64".
 Definition _simplicity_divides_8 : ident := $"simplicity_divides_8".
+Definition _simplicity_elements_build_txEnv : ident := $"simplicity_elements_build_txEnv".
 Definition _simplicity_elements_freeTapEnv : ident := $"simplicity_elements_freeTapEnv".
 Definition _simplicity_elements_freeTransaction : ident := $"simplicity_elements_freeTransaction".
 Definition _simplicity_elements_mallocTapEnv : ident := $"simplicity_elements_mallocTapEnv".
@@ -51102,6 +51103,239 @@ Definition f_simplicity_elements_freeTapEnv := {|
   ((Etempvar _env (tptr (Tstruct _elementsTapEnv noattr))) :: nil))
 |}.
 
+Definition f_simplicity_elements_build_txEnv := {|
+  fn_return := tvoid;
+  fn_callconv := {|cc_vararg:=None; cc_unproto:=false; cc_structret:=true|};
+  fn_params := ((__res, (tptr (Tstruct _txEnv noattr))) ::
+                (_tx, (tptr (Tstruct _elementsTransaction noattr))) ::
+                (_taproot, (tptr (Tstruct _elementsTapEnv noattr))) ::
+                (_genesisHash, (tptr (Tstruct _sha256_midstate noattr))) ::
+                (_ix, tulong) :: nil);
+  fn_vars := ((_result, (Tstruct _txEnv noattr)) ::
+              (_ctx, (Tstruct _sha256_context noattr)) ::
+              (__res__1, (Tstruct _sha256_context noattr)) :: nil);
+  fn_temps := nil;
+  fn_body :=
+(Ssequence
+  (Sassign
+    (Efield (Evar _result (Tstruct _txEnv noattr)) _tx
+      (tptr (Tstruct _elementsTransaction noattr)))
+    (Etempvar _tx (tptr (Tstruct _elementsTransaction noattr))))
+  (Ssequence
+    (Sassign
+      (Efield (Evar _result (Tstruct _txEnv noattr)) _taproot
+        (tptr (Tstruct _elementsTapEnv noattr)))
+      (Etempvar _taproot (tptr (Tstruct _elementsTapEnv noattr))))
+    (Ssequence
+      (Sassign
+        (Efield (Evar _result (Tstruct _txEnv noattr)) _genesisHash
+          (Tstruct _sha256_midstate noattr))
+        (Ederef
+          (Etempvar _genesisHash (tptr (Tstruct _sha256_midstate noattr)))
+          (Tstruct _sha256_midstate noattr)))
+      (Ssequence
+        (Sassign
+          (Ederef
+            (Ebinop Oadd
+              (Efield
+                (Efield (Evar _result (Tstruct _txEnv noattr)) _sigAllHash
+                  (Tstruct _sha256_midstate noattr)) _s (tarray tuint 8))
+              (Econst_int (Int.repr 0) tint) (tptr tuint)) tuint)
+          (Econst_int (Int.repr 0) tint))
+        (Ssequence
+          (Sassign
+            (Ederef
+              (Ebinop Oadd
+                (Efield
+                  (Efield (Evar _result (Tstruct _txEnv noattr)) _sigAllHash
+                    (Tstruct _sha256_midstate noattr)) _s (tarray tuint 8))
+                (Econst_int (Int.repr 1) tint) (tptr tuint)) tuint)
+            (Econst_int (Int.repr 0) tint))
+          (Ssequence
+            (Sassign
+              (Ederef
+                (Ebinop Oadd
+                  (Efield
+                    (Efield (Evar _result (Tstruct _txEnv noattr))
+                      _sigAllHash (Tstruct _sha256_midstate noattr)) _s
+                    (tarray tuint 8)) (Econst_int (Int.repr 2) tint)
+                  (tptr tuint)) tuint) (Econst_int (Int.repr 0) tint))
+            (Ssequence
+              (Sassign
+                (Ederef
+                  (Ebinop Oadd
+                    (Efield
+                      (Efield (Evar _result (Tstruct _txEnv noattr))
+                        _sigAllHash (Tstruct _sha256_midstate noattr)) _s
+                      (tarray tuint 8)) (Econst_int (Int.repr 3) tint)
+                    (tptr tuint)) tuint) (Econst_int (Int.repr 0) tint))
+              (Ssequence
+                (Sassign
+                  (Ederef
+                    (Ebinop Oadd
+                      (Efield
+                        (Efield (Evar _result (Tstruct _txEnv noattr))
+                          _sigAllHash (Tstruct _sha256_midstate noattr)) _s
+                        (tarray tuint 8)) (Econst_int (Int.repr 4) tint)
+                      (tptr tuint)) tuint) (Econst_int (Int.repr 0) tint))
+                (Ssequence
+                  (Sassign
+                    (Ederef
+                      (Ebinop Oadd
+                        (Efield
+                          (Efield (Evar _result (Tstruct _txEnv noattr))
+                            _sigAllHash (Tstruct _sha256_midstate noattr)) _s
+                          (tarray tuint 8)) (Econst_int (Int.repr 5) tint)
+                        (tptr tuint)) tuint) (Econst_int (Int.repr 0) tint))
+                  (Ssequence
+                    (Sassign
+                      (Ederef
+                        (Ebinop Oadd
+                          (Efield
+                            (Efield (Evar _result (Tstruct _txEnv noattr))
+                              _sigAllHash (Tstruct _sha256_midstate noattr))
+                            _s (tarray tuint 8))
+                          (Econst_int (Int.repr 6) tint) (tptr tuint)) tuint)
+                      (Econst_int (Int.repr 0) tint))
+                    (Ssequence
+                      (Sassign
+                        (Ederef
+                          (Ebinop Oadd
+                            (Efield
+                              (Efield (Evar _result (Tstruct _txEnv noattr))
+                                _sigAllHash
+                                (Tstruct _sha256_midstate noattr)) _s
+                              (tarray tuint 8))
+                            (Econst_int (Int.repr 7) tint) (tptr tuint))
+                          tuint) (Econst_int (Int.repr 0) tint))
+                      (Ssequence
+                        (Sassign
+                          (Efield (Evar _result (Tstruct _txEnv noattr)) _ix
+                            tulong) (Etempvar _ix tulong))
+                        (Ssequence
+                          (Ssequence
+                            (Scall None
+                              (Evar _sha256_init (Tfunction
+                                                   (Tcons
+                                                     (tptr (Tstruct _sha256_context noattr))
+                                                     (Tcons (tptr tuint)
+                                                       Tnil)) tvoid
+                                                   {|cc_vararg:=None; cc_unproto:=false; cc_structret:=true|}))
+                              ((Eaddrof
+                                 (Evar __res__1 (Tstruct _sha256_context noattr))
+                                 (tptr (Tstruct _sha256_context noattr))) ::
+                               (Efield
+                                 (Efield
+                                   (Evar _result (Tstruct _txEnv noattr))
+                                   _sigAllHash
+                                   (Tstruct _sha256_midstate noattr)) _s
+                                 (tarray tuint 8)) :: nil))
+                            (Sassign
+                              (Evar _ctx (Tstruct _sha256_context noattr))
+                              (Evar __res__1 (Tstruct _sha256_context noattr))))
+                          (Ssequence
+                            (Scall None
+                              (Evar _sha256_hash (Tfunction
+                                                   (Tcons
+                                                     (tptr (Tstruct _sha256_context noattr))
+                                                     (Tcons
+                                                       (tptr (Tstruct _sha256_midstate noattr))
+                                                       Tnil)) tvoid
+                                                   cc_default))
+                              ((Eaddrof
+                                 (Evar _ctx (Tstruct _sha256_context noattr))
+                                 (tptr (Tstruct _sha256_context noattr))) ::
+                               (Etempvar _genesisHash (tptr (Tstruct _sha256_midstate noattr))) ::
+                               nil))
+                            (Ssequence
+                              (Scall None
+                                (Evar _sha256_hash (Tfunction
+                                                     (Tcons
+                                                       (tptr (Tstruct _sha256_context noattr))
+                                                       (Tcons
+                                                         (tptr (Tstruct _sha256_midstate noattr))
+                                                         Tnil)) tvoid
+                                                     cc_default))
+                                ((Eaddrof
+                                   (Evar _ctx (Tstruct _sha256_context noattr))
+                                   (tptr (Tstruct _sha256_context noattr))) ::
+                                 (Etempvar _genesisHash (tptr (Tstruct _sha256_midstate noattr))) ::
+                                 nil))
+                              (Ssequence
+                                (Scall None
+                                  (Evar _sha256_hash (Tfunction
+                                                       (Tcons
+                                                         (tptr (Tstruct _sha256_context noattr))
+                                                         (Tcons
+                                                           (tptr (Tstruct _sha256_midstate noattr))
+                                                           Tnil)) tvoid
+                                                       cc_default))
+                                  ((Eaddrof
+                                     (Evar _ctx (Tstruct _sha256_context noattr))
+                                     (tptr (Tstruct _sha256_context noattr))) ::
+                                   (Eaddrof
+                                     (Efield
+                                       (Ederef
+                                         (Etempvar _tx (tptr (Tstruct _elementsTransaction noattr)))
+                                         (Tstruct _elementsTransaction noattr))
+                                       _txHash
+                                       (Tstruct _sha256_midstate noattr))
+                                     (tptr (Tstruct _sha256_midstate noattr))) ::
+                                   nil))
+                                (Ssequence
+                                  (Scall None
+                                    (Evar _sha256_hash (Tfunction
+                                                         (Tcons
+                                                           (tptr (Tstruct _sha256_context noattr))
+                                                           (Tcons
+                                                             (tptr (Tstruct _sha256_midstate noattr))
+                                                             Tnil)) tvoid
+                                                         cc_default))
+                                    ((Eaddrof
+                                       (Evar _ctx (Tstruct _sha256_context noattr))
+                                       (tptr (Tstruct _sha256_context noattr))) ::
+                                     (Eaddrof
+                                       (Efield
+                                         (Ederef
+                                           (Etempvar _taproot (tptr (Tstruct _elementsTapEnv noattr)))
+                                           (Tstruct _elementsTapEnv noattr))
+                                         _tapEnvHash
+                                         (Tstruct _sha256_midstate noattr))
+                                       (tptr (Tstruct _sha256_midstate noattr))) ::
+                                     nil))
+                                  (Ssequence
+                                    (Scall None
+                                      (Evar _sha256_u32be (Tfunction
+                                                            (Tcons
+                                                              (tptr (Tstruct _sha256_context noattr))
+                                                              (Tcons tulong
+                                                                Tnil)) tbool
+                                                            cc_default))
+                                      ((Eaddrof
+                                         (Evar _ctx (Tstruct _sha256_context noattr))
+                                         (tptr (Tstruct _sha256_context noattr))) ::
+                                       (Etempvar _ix tulong) :: nil))
+                                    (Ssequence
+                                      (Scall None
+                                        (Evar _sha256_finalize (Tfunction
+                                                                 (Tcons
+                                                                   (tptr (Tstruct _sha256_context noattr))
+                                                                   Tnil)
+                                                                 tbool
+                                                                 cc_default))
+                                        ((Eaddrof
+                                           (Evar _ctx (Tstruct _sha256_context noattr))
+                                           (tptr (Tstruct _sha256_context noattr))) ::
+                                         nil))
+                                      (Ssequence
+                                        (Sassign
+                                          (Ederef
+                                            (Etempvar __res (tptr (Tstruct _txEnv noattr)))
+                                            (Tstruct _txEnv noattr))
+                                          (Evar _result (Tstruct _txEnv noattr)))
+                                        (Sreturn None)))))))))))))))))))))
+|}.
+
 Definition composites : list composite_definition :=
 (Composite _bitstring Struct
    (Member_plain _arr (tptr tuchar) :: Member_plain _len tulong ::
@@ -52045,11 +52279,12 @@ Definition global_definitions : list (ident * globdef fundef type) :=
  (_simplicity_elements_freeTransaction, Gfun(Internal f_simplicity_elements_freeTransaction)) ::
  (_simplicity_elements_mallocTapEnv, Gfun(Internal f_simplicity_elements_mallocTapEnv)) ::
  (_simplicity_elements_freeTapEnv, Gfun(Internal f_simplicity_elements_freeTapEnv)) ::
+ (_simplicity_elements_build_txEnv, Gfun(Internal f_simplicity_elements_build_txEnv)) ::
  nil).
 
 Definition public_idents : list ident :=
-(_simplicity_elements_freeTapEnv :: _simplicity_elements_mallocTapEnv ::
- _simplicity_elements_freeTransaction ::
+(_simplicity_elements_build_txEnv :: _simplicity_elements_freeTapEnv ::
+ _simplicity_elements_mallocTapEnv :: _simplicity_elements_freeTransaction ::
  _simplicity_elements_mallocTransaction :: _simplicity_rsort ::
  _simplicity_make_tapbranch :: _simplicity_make_tapleaf ::
  _simplicity_calculateToken :: _simplicity_calculateAsset ::
