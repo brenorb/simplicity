@@ -1,5 +1,10 @@
 # Original lambda jet: full call under initialized global memory
 
+Later checked milestone: `../scalar-lambda-startup` now proves that actual
+`Genv.init_mem jets_secp.prog` succeeds and constructs its initialized lambda
+state. The historical caller receipt below remains unchanged. Fresh caller
+frame construction and normal registration/acceptance are still open.
+
 Root: `LamCallC.jet_secp_scalar_lambda_initialized.eval_secp_scalar_lambda_initialized`.
 This checked result invokes the **original** `f_simplicity_scalar_multiply_lambda`
 and returns the encoded **literal canonical Simplicity** term. It derives actual

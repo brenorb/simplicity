@@ -1,5 +1,10 @@
 # Readonly lambda global and literal specification adapters
 
+Later milestone: `../scalar-lambda-caller` proves the full original jet under
+the explicit initialized-global state and preserves that state. Its kernel
+check is complete; normal registration and initialization/caller construction
+remain open. The helper evidence below is unchanged and remains historical.
+
 Checked helper progress only: **no public lambda equivalence or new coverage**.
 The all-533 goal remains unfinished.
 
