@@ -44,10 +44,10 @@ def no_audit_footer(text):
 
 def module_records(value):
     if isinstance(value, dict):
-        if all(k in value for k in ['file', 'sha256', 'results']) and (
-                'module' in value or isinstance(value.get('name'), str)
-                and value['name'].startswith(PREFIXES)):
-            yield {**value, 'module': value.get('module', value.get('name'))}
+        module = value.get('module', value.get('name'))
+        if (all(k in value for k in ['file', 'sha256', 'results'])
+                and isinstance(module, str) and module.startswith(PREFIXES)):
+            yield {**value, 'module': module}
         else:
             for child in value.values():
                 yield from module_records(child)
