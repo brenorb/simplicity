@@ -45,8 +45,9 @@ def main():
             raise ValueError('startup archive prerequisite drift')
     transported = {n: s.replace('JetStartupReview.', 'C.').replace('JetStartup.', 'C.') for n, s in originals.items()}
     for name, text in transported.items():
-        if (REPO / 'Coq/C' / (name + '.v')).exists():
-            raise ValueError('startup source already exists in main: ' + name)
+        existing = REPO / 'Coq/C' / (name + '.v')
+        if existing.exists() and existing.read_text() != text:
+            raise ValueError('different startup source already exists in main: ' + name)
         code = scanner.code_only(text)
         if re.search(r'\b(?:admit|Admitted|Axiom|Parameter|Conjecture|vm_cast_no_check|native_cast_no_check)\b', code):
             raise ValueError('forbidden proof construct: ' + name)
