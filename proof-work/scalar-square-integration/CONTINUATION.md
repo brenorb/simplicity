@@ -1,4 +1,29 @@
-# Main audit running; continue borrowed-global lambda work
+# Main accepted; continue lambda caller construction and normal integration
+
+## Actual-main terminal acceptance supersedes running notes below
+
+Session **22185** terminated exit 0 (terminal chunk **5fd609**). Actual main
+passed build, all 937 kernel modules, 4,814 result assumptions (2,663 closed),
+reviewed type/definition contracts, negative tests and all four regenerated
+AST comparisons. Frozen fingerprint remains
+`2fd541106f2092a42ca83c65b2bdae777eb6e21ffb40a67ec331e2bb341c6ba0`.
+`MAIN-ACCEPTANCE.json` pins its terminal log hash and post-run checks. Do not
+poll or restart completed handle 22185. `MAIN-INTEGRATION.json` is historical.
+
+Post-run comparison verified 1,157 candidate sources, 311 installed source/gate
+hashes and all 11 metadata/gate updates; 12 original index hashes and the entire
+preexisting staged patch remained unchanged. Main-only work survived. Snapshot
+review/mutations 72240 exited 0; old 7,234 contracts and 4,767 dependencies remain
+unchanged. This accepts the **current worktree**, not a clean commit: preexisting
+staged/unstaged/untracked dependencies are deliberately preserved, not swept
+into integration commits. Scope remains local frames / LP64 / RECKLESS.
+
+Main is now verified **361/533**: 257 without an extra library premise and 104
+explicit memcpy-model entries. Lambda's checked caller/startup archives remain
+unregistered. Finish intended fresh caller-frame construction and the reviewed
+initialized-memory public contract, then normal port/wiring/dependency/acceptance
+and integration. All-533 goal stays active; never conflate this main acceptance
+with full-goal completion or hide the caller's eight inherited dependencies.
 
 ## Current main checkpoint supersedes historical launch notes below
 
