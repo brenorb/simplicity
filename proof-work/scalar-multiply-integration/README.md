@@ -1,5 +1,17 @@
 # Normal scalar-multiply integration candidate
 
+## Full acceptance completed
+
+The complete acceptance run **38093** and post-run review **67725** terminated
+with exit 0. Build, 922-module independent kernel, 4,767 assumption records
+(2,635 closed), reviewed public contracts, negative tests and all four generated
+AST comparisons passed; the fingerprint is unchanged. `ACCEPTANCE.json` pins
+this terminal evidence. Isolated coverage **360/533** is accepted, with 256
+extra-library-premise-free entries and 104 explicitly memcpy_model-conditional
+entries. Main remains separate (351/533); the all-533 goal is unfinished.
+Keep the candidate immutable. The running/provisional statements below are
+historical preparation notes, superseded by this terminal receipt.
+
 The checked public scalar-multiply proof and its selected dependency closure
 now build in the normal `C` namespace. Candidate:
 `/tmp/jet-scalar-multiply-integration.yIS07H/Coq`.
