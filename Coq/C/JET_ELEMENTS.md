@@ -365,6 +365,21 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   the proof.  `pn_iter` and `pn_loop_exec` are the per-iteration and loop
   statements.
 
+- `jet_elements_env_copyout_{defs,calls,stmts}.v` and
+  `jet_elements_env_copyout.v`: `eval_copyOutput` — `copyOutput` fills the
+  248-byte `sigOutput`: script hash, `emptyScript`, asset / amount / nonce
+  (`conf_of`, `amt_prefix`, `amt_at` over optional raw byte strings
+  `rawsrc`), the null-data parse (`co_pnd` over `pn_run`, cursor cells
+  included), `isNullData`, the surjection and range proof hashes (hash of
+  the raw proof exactly when the stored prefix `is_conf`, otherwise the
+  hash of the empty string) and `assetFee = 0`; nothing else changes
+  outside the record, the opcode array and the two cursor cells.  Optional
+  buffers are `bufsrc` (`buf_at`): NULL with length 0 or readable bytes.
+  Input requirements: readability of the raw output, block separation of
+  the record / opcode array / cursor cells / raw data / SHA globals, a
+  weakly valid opcode cursor (the C code compares it with `NULL`),
+  `memcpy_model`.
+
 The three issuance helpers of `elements/ops.c` are thereby proven as C
 functions; relating `entropy_regs`, `calc_asset_regs` and `calc_token_regs`
 to the Elements specification of issuance is not done here.
@@ -406,6 +421,6 @@ modules (now including `C.jet_elements_env_parse`) and their dependencies;
 exit 0; 17 min.
 
 Open for Elements: the rest of `simplicity_elements_mallocTransaction`
-(`copyInput`, `copyOutput`, the external
+(`copyInput`, the external
 `simplicity_rsort`, the main body) and
 the links of the Elements cached hashes to specification values.
