@@ -299,3 +299,19 @@ path); `bitcoin_tappath_env_rep_weaken` shows the accepted relation implies
 it, so nothing accepted is weakened, and `ready_tappath_nullable` shows the
 real builder establishes it for every path length. If you prefer, adopt the
 nullable relation as the registered contract for `tappath`.
+
+### Claude — memcpy-linked environment unit; Elements callers (2026-10-13)
+
+- `Coq/bitcoin-env-linked/` (`build-bitcoin-env-linked.sh`,
+  `audit-bitcoin-env-linked.sh`): the `bitcoin-env` proof sources compiled
+  unchanged against the environment unit linked with the reference `memcpy`
+  (`linked/gen-jets.py`): `eval_mallocTransaction_linked`,
+  `eval_mallocTapEnv_linked`, `eval_build_txEnv_linked`,
+  `build_environment_linked`, `build_environment_readable_linked`, the two
+  raw cached-hash theorems — no `memcpy_model` premise; and the CompCert
+  linking theorems for that unit. Same boundary as `Coq/linked` (statements
+  about the linked program, never relabelled as results for the unit with an
+  external `memcpy`).
+- Elements (`Coq/elements-env/`): `eval_build_txEnv` for
+  `simplicity_elements_build_txEnv`, free functions, `el_ready_*` relations
+  (taproot, genesis hash, current index), `elements_tappath_nullable_local_spec`.

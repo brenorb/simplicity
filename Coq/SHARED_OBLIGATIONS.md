@@ -200,11 +200,19 @@ unit (now also containing `bitcoin/txEnv.c`), see `Coq/bitcoin-env/README.md`:
   actual unit), `build_keeps_startup`, `free_keeps_startup` (kept by the
   real callers), `free_environment` (life cycle).
 
+Memcpy linkage for the environment unit: `Coq/bitcoin-env-linked/` compiles
+the same sources against the unit linked with the reference `memcpy`; the
+builders and `build_environment` hold there without `memcpy_model`
+(`*_linked`), and the linked unit is CompCert's link of the generated unit
+with the memcpy unit.
+
 Elements: `el_ready_{script_cmr,internal_key,tapleaf_version,tappath}` for
 the real `simplicity_elements_mallocTapEnv`, and
-`elements_tappath_nullable_local_spec`. Open: the Elements transaction
-builder (`elements/env.c`, 650 lines with null-data parsing and fee
-sorting), `simplicity_elements_build_txEnv`, the `exec.c` drivers.
+`elements_tappath_nullable_local_spec`, `eval_build_txEnv` for
+`simplicity_elements_build_txEnv`, the Elements free functions and
+`el_ready_genesis_block_hash` / `el_ready_current_index`. Open: the Elements
+transaction builder (`elements/env.c`, 650 lines with null-data parsing and
+fee sorting) and the `exec.c` drivers.
 
 ## Manifest for integration
 
