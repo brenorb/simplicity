@@ -349,3 +349,9 @@ nullable relation as the registered contract for `tappath`.
   discharged — `C/rsort.c` is unverified). Issuance helpers of
   `elements/ops.c` are proven: `eval_calculateAsset`, `eval_calculateToken`,
   `eval_generateIssuanceEntropy`.
+- `eval_parseNullData` (`Coq/elements-env/C/jet_elements_env_parse*.v`):
+  `parseNullData` against a functional parser `pn_run` (entries = code and
+  SHA-256 words of pushed data; cursor/length updates of the caller's
+  opcode allocation). `copyOutput` is in progress
+  (`jet_elements_env_copyout_*.v`); `copyInput`, `rsort` and the main body
+  of `simplicity_elements_mallocTransaction` remain.
