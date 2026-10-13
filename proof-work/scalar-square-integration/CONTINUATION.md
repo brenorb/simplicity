@@ -1,4 +1,29 @@
-# Finish square acceptance, then reconcile cumulative main work
+# Main audit running; continue borrowed-global lambda work
+
+## Current main checkpoint supersedes historical launch notes below
+
+The preservation-safe application completed (70639, exit 0): 285 new proof
+sources, 26 gate assets and 11 reviewed metadata/gate updates. All 873 existing
+sources stayed byte-identical, including main-only work; the entire preexisting
+staged patch remained `f2083389e06d3a5aed12c83d0aae554895eab94eef8e107c5d445f9268d86bbe`.
+New sources/gates are signed local commit `e73665a1`; existing metadata changes
+remain unstaged relative to the preserved user index. No blanket commit occurred.
+
+**Actual-main full acceptance is running as 22185**, not yet accepted. Poll
+that handle; do not restart or edit main Coq/C/Haskell audit inputs. Log:
+`/tmp/jet-square-main-audit.BLWJ4e/full-acceptance.log`; frozen fingerprint
+`2fd541106f2092a42ca83c65b2bdae777eb6e21ffb40a67ec331e2bb341c6ba0`.
+`MAIN-INTEGRATION.json` records the launch, not success. Main registry is now
+361/533 (257 without an extra library premise, 104 conditional on memcpy_model).
+Wait for terminal exit and all gates before claiming main acceptance.
+
+Borrowed-rhs full internal scalar_mul call is separately kernel-checked and
+signed as `1538369b`, in `../scalar-mul-borrowed-function`: 3 modules / 7 results /
+2 definitions, actual entry/allocation/free and post-free output loads. Public
+lambda equivalence remains open. Its global initialization experiment stays
+outside audited main in `/tmp/jet-scalar-lambda-global.qHkGK8` (LambdaC).
+See the borrowed-function guide; do not assume global initialization, helper
+execution, output or free as new public premises.
 
 ## Terminal success supersedes historical launch notes
 
