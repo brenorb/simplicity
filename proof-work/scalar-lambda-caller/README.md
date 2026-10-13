@@ -5,6 +5,10 @@ Later checked milestone: `../scalar-lambda-startup` now proves that actual
 state. The historical caller receipt below remains unchanged. Fresh caller
 frame construction and normal registration/acceptance are still open.
 
+Main audit 22185 has since terminated exit 0. The integrated current main
+worktree is accepted at 361/533; `../scalar-square-integration/MAIN-ACCEPTANCE.json`
+supersedes the older running-audit notes below. Do not poll/restart that handle.
+
 Root: `LamCallC.jet_secp_scalar_lambda_initialized.eval_secp_scalar_lambda_initialized`.
 This checked result invokes the **original** `f_simplicity_scalar_multiply_lambda`
 and returns the encoded **literal canonical Simplicity** term. It derives actual

@@ -1,5 +1,11 @@
 # Actual secp startup exists
 
+Main audit 22185 is now terminal exit 0: the integrated current worktree passed
+all acceptance gates at 361/533. See
+`../scalar-square-integration/MAIN-ACCEPTANCE.json`; this supersedes historical
+running-audit notes below. Lambda itself still awaits caller-frame construction
+and normal registration/acceptance. Do not poll/restart the completed audit.
+
 `LamInitC.jet_secp_scalar_lambda_init_exists.scalar_lambda_initialized_memory_exists`
 constructs a witness for **actual** `Genv.init_mem jets_secp.prog = Some m`
 whose memory satisfies the initialized readonly lambda representation used
