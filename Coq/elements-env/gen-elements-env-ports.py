@@ -16,7 +16,8 @@ MODULES = ["jet_env_store_words", "jet_bitcoin_env_field_eval", "jet_bitcoin_env
            "jet_bitcoin_env_tapenv_loop", "jet_bitcoin_env_tapenv_path", "jet_bitcoin_env_tapenv_tail",
            "jet_bitcoin_env_tapenv", "jet_bitcoin_env_free",
            "jet_bitcoin_env_ctxo_more", "jet_bitcoin_env_ctxs", "jet_bitcoin_env_ctxs_ops",
-           "jet_bitcoin_env_ctxs_calls", "jet_bitcoin_env_ctxs_core", "jet_bitcoin_env_tx_calls"]
+           "jet_bitcoin_env_ctxs_calls", "jet_bitcoin_env_ctxs_core", "jet_bitcoin_env_tx_calls",
+           "jet_bitcoin_env_hashbuffer", "jet_bitcoin_env_bytestring"]
 SUBS = [("jet_bitcoin_env_", "jet_elements_env_"),
         ("simplicity_bitcoin_freeTransaction", "simplicity_elements_freeTransaction"),
         ("simplicity_bitcoin_freeTapEnv", "simplicity_elements_freeTapEnv"),
