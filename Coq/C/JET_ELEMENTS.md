@@ -310,6 +310,14 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   absorbs `amt_bytes` (0x01 and the big-endian explicit amount, or
   0x08/0x09 and the commitment); the prefix NONE, which the C code marks
   unreachable, is excluded by the premise.
+- `jet_elements_env_calc.v`: `eval_calculateAsset` —
+  `simplicity_calculateAsset` stores at the result pointer
+  `calc_asset_regs ent`, the SHA-256 compression of `ent ++ 0^8` from the
+  initial state (stack block zero-filled, `memcpy` of the entropy under
+  `memcpy_model`, `sha256_iv`, compression through the dispatch pointer
+  under `sha_dispatch_ok`, struct return through the hidden pointer).
+  `calc_prefix_exec` and `calc_tail_exec` are shared with
+  `simplicity_calculateToken`.
 
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of
