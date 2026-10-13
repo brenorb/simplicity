@@ -43,6 +43,10 @@ through `apply_patch`; generation/review does not accept it.
 `check-jets.sh --accept` passes without update/no-build flags. Main remains
 separate at 351/533 at the last exact comparison.
 
+The complete acceptance gate has been launched and verified live as session
+**41316**. `AUDIT-RUN.json` is a launch record, not terminal success. Poll that
+same handle and keep its inputs frozen; do not restart on observation timeout.
+
 Frozen preacceptance input:
 `7522998e48f1441831821609af464ac2942a5424179077af9ea81ee0a1501176`.
 Do not change candidate sources, manifests, scripts, registries, snapshots or
