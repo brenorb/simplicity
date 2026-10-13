@@ -45,6 +45,14 @@ previous main plan had no source conflicts, but its counts are historical;
 square adds 15 more sources, not permission for wholesale checkout replacement.
 Review overlaps before applying and fully verify the resulting main tree.
 
+`plan-main.py`, `MAIN-PLAN-SUMMARY.json` and `MAIN-RECONCILIATION.md` now record
+an exact read-only checkpoint: 285 new sources, 26 new gate assets, no source
+conflicts, old rows/contracts/dependencies unchanged, and all four gate diffs
+reviewed as preserving existing code. Separate index/worktree hashes and the
+whole staged-patch hash are pinned. The full JSON report is in a dedicated
+temporary directory; recompute before applying. `test-plan.py` rejects 15 unsafe
+proposals without touching main or audit inputs.
+
 No new speculative proof is needed for square. After integration, choose the
 next easiest remaining actual C jet, reusing the checked infrastructure.
 Keep remaining library linkage, environment/evaluator/general-frame/configuration
