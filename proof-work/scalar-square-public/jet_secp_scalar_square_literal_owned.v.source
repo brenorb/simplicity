@@ -1,0 +1,45 @@
+(** Original shared-input function produces the literal square writer state.
+    The reader equality is an intermediate premise, discharged by its caller. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Alg Simplicity.Word.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_sx_mem
+  C.jet_secp_linkage C.jets_secp C.jet_secp_canonical_scalar
+  C.jet_secp_scalar_get_b32_numeric C.jet_secp_scalar_writer_run
+  C.jet_secp_scalar_mul512_low C.jet_secp_scalar_mul_caller_observed
+  C.jet_secp_scalar_mul_writer_bridge.
+Require Import SqrC.jet_secp_scalar_square512_product
+  SqrFC.jet_secp_scalar_square_caller_alloc SqrFC.jet_secp_scalar_square_caller_function
+  SqrFC.jet_secp_scalar_square_caller_observed SqLitC.jet_secp_canonical_scalar_square.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque scalar_mul_caller_words C.jet_secp_scalar_mul_caller_function.scalar_mul_caller_output.
+
+Theorem eval_scalar_square_literal_owned rho beta m (value : Ty.tySem (Word 8)) :
+  rep rho beta scalar_square_caller_inputs m ->
+  scalar_mul512_input_value rho 0 =
+    @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value) ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 0) (Ptrofs.repr (bas beta 0))] E0 mf Vundef /\
+    rep (scalar_limb_rho (@toZ (WordToZ 8)
+      (@canonical_scalar_square Alg.CoreFunSem value)))
+      [(blk beta 0,bas beta 0)] scalar_writer_initial_regs mf /\
+    Mem.range_perm mf (blk beta 0) 0 32 Cur Freeable /\
+    lframe (fun block ofs => ~ foot beta (map rshape scalar_square_caller_inputs) block ofs) m mf.
+Proof.
+  intros HR HA.
+  destruct (eval_scalar_square_caller_inplace_observed rho beta m HR)
+    as (mf & HC & HL & HV & HP & HF).
+  pose proof (scalar_writer_initial_rep_from_mul (square512_rho rho) beta mf HP HL) as HW.
+  rewrite HA,canonical_scalar_square_normalized_value in HV.
+  change (C.jet_secp_scalar_mul512_accumulate.column_words_value
+    (scalar_mul_caller_words (square512_rho rho)) =
+    @toZ (WordToZ 8) (@canonical_scalar_square Alg.CoreFunSem value)) in HV.
+  rewrite HV in HW.
+  destruct (scalar_mul_output_owned (square512_rho rho) beta mf HP) as (_ & HO).
+  exists mf; exact (conj HC (conj HW (conj HO HF))).
+Qed.
