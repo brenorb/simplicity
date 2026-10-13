@@ -1,5 +1,15 @@
 # Continue square through the real function and public boundary
 
+## Verified function boundary supersedes the earlier next-step list
+
+`../scalar-square-function` now independently kernel-checks the complete
+original `scalar_mul(a,a,a)` function: real allocation, entry, both calls,
+void return, free and four actual post-free scalar loads. Its three modules /
+nine results passed fresh compilation and exact contract/dependency review.
+Do not redo items 1-4 of the historical list below. Continue with the public
+single-reader/writer square wrapper using that archive's `CONTINUATION.md`.
+No public square equivalence or new jet coverage is claimed yet.
+
 Last verified declaration:
 `SqrC.jet_secp_scalar_square_body.exec_scalar_square_body_inplace`.
 The five modules / 22 results and full reports are independently kernel-checked.
