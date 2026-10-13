@@ -19,17 +19,19 @@ bash build-elements-env.sh ${JOBS:--j4}
 {
   echo "Require C.jet_elements_env_tapenv C.jet_elements_env_tomidstate C.jet_elements_env_ctxo."
   echo "Require C.jet_elements_env_tapenv_relations C.jet_elements_tappath_nullable."
+  echo "Require C.jet_elements_env_free."
   for r in jet_elements_env_tomidstate.eval_sha256_toMidstate jet_elements_env_ctxo.ctxo_hash jet_elements_env_tapenv.eval_mallocTapEnv \
       jet_elements_tappath_nullable.elements_tappath_nullable_local_spec \
       jet_elements_env_tapenv_relations.el_ready_script_cmr jet_elements_env_tapenv_relations.el_ready_internal_key \
-      jet_elements_env_tapenv_relations.el_ready_tapleaf_version jet_elements_env_tapenv_relations.el_ready_tappath; do
+      jet_elements_env_tapenv_relations.el_ready_tapleaf_version jet_elements_env_tapenv_relations.el_ready_tappath \
+      jet_elements_env_free.eval_freeTransaction jet_elements_env_free.eval_freeTapEnv; do
     printf 'Goal True. idtac "@@ %s". Abort.\nPrint Assumptions C.%s.\n' "${r#*.}" "$r"
   done
 } > "$tmp/audit.v"
 cd "$root/elements-env/tree"
 ulimit -s 65520 2>/dev/null || true
 bash build-jets.sh --coqc -Q "$tmp" ElementsEnvAudit "$tmp/audit.v" > "$tmp/audit.log" 2>&1
-python3 "$root/elements-sha/audit.py" "$tmp/audit.log" 8
-bash build-jets.sh --coqchk -silent -o C.jet_elements_env_tapenv C.jet_elements_env_tapenv_relations > "$tmp/coqchk.log" 2>&1
-echo "coqchk passed for C.jet_elements_env_tapenv, C.jet_elements_env_tapenv_relations (with C.jet_elements_tappath_nullable) and their dependencies"
+python3 "$root/elements-sha/audit.py" "$tmp/audit.log" 10
+bash build-jets.sh --coqchk -silent -o C.jet_elements_env_tapenv C.jet_elements_env_tapenv_relations C.jet_elements_env_free > "$tmp/coqchk.log" 2>&1
+echo "coqchk passed for C.jet_elements_env_tapenv, C.jet_elements_env_tapenv_relations (with C.jet_elements_tappath_nullable), C.jet_elements_env_free and their dependencies"
 echo "logs: $tmp"
