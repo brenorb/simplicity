@@ -223,7 +223,14 @@ def verify():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--build', action='store_true')
-    if parser.parse_args().build:
+    parser.add_argument('--batch', type=Path, help='another reviewed batch directory with its own manifest and receipt')
+    args = parser.parse_args()
+    if args.batch:
+        HERE = args.batch.resolve()
+        if HERE.parent != REPO / 'proof-work':
+            parser.error('batch must be an immediate proof-work directory')
+        MANIFEST = json.loads((HERE / 'manifest.json').read_text())
+    if args.build:
         build()
     else:
         verify()
