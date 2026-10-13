@@ -277,6 +277,15 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
 - `jet_elements_env_countfee.v`: `eval_countFeeOutputs` — the loop returns
   `fee_count`, the number of fee outputs.
 
+- `jet_elements_env_nulldata_count.v`: `eval_countNullDataCodes` — the
+  script scan returns `nd_count`, a functional scanner over the script
+  bytes (`nd_skip` decodes the push length, `nd_op` one operation,
+  `nd_loop` the scan); every early `return 0` of the C code is a `None` of
+  the scanner. `nd_count_bound`.
+- `jet_elements_env_nulldata_total.v`: `eval_countTotalNullDataCodes` — the
+  loop over the outputs returns `nd_total`, the size of the opcode
+  allocation of the builder.
+
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of
 `simplicity_elements_mallocTransaction` supplies); nothing about the built
@@ -296,6 +305,7 @@ dependencies; exit 0; 20 min.  (An earlier run at `4bf3bbdf` passed with 11
 reports, exit 0, 31 min.)
 
 Open for Elements: the rest of `simplicity_elements_mallocTransaction`
-(`copyInput` with the issuance computations of `elements/ops.c`, null-data
-parsing, `copyOutput`, `sumFees`, the main body) and the links of the
-Elements cached hashes to specification values.
+(`copyInput` with the issuance computations of `elements/ops.c`,
+`parseNullData`, `copyOutput`, `sumFees` — which needs `memcmp_model`,
+`C/jet_memcmp_model.v` — the external `simplicity_rsort`, the main body) and
+the links of the Elements cached hashes to specification values.
