@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Preparatory generation tool; Elements has no accepted proof chain yet.
+# Generation alone does not establish proof acceptance or Elements coverage.
 # Same pinned target and PRODUCTION configuration as the core jet artifact.
 : "${COMPCERT:?Set COMPCERT to the built CompCert 3.14 source directory}"
 : "${JET_SYSROOT:?Set JET_SYSROOT to an extracted amd64 libc6-dev sysroot}"
