@@ -343,6 +343,10 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   reaches for the zero `rawElementsBuffer` hashed in place of an absent
   proof.
 
+- `jet_elements_env_hashbuffer_empty.v`: `eval_hashBuffer_empty` —
+  `hashBuffer` on the zero buffer yields `hash_buffer_regs []` (the state
+  of the empty string).
+
 The three issuance helpers of `elements/ops.c` are thereby proven as C
 functions; relating `entropy_regs`, `calc_asset_regs` and `calc_token_regs`
 to the Elements specification of issuance is not done here.
