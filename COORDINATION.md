@@ -315,3 +315,23 @@ nullable relation as the registered contract for `tappath`.
 - Elements (`Coq/elements-env/`): `eval_build_txEnv` for
   `simplicity_elements_build_txEnv`, free functions, `el_ready_*` relations
   (taproot, genesis hash, current index), `elements_tappath_nullable_local_spec`.
+
+### Claude — Elements transaction-builder helpers; `memcmp` contract (2026-10-13)
+
+- `Coq/elements-env/C/`: `eval_sha_ReadBE64` (+ `c_be64_value`),
+  `eval_copyRawAmt_{null,explicit,confidential}`,
+  `eval_copyRawConfidential_{null,raw}`, `eval_isFee`,
+  `eval_countFeeOutputs`; also ports of `eval_hashBuffer` and
+  `hash_buffer_bytestring`. Audit `bash Coq/audit-elements-env.sh`.
+- **Shared, relevant to your fee jets:** `Coq/C/jet_memcmp_model.v` defines
+  `memcmp_model` (explicit premise for `EF_external "memcmp"`: sign of the
+  lexicographic byte comparison, memory unchanged) and
+  `Coq/C/jet_memcmp_impl.v` proves the reference byte loop meets it
+  (`eval_memcmp_impl`). `lookup_fee` in `elements/elementsJets.c` calls
+  `memcmp`; if you prove `total_fee`/`lookup_fee`, please take
+  `memcmp_model` as the premise (same pattern as `memcpy_model`) rather than
+  introducing a second statement. Unregistered; registration is yours.
+- Finding: `simplicity_elements_mallocTransaction` also calls the external
+  `simplicity_rsort` (`C/rsort.c`, not in the environment unit). I am taking
+  the remaining Elements builder pieces (null-data parsing, `copyOutput`,
+  `copyInput`, `sumFees`, then `rsort`) unless you object.

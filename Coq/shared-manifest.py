@@ -17,6 +17,7 @@ GROUPS = [  # first match wins
     (r"^Coq/C/jets_(bitcoin|elements)_env\.v$", "environment-programs", "bash Coq/C/regenerate-bitcoin-env.sh; bash Coq/C/regenerate-elements-env.sh (clightgen output)"),
     (r"^Coq/forward/", "forward", "bash Coq/build-elements-forward.sh --check"),
     (r"^Coq/C/(jet_)?memcpy", "memcpy", "bash Coq/build-jets.sh --coqchk -silent -o C.jet_memcpy_exact C.jet_memcpy_impl C.jet_memcpy_model_consistent"),
+    (r"^Coq/C/(jet_)?memcmp", "memcmp", "bash Coq/build-jets.sh --coqchk -silent -o C.jet_memcmp_impl C.jet_memcmp_model"),
     (r"^Coq/C/jets_elements\.v$", "elements-program", "bash Coq/C/regenerate-elements-jets.sh (clightgen output)"),
     (r"^Coq/C/jet_elements_", "elements", "bash Coq/build-jets.sh --coqchk -silent -o C.jet_elements_runs_everywhere C.jet_elements_runs_everywhere_rest"),
     (r"^Coq/C/jet_bitcoin_env_constructible", "bitcoin-environments", "bash Coq/build-jets.sh --coqchk -silent -o C.jet_bitcoin_env_constructible_raw C.jet_bitcoin_env_constructible_distance C.jet_bitcoin_env_constructible_indexed"),

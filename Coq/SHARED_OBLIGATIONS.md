@@ -74,6 +74,40 @@ Verify: `bash Coq/build-jets.sh --coqchk -silent -o
 C.jet_frame_constructible_context C.jet_frame_executable_registry
 C.jet_frame_constructible_bm` (after building the registered core modules).
 
+## 1b. `memcmp`: explicit contract and a reference implementation
+
+`memcmp` is the second libc function the proved code reaches: `sumFees`
+(`elements/env.c`, inside `simplicity_elements_mallocTransaction`),
+`lookup_fee` (`elements/elementsJets.c`, the fee jets) and both `exec.c`
+drivers call it, and the generated programs declare it as
+`EF_external "memcmp"`.
+
+- `C/jet_memcmp_model.v`: `memcmp_model`, the C-standard contract as an
+  explicit premise (two readable ranges of initialized bytes `bytes_at`; no
+  memory effect, no event; the *sign* of the result, `memcmp_sign`, is the
+  lexicographic comparison `bytes_cmp` of the ranges as unsigned bytes),
+  with the order facts callers need (`bytes_cmp_refl`, `bytes_cmp_eq`,
+  `bytes_cmp_antisym`, `bytes_cmp_trans`, `memcmp_sign_zero`).
+- `C/jet_memcmp_impl.c` → `C/memcmp_impl.v` (clightgen) and
+  `C/jet_memcmp_impl.v`: `eval_memcmp_impl` — the reference byte loop, run
+  as an internal Clight function in any global environment, leaves memory
+  unchanged, emits no event and returns `memcmp_ret (bytes_cmp l1 l2)`
+  (-1, 0 or 1); `eval_memcmp_impl_sign` restates it in the shape of the
+  model.
+
+No accepted theorem depends on `memcmp_model` yet; consumers should take it
+as a premise exactly like `memcpy_model`, and a linked unit can discharge it
+with `eval_memcmp_impl` the way `Coq/linked` does for `memcpy`.  The
+remaining external of the Elements transaction builder is
+`simplicity_rsort` (defined in `C/rsort.c`, which also calls `memset`): it
+has to be added to the unit and proved, or stated as a premise.
+
+Receipt (working tree of the commit that adds them): `Print Assumptions`
+for `eval_memcmp_impl`, `eval_memcmp_impl_sign` — the six inherited
+assumptions; `bytes_cmp_trans`, `bytes_cmp_eq` — closed;
+`bash Coq/build-jets.sh --coqchk -silent -o C.jet_memcmp_impl C.jet_memcmp_model`
+passed.
+
 ## Open items (unclaimed unless noted in `../COORDINATION.md`)
 
 1. Environment relations: stability and executability are done
