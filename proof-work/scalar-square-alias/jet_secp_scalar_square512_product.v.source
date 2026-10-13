@@ -1,0 +1,71 @@
+(** Machine product observation for the real shared-input C call. *)
+From Coq Require Import ZArith List.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values
+  Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_sx_mem
+  C.jet_sx_eval C.jet_secp_linkage C.jets_secp
+  C.jet_secp_scalar_mul512_run C.jet_secp_scalar_mul512_machine
+  C.jet_secp_scalar_mul512_owned_product C.jet_secp_scalar_mul512_product
+  C.jet_secp_scalar_mul512_accumulate C.jet_secp_scalar_mul512_low
+  C.jet_secp_symbolic_substitution.
+Require Import SqrC.jet_sx_rename SqrC.jet_secp_scalar_square512_run.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition square512_rho (rho : nat -> int64) := fun n => rho (square512_rename n).
+Definition scalar_square512_machine_outputs rho := scalar_mul512_machine_outputs (square512_rho rho).
+Lemma square512_input_zero rho : scalar_mul512_input_value (square512_rho rho) 0 =
+  scalar_mul512_input_value rho 0.
+Proof. reflexivity. Qed.
+Lemma square512_input_four rho : scalar_mul512_input_value (square512_rho rho) 4 =
+  scalar_mul512_input_value rho 0.
+Proof. reflexivity. Qed.
+Lemma scalar_square512_machine_length rho : length (scalar_square512_machine_outputs rho) = 8%nat.
+Proof. reflexivity. Qed.
+Lemma scalar_square512_machine_product rho :
+  column_words_value (scalar_square512_machine_outputs rho) =
+    scalar_mul512_input_value rho 0 * scalar_mul512_input_value rho 0.
+Proof.
+  unfold scalar_square512_machine_outputs.
+  rewrite scalar_mul512_machine_product, square512_input_zero, square512_input_four; reflexivity.
+Qed.
+Lemma scalar_square512_machine_cell rho beta i x :
+  nth_error (scalar_square512_machine_outputs rho) i = Some x ->
+  exists sy, In (mkcell (8 * Z.of_nat i) Mint64 (Some sy)) (u64_cells 0 scalar_square512_limbs) /\
+    den rho beta sy = Vlong x.
+Proof.
+  intro HX.
+  destruct (scalar_mul512_machine_cell (square512_rho rho) beta i x HX) as (sy & HC & HD).
+  exists (sx_rename square512_rename sy); split.
+  - unfold scalar_square512_limbs; rewrite <- u64_cells_rename.
+    change (In (cell_subst (fun n => XLv (square512_rename n))
+      (mkcell (8 * Z.of_nat i) Mint64 (Some sy)))
+      (map (cell_subst (fun n => XLv (square512_rename n))) (u64_cells 0 scalar_mul512_limbs))).
+    apply in_map; exact HC.
+  - rewrite den_sx_rename; exact HD.
+Qed.
+Theorem eval_scalar_square512_fresh_product rho beta m :
+  rep rho beta scalar_square512_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul_512)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef /\
+    (forall i x, nth_error (scalar_square512_machine_outputs rho) i = Some x ->
+      Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 8 * Z.of_nat i) = Some (Vlong x)) /\
+    length (scalar_square512_machine_outputs rho) = 8%nat /\
+    column_words_value (scalar_square512_machine_outputs rho) =
+      scalar_mul512_input_value rho 0 * scalar_mul512_input_value rho 0 /\
+    rep rho beta scalar_square512_output_regs mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape scalar_square512_regs) b ofs) m mf.
+Proof.
+  intro HR; destruct (eval_scalar_square512_fresh rho beta m HR) as (mf & HC & Hrep & HF).
+  pose proof (rep_region rho beta _ mf 0 _ Hrep eq_refl) as Hregion.
+  exists mf; split; [exact HC|]. split.
+  - intros i x HX.
+    destruct (scalar_square512_machine_cell rho (lay beta) i x HX) as (sy & Hcell & Hden).
+    rewrite <- Hden; exact (region_load rho beta mf 0 _ (8 * Z.of_nat i) Mint64 sy Hregion Hcell).
+  - split; [apply scalar_square512_machine_length|].
+    split; [apply scalar_square512_machine_product|exact (conj Hrep HF)].
+Qed.
