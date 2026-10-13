@@ -337,6 +337,12 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   layer, `memcpy` under `memcpy_model`, then the tail shared with
   `calculateAsset`).
 
+- `jet_elements_env_uchars_null.v`: `eval_sha256_uchars_null` and
+  `ctxo_uchars_null` — `sha256_uchars(ctx, NULL, 0)`, the case the accepted
+  `eval_sha256_uchars` (non-null array) leaves out and that `hashBuffer`
+  reaches for the zero `rawElementsBuffer` hashed in place of an absent
+  proof.
+
 The three issuance helpers of `elements/ops.c` are thereby proven as C
 functions; relating `entropy_regs`, `calc_asset_regs` and `calc_token_regs`
 to the Elements specification of issuance is not done here.
