@@ -3,8 +3,11 @@
 Main audit 22185 is now terminal exit 0: the integrated current worktree passed
 all acceptance gates at 361/533. See
 `../scalar-square-integration/MAIN-ACCEPTANCE.json`; this supersedes historical
-running-audit notes below. Lambda itself still awaits caller-frame construction
-and normal registration/acceptance. Do not poll/restart the completed audit.
+running-audit notes below. Later milestone `../scalar-lambda-frames` proves
+fresh frames and an initialized-memory public contract; signed commit
+`62d0976d` records those checks. Normal integration is being reviewed in
+`../scalar-lambda-integration`; full acceptance remains open.
+Do not poll/restart the completed main audit.
 
 `LamInitC.jet_secp_scalar_lambda_init_exists.scalar_lambda_initialized_memory_exists`
 constructs a witness for **actual** `Genv.init_mem jets_secp.prog = Some m`
@@ -50,14 +53,13 @@ The parent full original lambda proof is `../scalar-lambda-caller`, signed
 locally at `4f706818`; it preserves its initialized global state. Historical
 parent receipts correctly do not claim this later initializer result.
 
-Next establish the intended caller's fresh input/output/source frames for each
-input starting from this actual initialized memory, retaining readonly state.
-Then review the initialized-memory public interface, normal namespace port,
-source wiring and exact dependency sets, and run full normal acceptance.
+Fresh input/output/source frames for every input and initialized-state
+preservation are now checked in `../scalar-lambda-frames`. This is a logical
+CompCert memory construction, not the C evaluator's setup routine. Next finish
+normal integration and full acceptance in `../scalar-lambda-integration`.
 The generic framing root uses eight already-allowlisted Coq/CompCert parameters;
 do not misreport it as the startup witness's four or the older helper's six.
 
-Keep main frozen while audit 22185 is live. Its latest observed gate is the
-assumption audit, after 937 kernel modules passed. Main coverage stays 361/533,
-with 104 explicit memcpy-model entries, until separately verified integration.
+Main audit 22185 is terminal exit 0. Main coverage stays 361/533, with 104
+explicit memcpy-model entries, until separately verified lambda integration.
 The all-533 goal remains active. Signed atomic local commits; never push.
