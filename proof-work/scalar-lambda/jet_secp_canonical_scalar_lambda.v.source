@@ -1,0 +1,75 @@
+(** Literal pinned scalar_lambda / scalar_multiply_lambda programs.
+    Numeric lemmas only bridge the checked C representation to those terms. *)
+From Coq Require Import ZArith Lia.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Alg.
+Require Import C.jet_toZ C.jet_predicate_spec C.jet_secp_canonical_scalar
+  C.jet_secp_canonical_scalar_negate C.jet_secp_canonical_scalar_negate_parametric
+  C.jet_secp_scalar_mul_literal_numeric.
+Require Import LambdaC.jet_secp_scalar_lambda_global.
+Local Open Scope Z_scope.
+Local Open Scope term_scope.
+Set Default Timeout 10.
+
+Definition canonical_lambda_word : Ty.tySem (Word 8) :=
+  @fromZ (WordToZ 8) canonical_lambda_value.
+Definition canonical_scalar_lambda {term : Alg.Core.Algebra} : term Ty.Unit (Word 8) :=
+  Alg.scribe canonical_lambda_word.
+Definition canonical_scalar_multiply_lambda {term : Alg.Core.Algebra} : term (Word 8) (Word 8) :=
+  (unit >>> @canonical_scalar_lambda term) &&& iden >>> @canonical_scalar_multiply term.
+
+Lemma canonical_lambda_value_range :
+  0 <= canonical_lambda_value < canonical_group_order /\ canonical_group_order < word_modulus 8.
+Proof. vm_compute; repeat split; discriminate. Qed.
+Lemma canonical_lambda_word_value :
+  @toZ (WordToZ 8) canonical_lambda_word = canonical_lambda_value.
+Proof.
+  unfold canonical_lambda_word; rewrite to_fromZ; apply Z.mod_small.
+  change (0 <= canonical_lambda_value < word_modulus 8).
+  pose proof canonical_lambda_value_range; lia.
+Qed.
+Lemma canonical_scalar_lambda_parametric : Alg.Core.Parametric (@canonical_scalar_lambda).
+Proof. intros term1 term2 R; unfold canonical_scalar_lambda; apply Alg.scribe_Parametric. Qed.
+Lemma canonical_scalar_multiply_lambda_parametric :
+  Alg.Core.Parametric (@canonical_scalar_multiply_lambda).
+Proof.
+  intros term1 term2 R; unfold canonical_scalar_multiply_lambda.
+  apply Alg.comp_Parametric.
+  - apply Alg.pair_Parametric; [|apply Alg.iden_Parametric].
+    apply Alg.comp_Parametric; [apply Alg.unit_Parametric|apply canonical_scalar_lambda_parametric].
+  - apply canonical_scalar_multiply_parametric.
+Qed.
+Local Opaque canonical_scalar_multiply canonical_lambda_word.
+
+Lemma canonical_scalar_multiply_lambda_step (value : Ty.tySem (Word 8)) :
+  @canonical_scalar_multiply_lambda Alg.CoreFunSem value =
+    @canonical_scalar_multiply Alg.CoreFunSem (canonical_lambda_word,value).
+Proof.
+  change (@canonical_scalar_multiply Alg.CoreFunSem
+    (@Alg.scribe Ty.Unit (Word 8) canonical_lambda_word Alg.CoreFunSem tt,value) =
+    @canonical_scalar_multiply Alg.CoreFunSem (canonical_lambda_word,value)).
+  rewrite Alg.scribe_correct; reflexivity.
+Qed.
+Lemma canonical_scalar_multiply_lambda_numeric (value : Ty.tySem (Word 8)) :
+  @toZ (WordToZ 8) (@canonical_scalar_multiply_lambda Alg.CoreFunSem value) =
+    (canonical_lambda_value * @toZ (WordToZ 8) value) mod canonical_group_order.
+Proof.
+  rewrite canonical_scalar_multiply_lambda_step,canonical_scalar_multiply_numeric,
+    canonical_lambda_word_value; reflexivity.
+Qed.
+Lemma canonical_scalar_lambda_normalized_value :
+  @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem canonical_lambda_word) =
+    canonical_lambda_value.
+Proof.
+  rewrite canonical_scalar_normalize_numeric,canonical_lambda_word_value.
+  apply Z.mod_small; exact (proj1 canonical_lambda_value_range).
+Qed.
+Lemma canonical_scalar_multiply_lambda_c_order (value : Ty.tySem (Word 8)) :
+  (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value) * canonical_lambda_value)
+    mod canonical_group_order =
+  @toZ (WordToZ 8) (@canonical_scalar_multiply_lambda Alg.CoreFunSem value).
+Proof.
+  rewrite canonical_scalar_multiply_lambda_step.
+  pose proof (canonical_scalar_multiply_normalized_value canonical_lambda_word value) as HV.
+  rewrite canonical_scalar_lambda_normalized_value in HV.
+  rewrite Z.mul_comm; exact HV.
+Qed.
