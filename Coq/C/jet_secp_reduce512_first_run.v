@@ -1,0 +1,58 @@
+(** First fold extracted from the unchanged generated reduce512 body. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers AST Ctypes Clight Maps Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix C.jet_secp_shift64_executor.
+Require Import C.jet_sx_compact C.jet_secp_scalar_reduce512_run.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Fixpoint statement_ends_set (id : ident) (s : statement) : bool :=
+  match s with Sset x _ => Pos.eqb x id | Ssequence _ tail => statement_ends_set id tail | _ => false end.
+Fixpoint spine_cut_after (id : ident) (ss : list statement) : nat :=
+  match ss with [] => 0%nat | h::t => if statement_ends_set id h then 1%nat else S (spine_cut_after id t) end.
+Definition reduce512_spine := fst (split_statement_last (fn_body f_secp256k1_scalar_reduce_512)).
+Definition reduce512_last := snd (split_statement_last (fn_body f_secp256k1_scalar_reduce_512)).
+Definition reduce512_first_count := spine_cut_after _m6 reduce512_spine.
+Definition reduce512_first_spine := firstn reduce512_first_count reduce512_spine.
+Definition reduce512_first_prefix := statement_sequence reduce512_first_spine Sskip.
+Definition reduce512_first_suffix := statement_sequence (skipn reduce512_first_count reduce512_spine) reduce512_last.
+Lemma reduce512_first_source :
+  statement_sequence reduce512_first_spine reduce512_first_suffix = fn_body f_secp256k1_scalar_reduce_512.
+Proof. Timeout 10 reflexivity. Qed.
+Lemma reduce512_first_boundary :
+  statement_ends_set _m6 (last reduce512_first_spine Sskip) = true /\
+  (0 < reduce512_first_count < length reduce512_spine)%nat.
+Proof. Timeout 10 (vm_compute; split; [reflexivity|lia]). Qed.
+
+Definition reduce512_first_run : option res :=
+  match xalloc (std_cells (genv_cenv secp_ge)) (genv_cenv secp_ge)
+      (fn_vars f_secp256k1_scalar_reduce_512) 2,
+    xbind (fn_params f_secp256k1_scalar_reduce_512) [XP 0 0; XP 1 0] (PTree.empty sx) with
+  | Some (locals, ve), Some ts =>
+    compact_stmt (genv_cenv secp_ge) [] secp_shift64_table 300 ve
+      (mkst ts (scalar_reduce512_initial_regs ++ locals) [] 12) reduce512_first_prefix
+  | _, _ => None end.
+Lemma reduce512_first_completes :
+  match reduce512_first_run with Some (RDone _ ONormal) => true | _ => false end = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Definition reduce512_first_state : sstate :=
+  match reduce512_first_run with Some (RDone st _) => st | _ => mkst (PTree.empty sx) [] [] 0 end.
+Lemma reduce512_first_run_eq : reduce512_first_run = Some (RDone reduce512_first_state ONormal).
+Proof.
+  pose proof reduce512_first_completes as H.
+  unfold reduce512_first_state; destruct reduce512_first_run as [r|]; [|discriminate].
+  destruct r; [destruct o; try discriminate; reflexivity|discriminate].
+Qed.
+Definition reduce512_first_temp (id : ident) : sx :=
+  match (stemps reduce512_first_state)!id with Some x => x | None => XV Vundef end.
+Definition reduce512_first_limbs :=
+  [reduce512_first_temp _m0; reduce512_first_temp _m1; reduce512_first_temp _m2;
+   reduce512_first_temp _m3; reduce512_first_temp _m4; reduce512_first_temp _m5;
+   XI2L Unsigned (reduce512_first_temp _m6)].
+Lemma reduce512_first_temps_present :
+  forallb (fun id => match (stemps reduce512_first_state)!id with Some _ => true | _ => false end)
+    [_m0; _m1; _m2; _m3; _m4; _m5; _m6] = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Lemma reduce512_first_limb_kinds : forallb (isk KL) reduce512_first_limbs = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.

@@ -1,0 +1,184 @@
+(** Factored symbolic columns of the original checked scalar product run. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Integers Values.
+Require Import C.jet_sx_expr C.jet_secp_scalar_bind.
+Require Import C.jet_secp_umul128_exec C.jet_secp_umul128_numeric.
+Require Import C.jet_secp_scalar_mul512_run C.jet_secp_scalar_mul512_machine.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition column_bind a b := scalar_bind
+  (fun n => if Nat.eqb n 0 then XLv a else XLv b) (XL2I (XLv b)).
+Definition column_symbolic_product_lo a b := column_bind a b umul128_lo.
+Definition column_symbolic_product_hi a b := column_bind a b umul128_hi.
+Lemma column_bind_den rho beta a b x : den rho beta (column_bind a b x) =
+  den (fun n => if Nat.eqb n 0 then rho a else rho b) beta x.
+Proof.
+  apply scalar_bind_den.
+  - intro n; destruct (Nat.eqb n 0); reflexivity.
+  - reflexivity.
+Qed.
+Lemma column_symbolic_product_lo_den rho beta a b :
+  den rho beta (column_symbolic_product_lo a b) = Vlong (umul128_lo_machine (rho a) (rho b)).
+Proof. unfold column_symbolic_product_lo; rewrite column_bind_den, umul128_lo_den; reflexivity. Qed.
+Lemma column_symbolic_product_hi_den rho beta a b :
+  den rho beta (column_symbolic_product_hi a b) = Vlong (umul128_hi_machine (rho a) (rho b)).
+Proof. unfold column_symbolic_product_hi; rewrite column_bind_den, umul128_hi_den; reflexivity. Qed.
+
+Record symbolic_column := scolumn { sc_lo : sx; sc_hi : sx; sc_top : sx }.
+Definition column_symbolic_zero := scolumn
+  (XI2L Signed (XIc Int.zero)) (XI2L Signed (XIc Int.zero)) (XIc Int.zero).
+Definition column_symbolic_lo_add a b s := XLb Badd (sc_lo s) (column_symbolic_product_lo a b).
+Definition column_symbolic_hi_add a b s := XLb Badd (column_symbolic_product_hi a b)
+  (XI2L Signed (XLcmp Clt Unsigned (column_symbolic_lo_add a b s) (column_symbolic_product_lo a b))).
+Definition column_symbolic_muladd a b s := scolumn
+  (column_symbolic_lo_add a b s)
+  (XLb Badd (sc_hi s) (column_symbolic_hi_add a b s))
+  (XIb Badd (sc_top s) (XLcmp Clt Unsigned
+    (XLb Badd (sc_hi s) (column_symbolic_hi_add a b s)) (column_symbolic_hi_add a b s))).
+Definition column_symbolic_muladd_fast a b s := scolumn
+  (column_symbolic_lo_add a b s)
+  (XLb Badd (sc_hi s) (column_symbolic_hi_add a b s)) (sc_top s).
+Definition column_symbolic_extract s := scolumn (sc_hi s) (XI2L Unsigned (sc_top s)) (XIc Int.zero).
+Definition column_symbolic_extract_fast s := scolumn (sc_hi s) (XI2L Signed (XIc Int.zero)) (sc_top s).
+
+Definition scalar_mul512_symbolic_outputs : list sx :=
+  let c0 := column_symbolic_muladd_fast 0 4 column_symbolic_zero in
+  let c1 := column_symbolic_muladd 1 4
+    (column_symbolic_muladd 0 5 (column_symbolic_extract_fast c0)) in
+  let c2 := column_symbolic_muladd 2 4
+    (column_symbolic_muladd 1 5 (column_symbolic_muladd 0 6 (column_symbolic_extract c1))) in
+  let c3 := column_symbolic_muladd 3 4
+    (column_symbolic_muladd 2 5 (column_symbolic_muladd 1 6
+      (column_symbolic_muladd 0 7 (column_symbolic_extract c2)))) in
+  let c4 := column_symbolic_muladd 3 5
+    (column_symbolic_muladd 2 6 (column_symbolic_muladd 1 7 (column_symbolic_extract c3))) in
+  let c5 := column_symbolic_muladd 3 6
+    (column_symbolic_muladd 2 7 (column_symbolic_extract c4)) in
+  let c6 := column_symbolic_muladd_fast 3 7 (column_symbolic_extract c5) in
+  [sc_lo c0; sc_lo c1; sc_lo c2; sc_lo c3; sc_lo c4; sc_lo c5; sc_lo c6; sc_hi c6].
+Lemma scalar_mul512_symbolic_exact : scalar_mul512_limbs = scalar_mul512_symbolic_outputs.
+Proof. Timeout 10 reflexivity. Qed.
+
+Definition column_rep rho beta symbolic machine :=
+  den rho beta (sc_lo symbolic) = Vlong (col_lo machine) /\
+  den rho beta (sc_hi symbolic) = Vlong (col_hi machine) /\
+  den rho beta (sc_top symbolic) = Vint (col_top machine).
+Lemma column_rep_zero rho beta : column_rep rho beta column_symbolic_zero column_zero.
+Proof. repeat split; reflexivity. Qed.
+Lemma column_ladd_den rho beta a b x y : den rho beta a = Vlong x -> den rho beta b = Vlong y ->
+  den rho beta (XLb Badd a b) = Vlong (Int64.add x y).
+Proof. intros A B; cbn [den]; rewrite A,B; reflexivity. Qed.
+Lemma column_lcarry_den rho beta a b x y : den rho beta a = Vlong x -> den rho beta b = Vlong y ->
+  den rho beta (XI2L Signed (XLcmp Clt Unsigned (XLb Badd a b) b)) = Vlong (column_carry64 x y).
+Proof. intros A B; cbn [den]; rewrite A,B; reflexivity. Qed.
+Lemma column_icarry_den rho beta a b x y : den rho beta a = Vlong x -> den rho beta b = Vlong y ->
+  den rho beta (XLcmp Clt Unsigned (XLb Badd a b) b) = Vint (column_carry32 x y).
+Proof. intros A B; cbn [den]; rewrite A,B; reflexivity. Qed.
+Lemma column_lo_add_rep rho beta a b sy ma : column_rep rho beta sy ma ->
+  den rho beta (column_symbolic_lo_add a b sy) = Vlong (column_product_lo (rho a) (rho b) ma).
+Proof.
+  intros (HL & HH & HT); unfold column_symbolic_lo_add,column_product_lo.
+  apply column_ladd_den; [exact HL|apply column_symbolic_product_lo_den].
+Qed.
+Lemma column_hi_add_rep rho beta a b sy ma : column_rep rho beta sy ma ->
+  den rho beta (column_symbolic_hi_add a b sy) = Vlong (column_product_hi_add (rho a) (rho b) ma).
+Proof.
+  intro H; destruct H as (HL & HH & HT).
+  unfold column_symbolic_hi_add,column_product_hi_add.
+  apply column_ladd_den; [apply column_symbolic_product_hi_den|].
+  unfold column_symbolic_lo_add. apply column_lcarry_den; [exact HL|apply column_symbolic_product_lo_den].
+Qed.
+Lemma column_muladd_rep rho beta a b sy ma : column_rep rho beta sy ma ->
+  column_rep rho beta (column_symbolic_muladd a b sy) (column_muladd (rho a) (rho b) ma).
+Proof.
+  intro H; pose proof (column_hi_add_rep rho beta a b sy ma H) as HTH.
+  destruct H as (HL & HH & HT).
+  unfold column_rep; cbn [column_symbolic_muladd column_muladd sc_lo sc_hi sc_top col_lo col_hi col_top].
+  split; [apply column_lo_add_rep; split; [exact HL|split; assumption]|].
+  split; [apply column_ladd_den; assumption|].
+  cbn [den]; rewrite HT.
+  change (Vint (Int.add (col_top ma)
+    (ii (den rho beta (XLcmp Clt Unsigned
+      (XLb Badd (sc_hi sy) (column_symbolic_hi_add a b sy)) (column_symbolic_hi_add a b sy))))) =
+    Vint (Int.add (col_top ma) (column_carry32 (col_hi ma) (column_product_hi_add (rho a) (rho b) ma)))).
+  rewrite (column_icarry_den rho beta _ _ _ _ HH HTH); reflexivity.
+Qed.
+Lemma column_muladd_fast_rep rho beta a b sy ma : column_rep rho beta sy ma ->
+  column_rep rho beta (column_symbolic_muladd_fast a b sy) (column_muladd_fast (rho a) (rho b) ma).
+Proof.
+  intro H; pose proof (column_lo_add_rep rho beta a b sy ma H) as HL.
+  pose proof (column_hi_add_rep rho beta a b sy ma H) as HTH.
+  destruct H as (_ & HH & HT).
+  unfold column_rep; cbn [column_symbolic_muladd_fast column_muladd_fast sc_lo sc_hi sc_top col_lo col_hi col_top].
+  split; [exact HL|]. split; [apply column_ladd_den; assumption|exact HT].
+Qed.
+Lemma column_extract_rep rho beta sy ma : column_rep rho beta sy ma ->
+  column_rep rho beta (column_symbolic_extract sy) (column_extract ma).
+Proof.
+  intros (_ & HH & HT).
+  unfold column_rep; cbn [column_symbolic_extract column_extract sc_lo sc_hi sc_top col_lo col_hi col_top].
+  split; [exact HH|]. split; [cbn [den]; rewrite HT; reflexivity|reflexivity].
+Qed.
+Lemma column_extract_fast_rep rho beta sy ma : column_rep rho beta sy ma ->
+  column_rep rho beta (column_symbolic_extract_fast sy) (column_extract_fast ma).
+Proof.
+  intros (_ & HH & HT).
+  unfold column_rep; cbn [column_symbolic_extract_fast column_extract_fast sc_lo sc_hi sc_top col_lo col_hi col_top].
+  split; [exact HH|]. split; [reflexivity|exact HT].
+Qed.
+
+Lemma column_rep_lo rho beta sy ma : column_rep rho beta sy ma ->
+  den rho beta (sc_lo sy) = Vlong (col_lo ma).
+Proof. intros (H & _); exact H. Qed.
+Lemma column_rep_hi rho beta sy ma : column_rep rho beta sy ma ->
+  den rho beta (sc_hi sy) = Vlong (col_hi ma).
+Proof. intros (_ & H & _); exact H. Qed.
+
+Lemma scalar_mul512_outputs_machine rho beta :
+  map (den rho beta) scalar_mul512_limbs = map Vlong (scalar_mul512_machine_outputs rho).
+Proof.
+  rewrite scalar_mul512_symbolic_exact.
+  set (s0 := column_symbolic_muladd_fast 0 4 column_symbolic_zero).
+  set (m0 := column_muladd_fast (rho 0%nat) (rho 4%nat) column_zero).
+  assert (H0 : column_rep rho beta s0 m0) by (apply column_muladd_fast_rep; apply column_rep_zero).
+  set (s1 := column_symbolic_muladd 1 4 (column_symbolic_muladd 0 5 (column_symbolic_extract_fast s0))).
+  set (m1 := column_muladd (rho 1%nat) (rho 4%nat) (column_muladd (rho 0%nat) (rho 5%nat) (column_extract_fast m0))).
+  assert (H1 : column_rep rho beta s1 m1).
+  { unfold s1,m1; do 2 apply column_muladd_rep; apply column_extract_fast_rep; exact H0. }
+  set (s2 := column_symbolic_muladd 2 4 (column_symbolic_muladd 1 5
+    (column_symbolic_muladd 0 6 (column_symbolic_extract s1)))).
+  set (m2 := column_muladd (rho 2%nat) (rho 4%nat) (column_muladd (rho 1%nat) (rho 5%nat)
+    (column_muladd (rho 0%nat) (rho 6%nat) (column_extract m1)))).
+  assert (H2 : column_rep rho beta s2 m2).
+  { unfold s2,m2; do 3 apply column_muladd_rep; apply column_extract_rep; exact H1. }
+  set (s3 := column_symbolic_muladd 3 4 (column_symbolic_muladd 2 5 (column_symbolic_muladd 1 6
+    (column_symbolic_muladd 0 7 (column_symbolic_extract s2))))).
+  set (m3 := column_muladd (rho 3%nat) (rho 4%nat) (column_muladd (rho 2%nat) (rho 5%nat)
+    (column_muladd (rho 1%nat) (rho 6%nat) (column_muladd (rho 0%nat) (rho 7%nat) (column_extract m2))))).
+  assert (H3 : column_rep rho beta s3 m3).
+  { unfold s3,m3; do 4 apply column_muladd_rep; apply column_extract_rep; exact H2. }
+  set (s4 := column_symbolic_muladd 3 5 (column_symbolic_muladd 2 6
+    (column_symbolic_muladd 1 7 (column_symbolic_extract s3)))).
+  set (m4 := column_muladd (rho 3%nat) (rho 5%nat) (column_muladd (rho 2%nat) (rho 6%nat)
+    (column_muladd (rho 1%nat) (rho 7%nat) (column_extract m3)))).
+  assert (H4 : column_rep rho beta s4 m4).
+  { unfold s4,m4; do 3 apply column_muladd_rep; apply column_extract_rep; exact H3. }
+  set (s5 := column_symbolic_muladd 3 6 (column_symbolic_muladd 2 7 (column_symbolic_extract s4))).
+  set (m5 := column_muladd (rho 3%nat) (rho 6%nat) (column_muladd (rho 2%nat) (rho 7%nat) (column_extract m4))).
+  assert (H5 : column_rep rho beta s5 m5).
+  { unfold s5,m5; do 2 apply column_muladd_rep; apply column_extract_rep; exact H4. }
+  set (s6 := column_symbolic_muladd_fast 3 7 (column_symbolic_extract s5)).
+  set (m6 := column_muladd_fast (rho 3%nat) (rho 7%nat) (column_extract m5)).
+  assert (H6 : column_rep rho beta s6 m6).
+  { unfold s6,m6; apply column_muladd_fast_rep; apply column_extract_rep; exact H5. }
+  change ([den rho beta (sc_lo s0); den rho beta (sc_lo s1); den rho beta (sc_lo s2);
+    den rho beta (sc_lo s3); den rho beta (sc_lo s4); den rho beta (sc_lo s5);
+    den rho beta (sc_lo s6); den rho beta (sc_hi s6)] =
+    [Vlong (col_lo m0); Vlong (col_lo m1); Vlong (col_lo m2); Vlong (col_lo m3);
+     Vlong (col_lo m4); Vlong (col_lo m5); Vlong (col_lo m6); Vlong (col_hi m6)]).
+  rewrite (column_rep_lo _ _ _ _ H0), (column_rep_lo _ _ _ _ H1), (column_rep_lo _ _ _ _ H2),
+    (column_rep_lo _ _ _ _ H3), (column_rep_lo _ _ _ _ H4), (column_rep_lo _ _ _ _ H5),
+    (column_rep_lo _ _ _ _ H6), (column_rep_hi _ _ _ _ H6); reflexivity.
+Qed.

@@ -1,0 +1,46 @@
+(** Actual original in-place scalar_add execution with its exact group-modular
+    output, ownership and frame. This is an internal helper contract: the
+    public two-reader/literal-Simplicity caller theorem is still required. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_frame.
+Require Import C.jet_secp_canonical_scalar.
+Require Import C.jet_secp_scalar_add_run C.jet_secp_scalar_add_exec.
+Require Import C.jet_secp_scalar_add_values C.jet_secp_scalar_add_numeric.
+Require Import C.jet_secp_scalar_add_flag C.jet_secp_scalar_add_reduced.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Theorem eval_scalar_add_mod_group_owned rho layout m :
+  rep rho layout scalar_add_initial_regs m ->
+  0 <= scalar_add_input_value rho < 2 * canonical_group_order ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_add)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1))] E0 mf
+      (Vint (b2i (Z.leb canonical_group_order (scalar_add_input_value rho)))) /\
+    rep rho layout (sregs scalar_add_state) mf /\
+    (bas layout 0 = 0 /\ Mem.range_perm mf (blk layout 0) 0 32 Cur Freeable) /\
+    (bas layout 1 = 0 /\ Mem.range_perm mf (blk layout 1) 0 32 Cur Freeable) /\
+    (forall i, (i < 4)%nat ->
+      Mem.load Mint64 mf (blk layout 0) (8 * Z.of_nat i) =
+        Some (Vlong (scalar_add_limb rho (lay layout) i))) /\
+    scalar_add_output_value rho (lay layout) = scalar_add_input_value rho mod canonical_group_order /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_add_initial_regs) b ofs) m mf.
+Proof.
+  intros HRep HS.
+  destruct (eval_scalar_add_from_owned_regions rho layout m HRep)
+    as [mf [HCall [HFinal HFrame]]].
+  rewrite scalar_add_flag_exact, scalar_add_flag_reduced in HCall by exact HS.
+  cbn [ii] in HCall.
+  destruct (scalar_add_final_storage rho layout mf HFinal)
+    as [HBase0 [HFree0 [HBase1 [HFree1 [HLoads HSecond]]]]].
+  exists mf; split; [exact HCall|]; split; [exact HFinal|];
+    split; [split; assumption|]; split; [split; assumption|]; split.
+  - intros i HI; unfold scalar_add_limb.
+    destruct i as [|[|[|[|i]]]]; try lia; eapply HLoads; reflexivity.
+  - split; [apply scalar_add_output_mod_group; exact HS|exact HFrame].
+Qed.

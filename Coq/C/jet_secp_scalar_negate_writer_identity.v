@@ -1,0 +1,20 @@
+(** Reuse the actual serializer without changing scalar-negate's literal
+    public specification: its already reduced result is unchanged by normalize. *)
+From Coq Require Import ZArith Lia.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Alg.
+Require Import C.jet_toZ.
+Require Import C.jet_secp_canonical_scalar.
+Require Import C.jet_secp_canonical_scalar_negate.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_negate_normalize_identity (value : Ty.tySem (Word 8)) :
+  @canonical_scalar_normalize Alg.CoreFunSem (@canonical_scalar_negate Alg.CoreFunSem value) =
+  @canonical_scalar_negate Alg.CoreFunSem value.
+Proof.
+  apply (toZ_injective (WordToZ 8)).
+  rewrite canonical_scalar_normalize_numeric.
+  apply Z.mod_small.
+  rewrite canonical_scalar_negate_numeric; apply Z.mod_pos_bound.
+  pose proof canonical_group_order_range; lia.
+Qed.

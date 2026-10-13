@@ -1,0 +1,58 @@
+(** Actual original C call, all eight current-memory limbs and full product.
+    This is an internal helper result, not the public scalar-multiply jet. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_sx_mem C.jet_sx_eval.
+Require Import C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_scalar_mul512_run C.jet_secp_scalar_mul512_machine
+  C.jet_secp_scalar_mul512_symbolic C.jet_secp_scalar_mul512_accumulate
+  C.jet_secp_scalar_mul512_low C.jet_secp_scalar_mul512_product.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_mul512_machine_length rho : length (scalar_mul512_machine_outputs rho) = 8%nat.
+Proof. reflexivity. Qed.
+Lemma scalar_mul512_machine_cell rho beta i x :
+  nth_error (scalar_mul512_machine_outputs rho) i = Some x ->
+  exists sy, In (mkcell (8 * Z.of_nat i) Mint64 (Some sy)) (u64_cells 0 scalar_mul512_limbs) /\
+    den rho beta sy = Vlong x.
+Proof.
+  intro Hnth.
+  pose proof (f_equal (fun xs => nth_error xs i) (scalar_mul512_outputs_machine rho beta)) as H.
+  cbv beta in H.
+  rewrite !nth_error_map,Hnth in H.
+  destruct (nth_error scalar_mul512_limbs i) as [sy|] eqn:HS; [|discriminate].
+  cbn in H; injection H as Hden.
+  exists sy; split; [|exact Hden].
+  pose proof (u64_cells_nth scalar_mul512_limbs 0 i sy HS) as HC.
+  rewrite Z.add_0_l in HC; exact HC.
+Qed.
+Theorem eval_scalar_mul512_owned_product rho beta m :
+  rep rho beta scalar_mul512_initial_regs m ->
+  exists mf words,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul_512)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1));
+       Vptr (blk beta 2) (Ptrofs.repr (bas beta 2))] E0 mf Vundef /\
+    (forall i x, nth_error words i = Some x ->
+      Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 8 * Z.of_nat i) = Some (Vlong x)) /\
+    length words = 8%nat /\
+    column_words_value words = scalar_mul512_input_value rho 0 * scalar_mul512_input_value rho 4 /\
+    rep rho beta (sregs scalar_mul512_state) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape scalar_mul512_initial_regs) b ofs) m mf.
+Proof.
+  intro Hrep.
+  destruct (eval_scalar_mul512_owned rho beta m Hrep) as (mf & Hcall & Hfinal & Hframe).
+  pose proof (rep_region rho beta _ mf 0 _ Hfinal eq_refl) as Hregion.
+  exists mf,(scalar_mul512_machine_outputs rho); split; [exact Hcall|].
+  split.
+  { intros i x Hnth.
+    destruct (scalar_mul512_machine_cell rho (lay beta) i x Hnth) as (sy & HC & HD).
+    pose proof (region_load rho beta mf 0 _ (8 * Z.of_nat i) Mint64 sy Hregion HC) as HL.
+    rewrite HD in HL; exact HL. }
+  split; [apply scalar_mul512_machine_length|].
+  split; [apply scalar_mul512_machine_product|].
+  rewrite <- scalar_mul512_output in Hfinal.
+  split; [exact Hfinal|exact Hframe].
+Qed.

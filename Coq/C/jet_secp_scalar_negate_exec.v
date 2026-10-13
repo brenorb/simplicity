@@ -1,0 +1,67 @@
+(** Actual original in-place scalar_negate call with its uint128 local
+    allocation/free and proved shift64 helper. Public literal bridge pending. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Maps Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_frame C.jet_secp_linkage C.jets_secp C.jet_secp_local_regions.
+Require Import C.jet_secp_shift64_executor.
+Require Import C.jet_secp_scalar_writer_run.
+Require Import C.jet_secp_scalar_negate_run.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_negate_limbs : list sx :=
+  match sregs scalar_negate_state with reg :: _ => map cell_sx (rcells reg) | _ => [] end.
+Lemma scalar_negate_limbs_length : length scalar_negate_limbs = 4%nat.
+Proof. reflexivity. Qed.
+Lemma scalar_negate_regions_exact :
+  sregs scalar_negate_state = [mkreg (u64_cells 0 scalar_negate_limbs) true (Some 32)].
+Proof. reflexivity. Qed.
+Lemma scalar_negate_limbs_long : Forall (fun x => isk KL x = true) scalar_negate_limbs.
+Proof. repeat constructor; reflexivity. Qed.
+
+Local Opaque secp_ge.
+Theorem eval_scalar_negate_from_owned_region rho layout m :
+  rep rho layout scalar_writer_initial_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_negate)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 0) (Ptrofs.repr (bas layout 0))] E0 mf Vundef /\
+    rep rho layout (sregs scalar_negate_state) mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape scalar_writer_initial_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  destruct (xfun_shift64_sound 800 f_secp256k1_scalar_negate [XP 0 0; XP 0 0]
+    scalar_writer_initial_regs 4 _ scalar_negate_run_eq rho layout m HRep)
+    as [mf [vres [HCall [HFinal [HReturn [HShape HFrame]]]]]].
+  cbn [rsel fst] in HFinal, HReturn.
+  rewrite scalar_negate_return in HReturn; subst vres.
+  change (map (den rho (lay layout)) [XP 0 0; XP 0 0]) with
+    [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0 + 0));
+     Vptr (blk layout 0) (Ptrofs.repr (bas layout 0 + 0))] in HCall.
+  rewrite Z.add_0_r in HCall.
+  exists mf; split; [exact HCall|]; split; assumption.
+Qed.
+
+Lemma scalar_negate_final_storage rho layout m :
+  rep rho layout (sregs scalar_negate_state) m ->
+  bas layout 0 = 0 /\ Mem.range_perm m (blk layout 0) 0 32 Cur Freeable /\
+  forall i x, nth_error scalar_negate_limbs i = Some x ->
+    Mem.load Mint64 m (blk layout 0) (8 * Z.of_nat i) = Some (Vlong (il (den rho (lay layout) x))).
+Proof.
+  intro HRep.
+  destruct (rep_free_region _ _ _ _ 0 32 HRep
+    ltac:(rewrite scalar_negate_regions_exact; change (0 < 1)%nat; lia)
+    ltac:(rewrite scalar_negate_regions_exact; reflexivity)) as [HBase HFree].
+  split; [exact HBase|]; split; [exact HFree|].
+  intros i x HNth.
+  assert (HRegion : region_ok rho layout m 0 (mkreg (u64_cells 0 scalar_negate_limbs) true (Some 32))).
+  { eapply rep_region; [exact HRep|rewrite scalar_negate_regions_exact; reflexivity]. }
+  pose proof (region_load _ _ _ _ _ _ _ _ HRegion
+    (u64_cells_nth scalar_negate_limbs 0 i x HNth)) as HLoad.
+  rewrite HBase, Z.add_0_l, Z.add_0_l in HLoad.
+  rewrite HLoad.
+  rewrite (den_KL rho (lay layout) x
+    (proj1 (Forall_forall _ _) scalar_negate_limbs_long x (nth_error_In _ _ HNth))); reflexivity.
+Qed.

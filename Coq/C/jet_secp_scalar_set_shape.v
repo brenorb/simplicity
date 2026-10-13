@@ -1,0 +1,115 @@
+(** Closed correspondence between the unchanged byte parser and reduction.
+    These expressions come from the real C statement prefixes. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Values Maps Clight.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec.
+Require Import C.jet_secp_fe_nv C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_scalar_bind C.jet_secp_scalar_set_b32_exec.
+Require Import C.jet_secp_scalar_overflow_exec C.jet_secp_scalar_reduce_numeric.
+Require Import C.jet_secp_scalar_overflow_flags C.jet_secp_scalar_overflow_numeric.
+Require Import C.jet_sx_zval C.jet_secp_canonical_scalar.
+Require Import C.jet_secp_statement_prefix C.jet_secp_shift64_executor.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_set_raw_parts := firstn 4 scalar_set_parts.
+Definition scalar_set_raw_prefix := statement_sequence scalar_set_raw_parts Sskip.
+Definition scalar_set_raw_run :=
+  xstmt (genv_cenv secp_ge) [] secp_shift64_table 1000 [] scalar_set_initial scalar_set_raw_prefix.
+Definition scalar_set_raw_tree := Eval vm_compute in scalar_set_raw_run.
+Definition scalar_set_raw_state :=
+  match scalar_set_raw_tree with Some (RDone state _) => state
+  | _ => mkst (PTree.empty sx) [] [] 0 end.
+Definition scalar_set_raw_expressions :=
+  map (fun c => match cval c with Some x => x | None => XLc Int64.zero end)
+    (cells0 scalar_set_raw_state).
+Definition scalar_set_raw_sigma n := nth n scalar_set_raw_expressions (XLc Int64.zero).
+Definition scalar_set_flag := scalar_bind scalar_set_raw_sigma (XIc Int.zero) scalar_overflow_return.
+Definition scalar_set_sigma n :=
+  if Nat.eqb n 4 then XI2L Signed scalar_set_flag else scalar_set_raw_sigma n.
+Definition scalar_set_instantiate := scalar_bind scalar_set_sigma scalar_set_flag.
+
+Lemma scalar_set_raw_run_eq : scalar_set_raw_run = Some (RDone scalar_set_raw_state ONormal).
+Proof. reflexivity. Qed.
+Lemma scalar_set_raw_expressions_length : length scalar_set_raw_expressions = 4%nat.
+Proof. reflexivity. Qed.
+Lemma scalar_set_raw_expressions_kind : Forall (fun x => isk KL x = true) scalar_set_raw_expressions.
+Proof. repeat constructor. Qed.
+Lemma scalar_set_raw_sigma_kind n : isk KL (scalar_set_raw_sigma n) = true.
+Proof. destruct n as [|[|[|[|n]]]]; try reflexivity; destruct n; reflexivity. Qed.
+Lemma scalar_set_flag_kind : isk KI scalar_set_flag = true.
+Proof. reflexivity. Qed.
+Lemma scalar_set_sigma_kind n : isk KL (scalar_set_sigma n) = true.
+Proof.
+  unfold scalar_set_sigma; destruct (Nat.eqb n 4); [reflexivity|apply scalar_set_raw_sigma_kind].
+Qed.
+Lemma scalar_set_output_shape : cells0 scalar_set_state =
+  [mkcell 0 Mint64 (Some (scalar_set_instantiate scalar_reduce_low0));
+   mkcell 8 Mint64 (Some (scalar_set_instantiate scalar_reduce_low1));
+   mkcell 16 Mint64 (Some (scalar_set_instantiate scalar_reduce_low2));
+   mkcell 24 Mint64 (Some (scalar_set_instantiate scalar_reduce_low3))].
+Proof. reflexivity. Qed.
+
+Definition scalar_set_raw_rho rho layout n := il (den rho layout (scalar_set_raw_sigma n)).
+Definition scalar_set_reduction_rho rho layout n := il (den rho layout (scalar_set_sigma n)).
+Lemma scalar_set_sigma_value rho layout n :
+  den rho layout (scalar_set_sigma n) = Vlong (scalar_set_reduction_rho rho layout n).
+Proof. apply den_KL; apply scalar_set_sigma_kind. Qed.
+Lemma scalar_set_bound_flag rho layout :
+  den rho layout scalar_set_flag = Vint (Int64.loword (scalar_set_reduction_rho rho layout 4)).
+Proof. apply scalar_flag_lift; apply scalar_set_flag_kind. Qed.
+Lemma scalar_set_bound_value rho layout x :
+  den rho layout (scalar_set_instantiate x) = den (scalar_set_reduction_rho rho layout) layout x.
+Proof. apply scalar_bind_den; [apply scalar_set_sigma_value|apply scalar_set_bound_flag]. Qed.
+
+Lemma scalar_set_raw_sigma_value rho layout n :
+  den rho layout (scalar_set_raw_sigma n) = Vlong (scalar_set_raw_rho rho layout n).
+Proof. apply den_KL; apply scalar_set_raw_sigma_kind. Qed.
+
+Lemma scalar_set_actual_flag rho layout :
+  den rho layout scalar_set_flag =
+    Vint (b2i (Z.leb canonical_group_order (scalar_limb_value (scalar_set_raw_rho rho layout)))).
+Proof.
+  unfold scalar_set_flag.
+  rewrite (scalar_bind_den scalar_set_raw_sigma (XIc Int.zero)
+    rho (scalar_set_raw_rho rho layout) layout scalar_overflow_return).
+  - rewrite scalar_overflow_return_flag, scalar_overflow_matches_bound; reflexivity.
+  - apply scalar_set_raw_sigma_value.
+  - reflexivity.
+Qed.
+
+Lemma scalar_set_reduction_input_value rho layout :
+  scalar_limb_value (scalar_set_reduction_rho rho layout) =
+    scalar_limb_value (scalar_set_raw_rho rho layout).
+Proof. reflexivity. Qed.
+
+Lemma scalar_set_reduction_flag_value rho layout :
+  scalar_set_reduction_rho rho layout 4 = Int64.repr
+    (b2z (Z.leb canonical_group_order (scalar_limb_value (scalar_set_reduction_rho rho layout)))).
+Proof.
+  rewrite scalar_set_reduction_input_value.
+  change (Int64.repr (Int.signed (ii (den rho layout scalar_set_flag))) =
+    Int64.repr (b2z (Z.leb canonical_group_order (scalar_limb_value (scalar_set_raw_rho rho layout))))).
+  rewrite scalar_set_actual_flag; cbn [ii].
+  destruct (Z.leb canonical_group_order (scalar_limb_value (scalar_set_raw_rho rho layout))); reflexivity.
+Qed.
+
+Definition scalar_set_limb rho layout i := il (den rho layout
+  (scalar_set_instantiate (nth i
+    [scalar_reduce_low0; scalar_reduce_low1; scalar_reduce_low2; scalar_reduce_low3] (XLc Int64.zero)))).
+
+Lemma scalar_set_limb_bound_value rho layout i :
+  scalar_set_limb rho layout i = scalar_reduce_limb (scalar_set_reduction_rho rho layout) layout i.
+Proof. unfold scalar_set_limb, scalar_reduce_limb; rewrite scalar_set_bound_value; reflexivity. Qed.
+
+Theorem scalar_set_value_mod_group rho layout :
+  scalar_limb_value (scalar_set_limb rho layout) =
+    scalar_limb_value (scalar_set_raw_rho rho layout) mod canonical_group_order.
+Proof.
+  unfold scalar_limb_value at 1; rewrite !scalar_set_limb_bound_value.
+  fold (scalar_limb_value (scalar_reduce_limb (scalar_set_reduction_rho rho layout) layout)).
+  rewrite scalar_reduce_limb_value.
+  rewrite scalar_reduce_canonical_value by apply scalar_set_reduction_flag_value.
+  rewrite scalar_set_reduction_input_value; reflexivity.
+Qed.
