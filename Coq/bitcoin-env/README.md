@@ -199,10 +199,55 @@ half of the environment.
   real builders are the canonical hashes of the raw environment; no fact
   about a cached hash is assumed.
 
-What is still the caller's: the raw `txid` field (the builder copies it;
-`raw_transaction_id R` is a double SHA-256 of the serialisation, which the C
-library never computes) and `simplicity_bitcoin_build_txEnv` (`txEnv.c`,
-not yet in this unit), which stores the two pointers and `sigAllHash`.
+### The whole environment (`…_txenv.v`, `…_txenv_link.v`, `…_build.v`, `…_free.v`, `…_lifecycle.v`)
+
+The unit now also contains `C/bitcoin/txEnv.c` (every earlier definition is
+textually unchanged; `check-definitions.py`).
+
+- **`eval_build_txEnv`**: the real `simplicity_bitcoin_build_txEnv` (struct
+  return through the hidden result pointer) stores the two pointers, the
+  index and `sigAllHash`; `sigall_link`: that state is `sig_all_hash_of e`.
+- **`build_environment`**: `mallocTransaction`, `mallocTapEnv` and
+  `build_txEnv`, run in sequence on memory holding the bytes of a raw
+  environment `R` (`tx_readable`, `tap_readable`, `raw_tx_holds`,
+  `raw_tapenv_holds`) under the SHA start-up state (`sha_started`), leave
+  `env_ready m3 bD oD bT bE (project_raw_environment R) …`: the `txEnv`, its
+  transaction block and its taproot block with the data and the canonical
+  cached hashes; existing memory is unchanged outside the destination.
+- `eval_mallocTransaction` / `eval_mallocTapEnv` also state the size header
+  at offset -8 and the `Freeable` permission over `[-8, size)`;
+  **`eval_freeTransaction`**, **`eval_freeTapEnv`** and
+  **`free_environment`**: the real free functions release exactly the two
+  blocks (CompCert's `EF_free`, defined semantics).
+
+### Every accepted Bitcoin environment relation is established (`…_relations.v`, `…_relations_indexed.v`)
+
+For the `txEnv` that `build_environment` leaves (`env_ready`), 50 theorems
+`ready_<jet>` prove the environment relation that the accepted jet theorem
+takes as a premise: `version`, `lock_time`, `num_inputs`, `num_outputs`,
+`total_input_value`, `total_output_value`, `fee`, `tx_is_final`, `lock`,
+`check_lock`, `distance`, `current_index`, the sixteen cached-hash getters
+and `sig_all_hash`, `internal_key`, `script_cmr`, `tapleaf_version`,
+`tappath`, the indexed input relations (`input_sequence`, `input_value`,
+`input_prev_outpoint`, `input_script_hash`, `input_script_sig_hash`,
+`input_annex_hash`) and their current-input variants, `output_value`,
+`output_script_hash`, and the SHA-based `input_hash`, `input_utxo_hash`,
+`output_hash` (these three also need `sha_globals_ok`, the start-up state).
+The running totals are the sums of the spec (`total_link`), `isFinal` is
+`forallb sequence_final` (`final_link`).
+
+Two relations are not unconditional, and both are reported rather than
+papered over:
+
+- `ready_tappath` requires a non-empty path: `mallocTapEnv` stores
+  `path = NULL` when `pathLen == 0`, while the accepted
+  `bitcoin_tappath_env_rep` asks for a pointer unconditionally. The jet
+  only reads `path` when `i < pathLen`, so the accepted relation is stronger
+  than what the real caller provides for single-leaf trees.
+- `ready_transaction_id` requires that the 32 raw `txid` bytes are the
+  transaction id: the builder copies them, and the C library never computes
+  `raw_transaction_id R` (a double SHA-256 of the serialisation). This is a
+  genuine input requirement.
 
 ## Next
 
@@ -219,14 +264,11 @@ not yet in this unit), which stores the two pointers and `sigAllHash`.
    never let a tactic try a wrong field offset (`hoff` computes the index:
    a failed unification of two `envu_field_at` instances unfolds the
    composite environment).
-   The links to the canonical hashes and to the raw environment are done
-   (sections above). Remaining for the Bitcoin environment:
-   - `simplicity_bitcoin_build_txEnv` (`C/bitcoin/txEnv.c`): add the file to
-     the translation unit, prove the call (struct return through `_res`,
-     one context, `sigAllHash`) and link it to `sig_all_hash_of`;
-   - `simplicity_bitcoin_freeTransaction` / `freeTapEnv`: export the size
-     header and `Freeable` permission of the returned blocks from the two
-     builders and prove the frees.
+   The links, `build_txEnv`, the free functions, `build_environment` and
+   the relation sweeps are done (sections above). Remaining here: relate
+   `exec.c`'s driver to `build_environment`; decide with the integration
+   owner how the accepted `bitcoin_tappath_env_rep` should treat an empty
+   path.
 3. The same for `elements/env.c` (`Coq/elements-env`: the C-side
    `mallocTapEnv` port is generated; links need Elements cached-hash
    relations).
