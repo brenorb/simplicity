@@ -347,6 +347,24 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   `hashBuffer` on the zero buffer yields `hash_buffer_regs []` (the state
   of the empty string).
 
+- `jet_elements_env_parse_{defs,mem,ops,hash,iter}.v` and
+  `jet_elements_env_parse.v`: `eval_parseNullData` — `parseNullData`
+  against the functional parser `pn_run alen len bs` (`pn_step`/`pn_loop`
+  in `parse_iter.v`; an entry is `(code, optional pushed bytes)` with
+  `pn_ent_at` giving the stored code and the SHA-256 words of the pushed
+  data).  `None`: `result->op = NULL` and nothing outside the result
+  structure and the opcode array changes.  `Some ents`: `result->op` is the
+  caller's cursor, `result->len = length ents <= alen`, every entry is in
+  the array, `*allocation` is advanced by `36 * length ents` and
+  `*allocationLen` reduced by `length ents`.  Input requirements: the
+  script bytes are readable, the opcode array of `*allocationLen` entries
+  is writable, the result, the cursor cells, the script and the SHA
+  globals are in blocks different from the array and from the result
+  (facts about the caller's allocations), `memcpy_model`.  The three
+  locals (compound literal, two SHA contexts) are allocated and freed in
+  the proof.  `pn_iter` and `pn_loop_exec` are the per-iteration and loop
+  statements.
+
 The three issuance helpers of `elements/ops.c` are thereby proven as C
 functions; relating `entropy_regs`, `calc_asset_regs` and `calc_token_regs`
 to the Elements specification of issuance is not done here.
@@ -381,6 +399,6 @@ the six inherited assumptions (adds `eval_sumFees`, `eval_sumFees_zero`,
 listed modules and their dependencies; exit 0; 17 min.
 
 Open for Elements: the rest of `simplicity_elements_mallocTransaction`
-(`copyInput`, `parseNullData`, `copyOutput`, the external
+(`copyInput`, `copyOutput`, the external
 `simplicity_rsort`, the main body) and
 the links of the Elements cached hashes to specification values.
