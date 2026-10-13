@@ -200,4 +200,200 @@ Proof.
   - eapply assign_loc_value; [reflexivity|]. unfold Mem.storev.
     rewrite Ptrofs.unsigned_repr by lia. exact HS.
 Qed.
+(** The script, readable in the current memory. *)
+Section Script.
+Variable m : mem.
+Hypothesis HLen : Mem.load Mint32 m bsp (osp + 8) = Some (Vint len).
+Hypothesis HBuf : 0 < L -> Mem.load Mptr m bsp osp = Some (Vptr bb ob).
+Hypothesis HobM : Ptrofs.unsigned ob + L <= Ptrofs.max_unsigned.
+Hypothesis HBs : forall i, 0 <= i < L ->
+  Mem.load Mint8unsigned m bb (Ptrofs.unsigned ob + i) = Some (Vint (nth (Z.to_nat i) bs Int.zero)).
+
+Lemma pn_if le a (b : bool) s1 s2 t le' m' out :
+  eval_expr sha_ge e le m a (Val.of_bool b) -> typeof a = tint ->
+  Clight2.exec_stmt sha_ge e le m (if b then s1 else s2) t le' m' out ->
+  Clight2.exec_stmt sha_ge e le m (Sifthenelse a s1 s2) t le' m' out.
+Proof.
+  intros HE HT HX. eapply exec_Sifthenelse with (v1 := Val.of_bool b) (b := b);
+    [exact HE|rewrite HT; apply nd_bool_val|exact HX].
+Qed.
+
+(** [if (len == i) { result->op = NULL; return; }] *)
+Lemma pn_eof_exec tl le i :
+  pn_keeps tl -> pl le i -> 0 <= i <= L -> Mem.valid_access m Mptr br or_ Writable ->
+  if L =? i
+  then exists m', Clight2.exec_stmt sha_ge e le m (pn_eof tl) E0 (PTree.set tl (Vint len) le) m' (Out_return None) /\
+         Mem.store Mptr m br or_ (Vlong Int64.zero) = Some m'
+  else Clight2.exec_stmt sha_ge e le m (pn_eof tl) E0 (PTree.set tl (Vint len) le) m Out_normal.
+Proof.
+  intros HK HP Hi VA. pose proof (pl_set tl (Vint len) le i HK HP) as (Hi1 & Hr1 & _ & _ & Hs1).
+  destruct HP as (Hli & Hr & _ & _ & Hsp).
+  assert (HS : Clight2.exec_stmt sha_ge e le m (Sset tl (Efield PSPK _len tuint)) E0
+    (PTree.set tl (Vint len) le) m Out_normal).
+  { apply exec_Sset. eapply nd_ev_len; eassumption. }
+  assert (HC : eval_expr sha_ge e (PTree.set tl (Vint len) le) m
+    (Ebinop Oeq (Etempvar tl tuint) (Etempvar _i tulong) tint) (Val.of_bool (L =? i))).
+  { apply nd_ev_len_eq_i; [apply PTree.gss|exact Hi1|exact Hi]. }
+  unfold pn_eof. destruct (L =? i) eqn:EL.
+  - destruct (pn_fail_exec (PTree.set tl (Vint len) le) m Hr1 VA) as (m' & XF & HSt).
+    exists m'. split; [|exact HSt].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact HS|].
+    eapply pn_if with (b := true); [exact HC|reflexivity|exact XF].
+  - eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact HS|].
+    eapply pn_if with (b := false); [exact HC|reflexivity|apply exec_Sskip].
+Qed.
+
+Definition pn_trip (tt tp tb : ident) : Prop :=
+  nd_trip tt tp tb /\ pn_keeps tt /\ pn_keeps tp /\ pn_keeps tb.
+
+Lemma pl_read tt tp tb le i :
+  pn_trip tt tp tb -> pl le i ->
+  pl (nd_read_le bb ob bs tt tp tb le i) (i + 1) /\
+  (nd_read_le bb ob bs tt tp tb le i)!_code = le!_code /\
+  (nd_read_le bb ob bs tt tp tb le i)!_skip = le!_skip.
+Proof.
+  intros (HT & Kt & Kp & Kb) HP. unfold nd_read_le.
+  pose proof (pl_set tt (Vlong (Int64.repr i)) le i Kt HP) as (H1 & H2 & H3 & H4 & H5).
+  destruct Kt as (Kt1 & _). destruct Kp as (Kp1 & Kp2). destruct Kb as (Kb1 & Kb2).
+  split.
+  - apply pl_set; [split; assumption|]. apply pl_set; [split; assumption|].
+    unfold pl. rewrite PTree.gss. rewrite !(PTree.gso _ _ (j := _i)) by discriminate.
+    repeat split; first [reflexivity|assumption].
+  - destruct (Kb1 (Vint (nd_b bs i)) (PTree.set tp (Vptr bb ob)
+      (PTree.set _i (Vlong (Int64.repr (i + 1))) (PTree.set tt (Vlong (Int64.repr i)) le)))) as (_ & B2 & B3 & _ & _).
+    destruct (Kp1 (Vptr bb ob)
+      (PTree.set _i (Vlong (Int64.repr (i + 1))) (PTree.set tt (Vlong (Int64.repr i)) le))) as (_ & P2 & P3 & _ & _).
+    destruct (Kt1 (Vlong (Int64.repr i)) le) as (_ & T2 & T3 & _ & _).
+    rewrite B2, B3, P2, P3.
+    rewrite (PTree.gso _ _ (i := _code)) by discriminate.
+    rewrite (PTree.gso _ _ (i := _skip)) by discriminate.
+    rewrite T2, T3. split; reflexivity.
+Qed.
+
+(** [code = buf[i++]] *)
+Lemma pn_read_code tt tp tb le i :
+  pn_trip tt tp tb -> pl le i -> 0 <= i < L ->
+  exists le',
+    Clight2.exec_stmt sha_ge e le m
+      (nd_read_stmt tt tp tb (Sset _code (Ecast (Etempvar tb tuchar) tuchar))) E0 le' m Out_normal /\
+    pl le' (i + 1) /\ le'!_code = Some (Vint (nd_b bs i)) /\ 0 <= nd_byte bs i < 256.
+Proof.
+  intros HT HP Hi. destruct (pl_read tt tp tb le i HT HP) as (HP1 & _ & _).
+  destruct (nd_load_byte _ _ _ _ (HBs i Hi)) as [Hz Hbr]. fold (nd_b bs i) in Hz, Hbr.
+  exists (PTree.set _code (Vint (nd_b bs i)) (nd_read_le bb ob bs tt tp tb le i)).
+  destruct HP as (Hli & _ & _ & _ & Hsp).
+  split; [|split; [|split; [apply PTree.gss|exact Hbr]]].
+  - eapply nd_read_exec with (bs := bs); try eassumption; [exact (proj1 HT)|].
+    apply exec_Sset. eapply eval_Ecast with (v1 := Vint (nd_b bs i)); [apply eval_Etempvar; apply nd_read_tb|].
+    change (Some (Vint (Int.zero_ext 8 (nd_b bs i))) = Some (Vint (nd_b bs i))). rewrite Hz. reflexivity.
+  - destruct HP1 as (A1 & A2 & A3 & A4 & A5). unfold pl. rewrite !PTree.gso by discriminate.
+    repeat split; assumption.
+Qed.
+
+(** [skip = buf[i++]] *)
+Lemma pn_read_skip1 tt tp tb le i c sk :
+  pn_trip tt tp tb -> pls le i c sk -> 0 <= i < L ->
+  exists le',
+    Clight2.exec_stmt sha_ge e le m (nd_read_stmt tt tp tb (nd_skip_set1 tb)) E0 le' m Out_normal /\
+    pls le' (i + 1) c (nd_byte bs i).
+Proof.
+  intros HT (HP & Hc & Hk) Hi. destruct (pl_read tt tp tb le i HT HP) as (HP1 & O1 & O2).
+  exists (PTree.set _skip (Vlong (Int64.repr (nd_byte bs i))) (nd_read_le bb ob bs tt tp tb le i)).
+  pose proof HP as (Hli & _ & _ & _ & Hsp). split.
+  - eapply nd_read_exec with (bs := bs); try eassumption; [exact (proj1 HT)|].
+    apply exec_Sset. eapply eval_Ecast; [apply eval_Etempvar; apply nd_read_tb|reflexivity].
+  - destruct HP1 as (A1 & A2 & A3 & A4 & A5). unfold pls, pl. rewrite PTree.gss. rewrite !PTree.gso by discriminate.
+    rewrite O1. repeat split; assumption.
+Qed.
+
+(** [skip += (uint_fast32_t)(buf[i++]) << k] *)
+Lemma pn_read_skipk tt tp tb k le i c sk :
+  pn_trip tt tp tb -> pls le i c sk -> 0 <= i < L -> 0 <= sk < 4294967296 -> 8 <= k <= 24 ->
+  exists le',
+    Clight2.exec_stmt sha_ge e le m (nd_read_stmt tt tp tb (nd_skip_add tb k)) E0 le' m Out_normal /\
+    pls le' (i + 1) c (sk + nd_byte bs i * 2 ^ k).
+Proof.
+  intros HT (HP & Hc & Hk) Hi Hs Hkr. destruct (pl_read tt tp tb le i HT HP) as (HP1 & O1 & O2).
+  pose proof (nd_byte_range m len bb ob bs HBs i Hi) as HB.
+  assert (HPw : 0 < 2 ^ k <= 2 ^ 24) by (split; [apply Z.pow_pos_nonneg; lia|apply Z.pow_le_mono_r; lia]).
+  change (2 ^ 24) with 16777216 in HPw.
+  exists (PTree.set _skip (Vlong (Int64.repr (sk + nd_byte bs i * 2 ^ k))) (nd_read_le bb ob bs tt tp tb le i)).
+  pose proof HP as (Hli & _ & _ & _ & Hsp). split.
+  - eapply nd_read_exec with (bs := bs); try eassumption; [exact (proj1 HT)|].
+    apply exec_Sset.
+    eapply eval_Ebinop with (v1 := Vlong (Int64.repr sk)) (v2 := Vlong (Int64.repr (nd_byte bs i * 2 ^ k))).
+    + apply eval_Etempvar. rewrite O2. exact Hk.
+    + eapply eval_Ebinop with (v1 := Vlong (Int64.repr (nd_byte bs i))) (v2 := Vint (Int.repr k)).
+      * eapply eval_Ecast; [apply eval_Etempvar; apply nd_read_tb|reflexivity].
+      * apply eval_Econst_int.
+      * unfold sem_binary_operation, sem_shl, sem_shift.
+        cbn [classify_shift typeof tulong tint typeconv remove_attributes].
+        assert (HLt : Int.ltu (Int.repr k) Int64.iwordsize' = true).
+        { unfold Int.ltu. rewrite Int.unsigned_repr by (change Int.max_unsigned with 4294967295; lia).
+          change (Int.unsigned Int64.iwordsize') with 64. apply zlt_true. lia. }
+        cbn. rewrite HLt. rewrite nd_i64_shl by lia. reflexivity.
+    + rewrite <- (nd_i64_add sk (nd_byte bs i * 2 ^ k)) by nia. reflexivity.
+  - destruct HP1 as (A1 & A2 & A3 & A4 & A5). unfold pls, pl. rewrite PTree.gss. rewrite !PTree.gso by discriminate.
+    rewrite O1. repeat split; assumption.
+Qed.
+
+(** [if ( *allocationLen <= result->len || 0x60 < code) { result->op = NULL; return; }] *)
+Lemma pn_check_exec le i (c : int) n :
+  pl le i -> le!_code = Some (Vint c) -> 0 <= Int.unsigned c < 256 ->
+  Mem.load Mint64 m bl ol = Some (Vlong (Int64.repr alen)) ->
+  Mem.load Mint64 m br (or_ + 8) = Some (Vlong (Int64.repr n)) -> 0 <= n <= alen ->
+  Mem.valid_access m Mptr br or_ Writable ->
+  exists le',
+    pl le' i /\ le'!_code = Some (Vint c) /\
+    if (alen <=? n) || (96 <? Int.unsigned c)
+    then exists m', Clight2.exec_stmt sha_ge e le m pn_check E0 le' m' (Out_return None) /\
+           Mem.store Mptr m br or_ (Vlong Int64.zero) = Some m'
+    else Clight2.exec_stmt sha_ge e le m pn_check E0 le' m Out_normal.
+Proof.
+  intros HP Hc Hcr HLa HLn Hn VA. pose proof HP as (Hli & Hr & Ha & Hal & Hsp).
+  set (le39 := PTree.set _t'39 (Vlong (Int64.repr alen)) le).
+  set (le40 := PTree.set _t'40 (Vlong (Int64.repr n)) le39).
+  set (b1 := alen <=? n). set (b2 := 96 <? Int.unsigned c).
+  set (le3 := PTree.set _t'3 (Val.of_bool (b1 || b2)) le40).
+  assert (K39 : pn_keeps _t'39) by pn_keeps_tac.
+  assert (K40 : pn_keeps _t'40) by pn_keeps_tac.
+  assert (K3 : pn_keeps _t'3) by pn_keeps_tac.
+  assert (HP3 : pl le3 i) by (unfold le3, le40, le39; repeat apply pl_set; assumption).
+  assert (Hc3 : le3!_code = Some (Vint c)) by (unfold le3, le40, le39; rewrite !PTree.gso by discriminate; exact Hc).
+  exists le3. split; [exact HP3|]. split; [exact Hc3|].
+  assert (HCnd : eval_expr sha_ge e le40 m (Ebinop Ole (Etempvar _t'39 tulong) (Etempvar _t'40 tulong) tint)
+    (Val.of_bool b1)).
+  { eapply eval_Ebinop; [apply eval_Etempvar; unfold le40; rewrite PTree.gso by discriminate; apply PTree.gss
+                        |apply eval_Etempvar; apply PTree.gss|].
+    change (Some (Val.of_bool (negb (Int64.ltu (Int64.repr n) (Int64.repr alen)))) = Some (Val.of_bool b1)).
+    rewrite nd_i64_ltu by lia. unfold b1.
+    destruct (Z.ltb_spec n alen); destruct (Z.leb_spec alen n); try reflexivity; lia. }
+  assert (XA : Clight2.exec_stmt sha_ge e le m
+    (Ssequence (Sset _t'39 (Ederef (Etempvar _allocationLen (tptr tulong)) tulong))
+      (Ssequence (Sset _t'40 (Efield PRES _len tulong))
+        (Sifthenelse (Ebinop Ole (Etempvar _t'39 tulong) (Etempvar _t'40 tulong) tint)
+          (Sset _t'3 (Econst_int (Int.repr 1) tint))
+          (Sset _t'3 (Ecast (Ebinop Olt (Econst_int (Int.repr 96) tint) (Etempvar _code tuchar) tint) tbool)))))
+    E0 le3 m Out_normal).
+  { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le39) (m1 := m).
+    { apply exec_Sset. apply pn_alen_value; [exact Hal|exact HLa]. }
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le40) (m1 := m).
+    { apply exec_Sset. apply pn_len_value; [unfold le39; rewrite PTree.gso by discriminate; exact Hr|exact HLn]. }
+    eapply pn_if with (b := b1); [exact HCnd|reflexivity|].
+    unfold le3. destruct b1; cbn [orb].
+    - apply exec_Sset. apply eval_Econst_int.
+    - apply exec_Sset. eapply eval_Ecast with (v1 := Val.of_bool b2).
+      + apply nd_ev_lt_code; [unfold le40, le39; rewrite !PTree.gso by discriminate; exact Hc|lia|exact Hcr].
+      + destruct b2; reflexivity. }
+  assert (HT3 : eval_expr sha_ge e le3 m (Etempvar _t'3 tint) (Val.of_bool (b1 || b2)))
+    by (apply eval_Etempvar; apply PTree.gss).
+  unfold pn_check. destruct (b1 || b2) eqn:EB.
+  - destruct (pn_fail_exec le3 m (proj1 (proj2 HP3)) VA) as (m' & XF & HSt).
+    exists m'. split; [|exact HSt].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact XA|].
+    eapply pn_if with (b := true); [exact HT3|reflexivity|exact XF].
+  - eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact XA|].
+    eapply pn_if with (b := false); [exact HT3|reflexivity|apply exec_Sskip].
+Qed.
+End Script.
 End ParseOps.
