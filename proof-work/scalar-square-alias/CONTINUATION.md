@@ -1,5 +1,10 @@
 # Continue square through the real function and public boundary
 
+The complete public square root is now independently kernel-checked in
+`../scalar-square-public`; its integration guide supersedes the remaining
+wrapper tasks below. Full multiply acceptance is terminal success, with receipt
+in `../scalar-multiply-integration/ACCEPTANCE.json`. No audit here remains live.
+
 ## Verified function boundary supersedes the earlier next-step list
 
 `../scalar-square-function` now independently kernel-checks the complete

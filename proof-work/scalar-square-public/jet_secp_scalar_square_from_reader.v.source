@@ -1,0 +1,46 @@
+(** Single normalized scalar storage establishes the real shared-input call. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Alg Simplicity.Word.
+Require Import C.jet_word_repr C.jet_sx_expr C.jet_sx_state C.jet_sx_mem C.jet_sx_rep
+  C.jet_secp_linkage C.jets_secp C.jet_secp_canonical_scalar
+  C.jet_secp_scalar_get_b32_numeric C.jet_secp_scalar_get_b32_storage
+  C.jet_secp_scalar_writer_run C.jet_secp_scalar_writer_storage
+  C.jet_secp_scalar_mul512_low C.jet_secp_scalar_mul_reader_bridge.
+Require Import SqrFC.jet_secp_scalar_square_caller_alloc
+  SqLitC.jet_secp_canonical_scalar_square SqLitC.jet_secp_scalar_square_literal_owned.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_square_normalized_input_value (value : Ty.tySem (Word 8)) :
+  scalar_mul512_input_value (scalar_limb_rho
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value))) 0 =
+  @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value).
+Proof.
+  set (v := @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)).
+  change (scalar_mul512_input_value (scalar_mul_reader_rho v v) 0 = v).
+  exact (proj1 (scalar_mul_reader_input_values v v
+    (word_toZ_range 8 (@canonical_scalar_normalize Alg.CoreFunSem value))
+    (word_toZ_range 8 (@canonical_scalar_normalize Alg.CoreFunSem value)))).
+Qed.
+
+Theorem eval_scalar_square_from_normalized_scalar m ba (value : Ty.tySem (Word 8)) :
+  scalar_at m ba 0 (map Int64.repr (scalar_limbs_of
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)))) ->
+  Mem.range_perm m ba 0 32 Cur Freeable ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul)
+      [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero] E0 mf Vundef /\
+    rep (scalar_limb_rho (@toZ (WordToZ 8)
+      (@canonical_scalar_square Alg.CoreFunSem value))) [(ba,0)] scalar_writer_initial_regs mf /\
+    Mem.range_perm mf ba 0 32 Cur Freeable /\
+    lframe (fun block ofs => ~ foot [(ba,0)]
+      (map rshape scalar_square_caller_inputs) block ofs) m mf.
+Proof.
+  intros HA HP.
+  pose proof (scalar_writer_initial_rep_from_storage _ m ba HA HP) as HR.
+  exact (eval_scalar_square_literal_owned (scalar_limb_rho
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)))
+    [(ba,0)] m value HR (scalar_square_normalized_input_value value)).
+Qed.

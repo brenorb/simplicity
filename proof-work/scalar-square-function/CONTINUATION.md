@@ -1,5 +1,15 @@
 # Close the public square wrapper next
 
+## Complete public root now supersedes the earlier wrapper checklist
+
+`../scalar-square-public` independently kernel-checks the full original public
+square jet against the literal duplicate-input multiplication term. Its seven
+modules / 16 results derive the single reader, shared-input function, writer,
+source copy, cursor/framing and actual public-local cleanup. No new covered jet
+is registered yet. Continue with that archive's normal-integration guide, not
+the completed public wrapper tasks below. Multiply acceptance is also terminal
+success; its receipt is in `../scalar-multiply-integration/ACCEPTANCE.json`.
+
 Last verified declaration:
 `SqrFC.jet_secp_scalar_square_caller_observed.eval_scalar_square_caller_inplace_observed`.
 All three modules / nine results passed fresh compilation, full contract and
