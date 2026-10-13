@@ -234,3 +234,5 @@ the receipt). They are not counted in the table above.
   and a logical taproot environment describing the bytes read
   (`el_tapenv_describes`): `el_ready_script_cmr`, `el_ready_internal_key`,
   `el_ready_tapleaf_version`, `el_ready_tappath` (every path length).
+
+Receipt (`f8fa597c`): `bash Coq/audit-elements-env.sh` — generated ports current; no admissions; assumption audit passed: 8 reports within the six inherited assumptions (`eval_sha256_toMidstate`, `ctxo_hash`, `eval_mallocTapEnv`, `elements_tappath_nullable_local_spec`, `el_ready_script_cmr`, `el_ready_internal_key`, `el_ready_tapleaf_version`, `el_ready_tappath`); `coqchk` passed for `C.jet_elements_env_tapenv`, `C.jet_elements_env_tapenv_relations` (with `C.jet_elements_tappath_nullable`) and their dependencies; exit 0; 19 min.
