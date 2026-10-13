@@ -49,6 +49,10 @@ integrated into main, so compare against actual current sources and inventories,
 not old intended plans. Reuse `review-normal.py`'s ordered record parser for
 the three known constructor-parent Print cases and duplicate printed names;
 the older scalar-add reconciliation parser does not know those constructors.
+The new read-only `plan-main.py` does this; `MAIN-RECONCILIATION.md` records
+its latest checkpoint (270 source additions, no source conflict, inherited
+contracts/dependencies unchanged, four gate scripts requiring explicit review).
+Recompute its full output against the current worktree and index before applying.
 Report exact overlaps before changing conflicting user work. Verify the final
 main tree with full acceptance before updating its accepted coverage.
 
