@@ -40,10 +40,30 @@ for f in "$root"/C/*.vo; do
     done
   fi
 done
+# start-up invariant modules: only when the archived prerequisites have been
+# extracted by build-startup.sh (startup/prereq is not part of this branch)
+startup=0
+if [[ -e startup/prereq/jet_clight_forward.v && -e startup/prereq/jet_sha_initial_globals.v ]]; then
+  startup=1
+  mkdir -p "$tree/startup/prereq" "$tree/startup/proofs" "$tree/startup/env"
+  for name in jet_clight_forward jet_sha_initial_globals; do
+    ln -sf "$root/startup/prereq/$name.v" "$tree/startup/prereq/$name.v"
+  done
+  for name in jet_sha_startup_globals jet_sha_startup_state; do
+    ln -sf "$root/startup/proofs/$name.v" "$tree/startup/proofs/$name.v"
+  done
+  for f in bitcoin-env/startup/*.v; do ln -sf "$root/$f" "$tree/startup/env/$(basename "$f")"; done
+fi
 {
   cat _CoqProject.jets
   printf 'C/jets_bitcoin_env.v\n'
   for f in bitcoin-env/C/*.v; do [[ -e "$f" ]] && printf 'C/%s\n' "$(basename "$f")"; done
+  if [[ $startup == 1 ]]; then
+    printf -- '-Q startup/prereq JetStartupReview\n-Q startup/proofs JetStartup\n-Q startup/env BitcoinEnvStartup\n'
+    printf 'startup/prereq/jet_clight_forward.v\nstartup/prereq/jet_sha_initial_globals.v\n'
+    printf 'startup/proofs/jet_sha_startup_globals.v\nstartup/proofs/jet_sha_startup_state.v\n'
+    for f in bitcoin-env/startup/*.v; do printf 'startup/env/%s\n' "$(basename "$f")"; done
+  fi
 } > "$tree/_CoqProject.jets.new"
 update "$tree/_CoqProject.jets.new" "$tree/_CoqProject.jets"; rm -f "$tree/_CoqProject.jets.new"
 cd "$tree"
@@ -64,5 +84,8 @@ if [[ $targets == 0 ]]; then
     [[ -e "$f" ]] || continue
     name=$(basename "$f"); set -- "$@" "C/${name%.v}.vo"
   done
+  if [[ $startup == 1 ]]; then
+    for f in "$root"/bitcoin-env/startup/*.v; do name=$(basename "$f"); set -- "$@" "startup/env/${name%.v}.vo"; done
+  fi
 fi
 exec make -f JetMakefile "$@"
