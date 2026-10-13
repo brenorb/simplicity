@@ -2,6 +2,28 @@
 
 ## Current main checkpoint supersedes historical launch notes below
 
+Actual secp initialization existence has since been proved and kernel-checked
+in `../scalar-lambda-startup`: two modules / six results / four definitions;
+five results closed. It constructs an actual initialized lambda-memory witness,
+not just a conditional initialization lemma. Fresh intended caller frames and
+normal registration remain the next steps. Keep historical receipts unchanged.
+
+Lambda advanced beyond the older helper notes: `../scalar-lambda-caller`
+now records the full original scalar_multiply_lambda call, literal output,
+entry/copy/helpers/return/free, tight readonly-global framing and initialized
+state preservation. Eleven modules / 53 results / seven definitions all compile
+and pass independent closure kernel checking; 23 negative fixtures passed.
+Signed local commits: `03c52c60` shared framing and `4f706818` full caller.
+The explicit initialized-global memory boundary remains; no normal registration
+or coverage increment. Root has eight inherited Coq/CompCert dependencies,
+including standard external/inline-assembly properties, not six. Do not hide
+them or replace the literal specification. See that archive's next actions.
+
+Main audit 22185 is still confirmed live. It has now passed all 937 kernel
+modules and is at the assumption gate. Its frozen source hash and the entire
+preexisting staged-patch hash remain unchanged. Keep polling that same handle;
+do not restart or mutate audited main inputs.
+
 The preservation-safe application completed (70639, exit 0): 285 new proof
 sources, 26 gate assets and 11 reviewed metadata/gate updates. All 873 existing
 sources stayed byte-identical, including main-only work; the entire preexisting
