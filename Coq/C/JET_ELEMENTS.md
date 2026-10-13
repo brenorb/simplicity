@@ -251,5 +251,51 @@ the live-context toolkit (`…_ctxs*`, `…_tx_calls`) and the free functions.
 - `jet_elements_env_txenv_relations.v`: `el_ready_genesis_block_hash`,
   `el_ready_current_index` from that result.
 
-Open for Elements: `simplicity_elements_mallocTransaction` and the links of
-the Elements cached hashes to specification values.
+Also ported by the generator: `jet_elements_env_hashbuffer.v`
+(`eval_hashBuffer`) and `jet_elements_env_bytestring.v`
+(`hash_buffer_bytestring`, the `byteStringHash` equivalence).
+
+### Helpers of `simplicity_elements_mallocTransaction` (hand-written)
+
+Groundwork for the Elements transaction builder (`elements/env.c`):
+
+- `jet_elements_env_readbe64.v`: `eval_sha_ReadBE64` (the call returns
+  `c_be64` of the eight bytes) and `c_be64_value` (on byte values it is the
+  arithmetic big-endian word).
+- `jet_elements_env_copyrawamt.v`: `eval_copyRawAmt_null`,
+  `eval_copyRawAmt_explicit`, `eval_copyRawAmt_confidential` — the three
+  cases of `copyRawAmt`, through the anonymous union of `confAmount`
+  (`envu_union_at`, `eval_envu_union_lvalue`).  `amt_parity` is the
+  `ODD_Y`/`EVEN_Y` prefix.
+- `jet_elements_env_copyrawconf.v`: `eval_copyRawConfidential_null`,
+  `eval_copyRawConfidential_raw` — the compound literal is zero-filled in
+  its stack block, the prefix (`conf_prefix`) stored, the structure copied
+  to `*conf`, the midstate written and both stack blocks freed.
+- `jet_elements_env_isfee.v`: `eval_isFee` — the short-circuit conjunction
+  returns `is_fee`; a NULL asset or value (`raw_first`) is compared but
+  never dereferenced.
+- `jet_elements_env_countfee.v`: `eval_countFeeOutputs` — the loop returns
+  `fee_count`, the number of fee outputs.
+
+The bytes of a raw asset, nonce or amount and the readability of the raw
+transaction are input requirements (what the caller of
+`simplicity_elements_mallocTransaction` supplies); nothing about the built
+transaction is assumed.
+
+Receipt (`f07749da`): `bash Coq/audit-elements-env.sh` — generated ports
+current; no admissions; assumption audit passed: 22 reports within the six
+inherited assumptions (the 8 above, `eval_freeTransaction`,
+`eval_freeTapEnv`, `eval_build_txEnv`, `el_ready_genesis_block_hash`,
+`el_ready_current_index`, `eval_hashBuffer`, `hash_buffer_bytestring`,
+`eval_sha_ReadBE64`, `c_be64_value`, the three `eval_copyRawAmt_*`, the two
+`eval_copyRawConfidential_*`); `coqchk` passed for
+`C.jet_elements_env_tapenv`, `C.jet_elements_env_tapenv_relations`,
+`C.jet_elements_env_free`, `C.jet_elements_env_txenv_relations`,
+`C.jet_elements_env_bytestring`, `C.jet_elements_env_copyrawconf` and their
+dependencies; exit 0; 20 min.  (An earlier run at `4bf3bbdf` passed with 11
+reports, exit 0, 31 min.)
+
+Open for Elements: the rest of `simplicity_elements_mallocTransaction`
+(`copyInput` with the issuance computations of `elements/ops.c`, null-data
+parsing, `copyOutput`, `sumFees`, the main body) and the links of the
+Elements cached hashes to specification values.

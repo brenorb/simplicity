@@ -22,6 +22,7 @@ bash build-elements-env.sh ${JOBS:--j4}
   echo "Require C.jet_elements_env_free C.jet_elements_env_txenv."
   echo "Require C.jet_elements_env_txenv_relations C.jet_elements_env_hashbuffer C.jet_elements_env_bytestring."
   echo "Require C.jet_elements_env_readbe64 C.jet_elements_env_copyrawamt C.jet_elements_env_copyrawconf."
+  echo "Require C.jet_elements_env_isfee C.jet_elements_env_countfee."
   for r in jet_elements_env_tomidstate.eval_sha256_toMidstate jet_elements_env_ctxo.ctxo_hash jet_elements_env_tapenv.eval_mallocTapEnv \
       jet_elements_tappath_nullable.elements_tappath_nullable_local_spec \
       jet_elements_env_tapenv_relations.el_ready_script_cmr jet_elements_env_tapenv_relations.el_ready_internal_key \
@@ -33,14 +34,15 @@ bash build-elements-env.sh ${JOBS:--j4}
       jet_elements_env_readbe64.eval_sha_ReadBE64 jet_elements_env_readbe64.c_be64_value \
       jet_elements_env_copyrawamt.eval_copyRawAmt_null jet_elements_env_copyrawamt.eval_copyRawAmt_explicit \
       jet_elements_env_copyrawamt.eval_copyRawAmt_confidential \
-      jet_elements_env_copyrawconf.eval_copyRawConfidential_null jet_elements_env_copyrawconf.eval_copyRawConfidential_raw; do
+      jet_elements_env_copyrawconf.eval_copyRawConfidential_null jet_elements_env_copyrawconf.eval_copyRawConfidential_raw \
+      jet_elements_env_isfee.eval_isFee jet_elements_env_countfee.eval_countFeeOutputs; do
     printf 'Goal True. idtac "@@ %s". Abort.\nPrint Assumptions C.%s.\n' "${r#*.}" "$r"
   done
 } > "$tmp/audit.v"
 cd "$root/elements-env/tree"
 ulimit -s 65520 2>/dev/null || true
 bash build-jets.sh --coqc -Q "$tmp" ElementsEnvAudit "$tmp/audit.v" > "$tmp/audit.log" 2>&1
-python3 "$root/elements-sha/audit.py" "$tmp/audit.log" 22
-bash build-jets.sh --coqchk -silent -o C.jet_elements_env_tapenv C.jet_elements_env_tapenv_relations C.jet_elements_env_free C.jet_elements_env_txenv_relations C.jet_elements_env_bytestring C.jet_elements_env_copyrawconf > "$tmp/coqchk.log" 2>&1
-echo "coqchk passed for C.jet_elements_env_tapenv, C.jet_elements_env_tapenv_relations (with C.jet_elements_tappath_nullable), C.jet_elements_env_free, C.jet_elements_env_txenv_relations (with C.jet_elements_env_txenv), C.jet_elements_env_bytestring (with C.jet_elements_env_hashbuffer), C.jet_elements_env_copyrawconf (with C.jet_elements_env_copyrawamt, C.jet_elements_env_readbe64) and their dependencies"
+python3 "$root/elements-sha/audit.py" "$tmp/audit.log" 24
+bash build-jets.sh --coqchk -silent -o C.jet_elements_env_tapenv C.jet_elements_env_tapenv_relations C.jet_elements_env_free C.jet_elements_env_txenv_relations C.jet_elements_env_bytestring C.jet_elements_env_copyrawconf C.jet_elements_env_countfee > "$tmp/coqchk.log" 2>&1
+echo "coqchk passed for C.jet_elements_env_tapenv, C.jet_elements_env_tapenv_relations (with C.jet_elements_tappath_nullable), C.jet_elements_env_free, C.jet_elements_env_txenv_relations (with C.jet_elements_env_txenv), C.jet_elements_env_bytestring (with C.jet_elements_env_hashbuffer), C.jet_elements_env_copyrawconf (with C.jet_elements_env_copyrawamt, C.jet_elements_env_readbe64), C.jet_elements_env_countfee (with C.jet_elements_env_isfee) and their dependencies"
 echo "logs: $tmp"

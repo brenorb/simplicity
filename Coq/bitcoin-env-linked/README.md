@@ -40,3 +40,4 @@ bash Coq/audit-bitcoin-env-linked.sh
 
 | Commit | Command | Result |
 |---|---|---|
+| `ccad87b7` | `bash Coq/audit-bitcoin-env-linked.sh` | no admissions; assumption audit passed: 7 reports within the six inherited assumptions (no `memcpy_model` premise); `coqchk` passed for `C.jet_bitcoin_env_linked` and its dependencies; exit 0; 26 min |
