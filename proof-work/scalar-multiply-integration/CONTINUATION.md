@@ -1,5 +1,21 @@
 # Continue the same full scalar-multiply acceptance run
 
+## Terminal success supersedes the historical launch notes below
+
+Full acceptance **38093** terminated with exit 0 (terminal chunk **c92c32**).
+All gates passed: normal build, 922-module kernel, 4,767 assumption records
+(2,635 closed), reviewed type/definition snapshots, negative tests and all four
+regenerated AST comparisons. The frozen fingerprint is unchanged. Post-run
+review and mutation tests **67725** also terminated with exit 0. `ACCEPTANCE.json`
+pins the terminal log and exact scope. Do not poll or restart either completed run.
+
+Isolated **360/533** coverage is now accepted (256 entries without an extra
+library premise, 104 explicitly memcpy_model-conditional). Main remains
+separate at 351/533; no main registration is implied. The next integration
+step is exact main reconciliation below, preserving dirty index/worktree work.
+Keep the accepted candidate immutable. `AUDIT-RUN.json` remains historical
+launch evidence, not the final receipt.
+
 Actual handle **38093** was verified live at the last observation, running
 `check-jets.sh --accept` in
 `/tmp/jet-scalar-multiply-integration.yIS07H/Coq`.
