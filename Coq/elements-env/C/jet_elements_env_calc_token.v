@@ -1,0 +1,251 @@
+(** Execution of [simplicity_calculateToken(entropy, prefix)]
+    (elements/ops.c): the SHA-256 compression, from the initial state, of
+    the block [entropy ++ w ++ 0^7] where [w] is 0x02000000 for a
+    confidential amount prefix and 0x01000000 otherwise; and of the helper
+    [is_confidential]. *)
+From Coq Require Import ZArith List Lia PeanoNat Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require sha.SHA256.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_uint32_array_init C.jet_sha256_iv_init.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_block_local C.jet_sha_compress_call C.jet_sha_add_n_init.
+Require Import C.jet_env_store_words C.jet_elements_env_field_eval C.jet_elements_env_isfee C.jet_elements_env_calc.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 300.
+
+Local Notation BLK := (tarray tuint 16).
+
+Lemma sha_is_confidential_symbol :
+  Genv.find_symbol (Clight.genv_genv sha_ge) _is_confidential = Some (sha_symbol_block _is_confidential).
+Proof. vm_compute; reflexivity. Qed.
+Lemma sha_is_confidential_funct :
+  Genv.find_funct (Clight.genv_genv sha_ge) (Vptr (sha_symbol_block _is_confidential) Ptrofs.zero) =
+    Some (Internal f_is_confidential).
+Proof. vm_compute; reflexivity. Qed.
+
+Definition ct_tok : statement :=
+  Ssequence
+    (Ssequence
+      (Scall (Some _t'1) (Evar _is_confidential (Tfunction (Tcons tint Tnil) tbool cc_default))
+         [Etempvar _prefix tint])
+      (Sifthenelse (Etempvar _t'1 tbool)
+         (Sset _t'2 (Ecast (Econst_int (Int.repr 33554432) tint) tint))
+         (Sset _t'2 (Ecast (Econst_int (Int.repr 16777216) tint) tint))))
+    (Sassign (Ederef (Ebinop Oadd (Evar _block BLK) (Econst_int (Int.repr 8) tint) (tptr tuint)) tuint)
+       (Etempvar _t'2 tint)).
+
+Lemma calcToken_body_shape :
+  fn_body f_simplicity_calculateToken =
+    calc_zeros 0 16 (Ssequence calc_memcpy (Ssequence ct_tok (calc_tail _t'3))).
+Proof. reflexivity. Qed.
+
+Lemma calcToken_entry m m1 m2 bB bR vres vent vpfx :
+  Mem.alloc m 0 64 = (m1, bB) -> Mem.alloc m1 0 32 = (m2, bR) ->
+  function_entry2 sha_ge f_simplicity_calculateToken [vres; vent; vpfx] m (calc_env bB bR)
+    (PTree.set _prefix vpfx (PTree.set _entropy vent (PTree.set __res vres
+       (create_undef_temps (fn_temps f_simplicity_calculateToken))))) m2.
+Proof.
+  intros A1 A2. constructor.
+  - cbn. repeat constructor; cbn; intuition discriminate.
+  - cbn. repeat constructor; cbn; intuition discriminate.
+  - intros x y HX HY Hxy. cbn in HX, HY.
+    repeat match goal with H : _ \/ _ |- _ => destruct H end; subst; try contradiction; discriminate.
+  - eapply alloc_variables_cons with (m1 := m1) (b1 := bB); [change (Mem.alloc m 0 64 = (m1, bB)); exact A1|].
+    eapply alloc_variables_cons with (m1 := m2) (b1 := bR); [rewrite calc_sizeof_MID; exact A2|].
+    constructor.
+  - reflexivity.
+Qed.
+
+Local Opaque sha_ge.
+
+Definition is_conf (pfx : int) : bool := Int.eq (Int.repr 2) pfx || Int.eq (Int.repr 3) pfx.
+
+Theorem eval_is_confidential m (pfx : int) :
+  Clight2.eval_funcall sha_ge m (Internal f_is_confidential) [Vint pfx] E0 m (Vint (b2i (is_conf pfx))).
+Proof.
+  set (le := PTree.set _prefix (Vint pfx) (create_undef_temps (fn_temps f_is_confidential))).
+  assert (HC : forall k, eval_expr sha_ge empty_env le m
+    (Ebinop Oeq (Econst_int (Int.repr k) tint) (Etempvar _prefix tint) tint) (Val.of_bool (Int.eq (Int.repr k) pfx))).
+  { intros k. eapply eval_Ebinop; [apply eval_Econst_int|apply eval_Etempvar; reflexivity|reflexivity]. }
+  eapply eval_funcall_internal with (e := empty_env) (le1 := le) (m1 := m) (m2 := m)
+    (le2 := PTree.set _t'1 (Vint (b2i (is_conf pfx))) le)
+    (out := Out_return (Some (Vint (b2i (is_conf pfx)), tint))).
+  - apply function_entry2_intro.
+    + apply list_norepet_nil.
+    + repeat constructor; simpl; intuition discriminate.
+    + intros x0 y0 HX HY; cbn in HX, HY; intuition (subst; discriminate).
+    + apply alloc_variables_nil.
+    + reflexivity.
+  - unfold f_is_confidential. cbn [fn_body].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [|apply exec_Sreturn_some; apply eval_Etempvar; apply PTree.gss].
+    unfold is_conf. pose proof (HC 2) as H2. destruct (Int.eq (Int.repr 2) pfx) eqn:E2.
+    + eapply exec_Sifthenelse with (v1 := Vtrue) (b := true);
+        [exact H2|reflexivity|].
+      apply exec_Sset. apply eval_Econst_int.
+    + eapply exec_Sifthenelse with (v1 := Vfalse) (b := false);
+        [exact H2|reflexivity|].
+      apply exec_Sset. eapply eval_Ecast; [apply HC|].
+      cbn [orb]. destruct (Int.eq (Int.repr 3) pfx); reflexivity.
+  - cbn. split; [discriminate|]. destruct (is_conf pfx); reflexivity.
+  - reflexivity.
+Qed.
+
+Definition token_word (pfx : int) : int :=
+  if is_conf pfx then Int.repr 33554432 else Int.repr 16777216.
+
+Definition calc_token_regs (ent : list int) (pfx : int) : list int :=
+  SHA256.hash_block sha256_iv_words (ent ++ token_word pfx :: repeat Int.zero 7).
+
+Theorem eval_calculateToken (Hmodel : memcpy_model) m bres ores bent oent (ent : list int) (pfx : int) :
+  0 <= ores -> ores + 32 <= Ptrofs.max_unsigned -> (4 | ores) ->
+  Mem.range_perm m bres ores (ores + 32) Cur Writable ->
+  length ent = 8%nat -> Ptrofs.unsigned oent + 32 <= Ptrofs.max_unsigned ->
+  (forall j, (j < 8)%nat ->
+     Mem.load Mint32 m bent (Ptrofs.unsigned oent + 4 * Z.of_nat j) = Some (Vint (nth j ent Int.zero))) ->
+  sha_dispatch_ok m ->
+  exists m',
+    Clight2.eval_funcall sha_ge m (Internal f_simplicity_calculateToken)
+      [Vptr bres (Ptrofs.repr ores); Vptr bent oent; Vint pfx] E0 m' Vundef /\
+    (forall j, (j < 8)%nat ->
+       Mem.load Mint32 m' bres (ores + 4 * Z.of_nat j) = Some (Vint (nth j (calc_token_regs ent pfx) Int.zero))) /\
+    (forall ch b ofs, Mem.valid_block m b ->
+       (b <> bres \/ ofs + size_chunk ch <= ores \/ ores + 32 <= ofs) ->
+       Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.valid_block m b -> Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b).
+Proof.
+  intros Ho0 HoM HoA PRes Hent HeM HEnt Hdisp.
+  set (GCb := sha_symbol_block _simplicity_sha256_compression) in *.
+  assert (VG : Mem.valid_block m GCb).
+  { unfold sha_dispatch_ok in Hdisp. eapply Mem.perm_valid_block.
+    apply (proj1 (Mem.load_valid_access _ _ _ _ _ Hdisp) 0). cbn. lia. }
+  assert (Vres : Mem.valid_block m bres) by (eapply Mem.perm_valid_block; apply (PRes ores); lia).
+  assert (Vent : Mem.valid_block m bent).
+  { eapply Mem.perm_valid_block.
+    apply (proj1 (Mem.load_valid_access _ _ _ _ _ (HEnt 0%nat ltac:(lia))) (Ptrofs.unsigned oent + 4 * Z.of_nat 0)).
+    cbn. lia. }
+  destruct (Mem.alloc m 0 64) as [m1 bB] eqn:A1.
+  destruct (Mem.alloc m1 0 32) as [m0 bR] eqn:A2.
+  assert (NB : forall b, Mem.valid_block m b -> b <> bB).
+  { intros b Hb E. subst b. exact (Mem.fresh_block_alloc _ _ _ _ _ A1 Hb). }
+  assert (NR : forall b, Mem.valid_block m b -> b <> bR).
+  { intros b Hb E. subst b. apply (Mem.fresh_block_alloc _ _ _ _ _ A2).
+    eapply Mem.valid_block_alloc; [exact A1|exact Hb]. }
+  assert (NBR : bB <> bR).
+  { intros E. apply (Mem.fresh_block_alloc _ _ _ _ _ A2). rewrite <- E. eapply Mem.valid_new_block. exact A1. }
+  assert (L0 : forall ch b ofs, Mem.valid_block m b -> Mem.load ch m0 b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb.
+    rewrite (Mem.load_alloc_unchanged _ _ _ _ _ A2) by (eapply Mem.valid_block_alloc; [exact A1|exact Hb]).
+    eapply Mem.load_alloc_unchanged; [exact A1|exact Hb]. }
+  assert (P0 : forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m0 b ofs k p).
+  { intros b ofs k p Hp. eapply Mem.perm_alloc_1; [exact A2|]. eapply Mem.perm_alloc_1; [exact A1|exact Hp]. }
+  assert (V0 : forall b, Mem.valid_block m b -> Mem.valid_block m0 b).
+  { intros b Hb. eapply Mem.valid_block_alloc; [exact A2|]. eapply Mem.valid_block_alloc; [exact A1|exact Hb]. }
+  assert (PB0 : Mem.range_perm m0 bB 0 64 Cur Freeable).
+  { intros o Ho. eapply Mem.perm_alloc_1; [exact A2|]. eapply Mem.perm_alloc_2; [exact A1|exact Ho]. }
+  assert (PR0 : Mem.range_perm m0 bR 0 32 Cur Freeable).
+  { intros o Ho. eapply Mem.perm_alloc_2; [exact A2|exact Ho]. }
+  set (e := calc_env bB bR).
+  set (le := PTree.set _prefix (Vint pfx) (PTree.set _entropy (Vptr bent oent)
+    (PTree.set __res (Vptr bres (Ptrofs.repr ores)) (create_undef_temps (fn_temps f_simplicity_calculateToken))))).
+  assert (PBW : Mem.range_perm m0 bB 0 64 Cur Writable).
+  { intros o Ho. eapply Mem.perm_implies; [apply PB0, Ho|constructor]. }
+  assert (NentB : bent <> bB) by (apply NB, Vent).
+  assert (HEnt0 : forall j, (j < 8)%nat ->
+    Mem.load Mint32 m0 bent (Ptrofs.unsigned oent + 4 * Z.of_nat j) = Some (Vint (nth j ent Int.zero))).
+  { intros j Hj. rewrite L0 by exact Vent. exact (HEnt j Hj). }
+  assert (HleE : le!_entropy = Some (Vptr bent oent)) by reflexivity.
+  destruct calc_prefix_exec with (e := e) (bB := bB) (bR := bR) (le := le) (m := m0) (bent := bent) (oent := oent)
+    (ent := ent) as (m2 & HBlk & L2 & P2 & V2 & K2); try assumption; try reflexivity.
+  (* block[8] = is_confidential(prefix) ? 0x02000000 : 0x01000000 *)
+  set (w := token_word pfx).
+  destruct (Mem.valid_access_store m2 Mint32 bB 32 (Vint w)) as [m2' HSw].
+  { split; [|exists 8; reflexivity]. intros o Ho. change (size_chunk Mint32) with 4 in Ho. apply P2, PBW. lia. }
+  set (le1 := PTree.set _t'1 (Vint (b2i (is_conf pfx))) le).
+  set (le2 := PTree.set _t'2 (Vint w) le1).
+  assert (XTok : Clight2.exec_stmt sha_ge e le m2 ct_tok E0 le2 m2' Out_normal).
+  { unfold ct_tok.
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le2) (m1 := m2).
+    - eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le1) (m1 := m2).
+      + change le1 with (set_opttemp (Some _t'1) (Vint (b2i (is_conf pfx))) le).
+        eapply exec_Scall with (vf := Vptr (sha_symbol_block _is_confidential) Ptrofs.zero)
+          (vargs := [Vint pfx]) (f := Internal f_is_confidential).
+        * reflexivity.
+        * eapply eval_Elvalue; [apply eval_Evar_global; [reflexivity|exact sha_is_confidential_symbol]|].
+          apply deref_loc_reference; reflexivity.
+        * eapply eval_Econs; [apply eval_Etempvar; reflexivity|reflexivity|apply eval_Enil].
+        * exact sha_is_confidential_funct.
+        * reflexivity.
+        * apply eval_is_confidential.
+      + unfold le2, w, token_word.
+        eapply exec_Sifthenelse with (v1 := Vint (b2i (is_conf pfx))) (b := is_conf pfx);
+          [apply eval_Etempvar; apply PTree.gss|destruct (is_conf pfx); reflexivity|].
+        destruct (is_conf pfx); apply exec_Sset; (eapply eval_Ecast; [apply eval_Econst_int|reflexivity]).
+    - eapply exec_Sassign with (loc := bB) (ofs := Ptrofs.repr 32) (v2 := Vint w) (v := Vint w).
+      + eapply eval_Ederef.
+        eapply eval_Ebinop with (v1 := Vptr bB Ptrofs.zero);
+          [eapply eval_Elvalue; [apply eval_Evar_local; reflexivity|apply deref_loc_reference; reflexivity]
+          |apply eval_Econst_int|reflexivity].
+      + apply eval_Etempvar. apply PTree.gss.
+      + reflexivity.
+      + eapply assign_loc_value; [reflexivity|]. exact HSw. }
+  assert (HBlk' : forall j, (j < 16)%nat ->
+    Mem.load Mint32 m2' bB (4 * Z.of_nat j) = Some (Vint (nth j (ent ++ w :: repeat Int.zero 7) Int.zero))).
+  { intros j Hj. destruct (Nat.eq_dec j 8) as [->|Hne].
+    - rewrite app_nth2 by lia. rewrite Hent. cbn [Nat.sub nth].
+      change (4 * Z.of_nat 8) with 32. rewrite (Mem.load_store_same _ _ _ _ _ _ HSw). reflexivity.
+    - rewrite (Mem.load_store_other _ _ _ _ _ _ HSw) by (right; change (size_chunk Mint32) with 4; lia).
+      rewrite (HBlk j Hj). do 2 f_equal.
+      destruct (lt_dec j 8) as [Hlt|Hge]; [rewrite !app_nth1 by lia; reflexivity|].
+      rewrite !app_nth2 by lia. rewrite Hent.
+      destruct (j - 8)%nat as [|q] eqn:EQ; [lia|].
+      change (repeat Int.zero 8) with (Int.zero :: repeat Int.zero 7). cbn [nth]. reflexivity. }
+  assert (L2' : forall ch b ofs, b <> bB -> Mem.load ch m2' b ofs = Mem.load ch m0 b ofs).
+  { intros ch b ofs Hb. rewrite (Mem.load_store_other _ _ _ _ _ _ HSw) by (left; exact Hb). apply L2, Hb. }
+  assert (P2' : forall b ofs k p, Mem.perm m0 b ofs k p -> Mem.perm m2' b ofs k p).
+  { intros b ofs k p Hp. eapply Mem.perm_store_1; [exact HSw|apply P2, Hp]. }
+  assert (V2' : forall b, Mem.valid_block m0 b -> Mem.valid_block m2' b).
+  { intros b Hb. eapply Mem.store_valid_block_1; [exact HSw|apply V2, Hb]. }
+  assert (HresL : forall v, (PTree.set _t'3 v le2)!__res = Some (Vptr bres (Ptrofs.repr ores)))
+    by (intros v; reflexivity).
+  assert (PRes2 : Mem.range_perm m2' bres ores (ores + 32) Cur Writable).
+  { intros o Ho. apply P2', P0, PRes, Ho. }
+  assert (PR2 : Mem.range_perm m2' bR 0 32 Cur Writable).
+  { intros o Ho. apply P2'. eapply Mem.perm_implies; [apply PR0, Ho|constructor]. }
+  assert (NRres : bR <> bres) by (apply not_eq_sym, NR, Vres).
+  assert (NBres : bB <> bres) by (apply not_eq_sym, NB, Vres).
+  assert (Hblk : length (ent ++ w :: repeat Int.zero 7) = 16%nat)
+    by (rewrite app_length, Hent; reflexivity).
+  assert (Hdisp2 : sha_dispatch_ok m2').
+  { unfold sha_dispatch_ok. fold GCb. rewrite L2' by (apply NB, VG). rewrite L0 by exact VG. exact Hdisp. }
+  assert (NGR : GCb <> bR) by (apply NR, VG).
+  destruct calc_tail_exec with (e := e) (bB := bB) (bR := bR) (td := _t'3) (le := le2) (m := m2')
+    (bres := bres) (ores := ores) (blk := ent ++ w :: repeat Int.zero 7)
+    as (le' & m3 & XT & HRes & L3 & P3 & V3); try assumption; try reflexivity.
+  assert (PF : forall b0 lo hi, In (b0, lo, hi) [(bB, 0, 64); (bR, 0, 32)] ->
+    Mem.range_perm m3 b0 lo hi Cur Freeable).
+  { intros b0 lo hi [E|[E|[]]]; injection E as <- <- <-; intros o Ho.
+    - apply P3, P2', PB0, Ho.
+    - apply P3, P2', PR0, Ho. }
+  destruct (free_list_blocks [(bB, 0, 64); (bR, 0, 32)] m3 PF) as (mf & HFL & HLf & HPf & HVf).
+  { cbn [map fst]. apply NoDup_cons; [intros [E|[]]; exact (NBR (eq_sym E))|].
+    apply NoDup_cons; [intros []|apply NoDup_nil]. }
+  cbn [map fst] in HLf, HPf.
+  assert (NIn : forall b, Mem.valid_block m b -> ~ In b [bB; bR]).
+  { intros b Hb [E|[E|[]]]; [exact (NB b Hb (eq_sym E))|exact (NR b Hb (eq_sym E))]. }
+  exists mf. split; [|split; [|split; [|split]]].
+  - eapply eval_funcall_internal with (e := e) (le1 := le) (m1 := m0) (le2 := le') (m2 := m3)
+      (out := Out_return None).
+    + eapply calcToken_entry; [exact A1|exact A2].
+    + rewrite calcToken_body_shape. apply K2.
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact XTok|exact XT].
+    + reflexivity.
+    + unfold e. rewrite calc_blocks. exact HFL.
+  - intros j Hj. rewrite HLf by (apply NIn, Vres). exact (HRes j Hj).
+  - intros ch b ofs Hb Hr. rewrite HLf by (apply NIn, Hb).
+    rewrite L3 by (try (apply V2', V0; exact Hb); try (apply NR; exact Hb); exact Hr).
+    rewrite L2' by (apply NB, Hb). apply L0, Hb.
+  - intros b ofs k p Hb Hp. apply HPf; [apply NIn, Hb|]. apply P3, P2', P0, Hp.
+  - intros b Hb. apply HVf, V3, V2', V0, Hb.
+Qed.

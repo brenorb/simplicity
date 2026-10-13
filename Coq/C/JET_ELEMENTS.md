@@ -318,6 +318,10 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   under `sha_dispatch_ok`, struct return through the hidden pointer).
   `calc_prefix_exec` and `calc_tail_exec` are shared with
   `simplicity_calculateToken`.
+- `jet_elements_env_calc_token.v`: `eval_is_confidential` and
+  `eval_calculateToken` — the result is `calc_token_regs ent pfx`, the
+  compression of `ent ++ token_word pfx ++ 0^7` (0x02000000 for a
+  confidential amount prefix, 0x01000000 otherwise).
 
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of
