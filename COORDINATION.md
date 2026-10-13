@@ -344,3 +344,8 @@ nullable relation as the registered contract for `tappath`.
   jet_elements_env_conf_*.v`). These C functions are also called by the
   Elements hash jets; the statements are for the environment unit's `LS`
   context layer.
+- `Coq/C/jet_rsort_model.v`: `rsort_model`, the documented contract of the
+  external `simplicity_rsort` as an explicit premise (definition only; not
+  discharged — `C/rsort.c` is unverified). Issuance helpers of
+  `elements/ops.c` are proven: `eval_calculateAsset`, `eval_calculateToken`,
+  `eval_generateIssuanceEntropy`.

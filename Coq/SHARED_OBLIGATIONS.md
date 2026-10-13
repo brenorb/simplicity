@@ -116,6 +116,25 @@ assumptions; `bytes_cmp_trans`, `bytes_cmp_eq` — closed;
 passed; `words_bytes_at`, `load_word_bytes` use four of the six inherited
 assumptions, `words_bytes_cmp_eq` is closed.
 
+## 1c. `simplicity_rsort`: explicit contract (not yet discharged)
+
+`simplicity_elements_mallocTransaction` sorts its fee outputs with
+`simplicity_rsort` (`C/rsort.c`), which the environment unit declares as
+`EF_external "simplicity_rsort"`.  `C/jet_rsort_model.v` states the contract
+of `rsort.h` as the premise `rsort_model`: the call either fails (returns
+false) leaving the caller-visible memory unchanged, or returns true with
+the pointer array holding a permutation of its pointers sorted for the
+`memcmp` byte order of the midstates (`bytes_cmp` on `words_bytes`), only
+the array being written.  This is exactly the precondition `Hsorted` of
+`eval_sumFees`.
+
+Unlike `memcpy` and `memcmp`, no implementation has been verified against
+this contract: `C/rsort.c` is a 250-line radix sort (it also calls
+`memset`).  **Open obligation:** add `rsort.c` to a unit and prove
+`rsort_model` for it, or keep the premise explicit in every theorem that
+reaches the call.  The file contains a definition only (no theorem, no
+axiom).
+
 ## Open items (unclaimed unless noted in `../COORDINATION.md`)
 
 1. Environment relations: stability and executability are done
