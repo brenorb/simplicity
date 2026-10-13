@@ -1,0 +1,53 @@
+(** The original internal call emits the literal lambda term's writer state. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Alg Simplicity.Word.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_sx_mem
+  C.jet_secp_linkage C.jets_secp C.jet_secp_canonical_scalar
+  C.jet_secp_scalar_get_b32_numeric C.jet_secp_scalar_get_b32_storage
+  C.jet_secp_scalar_writer_run C.jet_secp_scalar_mul512_low
+  C.jet_secp_scalar_mul_caller_observed C.jet_secp_scalar_mul_writer_bridge.
+Require Import BorrowFC.jet_secp_scalar_mul_borrowed_alloc
+  BorrowFC.jet_secp_scalar_mul_borrowed_function BorrowFC.jet_secp_scalar_mul_borrowed_observed
+  LambdaC.jet_secp_scalar_lambda_global LambdaC.jet_secp_scalar_lambda_region
+  LamSpecC.jet_secp_canonical_scalar_lambda LamCallC.jet_secp_scalar_lambda_inputs.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque scalar_lambda_block scalar_mul_caller_words
+  C.jet_secp_scalar_mul_caller_function.scalar_mul_caller_output.
+
+Theorem eval_scalar_lambda_from_normalized_scalar m ba (value : Ty.tySem (Word 8)) :
+  scalar_at m ba 0 (map Int64.repr (scalar_limbs_of
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)))) ->
+  Mem.range_perm m ba 0 32 Cur Freeable -> ba <> scalar_lambda_block ->
+  scalar_lambda_global_rep m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul)
+      [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr scalar_lambda_block Ptrofs.zero] E0 mf Vundef /\
+    rep (scalar_limb_rho (@toZ (WordToZ 8)
+      (@canonical_scalar_multiply_lambda Alg.CoreFunSem value))) [(ba,0)] scalar_writer_initial_regs mf /\
+    Mem.range_perm mf ba 0 32 Cur Freeable /\
+    scalar_lambda_global_rep mf /\
+    lframe (fun block ofs => ~ foot [(ba,0);(scalar_lambda_block,0)]
+      (map rshape scalar_mul_borrowed_inputs) block ofs) m mf.
+Proof.
+  intros SA PA Hneq HG.
+  set (rho := scalar_lambda_mixed_rho (scalar_limb_rho
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)))).
+  pose proof (scalar_lambda_inputs_from_storage _ m ba SA PA Hneq HG) as HR.
+  fold rho in HR.
+  destruct (eval_scalar_mul_borrowed_inplace_observed rho [(ba,0);(scalar_lambda_block,0)] m HR)
+    as (mf & HC & HL & HV & HP & HBR & HF).
+  pose proof (scalar_writer_initial_rep_from_mul rho [(ba,0);(scalar_lambda_block,0)] mf HP HL) as HW.
+  assert (HI : scalar_mul512_input_value rho 0 =
+    @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)).
+  { apply scalar_lambda_mixed_normalized_value. }
+  assert (HGVal : scalar_mul512_input_value rho 4 = canonical_lambda_value).
+  { apply scalar_lambda_mixed_global_value. }
+  rewrite HI,HGVal,canonical_scalar_multiply_lambda_c_order in HV.
+  rewrite HV in HW.
+  destruct (scalar_mul_output_owned rho [(ba,0);(scalar_lambda_block,0)] mf HP) as (_ & HO).
+  exists mf; split; [exact HC|]. split; [exact HW|]. split; [exact HO|].
+  split; [eapply scalar_lambda_global_from_region; exact HBR|exact HF].
+Qed.
