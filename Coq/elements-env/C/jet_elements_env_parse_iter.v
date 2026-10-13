@@ -335,4 +335,71 @@ Proof.
     eapply pn_seq1; [exact HX3|]. eapply pn_seq1; [exact HK|exact HT].
   - eapply pn_fr_trans; [exact (pn_fr_change n m m5 Hn0 (pm_change_trans bC bRs bop oop alen n m m4 m5 HCh HCh5))|exact HF6].
 Qed.
+(** The loop. *)
+Fixpoint pn_loop (fuel : nat) (n i : Z) (ents : list pn_ent) : option (list pn_ent) :=
+  match fuel with
+  | O => Some ents
+  | S f =>
+      if i <? Int.unsigned len then
+        match pn_step n i with
+        | None => None
+        | Some (i', en) => pn_loop f (n + 1) i' (ents ++ [en])
+        end
+      else Some ents
+  end.
+
+Lemma pn_loop_exec fuel : forall le m n ents i,
+  PM m n ents -> PL le i -> 1 <= i <= Int.unsigned len -> Int.unsigned len - i <= Z.of_nat fuel ->
+  match pn_loop fuel n i ents with
+  | None =>
+      exists le' m',
+        Clight2.exec_stmt sha_ge e le m (Sloop pn_s1 pn_s2) E0 le' m' (Out_return None) /\
+        Mem.load Mptr m' br or_ = Some (Vlong Int64.zero) /\ pn_fr m m'
+  | Some ents' =>
+      exists le' m' n' i',
+        Clight2.exec_stmt sha_ge e le m (Sloop pn_s1 pn_s2) E0 le' m' Out_normal /\
+        PM m' n' ents' /\ PL le' i' /\ pn_fr m m'
+  end.
+Proof.
+  assert (HExit : forall le m n ents, PM m n ents -> PL le (Int.unsigned len) ->
+    exists le' m' n' i',
+      Clight2.exec_stmt sha_ge e le m (Sloop pn_s1 pn_s2) E0 le' m' Out_normal /\
+      PM m' n' ents /\ PL le' i' /\ pn_fr m m').
+  { intros le m n ents HM HP.
+    pose proof HM as (_ & _ & _ & _ & _ & _ & HLen & _).
+    pose proof HP as (Hli & Hr & Ha & Hl & Hsp).
+    pose proof (Int.unsigned_range_2 len) as HLr. change Int.max_unsigned with 4294967295 in HLr.
+    assert (K43 : pn_keeps _t'43) by pn_keeps_tac.
+    exists (PTree.set _t'43 (Vint len) le), m, n, (Int.unsigned len).
+    split; [|split; [exact HM|split; [apply pl_set; assumption|apply pn_fr_refl]]].
+    eapply exec_Sloop_stop1 with (out' := Out_break); [|constructor].
+    unfold pn_s1. apply exec_Sseq_2; [|discriminate].
+    eapply pn_seq1; [apply exec_Sset; exact (nd_ev_len e m bsp osp len Hosp HLen le Hsp)|].
+    eapply pn_if with (b := false); [|reflexivity|apply exec_Sbreak].
+    eapply eval_Ebinop; [apply eval_Etempvar; rewrite PTree.gso by discriminate; exact Hli
+                        |apply eval_Etempvar; apply PTree.gss|].
+    change (Some (Val.of_bool (Int64.ltu (Int64.repr (Int.unsigned len)) (Int64.repr (Int.unsigned len)))) =
+            Some (Val.of_bool false)).
+    rewrite nd_i64_ltu by zi. rewrite Z.ltb_irrefl. reflexivity. }
+  induction fuel as [|fuel IH]; intros le m n ents i HM HP Hi Hf.
+  - cbn [pn_loop]. assert (i = Int.unsigned len) by zi. subst i. exact (HExit le m n ents HM HP).
+  - cbn [pn_loop]. destruct (i <? Int.unsigned len) eqn:EL.
+    2: { apply Z.ltb_ge in EL. assert (i = Int.unsigned len) by zi. subst i. exact (HExit le m n ents HM HP). }
+    apply Z.ltb_lt in EL.
+    pose proof (pn_iter le m n ents i HM HP ltac:(zi)) as HI.
+    destruct (pn_step n i) as [[i' en]|].
+    2: { destruct HI as (le' & m' & HX & HL0 & HF). exists le', m'. split; [|split; assumption].
+         eapply exec_Sloop_stop1 with (out' := Out_return None); [exact HX|constructor]. }
+    destruct HI as (le1 & m1 & le2 & m2 & HX1 & HX2 & HM2 & HP2 & Hi2 & HF2).
+    pose proof (IH le2 m2 (n + 1) (ents ++ [en]) i' HM2 HP2 ltac:(zi) ltac:(zi)) as HR.
+    destruct (pn_loop fuel (n + 1) i' (ents ++ [en])) as [ents'|].
+    + destruct HR as (le' & m' & n' & i'' & HX & HM' & HP' & HF').
+      exists le', m', n', i''. split; [|split; [exact HM'|split; [exact HP'|eapply pn_fr_trans; eassumption]]].
+      change E0 with (E0 ** E0 ** E0).
+      eapply exec_Sloop_loop; [exact HX1|constructor|exact HX2|exact HX].
+    + destruct HR as (le' & m' & HX & HL0 & HF').
+      exists le', m'. split; [|split; [exact HL0|eapply pn_fr_trans; eassumption]].
+      change E0 with (E0 ** E0 ** E0).
+      eapply exec_Sloop_loop; [exact HX1|constructor|exact HX2|exact HX].
+Qed.
 End ParseIter.
