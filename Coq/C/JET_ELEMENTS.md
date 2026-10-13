@@ -221,3 +221,16 @@ the receipt). They are not counted in the table above.
 3. Source review of `jet_elements_prim.v` semantics clauses; a second gate
    for `primSem` would strengthen it.
 4. (done) Executability/stability instances for the Elements relations.
+
+## Taproot environment relations established by the real builder (2026-10-13)
+
+- `Coq/C/jet_elements_tappath_nullable.v`: `elements_tappath_nullable_local_spec`,
+  the `tappath` jet under `elements_tappath_env_rep_nullable` (path pointer
+  required only for a non-empty path; `simplicity_elements_mallocTapEnv`
+  stores `path = NULL` otherwise). `elements_tappath_env_rep_weaken`: the
+  earlier relation implies it. Same six inherited assumptions.
+- `Coq/elements-env/C/jet_elements_env_tapenv_relations.v`: for the block
+  returned by the real `simplicity_elements_mallocTapEnv` (`tapenv_built`)
+  and a logical taproot environment describing the bytes read
+  (`el_tapenv_describes`): `el_ready_script_cmr`, `el_ready_internal_key`,
+  `el_ready_tapleaf_version`, `el_ready_tappath` (every path length).
