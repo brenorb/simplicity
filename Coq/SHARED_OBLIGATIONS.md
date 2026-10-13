@@ -95,6 +95,13 @@ drivers call it, and the generated programs declare it as
   (-1, 0 or 1); `eval_memcmp_impl_sign` restates it in the shape of the
   model.
 
+- `C/jet_memcmp_words.v`: what `memcmp` sees on arrays of 32-bit words
+  (midstates): `load_word_bytes` (a stored word is read back as its four
+  little-endian bytes), `words_bytes_at` (a readable word array is a
+  readable byte range `words_bytes ws`), `words_bytes_cmp_eq` (the byte
+  comparison is `Eq` exactly for equal arrays).  The order on unequal
+  midstates is the little-endian byte order, not the numeric word order.
+
 No accepted theorem depends on `memcmp_model` yet; consumers should take it
 as a premise exactly like `memcpy_model`, and a linked unit can discharge it
 with `eval_memcmp_impl` the way `Coq/linked` does for `memcpy`.  The
@@ -105,8 +112,9 @@ has to be added to the unit and proved, or stated as a premise.
 Receipt (working tree of the commit that adds them): `Print Assumptions`
 for `eval_memcmp_impl`, `eval_memcmp_impl_sign` — the six inherited
 assumptions; `bytes_cmp_trans`, `bytes_cmp_eq` — closed;
-`bash Coq/build-jets.sh --coqchk -silent -o C.jet_memcmp_impl C.jet_memcmp_model`
-passed.
+`bash Coq/build-jets.sh --coqchk -silent -o C.jet_memcmp_words C.jet_memcmp_impl C.jet_memcmp_model`
+passed; `words_bytes_at`, `load_word_bytes` use four of the six inherited
+assumptions, `words_bytes_cmp_eq` is closed.
 
 ## Open items (unclaimed unless noted in `../COORDINATION.md`)
 
