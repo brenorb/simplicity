@@ -1,0 +1,79 @@
+(** Numeric bridge for the actual helper's four machine limbs. Literal
+    multiplication/mod512 public specification and lifecycle are separate. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers Values.
+Require Import C.jet_sx_expr C.jet_sx_eval.
+Require Import C.jet_secp_scalar_overflow_numeric C.jet_secp_canonical_scalar.
+Require Import C.jet_secp_scalar_negate_exec C.jet_secp_scalar_negate_values.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_negate_raw_value rho layout :=
+  Int64.unsigned (il (den rho layout scalar_negate_low0)) +
+  2 ^ 64 * Int64.unsigned (il (den rho layout scalar_negate_low1)) +
+  2 ^ 128 * Int64.unsigned (il (den rho layout scalar_negate_low2)) +
+  2 ^ 192 * Int64.unsigned (il (den rho layout scalar_negate_low3)).
+
+Lemma scalar_negate_raw_weighted_value rho layout :
+  scalar_negate_raw_value rho layout =
+  (canonical_group_order - scalar_limb_value rho) mod 2 ^ 256.
+Proof.
+  destruct (scalar_negate_raw_values rho layout) as [HL0 [HL1 [HL2 HL3]]].
+  unfold scalar_negate_raw_value; rewrite HL0, HL1, HL2, HL3.
+  set (s0 := Int64.max_unsigned - Int64.unsigned (rho 0%nat) + 13822214165235122498).
+  set (s1 := s0 / Int64.modulus + (Int64.max_unsigned - Int64.unsigned (rho 1%nat)) + 13451932020343611451).
+  set (s2 := s1 / Int64.modulus + (Int64.max_unsigned - Int64.unsigned (rho 2%nat)) + 18446744073709551614).
+  set (s3 := s2 / Int64.modulus + (Int64.max_unsigned - Int64.unsigned (rho 3%nat)) + 18446744073709551615).
+  assert (HB : Int64.modulus <> 0) by discriminate.
+  pose proof (Z.div_mod s0 Int64.modulus HB) as HD0.
+  pose proof (Z.div_mod s1 Int64.modulus HB) as HD1.
+  pose proof (Z.div_mod s2 Int64.modulus HB) as HD2.
+  pose proof (Z.div_mod s3 Int64.modulus HB) as HD3.
+  pose proof (Z.mod_pos_bound s0 Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HM0.
+  pose proof (Z.mod_pos_bound s1 Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HM1.
+  pose proof (Z.mod_pos_bound s2 Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HM2.
+  pose proof (Z.mod_pos_bound s3 Int64.modulus ltac:(change Int64.modulus with 18446744073709551616; lia)) as HM3.
+  unfold scalar_limb_value, canonical_group_order.
+  change Int64.modulus with 18446744073709551616 in *.
+  change Int64.max_unsigned with 18446744073709551615 in *.
+  change (2 ^ 64) with 18446744073709551616.
+  change (2 ^ 128) with 340282366920938463463374607431768211456.
+  change (2 ^ 192) with 6277101735386680763835789423207666416102355444464034512896.
+  change (2 ^ 256) with 115792089237316195423570985008687907853269984665640564039457584007913129639936.
+  apply Z.mod_unique with (q := s3 / 18446744073709551616 - 1).
+  - left; lia.
+  - unfold s3, s2, s1, s0 in *; lia.
+Qed.
+
+Definition scalar_negate_output_value rho layout :=
+  let limb i := Int64.unsigned (il (den rho layout (nth i scalar_negate_limbs (XLc Int64.zero)))) in
+  limb 0%nat + 2 ^ 64 * limb 1%nat + 2 ^ 128 * limb 2%nat + 2 ^ 192 * limb 3%nat.
+
+Lemma scalar_negate_masked_weighted_value rho layout :
+  scalar_negate_output_value rho layout =
+  if Z.eqb (scalar_limb_value rho) 0 then 0 else scalar_negate_raw_value rho layout.
+Proof.
+  unfold scalar_negate_output_value; rewrite scalar_negate_output_exact.
+  cbn [scalar_negate_raw map nth].
+  rewrite !scalar_negate_limb_masked.
+  destruct (Z.eqb (scalar_limb_value rho) 0).
+  - rewrite Int64.unsigned_zero; ring.
+  - reflexivity.
+Qed.
+
+Lemma scalar_negate_normalized_value rho layout :
+  0 <= scalar_limb_value rho < canonical_group_order ->
+  scalar_negate_output_value rho layout = (- scalar_limb_value rho) mod canonical_group_order.
+Proof.
+  intro HV.
+  rewrite scalar_negate_masked_weighted_value, scalar_negate_raw_weighted_value.
+  destruct canonical_group_order_range as [[HN HR] _].
+  change (canonical_group_order < 2 ^ 256) in HR.
+  destruct (Z.eqb_spec (scalar_limb_value rho) 0) as [HZ|HNonzero].
+  - rewrite HZ; change (0 = 0 mod canonical_group_order); symmetry; apply Z.mod_0_l; lia.
+  - rewrite Z.mod_small by lia.
+    replace (- scalar_limb_value rho) with
+      ((canonical_group_order - scalar_limb_value rho) + (-1) * canonical_group_order) by ring.
+    rewrite Z.mod_add by lia; rewrite Z.mod_small by lia; reflexivity.
+Qed.

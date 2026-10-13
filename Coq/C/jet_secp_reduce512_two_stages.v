@@ -1,0 +1,93 @@
+(** Actual first and second original statement stages, with checkpoint
+    representation, temp matches and numeric guards discharged internally.
+    Function entry/free and the remaining original suffix are still separate. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_shift64_executor C.jet_secp_statement_prefix.
+Require Import C.jet_sx_compact C.jet_sx_forget_cells
+  C.jet_secp_compact_stmt_shift64 C.jet_secp_scalar_reduce512_run
+  C.jet_secp_reduce512_first_run C.jet_secp_reduce512_second_run
+  C.jet_secp_reduce512_typed_stage C.jet_secp_reduce512_typed_atomic
+  C.jet_secp_reduce512_typed_exec C.jet_secp_reduce512_typed_value
+  C.jet_secp_reduce512_checkpoint C.jet_secp_reduce512_fold_bounds
+  C.jet_secp_scalar_mul512_accumulate C.jet_secp_reduce512_wide.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Lemma extract_stage_entry {A B C R : Type} (alloc : option (A * B)) (binding : option C)
+  (run : A -> B -> C -> option R) pair args result :
+  alloc = Some pair -> binding = Some args ->
+  (match alloc,binding with Some (locals,ve),Some ts => run locals ve ts | _,_ => None end) = Some result ->
+  run (fst pair) (snd pair) args = Some result.
+Proof. intros HA HB; rewrite HA,HB; destruct pair; exact (fun H => H). Qed.
+Definition reduce512_initial_temps :=
+  PTree.set _l (XP 1 0) (PTree.set _r (XP 0 0) (PTree.empty sx)).
+Definition reduce512_first_initial := mkst reduce512_initial_temps
+  (scalar_reduce512_initial_regs ++ fst reduce512_allocated) [] 12.
+Lemma reduce512_allocated_exact :
+  xalloc (std_cells (genv_cenv secp_ge)) (genv_cenv secp_ge)
+    (fn_vars f_secp256k1_scalar_reduce_512) 2 = Some reduce512_allocated.
+Proof. Timeout 10 reflexivity. Qed.
+Lemma reduce512_bound_exact :
+  xbind (fn_params f_secp256k1_scalar_reduce_512) [XP 0 0; XP 1 0] (PTree.empty sx) = Some reduce512_initial_temps.
+Proof. Timeout 10 reflexivity. Qed.
+Local Opaque xalloc xbind compact_stmt reduce512_first_state reduce512_first_prefix reduce512_allocated.
+Lemma reduce512_first_compact_run :
+  compact_stmt (genv_cenv secp_ge) [] secp_shift64_table 300 (snd reduce512_allocated)
+    reduce512_first_initial reduce512_first_prefix = Some (RDone reduce512_first_state ONormal).
+Proof.
+  exact (extract_stage_entry
+    (xalloc (std_cells (genv_cenv secp_ge)) (genv_cenv secp_ge)
+      (fn_vars f_secp256k1_scalar_reduce_512) 2)
+    (xbind (fn_params f_secp256k1_scalar_reduce_512) [XP 0 0; XP 1 0] (PTree.empty sx))
+    (fun locals ve ts => compact_stmt (genv_cenv secp_ge) [] secp_shift64_table 300 ve
+      (mkst ts (scalar_reduce512_initial_regs ++ locals) [] 12) reduce512_first_prefix)
+    reduce512_allocated reduce512_initial_temps (RDone reduce512_first_state ONormal)
+    reduce512_allocated_exact reduce512_bound_exact reduce512_first_run_eq).
+Qed.
+Local Transparent xalloc xbind compact_stmt reduce512_first_state reduce512_first_prefix reduce512_allocated.
+Lemma reduce512_first_forget_stack : forget_after 2 (sregs reduce512_first_state) =
+  scalar_reduce512_initial_regs ++ fst reduce512_allocated.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Local Opaque compact_stmt reduce512_first_state reduce512_allocated reduce512_first_prefix reduce512_typed_stage
+  reduce512_typed_stage_state reduce512_second_prefix.
+Theorem exec_reduce512_first_two_stages rho beta e le m :
+  rep rho beta (sregs reduce512_first_initial) m ->
+  tmatch rho beta reduce512_initial_temps le ->
+  ematch beta (snd reduce512_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m reduce512_second_prefix E0 le' mf Out_normal /\
+    rep rho beta (sregs (reduce512_typed_stage_state
+      (first_checkpoint_digits rho) (first_checkpoint_m6 rho))) mf /\
+    le'!_p0 = Some (Vlong (wlo (stage_ma0 (first_checkpoint_digits rho)))) /\
+    le'!_p1 = Some (Vlong (wlo (stage_ma1 (first_checkpoint_digits rho)))) /\
+    le'!_p2 = Some (Vlong (wlo (stage_ma2 (first_checkpoint_digits rho) (first_checkpoint_m6 rho)))) /\
+    le'!_p3 = Some (Vlong (wlo (stage_ma3 (first_checkpoint_digits rho) (first_checkpoint_m6 rho)))) /\
+    le'!_p4 = Some (Vint (Int64.loword
+      (Int64.add (whi (stage_ma3 (first_checkpoint_digits rho) (first_checkpoint_m6 rho)))
+        (stage_ma_m6 (first_checkpoint_m6 rho))))) /\
+    column_words_value (stage_machine_outputs (first_checkpoint_digits rho) (first_checkpoint_m6 rho)) =
+      second_fold_bridge_value rho /\
+    0 <= stage_p4_integer (first_checkpoint_digits rho) (first_checkpoint_m6 rho) <= 2 /\
+    tmatch rho beta (stemps (reduce512_typed_stage_state
+      (first_checkpoint_digits rho) (first_checkpoint_m6 rho))) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs reduce512_first_initial)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (compact_stmt_shift64_normal 300 (snd reduce512_allocated) reduce512_first_initial
+    reduce512_first_prefix reduce512_first_state reduce512_first_compact_run
+    rho beta e le m HR HT HE) as (le1 & m1 & Hex1 & HR1 & HT1 & HS1 & HF1).
+  pose proof (rep_forget_after rho beta _ m1 2 HR1) as HR2.
+  rewrite reduce512_first_forget_stack in HR2.
+  pose proof (first_checkpoint_tmatch rho beta le1 HT1) as HT2.
+  destruct (exec_typed_second_stage (first_checkpoint_digits rho) (first_checkpoint_m6 rho)
+    rho beta e le1 m1 HR2 HT2 HE) as (le2 & m2 & Hex2 & HR3 & L0 & L1 & L2 & L3 & L4 & HT3 & HF2).
+  assert (Hex : Clight2.exec_stmt secp_ge e le m reduce512_second_prefix E0 le2 m2 Out_normal).
+  { rewrite <- reduce512_typed_stage_source.
+    eapply exec_statement_prefix_then_last; [exact Hex1|exact Hex2]. }
+  exists le2,m2; split; [exact Hex|]. split; [exact HR3|].
+  split; [exact L0|]. split; [exact L1|]. split; [exact L2|]. split; [exact L3|]. split; [exact L4|].
+  split; [apply first_checkpoint_second_value|]. split; [apply first_checkpoint_p4_bound|].
+  split; [exact HT3|]. eapply lframe_trans; [exact HF1|exact HF2].
+Qed.

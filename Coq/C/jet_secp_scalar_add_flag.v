@@ -1,0 +1,73 @@
+(** Exact overflow argument produced by scalar_add, including the 256-bit
+    carry. The reduced-input premise will be supplied by both real readers. *)
+From Coq Require Import ZArith Lia Bool.
+From compcert Require Import Integers Values.
+Require Import C.jet_sx_expr C.jet_sx_eval C.jet_sx_zval.
+Require Import C.jet_secp_scalar_reduce_numeric C.jet_secp_scalar_overflow_numeric.
+Require Import C.jet_secp_canonical_scalar.
+Require Import C.jet_secp_scalar_add_values C.jet_secp_scalar_add_numeric.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_add_flag_integer rho layout :
+  den rho layout scalar_add_flag = Vint (Int.repr
+    (scalar_add_carry_value rho layout +
+      b2z (Z.leb canonical_group_order (scalar_add_raw_value rho layout)))).
+Proof.
+  pose proof (scalar_add_carry_bit rho layout) as HC.
+  change (den rho layout scalar_add_flag) with
+    (Vint (Int64.loword (Int64.add (il (den rho layout scalar_add_high3))
+      (Int64.repr (Int.signed (ii (den rho layout scalar_add_overflow_sx))))))).
+  rewrite scalar_add_actual_overflow; cbn [ii].
+  fold (scalar_add_raw_value rho layout).
+  destruct (Z.leb canonical_group_order (scalar_add_raw_value rho layout)); cbn [b2i b2z].
+  - change (Int64.repr (Int.signed Int.one)) with Int64.one.
+    unfold Int64.loword; rewrite Int64.add_unsigned, Int64.unsigned_one.
+    fold (scalar_add_carry_value rho layout).
+    rewrite Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia); reflexivity.
+  - change (Int64.repr (Int.signed Int.zero)) with Int64.zero.
+    unfold Int64.loword; rewrite Int64.add_unsigned, Int64.unsigned_zero.
+    fold (scalar_add_carry_value rho layout).
+    rewrite Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia); reflexivity.
+Qed.
+
+Lemma scalar_add_flag_threshold rho layout :
+  0 <= scalar_add_input_value rho < 2 * canonical_group_order ->
+  scalar_add_carry_value rho layout +
+    b2z (Z.leb canonical_group_order (scalar_add_raw_value rho layout)) =
+    b2z (Z.leb canonical_group_order (scalar_add_input_value rho)).
+Proof.
+  intro HS.
+  pose proof (scalar_limb_value_range (scalar_add_raw_rho rho layout)) as HR.
+  change (0 <= scalar_add_raw_value rho layout < 2 ^ 256) in HR.
+  pose proof (scalar_add_raw_decomposition rho layout) as HE.
+  pose proof (scalar_add_carry_bit rho layout) as HC.
+  destruct canonical_group_order_range as [[HN HP] HNP].
+  change (canonical_group_order < 2 ^ 256) in HP.
+  change (2 ^ 256 < 2 * canonical_group_order) in HNP.
+  destruct (Z.leb_spec0 canonical_group_order (scalar_add_raw_value rho layout));
+    destruct (Z.leb_spec0 canonical_group_order (scalar_add_input_value rho)); cbn [b2z];
+    change (2 ^ 256) with 115792089237316195423570985008687907853269984665640564039457584007913129639936 in *;
+    lia.
+Qed.
+
+Lemma scalar_add_flag_reduced rho layout :
+  0 <= scalar_add_input_value rho < 2 * canonical_group_order ->
+  den rho layout scalar_add_flag =
+    Vint (b2i (Z.leb canonical_group_order (scalar_add_input_value rho))).
+Proof.
+  intro HS; rewrite scalar_add_flag_integer, scalar_add_flag_threshold by exact HS.
+  destruct (Z.leb canonical_group_order (scalar_add_input_value rho)); reflexivity.
+Qed.
+
+Lemma scalar_add_reduction_flag_reduced rho layout :
+  0 <= scalar_add_input_value rho < 2 * canonical_group_order ->
+  scalar_add_reduction_rho rho layout 4 =
+    Int64.repr (b2z (Z.leb canonical_group_order (scalar_add_input_value rho))).
+Proof.
+  intro HS.
+  change (scalar_add_reduction_rho rho layout 4) with
+    (Int64.repr (Int.signed (ii (den rho layout scalar_add_flag)))).
+  rewrite scalar_add_flag_reduced by exact HS; cbn [ii].
+  destruct (Z.leb canonical_group_order (scalar_add_input_value rho)); reflexivity.
+Qed.
