@@ -17,6 +17,14 @@ linked core and SHA units). In that program `memcpy_model` is the theorem
 | `mallocTapEnv_raw_cached_hashes_linked`, `mallocTransaction_raw_cached_hashes_linked` | cached hashes canonical for the raw environment |
 | `build_environment_linked`, `build_environment_readable_linked` | the composed builders leave `env_ready` |
 
+`C/jet_bitcoin_env_linked_program.v` (the statements and proofs of
+`linked/C/jet_linked_program.v` with the program names substituted):
+`linked_ast_is_compcert_link` (closed under the global context) and
+`linked_program_is_compcert_link` (inherits `Axioms.proof_irr` from
+CompCert's `link_program`, the only statement here that does) — the linked
+environment unit is CompCert's link of the generated environment unit with
+the memcpy translation unit.
+
 Boundary (as in `linked/README.md`): these are statements about the C code
 linked with the reference `memcpy`; for the unit with an external `memcpy`
 the premise remains. The `ready_<jet>` relation theorems, the free functions
