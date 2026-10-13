@@ -24,7 +24,7 @@ bash build-elements-env.sh ${JOBS:--j4}
   echo "Require C.jet_elements_env_readbe64 C.jet_elements_env_copyrawamt C.jet_elements_env_copyrawconf."
   echo "Require C.jet_elements_env_isfee C.jet_elements_env_countfee."
   echo "Require C.jet_elements_env_nulldata_count C.jet_elements_env_nulldata_total C.jet_elements_env_sumfees C.jet_elements_env_conf_hash C.jet_elements_env_conf_wrap C.jet_elements_env_conf_amt C.jet_elements_env_calc C.jet_elements_env_calc_token."
-  echo "Require C.jet_elements_env_le32_write C.jet_elements_env_u32le_exec C.jet_elements_env_ctxo_le."
+  echo "Require C.jet_elements_env_le32_write C.jet_elements_env_u32le_exec C.jet_elements_env_ctxo_le C.jet_elements_env_ctxo_uchars."
   for r in jet_elements_env_tomidstate.eval_sha256_toMidstate jet_elements_env_ctxo.ctxo_hash jet_elements_env_tapenv.eval_mallocTapEnv \
       jet_elements_tappath_nullable.elements_tappath_nullable_local_spec \
       jet_elements_env_tapenv_relations.el_ready_script_cmr jet_elements_env_tapenv_relations.el_ready_internal_key \
@@ -45,14 +45,14 @@ bash build-elements-env.sh ${JOBS:--j4}
       jet_elements_env_conf_amt.eval_sha256_confAmt jet_elements_env_calc.eval_calculateAsset \
       jet_elements_env_calc_token.eval_is_confidential jet_elements_env_calc_token.eval_calculateToken \
       jet_elements_env_le32_write.eval_WriteLE32 jet_elements_env_u32le_exec.eval_sha256_u32le \
-      jet_elements_env_ctxo_le.ctxo_u32le; do
+      jet_elements_env_ctxo_le.ctxo_u32le jet_elements_env_ctxo_uchars.ctxo_uchars; do
     printf 'Goal True. idtac "@@ %s". Abort.\nPrint Assumptions C.%s.\n' "${r#*.}" "$r"
   done
 } > "$tmp/audit.v"
 cd "$root/elements-env/tree"
 ulimit -s 65520 2>/dev/null || true
 bash build-jets.sh --coqc -Q "$tmp" ElementsEnvAudit "$tmp/audit.v" > "$tmp/audit.log" 2>&1
-python3 "$root/elements-sha/audit.py" "$tmp/audit.log" 38
-bash build-jets.sh --coqchk -silent -o C.jet_elements_env_tapenv C.jet_elements_env_tapenv_relations C.jet_elements_env_free C.jet_elements_env_txenv_relations C.jet_elements_env_bytestring C.jet_elements_env_copyrawconf C.jet_elements_env_nulldata_total C.jet_elements_env_sumfees C.jet_elements_env_conf_wrap C.jet_elements_env_conf_amt C.jet_elements_env_calc_token C.jet_elements_env_ctxo_le > "$tmp/coqchk.log" 2>&1
-echo "coqchk passed for C.jet_elements_env_tapenv, C.jet_elements_env_tapenv_relations (with C.jet_elements_tappath_nullable), C.jet_elements_env_free, C.jet_elements_env_txenv_relations (with C.jet_elements_env_txenv), C.jet_elements_env_bytestring (with C.jet_elements_env_hashbuffer), C.jet_elements_env_copyrawconf (with C.jet_elements_env_copyrawamt, C.jet_elements_env_readbe64), C.jet_elements_env_nulldata_total (with C.jet_elements_env_nulldata_count, C.jet_elements_env_countfee, C.jet_elements_env_isfee), C.jet_elements_env_sumfees (with C.jet_memcmp_model, C.jet_memcmp_words), C.jet_elements_env_conf_wrap (with C.jet_elements_env_conf_hash), C.jet_elements_env_conf_amt, C.jet_elements_env_calc_token (with C.jet_elements_env_calc), C.jet_elements_env_ctxo_le (with C.jet_elements_env_u32le_exec, C.jet_elements_env_le32_write) and their dependencies"
+python3 "$root/elements-sha/audit.py" "$tmp/audit.log" 39
+bash build-jets.sh --coqchk -silent -o C.jet_elements_env_tapenv C.jet_elements_env_tapenv_relations C.jet_elements_env_free C.jet_elements_env_txenv_relations C.jet_elements_env_bytestring C.jet_elements_env_copyrawconf C.jet_elements_env_nulldata_total C.jet_elements_env_sumfees C.jet_elements_env_conf_wrap C.jet_elements_env_conf_amt C.jet_elements_env_calc_token C.jet_elements_env_ctxo_le C.jet_elements_env_ctxo_uchars > "$tmp/coqchk.log" 2>&1
+echo "coqchk passed for C.jet_elements_env_tapenv, C.jet_elements_env_tapenv_relations (with C.jet_elements_tappath_nullable), C.jet_elements_env_free, C.jet_elements_env_txenv_relations (with C.jet_elements_env_txenv), C.jet_elements_env_bytestring (with C.jet_elements_env_hashbuffer), C.jet_elements_env_copyrawconf (with C.jet_elements_env_copyrawamt, C.jet_elements_env_readbe64), C.jet_elements_env_nulldata_total (with C.jet_elements_env_nulldata_count, C.jet_elements_env_countfee, C.jet_elements_env_isfee), C.jet_elements_env_sumfees (with C.jet_memcmp_model, C.jet_memcmp_words), C.jet_elements_env_conf_wrap (with C.jet_elements_env_conf_hash), C.jet_elements_env_conf_amt, C.jet_elements_env_calc_token (with C.jet_elements_env_calc), C.jet_elements_env_ctxo_le (with C.jet_elements_env_u32le_exec, C.jet_elements_env_le32_write), C.jet_elements_env_ctxo_uchars and their dependencies"
 echo "logs: $tmp"

@@ -327,6 +327,9 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   `C/jet_sha_u32be_exec.v` by renaming) and `jet_elements_env_ctxo_le.v`
   (`ctxo_u32le`, derived from `ctxo_u32be`): `sha256_u32le`, which the
   SHA unit does not contain, for `simplicity_generateIssuanceEntropy`.
+- `jet_elements_env_ctxo_uchars.v`: `ctxo_uchars` — `sha256_uchars` on a
+  single context of the `ctxo` layer absorbs a readable byte range (for
+  `simplicity_generateIssuanceEntropy` and `parseNullData`).
 
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of
