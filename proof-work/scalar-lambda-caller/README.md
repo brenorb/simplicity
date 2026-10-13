@@ -2,8 +2,10 @@
 
 Later checked milestone: `../scalar-lambda-startup` now proves that actual
 `Genv.init_mem jets_secp.prog` succeeds and constructs its initialized lambda
-state. The historical caller receipt below remains unchanged. Fresh caller
-frame construction and normal registration/acceptance are still open.
+state. The historical caller receipt below remains unchanged. The later
+`../scalar-lambda-frames` milestone (signed `62d0976d`) proves fresh-frame
+constructibility and the initialized public boundary. Normal integration and
+full acceptance remain open; follow `../scalar-lambda-integration`.
 
 Main audit 22185 has since terminated exit 0. The integrated current main
 worktree is accepted at 361/533; `../scalar-square-integration/MAIN-ACCEPTANCE.json`
