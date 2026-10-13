@@ -41,6 +41,11 @@ Ltac pn_keeps_tac :=
   unfold pn_keeps, nd_keeps; repeat split; intros;
   rewrite !PTree.gso by discriminate; repeat split; reflexivity.
 
+(** The code stored for a push opcode (OP_IMMEDIATE, OP_PUSHDATA,
+    OP_PUSHDATA2, OP_PUSHDATA4 of elements/txEnv.h). *)
+Definition pn_kindv (c : Z) : Z :=
+  if c <? 76 then 0 else if c <? 77 then 1 else if c <? 78 then 2 else 3.
+
 Section ParseOps.
 Variables (e : env).
 Variables (br : block) (or_ : Z) (ba : block) (oa : Z) (bl : block) (ol : Z) (bop : block) (oop alen : Z).
@@ -394,6 +399,181 @@ Proof.
     eapply pn_if with (b := true); [exact HT3|reflexivity|exact XF].
   - eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact XA|].
     eapply pn_if with (b := false); [exact HT3|reflexivity|apply exec_Sskip].
+Qed.
+(** The push-length decoding with the store of the opcode's code. *)
+Lemma pn_kind_exec le n i (c : int) :
+  pls le i c 0 -> 1 <= i <= L -> 0 <= Int.unsigned c < 79 ->
+  Mem.load Mptr m ba oa = Some (Vptr bop (Ptrofs.repr oop)) ->
+  Mem.load Mint64 m br (or_ + 8) = Some (Vlong (Int64.repr n)) -> 0 <= n < alen ->
+  Mem.range_perm m bop oop (oop + 36 * alen) Cur Writable ->
+  Mem.valid_access m Mptr br or_ Writable ->
+  match nd_skip len bs (Int.unsigned c) i with
+  | Some (i', sk) =>
+      exists le' m',
+        Clight2.exec_stmt sha_ge e le m pn_kind E0 le' m' Out_normal /\
+        pls le' i' c sk /\ i <= i' <= L /\ 0 <= sk < 4294967296 /\
+        Mem.store Mint32 m bop (oop + 36 * n + 32) (Vint (Int.repr (pn_kindv (Int.unsigned c)))) = Some m'
+  | None =>
+      exists le' m',
+        Clight2.exec_stmt sha_ge e le m pn_kind E0 le' m' (Out_return None) /\
+        Mem.store Mptr m br or_ (Vlong Int64.zero) = Some m'
+  end.
+Proof.
+  intros HS Hi Hc HLa HLn Hn PO VA. pose proof HS as (HP & Hcd & Hk). pose proof (nd_L len) as HLr. fold L in HLr.
+  assert (Hc' : 0 <= Int.unsigned c < 256) by lia.
+  assert (E1 : forall le0, le0!_code = Some (Vint c) -> forall k, 0 <= k < 256 ->
+    eval_expr sha_ge e le0 m (Ebinop Olt (Etempvar _code tuchar) (Econst_int (Int.repr k) tint) tint)
+      (Val.of_bool (Int.unsigned c <? k))).
+  { intros le0 H0 k Hkk. apply nd_ev_code_lt; assumption. }
+  (* storing the code in a state [le0] *)
+  assert (SC : forall ta tn kv le0 i0 sk0,
+    pn_keeps ta -> pn_keeps tn -> (forall (v : val) (le1 : temp_env), (PTree.set tn v le1)!ta = le1!ta) ->
+    pls le0 i0 c sk0 ->
+    exists le' m',
+      Clight2.exec_stmt sha_ge e le0 m (pn_setcode ta tn (Econst_int (Int.repr kv) tint)) E0 le' m' Out_normal /\
+      pls le' i0 c sk0 /\
+      Mem.store Mint32 m bop (oop + 36 * n + 32) (Vint (Int.repr kv)) = Some m').
+  { intros ta tn kv le0 i0 sk0 Ka Kn Hna HS0. pose proof HS0 as ((_ & Hr0 & Ha0 & _) & _).
+    destruct (pn_setcode_exec ta tn (Econst_int (Int.repr kv) tint) (Int.repr kv) le0 m n Hr0 Ha0 Ka Kn Hna
+      HLa HLn Hn PO ltac:(intros; apply eval_Econst_int) eq_refl) as (m' & XS & HSt).
+    eexists _, m'. split; [exact XS|]. split; [|exact HSt]. apply pls_set; [exact Kn|]. apply pls_set; assumption. }
+  unfold nd_skip, pn_kind, pn_kindv. fold L.
+  pose proof (E1 le Hcd 76 ltac:(lia)) as C76.
+  destruct (Int.unsigned c <? 76) eqn:E76.
+  { (* immediate push *)
+    set (le1 := PTree.set _skip (Vlong (Int64.repr (Int.unsigned c))) le).
+    assert (HS1 : pls le1 i c (Int.unsigned c)).
+    { destruct HP as (A1 & A2 & A3 & A4 & A5). unfold pls, pl, le1. rewrite PTree.gss, !PTree.gso by discriminate.
+      repeat split; assumption. }
+    destruct (SC _t'35 _t'36 0 le1 i (Int.unsigned c) ltac:(pn_keeps_tac) ltac:(pn_keeps_tac)
+      ltac:(intros; rewrite PTree.gso by discriminate; reflexivity) HS1) as (le' & m' & XS & HS' & HSt).
+    exists le', m'. split; [|split; [exact HS'|split; [lia|split; [lia|exact HSt]]]].
+    eapply pn_if; [exact C76|reflexivity|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [|exact XS].
+    apply exec_Sset. eapply eval_Ecast; [apply eval_Etempvar; exact Hcd|reflexivity]. }
+  apply Z.ltb_ge in E76.
+  rewrite (proj2 (Z.ltb_lt (Int.unsigned c) 79)) by lia.
+  assert (K34 : pn_keeps _t'34) by pn_keeps_tac. assert (K29 : pn_keeps _t'29) by pn_keeps_tac.
+  assert (K24 : pn_keeps _t'24) by pn_keeps_tac. assert (K21 : pn_keeps _t'21) by pn_keeps_tac.
+  assert (T1 : pn_trip _t'4 _t'32 _t'33) by (unfold pn_trip, nd_trip; repeat split; try pn_keeps_tac;
+    intros; rewrite ?PTree.gso by discriminate; repeat split; reflexivity).
+  assert (T2 : pn_trip _t'5 _t'27 _t'28) by (unfold pn_trip, nd_trip; repeat split; try pn_keeps_tac;
+    intros; rewrite ?PTree.gso by discriminate; repeat split; reflexivity).
+  assert (T3 : pn_trip _t'6 _t'22 _t'23) by (unfold pn_trip, nd_trip; repeat split; try pn_keeps_tac;
+    intros; rewrite ?PTree.gso by discriminate; repeat split; reflexivity).
+  assert (T4 : pn_trip _t'7 _t'19 _t'20) by (unfold pn_trip, nd_trip; repeat split; try pn_keeps_tac;
+    intros; rewrite ?PTree.gso by discriminate; repeat split; reflexivity).
+  assert (HOuter : forall rest le' m' out,
+    Clight2.exec_stmt sha_ge e le m rest E0 le' m' out ->
+    Clight2.exec_stmt sha_ge e le m
+      (Sifthenelse (Ebinop Olt (Etempvar _code tuchar) (Econst_int (Int.repr 76) tint) tint)
+         (Ssequence (Sset _skip (Ecast (Etempvar _code tuchar) tulong))
+            (pn_setcode _t'35 _t'36 (Econst_int (Int.repr 0) tint))) rest) E0 le' m' out).
+  { intros rest le' m' out HX. eapply pn_if; [exact C76|reflexivity|exact HX]. }
+  (* one length byte *)
+  pose proof (pn_eof_exec _t'34 le i K34 HP ltac:(lia) VA) as X1.
+  set (le1 := PTree.set _t'34 (Vint len) le) in *.
+  assert (S1 : pls le1 i c 0) by (apply pls_set; assumption).
+  revert X1. destruct (L =? i) eqn:EL1; intros X1.
+  { destruct X1 as (m' & X1 & HSt). exists le1, m'. split; [|exact HSt].
+    apply HOuter. eapply exec_Sseq_2; [exact X1|discriminate]. }
+  apply Z.eqb_neq in EL1.
+  destruct (pn_read_skip1 _t'4 _t'32 _t'33 le1 i c 0 T1 S1 ltac:(lia)) as (le2 & X2 & S2).
+  pose proof (nd_byte_range m len bb ob bs HBs i ltac:(lia)) as B1.
+  pose proof (E1 le2 (proj1 (proj2 S2)) 77 ltac:(lia)) as C77.
+  destruct (Int.unsigned c <? 77) eqn:E77.
+  { apply Z.ltb_lt in E77. rewrite (proj2 (Z.leb_gt 77 (Int.unsigned c))) by lia.
+    destruct (SC _t'30 _t'31 1 le2 (i + 1) (nd_byte bs i) ltac:(pn_keeps_tac) ltac:(pn_keeps_tac)
+      ltac:(intros; rewrite PTree.gso by discriminate; reflexivity) S2) as (le' & m' & XS & HS' & HSt).
+    exists le', m'. split; [|split; [exact HS'|split; [lia|split; [lia|]]]].
+    - apply HOuter. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X1|].
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X2|].
+      eapply pn_if; [exact C77|reflexivity|exact XS].
+    - exact HSt. }
+  apply Z.ltb_ge in E77. rewrite (proj2 (Z.leb_le 77 (Int.unsigned c))) by lia.
+  (* two length bytes *)
+  pose proof (pn_eof_exec _t'29 le2 (i + 1) K29 (proj1 S2) ltac:(lia) VA) as X3.
+  set (le3 := PTree.set _t'29 (Vint len) le2) in *.
+  assert (S3 : pls le3 (i + 1) c (nd_byte bs i)) by (apply pls_set; assumption).
+  revert X3. destruct (L =? i + 1) eqn:EL2; intros X3.
+  { destruct X3 as (m' & X3 & HSt). exists le3, m'. split; [|exact HSt].
+    apply HOuter. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X1|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X2|].
+    eapply pn_if; [exact C77|reflexivity|]. eapply exec_Sseq_2; [exact X3|discriminate]. }
+  apply Z.eqb_neq in EL2.
+  destruct (pn_read_skipk _t'5 _t'27 _t'28 8 le3 (i + 1) c (nd_byte bs i) T2 S3 ltac:(lia) ltac:(lia) ltac:(lia))
+    as (le4 & X4 & S4).
+  pose proof (nd_byte_range m len bb ob bs HBs (i + 1) ltac:(lia)) as B2.
+  pose proof (E1 le4 (proj1 (proj2 S4)) 78 ltac:(lia)) as C78.
+  destruct (Int.unsigned c <? 78) eqn:E78.
+  { apply Z.ltb_lt in E78. rewrite (proj2 (Z.leb_gt 78 (Int.unsigned c))) by lia.
+    destruct (SC _t'25 _t'26 2 le4 (i + 1 + 1) (nd_byte bs i + nd_byte bs (i + 1) * 2 ^ 8)
+      ltac:(pn_keeps_tac) ltac:(pn_keeps_tac)
+      ltac:(intros; rewrite PTree.gso by discriminate; reflexivity) S4) as (le' & m' & XS & HS' & HSt).
+    exists le', m'. split; [|split; [exact HS'|split; [lia|split; [change (2 ^ 8) with 256; lia|exact HSt]]]].
+    apply HOuter. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X1|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X2|].
+    eapply pn_if; [exact C77|reflexivity|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X3|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X4|].
+    eapply pn_if; [exact C78|reflexivity|exact XS]. }
+  apply Z.ltb_ge in E78. rewrite (proj2 (Z.leb_le 78 (Int.unsigned c))) by lia.
+  (* four length bytes *)
+  assert (HMid : forall rest le' m' out,
+    Clight2.exec_stmt sha_ge e le4 m rest E0 le' m' out ->
+    Clight2.exec_stmt sha_ge e le m
+      (Sifthenelse (Ebinop Olt (Etempvar _code tuchar) (Econst_int (Int.repr 76) tint) tint)
+         (Ssequence (Sset _skip (Ecast (Etempvar _code tuchar) tulong))
+            (pn_setcode _t'35 _t'36 (Econst_int (Int.repr 0) tint)))
+         (Ssequence (pn_eof _t'34)
+           (Ssequence (nd_read_stmt _t'4 _t'32 _t'33 (nd_skip_set1 _t'33))
+             (Sifthenelse (Ebinop Olt (Etempvar _code tuchar) (Econst_int (Int.repr 77) tint) tint)
+               (pn_setcode _t'30 _t'31 (Econst_int (Int.repr 1) tint))
+               (Ssequence (pn_eof _t'29)
+                 (Ssequence (nd_read_stmt _t'5 _t'27 _t'28 (nd_skip_add _t'28 8))
+                   (Sifthenelse (Ebinop Olt (Etempvar _code tuchar) (Econst_int (Int.repr 78) tint) tint)
+                     (pn_setcode _t'25 _t'26 (Econst_int (Int.repr 2) tint)) rest))))))) E0 le' m' out).
+  { intros rest le' m' out HX. apply HOuter.
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X1|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X2|].
+    eapply pn_if; [exact C77|reflexivity|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X3|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X4|].
+    eapply pn_if; [exact C78|reflexivity|exact HX]. }
+  pose proof (pn_eof_exec _t'24 le4 (i + 1 + 1) K24 (proj1 S4) ltac:(lia) VA) as X5.
+  set (le5 := PTree.set _t'24 (Vint len) le4) in *.
+  assert (S5 : pls le5 (i + 1 + 1) c (nd_byte bs i + nd_byte bs (i + 1) * 2 ^ 8)) by (apply pls_set; assumption).
+  revert X5. destruct (L =? i + 1 + 1) eqn:EL3; intros X5.
+  { destruct X5 as (m' & X5 & HSt). exists le5, m'. split; [|exact HSt].
+    apply HMid. eapply exec_Sseq_2; [exact X5|discriminate]. }
+  apply Z.eqb_neq in EL3.
+  destruct (pn_read_skipk _t'6 _t'22 _t'23 16 le5 (i + 1 + 1) c (nd_byte bs i + nd_byte bs (i + 1) * 2 ^ 8)
+    T3 S5 ltac:(lia) ltac:(change (2 ^ 8) with 256; lia) ltac:(lia)) as (le6 & X6 & S6).
+  pose proof (nd_byte_range m len bb ob bs HBs (i + 1 + 1) ltac:(lia)) as B3.
+  pose proof (pn_eof_exec _t'21 le6 (i + 1 + 1 + 1) K21 (proj1 S6) ltac:(lia) VA) as X7.
+  set (le7 := PTree.set _t'21 (Vint len) le6) in *.
+  assert (S7 : pls le7 (i + 1 + 1 + 1) c
+    (nd_byte bs i + nd_byte bs (i + 1) * 2 ^ 8 + nd_byte bs (i + 1 + 1) * 2 ^ 16)) by (apply pls_set; assumption).
+  revert X7. destruct (L =? i + 1 + 1 + 1) eqn:EL4; intros X7.
+  { destruct X7 as (m' & X7 & HSt). exists le7, m'. split; [|exact HSt].
+    apply HMid. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X5|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X6|].
+    eapply exec_Sseq_2; [exact X7|discriminate]. }
+  apply Z.eqb_neq in EL4.
+  destruct (pn_read_skipk _t'7 _t'19 _t'20 24 le7 (i + 1 + 1 + 1) c
+    (nd_byte bs i + nd_byte bs (i + 1) * 2 ^ 8 + nd_byte bs (i + 1 + 1) * 2 ^ 16)
+    T4 S7 ltac:(lia) ltac:(change (2 ^ 8) with 256; change (2 ^ 16) with 65536; lia) ltac:(lia)) as (le8 & X8 & S8).
+  pose proof (nd_byte_range m len bb ob bs HBs (i + 1 + 1 + 1) ltac:(lia)) as B4.
+  destruct (SC _t'17 _t'18 3 le8 (i + 1 + 1 + 1 + 1)
+    (nd_byte bs i + nd_byte bs (i + 1) * 2 ^ 8 + nd_byte bs (i + 1 + 1) * 2 ^ 16 + nd_byte bs (i + 1 + 1 + 1) * 2 ^ 24)
+    ltac:(pn_keeps_tac) ltac:(pn_keeps_tac)
+    ltac:(intros; rewrite PTree.gso by discriminate; reflexivity) S8) as (le' & m' & XS & HS' & HSt).
+  exists le', m'. split; [|split; [exact HS'|split; [lia|split; [|exact HSt]]]].
+  - apply HMid. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X5|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X6|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X7|].
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); [exact X8|exact XS].
+  - change (2 ^ 8) with 256. change (2 ^ 16) with 65536. change (2 ^ 24) with 16777216. lia.
 Qed.
 End Script.
 End ParseOps.
