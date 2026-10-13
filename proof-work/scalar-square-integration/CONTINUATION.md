@@ -1,5 +1,11 @@
 # Finish square acceptance, then reconcile cumulative main work
 
+Full acceptance is **already running** as actual session **41316**, verified
+live by polling that same handle. Log:
+`/tmp/jet-scalar-square-integration.MAhL2g/full-acceptance.log`.
+`AUDIT-RUN.json` records the actual launch, not success. First poll **41316**;
+do not launch another acceptance command or edit any candidate inputs.
+
 Last verified normal declaration:
 `C.jet_secp_scalar_square_local.scalar_square_literal_local_spec`.
 All 15 changed modules / 47 results compile and pass independent closure
