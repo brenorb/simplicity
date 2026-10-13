@@ -71,7 +71,6 @@ Hypothesis NCM : GM <> bC.
 Hypothesis NRM : GM <> bRs.
 Hypothesis NRC : bRs <> bC.
 
-Let L : Z := Int.unsigned len.
 Let PM := pm bC bRs br or_ ba oa bl ol bop oop alen bsp osp len bb ob bs.
 Let PL := pl br or_ ba oa bl ol bsp osp.
 Let PLS := pls br or_ ba oa bl ol bsp osp.
@@ -84,7 +83,7 @@ Definition pn_op (i : Z) : option (Z * pn_ent) :=
   else match nd_skip len bs c (i + 1) with
        | None => None
        | Some (i', sk) =>
-           if L - i' <? sk then None else Some (i' + sk, (pn_kindv c, Some (pn_data bs i' sk)))
+           if Int.unsigned len - i' <? sk then None else Some (i' + sk, (pn_kindv c, Some (pn_data bs i' sk)))
        end.
 
 Definition pn_step (n i : Z) : option (Z * pn_ent) :=
@@ -173,5 +172,167 @@ Proof.
   - exact (pm_commit bC bRs br or_ ba oa bl ol bop oop alen bsp osp len bb ob bs Hsep Nbar Nblr Nbspr Nbbr
       NGr NMr n ents en m m' HM Hlt HEn HS).
   - eapply pn_fr_store_res; [exact HS|zi|change (size_chunk Mint64) with 8; zi].
+Qed.
+Lemma pn_seq1 le m s1 s2 le1 m1 le2 m2 out :
+  Clight2.exec_stmt sha_ge e le m s1 E0 le1 m1 Out_normal ->
+  Clight2.exec_stmt sha_ge e le1 m1 s2 E0 le2 m2 out ->
+  Clight2.exec_stmt sha_ge e le m (Ssequence s1 s2) E0 le2 m2 out.
+Proof. intros H1 H2. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0); eassumption. Qed.
+
+Lemma pn_seqr le m s1 s2 le1 m1 :
+  Clight2.exec_stmt sha_ge e le m s1 E0 le1 m1 (Out_return None) ->
+  Clight2.exec_stmt sha_ge e le m (Ssequence s1 s2) E0 le1 m1 (Out_return None).
+Proof. intros H1. apply exec_Sseq_2; [exact H1|discriminate]. Qed.
+
+Lemma pn_fail_post m mk m' :
+  pn_fr m mk -> Mem.store Mptr mk br or_ (Vlong Int64.zero) = Some m' ->
+  Mem.load Mptr m' br or_ = Some (Vlong Int64.zero) /\ pn_fr m m'.
+Proof.
+  intros HF HS. split.
+  - rewrite (Mem.load_store_same _ _ _ _ _ _ HS). reflexivity.
+  - eapply pn_fr_trans; [exact HF|].
+    eapply pn_fr_store_res; [exact HS|zi|change (size_chunk Mptr) with 8; zi].
+Qed.
+
+(** One iteration. *)
+Lemma pn_iter le m n ents i :
+  PM m n ents -> PL le i -> 1 <= i < Int.unsigned len ->
+  match pn_step n i with
+  | None =>
+      exists le' m',
+        Clight2.exec_stmt sha_ge e le m pn_s1 E0 le' m' (Out_return None) /\
+        Mem.load Mptr m' br or_ = Some (Vlong Int64.zero) /\ pn_fr m m'
+  | Some (i', en) =>
+      exists le1 m1 le2 m2,
+        Clight2.exec_stmt sha_ge e le m pn_s1 E0 le1 m1 Out_normal /\
+        Clight2.exec_stmt sha_ge e le1 m1 pn_s2 E0 le2 m2 Out_normal /\
+        PM m2 (n + 1) (ents ++ [en]) /\ PL le2 i' /\ i < i' <= Int.unsigned len /\ pn_fr m m2
+  end.
+Proof.
+  intros HM HP Hi.
+  pose proof HM as (HN & HNa & Hop & Hlen & Hal & Hall & HLen & HBuf & HBs & Hents & VA1 & VA2 & RP & RC & RR & Hdisp & HGM).
+  assert (Hn0 : 0 <= n) by zi.
+  pose proof HP as (Hli & Hr & Ha & Hl & Hsp).
+  pose proof (Int.unsigned_range_2 len) as HLr. change Int.max_unsigned with 4294967295 in HLr.
+  set (le0 := PTree.set _t'43 (Vint len) le).
+  assert (K43 : pn_keeps _t'43) by pn_keeps_tac.
+  assert (HP0 : PL le0 i) by (apply pl_set; assumption).
+  assert (HA : Clight2.exec_stmt sha_ge e le m
+     (Ssequence (Sset _t'43 (Efield PSPK _len tuint))
+        (Sifthenelse (Ebinop Olt (Etempvar _i tulong) (Etempvar _t'43 tuint) tint) Sskip Sbreak))
+     E0 le0 m Out_normal).
+  { eapply pn_seq1; [apply exec_Sset; exact (nd_ev_len e m bsp osp len Hosp HLen le Hsp)|].
+    eapply pn_if with (b := true); [|reflexivity|apply exec_Sskip].
+    eapply eval_Ebinop; [apply eval_Etempvar; unfold le0; rewrite PTree.gso by discriminate; exact Hli
+                        |apply eval_Etempvar; apply PTree.gss|].
+    change (Some (Val.of_bool (Int64.ltu (Int64.repr i) (Int64.repr (Int.unsigned len)))) = Some (Val.of_bool true)).
+    rewrite nd_i64_ltu by zi. rewrite (proj2 (Z.ltb_lt i (Int.unsigned len))) by zi. reflexivity. }
+  assert (T1 : pn_trip _t'2 _t'41 _t'42) by (unfold pn_trip, nd_trip; repeat split; try pn_keeps_tac;
+    intros; rewrite ?PTree.gso by discriminate; repeat split; reflexivity).
+  destruct (pn_read_code e br or_ ba oa bl ol bsp osp len bb ob bs Hosp m HBuf HobM HBs _t'2 _t'41 _t'42 le0 i
+              T1 HP0 ltac:(zi)) as (le1 & HB & HP1 & Hc1 & Hcr).
+  destruct (pn_check_exec e br or_ ba oa bl ol alen bsp osp len Hor Hol Halen m le1 (i + 1) (nd_b bs i) n
+              HP1 Hc1 Hcr Hall Hlen ltac:(zi) VA1) as (le2 & HP2 & Hc2 & HC).
+  change (Int.unsigned (nd_b bs i)) with (nd_byte bs i) in HC.
+  assert (HE79 : eval_expr sha_ge e le2 m
+     (Ebinop Ole (Econst_int (Int.repr 79) tint) (Etempvar _code tuchar) tint)
+     (Val.of_bool (79 <=? nd_byte bs i))).
+  { exact (nd_ev_le_code e m len le2 (nd_b bs i) 79 Hc2 ltac:(zi) Hcr). }
+  unfold pn_step, pn_op, pn_s1. cbv zeta.
+  destruct (alen <=? n) eqn:EA.
+  { cbn [orb] in HC. destruct HC as (m' & HC & HSt). exists le2, m'. split.
+    - eapply pn_seq1; [exact HA|]. eapply pn_seq1; [exact HB|]. apply pn_seqr. exact HC.
+    - exact (pn_fail_post m m m' (pn_fr_refl m) HSt). }
+  apply Z.leb_gt in EA.
+  destruct (96 <? nd_byte bs i) eqn:E96.
+  { cbn [orb] in HC. destruct HC as (m' & HC & HSt). exists le2, m'. split.
+    - eapply pn_seq1; [exact HA|]. eapply pn_seq1; [exact HB|]. apply pn_seqr. exact HC.
+    - exact (pn_fail_post m m m' (pn_fr_refl m) HSt). }
+  cbn [orb] in HC. apply Z.ltb_ge in E96.
+  pose proof HP2 as (Hli2 & Hr2 & Ha2 & Hl2 & Hsp2).
+  destruct (79 <=? nd_byte bs i) eqn:E79.
+  { (* a one-byte opcode *)
+    apply Z.leb_le in E79.
+    assert (K37 : pn_keeps _t'37) by pn_keeps_tac. assert (K38 : pn_keeps _t'38) by pn_keeps_tac.
+    destruct (pn_setcode_exec e br or_ ba oa bop oop alen len Hor Hoa Hoop HoopA Halen _t'37 _t'38
+       (Ebinop Oadd (Econst_int (Int.repr 4) tint)
+          (Ebinop Osub (Etempvar _code tuchar) (Econst_int (Int.repr 79) tint) tint) tint)
+       (Int.repr (4 + (nd_byte bs i - 79))) le2 m n Hr2 Ha2 K37 K38
+       ltac:(intros; rewrite PTree.gso by discriminate; reflexivity) Hal Hlen ltac:(zi) RP) as (m3 & HS & HSt).
+    { intros le' m' Hc'.
+      eapply eval_Ebinop with (v1 := Vint (Int.repr 4)) (v2 := Vint (Int.repr (nd_byte bs i - 79))).
+      - apply eval_Econst_int.
+      - eapply eval_Ebinop with (v1 := Vint (nd_b bs i)) (v2 := Vint (Int.repr 79)).
+        + apply eval_Etempvar. rewrite Hc'. exact Hc2.
+        + apply eval_Econst_int.
+        + change (Some (Vint (Int.sub (nd_b bs i) (Int.repr 79))) = Some (Vint (Int.repr (nd_byte bs i - 79)))).
+          unfold Int.sub. rewrite (Int.unsigned_repr 79) by (vm_compute; split; discriminate). reflexivity.
+      - change (Some (Vint (Int.add (Int.repr 4) (Int.repr (nd_byte bs i - 79)))) =
+                Some (Vint (Int.repr (4 + (nd_byte bs i - 79))))).
+        rewrite Int.add_unsigned.
+        rewrite !Int.unsigned_repr by (change Int.max_unsigned with 4294967295; zi). reflexivity. }
+    { reflexivity. }
+    set (le3 := PTree.set _t'38 (Vlong (Int64.repr n)) (PTree.set _t'37 (Vptr bop (Ptrofs.repr oop)) le2)) in *.
+    assert (HP3 : PL le3 (i + 1)) by (apply pl_set; [exact K38|]; apply pl_set; assumption).
+    assert (HCh : pm_change bC bRs bop oop alen n m m3).
+    { eapply pm_change_store_op; [exact HSt|zi|change (size_chunk Mint32) with 4; zi]. }
+    pose proof (pm_keeps n ents m m3 HM HCh) as HM3.
+    assert (HEn : pn_ent_at bop oop m3 n (4 + (nd_byte bs i - 79), None)).
+    { split; [|exact I]. rewrite (Mem.load_store_same _ _ _ _ _ _ HSt). reflexivity. }
+    destruct (pn_s2_exec le3 m3 n ents _ (i + 1) HM3 HP3 EA HEn) as (le4 & m4 & HX2 & HM4 & HP4 & HF4).
+    exists le3, m3, le4, m4. split; [|split; [exact HX2|split; [exact HM4|split; [exact HP4|split; [zi|]]]]].
+    - eapply pn_seq1; [exact HA|]. eapply pn_seq1; [exact HB|]. eapply pn_seq1; [exact HC|].
+      eapply pn_if with (b := true); [exact HE79|reflexivity|exact HS].
+    - eapply pn_fr_trans; [exact (pn_fr_change n m m3 Hn0 HCh)|exact HF4]. }
+  apply Z.leb_gt in E79.
+  (* a data push *)
+  set (le3 := PTree.set _skip (Vlong (Int64.repr 0)) le2).
+  assert (HP3 : PLS le3 (i + 1) (nd_b bs i) 0).
+  { unfold PLS, pls, pl, le3. rewrite PTree.gss, !PTree.gso by discriminate. repeat split; assumption. }
+  assert (HX3 : Clight2.exec_stmt sha_ge e le2 m (Sset _skip (Ecast (Econst_int (Int.repr 0) tint) tulong))
+                  E0 le3 m Out_normal).
+  { apply exec_Sset. eapply eval_Ecast; [apply eval_Econst_int|reflexivity]. }
+  pose proof (pn_kind_exec e br or_ ba oa bl ol bop oop alen bsp osp len bb ob bs Hor Hoa Hoop HoopA Halen Hosp
+                m HLen HBuf HobM HBs le3 n (i + 1) (nd_b bs i) HP3 ltac:(zi) ltac:(change (Int.unsigned (nd_b bs i)) with (nd_byte bs i); zi)
+                Hal Hlen ltac:(zi) RP VA1) as HK.
+  cbv zeta in HK. change (Int.unsigned (nd_b bs i)) with (nd_byte bs i) in HK.
+  destruct (nd_skip len bs (nd_byte bs i) (i + 1)) as [[i' sk]|] eqn:ES.
+  2: { destruct HK as (le4 & m4 & HK & HSt). exists le4, m4. split.
+       - eapply pn_seq1; [exact HA|]. eapply pn_seq1; [exact HB|]. eapply pn_seq1; [exact HC|].
+         eapply pn_if with (b := false); [exact HE79|reflexivity|].
+         eapply pn_seq1; [exact HX3|]. apply pn_seqr. exact HK.
+       - exact (pn_fail_post m m m4 (pn_fr_refl m) HSt). }
+  destruct HK as (le4 & m4 & HK & HP4 & Hi' & Hsk & HSt).
+  assert (HCh : pm_change bC bRs bop oop alen n m m4).
+  { eapply pm_change_store_op; [exact HSt|zi|change (size_chunk Mint32) with 4; zi]. }
+  pose proof (pm_keeps n ents m m4 HM HCh) as HM4.
+  pose proof HM4 as (_ & _ & _ & Hlen4 & Hal4 & _ & HLen4 & HBuf4 & HBs4 & _ & VA14 & _ & RP4 & RC4 & RR4 & Hdisp4 & HGM4).
+  pose proof (pn_tail_exec Hmodel e bC bRs HeC HeR Hg1 Hg3 Hg5 br or_ ba oa bl ol bop oop alen bsp osp len bb ob bs
+                Hor Hoa Hoop HoopA Halen Hosp NCo NRC (not_eq_sym NRo) NCb Nbb NRb NCs Nbsp NRs NCG NG NCM NM NRG NRM
+                le4 m4 n i' (nd_b bs i) sk HP4 ltac:(zi) Hsk ltac:(zi) HLen4 HBuf4 HobM HBs4 Hal4 Hlen4 VA14 RP4 RC4 RR4
+                Hdisp4 HGM4) as HT.
+  cbv zeta in HT.
+  destruct (Int.unsigned len - i' <? sk) eqn:ET.
+  { destruct HT as (le5 & m5 & HT & HSt5). exists le5, m5. split.
+    - eapply pn_seq1; [exact HA|]. eapply pn_seq1; [exact HB|]. eapply pn_seq1; [exact HC|].
+      eapply pn_if with (b := false); [exact HE79|reflexivity|].
+      eapply pn_seq1; [exact HX3|]. eapply pn_seq1; [exact HK|exact HT].
+    - exact (pn_fail_post m m4 m5 (pn_fr_change n m m4 Hn0 HCh) HSt5). }
+  apply Z.ltb_ge in ET.
+  destruct HT as (le5 & m5 & HT & HP5 & HH5 & HL5 & HPm5 & HV5).
+  assert (HCh5 : pm_change bC bRs bop oop alen n m4 m5).
+  { split; [|split; assumption]. intros ch b ofs Hb N1 N2 Hd. apply HL5; try assumption.
+    destruct Hd as [H|[H|H]]; [left; exact H|right; left; exact H|right; right; zi]. }
+  pose proof (pm_keeps n ents m4 m5 HM4 HCh5) as HM5.
+  assert (HEn : pn_ent_at bop oop m5 n (pn_kindv (nd_byte bs i), Some (pn_data bs i' sk))).
+  { split; [|exact HH5]. cbn [fst].
+    pose proof (Mem.load_store_same _ _ _ _ _ _ HSt) as HLs.
+    rewrite HL5; [exact HLs|eapply Mem.valid_access_valid_block; eapply Mem.valid_access_implies; [exact (Mem.load_valid_access _ _ _ _ _ HLs)|constructor]|exact NCo|exact NRo|right; right; zi]. }
+  destruct (pn_s2_exec le5 m5 n ents _ (i' + sk) HM5 (proj1 HP5) EA HEn) as (le6 & m6 & HX2 & HM6 & HP6 & HF6).
+  exists le5, m5, le6, m6. split; [|split; [exact HX2|split; [exact HM6|split; [exact HP6|split; [zi|]]]]].
+  - eapply pn_seq1; [exact HA|]. eapply pn_seq1; [exact HB|]. eapply pn_seq1; [exact HC|].
+    eapply pn_if with (b := false); [exact HE79|reflexivity|].
+    eapply pn_seq1; [exact HX3|]. eapply pn_seq1; [exact HK|exact HT].
+  - eapply pn_fr_trans; [exact (pn_fr_change n m m5 Hn0 (pm_change_trans bC bRs bop oop alen n m m4 m5 HCh HCh5))|exact HF6].
 Qed.
 End ParseIter.
