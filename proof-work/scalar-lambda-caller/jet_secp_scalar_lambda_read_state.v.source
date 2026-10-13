@@ -1,0 +1,50 @@
+(** The real reader preserves the global even when it is an input-frame block. *)
+From Coq Require Import ZArith Lia Classical List.
+From compcert Require Import AST Ctypes Clight ClightBigstep Values Memory Events.
+Require Import C.jet_sx_mem C.jet_sx_exec C.jet_secp_linkage C.jets_secp
+  C.jet_secp_frame C.jet_frame_inv C.jet_secp_scalar_reader_run C.jet_secp_scalar_public_rest.
+Require Import LambdaC.jet_secp_scalar_lambda_global
+  ReadonlyC.jet_clight_forward ReadonlyC.jet_clight_readonly_frame.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque scalar_lambda_block secp_ge.
+
+Lemma scalar_lambda_global_lframe m mf :
+  lframe (fun b _ => b = scalar_lambda_block) m mf ->
+  scalar_lambda_global_rep m -> scalar_lambda_global_rep mf.
+Proof.
+  intros (HL & HP & HV) (HG & HR & HW); unfold scalar_lambda_global_rep.
+  split; [exact (HV scalar_lambda_block HG)|]. split.
+  - intros ofs Ho; exact (HP scalar_lambda_block ofs Cur Readable HG eq_refl (HR ofs Ho)).
+  - intros i w Hnth; rewrite HL; [exact (HW i w Hnth)|exact HG|intros; reflexivity].
+Qed.
+
+Theorem scalar_lambda_global_after_reader m0 bd dbase bw outedge cursor N bi edge m mr ba bl :
+  scalar_lambda_global_rep m0 -> scalar_lambda_global_rep m ->
+  readonly_region_bounds m scalar_lambda_block 0 32 ->
+  scalar_lambda_block <> ba -> scalar_lambda_block <> bl ->
+  Clight2.eval_funcall secp_ge m (Internal f_read_scalar)
+    [Vptr ba Integers.Ptrofs.zero;Vptr bl Integers.Ptrofs.zero] E0 mr Vundef ->
+  finv m0 bd dbase bw outedge cursor N bi mr false [] ->
+  lframe (frame (extA m0 bd bw bi) [(ba,0);(bl,0)]
+    (scalar_reader_initial_regs bi (Integers.Ptrofs.repr edge)) m) m mr ->
+  scalar_lambda_global_rep mr /\ readonly_region_bounds mr scalar_lambda_block 0 32.
+Proof.
+  intros HG0 HG HB HNotA HNotL HC HInv HF.
+  assert (HGR : scalar_lambda_global_rep mr).
+  { destruct (classic (extA m0 bd bw bi scalar_lambda_block)) as [HExt|HNotExt].
+    - destruct HInv as (_ & _ & _ & _ & HW).
+      destruct (HW eq_refl) as (_ & HE).
+      eapply scalar_lambda_global_lframe; [|exact HG0].
+      eapply lframe_implies; [exact HE|]. intros b ofs -> HV; exact HExt.
+    - eapply scalar_lambda_global_lframe; [|exact HG].
+      eapply lframe_implies; [exact HF|].
+      intros b ofs -> HV; split; [exact HV|]. split.
+      + eapply scalar_locals_not_foot; eassumption.
+      + exact HNotExt. }
+  split; [exact HGR|].
+  destruct HG as (HV & _); destruct HGR as (_ & HP & _).
+  eapply readonly_bounds_transport; [exact HV|exact HB| |exact HP].
+  exact (proj2 (clight_exec_forward secp_ge) m _ _ _ mr _ HC).
+Qed.

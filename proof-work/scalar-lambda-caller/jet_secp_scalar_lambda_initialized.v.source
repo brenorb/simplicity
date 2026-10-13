@@ -1,0 +1,60 @@
+(** Full original jet preserves its initialized global state.
+    Startup readiness is a memory representation condition, not an execution/output premise. *)
+From Coq Require Import ZArith List Lia Classical.
+From compcert Require Import Integers AST Ctypes Values Memory Globalenvs Clight ClightBigstep Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import C.jet_sx_mem C.jet_secp_linkage C.jets_secp C.jet_secp_frame
+  C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_frame_inv C.jet_encoding.
+Require Import LambdaC.jet_secp_scalar_lambda_global LamSpecC.jet_secp_canonical_scalar_lambda
+  LamCallC.jet_secp_scalar_lambda_read_state LamCallC.jet_secp_scalar_lambda_readonly
+  LamCallC.jet_secp_scalar_lambda_lifecycle ReadonlyC.jet_clight_readonly_frame
+  ReadonlyC.jet_clight_forward.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque scalar_lambda_block secp_ge canonical_scalar_multiply_lambda encode.
+
+Definition scalar_lambda_initialized (m : Mem.mem) : Prop :=
+  scalar_lambda_global_rep m /\ readonly_region_bounds m scalar_lambda_block 0 32.
+Theorem scalar_lambda_initialized_from_init m :
+  Genv.init_mem jets_secp.prog = Some m -> scalar_lambda_initialized m.
+Proof. intro HI; split; [apply scalar_lambda_global_initializes|apply scalar_lambda_initial_bounds]; exact HI. Qed.
+Lemma scalar_lambda_initialized_survives ge m f args t mf result :
+  scalar_lambda_initialized m -> Clight2.eval_funcall ge m f args t mf result ->
+  Mem.range_perm mf scalar_lambda_block 0 32 Cur Readable -> scalar_lambda_initialized mf.
+Proof.
+  intros (HG & HB) HC HP; pose proof (proj1 HG) as HV.
+  pose proof (clight_funcall_readonly_lframe ge m f args t mf result scalar_lambda_block 0 32
+    HC HV HB HP) as HF; split.
+  - exact (scalar_lambda_global_lframe m mf HF HG).
+  - eapply readonly_bounds_transport; [exact HV|exact HB| |exact HP].
+    exact (proj2 (clight_exec_forward ge) m f args t mf result HC).
+Qed.
+
+Theorem eval_secp_scalar_lambda_initialized env m0 bd dbase bs sbase bw outedge cursor N bi edge rc
+    (value : Ty.tySem (Word 8)) :
+  scalar_lambda_initialized m0 ->
+  write_frame_at m0 bd dbase bw outedge cursor N -> 256 <= N ->
+  frame_base_valid sbase -> (8 | sbase) -> frame_fields_at m0 bs sbase bi edge rc ->
+  frame_input_cells_at m0 bi edge rc (map Some (frame_input_word_bits value)) ->
+  0 <= rc -> rc + 256 <= Int64.max_unsigned ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m0 (Ctypes.Internal f_simplicity_scalar_multiply_lambda)
+      [Vptr bd (Ptrofs.repr dbase);Vptr bs (Ptrofs.repr sbase);env] E0 mf (Vint Int.one) /\
+    finv m0 bd dbase bw outedge cursor N bi mf true
+      (encode (@canonical_scalar_multiply_lambda Alg.CoreFunSem value)) /\
+    lframe (fun b _ => ~ extA m0 bd bw bi b) m0 mf /\ scalar_lambda_initialized mf.
+Proof.
+  intros HReady HO HCap HBase HAlign HFields HI Hrc HM; destruct HReady as (HG & HB).
+  destruct (eval_secp_scalar_lambda_canonical env m0 bd dbase bs sbase bw outedge cursor N bi edge rc value
+    HO HCap HBase HAlign HFields HI Hrc HM HG HB) as (mf & HC & HFinal & HF).
+  assert (HP : Mem.range_perm mf scalar_lambda_block 0 32 Cur Readable).
+  { pose proof (proj1 HG) as HV; pose proof (proj1 (proj2 HG)) as HP0.
+    destruct (classic (extA m0 bd bw bi scalar_lambda_block)) as [HExt|HNotExt].
+    - destruct HFinal as (_ & _ & _ & (_ & _ & _ & _ & HPerms) & _).
+      intros ofs Ho; exact (HPerms scalar_lambda_block ofs Cur Readable HExt (HP0 ofs Ho)).
+    - intros ofs Ho; exact (proj1 (proj2 HF) scalar_lambda_block ofs Cur Readable HV HNotExt (HP0 ofs Ho)). }
+  exists mf; split; [exact HC|]. split; [exact HFinal|]. split; [exact HF|].
+  eapply scalar_lambda_initialized_survives; [exact (conj HG HB)|exact HC|exact HP].
+Qed.
