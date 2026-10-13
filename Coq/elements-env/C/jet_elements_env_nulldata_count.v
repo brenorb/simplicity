@@ -8,7 +8,7 @@ From Coq Require Import ZArith List Lia PeanoNat Bool.
 From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
 Require Import C.jet_exec.
 Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_be32_exec.
-Require Import C.jet_elements_env_field_eval.
+Require Import C.jet_elements_env_field_eval C.jet_elements_env_isfee.
 Import Ctypes Values ListNotations Clightdefs.
 Local Open Scope Z_scope.
 Local Transparent Archi.ptr64.
@@ -819,5 +819,124 @@ Proof.
         change (2 ^ 8) with 256. change (2 ^ 16) with 65536. change (2 ^ 24) with 16777216. lia. }
       intros H. apply (IH (i' + s') (a + 1) r); [lia|lia|exact H].
     + intros H. injection H as <-. lia.
+Qed.
+(** [if (0 == len || 0x6a != buf[0]) return 0;] *)
+Lemma nd_head_exec le :
+  le!_scriptPubKey = Some spv ->
+  exists le',
+    Clight2.exec_stmt sha_ge empty_env le m nd_head E0 le' m
+      (if L =? 0 then RET0 else if negb (106 =? nd_byte 0) then RET0 else Out_normal) /\
+    le'!_scriptPubKey = Some spv.
+Proof.
+  intros Hsp. pose proof nd_L as HLr.
+  set (leA := PTree.set _t'23 (Vint len) le).
+  assert (EA : eval_expr sha_ge empty_env leA m
+    (Ebinop Oeq (Econst_int (Int.repr 0) tint) (Etempvar _t'23 tuint) tint) (Val.of_bool (L =? 0))).
+  { eapply eval_Ebinop; [apply eval_Econst_int|apply eval_Etempvar; apply PTree.gss|].
+    change (Some (Val.of_bool (Int.eq (Int.repr 0) len)) = Some (Val.of_bool (L =? 0))).
+    rewrite nd_int_eq by lia. fold L. rewrite Z.eqb_sym. reflexivity. }
+  assert (HA : Clight2.exec_stmt sha_ge empty_env le m (nd_len_set _t'23) E0 leA m Out_normal).
+  { apply exec_Sset. apply nd_ev_len. exact Hsp. }
+  unfold nd_head.
+  destruct (L =? 0) eqn:EL0.
+  - exists (PTree.set _t'1 (Vint (Int.repr 1)) leA). split.
+    + eapply nd_seq with (le1 := PTree.set _t'1 (Vint (Int.repr 1)) leA).
+      * eapply nd_seq; [exact HA|]. eapply nd_if; [exact EA|reflexivity|].
+        apply exec_Sset. apply eval_Econst_int.
+      * eapply exec_Sifthenelse with (v1 := Vint (Int.repr 1)) (b := true);
+          [apply eval_Etempvar; apply PTree.gss|reflexivity|apply nd_ret0].
+    + unfold leA. rewrite !PTree.gso by discriminate. exact Hsp.
+  - apply Z.eqb_neq in EL0.
+    remember (negb (106 =? nd_byte 0)) as bN eqn:EbN.
+    set (leB := PTree.set _t'24 (Vptr bb ob) leA).
+    set (leC := PTree.set _t'25 (Vint (nd_b 0)) leB).
+    set (leD := PTree.set _t'1 (Val.of_bool bN) leC).
+    exists leD. split.
+    + eapply nd_seq with (le1 := leD).
+      * eapply nd_seq; [exact HA|]. eapply nd_if; [exact EA|reflexivity|].
+        eapply nd_seq with (le1 := leB).
+        { apply exec_Sset. apply nd_ev_buf; [|lia]. unfold leA. rewrite PTree.gso by discriminate. exact Hsp. }
+        eapply nd_seq with (le1 := leC).
+        { apply exec_Sset. eapply eval_byte0; [apply PTree.gss|].
+          pose proof (HBs 0 ltac:(lia)) as H0. rewrite Z.add_0_r in H0. exact H0. }
+        apply exec_Sset. eapply eval_Ecast with (v1 := Val.of_bool bN).
+        -- eapply eval_Ebinop; [apply eval_Econst_int|apply eval_Etempvar; apply PTree.gss|].
+           change (Some (Val.of_bool (negb (Int.eq (Int.repr 106) (nd_b 0)))) = Some (Val.of_bool bN)).
+           rewrite nd_int_eq by lia. fold (nd_byte 0). rewrite <- EbN. reflexivity.
+        -- destruct bN; reflexivity.
+      * eapply nd_if with (b := bN); [apply eval_Etempvar; apply PTree.gss|reflexivity|].
+        destruct bN; [apply nd_ret0|apply exec_Sskip].
+    + unfold leD, leC, leB, leA. rewrite !PTree.gso by discriminate. exact Hsp.
+Qed.
+
+Lemma nd_entry le0 :
+  le0 = PTree.set _scriptPubKey spv (create_undef_temps (fn_temps f_countNullDataCodes)) ->
+  function_entry2 sha_ge f_countNullDataCodes [spv] m empty_env le0 m.
+Proof.
+  intros ->. apply function_entry2_intro.
+  - apply list_norepet_nil.
+  - repeat constructor; simpl; intuition discriminate.
+  - intros x0 y0 HX HY; cbn in HX, HY; intuition (subst; discriminate).
+  - apply alloc_variables_nil.
+  - reflexivity.
+Qed.
+
+Theorem eval_countNullDataCodes :
+  Clight2.eval_funcall sha_ge m (Internal f_countNullDataCodes) [spv] E0 m (Vlong (Int64.repr nd_count)).
+Proof.
+  pose proof nd_L as HLr.
+  set (le0 := PTree.set _scriptPubKey spv (create_undef_temps (fn_temps f_countNullDataCodes))).
+  destruct (nd_head_exec le0 (PTree.gss _ _ _)) as (le1 & XH & Hsp1).
+  assert (HRet0 : forall le',
+    Clight2.exec_stmt sha_ge empty_env le0 m (fn_body f_countNullDataCodes) E0 le' m RET0 ->
+    nd_count = 0 ->
+    Clight2.eval_funcall sha_ge m (Internal f_countNullDataCodes) [spv] E0 m (Vlong (Int64.repr nd_count))).
+  { intros le' HX HZ. rewrite HZ.
+    eapply eval_funcall_internal with (e := empty_env) (le1 := le0) (m1 := m) (m2 := m) (le2 := le') (out := RET0);
+      [apply nd_entry; reflexivity|exact HX|cbn; split; [discriminate|reflexivity]|reflexivity]. }
+  destruct (L =? 0) eqn:EL0.
+  { apply (HRet0 le1); [rewrite nd_body_shape; apply nd_seq_ret; exact XH|].
+    unfold nd_count. rewrite EL0. reflexivity. }
+  remember (negb (106 =? nd_byte 0)) as bN eqn:EbN. destruct bN.
+  { apply (HRet0 le1); [rewrite nd_body_shape; apply nd_seq_ret; exact XH|].
+    unfold nd_count. rewrite EL0, <- EbN. reflexivity. }
+  apply Z.eqb_neq in EL0.
+  set (leR := PTree.set _result (Vlong (Int64.repr 0)) le1).
+  set (leI := PTree.set _i (Vlong (Int64.repr 1)) leR).
+  assert (HC : nd_core leI 1 0).
+  { unfold nd_core, leI, leR. rewrite PTree.gss. rewrite PTree.gso by discriminate. rewrite PTree.gss.
+    rewrite !PTree.gso by discriminate. repeat split; try reflexivity. exact Hsp1. }
+  assert (HR : Clight2.exec_stmt sha_ge empty_env le1 m
+    (Sset _result (Ecast (Econst_int (Int.repr 0) tint) tulong)) E0 leR m Out_normal).
+  { apply exec_Sset. eapply eval_Ecast; [apply eval_Econst_int|reflexivity]. }
+  assert (HI : Clight2.exec_stmt sha_ge empty_env leR m
+    (Sset _i (Ecast (Econst_int (Int.repr 1) tint) tulong)) E0 leI m Out_normal).
+  { apply exec_Sset. eapply eval_Ecast; [apply eval_Econst_int|reflexivity]. }
+  pose proof (nd_loop_exec (Z.to_nat L) 1 0 leI HC ltac:(lia) ltac:(lia) ltac:(lia)) as HLp.
+  assert (HCnt : nd_count = match nd_loop (Z.to_nat L) 1 0 with Some r => r | None => 0 end).
+  { unfold nd_count. rewrite (proj2 (Z.eqb_neq L 0) EL0), <- EbN. reflexivity. }
+  destruct (nd_loop (Z.to_nat L) 1 0) as [r|] eqn:ELp.
+  - destruct HLp as (le2 & X2 & R). rewrite HCnt.
+    eapply eval_funcall_internal with (e := empty_env) (le1 := le0) (m1 := m) (m2 := m) (le2 := le2)
+      (out := Out_return (Some (Vlong (Int64.repr r), tulong)));
+      [apply nd_entry; reflexivity| |cbn; split; [discriminate|reflexivity]|reflexivity].
+    rewrite nd_body_shape.
+    eapply nd_seq; [exact XH|]. eapply nd_seq; [exact HR|].
+    eapply nd_seq with (le1 := le2); [eapply nd_seq; [exact HI|exact X2]|].
+    apply exec_Sreturn_some. apply eval_Etempvar. exact R.
+  - destruct HLp as (le2 & X2).
+    apply (HRet0 le2); [|exact HCnt].
+    rewrite nd_body_shape.
+    eapply nd_seq; [exact XH|]. eapply nd_seq; [exact HR|].
+    apply nd_seq_ret. eapply nd_seq; [exact HI|exact X2].
+Qed.
+
+Lemma nd_count_bound : 0 <= nd_count <= L.
+Proof.
+  pose proof nd_L as HLr. unfold nd_count.
+  destruct (L =? 0) eqn:EL0; [lia|]. apply Z.eqb_neq in EL0.
+  destruct (negb (106 =? nd_byte 0)); [lia|].
+  destruct (nd_loop (Z.to_nat L) 1 0) as [r|] eqn:E; [|lia].
+  exact (nd_loop_bound (Z.to_nat L) 1 0 r ltac:(lia) ltac:(lia) E).
 Qed.
 End CountNullData.
