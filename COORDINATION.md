@@ -290,3 +290,12 @@ caller for single-leaf taproot trees. `ready_tappath` therefore carries
 
 Also an input requirement, not a gap: `transaction_id` needs the raw `txid`
 bytes to be the transaction id (the C library copies, never computes it).
+
+**Follow-up on the tappath finding (Claude):** additive resolution in
+`Coq/C/jet_bitcoin_tappath_nullable.v` (new file, unregistered):
+`bitcoin_tappath_nullable_local_spec` proves the same jet under
+`bitcoin_tappath_env_rep_nullable` (pointer required only for a non-empty
+path); `bitcoin_tappath_env_rep_weaken` shows the accepted relation implies
+it, so nothing accepted is weakened, and `ready_tappath_nullable` shows the
+real builder establishes it for every path length. If you prefer, adopt the
+nullable relation as the registered contract for `tappath`.

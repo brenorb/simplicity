@@ -244,6 +244,13 @@ papered over:
   `bitcoin_tappath_env_rep` asks for a pointer unconditionally. The jet
   only reads `path` when `i < pathLen`, so the accepted relation is stronger
   than what the real caller provides for single-leaf trees.
+  Resolved additively: `Coq/C/jet_bitcoin_tappath_nullable.v` proves the
+  same jet (`bitcoin_tappath_nullable_local_spec`, the accepted proof with
+  the pointer load taken inside the in-range branch; same six assumptions)
+  under `bitcoin_tappath_env_rep_nullable`, which is implied by the accepted
+  relation (`bitcoin_tappath_env_rep_weaken`) and which the built `txEnv`
+  satisfies for every path length (`ready_tappath_nullable`,
+  `…_relations_tappath.v`).
 - `ready_transaction_id` requires that the 32 raw `txid` bytes are the
   transaction id: the builder copies them, and the C library never computes
   `raw_transaction_id R` (a double SHA-256 of the serialisation). This is a
