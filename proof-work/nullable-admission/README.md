@@ -46,6 +46,15 @@ acceptance. `ACCEPTANCE.json`, when present, records terminal success, log
 hash and unchanged inputs. Keep main Coq sources, registries, C and Haskell
 inputs frozen until that process completes.
 
+Terminal run 52224 completed with exit 0 (chunk `2865e9`). All 939 kernel
+modules passed; 4,823 assumption records (2,665 closed) and all public
+snapshots matched. Negative tests and all four original AST regenerations
+passed. The post-run fingerprint and exact preexisting staged patch remain
+unchanged. `ACCEPTANCE.json` supersedes the historical launch-only status in
+`AUDIT-RUN.json`: this is accepted actual-main worktree admission, not a
+claim about a clean HEAD checkout. The scoped seven-file delta remains
+unstaged among the deliberately preserved preexisting registry changes.
+
 ```sh
 python3 -B proof-work/nullable-admission/post-check.py
 ```
