@@ -1,5 +1,19 @@
 # Finish square acceptance, then reconcile cumulative main work
 
+## Terminal success supersedes historical launch notes
+
+Full acceptance **41316** terminated with exit 0 (terminal chunk **9e91d0**).
+All gates and four AST comparisons passed: 937 kernel modules, 4,814 audited
+results (2,663 closed). The input fingerprint is unchanged. Post-run review
+and negative tests **60887** also terminated with exit 0. `ACCEPTANCE.json`
+pins terminal evidence. Do not poll or restart these completed handles.
+
+Isolated **361/533** is now accepted (257 entries without an extra library
+premise, 104 explicitly memcpy_model-conditional). Main remains separate; the
+next action is the reviewed, preservation-safe main reconciliation below.
+Keep the accepted candidate immutable. `AUDIT-RUN.json` is historical launch
+evidence, not the final receipt.
+
 Full acceptance is **already running** as actual session **41316**, verified
 live by polling that same handle. Log:
 `/tmp/jet-scalar-square-integration.MAhL2g/full-acceptance.log`.

@@ -1,5 +1,16 @@
 # Normal square integration: reviewed preparation, not acceptance
 
+## Full acceptance is complete
+
+Acceptance **41316** and post-run review **60887** terminated with exit 0.
+All build/kernel/snapshot/negative gates and four regenerated AST comparisons
+passed, with the fingerprint unchanged. `ACCEPTANCE.json` pins this evidence:
+937 kernel modules, 4,814 audited results (2,663 closed), isolated **361/533**
+accepted entries (257 without an extra library premise, 104 conditional on
+memcpy_model). Main integration and the all-533 goal remain unfinished.
+Keep this candidate immutable. Running/provisional statements below are
+historical preparation notes, superseded by this terminal receipt.
+
 The complete public square proof and its exact selected closure now build in
 the normal `C` namespace at `/tmp/jet-scalar-square-integration.MAhL2g/Coq`.
 Parent: immutable accepted multiply candidate
