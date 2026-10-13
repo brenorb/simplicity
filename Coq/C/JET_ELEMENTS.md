@@ -322,6 +322,11 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   `eval_calculateToken` — the result is `calc_token_regs ent pfx`, the
   compression of `ent ++ token_word pfx ++ 0^7` (0x02000000 for a
   confidential amount prefix, 0x01000000 otherwise).
+- `jet_elements_env_le32_write.v` (`eval_WriteLE32`, `le32_byte_value`),
+  `jet_elements_env_u32le_exec.v` (`eval_sha256_u32le`, derived from
+  `C/jet_sha_u32be_exec.v` by renaming) and `jet_elements_env_ctxo_le.v`
+  (`ctxo_u32le`, derived from `ctxo_u32be`): `sha256_u32le`, which the
+  SHA unit does not contain, for `simplicity_generateIssuanceEntropy`.
 
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of
