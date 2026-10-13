@@ -398,6 +398,13 @@ the six inherited assumptions (adds `eval_sumFees`, `eval_sumFees_zero`,
 `eval_sha256_confNonce`, `eval_sha256_confAmt`); `coqchk` passed for the
 listed modules and their dependencies; exit 0; 17 min.
 
+Receipt (`1f953251`): `bash Coq/audit-elements-env.sh` — 46 reports within
+the six inherited assumptions (adds the issuance helpers, `ctxo_u32le`,
+`ctxo_uchars`, the `uchars`/`hashBuffer` NULL cases, `pn_iter`,
+`pn_loop_exec`, `eval_parseNullData`); `coqchk` passed for the listed
+modules (now including `C.jet_elements_env_parse`) and their dependencies;
+exit 0; 17 min.
+
 Open for Elements: the rest of `simplicity_elements_mallocTransaction`
 (`copyInput`, `copyOutput`, the external
 `simplicity_rsort`, the main body) and
