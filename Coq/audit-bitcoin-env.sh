@@ -14,6 +14,13 @@ if grep -nE '\b(admit|Admitted|Axiom|Parameter|Conjecture)\b' bitcoin-env/C/*.v;
   echo "forbidden declaration in bitcoin-env sources" >&2; exit 1
 fi
 bash build-bitcoin-env.sh ${JOBS:--j4}
+# the start-up module is present only when the archived prerequisites are
+startup=0; sflags=(); smods=(); extra=0
+if [[ -e startup/prereq/jet_clight_forward.v && -e startup/prereq/jet_sha_initial_globals.v ]]; then
+  startup=1; extra=1
+  sflags=(-Q startup/prereq JetStartupReview -Q startup/proofs JetStartup -Q startup/env BitcoinEnvStartup)
+  smods=(BitcoinEnvStartup.jet_bitcoin_env_startup_init)
+fi
 results=(jet_bitcoin_env_tomidstate.eval_sha256_toMidstate jet_bitcoin_env_hashbuffer.eval_hashBuffer
   jet_bitcoin_env_malloc.eval_malloc jet_bitcoin_env_ctxo.ctxo_init jet_bitcoin_env_ctxo.ctxo_hash
   jet_bitcoin_env_ctxo.ctxo_finalize jet_bitcoin_env_tapenv.eval_mallocTapEnv
@@ -68,17 +75,26 @@ results=(jet_bitcoin_env_tomidstate.eval_sha256_toMidstate jet_bitcoin_env_hashb
   jet_bitcoin_env_relations_indexed.ready_output_script_hash
   jet_bitcoin_env_relations_indexed.ready_input_hash
   jet_bitcoin_env_relations_indexed.ready_input_utxo_hash
-  jet_bitcoin_env_relations_indexed.ready_output_hash)
+  jet_bitcoin_env_relations_indexed.ready_output_hash
+  jet_bitcoin_tappath_nullable.bitcoin_tappath_nullable_local_spec
+  jet_bitcoin_env_relations_tappath.ready_tappath_nullable
+  jet_bitcoin_env_startup_kept.build_keeps_startup jet_bitcoin_env_startup_kept.free_keeps_startup
+  jet_bitcoin_env_raw_exists.raw_environment_exists jet_bitcoin_env_raw_exists.build_environment_readable)
 {
   for r in "${results[@]}"; do echo "Require C.${r%%.*}."; done
   for r in "${results[@]}"; do
     printf 'Goal True. idtac "@@ %s". Abort.\nPrint Assumptions C.%s.\n' "${r#*.}" "$r"
   done
+  if [[ $startup == 1 ]]; then
+    printf 'Require BitcoinEnvStartup.jet_bitcoin_env_startup_init.\n'
+    printf 'Goal True. idtac "@@ env_unit_started". Abort.\n'
+    printf 'Print Assumptions BitcoinEnvStartup.jet_bitcoin_env_startup_init.env_unit_started.\n'
+  fi
 } > "$tmp/audit.v"
 cd "$root/bitcoin-env/tree"
 ulimit -s 65520 2>/dev/null || true
-bash build-jets.sh --coqc -Q "$tmp" BitcoinEnvAudit "$tmp/audit.v" > "$tmp/audit.log" 2>&1
-python3 "$root/elements-sha/audit.py" "$tmp/audit.log" ${#results[@]}
-bash build-jets.sh --coqchk -silent -o C.jet_bitcoin_env_tapenv_link C.jet_bitcoin_env_tapenv_describe C.jet_bitcoin_env_hashbuffer C.jet_bitcoin_env_relations_indexed C.jet_bitcoin_env_lifecycle > "$tmp/coqchk.log" 2>&1
-echo "coqchk passed for C.jet_bitcoin_env_tapenv_link (which requires C.jet_bitcoin_env_tapenv), C.jet_bitcoin_env_tapenv_describe, C.jet_bitcoin_env_hashbuffer, C.jet_bitcoin_env_relations_indexed (which requires the three builders, their links to the raw environment, build_environment and both relation sweeps), C.jet_bitcoin_env_lifecycle and their dependencies"
+bash build-jets.sh --coqc ${sflags[@]+"${sflags[@]}"} -Q "$tmp" BitcoinEnvAudit "$tmp/audit.v" > "$tmp/audit.log" 2>&1
+python3 "$root/elements-sha/audit.py" "$tmp/audit.log" $(( ${#results[@]} + extra ))
+bash build-jets.sh --coqchk ${sflags[@]+"${sflags[@]}"} -silent -o C.jet_bitcoin_env_tapenv_link C.jet_bitcoin_env_tapenv_describe C.jet_bitcoin_env_hashbuffer C.jet_bitcoin_env_relations_indexed C.jet_bitcoin_env_lifecycle C.jet_bitcoin_env_relations_tappath C.jet_bitcoin_env_startup_kept C.jet_bitcoin_env_raw_exists ${smods[@]+"${smods[@]}"} > "$tmp/coqchk.log" 2>&1
+echo "coqchk passed for C.jet_bitcoin_env_tapenv_link (which requires C.jet_bitcoin_env_tapenv), C.jet_bitcoin_env_tapenv_describe, C.jet_bitcoin_env_hashbuffer, C.jet_bitcoin_env_relations_indexed (which requires the three builders, their links to the raw environment, build_environment and both relation sweeps), C.jet_bitcoin_env_lifecycle, C.jet_bitcoin_env_relations_tappath (with C.jet_bitcoin_tappath_nullable), C.jet_bitcoin_env_startup_kept, C.jet_bitcoin_env_raw_exists ${smods[*]-} and their dependencies"
 echo "logs: $tmp"
