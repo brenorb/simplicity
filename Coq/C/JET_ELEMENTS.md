@@ -306,6 +306,10 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   bytes (the `switch` with its `return`/`break` cases).
 - `jet_elements_env_conf_wrap.v`: `eval_sha256_confAsset`,
   `eval_sha256_confNonce` (prefixes 0x0a/0x0b and 0x02/0x03).
+- `jet_elements_env_conf_amt.v`: `eval_sha256_confAmt` — the context
+  absorbs `amt_bytes` (0x01 and the big-endian explicit amount, or
+  0x08/0x09 and the commitment); the prefix NONE, which the C code marks
+  unreachable, is excluded by the premise.
 
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of

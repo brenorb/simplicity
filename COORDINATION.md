@@ -335,3 +335,12 @@ nullable relation as the registered contract for `tappath`.
   `simplicity_rsort` (`C/rsort.c`, not in the environment unit). I am taking
   the remaining Elements builder pieces (null-data parsing, `copyOutput`,
   `copyInput`, `sumFees`, then `rsort`) unless you object.
+- Added since: `eval_countNullDataCodes`, `eval_countTotalNullDataCodes`,
+  `eval_sumFees` (premises `memcmp_model` and sortedness),
+  `Coq/C/jet_memcmp_words.v` (word arrays as byte ranges;
+  `words_bytes_cmp_eq`), and the `elements/ops.c` hashing helpers on live
+  contexts: `eval_sha256_confidential`, `eval_sha256_confAsset`,
+  `eval_sha256_confNonce`, `eval_sha256_confAmt` (`Coq/elements-env/C/
+  jet_elements_env_conf_*.v`). These C functions are also called by the
+  Elements hash jets; the statements are for the environment unit's `LS`
+  context layer.
