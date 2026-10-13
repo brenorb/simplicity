@@ -1,0 +1,170 @@
+(** Every SHA-unit jet with a state premise, restated over the single startup
+    invariant [sha_startup_state] (established by [Genv.init_mem] of the SHA
+    translation unit, see [sha_startup_state_initialized]) and re-establishing
+    it.  The function, types and canonical specification of each statement
+    are those of the accepted theorem it is derived from; the explicit
+    [memcpy_model] premise of the accepted theorems is kept unchanged.
+
+    Consequently any sequence of these jets started from the program's
+    initial memory needs no assumption about the dispatch pointer, the
+    maximum counter or the tag arrays: the callers establish only the frame
+    premises. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Globalenvs Events.
+Require Simplicity.Alg.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_memcpy_model C.jet_partial C.jet_encoding.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_block_local.
+Require Import C.jet_sha256_ctx8_init_spec C.jet_sha_ctx8_spec C.jet_buffer_empty_spec.
+Require Import C.jet_sha_add_buffer_spec C.jet_sha_finalize_spec C.jet_sha_tapdata_spec.
+Require Import C.jet_bitcoin_ctx_hash_spec C.jet_bitcoin_build_tapleaf_spec C.jet_bitcoin_build_tapbranch_spec.
+Require Import C.jet_sha_add_n_exec C.jet_sha_ctx8_add_jets C.jet_sha_ctx8_add_buffer_jet C.jet_sha_ctx8_finalize_jet.
+Require Import C.jet_sha_tapdata_jet C.jet_bitcoin_annex_hash_jet C.jet_bitcoin_outpoint_hash_jet.
+Require Import C.jet_bitcoin_make_tapleaf_exec C.jet_bitcoin_make_tapbranch_exec.
+Require Import C.jet_bitcoin_build_tapleaf_jet C.jet_bitcoin_build_tapbranch_jet.
+Require Import C.jet_sha_startup_state.
+Import Values Mem ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 60.
+
+Local Ltac wide := vm_compute; reflexivity.
+
+(** The compression jet has no libc premise. *)
+Theorem sha_256_block_startup_spec :
+  sha_startup_total_spec f_simplicity_sha_256_block (Ty.Prod Word256 Word512) Word256
+    sha_256_block_spec.
+Proof.
+  apply sha_startup_total_from_local; [wide|exact sha_256_block_local_spec].
+Qed.
+
+Theorem sha_256_ctx_8_add_1_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_1
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 0)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 0 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_1_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_2_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_2
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 1)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 1 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_2_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_4_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_4
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 2)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 2 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_4_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_8_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_8
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 3)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 3 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_8_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_16_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_16
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 4)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 4 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_16_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_32_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_32
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 5)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 5 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_32_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_64_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_64
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 6)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 6 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_64_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_128_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_128
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 7)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 7 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_128_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_256_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_256
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 8)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 8 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_256_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_512_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_512
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 9)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 9 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_512_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_add_buffer_511_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_add_buffer_511
+    (Ty.Prod sha256_ctx8_type (buffer_type (Word 3) 8)) sha256_ctx8_type
+    (fun a => @ctx8_add_buffer_spec 8 optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_add_buffer_511_local_spec Hmodel)].
+Qed.
+
+Theorem sha_256_ctx_8_finalize_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_sha_256_ctx_8_finalize sha256_ctx8_type (Word 8)
+    (fun a => @ctx8_finalize_spec optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (sha_256_ctx_8_finalize_local_spec Hmodel)].
+Qed.
+
+Theorem tapdata_init_startup_spec : memcpy_model ->
+  sha_startup_total_spec f_simplicity_tapdata_init Ty.Unit sha256_ctx8_type
+    (fun a => @tapdata_init_spec Alg.CoreFunSem a).
+Proof.
+  intros Hmodel. eapply sha_startup_total_from_pre; [wide|exact sha_startup_state_tapdata|exact (tapdata_init_local_spec Hmodel)].
+Qed.
+
+Theorem bitcoin_annex_hash_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_bitcoin_annex_hash
+    (Ty.Prod sha256_ctx8_type (Ty.Sum Ty.Unit (Word 8))) sha256_ctx8_type
+    (fun a => @annex_hash_spec optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (bitcoin_annex_hash_local_spec Hmodel)].
+Qed.
+
+Theorem bitcoin_outpoint_hash_startup_spec : memcpy_model ->
+  sha_startup_partial_spec f_simplicity_bitcoin_outpoint_hash
+    (Ty.Prod sha256_ctx8_type (Ty.Prod (Word 8) (Word 5))) sha256_ctx8_type
+    (fun a => @outpoint_hash_spec optalg a).
+Proof.
+  intros Hmodel. apply sha_startup_partial_from_local; [wide|exact (bitcoin_outpoint_hash_local_spec Hmodel)].
+Qed.
+
+Theorem bitcoin_build_tapleaf_simplicity_startup_spec : memcpy_model ->
+  sha_startup_total_spec f_simplicity_bitcoin_build_tapleaf_simplicity
+    (Word 8) (Word 8) (fun a => @build_tapleaf_spec Alg.CoreFunSem a).
+Proof.
+  intros Hmodel. eapply sha_startup_total_from_pre; [wide|exact sha_startup_state_tapleaf|exact (bitcoin_build_tapleaf_simplicity_local_spec Hmodel)].
+Qed.
+
+Theorem bitcoin_build_tapbranch_startup_spec : memcpy_model ->
+  sha_startup_total_spec f_simplicity_bitcoin_build_tapbranch
+    (Word 9) (Word 8) (fun ab => @build_tapbranch_spec Alg.CoreFunSem ab).
+Proof.
+  intros Hmodel. eapply sha_startup_total_from_pre; [wide|exact sha_startup_state_tapbranch|exact (bitcoin_build_tapbranch_local_spec Hmodel)].
+Qed.
