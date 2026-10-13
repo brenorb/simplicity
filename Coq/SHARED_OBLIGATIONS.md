@@ -177,8 +177,34 @@ and `eval_mallocTapEnv` / `mallocTapEnv_cached_hashes` show that the actual
 `hash256_reg (tapleaf_hash_of e)`, `(words_hash_of 5 3 (tappath_of e))` and
 `(tap_env_hash_of e)` (offsets 8, 40, 72) for a logical environment `e`
 built from the raw data (`tapenv_describes_exists`). Kernel receipt in the
-README. Open: `mallocTransaction` (the transaction half), the `txEnv`
-builder, the Elements links.
+README.
+
+**Update 2026-10-13 — the whole Bitcoin environment.** In the same derived
+unit (now also containing `bitcoin/txEnv.c`), see `Coq/bitcoin-env/README.md`:
+
+- `eval_mallocTransaction`, `eval_build_txEnv`, `eval_freeTransaction`,
+  `eval_freeTapEnv`: the remaining real environment functions;
+- `hash_buffer_bytestring`: the C streaming SHA-256 is `byteStringHash`;
+- `build_environment` / `build_environment_readable`: the three builders in
+  sequence on readable raw memory leave a `txEnv` that is `env_ready` for
+  `project_raw_environment R`, and such an `R` always exists
+  (`raw_environment_exists`);
+- 50 theorems `ready_<jet>` plus `ready_tappath_nullable`: every environment
+  relation that an accepted Bitcoin application-jet theorem takes as a
+  premise holds for that `txEnv`. The relation premises are therefore facts
+  the real caller establishes, with two documented exceptions that are
+  input requirements or contract findings: the raw `txid` bytes
+  (`ready_transaction_id`), and the accepted `tappath` relation for an empty
+  path (resolved additively by `C/jet_bitcoin_tappath_nullable.v`);
+- SHA start-up state: `env_unit_started` (holds in `Genv.init_mem` of the
+  actual unit), `build_keeps_startup`, `free_keeps_startup` (kept by the
+  real callers), `free_environment` (life cycle).
+
+Elements: `el_ready_{script_cmr,internal_key,tapleaf_version,tappath}` for
+the real `simplicity_elements_mallocTapEnv`, and
+`elements_tappath_nullable_local_spec`. Open: the Elements transaction
+builder (`elements/env.c`, 650 lines with null-data parsing and fee
+sorting), `simplicity_elements_build_txEnv`, the `exec.c` drivers.
 
 ## Manifest for integration
 
