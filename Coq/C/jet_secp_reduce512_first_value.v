@@ -1,0 +1,124 @@
+(** Numeric identity of the source-bound first fold; no caller-side guards. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers Values.
+Require Import C.jet_sx_expr.
+Require Import C.jet_secp_scalar_mul512_machine.
+Require Import C.jet_secp_reduce512_wide C.jet_secp_reduce512_symbolic
+  C.jet_secp_reduce512_first_symbolic C.jet_secp_reduce512_first_run
+  C.jet_secp_reduce512_accumulate C.jet_secp_scalar_mul512_accumulate
+  C.jet_secp_scalar_mul512_low C.jet_secp_scalar_mul512_product.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Definition first_ops1 (rho : nat -> int64) := [Wmul (rho 5%nat) wide_C0; Wmul (rho 4%nat) wide_C1].
+Definition first_ops2 (rho : nat -> int64) := [Wsum (rho 2%nat); Wmul (rho 6%nat) wide_C0; Wmul (rho 5%nat) wide_C1; Wsum (rho 4%nat)].
+Definition first_ops3 (rho : nat -> int64) := [Wsum (rho 3%nat); Wmul (rho 7%nat) wide_C0; Wmul (rho 6%nat) wide_C1; Wsum (rho 5%nat)].
+Definition first_ops4 (rho : nat -> int64) := [Wmul (rho 7%nat) wide_C1; Wsum (rho 6%nat)].
+Definition first_delta := Int64.unsigned wide_C0 + Int64.modulus * Int64.unsigned wide_C1 + Int64.modulus ^ 2.
+Definition first_untruncated_outputs rho := [wlo (first_ma0 rho); wlo (first_ma1 rho); wlo (first_ma2 rho);
+  wlo (first_ma3 rho); wlo (first_ma4 rho); wlo (first_ma5 rho); whi (first_ma5 rho)].
+Lemma first_carry0_bound rho : wide_value (wide_extract_fast (first_ma0 rho)) < Int64.modulus.
+Proof.
+  unfold wide_value; cbn [wide_extract_fast wlo whi wtop first_ma0 wide_muladd_fast wide_from_word].
+  rewrite Int64.unsigned_zero.
+  pose proof (Int64.unsigned_range (whi (first_ma0 rho))) as H.
+  change (0 <= Int64.unsigned (Int64.add Int64.zero
+    (column_product_hi_add (rho 4%nat) wide_C0 (wide_lower (wide_from_word (rho 0%nat))))) < Int64.modulus) in H.
+  nia.
+Qed.
+Lemma first_column_values rho :
+  wide_value (first_ma0 rho) = Int64.unsigned (rho 0%nat) + Int64.unsigned (rho 4%nat) * Int64.unsigned wide_C0 /\
+  wide_value (first_ma1 rho) = wide_value (wide_extract_fast (first_ma0 rho)) + Int64.unsigned (rho 1%nat) + wide_operation_sum (first_ops1 rho) /\
+  wide_value (first_ma2 rho) = wide_value (wide_extract (first_ma1 rho)) + wide_operation_sum (first_ops2 rho) /\
+  wide_value (first_ma3 rho) = wide_value (wide_extract (first_ma2 rho)) + wide_operation_sum (first_ops3 rho) /\
+  wide_value (first_ma4 rho) = wide_value (wide_extract (first_ma3 rho)) + wide_operation_sum (first_ops4 rho) /\
+  wide_value (first_ma5 rho) = wide_value (wide_extract (first_ma4 rho)) + Int64.unsigned (rho 7%nat).
+Proof.
+  pose proof Int64.modulus_pos.
+  assert (HM : 6 < Int64.modulus) by (change (6 < 18446744073709551616); lia).
+  assert (E0 : wide_value (first_ma0 rho) = Int64.unsigned (rho 0%nat) + Int64.unsigned (rho 4%nat) * Int64.unsigned wide_C0).
+  { unfold first_ma0; rewrite wide_muladd_fast_value; [rewrite wide_from_word_value; reflexivity|reflexivity|].
+    rewrite wide_from_word_value.
+    pose proof (Int64.unsigned_range (rho 0%nat)); pose proof (Int64.unsigned_range (rho 4%nat));
+      pose proof (Int64.unsigned_range wide_C0); nia. }
+  pose proof (first_carry0_bound rho) as HC0.
+  pose proof (Int64.unsigned_range (rho 1%nat)) as HX1.
+  assert (ES : wide_value (wide_sumadd_fast (rho 1%nat) (wide_extract_fast (first_ma0 rho))) =
+    wide_value (wide_extract_fast (first_ma0 rho)) + Int64.unsigned (rho 1%nat)).
+  { apply wide_sumadd_fast_value; [reflexivity|nia]. }
+  assert (HS : wide_value (wide_sumadd_fast (rho 1%nat) (wide_extract_fast (first_ma0 rho))) < 5 * Int64.modulus) by (rewrite ES; nia).
+  destruct (wide_accumulate_small (first_ops1 rho) _ ltac:(cbn [first_ops1 length]; lia) HS) as [E1 [_ H1]].
+  change (wide_value (wide_extract (first_ma1 rho)) < 5 * Int64.modulus) in H1.
+  change (wide_value (first_ma1 rho) = wide_value (wide_sumadd_fast (rho 1%nat) (wide_extract_fast (first_ma0 rho))) + wide_operation_sum (first_ops1 rho)) in E1.
+  rewrite ES in E1.
+  destruct (wide_accumulate_small (first_ops2 rho) _ ltac:(cbn [first_ops2 length]; lia) H1) as [E2 [_ H2]].
+  change (wide_value (wide_extract (first_ma2 rho)) < 5 * Int64.modulus) in H2.
+  destruct (wide_accumulate_small (first_ops3 rho) _ ltac:(cbn [first_ops3 length]; lia) H2) as [E3 [_ H3]].
+  change (wide_value (wide_extract (first_ma3 rho)) < 5 * Int64.modulus) in H3.
+  destruct (wide_accumulate_small (first_ops4 rho) _ ltac:(cbn [first_ops4 length]; lia) H3) as [E4 [_ H4]].
+  change (wide_value (wide_extract (first_ma4 rho)) < 5 * Int64.modulus) in H4.
+  assert (E5 : wide_value (first_ma5 rho) = wide_value (wide_extract (first_ma4 rho)) + Int64.unsigned (rho 7%nat)).
+  { apply wide_sumadd_fast_value; [reflexivity|pose proof (Int64.unsigned_range (rho 7%nat)); nia]. }
+  exact (conj E0 (conj E1 (conj E2 (conj E3 (conj E4 E5))))).
+Qed.
+Lemma first_reconstruction rho : column_words_value (first_untruncated_outputs rho) =
+  scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 * first_delta.
+Proof.
+  destruct (first_column_values rho) as [E0 [E1 [E2 [E3 [E4 E5]]]]].
+  pose proof (wide_extract_fast_decomposition (first_ma0 rho) eq_refl) as D0.
+  pose proof (wide_extract_decomposition (first_ma1 rho)) as D1.
+  pose proof (wide_extract_decomposition (first_ma2 rho)) as D2.
+  pose proof (wide_extract_decomposition (first_ma3 rho)) as D3.
+  pose proof (wide_extract_decomposition (first_ma4 rho)) as D4.
+  pose proof (wide_extract_fast_decomposition (first_ma5 rho) eq_refl) as D5.
+  assert (DC : wide_value (wide_extract_fast (first_ma5 rho)) = Int64.unsigned (whi (first_ma5 rho))).
+  { unfold wide_value; cbn [wide_extract_fast wlo whi wtop first_ma5 wide_sumadd_fast wide_extract].
+    rewrite Int64.unsigned_zero; ring. }
+  rewrite DC in D5.
+  cbn [first_ops1 first_ops2 first_ops3 first_ops4 wide_operation_sum wide_operation_value] in E1,E2,E3,E4.
+  unfold first_untruncated_outputs,scalar_mul512_input_value,first_delta; cbn [column_words_value Nat.add].
+  change Int64.modulus with 18446744073709551616 in *; cbn [Z.pow]; nia.
+Qed.
+Lemma first_fold_bound rho :
+  0 <= scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 * first_delta < 2 * Int64.modulus ^ 6.
+Proof.
+  pose proof (mul512_input_bound rho 0); pose proof (mul512_input_bound rho 4).
+  pose proof (Int64.unsigned_range wide_C0); pose proof (Int64.unsigned_range wide_C1).
+  unfold first_delta; change Int64.modulus with 18446744073709551616 in *; cbn [Z.pow] in *; nia.
+Qed.
+Lemma first_m6_bound rho : 0 <= Int64.unsigned (whi (first_ma5 rho)) <= 1.
+Proof.
+  pose proof (first_reconstruction rho) as HE; pose proof (first_fold_bound rho) as HB.
+  pose proof (Int64.unsigned_range (whi (first_ma5 rho))) as HH.
+  pose proof (column_words_bound [wlo (first_ma0 rho); wlo (first_ma1 rho); wlo (first_ma2 rho);
+    wlo (first_ma3 rho); wlo (first_ma4 rho); wlo (first_ma5 rho)]) as HP.
+  change (column_words_value
+    ([wlo (first_ma0 rho); wlo (first_ma1 rho); wlo (first_ma2 rho); wlo (first_ma3 rho); wlo (first_ma4 rho); wlo (first_ma5 rho)] ++
+      [whi (first_ma5 rho)]) = scalar_mul512_input_value rho 0 +
+      scalar_mul512_input_value rho 4 * first_delta) in HE.
+  rewrite column_words_append in HE.
+  change (column_words_value [wlo (first_ma0 rho); wlo (first_ma1 rho); wlo (first_ma2 rho); wlo (first_ma3 rho); wlo (first_ma4 rho); wlo (first_ma5 rho)] +
+    Int64.modulus ^ 6 * (Int64.unsigned (whi (first_ma5 rho)) + Int64.modulus * 0) =
+      scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 * first_delta) in HE.
+  change Int64.modulus with 18446744073709551616 in *; cbn [Z.pow] in *; nia.
+Qed.
+Lemma first_m6_cast_exact rho : Int64.repr (Int.unsigned (Int64.loword (whi (first_ma5 rho)))) = whi (first_ma5 rho).
+Proof.
+  pose proof (first_m6_bound rho) as H.
+  unfold Int64.loword.
+  rewrite Int.unsigned_repr; [apply Int64.repr_unsigned|change Int.max_unsigned with 4294967295; lia].
+Qed.
+Theorem first_machine_value rho : column_words_value (first_machine_outputs rho) =
+  scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 * first_delta.
+Proof. unfold first_machine_outputs; rewrite first_m6_cast_exact; apply first_reconstruction. Qed.
+Theorem reduce512_first_source_value rho beta :
+  column_words_value (map (fun sy => il (den rho beta sy)) reduce512_first_limbs) =
+    scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 * first_delta.
+Proof.
+  change (column_words_value (map il (map (den rho beta) reduce512_first_limbs)) =
+    scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 * first_delta).
+  rewrite first_outputs_machine,map_map.
+  change (column_words_value (first_machine_outputs rho) =
+    scalar_mul512_input_value rho 0 + scalar_mul512_input_value rho 4 * first_delta).
+  apply first_machine_value.
+Qed.

@@ -1,0 +1,85 @@
+(* Numeric bridge for the actual read buffer and setter output, not a public spec. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Values Memory Events Clight ClightBigstep.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_rep.
+Require Import C.jet_secp_symbolic_substitution C.jet_secp_input_bytes C.jet_secp_b32_exec.
+Require Import C.jet_secp_fe_nv C.jet_secp_fe_math C.jet_secp_wrapper_run.
+Require Import C.jet_secp_scalar_reader_run C.jet_secp_scalar_reader_set.
+Require Import C.jet_secp_scalar_set_b32_exec C.jet_secp_scalar_set_shape.
+Require Import C.jet_secp_scalar_set_bytes C.jet_secp_scalar_reduce_numeric.
+Require Import C.jet_secp_scalar_overflow_numeric C.jet_secp_canonical_scalar.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_reader_subst_den sigma rho rho' layout x :
+  (forall n, den rho layout (sigma n) = Vlong (rho' n)) ->
+  den rho layout (sx_subst sigma x) = den rho' layout x.
+Proof.
+  intro HS; induction x; cbn [sx_subst den];
+    rewrite ?IHx, ?IHx1, ?IHx2; try reflexivity; apply HS.
+Qed.
+Definition scalar_reader_limb rho layout i :=
+  il (den rho layout (sx_subst scalar_reader_byte_shift
+    (nth i [scalar_set_instantiate scalar_reduce_low0;
+            scalar_set_instantiate scalar_reduce_low1;
+            scalar_set_instantiate scalar_reduce_low2;
+            scalar_set_instantiate scalar_reduce_low3] (XLc Int64.zero)))).
+Lemma scalar_reader_limb_shift rho layout i :
+  scalar_reader_limb rho layout i = scalar_set_limb (fun n => rho (S n)) layout i.
+Proof.
+  unfold scalar_reader_limb, scalar_set_limb.
+  rewrite scalar_reader_subst_den with (rho' := fun n => rho (S n)).
+  - destruct i as [|[|[|[|i]]]]; try reflexivity.
+    destruct i; reflexivity.
+  - intro n; reflexivity.
+Qed.
+Lemma scalar_reader_byte_rho bits rc n :
+  length bits = 256%nat ->
+  read_fe_rho bits rc (S n) = byte_rho (input_bytes 32 bits) n.
+Proof.
+  intro HLen.
+  unfold byte_rho, read_fe_rho.
+  f_equal; symmetry; apply input_bytes_nth_total; exact HLen.
+Qed.
+Lemma scalar_reader_limb_bytes bits rc layout i :
+  length bits = 256%nat ->
+  scalar_reader_limb (read_fe_rho bits rc) layout i =
+    scalar_set_limb (byte_rho (input_bytes 32 bits)) layout i.
+Proof.
+  intro HLen; unfold scalar_reader_limb, scalar_set_limb.
+  rewrite scalar_reader_subst_den with (rho' := byte_rho (input_bytes 32 bits)).
+  - destruct i as [|[|[|[|i]]]]; try reflexivity.
+    destruct i; reflexivity.
+  - intro n; cbn [scalar_reader_byte_shift den].
+    rewrite scalar_reader_byte_rho by exact HLen; reflexivity.
+Qed.
+Theorem scalar_reader_value_mod_group bits rc layout :
+  length bits = 256%nat ->
+  scalar_limb_value (scalar_reader_limb (read_fe_rho bits rc) layout) =
+    be_val (input_bytes 32 bits) mod canonical_group_order.
+Proof.
+  intro HLen.
+  unfold scalar_limb_value; rewrite !scalar_reader_limb_bytes by exact HLen.
+  fold (scalar_limb_value (scalar_set_limb (byte_rho (input_bytes 32 bits)) layout)).
+  apply scalar_set_bytes_mod_group.
+  - apply input_bytes_length.
+  - apply input_bytes_bounds; exact HLen.
+Qed.
+Lemma scalar_reader_set_loads rho layout bi edge m :
+  rep rho layout (sregs (scalar_reader_set_state bi edge)) m ->
+  forall i, (i < 4)%nat ->
+    Mem.load Mint64 m (blk layout 0) (bas layout 0 + 8 * Z.of_nat i) =
+      Some (Vlong (scalar_reader_limb rho (lay layout) i)).
+Proof.
+  intro HRep; rewrite scalar_reader_set_regions in HRep.
+  pose proof (rep_region rho layout _ m 0 _ HRep eq_refl) as HR.
+  intros i HI; destruct i as [|[|[|[|i]]]]; try lia;
+    unfold scalar_reader_limb; cbn [nth];
+    match goal with |- Mem.load _ _ _ (_ + ?ofs) = Some (Vlong (il (den _ _ ?x))) =>
+      pose proof (region_load rho layout m 0
+        (mkreg (map (cell_subst scalar_reader_byte_shift) (cells0 scalar_set_state)) true (Some 32))
+        ofs Mint64 x HR ltac:(cbn [rcells]; rewrite scalar_set_output_shape; cbn; auto)) as HL;
+      rewrite (den_KL rho (lay layout) x eq_refl) in HL; exact HL
+    end.
+Qed.

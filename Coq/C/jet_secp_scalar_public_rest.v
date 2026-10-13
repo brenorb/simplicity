@@ -1,0 +1,134 @@
+(* Original public read/test/write/return remainder with literal output. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight Clightdefs ClightBigstep Integers Values Maps Memory Events.
+Require Import C.jet_exec C.jet_readBit_layout C.jet_frame_layout C.jet_frame_inv.
+Require Import C.jet_encoding C.jet_input_layout C.jet_output_layout.
+Require Import C.jet_sx_state C.jet_sx_exec C.jet_sx_mem C.jet_secp_frame C.jet_secp_wrapper_run.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_local_regions C.jet_secp_bit_writer.
+Require Import C.jet_secp_public_body C.jet_secp_odd_body C.jet_secp_gej_predicate_body.
+Require Simplicity.Ty Simplicity.Word Simplicity.Bit Simplicity.Alg Simplicity.Translate.
+Require Import C.jet_secp_scalar_public_entry C.jet_secp_scalar_public_calls.
+Require Import C.jet_secp_scalar_reader_run C.jet_secp_scalar_reader_lifecycle.
+Require Import C.jet_secp_scalar_reader_zero C.jet_secp_scalar_zero_exec.
+Require Import C.jet_secp_scalar_reader_set C.jet_secp_canonical_scalar_zero.
+Import ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition scalar_public_rest :=
+  match fn_body f_simplicity_scalar_is_zero with Ssequence _ rest => rest | _ => Sskip end.
+Lemma scalar_public_rest_eq :
+  scalar_public_rest = Ssequence scalar_public_read_stmt
+    (Ssequence (Ssequence scalar_public_zero_stmt secp_public_bit_write_stmt)
+      (Sreturn (Some (Econst_int (Int.repr 1) tint)))).
+Proof. reflexivity. Qed.
+Lemma canonical_scalar_zero_encoded (value : Ty.tySem (Word.Word 8)) :
+  Simplicity.Translate.encode (@canonical_scalar_is_zero Alg.CoreFunSem value) =
+    [Some (Bit.toBool (@canonical_scalar_is_zero Alg.CoreFunSem value))].
+Proof. destruct (@canonical_scalar_is_zero Alg.CoreFunSem value); reflexivity. Qed.
+Lemma scalar_locals_not_foot ba bl bi edge b pos :
+  b <> ba -> b <> bl ->
+  ~ foot [(ba,0);(bl,0)] (map rshape (scalar_reader_initial_regs bi edge)) b pos.
+Proof.
+  intros HA HL (r & sh & d & ch & HNth & HIn & HBlock & HRange).
+  destruct r as [ | [ | r]].
+  - exact (HA HBlock).
+  - exact (HL HBlock).
+  - cbn [scalar_reader_initial_regs map nth_error] in HNth; destruct r; discriminate.
+Qed.
+Local Opaque secp_ge canonical_scalar_is_zero Simplicity.Translate.encode.
+
+Theorem exec_scalar_public_rest_canonical le m0 bd dbase bw outedge cursor N bi edge rc
+    (value : Ty.tySem (Word.Word 8)) m ba bl :
+  le!_dst = Some (Vptr bd (Ptrofs.repr dbase)) ->
+  write_frame_at m0 bd dbase bw outedge cursor N ->
+  frame_input_cells_at m0 bi edge rc (map Some (frame_input_word_bits value)) ->
+  0 <= rc -> rc+256 <= Int64.max_unsigned ->
+  Mem.range_perm m ba 0 32 Cur Freeable -> Mem.range_perm m bl 0 16 Cur Freeable ->
+  frame_fields_at m bl 0 bi edge rc -> ba <> bl ->
+  xsep (extA m0 bd bw bi) [(ba,0);(bl,0)] ->
+  invA m0 bd dbase bw outedge cursor N bi rc Datatypes.false [] 1
+    (read_fe_rho (frame_input_word_bits value) rc) [] m ->
+  exists mf,
+    Clight2.exec_stmt secp_ge (scalar_public_env bl ba) le m scalar_public_rest E0
+      (PTree.set _t'1 (Vint (bit_int (Bit.toBool (@canonical_scalar_is_zero Alg.CoreFunSem value)))) le)
+      mf (Out_return (Some (Vint Int.one, tint))) /\
+    finv m0 bd dbase bw outedge cursor N bi mf Datatypes.true
+      (Simplicity.Translate.encode (@canonical_scalar_is_zero Alg.CoreFunSem value)) /\
+    Mem.range_perm mf ba 0 32 Cur Freeable /\ Mem.range_perm mf bl 0 16 Cur Freeable /\
+    lframe (secp_locals_outside m0 bd bw bi ba bl) m mf.
+Proof.
+  intros HD HO HI Hrc HM HA HL HS HSeparate HSep HInv.
+  assert (HLength : length (frame_input_word_bits value) = 256%nat).
+  { rewrite frame_input_word_bits_length; reflexivity. }
+  assert (HMax : rc + Z.of_nat (length (frame_input_word_bits value)) <= Int64.max_unsigned).
+  { rewrite HLength; exact HM. }
+  pose proof (scalar_reader_initial_rep_from_storage (frame_input_word_bits value) rc
+    m ba bl bi edge HA HL HS HSeparate) as HRep.
+  destruct (eval_scalar_reader_numeric_owned m0 bd dbase bw outedge cursor N bi edge rc
+    (frame_input_word_bits value) [] 1 HO HI Hrc HMax HLength m [(ba,0);(bl,0)] HRep HSep HInv)
+    as (mr & HRead & HLoads & HValue & HCursor & HFinal & HReadInv & HReadFrame).
+  destruct (eval_scalar_zero_after_reader value rc mr [(ba,0);(bl,0)] bi (Ptrofs.repr edge) HFinal)
+    as (mz & HZero & HZeroRep & HFreeAZ & HZeroFrame).
+  cbn [blk bas lay nth fst snd] in HRead, HCursor, HZero, HZeroRep, HFreeAZ, HZeroFrame.
+  assert (HZeroOutside : lframe (fun b _ => b <> ba) mr mz).
+  { eapply lframe_implies; [exact HZeroFrame|].
+    intros b pos HNot _ HFoot; apply HNot; exact (scalar_zero_foot_block ba b pos HFoot). }
+  assert (HInvZ : invA m0 bd dbase bw outedge cursor N bi rc Datatypes.false [] 1
+      (read_fe_rho (frame_input_word_bits value) rc) (scalar_reader_log bi (Ptrofs.repr edge)) mz).
+  { eapply invA_stable; [exact HO|exact HReadInv|].
+    eapply lframe_implies; [exact HZeroOutside|].
+    intros b pos HExt _ HEq; subst b; apply (HSep 0%nat ltac:(cbn; lia)); exact HExt. }
+  assert (HFreeLR : Mem.range_perm mr bl 0 16 Cur Freeable).
+  { pose proof (rep_free_region _ _ _ _ 1 16 HFinal
+      ltac:(rewrite scalar_reader_final_length; lia)
+      ltac:(unfold scalar_reader_final_regs; rewrite scalar_reader_set_regions; reflexivity))
+      as [_ HF]; exact HF. }
+  assert (HFreeLZ : Mem.range_perm mz bl 0 16 Cur Freeable).
+  { intros pos HPos; eapply (proj1 (proj2 HZeroOutside));
+      [eapply load_valid; exact (proj1 HCursor)|congruence|apply HFreeLR; exact HPos]. }
+  destruct HInvZ as [_ [HCurrent [HCapacity _]]].
+  change (finv m0 bd dbase bw outedge cursor N bi mz Datatypes.false []) in HCurrent.
+  change (1 <= N) in HCapacity.
+  set (bit := Bit.toBool (@canonical_scalar_is_zero Alg.CoreFunSem value)).
+  destruct (eval_secp_writeBit_from_invariant m0 bd dbase bw outedge cursor N bi mz bit
+    HO HCapacity HCurrent) as (mf & HWrite & HWritten & HWriteFrame & HWritePerms).
+  assert (HValidDst : Mem.valid_block m0 bd).
+  { pose proof HO as [_ [[HE _] _]]. exact (load_valid _ _ _ _ _ HE). }
+  assert (HValidWords : Mem.valid_block m0 bw).
+  { destruct (write_frame_at_head m0 bd dbase bw outedge cursor N ltac:(lia) HO)
+      as [_ [_ [_ [w HW]]]]. exact (load_valid _ _ _ _ _ HW). }
+  exists mf; split.
+  - rewrite scalar_public_rest_eq.
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mr) (le1 := le).
+    + apply exec_scalar_public_read; exact HRead.
+    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mf)
+        (le1 := PTree.set _t'1 (Vint (bit_int bit)) le).
+      * eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mz)
+          (le1 := PTree.set _t'1 (Vint (bit_int bit)) le).
+        -- apply exec_scalar_public_zero; exact HZero.
+        -- eapply exec_secp_bit_write_in_env.
+           ++ reflexivity.
+           ++ rewrite PTree.gso by discriminate; exact HD.
+           ++ apply PTree.gss.
+           ++ exact HWrite.
+      * apply exec_Sreturn_some; constructor.
+  - split.
+    + rewrite canonical_scalar_zero_encoded; exact HWritten.
+    + split.
+      * intros pos HPos; apply HWritePerms; apply HFreeAZ; exact HPos.
+      * split.
+        -- intros pos HPos; apply HWritePerms; apply HFreeLZ; exact HPos.
+        -- eapply lframe_trans.
+           ++ eapply lframe_implies; [exact HReadFrame|].
+              intros b pos [HNotA [HNotL HNotExt]] HV.
+              split; [exact HV|]; split; [eapply scalar_locals_not_foot; eassumption|exact HNotExt].
+           ++ eapply lframe_trans.
+              ** eapply lframe_implies; [exact HZeroOutside|].
+                 intros b pos [HNotA _] _; exact HNotA.
+              ** eapply lframe_implies; [exact HWriteFrame|].
+                 intros b pos [HNotA [HNotL HNotExt]] HV.
+                 unfold extA, fext in HNotExt.
+                 split; intro HEq; subst b; apply HNotExt; split;
+                   [left; reflexivity|exact HValidDst|right; left; reflexivity|exact HValidWords].
+Qed.
