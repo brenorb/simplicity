@@ -2,6 +2,13 @@
 
 ## Terminal success supersedes the historical launch notes below
 
+The historical provenance collector now filters its four supported namespaces
+(`MulC`, `LifeC`, `PubC`, `OwnC`) for both modern and legacy record formats.
+A later `BorrowC` archive under the broad scalar-mul directory prefix otherwise
+changed only the historical excluded-module list, despite identical selected
+sources/metadata. `test-provenance.py` checks this boundary. No accepted
+candidate/audit input or selected declaration is changed by the collector fix.
+
 Full acceptance **38093** terminated with exit 0 (terminal chunk **c92c32**).
 All gates passed: normal build, 922-module kernel, 4,767 assumption records
 (2,635 closed), reviewed type/definition snapshots, negative tests and all four
