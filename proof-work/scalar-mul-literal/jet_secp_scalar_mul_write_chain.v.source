@@ -1,0 +1,143 @@
+(** Actual multiplication then serialization against the literal Core output.
+    Full public input readers and wrapper cleanup are still separate. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_sx_mem C.jet_sx_exec.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_canonical_scalar
+  C.jet_secp_canonical_scalar_negate C.jet_secp_frame.
+Require Import C.jet_frame_inv C.jet_output_layout C.jet_word_repr C.jet_secp_output_bytes.
+Require Import C.jet_secp_scalar_get_b32_numeric C.jet_secp_scalar_writer_run
+  C.jet_secp_scalar_writer_exec C.jet_secp_scalar_writer_numeric C.jet_secp_local_regions.
+Require Import C.jet_secp_scalar_get_b32_storage.
+Require Import MulC.jet_secp_scalar_mul512_low MulC.jet_secp_scalar_mul512_run.
+Require Import LifeC.jet_secp_scalar_mul_caller_alloc.
+Require Import PubC.jet_secp_scalar_mul_literal_owned PubC.jet_secp_scalar_writer_word.
+Require Import PubC.jet_secp_scalar_mul_reader_bridge.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma scalar_mul_foot_region beta block pos :
+  foot beta (map rshape scalar_mul_caller_inputs) block pos ->
+  exists r, (r < 2)%nat /\ block = blk beta r.
+Proof.
+  intros (r & sh & d & ch & HN & HI & HB & HR).
+  destruct r as [|[|r]].
+  - exists 0%nat; split; [lia|exact HB].
+  - exists 1%nat; split; [lia|exact HB].
+  - cbn [scalar_mul_caller_inputs scalar_mul512_initial_regs map tl nth_error] in HN.
+    destruct r; discriminate.
+Qed.
+
+Lemma scalar_mul_writer_foot_embed beta block pos :
+  foot [(blk beta 0,bas beta 0)] (map rshape scalar_writer_initial_regs) block pos ->
+  foot beta (map rshape scalar_mul_caller_inputs) block pos.
+Proof.
+  intros (r & sh & d & ch & HN & HI & HB & HR).
+  destruct r as [|r].
+  - exists 0%nat,sh,d,ch. exact (conj HN (conj HI (conj HB HR))).
+  - cbn [scalar_writer_initial_regs map nth_error] in HN. destruct r; discriminate.
+Qed.
+
+Local Opaque secp_ge canonical_scalar_multiply encode.
+Theorem eval_scalar_mul_write_literal m0 bd dbase bw outedge cursor N bi
+    rho beta m (a b : Ty.tySem (Word 8)) w0 outs0 :
+  write_frame_at m0 bd dbase bw outedge cursor N ->
+  rep rho beta scalar_mul_caller_inputs m ->
+  scalar_mul512_input_value rho 0 =
+    @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem a) ->
+  scalar_mul512_input_value rho 4 =
+    @toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem b) ->
+  xsep (extA m0 bd bw bi) beta ->
+  finv m0 bd dbase bw outedge cursor N bi m w0 outs0 ->
+  Z.of_nat (length outs0) + 256 <= N ->
+  exists mn mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mn Vundef /\
+    Clight2.eval_funcall secp_ge mn (Internal f_write_scalar)
+      [Vptr bd (Ptrofs.repr dbase);
+       Vptr (blk beta 0) (Ptrofs.repr (bas beta 0))] E0 mf Vundef /\
+    finv m0 bd dbase bw outedge cursor N bi mf true
+      (outs0 ++ encode (@canonical_scalar_multiply Alg.CoreFunSem (a,b))) /\
+    rep (scalar_limb_rho (@toZ (WordToZ 8)
+      (@canonical_scalar_multiply Alg.CoreFunSem (a,b))))
+      [(blk beta 0,bas beta 0)] scalar_writer_initial_regs mf /\
+    Mem.range_perm mf (blk beta 0) 0 32 Cur Freeable /\
+    lframe (fun block ofs =>
+      ~ foot beta (map rshape scalar_mul_caller_inputs) block ofs /\
+      ~ extA m0 bd bw bi block) m mf.
+Proof.
+  intros HO HR HA HB HS HI HCap.
+  assert (HL : length beta = 2%nat) by (destruct HR as (HL & _); exact HL).
+  destruct (eval_scalar_mul_literal_owned rho beta m a b HR HA HB)
+    as (mn & HC & HW & HP & HF).
+  assert (HExt : lframe (fun block _ => extA m0 bd bw bi block) m mn).
+  { eapply lframe_implies; [exact HF|]. intros block pos HE HV Hfoot.
+    destruct (scalar_mul_foot_region beta block pos Hfoot) as (r & HIndex & ->).
+    exact ((HS r ltac:(rewrite HL; exact HIndex)) HE). }
+  assert (HIn : finv m0 bd dbase bw outedge cursor N bi mn w0 outs0).
+  { eapply finv_stable; [exact HO|exact HI|exact HExt]. }
+  set (wrho := scalar_limb_rho (@toZ (WordToZ 8)
+    (@canonical_scalar_multiply Alg.CoreFunSem (a,b)))).
+  assert (HWS : xsep (extA m0 bd bw bi) [(blk beta 0,bas beta 0)]).
+  { intros [|r] HIndex; [apply (HS 0%nat); rewrite HL; lia|cbn in HIndex; lia]. }
+  assert (HWI : jet_secp_scalar_writer_exec.scalar_write_inv
+      m0 bd dbase bw outedge cursor N bi (Int64.unsigned (wrho 0%nat)) w0 outs0 wrho [] mn).
+  { unfold jet_secp_scalar_writer_exec.scalar_write_inv,invA.
+    split; [symmetry; apply Int64.repr_unsigned|].
+    split; [rewrite app_nil_r,Bool.orb_false_r; exact HIn|].
+    split; [exact HCap|cbn; lia]. }
+  destruct (eval_write_scalar_word m0 bd dbase bw outedge cursor N bi
+    (Int64.unsigned (wrho 0%nat)) (@canonical_scalar_multiply Alg.CoreFunSem (a,b))
+    w0 outs0 mn [(blk beta 0,bas beta 0)] HO HW HWS HWI)
+    as (mf & CW & RW & IW & FW).
+  assert (PF : Mem.range_perm mf (blk beta 0) 0 32 Cur Freeable).
+  { destruct (rep_free_region _ _ _ _ 0 32 RW ltac:(change (0 < 1)%nat; lia) eq_refl)
+      as (_ & P). exact P. }
+  exists mn,mf. split; [exact HC|]. split; [exact CW|]. split; [exact IW|].
+  split; [exact RW|]. split; [exact PF|].
+  eapply lframe_trans.
+  - eapply lframe_implies; [exact HF|]. intros block pos [HFoot HExt'] HV; exact HFoot.
+  - eapply lframe_implies; [exact FW|]. intros block pos [HFoot HExt'] HV.
+    split; [exact HV|]. split; [|exact HExt'].
+    intro HWF. apply HFoot. apply scalar_mul_writer_foot_embed; exact HWF.
+Qed.
+
+Theorem eval_scalar_mul_write_from_normalized_storage m0 bd dbase bw outedge cursor N bi
+    m ba bb (a b : Ty.tySem (Word 8)) w0 outs0 :
+  write_frame_at m0 bd dbase bw outedge cursor N ->
+  scalar_at m ba 0 (map Int64.repr (scalar_limbs_of
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem a)))) ->
+  scalar_at m bb 0 (map Int64.repr (scalar_limbs_of
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem b)))) ->
+  Mem.range_perm m ba 0 32 Cur Freeable ->
+  Mem.range_perm m bb 0 32 Cur Freeable -> ba <> bb ->
+  xsep (extA m0 bd bw bi) [(ba,0);(bb,0)] ->
+  finv m0 bd dbase bw outedge cursor N bi m w0 outs0 ->
+  Z.of_nat (length outs0) + 256 <= N ->
+  exists mn mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul)
+      [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr bb Ptrofs.zero] E0 mn Vundef /\
+    Clight2.eval_funcall secp_ge mn (Internal f_write_scalar)
+      [Vptr bd (Ptrofs.repr dbase);Vptr ba Ptrofs.zero] E0 mf Vundef /\
+    finv m0 bd dbase bw outedge cursor N bi mf true
+      (outs0 ++ encode (@canonical_scalar_multiply Alg.CoreFunSem (a,b))) /\
+    rep (scalar_limb_rho (@toZ (WordToZ 8)
+      (@canonical_scalar_multiply Alg.CoreFunSem (a,b))))
+      [(ba,0)] scalar_writer_initial_regs mf /\
+    Mem.range_perm mf ba 0 32 Cur Freeable /\
+    lframe (fun block ofs =>
+      ~ foot [(ba,0);(bb,0)] (map rshape scalar_mul_caller_inputs) block ofs /\
+      ~ extA m0 bd bw bi block) m mf.
+Proof.
+  intros HO SA SB PA PB Hneq HS HI HCap.
+  pose proof (scalar_mul_initial_rep_from_storage _ _ m ba bb SA SB PA PB Hneq) as HR.
+  destruct (scalar_mul_normalized_input_values a b) as (HA & HB).
+  exact (eval_scalar_mul_write_literal m0 bd dbase bw outedge cursor N bi
+    (scalar_mul_normalized_rho a b) [(ba,0);(bb,0)] m a b w0 outs0
+    HO HR HA HB HS HI HCap).
+Qed.
