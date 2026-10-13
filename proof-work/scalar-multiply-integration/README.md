@@ -56,4 +56,7 @@ and the full acceptance command uses no update/no-build flags.
 Source proof scope remains public local frames / LP64 / RECKLESS, against the
 literal canonical Simplicity term. Evaluator/all-frame integration and other
 assertion configurations are not newly claimed. See `CONTINUATION.md`.
+`MAIN-RECONCILIATION.md` and the read-only `plan-main.py` record the current
+main overlap checks without installing or accepting anything; recompute before
+application. The planner reuses the exact constructor-aware snapshot parser.
 Signed atomic local commits only; never push.
