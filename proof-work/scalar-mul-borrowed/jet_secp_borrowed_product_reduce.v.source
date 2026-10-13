@@ -1,0 +1,94 @@
+(** Actual readable product storage feeds the existing reduction proof. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Memory Values Clight ClightBigstep Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_sx_mem C.jet_sx_eval
+  C.jet_sx_u64_transport C.jet_secp_linkage C.jets_secp C.jet_secp_canonical_scalar
+  C.jet_secp_product_reduce_bridge C.jet_secp_scalar_mul512_run
+  C.jet_secp_scalar_mul512_machine C.jet_secp_scalar_mul512_symbolic
+  C.jet_secp_scalar_reduce512_run C.jet_secp_reduce512_function_numeric
+  C.jet_secp_reduce512_final_atomic C.jet_secp_reduce512_body_numeric.
+Require Import BorrowC.jet_secp_scalar_mul512_borrowed.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque scalar_mul512_machine_outputs scalar_mul512_state.
+
+Theorem borrowed_product_reduce_entry_rep rho beta m :
+  rep rho beta scalar_mul512_borrowed_output_regs m ->
+  rep (product_reduce_rho rho) (product_reduce_layout beta) scalar_reduce512_initial_regs m.
+Proof.
+  intro HR.
+  destruct HR as (HL & HS & HC).
+  unfold rep; split; [reflexivity|]. split.
+  - intros r1 r2 reg1 reg2 Hne E1 E2.
+    destruct r1 as [|[|r1]], r2 as [|[|r2]];
+      cbn [scalar_reduce512_initial_regs nth_error] in E1,E2; try discriminate;
+      try (rewrite empty_region_index in E1; discriminate);
+      try (rewrite empty_region_index in E2; discriminate);
+      try (exfalso; apply Hne; reflexivity).
+    + inversion E1; inversion E2; subst.
+      destruct (HS 1%nat 0%nat _ _ ltac:(discriminate) eq_refl eq_refl) as [HD|[HF _]].
+      * left; exact HD.
+      * discriminate.
+    + inversion E1; inversion E2; subst.
+      destruct (HS 0%nat 1%nat _ _ ltac:(discriminate) eq_refl eq_refl) as [HD|[HF _]].
+      * left; exact HD.
+      * discriminate.
+  - intros r reg E; destruct r as [|[|r]]; cbn [scalar_reduce512_initial_regs nth_error] in E; try discriminate;
+      try (rewrite empty_region_index in E; discriminate).
+    + inversion E; subst reg.
+      eapply region_u64_transport with (rho := rho) (beta := beta)
+        (r := 1%nat) (xs := [XLv 0; XLv 1; XLv 2; XLv 3]) (ys := [XLv 8; XLv 9; XLv 10; XLv 11]).
+      * reflexivity.
+      * reflexivity.
+      * apply product_reduce_output_map.
+      * reflexivity.
+      * exact (HC 1%nat _ eq_refl).
+    + inversion E; subst reg.
+      eapply region_u64_transport with (rho := rho) (beta := beta)
+        (r := 0%nat) (xs := scalar_mul512_limbs)
+        (ys := [XLv 0; XLv 1; XLv 2; XLv 3; XLv 4; XLv 5; XLv 6; XLv 7]).
+      * reflexivity.
+      * symmetry; apply scalar_mul512_limbs_length.
+      * rewrite product_reduce_input_map,scalar_mul512_outputs_machine; reflexivity.
+      * reflexivity.
+      * exact (HC 0%nat _ eq_refl).
+Qed.
+Lemma borrowed_product_reduce_foot_embed beta b ofs :
+  foot (product_reduce_layout beta) (map rshape scalar_reduce512_initial_regs) b ofs ->
+  foot beta (map rshape scalar_mul512_borrowed_regs) b ofs.
+Proof.
+  intros (r & sh & d & ch & Hs & Hin & Hb & Hr); destruct r as [|[|r]].
+  - exists 1%nat,sh,d,ch; exact (conj Hs (conj Hin (conj Hb Hr))).
+  - exists 0%nat,sh,d,ch; exact (conj Hs (conj Hin (conj Hb Hr))).
+  - cbn [scalar_reduce512_initial_regs map nth_error] in Hs; destruct r; discriminate.
+Qed.
+
+Theorem eval_borrowed_product_then_reduce rho beta m :
+  rep rho beta scalar_mul512_borrowed_regs m ->
+  exists mp mf,
+    Clight2.eval_funcall secp_ge m (Ctypes.Internal f_secp256k1_scalar_mul_512)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1));
+       Vptr (blk beta 2) (Ptrofs.repr (bas beta 2))] E0 mp Vundef /\
+    Clight2.eval_funcall secp_ge mp (Ctypes.Internal f_secp256k1_scalar_reduce_512)
+      [Vptr (blk beta 1) (Ptrofs.repr (bas beta 1));
+       Vptr (blk beta 0) (Ptrofs.repr (bas beta 0))] E0 mf Vundef /\
+    rep (product_reduce_rho rho) (product_reduce_layout beta)
+      (reduce512_numeric_owned_regs (product_reduce_rho rho)) mf /\
+    final_output_value (reduce512_body_digits (product_reduce_rho rho))
+      (reduce512_body_carry (product_reduce_rho rho)) (product_reduce_rho rho)
+      (lay (product_reduce_layout beta)) =
+      (C.jet_secp_scalar_mul512_low.scalar_mul512_input_value rho 0 *
+       C.jet_secp_scalar_mul512_low.scalar_mul512_input_value rho 4) mod canonical_group_order /\
+    lframe (fun b ofs => ~ foot beta (map rshape scalar_mul512_borrowed_regs) b ofs) m mp /\
+    lframe (fun b ofs => ~ foot (product_reduce_layout beta)
+      (map rshape scalar_reduce512_initial_regs) b ofs) mp mf.
+Proof.
+  intro HR; destruct (eval_scalar_mul512_borrowed rho beta m HR) as (mp & HP & HRP & HFP).
+  pose proof (borrowed_product_reduce_entry_rep rho beta mp HRP) as HE.
+  destruct (eval_reduce512_numeric_owned (product_reduce_rho rho) (product_reduce_layout beta) mp HE)
+    as (mf & HC & Hout & Hvalue & HF).
+  rewrite product_reduce_integer in Hvalue.
+  exists mp,mf; exact (conj HP (conj HC (conj Hout (conj Hvalue (conj HFP HF))))).
+Qed.
