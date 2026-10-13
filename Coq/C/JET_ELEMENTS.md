@@ -304,6 +304,8 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   Elements hash jets) on a live context of the `LS` layer absorbs
   `conf_bytes`: the prefix byte and, unless the value is NONE, its 32 data
   bytes (the `switch` with its `return`/`break` cases).
+- `jet_elements_env_conf_wrap.v`: `eval_sha256_confAsset`,
+  `eval_sha256_confNonce` (prefixes 0x0a/0x0b and 0x02/0x03).
 
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of
