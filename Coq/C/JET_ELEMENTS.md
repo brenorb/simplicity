@@ -299,6 +299,12 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   `simplicity_assert` is never taken).  Establishing `Hsorted` is the job
   of `simplicity_rsort`, not yet proven.
 
+- `jet_elements_env_conf_hash.v`: `eval_sha256_confidential` —
+  `simplicity_sha256_confidential` (`elements/ops.c`, shared with the
+  Elements hash jets) on a live context of the `LS` layer absorbs
+  `conf_bytes`: the prefix byte and, unless the value is NONE, its 32 data
+  bytes (the `switch` with its `return`/`break` cases).
+
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of
 `simplicity_elements_mallocTransaction` supplies); nothing about the built
@@ -316,6 +322,11 @@ inherited assumptions (the 8 above, `eval_freeTransaction`,
 `C.jet_elements_env_bytestring`, `C.jet_elements_env_copyrawconf` and their
 dependencies; exit 0; 20 min.  (An earlier run at `4bf3bbdf` passed with 11
 reports, exit 0, 31 min.)
+
+Receipt (`29958320`): `bash Coq/audit-elements-env.sh` — 26 reports within
+the six inherited assumptions (adds `eval_isFee`, `eval_countFeeOutputs`,
+`eval_countNullDataCodes`, `eval_countTotalNullDataCodes`); `coqchk` passed
+for the listed modules and their dependencies; exit 0; 17 min.
 
 Open for Elements: the rest of `simplicity_elements_mallocTransaction`
 (`copyInput` with the issuance computations of `elements/ops.c`,
