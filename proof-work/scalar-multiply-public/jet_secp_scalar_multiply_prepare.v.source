@@ -1,0 +1,135 @@
+(** Derive actual source copy and reader invariants after three allocations. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Values Memory Events.
+Require Import C.jet_exec C.jet_frame_layout C.jet_frame_copy_layout C.jet_input_layout C.jet_output_layout C.jet_encoding C.jet_frame_inv.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_exec C.jet_sx_mem C.jet_secp_frame C.jet_secp_linkage C.jets_secp.
+Require Import Simplicity.Word.
+Require Import C.jet_secp_public_copy C.jet_secp_public_body C.jet_secp_public_lifecycle C.jet_secp_wrapper_run C.jet_secp_local_regions.
+Require Import OwnC.jet_secp_scalar_multiply_body OwnC.jet_secp_scalar_multiply_entry.
+Require Import C.jet_secp_scalar_public_setup.
+Import Clightdefs ListNotations.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 10.
+
+Lemma scalar_multiply_alloc_facts m0 ml ma mb bl ba bb :
+  Mem.alloc m0 0 16 = (ml,bl) -> Mem.alloc ml 0 32 = (ma,ba) ->
+  Mem.alloc ma 0 32 = (mb,bb) ->
+  ~ Mem.valid_block m0 bl /\ ~ Mem.valid_block m0 ba /\ ~ Mem.valid_block m0 bb /\
+  ba <> bl /\ bb <> bl /\ ba <> bb /\
+  Mem.range_perm mb bl 0 16 Cur Freeable /\
+  Mem.range_perm mb ba 0 32 Cur Freeable /\ Mem.range_perm mb bb 0 32 Cur Freeable.
+Proof.
+  intros HL HA HB.
+  destruct (scalar_alloc_fresh m0 ml bl ba ma HL HA) as (HFL & HFA & HAL).
+  destruct (scalar_alloc_freeable m0 ml bl ba ma HL HA) as [HPL HPA].
+  pose proof (Mem.fresh_block_alloc _ _ _ _ _ HB) as HFB.
+  assert (HVL : Mem.valid_block ma bl).
+  { eapply Mem.perm_valid_block. apply (HPL 0). lia. }
+  assert (HVA : Mem.valid_block ma ba).
+  { eapply Mem.valid_new_block; exact HA. }
+  split; [exact HFL|]. split; [exact HFA|]. split.
+  - intro HV. apply HFB. eapply Mem.valid_block_alloc; [exact HA|].
+    eapply Mem.valid_block_alloc; eassumption.
+  - split; [exact HAL|]. split; [congruence|]. split; [congruence|].
+    split; [|split]; intros pos HP.
+    + eapply Mem.perm_alloc_1; [exact HB|apply HPL; exact HP].
+    + eapply Mem.perm_alloc_1; [exact HB|apply HPA; exact HP].
+    + eapply Mem.perm_alloc_2; eassumption.
+Qed.
+
+Lemma exec_scalar_multiply_copy m mc bl ba bb bs sbase bytes le :
+  frame_base_valid sbase -> (8 | sbase) -> bl <> bs ->
+  le!jets_secp._src = Some (Vptr bs (Ptrofs.repr sbase)) ->
+  Mem.loadbytes m bs sbase 16 = Some bytes -> Mem.storebytes m bl 0 bytes = Some mc ->
+  Clight2.exec_stmt secp_ge (scalar_multiply_public_env bl ba bb) le m
+    (Sassign (Evar jets_secp._src secp_frame_type)
+      (Etempvar jets_secp._src secp_frame_type)) E0 le mc Out_normal.
+Proof.
+  intros HBase HAlign HSeparate HTemp HLoad HStore.
+  assert (HU : Ptrofs.unsigned (Ptrofs.repr sbase) = sbase).
+  { apply Ptrofs.unsigned_repr; unfold frame_base_valid in HBase; lia. }
+  eapply exec_Sassign_copy.
+  - apply eval_Evar_local; reflexivity.
+  - apply eval_Etempvar; exact HTemp.
+  - reflexivity.
+  - eapply assign_loc_copy with (b' := bs) (ofs' := Ptrofs.repr sbase) (bytes := bytes).
+    + reflexivity.
+    + intros _; change (8 | Ptrofs.unsigned (Ptrofs.repr sbase)); rewrite HU; exact HAlign.
+    + intros _; change (8 | 0); exists 0; reflexivity.
+    + left; congruence.
+    + change (Mem.loadbytes m bs (Ptrofs.unsigned (Ptrofs.repr sbase)) 16 = Some bytes).
+      rewrite HU; exact HLoad.
+    + exact HStore.
+Qed.
+
+Theorem scalar_multiply_prepare_locals le m0 ml ma mb bl ba bb bd dbase bs sbase
+    bw outedge cursor N bi edge rc (a : Ty.tySem (Word 8)) :
+  Mem.alloc m0 0 16 = (ml,bl) -> Mem.alloc ml 0 32 = (ma,ba) ->
+  Mem.alloc ma 0 32 = (mb,bb) ->
+  write_frame_at m0 bd dbase bw outedge cursor N -> 256 <= N ->
+  frame_base_valid sbase -> (8 | sbase) -> frame_fields_at m0 bs sbase bi edge rc ->
+  le!jets_secp._src = Some (Vptr bs (Ptrofs.repr sbase)) ->
+  exists mc,
+    Clight2.exec_stmt secp_ge (scalar_multiply_public_env bl ba bb) le mb
+      (Sassign (Evar jets_secp._src secp_frame_type)
+        (Etempvar jets_secp._src secp_frame_type)) E0 le mc Out_normal /\
+    Mem.range_perm mc ba 0 32 Cur Freeable /\ Mem.range_perm mc bb 0 32 Cur Freeable /\
+    Mem.range_perm mc bl 0 16 Cur Freeable /\ frame_fields_at mc bl 0 bi edge rc /\
+    ba <> bb /\ ba <> bl /\ bb <> bl /\
+    xsep (extA m0 bd bw bi) [(ba,0);(bl,0)] /\
+    xsep (extA m0 bd bw bi) [(bb,0);(bl,0)] /\
+    invA m0 bd dbase bw outedge cursor N bi rc false [] 256
+      (read_fe_rho (frame_input_word_bits a) rc) [] mc /\
+    lframe (fun bx _ => bx <> ba /\ bx <> bb /\ bx <> bl) m0 mc /\
+    ~ Mem.valid_block m0 ba /\ ~ Mem.valid_block m0 bb /\ ~ Mem.valid_block m0 bl.
+Proof.
+  intros HL HA HB HO HN HBase HAlign HFields HTemp.
+  destruct (scalar_multiply_alloc_facts m0 ml ma mb bl ba bb HL HA HB)
+    as (HFL & HFA & HFB & HAL & HBL & HAB & HPL & HPA & HPB).
+  assert (HAlloc : lframe (fun _ _ => True) m0 mb).
+  { eapply lframe_trans; [eapply scalar_alloc_lframe; eassumption|].
+    apply lframe_unchanged; eapply Mem.alloc_unchanged_on; exact HB. }
+  destruct HFields as [HE HC].
+  pose proof (load_valid m0 Mptr bs sbase _ HE) as HV.
+  assert (HE' : Mem.load Mptr mb bs sbase = Some (Vptr bi (Ptrofs.repr edge))).
+  { rewrite (proj1 HAlloc) by auto. exact HE. }
+  assert (HC' : Mem.load Mint64 mb bs (sbase+8) = Some (Vlong (Int64.repr rc))).
+  { rewrite (proj1 HAlloc) by auto. exact HC. }
+  destruct (frame_loadbytes_at mb bs sbase _ _ HE' HC') as [bytes HLoad].
+  pose proof (Mem.loadbytes_length _ _ _ _ _ HLoad) as HLength.
+  assert (HW : Mem.range_perm mb bl 0 (0+Z.of_nat (length bytes)) Cur Writable).
+  { rewrite HLength; apply freeable_range_writable; exact HPL. }
+  destruct (Mem.range_perm_storebytes mb bl 0 bytes HW) as [mc HStore].
+  assert (HFrame : lframe (fun bx _ => bx <> ba /\ bx <> bb /\ bx <> bl) m0 mc).
+  { eapply lframe_trans.
+    - eapply lframe_implies; [exact HAlloc|]. intros; exact I.
+    - apply lframe_unchanged; eapply Mem.storebytes_unchanged_on; [exact HStore|].
+      intros pos HP (_ & _ & HNot); apply HNot; reflexivity. }
+  assert (HExt : eqext m0 bd bw bi m0 mc).
+  { eapply lframe_implies; [exact HFrame|].
+    intros bx pos [_ HValid] _; repeat split; intro HEqual; subst bx; contradiction. }
+  exists mc. split.
+  - eapply exec_scalar_multiply_copy; [exact HBase|exact HAlign| |exact HTemp|exact HLoad|exact HStore].
+    intro HEqual; apply HFL; rewrite HEqual; exact HV.
+  - split.
+    { intros pos HP; eapply Mem.perm_storebytes_1; [exact HStore|apply HPA; exact HP]. }
+    split.
+    { intros pos HP; eapply Mem.perm_storebytes_1; [exact HStore|apply HPB; exact HP]. }
+    split.
+    { intros pos HP; eapply Mem.perm_storebytes_1; [exact HStore|apply HPL; exact HP]. }
+    split; [eapply frame_copy_fields_at; eassumption|].
+    split; [exact HAB|]. split; [exact HAL|]. split; [exact HBL|].
+    split.
+    { intros [|[|r]] HIndex; cbn [blk bas lay nth fst snd]; unfold extA, fext;
+        [intros [_ HValid]; contradiction|intros [_ HValid]; contradiction|cbn in HIndex; lia]. }
+    split.
+    { intros [|[|r]] HIndex; cbn [blk bas lay nth fst snd]; unfold extA, fext;
+        [intros [_ HValid]; contradiction|intros [_ HValid]; contradiction|cbn in HIndex; lia]. }
+    split.
+    { unfold invA. split; [reflexivity|]. split.
+      - change (finv m0 bd dbase bw outedge cursor N bi mc false []).
+        eapply finv_stable; [exact HO|apply finv_init; exact HO|exact HExt].
+      - split; [exact HN|cbn; lia]. }
+    split; [exact HFrame|]. repeat split; assumption.
+Qed.
