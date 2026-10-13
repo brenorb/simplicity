@@ -45,6 +45,10 @@ done
 {
   cat _CoqProject.jets
   printf 'C/jets_elements_env.v\n'
+  # libc contracts used by the Elements builders (not in the shared project file)
+  for name in jet_memcmp_model jet_memcmp_words; do
+    grep -qx "C/$name.v" _CoqProject.jets || printf 'C/%s.v\n' "$name"
+  done
   for f in "${extra[@]}"; do printf 'C/%s\n' "$(basename "$f")"; done
 } > "$tree/_CoqProject.jets.new"
 update "$tree/_CoqProject.jets.new" "$tree/_CoqProject.jets"; rm -f "$tree/_CoqProject.jets.new"

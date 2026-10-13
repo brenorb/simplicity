@@ -286,6 +286,19 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
   loop over the outputs returns `nd_total`, the size of the opcode
   allocation of the builder.
 
+- `jet_elements_env_sumfees.v`: `eval_sumFees` (and `eval_sumFees_zero`)
+  — the fee tally against the functional model `sf_step`/`sf_iter` on
+  (array of output indices, fee of each output): the call returns the
+  number of distinct assets, the front of the pointer array holds the first
+  output of each bunch and its `assetFee` the sum of the explicit amounts
+  of the bunch; everything outside the array and the `assetFee` fields is
+  unchanged (`sf_frame`).  Premises: `memcmp_model`
+  (`C/jet_memcmp_model.v`) for the external `memcmp`, and `Hsorted` — the
+  array is sorted for the byte order of the asset midstates, the
+  precondition the C code states and asserts (the failing branch of
+  `simplicity_assert` is never taken).  Establishing `Hsorted` is the job
+  of `simplicity_rsort`, not yet proven.
+
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of
 `simplicity_elements_mallocTransaction` supplies); nothing about the built
@@ -306,6 +319,6 @@ reports, exit 0, 31 min.)
 
 Open for Elements: the rest of `simplicity_elements_mallocTransaction`
 (`copyInput` with the issuance computations of `elements/ops.c`,
-`parseNullData`, `copyOutput`, `sumFees` — which needs `memcmp_model`,
-`C/jet_memcmp_model.v` — the external `simplicity_rsort`, the main body) and
+`parseNullData`, `copyOutput`, the external `simplicity_rsort`, the main
+body) and
 the links of the Elements cached hashes to specification values.
