@@ -1,0 +1,150 @@
+(** Complete original scalar_mul function, including r=a entry, fresh stack and free. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Maps Memory Events Values.
+From compcert Require Import Clightdefs.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_canonical_scalar.
+Require Import MulC.jet_secp_scalar_mul512_run MulC.jet_secp_scalar_mul512_fresh
+  MulC.jet_secp_scalar_mul_caller_body MulC.jet_secp_product_reduce_bridge
+  MulC.jet_secp_reduce512_function_numeric MulC.jet_secp_reduce512_body_numeric
+  MulC.jet_secp_reduce512_final_atomic MulC.jet_secp_reduce512_final_stage
+  MulC.jet_secp_scalar_reduce512_run MulC.jet_secp_scalar_mul512_low.
+Require Import LifeC.jet_secp_scalar_mul_caller_alloc.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge.
+
+Definition scalar_mul_caller_temps beta : temp_env :=
+  PTree.set _b (Vptr (blk beta 1) (Ptrofs.repr (bas beta 1)))
+    (PTree.set _a (Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)))
+      (PTree.set _r (Vptr (blk beta 0) (Ptrofs.repr (bas beta 0))) (PTree.empty val))).
+Definition scalar_mul_caller_output rho :=
+  [mkreg (u64_cells 0 (reduce512_final_limbs
+    (reduce512_body_digits (product_reduce_rho rho))
+    (reduce512_body_carry (product_reduce_rho rho)))) true (Some 32)].
+
+Lemma scalar_mul_caller_ok : fn_okb f_secp256k1_scalar_mul = true.
+Proof. reflexivity. Qed.
+Lemma scalar_mul_caller_array_size : sizeof (genv_cenv secp_ge) (Tarray tulong 8 noattr) = 64.
+Proof. reflexivity. Qed.
+Lemma scalar_mul_caller_env_blocks beta bl :
+  blocks_of_env secp_ge (scalar_mul_caller_env (scalar_mul_stack_layout beta bl)) = [(bl,0,64)].
+Proof. reflexivity. Qed.
+
+Lemma scalar_mul_caller_entry beta m ma bl :
+  Mem.alloc m 0 64 = (ma,bl) ->
+  function_entry2 secp_ge f_secp256k1_scalar_mul
+    [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+     Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+     Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))]
+    m (scalar_mul_caller_env (scalar_mul_stack_layout beta bl)) (scalar_mul_caller_temps beta) ma.
+Proof.
+  intro HA. destruct (fn_okb_true _ scalar_mul_caller_ok) as (HNv & HNp & HD).
+  constructor; [exact HNv|exact HNp|exact HD| |reflexivity].
+  apply alloc_variables_cons with (m1 := ma) (b1 := bl).
+  - exact HA.
+  - apply alloc_variables_nil.
+Qed.
+
+Lemma scalar_mul_caller_params_match beta bl :
+  (scalar_mul_caller_temps beta)!_r =
+    Some (Vptr (blk (scalar_mul_stack_layout beta bl) 1)
+      (Ptrofs.repr (bas (scalar_mul_stack_layout beta bl) 1))) /\
+  (scalar_mul_caller_temps beta)!_a =
+    Some (Vptr (blk (scalar_mul_stack_layout beta bl) 1)
+      (Ptrofs.repr (bas (scalar_mul_stack_layout beta bl) 1))) /\
+  (scalar_mul_caller_temps beta)!_b =
+    Some (Vptr (blk (scalar_mul_stack_layout beta bl) 2)
+      (Ptrofs.repr (bas (scalar_mul_stack_layout beta bl) 2))).
+Proof.
+  unfold scalar_mul_caller_temps. split.
+  - repeat rewrite PTree.gso by discriminate. rewrite PTree.gss. reflexivity.
+  - split.
+    + rewrite PTree.gso by discriminate. rewrite PTree.gss. reflexivity.
+    + rewrite PTree.gss. reflexivity.
+Qed.
+
+Lemma scalar_mul_stack_foot_cases beta bl b ofs :
+  foot (scalar_mul_stack_layout beta bl) (map rshape scalar_mul512_fresh_regs) b ofs ->
+  b = bl \/ foot beta (map rshape scalar_mul_caller_inputs) b ofs.
+Proof.
+  intros (r & sh & d & ch & HS & Hin & HB & Hr).
+  destruct r as [|r].
+  - left. exact HB.
+  - right. exists r,sh,d,ch. exact (conj HS (conj Hin (conj HB Hr))).
+Qed.
+
+Lemma scalar_mul_output_layout_indep digits carry rho beta beta' :
+  final_output_value digits carry rho beta = final_output_value digits carry rho beta'.
+Proof.
+  unfold final_output_value. f_equal.
+Qed.
+
+Theorem eval_scalar_mul_caller_inplace rho beta m :
+  rep rho beta scalar_mul_caller_inputs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef /\
+    rep (product_reduce_rho rho) [lay beta 0] (scalar_mul_caller_output rho) mf /\
+    final_output_value (reduce512_body_digits (product_reduce_rho rho))
+      (reduce512_body_carry (product_reduce_rho rho)) (product_reduce_rho rho)
+      (lay [lay beta 0]) =
+      (scalar_mul512_input_value rho 0 * scalar_mul512_input_value rho 4) mod canonical_group_order /\
+    lframe (fun b ofs => ~ foot beta (map rshape scalar_mul_caller_inputs) b ofs) m mf.
+Proof.
+  intro HR. destruct (Mem.alloc m 0 64) as [ma bl] eqn:HA.
+  pose proof (scalar_mul_caller_allocates rho beta m ma bl HR HA) as HRa.
+  destruct (scalar_mul_caller_params_match beta bl) as (LR & LA & LB).
+  destruct (exec_scalar_mul_caller_body_inplace rho (scalar_mul_stack_layout beta bl)
+    (scalar_mul_caller_temps beta) ma HRa LR LA LB) as (mb & HB & HRb & HV & HFb).
+  pose proof (rep_region (product_reduce_rho rho) _ _ mb 1 _ HRb eq_refl)
+    as (_ & _ & _ & _ & Howned).
+  assert (HPfree : Mem.range_perm mb bl 0 64 Cur Freeable) by exact (proj1 (proj2 (proj2 Howned))).
+  destruct (free_list_exists [(bl,0,64)] mb) as (mf & Hfree & HUF).
+  { constructor; [cbn; tauto|constructor]. }
+  { intros b lo hi [E|[]]. inversion E; subst; exact HPfree. }
+  assert (Hfresh : ~ Mem.valid_block m bl) by (eapply Mem.fresh_block_alloc; exact HA).
+  assert (Hneq : blk beta 0 <> bl).
+  { intro E. apply Hfresh. rewrite <- E.
+    apply (scalar_mul_inputs_valid rho beta m HR).
+    apply blk_in. destruct HR as (HL & _). change (length beta = 2%nat) in HL. lia. }
+  assert (HRprefix : rep (product_reduce_rho rho) [lay beta 0] (scalar_mul_caller_output rho) mb).
+  { eapply rep_prefix with (βN := [(bl,0)])
+      (regsN := tl scalar_reduce512_initial_regs).
+    - exact HRb.
+    - reflexivity. }
+  assert (HRfinal : rep (product_reduce_rho rho) [lay beta 0] (scalar_mul_caller_output rho) mf).
+  { eapply rep_mem; [|exact HRprefix].
+    eapply Mem.unchanged_on_implies; [exact HUF|].
+    intros b ofs Hin Hv [E|[]]. cbn [map In] in Hin.
+    destruct Hin as [Eb|[]]. subst b. apply Hneq. symmetry. exact E. }
+  exists mf; split.
+  - eapply eval_funcall_internal.
+    + apply scalar_mul_caller_entry. exact HA.
+    + exact HB.
+    + constructor.
+    + rewrite scalar_mul_caller_env_blocks. exact Hfree.
+  - split; [exact HRfinal|]. split.
+    + rewrite <- (scalar_mul_output_layout_indep
+        (reduce512_body_digits (product_reduce_rho rho))
+        (reduce512_body_carry (product_reduce_rho rho)) (product_reduce_rho rho)
+        (lay (product_reduce_layout (scalar_mul_stack_layout beta bl))) (lay [lay beta 0])).
+      exact HV.
+    + eapply lframe_implies with (P := fun b ofs => Mem.valid_block m b /\
+        ~ foot beta (map rshape scalar_mul_caller_inputs) b ofs).
+      2: { intros b ofs Hf Hvb; split; assumption. }
+      eapply lframe_trans.
+      { apply lframe_unchanged. eapply Mem.unchanged_on_implies;
+          [eapply Mem.alloc_unchanged_on; exact HA|]. intros; exact I. }
+      eapply lframe_trans.
+      { eapply lframe_implies; [exact HFb|].
+        intros b ofs (Hvb & Hf) HvA Hfoot.
+        destruct (scalar_mul_stack_foot_cases beta bl b ofs Hfoot) as [E|Hin].
+        - subst b. exact (Hfresh Hvb).
+        - exact (Hf Hin). }
+      apply lframe_unchanged. eapply Mem.unchanged_on_implies; [exact HUF|].
+      intros b ofs (Hvb & Hf) HvB [E|[]]. subst b. exact (Hfresh Hvb).
+Qed.
