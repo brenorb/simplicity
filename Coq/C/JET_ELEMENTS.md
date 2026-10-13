@@ -330,6 +330,16 @@ Groundwork for the Elements transaction builder (`elements/env.c`):
 - `jet_elements_env_ctxo_uchars.v`: `ctxo_uchars` — `sha256_uchars` on a
   single context of the `ctxo` layer absorbs a readable byte range (for
   `simplicity_generateIssuanceEntropy` and `parseNullData`).
+- `jet_elements_env_entropy.v`: `eval_generateIssuanceEntropy` — the
+  result pointer receives `entropy_regs txid ix con`, the compression from
+  the initial state of `sha256(sha256(txid bytes ++ le32(ix)))` words
+  followed by the contract hash (two local contexts through the `ctxo`
+  layer, `memcpy` under `memcpy_model`, then the tail shared with
+  `calculateAsset`).
+
+The three issuance helpers of `elements/ops.c` are thereby proven as C
+functions; relating `entropy_regs`, `calc_asset_regs` and `calc_token_regs`
+to the Elements specification of issuance is not done here.
 
 The bytes of a raw asset, nonce or amount and the readability of the raw
 transaction are input requirements (what the caller of
@@ -354,8 +364,13 @@ the six inherited assumptions (adds `eval_isFee`, `eval_countFeeOutputs`,
 `eval_countNullDataCodes`, `eval_countTotalNullDataCodes`); `coqchk` passed
 for the listed modules and their dependencies; exit 0; 17 min.
 
+Receipt (`85765375`): `bash Coq/audit-elements-env.sh` — 32 reports within
+the six inherited assumptions (adds `eval_sumFees`, `eval_sumFees_zero`,
+`eval_sha256_confidential`, `eval_sha256_confAsset`,
+`eval_sha256_confNonce`, `eval_sha256_confAmt`); `coqchk` passed for the
+listed modules and their dependencies; exit 0; 17 min.
+
 Open for Elements: the rest of `simplicity_elements_mallocTransaction`
-(`copyInput` with the issuance computations of `elements/ops.c`,
-`parseNullData`, `copyOutput`, the external `simplicity_rsort`, the main
-body) and
+(`copyInput`, `parseNullData`, `copyOutput`, the external
+`simplicity_rsort`, the main body) and
 the links of the Elements cached hashes to specification values.
