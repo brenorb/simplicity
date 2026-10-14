@@ -56,6 +56,14 @@ def index_hash():
     return sha(subprocess.check_output(['git', 'diff', '--cached', '--binary'], cwd=REPO))
 
 
+def correct_inventory(meta):
+    # Coq identifiers can end in apostrophes; \w+ silently truncated them.
+    for entry in meta['modules']:
+        code = stage.scanner.code_only(stage.blob(entry['origin']).decode())
+        entry['results'] = re.findall(r"^(?:Theorem|Lemma|Corollary)\s+([\w']+)", code, re.M)
+        entry['definitions'] = re.findall(r"^(?:Definition|Fixpoint|Inductive)\s+([\w']+)", code, re.M)
+
+
 def prepare():
     old_post.check()
     prior = json.loads((BASE / 'REVIEW.json').read_text())
@@ -64,6 +72,7 @@ def prepare():
         stage.stage()
     work = Path(json.loads(out.getvalue())['candidate'])
     meta = json.loads((work / 'ASSEMBLY.json').read_text())
+    correct_inventory(meta)
     reused = {}
     for entry in meta['modules']:
         relative = 'Coq/C/' + entry['name'] + '.vo'
@@ -95,6 +104,8 @@ def prepare():
 
 def check(work):
     meta = json.loads((work / 'ASSEMBLY.json').read_text())
+    correct_inventory(meta)
+    stage.patch.patch_files({work / 'ASSEMBLY.json': json.dumps(meta, indent=2) + '\n'})
     for path, value in meta['reused_checked_objects'].items():
         if sha((work / path).read_bytes()) != value:
             raise ValueError('reused object drift')
