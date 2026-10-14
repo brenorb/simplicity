@@ -1,0 +1,288 @@
+(** Execution of [hashBuffer(result, buffer)] (bitcoin/env.c): the SHA-256
+    state after absorbing the buffer's bytes and the padding is written to
+    [result->s].  [result] is an arbitrary writable location (the builders
+    pass fields of the transaction they are filling in).
+
+    Input requirement kept explicit: the buffer's data pointer is an actual
+    pointer (a buffer of length zero with a null data pointer is outside this
+    statement). *)
+From Coq Require Import ZArith List Lia PeanoNat.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require sha.SHA256 sha.common_lemmas.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_readBit_layout C.jet_bitmachine_rep.
+Require Import C.jet_uint32_array_init C.jet_sha256_iv_init.
+Require C.jets.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_block_local C.jet_sha_ctx8_model.
+Require Import C.jet_sha_compress_call C.jet_sha_be64_exec.
+Require Import C.jet_sha_uchars_prep C.jet_sha_uchars_loop C.jet_sha_uchars_exec C.jet_sha_add_n_init C.jet_sha_add_n_calls C.jet_sha_finalize_exec.
+Require Import C.jet_sha_tapdata_prep C.jet_sha_ctx_abs C.jet_sha_ctxi C.jet_sha_tagged_ctx.
+Require Import C.jet_bitcoin_env_field_eval.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 300.
+
+Notation RBUF := (Tstruct _rawBitcoinBuffer noattr).
+
+(** The SHA-256 state after hashing [bs]: absorb the bytes from the initial
+    state, then the padding for the total length. *)
+Definition hash_buffer_regs (bs : list int) : list int :=
+  snd (absorb_i (fst (absorb_i [] sha256_iv_words bs)) (snd (absorb_i [] sha256_iv_words bs))
+    (sha_pad (Int64.repr (Z.of_nat (length bs))))).
+
+Definition hb_env (bC bR : block) : env :=
+  PTree.set __res (bR, CTX) (PTree.set _ctx (bC, CTX) empty_env).
+
+Definition hb_temps (vres vbuf : val) : temp_env :=
+  PTree.set _buffer vbuf (PTree.set _result vres (create_undef_temps (fn_temps f_hashBuffer))).
+
+Lemma hb_blocks bC bR : blocks_of_env sha_ge (hb_env bC bR) = [(bC, 0, 88); (bR, 0, 88)].
+Proof. vm_compute. reflexivity. Qed.
+
+Lemma hb_entry m m1 m2 bC bR vres vbuf :
+  Mem.alloc m 0 88 = (m1, bC) -> Mem.alloc m1 0 88 = (m2, bR) ->
+  function_entry2 sha_ge f_hashBuffer [vres; vbuf] m (hb_env bC bR) (hb_temps vres vbuf) m2.
+Proof.
+  intros A1 A2. constructor.
+  - cbn. repeat constructor; cbn; intuition discriminate.
+  - cbn. repeat constructor; cbn; intuition discriminate.
+  - intros x y HX HY Hxy. cbn in HX, HY.
+    repeat match goal with H : _ \/ _ |- _ => destruct H end; subst; try contradiction; discriminate.
+  - eapply alloc_variables_cons with (m1 := m1) (b1 := bC); [change (Mem.alloc m 0 88 = (m1, bC)); exact A1|].
+    eapply alloc_variables_cons with (m1 := m2) (b1 := bR); [change (Mem.alloc m1 0 88 = (m2, bR)); exact A2|].
+    constructor.
+  - reflexivity.
+Qed.
+
+Local Opaque sha_ge.
+
+(** [result->s] as an expression: the address of the midstate itself. *)
+Lemma eval_ptr_mid_s e le m id b o :
+  le!id = Some (Vptr b o) ->
+  eval_expr sha_ge e le m
+    (Efield (Ederef (Etempvar id (tptr MID)) MID) _s (tarray tuint 8))
+    (Vptr b (Ptrofs.add o (Ptrofs.repr 0))).
+Proof.
+  intros Hle. eapply eval_envu_field_array;
+    [reflexivity|exact envu_sha256_midstate_s|intros chunk; discriminate|reflexivity|].
+  apply eval_envu_deref_struct. exact Hle.
+Qed.
+
+(** [buffer->buf] and [buffer->len]. *)
+Lemma eval_buffer_buf e le m id b o v :
+  le!id = Some (Vptr b o) ->
+  Mem.load Mptr m b (Ptrofs.unsigned (Ptrofs.add o (Ptrofs.repr 0))) = Some v ->
+  eval_expr sha_ge e le m (Efield (Ederef (Etempvar id (tptr RBUF)) RBUF) _buf (tptr tuchar)) v.
+Proof.
+  intros Hle HL. eapply eval_envu_field_value;
+    [reflexivity|exact envu_rawBitcoinBuffer_buf|reflexivity|apply eval_envu_deref_struct; exact Hle|exact HL].
+Qed.
+
+Lemma eval_buffer_len e le m id b o v :
+  le!id = Some (Vptr b o) ->
+  Mem.load Mint32 m b (Ptrofs.unsigned (Ptrofs.add o (Ptrofs.repr 8))) = Some v ->
+  eval_expr sha_ge e le m (Efield (Ederef (Etempvar id (tptr RBUF)) RBUF) _len tuint) v.
+Proof.
+  intros Hle HL. eapply eval_envu_field_value;
+    [reflexivity|exact envu_rawBitcoinBuffer_len|reflexivity|apply eval_envu_deref_struct; exact Hle|exact HL].
+Qed.
+
+Theorem eval_hashBuffer (Hmodel : memcpy_model) m bres ores bbuf obuf ba oa (bs : list int) (len : int) :
+  0 <= ores -> ores + 32 <= Ptrofs.max_unsigned -> (4 | ores) ->
+  Mem.range_perm m bres ores (ores + 32) Cur Writable ->
+  bres <> GC -> bres <> GM -> ba <> bres -> bbuf <> bres ->
+  Mem.valid_block m ba ->
+  Ptrofs.unsigned obuf + 16 <= Ptrofs.max_unsigned ->
+  Mem.load Mptr m bbuf (Ptrofs.unsigned obuf) = Some (Vptr ba oa) ->
+  Mem.load Mint32 m bbuf (Ptrofs.unsigned obuf + 8) = Some (Vint len) ->
+  Z.of_nat (length bs) = Int.unsigned len ->
+  Ptrofs.unsigned oa + Z.of_nat (length bs) <= Ptrofs.max_unsigned ->
+  (forall i, (i < length bs)%nat ->
+     Mem.load Mint8unsigned m ba (Ptrofs.unsigned oa + Z.of_nat i) = Some (Vint (nth i bs Int.zero))) ->
+  sha_dispatch_ok m -> Mem.load Mint64 m GM 0 = Some (Vlong sha_max_counter) ->
+  exists m',
+    Clight2.eval_funcall sha_ge m (Internal f_hashBuffer)
+      [Vptr bres (Ptrofs.repr ores); Vptr bbuf obuf] E0 m' Vundef /\
+    (forall j, (j < 8)%nat ->
+       Mem.load Mint32 m' bres (ores + 4 * Z.of_nat j) =
+         Some (Vint (nth j (hash_buffer_regs bs) Int.zero))) /\
+    (forall ch b ofs, Mem.valid_block m b ->
+       (b <> bres \/ ofs + size_chunk ch <= ores \/ ores + 32 <= ofs) ->
+       Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b).
+Proof.
+  intros Ho0 HoM HoA PRes NresG NresM Nares Nbres Va HbM HBuf HLen Hlen HaM HBs Hdisp HMax.
+  assert (VG : Mem.valid_block m GC) by (eapply load_valid_block; exact Hdisp).
+  assert (VM : Mem.valid_block m GM) by (eapply load_valid_block; exact HMax).
+  assert (Vbuf : Mem.valid_block m bbuf) by (eapply load_valid_block; exact HBuf).
+  assert (Vres : Mem.valid_block m bres).
+  { eapply Mem.perm_valid_block. apply (PRes ores). lia. }
+  destruct (Mem.alloc m 0 88) as [ma1 bC] eqn:A1.
+  destruct (Mem.alloc ma1 0 88) as [m0 bR] eqn:A2.
+  assert (HAL : alloc_list m [88; 88] = (m0, [bC; bR])).
+  { cbn [alloc_list]. rewrite A1, A2. reflexivity. }
+  destruct (alloc_list_props _ _ _ _ HAL) as ((XV & XL & XP & XA) & FRh & ND & FA).
+  inversion FA as [|? ? ? ? [PC0 VC0] FA1]; subst.
+  inversion FA1 as [|? ? ? ? [PR0 VR0] FA2]; subst. clear FA FA1 FA2 HAL.
+  apply NoDup_cons_iff in ND. destruct ND as [N1 _].
+  assert (NCR : bC <> bR) by (intro E; apply N1; rewrite E; left; reflexivity).
+  assert (Fresh : forall b, Mem.valid_block m b -> ~ In b [bC; bR]) by exact FRh.
+  pose proof (Fresh GC VG) as NG. pose proof (Fresh GM VM) as NM.
+  pose proof (Fresh ba Va) as Na. pose proof (Fresh bbuf Vbuf) as Nbuf. pose proof (Fresh bres Vres) as Nres.
+  (* ctx = sha256_init(result->s) *)
+  destruct (sha_init_copy m0 bR bC bres ores ltac:(ne) ltac:(ne) ltac:(congruence) Ho0 HoM HoA)
+    as (mi & mx & bytes & HInit & HLB & HSB & HOut & HCnt & HOvf & HArr & HLx & HPx & HVx).
+  { intros ofs Hr. eapply Mem.perm_implies; [apply PR0, Hr|constructor]. }
+  { intros ofs Hr. eapply Mem.perm_implies; [apply PC0, Hr|constructor]. }
+  { intros ofs Hr. apply XP, PRes, Hr. }
+  assert (Kx : forall ch b ofs, Mem.valid_block m b ->
+    (b <> bres \/ ofs + size_chunk ch <= ores \/ ores + 32 <= ofs) ->
+    Mem.load ch mx b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb Hr. pose proof (Fresh b Hb) as Nb.
+    rewrite HLx; [apply XL; exact Hb|apply XV; exact Hb|ne|ne|exact Hr]. }
+  assert (HRegsX : forall i, (i < 8)%nat ->
+    Mem.load Mint32 mx bres (ores + 4 * Z.of_nat i) = Some (Vint (nth i sha256_iv_words Int.zero)) /\
+    Mem.valid_access mx Mint32 bres (ores + 4 * Z.of_nat i) Writable).
+  { intros i Hi. split.
+    - apply (jet_sha_add_n_calls.u32_nth mx bres ores sha256_iv_words HArr). exact Hi.
+    - split.
+      + intros ofs Hr. change (size_chunk Mint32) with 4 in Hr. apply HPx, XP, PRes. lia.
+      + change (align_chunk Mint32) with 4. apply Z.divide_add_r; [exact HoA|exists (Z.of_nat i); lia]. }
+  assert (HBsX : forall i, (i < length bs)%nat ->
+    Mem.load Mint8unsigned mx ba (Ptrofs.unsigned oa + Z.of_nat i) = Some (Vint (nth i bs Int.zero))).
+  { intros i Hi. rewrite Kx; [apply HBs; exact Hi|exact Va|left; exact Nares]. }
+  assert (HdispX : sha_dispatch_ok mx).
+  { unfold sha_dispatch_ok. rewrite Kx; [exact Hdisp|exact VG|left; congruence]. }
+  assert (HMaxX : Mem.load Mint64 mx GM 0 = Some (Vlong sha_max_counter)).
+  { rewrite Kx; [exact HMax|exact VM|left; congruence]. }
+  assert (PCx : Mem.range_perm mx bC (0 + 8) (0 + 81) Cur Writable).
+  { intros ofs Hr. eapply Mem.perm_implies; [apply HPx, PC0; lia|constructor]. }
+  (* sha256_uchars(&ctx, buffer->buf, buffer->len) *)
+  pose proof (eval_sha256_uchars Hmodel mx bC 0 bres ores ba oa [] sha256_iv_words bs Int64.zero false
+    ltac:(lia) ltac:(change Ptrofs.max_unsigned with 18446744073709551615; lia) Ho0 HoM
+    ltac:(ne) ltac:(ne) Nares ltac:(ne) ltac:(congruence) HaM eq_refl HOut HCnt eq_refl HOvf
+    ltac:(intros i Hi; cbn in Hi; lia) HRegsX HBsX HdispX HMaxX PCx ltac:(exists 0; reflexivity)) as HU.
+  cbv zeta in HU.
+  destruct HU as (m3 & HUc & HOut3 & HCnt3 & HOvf3 & HBlk3 & HReg3 & HMem3 & HPerm3 & HVal3).
+  set (vn := Int64.repr (Z.of_nat (length bs))) in *.
+  set (l3 := fst (absorb_i [] sha256_iv_words bs)) in *.
+  set (r3 := snd (absorb_i [] sha256_iv_words bs)) in *.
+  destruct (absorb_i_len bs [] sha256_iv_words ltac:(cbn; lia) eq_refl) as (HL3 & HL3lt & HR3).
+  fold l3 in HL3, HL3lt. fold r3 in HR3.
+  pose proof (Int.unsigned_range_2 len) as HLenR. change Int.max_unsigned with 4294967295 in HLenR.
+  assert (Hvn : Int64.unsigned vn = Z.of_nat (length bs)).
+  { unfold vn. apply Int64.unsigned_repr. change Int64.max_unsigned with 18446744073709551615. lia. }
+  assert (HMod3 : Int64.unsigned (Int64.add Int64.zero vn) mod 64 = Z.of_nat (length l3)).
+  { rewrite Int64.add_zero_l, Hvn, HL3. cbn [length]. reflexivity. }
+  assert (HRegs3 : forall i, (i < 8)%nat ->
+    Mem.load Mint32 m3 bres (ores + 4 * Z.of_nat i) = Some (Vint (nth i r3 Int.zero)) /\
+    Mem.valid_access m3 Mint32 bres (ores + 4 * Z.of_nat i) Writable).
+  { intros i Hi. split; [apply HReg3; exact Hi|].
+    destruct (proj2 (HRegsX i Hi)) as [HP HA]. split; [|exact HA].
+    intros ofs Hr. apply HPerm3; [apply HVx, XV, Vres|apply HP, Hr]. }
+  assert (Hdisp3 : sha_dispatch_ok m3).
+  { unfold sha_dispatch_ok. rewrite HMem3; [exact HdispX|apply HVx, XV, VG|left; ne|left; congruence]. }
+  assert (HMax3 : Mem.load Mint64 m3 GM 0 = Some (Vlong sha_max_counter)).
+  { rewrite HMem3; [exact HMaxX|apply HVx, XV, VM|left; ne|left; congruence]. }
+  assert (PC3 : Mem.range_perm m3 bC (0 + 8) (0 + 81) Cur Writable).
+  { intros ofs Hr. apply HPerm3; [apply HVx, VC0|apply PCx, Hr]. }
+  (* sha256_finalize(&ctx) *)
+  destruct (eval_sha256_finalize Hmodel m3 bC 0 bres ores l3 r3 (Int64.add Int64.zero vn) _
+    ltac:(lia) ltac:(change Ptrofs.max_unsigned with 18446744073709551615; lia) Ho0 HoM
+    ltac:(ne) ltac:(ne) ltac:(congruence) ltac:(ne) ltac:(congruence) HR3 HOut3 HCnt3 HMod3 HOvf3 HBlk3 HRegs3
+    Hdisp3 HMax3 PC3 ltac:(exists 0; reflexivity))
+    as (m4 & HFin & HReg4 & HMem4 & HPerm4 & HVal4).
+  rewrite Int64.add_zero_l in HReg4. fold (hash_buffer_regs bs) in HReg4.
+  assert (V4 : forall b, Mem.valid_block m b -> Mem.valid_block m4 b).
+  { intros b Hb. apply HVal4, HVal3, HVx, XV, Hb. }
+  assert (P4 : forall b ofs k p, Mem.perm m0 b ofs k p -> Mem.perm m4 b ofs k p).
+  { intros b ofs k p Hp.
+    assert (Hpx : Mem.perm mx b ofs k p) by (apply HPx, Hp).
+    assert (Hp3 : Mem.perm m3 b ofs k p) by (apply HPerm3; [eapply Mem.perm_valid_block; exact Hpx|exact Hpx]).
+    apply HPerm4; [eapply Mem.perm_valid_block; exact Hp3|exact Hp3]. }
+  assert (K4 : forall ch b ofs, Mem.valid_block m b ->
+    (b <> bres \/ ofs + size_chunk ch <= ores \/ ores + 32 <= ofs) ->
+    Mem.load ch m4 b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb Hr. pose proof (Fresh b Hb) as Nb.
+    rewrite HMem4; [|apply HVal3, HVx, XV, Hb|left; ne|exact Hr].
+    rewrite HMem3; [|apply HVx, XV, Hb|left; ne|exact Hr].
+    apply Kx; [exact Hb|exact Hr]. }
+  (* freeing the locals *)
+  destruct (free_list_blocks [(bC, 0, 88); (bR, 0, 88)] m4) as (mf & HFL & HLf & HPf & HVf).
+  { intros b lo hi HIn ofs Hr. apply P4. cbn [In] in HIn.
+    destruct HIn as [E|[E|[]]]; injection E as <- <- <-; [apply PC0|apply PR0]; exact Hr. }
+  { cbn [map fst]. apply NoDup_cons; [intros [E|[]]; exact (NCR (eq_sym E))|]. apply NoDup_cons; [intros []|apply NoDup_nil]. }
+  cbn [map fst] in HLf, HPf.
+  assert (HNl : forall b, Mem.valid_block m b -> ~ In b [bC; bR]) by exact Fresh.
+  set (e := hb_env bC bR).
+  set (le := hb_temps (Vptr bres (Ptrofs.repr ores)) (Vptr bbuf obuf)).
+  set (le2 := PTree.set _t'2 (Vint len) (PTree.set _t'1 (Vptr ba oa) le)).
+  exists mf. split; [|split; [|split; [|split]]].
+  - eapply eval_funcall_internal with (e := e) (le1 := le) (m1 := m0) (le2 := le2) (m2 := m4)
+      (out := Out_normal).
+    + eapply hb_entry; eassumption.
+    + unfold f_hashBuffer. cbn [fn_body].
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le) (m1 := mx).
+      { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le) (m1 := mi).
+        - change le with (set_opttemp None Vundef le) at 2.
+          eapply exec_Scall with (vf := Vptr (sha_symbol_block _sha256_init) Ptrofs.zero)
+            (vargs := [Vptr bR Ptrofs.zero; Vptr bres (Ptrofs.repr ores)]) (f := Internal jets.f_sha256_init).
+          + reflexivity.
+          + eapply eval_Elvalue; [apply eval_Evar_global; [reflexivity|exact tap_init_symbol]|].
+            apply deref_loc_reference; reflexivity.
+          + eapply eval_Econs; [eapply eval_Eaddrof; apply eval_Evar_local; reflexivity|reflexivity|].
+            pose proof (eval_ptr_mid_s e le m0 _result bres (Ptrofs.repr ores) eq_refl) as HE.
+            rewrite Ptrofs.add_zero in HE.
+            eapply eval_Econs; [exact HE|reflexivity|apply eval_Enil].
+          + exact tap_init_funct.
+          + reflexivity.
+          + exact HInit.
+        - eapply (exec_ctx_struct_copy e le mi mx _ctx __res bC bR bytes);
+            [reflexivity|reflexivity|exact NCR|exact HLB|exact HSB]. }
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le2) (m1 := m3).
+      { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := PTree.set _t'1 (Vptr ba oa) le) (m1 := mx).
+        - apply exec_Sset.
+          eapply eval_buffer_buf; [reflexivity|].
+          rewrite Ptrofs.add_zero. rewrite Kx; [exact HBuf|exact Vbuf|left; exact Nbres].
+        - eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le2) (m1 := mx).
+          + apply exec_Sset.
+            eapply eval_buffer_len; [reflexivity|].
+            assert (HO : Ptrofs.unsigned (Ptrofs.add obuf (Ptrofs.repr 8)) = Ptrofs.unsigned obuf + 8).
+            { pose proof (Ptrofs.unsigned_range obuf) as HR.
+              unfold Ptrofs.add. rewrite (Ptrofs.unsigned_repr 8) by (change Ptrofs.max_unsigned with 18446744073709551615; lia).
+              apply Ptrofs.unsigned_repr. lia. }
+            rewrite HO. rewrite Kx; [exact HLen|exact Vbuf|left; exact Nbres].
+          + match type of HUc with Clight2.eval_funcall _ _ _ _ _ _ ?vr =>
+              change le2 with (set_opttemp None vr le2) at 2 end.
+            eapply exec_Scall with (vf := Vptr (sha_symbol_block _sha256_uchars) Ptrofs.zero)
+              (vargs := [Vptr bC Ptrofs.zero; Vptr ba oa; Vlong vn]) (f := Internal f_sha256_uchars).
+            * reflexivity.
+            * eapply eval_Elvalue; [apply eval_Evar_global; [reflexivity|exact sha_uchars_symbol]|].
+              apply deref_loc_reference; reflexivity.
+            * eapply eval_Econs; [eapply eval_Eaddrof; apply eval_Evar_local; reflexivity|reflexivity|].
+              eapply eval_Econs; [apply eval_Etempvar; reflexivity|reflexivity|].
+              eapply eval_Econs; [apply eval_Etempvar; reflexivity| |apply eval_Enil].
+              unfold vn. rewrite Hlen. reflexivity.
+            * exact sha_uchars_funct.
+            * reflexivity.
+            * exact HUc. }
+      match type of HFin with Clight2.eval_funcall _ _ _ _ _ _ ?vr =>
+        change le2 with (set_opttemp None vr le2) at 2 end.
+      eapply exec_Scall with (vf := Vptr (sha_symbol_block _sha256_finalize) Ptrofs.zero)
+        (vargs := [Vptr bC Ptrofs.zero]) (f := Internal f_sha256_finalize).
+      * reflexivity.
+      * eapply eval_Elvalue; [apply eval_Evar_global; [reflexivity|exact sha_finalize_symbol]|].
+        apply deref_loc_reference; reflexivity.
+      * eapply eval_Econs; [eapply eval_Eaddrof; apply eval_Evar_local; reflexivity|reflexivity|apply eval_Enil].
+      * exact sha_finalize_funct.
+      * reflexivity.
+      * exact HFin.
+    + cbn. reflexivity.
+    + unfold e. rewrite hb_blocks. exact HFL.
+  - intros j Hj. rewrite HLf by (apply HNl; exact Vres). apply HReg4. exact Hj.
+  - intros ch b ofs Hb Hr. rewrite HLf by (apply HNl; exact Hb). apply K4; assumption.
+  - intros b ofs k p Hp. apply HPf; [apply HNl; eapply Mem.perm_valid_block; exact Hp|].
+    apply P4, XP, Hp.
+  - intros b Hb. apply HVf, V4, Hb.
+Qed.
