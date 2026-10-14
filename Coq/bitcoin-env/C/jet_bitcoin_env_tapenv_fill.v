@@ -1,0 +1,397 @@
+(** [simplicity_bitcoin_mallocTapEnv], third part: the compound literal
+      *env = (bitcoinTapEnv){ .leafVersion = controlBlock[0] & 0xfe,
+                              .internalKey = internalKey, .path = path,
+                              .pathLen = rawEnv->pathLen };
+    built in the local [__compound] (every other member zeroed) and copied
+    to the allocated block. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require Import C.jet_exec C.jet_struct_copy_loads.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_add_n_init C.jet_sha_be32_exec.
+Require Import C.jet_env_store_words C.jet_bitcoin_env_field_eval C.jet_bitcoin_env_tomidstate.
+Require Import C.jet_bitcoin_env_tapenv_prelude C.jet_bitcoin_env_tapenv_key.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 300.
+
+Notation CMP := (Evar ___compound TE).
+Notation A8 := (tarray tuint 8).
+
+(** The body after the compound literal. *)
+Definition te_rest3 : statement :=
+  ltac:(let b := eval cbv delta [te_rest2] in te_rest2 in
+        let r := drop_seq 1%nat b in exact r).
+
+Definition zero_stmt (f : ident) (k : nat) : statement :=
+  Sassign (Ederef (Ebinop Oadd (Efield (Efield CMP f MID) _s A8)
+    (Econst_int (Int.repr (Z.of_nat k)) tint) (tptr tuint)) tuint) (Econst_int (Int.repr 0) tint).
+
+Fixpoint zs (acc : statement) (f : ident) (n : nat) : statement :=
+  match n with
+  | O => acc
+  | S k => Ssequence (zs acc f k) (zero_stmt f k)
+  end.
+
+Definition fill_path : statement :=
+  Sassign (Efield CMP _path (tptr MID)) (Etempvar _path (tptr MID)).
+Definition fill_key : statement :=
+  Sassign (Efield CMP _internalKey MID) (Evar _internalKey MID).
+Definition fill_pathLen : statement :=
+  Ssequence (Sset _t'8 (Efield (Ederef (Etempvar _rawEnv (tptr RTE)) RTE) _pathLen tuchar))
+    (Sassign (Efield CMP _pathLen tuchar) (Etempvar _t'8 tuchar)).
+Definition fill_leafVersion : statement :=
+  Ssequence (Sset _t'6 (Efield (Ederef (Etempvar _rawEnv (tptr RTE)) RTE) _controlBlock (tptr tuchar)))
+    (Ssequence
+      (Sset _t'7 (Ederef (Ebinop Oadd (Etempvar _t'6 (tptr tuchar)) (Econst_int (Int.repr 0) tint) (tptr tuchar)) tuchar))
+      (Sassign (Efield CMP _leafVersion tuchar)
+        (Ebinop Oand (Etempvar _t'7 tuchar) (Econst_int (Int.repr 254) tint) tint))).
+
+Definition fill_stmt : statement :=
+  Ssequence
+    (Ssequence
+      (zs (Ssequence (zs (zs (zs fill_path _tapLeafHash 8) _tappathHash 8) _tapEnvHash 8) fill_key) _scriptCMR 8)
+      fill_pathLen)
+    fill_leafVersion.
+
+Definition copy_stmt : statement :=
+  Sassign (Ederef (Etempvar _env (tptr TE)) TE) CMP.
+
+Lemma te_rest2_shape : te_rest2 = Ssequence (Ssequence fill_stmt copy_stmt) te_rest3.
+Proof. reflexivity. Qed.
+
+Lemma te_sizeof_TE_Z : sizeof sha_ge TE = 176.
+Proof. vm_compute; reflexivity. Qed.
+Lemma te_sizeof_MID_Z : sizeof sha_ge MID = 32.
+Proof. vm_compute; reflexivity. Qed.
+Lemma te_blockcopy_TE : alignof_blockcopy sha_ge TE = 8.
+Proof. vm_compute; reflexivity. Qed.
+Lemma te_blockcopy_MID : alignof_blockcopy sha_ge MID = 4.
+Proof. vm_compute; reflexivity. Qed.
+
+Local Opaque sha_ge.
+
+Lemma te_off delta : 0 <= delta <= 200 ->
+  Ptrofs.unsigned (Ptrofs.add Ptrofs.zero (Ptrofs.repr delta)) = delta.
+Proof.
+  intros H. rewrite Ptrofs.add_zero_l. apply Ptrofs.unsigned_repr.
+  change Ptrofs.max_unsigned with 18446744073709551615. lia.
+Qed.
+
+Lemma zero_ext8_and254 x : Int.zero_ext 8 (Int.and x (Int.repr 254)) = Int.and x (Int.repr 254).
+Proof.
+  rewrite Int.zero_ext_and by lia. rewrite Int.and_assoc. reflexivity.
+Qed.
+
+Section Fill.
+Variables (e : env) (bCmp bK : block).
+Hypothesis HeC : e!___compound = Some (bCmp, TE).
+Hypothesis HeK : e!_internalKey = Some (bK, MID).
+
+Lemma ev_cmp le m : eval_expr sha_ge e le m CMP (Vptr bCmp Ptrofs.zero).
+Proof. eapply eval_Elvalue; [apply eval_Evar_local; exact HeC|apply deref_loc_copy; reflexivity]. Qed.
+
+Lemma ev_cmp_mid le m f delta :
+  envu_field_at _bitcoinTapEnv f delta ->
+  eval_expr sha_ge e le m (Efield (Efield CMP f MID) _s A8)
+    (Vptr bCmp (Ptrofs.add Ptrofs.zero (Ptrofs.repr delta))).
+Proof.
+  intros Hf.
+  pose proof (eval_envu_field_array e le m (Efield CMP f MID) _sha256_midstate _s 0 A8 bCmp
+    (Ptrofs.add Ptrofs.zero (Ptrofs.repr delta)) eq_refl envu_sha256_midstate_s
+    ltac:(intros chunk; discriminate) eq_refl) as HE.
+  rewrite Ptrofs.add_zero in HE. apply HE.
+  eapply eval_envu_field_struct; [reflexivity|exact Hf|apply ev_cmp].
+Qed.
+
+Lemma exec_zero_word le m m' f delta k :
+  envu_field_at _bitcoinTapEnv f delta -> 0 <= delta <= 136 -> (k < 8)%nat ->
+  Mem.store Mint32 m bCmp (delta + 4 * Z.of_nat k) (Vint Int.zero) = Some m' ->
+  Clight2.exec_stmt sha_ge e le m (zero_stmt f k) E0 le m' Out_normal.
+Proof.
+  intros Hf Hd Hk HS.
+  eapply exec_Sassign with (v2 := Vint Int.zero) (v := Vint Int.zero).
+  - eapply eval_Ederef. eapply eval_Ebinop; [apply ev_cmp_mid; exact Hf|apply eval_Econst_int|reflexivity].
+  - apply eval_Econst_int.
+  - reflexivity.
+  - eapply assign_loc_value; [reflexivity|]. unfold Mem.storev.
+    rewrite ptr_word_offset_from by (rewrite ?te_off by lia; change Ptrofs.max_unsigned with 18446744073709551615; lia).
+    rewrite te_off by lia. exact HS.
+Qed.
+
+Lemma zs_exec f delta n : envu_field_at _bitcoinTapEnv f delta -> 0 <= delta <= 136 -> (n <= 8)%nat ->
+  forall acc le0 le m0 m1 m2,
+  Clight2.exec_stmt sha_ge e le0 m0 acc E0 le m1 Out_normal ->
+  store_words m1 bCmp delta (repeat Int.zero n) = Some m2 ->
+  Clight2.exec_stmt sha_ge e le0 m0 (zs acc f n) E0 le m2 Out_normal.
+Proof.
+  intros Hf Hd. induction n as [|n IH]; intros Hn acc le0 le m0 m1 m2 HA HS.
+  - cbn in HS. injection HS as <-. exact HA.
+  - rewrite repeat_snoc in HS. destruct (store_words_app_inv _ _ _ _ _ _ HS) as (mm & H1 & H2).
+    rewrite repeat_length in H2. cbn [store_words] in H2.
+    destruct (Mem.store Mint32 mm bCmp (delta + 4 * Z.of_nat n) (Vint Int.zero)) as [mx|] eqn:HSt; [|discriminate].
+    injection H2 as <-.
+    cbn [zs]. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0).
+    + eapply IH; [lia|exact HA|exact H1].
+    + eapply exec_zero_word; [exact Hf|exact Hd|lia|exact HSt].
+Qed.
+End Fill.
+
+Lemma te_cb_expr e le m braw oraw bcb ocb :
+  0 <= oraw /\ oraw + 24 <= Ptrofs.max_unsigned ->
+  le!_rawEnv = Some (Vptr braw (Ptrofs.repr oraw)) ->
+  Mem.load Mptr m braw oraw = Some (Vptr bcb ocb) ->
+  eval_expr sha_ge e le m (Efield (Ederef (Etempvar _rawEnv (tptr RTE)) RTE) _controlBlock (tptr tuchar)) (Vptr bcb ocb).
+Proof.
+  intros Horaw Hle HL. eapply eval_envu_field_value;
+    [reflexivity|exact envu_rawBitcoinTapEnv_controlBlock|reflexivity|apply eval_envu_deref_struct; exact Hle|].
+  rewrite envu_ptr_add_repr by lia. apply envu_loadv_repr; [lia|rewrite Z.add_0_r; exact HL].
+Qed.
+
+Ltac sep_side :=
+  cbn [length repeat]; try change (size_chunk Mptr) with 8; cbn [size_chunk]; lia.
+Ltac sep := first [left; assumption | right; left; sep_side | right; right; sep_side].
+
+Section FillCopy.
+Variables (e : env) (bCmp bK bA braw bcb : block) (oraw : Z) (ocb : ptrofs) (nb cb0 : int) (kw : list int).
+Hypothesis HeC : e!___compound = Some (bCmp, TE).
+Hypothesis HeK : e!_internalKey = Some (bK, MID).
+Hypothesis Horaw : 0 <= oraw /\ oraw + 24 <= Ptrofs.max_unsigned.
+Hypothesis HN : 0 <= Int.unsigned nb <= 128.
+Hypothesis NCA : bCmp <> bA.
+Hypothesis NKC : bK <> bCmp.
+Hypothesis NKA : bK <> bA.
+Hypothesis NrC : braw <> bCmp.
+Hypothesis NcC : bcb <> bCmp.
+
+Let rawv := Vptr braw (Ptrofs.repr oraw).
+Let N := Int.unsigned nb.
+
+(** What the allocated structure holds after the copy. *)
+Definition te_filled (m : mem) : Prop :=
+  Mem.load Mptr m bA 0 = Some (te_path_value N bA) /\
+  (forall j, (j < 8)%nat -> Mem.load Mint32 m bA (104 + 4 * Z.of_nat j) = Some (Vint (nth j kw Int.zero))) /\
+  Mem.load Mint8unsigned m bA 168 = Some (Vint nb) /\
+  Mem.load Mint8unsigned m bA 169 = Some (Vint (Int.and cb0 (Int.repr 254))).
+
+Theorem te_fill le2 m :
+  te_le2 le2 rawv N bA ->
+  Mem.load Mptr m braw oraw = Some (Vptr bcb ocb) ->
+  Mem.load Mint8unsigned m braw (oraw + 16) = Some (Vint nb) ->
+  Mem.load Mint8unsigned m bcb (Ptrofs.unsigned ocb) = Some (Vint cb0) ->
+  (forall j, (j < 8)%nat -> Mem.load Mint32 m bK (4 * Z.of_nat j) = Some (Vint (nth j kw Int.zero))) ->
+  Mem.range_perm m bK 0 32 Cur Readable ->
+  Mem.range_perm m bCmp 0 176 Cur Writable ->
+  Mem.range_perm m bA 0 176 Cur Writable ->
+  exists m' le3,
+    te_filled m' /\ te_le2 le3 rawv N bA /\
+    (forall ch b ofs, b <> bCmp -> (b <> bA \/ ofs + size_chunk ch <= 0 \/ 176 <= ofs) ->
+       Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b) /\
+    (forall t le' mf out,
+       Clight2.exec_stmt sha_ge e le3 m' te_rest3 t le' mf out ->
+       Clight2.exec_stmt sha_ge e le2 m te_rest2 t le' mf out).
+Proof.
+  intros (HlRaw & HlEnv & HlPath) HCb HLen HCb0 HKw PK PC PA.
+  set (vpath := te_path_value N bA) in *.
+  (* path *)
+  destruct (Mem.valid_access_store m Mptr bCmp 0 vpath) as [mA SA].
+  { split; [intros o Ho; change (size_chunk Mptr) with 8 in Ho; apply PC; lia|exists 0; reflexivity]. }
+  assert (PCA : Mem.range_perm mA bCmp 0 176 Cur Writable).
+  { intros o Ho. eapply Mem.perm_store_1; [exact SA|apply PC, Ho]. }
+  (* three zeroed hashes *)
+  destruct (store_words_exists (repeat Int.zero 8) mA bCmp 8) as [mB1 SB1].
+  { intros o Ho. rewrite repeat_length in Ho. apply PCA. lia. } { exists 2. reflexivity. }
+  assert (PCB1 : Mem.range_perm mB1 bCmp 0 176 Cur Writable).
+  { intros o Ho. apply (store_words_perm _ _ _ _ _ SB1). apply PCA, Ho. }
+  destruct (store_words_exists (repeat Int.zero 8) mB1 bCmp 40) as [mB2 SB2].
+  { intros o Ho. rewrite repeat_length in Ho. apply PCB1. lia. } { exists 10. reflexivity. }
+  assert (PCB2 : Mem.range_perm mB2 bCmp 0 176 Cur Writable).
+  { intros o Ho. apply (store_words_perm _ _ _ _ _ SB2). apply PCB1, Ho. }
+  destruct (store_words_exists (repeat Int.zero 8) mB2 bCmp 72) as [mB SB3].
+  { intros o Ho. rewrite repeat_length in Ho. apply PCB2. lia. } { exists 18. reflexivity. }
+  assert (PCB : Mem.range_perm mB bCmp 0 176 Cur Writable).
+  { intros o Ho. apply (store_words_perm _ _ _ _ _ SB3). apply PCB2, Ho. }
+  assert (LB : forall ch b ofs, b <> bCmp -> Mem.load ch mB b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb.
+    rewrite (store_words_load_other _ _ _ _ _ SB3) by (left; exact Hb).
+    rewrite (store_words_load_other _ _ _ _ _ SB2) by (left; exact Hb).
+    rewrite (store_words_load_other _ _ _ _ _ SB1) by (left; exact Hb).
+    eapply Mem.load_store_other; [exact SA|left; exact Hb]. }
+  assert (PB : forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm mB b ofs k p).
+  { intros b ofs k p Hp. apply (store_words_perm _ _ _ _ _ SB3), (store_words_perm _ _ _ _ _ SB2),
+      (store_words_perm _ _ _ _ _ SB1). eapply Mem.perm_store_1; [exact SA|exact Hp]. }
+  (* the internal key *)
+  destruct (Mem.range_perm_loadbytes mB bK 0 32) as (kbytes & HKB).
+  { intros o Ho. apply PB, PK, Ho. }
+  pose proof (Mem.loadbytes_length _ _ _ _ _ HKB) as HKBL.
+  destruct (Mem.range_perm_storebytes mB bCmp 104 kbytes) as (mC & SC).
+  { rewrite HKBL. intros o Ho. change (Z.of_nat (Z.to_nat 32)) with 32 in Ho. apply PCB. lia. }
+  assert (HKC : Mem.loadbytes mC bCmp 104 32 = Some kbytes).
+  { pose proof (Mem.loadbytes_storebytes_same _ _ _ _ _ SC) as H. rewrite HKBL in H. exact H. }
+  assert (PCC : Mem.range_perm mC bCmp 0 176 Cur Writable).
+  { intros o Ho. eapply Mem.perm_storebytes_1; [exact SC|apply PCB, Ho]. }
+  (* the zeroed script CMR *)
+  destruct (store_words_exists (repeat Int.zero 8) mC bCmp 136) as [mD SD].
+  { intros o Ho. rewrite repeat_length in Ho. apply PCC. lia. } { exists 34. reflexivity. }
+  assert (PCD : Mem.range_perm mD bCmp 0 176 Cur Writable).
+  { intros o Ho. apply (store_words_perm _ _ _ _ _ SD). apply PCC, Ho. }
+  assert (LD : forall ch b ofs, b <> bCmp -> Mem.load ch mD b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb. rewrite (store_words_load_other _ _ _ _ _ SD) by (left; exact Hb).
+    rewrite (Mem.load_storebytes_other _ _ _ _ _ SC) by (left; exact Hb). apply LB, Hb. }
+  (* pathLen and leafVersion *)
+  destruct (Mem.valid_access_store mD Mint8unsigned bCmp 168 (Vint nb)) as [mE SE].
+  { split; [intros o Ho; change (size_chunk Mint8unsigned) with 1 in Ho; apply PCD; lia|exists 168; reflexivity]. }
+  assert (LE : forall ch b ofs, b <> bCmp -> Mem.load ch mE b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb. rewrite (Mem.load_store_other _ _ _ _ _ _ SE) by (left; exact Hb). apply LD, Hb. }
+  destruct (Mem.valid_access_store mE Mint8unsigned bCmp 169 (Vint (Int.and cb0 (Int.repr 254)))) as [mF SF].
+  { split; [|exists 169; reflexivity]. intros o Ho. change (size_chunk Mint8unsigned) with 1 in Ho.
+    eapply Mem.perm_store_1; [exact SE|]. apply PCD. lia. }
+  assert (LF : forall ch b ofs, b <> bCmp -> Mem.load ch mF b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb. rewrite (Mem.load_store_other _ _ _ _ _ _ SF) by (left; exact Hb). apply LE, Hb. }
+  assert (PF : forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm mF b ofs k p).
+  { intros b ofs k p Hp. eapply Mem.perm_store_1; [exact SF|]. eapply Mem.perm_store_1; [exact SE|].
+    apply (store_words_perm _ _ _ _ _ SD). eapply Mem.perm_storebytes_1; [exact SC|]. apply PB, Hp. }
+  (* the copy *)
+  destruct (Mem.range_perm_loadbytes mF bCmp 0 176) as (bytes & HCB).
+  { intros o Ho. eapply Mem.perm_implies; [apply PF, PC, Ho|constructor]. }
+  pose proof (Mem.loadbytes_length _ _ _ _ _ HCB) as HCBL.
+  destruct (Mem.range_perm_storebytes mF bA 0 bytes) as (mG & SG).
+  { rewrite HCBL. intros o Ho. change (Z.of_nat (Z.to_nat 176)) with 176 in Ho. apply PF, PA. lia. }
+  assert (HGB : Mem.loadbytes mG bA 0 176 = Some bytes).
+  { pose proof (Mem.loadbytes_storebytes_same _ _ _ _ _ SG) as H. rewrite HCBL in H. exact H. }
+  (* contents of the compound *)
+  assert (C1 : Mem.load Mptr mF bCmp 0 = Some vpath).
+  { rewrite (Mem.load_store_other _ _ _ _ _ _ SF) by sep.
+    rewrite (Mem.load_store_other _ _ _ _ _ _ SE) by sep.
+    rewrite (store_words_load_other _ _ _ _ _ SD) by sep.
+    rewrite (Mem.load_storebytes_other _ _ _ _ _ SC) by sep.
+    rewrite (store_words_load_other _ _ _ _ _ SB3) by sep.
+    rewrite (store_words_load_other _ _ _ _ _ SB2) by sep.
+    rewrite (store_words_load_other _ _ _ _ _ SB1) by sep.
+    rewrite (Mem.load_store_same _ _ _ _ _ _ SA). f_equal.
+    unfold vpath, te_path_value. destruct (Z.eq_dec N 0); reflexivity. }
+  assert (C2 : forall j, (j < 8)%nat ->
+    Mem.load Mint32 mF bCmp (104 + 4 * Z.of_nat j) = Some (Vint (nth j kw Int.zero))).
+  { intros j Hj.
+    rewrite (Mem.load_store_other _ _ _ _ _ _ SF) by sep.
+    rewrite (Mem.load_store_other _ _ _ _ _ _ SE) by sep.
+    rewrite (store_words_load_other _ _ _ _ _ SD) by sep.
+    apply (equal_loadbytes_field Mint32 mB mC bK bCmp 0 104 32 (4 * Z.of_nat j) kbytes).
+    - lia.
+    - change (size_chunk Mint32) with 4. lia.
+    - exact HKB.
+    - exact HKC.
+    - change (align_chunk Mint32) with 4. exists (26 + Z.of_nat j). lia.
+    - rewrite LB by exact NKC. apply HKw. exact Hj. }
+  assert (Hnb : Int.zero_ext 8 nb = nb).
+  { pose proof (Mem.load_cast _ _ _ _ _ HLen) as H. cbn in H. congruence. }
+  assert (C3 : Mem.load Mint8unsigned mF bCmp 168 = Some (Vint nb)).
+  { rewrite (Mem.load_store_other _ _ _ _ _ _ SF) by sep.
+    rewrite (Mem.load_store_same _ _ _ _ _ _ SE). cbn. rewrite Hnb. reflexivity. }
+  assert (C4 : Mem.load Mint8unsigned mF bCmp 169 = Some (Vint (Int.and cb0 (Int.repr 254)))).
+  { rewrite (Mem.load_store_same _ _ _ _ _ _ SF). cbn. rewrite zero_ext8_and254. reflexivity. }
+  set (leE := PTree.set _t'8 (Vint nb) le2).
+  set (leF := PTree.set _t'7 (Vint cb0) (PTree.set _t'6 (Vptr bcb ocb) leE)).
+  exists mG, leF.
+  split.
+  { split; [|split; [|split]].
+    - apply (equal_loadbytes_field Mptr mF mG bCmp bA 0 0 176 0 bytes);
+        [lia|cbn; lia|exact HCB|exact HGB|exists 0; reflexivity|exact C1].
+    - intros j Hj. apply (equal_loadbytes_field Mint32 mF mG bCmp bA 0 0 176 (104 + 4 * Z.of_nat j) bytes);
+        [lia|change (size_chunk Mint32) with 4; lia|exact HCB|exact HGB| |apply C2; exact Hj].
+      change (align_chunk Mint32) with 4. exists (26 + Z.of_nat j). lia.
+    - apply (equal_loadbytes_field Mint8unsigned mF mG bCmp bA 0 0 176 168 bytes);
+        [lia|cbn; lia|exact HCB|exact HGB|apply Z.divide_1_l|exact C3].
+    - apply (equal_loadbytes_field Mint8unsigned mF mG bCmp bA 0 0 176 169 bytes);
+        [lia|cbn; lia|exact HCB|exact HGB|apply Z.divide_1_l|exact C4]. }
+  split.
+  { unfold te_le2, leF, leE. rewrite !PTree.gso by discriminate. repeat split; assumption. }
+  split.
+  { intros ch b ofs Hb Hr. rewrite (Mem.load_storebytes_other _ _ _ _ _ SG).
+    - apply LF, Hb.
+    - rewrite HCBL. change (Z.of_nat (Z.to_nat 176)) with 176.
+      destruct Hr as [Hr|[Hr|Hr]]; [left; exact Hr|right; left; lia|right; right; lia]. }
+  split.
+  { intros b ofs k p Hp. eapply Mem.perm_storebytes_1; [exact SG|apply PF, Hp]. }
+  split.
+  { intros b Hb. eapply Mem.storebytes_valid_block_1; [exact SG|].
+    eapply Mem.store_valid_block_1; [exact SF|]. eapply Mem.store_valid_block_1; [exact SE|].
+    unfold Mem.valid_block. rewrite (store_words_nextblock _ _ _ _ _ SD).
+    eapply Mem.storebytes_valid_block_1; [exact SC|].
+    unfold Mem.valid_block. rewrite (store_words_nextblock _ _ _ _ _ SB3), (store_words_nextblock _ _ _ _ _ SB2),
+      (store_words_nextblock _ _ _ _ _ SB1).
+    eapply Mem.store_valid_block_1; [exact SA|exact Hb]. }
+  intros t le' mf out HRest. rewrite te_rest2_shape.
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (le1 := leF) (m1 := mG); [|exact HRest].
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := leF) (m1 := mF).
+  - unfold fill_stmt.
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := leE) (m1 := mE).
+    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le2) (m1 := mD).
+      * eapply (zs_exec e bCmp HeC _scriptCMR 136 8 envu_bitcoinTapEnv_scriptCMR ltac:(lia) ltac:(lia));
+          [|exact SD].
+        eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le2) (m1 := mB).
+        -- eapply (zs_exec e bCmp HeC _tapEnvHash 72 8 envu_bitcoinTapEnv_tapEnvHash ltac:(lia) ltac:(lia));
+             [|exact SB3].
+           eapply (zs_exec e bCmp HeC _tappathHash 40 8 envu_bitcoinTapEnv_tappathHash ltac:(lia) ltac:(lia));
+             [|exact SB2].
+           eapply (zs_exec e bCmp HeC _tapLeafHash 8 8 envu_bitcoinTapEnv_tapLeafHash ltac:(lia) ltac:(lia));
+             [|exact SB1].
+           unfold fill_path.
+           eapply exec_Sassign with (v2 := vpath) (v := vpath).
+           ++ eapply eval_envu_field_lvalue; [reflexivity|exact envu_bitcoinTapEnv_path|apply ev_cmp; exact HeC].
+           ++ apply eval_Etempvar. exact HlPath.
+           ++ unfold vpath, te_path_value. destruct (Z.eq_dec N 0); reflexivity.
+           ++ eapply assign_loc_value; [reflexivity|]. unfold Mem.storev. rewrite te_off by lia. exact SA.
+        -- unfold fill_key.
+           eapply exec_Sassign with (v2 := Vptr bK Ptrofs.zero) (v := Vptr bK Ptrofs.zero).
+           ++ eapply eval_envu_field_lvalue; [reflexivity|exact envu_bitcoinTapEnv_internalKey|apply ev_cmp; exact HeC].
+           ++ eapply eval_Elvalue; [apply eval_Evar_local; exact HeK|apply deref_loc_copy; reflexivity].
+           ++ reflexivity.
+           ++ eapply assign_loc_copy with (bytes := kbytes); cbn [typeof].
+              ** reflexivity.
+              ** intros _. rewrite te_blockcopy_MID. exists 0. reflexivity.
+              ** intros _. rewrite te_blockcopy_MID, te_off by lia. exists 26. reflexivity.
+              ** left. exact NKC.
+              ** rewrite te_sizeof_MID_Z. exact HKB.
+              ** rewrite te_off by lia. exact SC.
+      * unfold fill_pathLen.
+        eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := leE) (m1 := mD).
+        -- apply exec_Sset. apply (te_pathLen_expr e braw oraw nb Horaw); [exact HlRaw|].
+           rewrite LD by exact NrC. exact HLen.
+        -- eapply exec_Sassign with (v2 := Vint nb) (v := Vint nb).
+           ++ eapply eval_envu_field_lvalue; [reflexivity|exact envu_bitcoinTapEnv_pathLen|apply ev_cmp; exact HeC].
+           ++ apply eval_Etempvar. apply PTree.gss.
+           ++ cbn. rewrite Hnb. reflexivity.
+           ++ eapply assign_loc_value; [reflexivity|]. unfold Mem.storev. rewrite te_off by lia. exact SE.
+    + unfold fill_leafVersion.
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := PTree.set _t'6 (Vptr bcb ocb) leE) (m1 := mE).
+      * apply exec_Sset. apply (te_cb_expr e _ mE braw oraw bcb ocb Horaw).
+        -- unfold leE. rewrite PTree.gso by discriminate. exact HlRaw.
+        -- rewrite LE by exact NrC. exact HCb.
+      * eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := leF) (m1 := mE).
+        -- apply exec_Sset. eapply eval_Elvalue.
+           ++ eapply eval_Ederef. eapply eval_Ebinop; [apply eval_Etempvar; apply PTree.gss|apply eval_Econst_int|reflexivity].
+           ++ eapply deref_loc_value; [reflexivity|]. unfold Mem.loadv.
+              rewrite ptr_byte_offset by (pose proof (Ptrofs.unsigned_range_2 ocb); lia).
+              rewrite Z.add_0_r, LE by exact NcC. exact HCb0.
+        -- eapply exec_Sassign with (v2 := Vint (Int.and cb0 (Int.repr 254))) (v := Vint (Int.and cb0 (Int.repr 254))).
+           ++ eapply eval_envu_field_lvalue; [reflexivity|exact envu_bitcoinTapEnv_leafVersion|apply ev_cmp; exact HeC].
+           ++ eapply eval_Ebinop; [apply eval_Etempvar; apply PTree.gss|apply eval_Econst_int|reflexivity].
+           ++ cbn. rewrite zero_ext8_and254. reflexivity.
+           ++ eapply assign_loc_value; [reflexivity|]. unfold Mem.storev. rewrite te_off by lia. exact SF.
+  - unfold copy_stmt.
+    eapply exec_Sassign with (v2 := Vptr bCmp Ptrofs.zero) (v := Vptr bCmp Ptrofs.zero).
+    + eapply eval_Ederef. apply eval_Etempvar. unfold leF, leE. rewrite !PTree.gso by discriminate. exact HlEnv.
+    + apply ev_cmp. exact HeC.
+    + reflexivity.
+    + eapply assign_loc_copy with (bytes := bytes); cbn [typeof].
+      * reflexivity.
+      * intros _. rewrite te_blockcopy_TE. exists 0. reflexivity.
+      * intros _. rewrite te_blockcopy_TE. exists 0. reflexivity.
+      * left. exact NCA.
+      * rewrite te_sizeof_TE_Z. exact HCB.
+      * exact SG.
+Qed.
+End FillCopy.

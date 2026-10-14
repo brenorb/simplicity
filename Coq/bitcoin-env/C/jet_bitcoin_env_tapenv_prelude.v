@@ -1,0 +1,268 @@
+(** [simplicity_bitcoin_mallocTapEnv] (bitcoin/env.c), first part: the two
+    guards, the size arithmetic with its overflow checks, the [malloc] call
+    and the initial values of [env] and [path].  Stated as a continuation:
+    any execution of the remainder of the body from the state reached here
+    is an execution of the whole body. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require Import C.jet_exec.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_add_n_init.
+Require Import C.jet_bitcoin_env_field_eval C.jet_bitcoin_env_malloc.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 300.
+
+Notation TE := (Tstruct _bitcoinTapEnv noattr).
+Notation RTE := (Tstruct _rawBitcoinTapEnv noattr).
+
+Ltac drop_seq n s :=
+  lazymatch n with
+  | O => s
+  | S ?k => lazymatch s with Ssequence _ ?r => drop_seq k r end
+  end.
+
+Definition te_body : statement := fn_body f_simplicity_bitcoin_mallocTapEnv.
+
+(** The body after its first ten statements. *)
+Definition te_rest1 : statement :=
+  ltac:(let b := eval cbv delta [te_body f_simplicity_bitcoin_mallocTapEnv fn_body] beta iota in te_body in
+        let r := drop_seq 10%nat b in exact r).
+
+Lemma te_sizeof_TE : Vptrofs (Ptrofs.repr (sizeof sha_ge TE)) = Vlong (Int64.repr 176).
+Proof. vm_compute; reflexivity. Qed.
+Lemma te_sizeof_MID : Vptrofs (Ptrofs.repr (sizeof sha_ge MID)) = Vlong (Int64.repr 32).
+Proof. vm_compute; reflexivity. Qed.
+Lemma te_alignof_MID : Vptrofs (Ptrofs.repr (alignof sha_ge MID)) = Vlong (Int64.repr 4).
+Proof. vm_compute; reflexivity. Qed.
+
+Local Opaque sha_ge.
+
+Lemma ev_sizeof_TE e le m : eval_expr sha_ge e le m (Esizeof TE tulong) (Vlong (Int64.repr 176)).
+Proof. rewrite <- te_sizeof_TE. apply eval_Esizeof. Qed.
+Lemma ev_sizeof_MID e le m : eval_expr sha_ge e le m (Esizeof MID tulong) (Vlong (Int64.repr 32)).
+Proof. rewrite <- te_sizeof_MID. apply eval_Esizeof. Qed.
+Lemma ev_alignof_MID e le m : eval_expr sha_ge e le m (Ealignof MID tulong) (Vlong (Int64.repr 4)).
+Proof. rewrite <- te_alignof_MID. apply eval_Ealignof. Qed.
+
+(** The temporaries the remainder of the body reads. *)
+Definition te_le1 (le : temp_env) (rawv : val) (N : Z) (bA : block) : Prop :=
+  le!_rawEnv = Some rawv /\
+  le!_numMidstate = Some (Vlong (Int64.repr N)) /\
+  le!_pad1 = Some (Vlong (Int64.repr 0)) /\
+  le!_allocation = Some (Vptr bA Ptrofs.zero) /\
+  le!_env = Some (Vptr bA Ptrofs.zero) /\
+  le!_path = Some (Vlong (Int64.repr 0)).
+
+Lemma te_size_value N : 0 <= N <= 128 ->
+  Int64.add (Int64.repr 176) (Int64.mul (Int64.repr N) (Int64.repr 32)) = Int64.repr (176 + 32 * N).
+Proof.
+  intros HN. unfold Int64.add, Int64.mul.
+  rewrite (Int64.unsigned_repr N), (Int64.unsigned_repr 32), (Int64.unsigned_repr 176)
+    by (change Int64.max_unsigned with 18446744073709551615; lia).
+  rewrite Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia).
+  f_equal. lia.
+Qed.
+
+Lemma te_ltu_false a b : Int64.unsigned b <= Int64.unsigned a -> Int64.ltu a b = false.
+Proof. intros H. unfold Int64.ltu. apply zlt_false. lia. Qed.
+
+Section Prelude.
+Variables (e : env) (braw : block) (oraw : Z) (nb : int).
+Hypothesis He : e!_malloc = None.
+Hypothesis Horaw : 0 <= oraw /\ oraw + 24 <= Ptrofs.max_unsigned.
+Hypothesis HN : 0 <= Int.unsigned nb <= 128.
+
+Let rawv := Vptr braw (Ptrofs.repr oraw).
+Let N := Int.unsigned nb.
+Let le0 := PTree.set _rawEnv rawv (create_undef_temps (fn_temps f_simplicity_bitcoin_mallocTapEnv)).
+
+Lemma te_pathLen_expr le m :
+  le!_rawEnv = Some rawv ->
+  Mem.load Mint8unsigned m braw (oraw + 16) = Some (Vint nb) ->
+  eval_expr sha_ge e le m (Efield (Ederef (Etempvar _rawEnv (tptr RTE)) RTE) _pathLen tuchar) (Vint nb).
+Proof.
+  intros Hle HL. eapply eval_envu_field_value;
+    [reflexivity|exact envu_rawBitcoinTapEnv_pathLen|reflexivity|apply eval_envu_deref_struct; exact Hle|].
+  rewrite envu_ptr_add_repr by lia. apply envu_loadv_repr; [lia|exact HL].
+Qed.
+
+Theorem te_prelude m :
+  Mem.load Mint8unsigned m braw (oraw + 16) = Some (Vint nb) ->
+  Mem.weak_valid_pointer m braw (Ptrofs.unsigned (Ptrofs.repr oraw)) = true ->
+  exists m1 m2 bA le1,
+    Mem.alloc m (-8) (176 + 32 * N) = (m1, bA) /\
+    Mem.store Mptr m1 bA (-8) (Vlong (Int64.repr (176 + 32 * N))) = Some m2 /\
+    te_le1 le1 rawv N bA /\
+    (forall t le' m' out,
+       Clight2.exec_stmt sha_ge e le1 m2 te_rest1 t le' m' out ->
+       Clight2.exec_stmt sha_ge e le0 m te_body t le' m' out).
+Proof.
+  intros HLen HWeak.
+  assert (HNr : 0 <= N <= 128) by exact HN.
+  destruct (eval_malloc m (176 + 32 * N)) as (m1 & m2 & bA & HA & HS & HCall).
+  { change Ptrofs.max_unsigned with 18446744073709551615. lia. }
+  assert (HLt : Int.lt (Int.repr 128) nb = false).
+  { unfold Int.lt. apply zlt_false. rewrite Int.signed_repr by (cbn; lia).
+    rewrite Int.signed_eq_unsigned by (change Int.max_signed with 2147483647; fold N; lia). fold N. lia. }
+  assert (HWA : Mem.weak_valid_pointer m2 bA (Ptrofs.unsigned Ptrofs.zero) = true).
+  { unfold Mem.weak_valid_pointer. apply orb_true_iff. left.
+    apply Mem.valid_pointer_nonempty_perm. eapply Mem.perm_store_1; [exact HS|].
+    eapply Mem.perm_implies; [eapply Mem.perm_alloc_2; [exact HA|rewrite Ptrofs.unsigned_zero; lia]|constructor]. }
+  (* the temporaries up to the size branch *)
+  set (leA := PTree.set _pad1 (Vlong (Int64.repr 0))
+      (PTree.set _numMidstate (Vlong (Int64.repr N)) (PTree.set _t'11 (Vint nb)
+        (PTree.set _allocationSize (Vlong (Int64.repr 176)) (PTree.set _t'12 (Vint nb) le0))))).
+  (* after the size branch: the allocation size *)
+  assert (HBranch : exists leB,
+    leB!_allocationSize = Some (Vlong (Int64.repr (176 + 32 * N))) /\
+    (forall x, x <> _allocationSize -> leB!x = leA!x) /\
+    Clight2.exec_stmt sha_ge e leA m
+      (match te_body with
+       | Ssequence _ (Ssequence _ (Ssequence _ (Ssequence _ (Ssequence _ (Ssequence s _))))) => s
+       | _ => Sskip end) E0 leB m Out_normal).
+  { cbv delta [te_body f_simplicity_bitcoin_mallocTapEnv fn_body] beta iota.
+    destruct (Z.eq_dec N 0) as [HZ|HNZ].
+    - exists leA. split; [rewrite HZ; reflexivity|]. split; [reflexivity|].
+      eapply exec_Sifthenelse with (v1 := Vlong (Int64.repr N)) (b := false).
+      + apply eval_Etempvar. reflexivity.
+      + rewrite HZ. reflexivity.
+      + apply exec_Sskip.
+    - set (leB1 := PTree.set _allocationSize (Vlong (Int64.repr 176)) leA).
+      set (leB2 := PTree.set _allocationSize (Vlong (Int64.repr (176 + 32 * N))) leB1).
+      exists leB2. split; [reflexivity|]. split.
+      { intros x Hx. unfold leB2, leB1. rewrite !PTree.gso by exact Hx. reflexivity. }
+      eapply exec_Sifthenelse with (v1 := Vlong (Int64.repr N)) (b := true).
+      + apply eval_Etempvar. reflexivity.
+      + cbn. unfold Int64.eq. rewrite Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia).
+        rewrite Int64.unsigned_zero. rewrite zeq_false by exact HNZ. reflexivity.
+      + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := leA) (m1 := m).
+        { eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := false).
+          - eapply eval_Ebinop.
+            + eapply eval_Ebinop; [apply eval_Econst_long|apply eval_Etempvar; reflexivity|reflexivity].
+            + apply eval_Etempvar; reflexivity.
+            + vm_compute; reflexivity.
+          - reflexivity.
+          - apply exec_Sskip. }
+        eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := leB1) (m1 := m).
+        { apply exec_Sset. eapply eval_Ebinop;
+            [apply eval_Etempvar; reflexivity|apply eval_Etempvar; reflexivity|vm_compute; reflexivity]. }
+        eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := leB1) (m1 := m).
+        { eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := false).
+          - eapply eval_Ebinop.
+            + eapply eval_Ebinop; [apply eval_Econst_long|apply ev_sizeof_MID|reflexivity].
+            + apply eval_Etempvar; reflexivity.
+            + change (Some (Val.of_bool (Int64.ltu (Int64.divu (Int64.repr (-1)) (Int64.repr 32)) (Int64.repr N))) =
+                Some (Vint Int.zero)).
+              rewrite te_ltu_false; [reflexivity|].
+              rewrite Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia).
+              change (Int64.unsigned (Int64.divu (Int64.repr (-1)) (Int64.repr 32))) with 576460752303423487. lia.
+          - reflexivity.
+          - apply exec_Sskip. }
+        eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := leB1) (m1 := m).
+        { eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := false).
+          - eapply eval_Ebinop.
+            + eapply eval_Ebinop; [apply eval_Econst_long|apply eval_Etempvar; reflexivity|reflexivity].
+            + eapply eval_Ebinop; [apply eval_Etempvar; reflexivity|apply ev_sizeof_MID|reflexivity].
+            + change (Some (Val.of_bool (Int64.ltu (Int64.sub (Int64.repr (-1)) (Int64.repr 176))
+                  (Int64.mul (Int64.repr N) (Int64.repr 32)))) = Some (Vint Int.zero)).
+              rewrite te_ltu_false; [reflexivity|].
+              unfold Int64.mul. rewrite (Int64.unsigned_repr N), (Int64.unsigned_repr 32)
+                by (change Int64.max_unsigned with 18446744073709551615; lia).
+              rewrite Int64.unsigned_repr by (change Int64.max_unsigned with 18446744073709551615; lia).
+              change (Int64.unsigned (Int64.sub (Int64.repr (-1)) (Int64.repr 176))) with 18446744073709551439. lia.
+          - reflexivity.
+          - apply exec_Sskip. }
+        apply exec_Sset. eapply eval_Ebinop.
+        * apply eval_Etempvar; reflexivity.
+        * eapply eval_Ebinop; [apply eval_Etempvar; reflexivity|apply ev_sizeof_MID|reflexivity].
+        * change (Some (Vlong (Int64.add (Int64.repr 176) (Int64.mul (Int64.repr N) (Int64.repr 32)))) =
+            Some (Vlong (Int64.repr (176 + 32 * N)))).
+          rewrite te_size_value by exact HNr. reflexivity. }
+  destruct HBranch as (leB & HBsz & HBeq & HBex).
+  set (leC := PTree.set _path (Vlong (Int64.repr 0)) (PTree.set _env (Vptr bA Ptrofs.zero)
+    (PTree.set _allocation (Vptr bA Ptrofs.zero) (PTree.set _t'1 (Vptr bA Ptrofs.zero) leB)))).
+  exists m1, m2, bA, leC. split; [exact HA|]. split; [exact HS|]. split.
+  { unfold te_le1, leC.
+    split; [rewrite !PTree.gso by discriminate; rewrite HBeq by discriminate; reflexivity|].
+    split; [rewrite !PTree.gso by discriminate; rewrite HBeq by discriminate; reflexivity|].
+    split; [rewrite !PTree.gso by discriminate; rewrite HBeq by discriminate; reflexivity|].
+    split; [rewrite !PTree.gso by discriminate; apply PTree.gss|].
+    split; [rewrite PTree.gso by discriminate; apply PTree.gss|apply PTree.gss]. }
+  intros t le' m' out HRest.
+  revert HBex. cbv delta [te_body f_simplicity_bitcoin_mallocTapEnv fn_body] beta iota. intros HBex.
+  (* 1: if (!rawEnv) *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (le1 := le0) (m1 := m).
+  { eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := false).
+    - eapply eval_Eunop; [apply eval_Etempvar; reflexivity|].
+      unfold rawv. cbn. unfold sem_notbool, bool_val. cbn. rewrite HWeak. reflexivity.
+    - reflexivity.
+    - apply exec_Sskip. }
+  (* 2: if (128 < rawEnv->pathLen) *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (le1 := PTree.set _t'12 (Vint nb) le0) (m1 := m).
+  { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := PTree.set _t'12 (Vint nb) le0) (m1 := m).
+    - apply exec_Sset. apply te_pathLen_expr; [reflexivity|exact HLen].
+    - eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := false).
+      + eapply eval_Ebinop; [apply eval_Econst_int|apply eval_Etempvar; reflexivity|].
+        change (Some (Val.of_bool (Int.lt (Int.repr 128) nb)) = Some (Vint Int.zero)).
+        rewrite HLt. reflexivity.
+      + reflexivity.
+      + apply exec_Sskip. }
+  (* 3: allocationSize = sizeof(bitcoinTapEnv) *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (m1 := m)
+    (le1 := PTree.set _allocationSize (Vlong (Int64.repr 176)) (PTree.set _t'12 (Vint nb) le0)).
+  { apply exec_Sset. apply ev_sizeof_TE. }
+  (* 4: numMidstate = rawEnv->pathLen *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (m1 := m)
+    (le1 := PTree.set _numMidstate (Vlong (Int64.repr N)) (PTree.set _t'11 (Vint nb)
+      (PTree.set _allocationSize (Vlong (Int64.repr 176)) (PTree.set _t'12 (Vint nb) le0)))).
+  { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m)
+      (le1 := PTree.set _t'11 (Vint nb) (PTree.set _allocationSize (Vlong (Int64.repr 176)) (PTree.set _t'12 (Vint nb) le0))).
+    - apply exec_Sset. apply te_pathLen_expr; [reflexivity|exact HLen].
+    - apply exec_Sset. eapply eval_Ecast; [apply eval_Etempvar; reflexivity|reflexivity]. }
+  (* 5: pad1 *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (m1 := m) (le1 := leA).
+  { apply exec_Sset. eapply eval_Ebinop.
+    - eapply eval_Ebinop;
+        [apply ev_alignof_MID
+        |eapply eval_Ebinop; [apply eval_Etempvar; reflexivity|apply ev_alignof_MID|reflexivity]
+        |reflexivity].
+    - apply ev_alignof_MID.
+    - vm_compute; reflexivity. }
+  (* 6: the size branch *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (m1 := m) (le1 := leB); [exact HBex|].
+  (* 7: allocation = malloc(allocationSize) *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (m1 := m2)
+    (le1 := PTree.set _allocation (Vptr bA Ptrofs.zero) (PTree.set _t'1 (Vptr bA Ptrofs.zero) leB)).
+  { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m2) (le1 := PTree.set _t'1 (Vptr bA Ptrofs.zero) leB).
+    - change (PTree.set _t'1 (Vptr bA Ptrofs.zero) leB) with (set_opttemp (Some _t'1) (Vptr bA Ptrofs.zero) leB).
+      eapply exec_Scall with (vf := Vptr (sha_symbol_block _malloc) Ptrofs.zero)
+        (vargs := [Vlong (Int64.repr (176 + 32 * N))]) (f := malloc_fundef).
+      + reflexivity.
+      + eapply eval_Elvalue; [apply eval_Evar_global; [exact He|exact sha_malloc_symbol]|].
+        apply deref_loc_reference; reflexivity.
+      + eapply eval_Econs; [apply eval_Etempvar; exact HBsz|reflexivity|apply eval_Enil].
+      + exact sha_malloc_funct.
+      + reflexivity.
+      + exact HCall.
+    - apply exec_Sset. apply eval_Etempvar. apply PTree.gss. }
+  (* 8: if (!allocation) *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (m1 := m2)
+    (le1 := PTree.set _allocation (Vptr bA Ptrofs.zero) (PTree.set _t'1 (Vptr bA Ptrofs.zero) leB)).
+  { eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := false).
+    - eapply eval_Eunop; [apply eval_Etempvar; apply PTree.gss|].
+      cbn. unfold sem_notbool, bool_val. cbn. rewrite HWA. reflexivity.
+    - reflexivity.
+    - apply exec_Sskip. }
+  (* 9: env *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (m1 := m2)
+    (le1 := PTree.set _env (Vptr bA Ptrofs.zero)
+      (PTree.set _allocation (Vptr bA Ptrofs.zero) (PTree.set _t'1 (Vptr bA Ptrofs.zero) leB))).
+  { apply exec_Sset.
+    eapply eval_Ecast; [eapply eval_Ecast; [apply eval_Etempvar; apply PTree.gss|reflexivity]|reflexivity]. }
+  (* 10: path = NULL *)
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (m1 := m2) (le1 := leC).
+  { apply exec_Sset. eapply eval_Ecast; [apply eval_Econst_int|reflexivity]. }
+  exact HRest.
+Qed.
+End Prelude.

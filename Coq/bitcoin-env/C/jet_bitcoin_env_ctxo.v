@@ -1,0 +1,223 @@
+(** A local SHA-256 context whose output midstate is an arbitrary writable
+    location [(bo, obase)] -- in the environment builders, a field of the
+    structure being filled in.  Generalises [ctxi] of [jet_sha_ctxi] (output
+    at offset 0 of a private block) and is derived from the same accepted
+    execution theorems.  Conditional on [memcpy_model]. *)
+From Coq Require Import ZArith List Lia PeanoNat.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require sha.SHA256 sha.common_lemmas.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_readBit_layout C.jet_bitmachine_rep.
+Require Import C.jet_uint32_array_init C.jet_sha256_iv_init.
+Require C.jets.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_block_local C.jet_sha_ctx8_model.
+Require Import C.jet_sha_be32_exec C.jet_sha_be32_write.
+Require Import C.jet_sha_uchars_prep C.jet_sha_uchars_loop C.jet_sha_uchars_exec.
+Require Import C.jet_sha_add_n_calls C.jet_sha_hash_exec C.jet_sha_finalize_exec.
+Require Import C.jet_sha_tapdata_prep C.jet_sha_ctx_abs C.jet_sha_ctxi.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Local Opaque sha_ge.
+Set Default Timeout 300.
+
+Definition ctxo (m : mem) (bx bo : block) (obase : Z) (l regs : list int) (c : int64) (ovf : bool) : Prop :=
+  Mem.load Mptr m bx 0 = Some (Vptr bo (Ptrofs.repr obase)) /\
+  Mem.load Mint64 m bx (0 + 8) = Some (Vlong c) /\
+  Mem.load Mint8unsigned m bx (0 + 80) = Some (Vint (bit_int ovf)) /\
+  (forall i, (i < length l)%nat ->
+     Mem.load Mint8unsigned m bx (0 + 16 + Z.of_nat i) = Some (Vint (nth i l Int.zero))) /\
+  (forall i, (i < 8)%nat ->
+     Mem.load Mint32 m bo (obase + 4 * Z.of_nat i) = Some (Vint (nth i regs Int.zero)) /\
+     Mem.valid_access m Mint32 bo (obase + 4 * Z.of_nat i) Writable) /\
+  Int64.unsigned c mod 64 = Z.of_nat (length l) /\ (length l < 64)%nat /\ length regs = 8%nat /\
+  Mem.range_perm m bx 0 88 Cur Freeable /\
+  sha_dispatch_ok m /\ Mem.load Mint64 m GM 0 = Some (Vlong sha_max_counter).
+
+Section Ctxo.
+Variables (bx bo : block) (obase : Z).
+Hypothesis Hox : bo <> bx.
+Hypothesis Hgx : GC <> bx.
+Hypothesis Hgo : GC <> bo.
+Hypothesis Hcx : GM <> bx.
+Hypothesis Hco : GM <> bo.
+Hypothesis Hob : 0 <= obase /\ obase + 32 <= Ptrofs.max_unsigned.
+
+Lemma ctxo_valid m l regs c ovf : ctxo m bx bo obase l regs c ovf ->
+  Mem.valid_block m bx /\ Mem.valid_block m bo /\ Mem.valid_block m GC /\ Mem.valid_block m GM.
+Proof.
+  intros (HOut & _ & _ & _ & HRegs & _ & _ & _ & _ & Hdisp & HMax).
+  split; [eapply load_valid_block; exact HOut|].
+  split; [eapply load_valid_block; exact (proj1 (HRegs 0%nat ltac:(lia)))|].
+  split; eapply load_valid_block; eassumption.
+Qed.
+
+Lemma ctxo_block_perm m l regs c ovf : ctxo m bx bo obase l regs c ovf ->
+  Mem.range_perm m bx (0 + 8) (0 + 81) Cur Writable.
+Proof.
+  intros (_ & _ & _ & _ & _ & _ & _ & _ & PX & _) ofs Hr0.
+  eapply Mem.perm_implies; [apply PX; lia|constructor].
+Qed.
+
+(** A memory change that leaves the context block, the output words and the
+    two globals alone keeps the context. *)
+Lemma ctxo_other m m' l regs c ovf :
+  ctxo m bx bo obase l regs c ovf ->
+  (forall ch b ofs, b = bx \/ b = GC \/ b = GM \/ (b = bo /\ obase <= ofs /\ ofs + size_chunk ch <= obase + 32) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs k p, b = bx \/ b = bo -> Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) ->
+  ctxo m' bx bo obase l regs c ovf.
+Proof.
+  intros (HOut & HCnt & HOvf & HBlk & HRegs & HMod & HLen & Hr & PX & Hdisp & HMax) HL HP.
+  split; [rewrite HL by tauto; exact HOut|]. split; [rewrite HL by tauto; exact HCnt|].
+  split; [rewrite HL by tauto; exact HOvf|].
+  split; [intros i Hi; rewrite HL by tauto; apply HBlk; exact Hi|].
+  split.
+  { intros i Hi. destruct (HRegs i Hi) as [H1 [H2 H3]]. split.
+    - rewrite HL; [exact H1|]. right; right; right. change (size_chunk Mint32) with 4. lia.
+    - split; [|exact H3]. intros ofs Hr0. apply HP; [tauto|apply H2, Hr0]. }
+  split; [exact HMod|]. split; [exact HLen|]. split; [exact Hr|].
+  split; [intros ofs Hr0; apply HP; [tauto|apply PX, Hr0]|].
+  split; [unfold sha_dispatch_ok; rewrite HL by tauto; exact Hdisp|rewrite HL by tauto; exact HMax].
+Qed.
+
+Lemma ctxo_step m m' l regs c ovf (bs : list int) (n : Z) ovf' :
+  ctxo m bx bo obase l regs c ovf ->
+  0 <= n <= Int64.max_unsigned -> Z.of_nat (length bs) = n ->
+  Mem.load Mptr m' bx 0 = Some (Vptr bo (Ptrofs.repr obase)) ->
+  Mem.load Mint64 m' bx (0 + 8) = Some (Vlong (Int64.add c (Int64.repr n))) ->
+  Mem.load Mint8unsigned m' bx (0 + 80) = Some (Vint (bit_int ovf')) ->
+  (forall i, (i < length (fst (absorb_i l regs bs)))%nat ->
+     Mem.load Mint8unsigned m' bx (0 + 16 + Z.of_nat i) =
+       Some (Vint (nth i (fst (absorb_i l regs bs)) Int.zero))) ->
+  (forall i, (i < 8)%nat ->
+     Mem.load Mint32 m' bo (obase + 4 * Z.of_nat i) =
+       Some (Vint (nth i (snd (absorb_i l regs bs)) Int.zero))) ->
+  (forall ch b ofs, Mem.valid_block m b ->
+     (b <> bx \/ ofs + size_chunk ch <= 0 + 8 \/ 0 + 81 <= ofs) ->
+     (b <> bo \/ ofs + size_chunk ch <= obase \/ obase + 32 <= ofs) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs k p, Mem.valid_block m b -> Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) ->
+  ctxo m' bx bo obase (fst (absorb_i l regs bs)) (snd (absorb_i l regs bs)) (Int64.add c (Int64.repr n)) ovf'.
+Proof.
+  intros HA Hn Hlen HOut' HCnt' HOvf' HBlk' HReg' HMem' HPerm'.
+  destruct (ctxo_valid _ _ _ _ _ HA) as (Vx & Vo & VG & VM).
+  destruct HA as (HOut & HCnt & HOvf & HBlk & HRegs & HMod & HLen & Hr & PX & Hdisp & HMax).
+  destruct (absorb_i_len bs l regs HLen Hr) as (HlenA & HltA & HrA).
+  split; [exact HOut'|]. split; [exact HCnt'|]. split; [exact HOvf'|]. split; [exact HBlk'|].
+  split.
+  { intros i Hi. split; [apply HReg'; exact Hi|].
+    destruct (proj2 (HRegs i Hi)) as [H2 H3]. split; [|exact H3].
+    intros ofs Hr0. apply HPerm'; [exact Vo|apply H2, Hr0]. }
+  split.
+  { rewrite HlenA, Hlen. apply counter_mod_add; [exact Hn|exact HMod]. }
+  split; [exact HltA|]. split; [exact HrA|].
+  split; [intros ofs Hr0; apply HPerm'; [exact Vx|apply PX, Hr0]|].
+  split.
+  - unfold sha_dispatch_ok. rewrite HMem'; [exact Hdisp|exact VG|left; exact Hgx|left; exact Hgo].
+  - rewrite HMem'; [exact HMax|exact VM|left; exact Hcx|left; exact Hco].
+Qed.
+
+(** [sha256_hash(&ctx, h)]: absorbs the 32 big-endian bytes of the midstate
+    at [h], which may lie in the output block. *)
+Theorem ctxo_hash (Hmodel : memcpy_model) m bt ot l regs (regsH : list int) c ovf :
+  ctxo m bx bo obase l regs c ovf ->
+  length regsH = 8%nat -> Ptrofs.unsigned ot + 32 <= Ptrofs.max_unsigned ->
+  (forall j, (j < 8)%nat ->
+     Mem.load Mint32 m bt (Ptrofs.unsigned ot + 4 * Z.of_nat j) = Some (Vint (nth j regsH Int.zero))) ->
+  let vn := Int64.repr 32 in
+  let ovf' := uc_overflow ovf c vn in
+  exists m',
+    Clight2.eval_funcall sha_ge m (Internal f_sha256_hash)
+      [Vptr bx (Ptrofs.repr 0); Vptr bt ot] E0 m' Vundef /\
+    ctxo m' bx bo obase (fst (absorb_i l regs (be_bytes regsH))) (snd (absorb_i l regs (be_bytes regsH)))
+      (Int64.add c vn) ovf' /\
+    (forall ch b ofs, Mem.valid_block m b -> b <> bx ->
+       (b <> bo \/ ofs + size_chunk ch <= obase \/ obase + 32 <= ofs) ->
+       Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.valid_block m b -> Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b).
+Proof.
+  intros HA HrH HotM HH vn ovf'.
+  pose proof HA as (HOut & HCnt & HOvf & HBlk & HRegs & HMod & HLen & Hr & PX & Hdisp & HMax).
+  pose proof (eval_sha256_hash Hmodel m bx 0 bo obase bt ot l regs regsH c ovf
+    ltac:(lia) ltac:(change Ptrofs.max_unsigned with 18446744073709551615; lia)
+    (proj1 Hob) (proj2 Hob) Hox Hgx Hgo Hr HrH HotM HH HOut HCnt HMod HOvf HBlk HRegs Hdisp HMax
+    (ctxo_block_perm _ _ _ _ _ HA) ltac:(exists 0; reflexivity)) as HU.
+  cbv zeta in HU.
+  destruct HU as (m' & HUc & HOut' & HCnt' & HOvf' & HBlk' & HReg' & HMem' & HPerm' & HVal').
+  pose proof (ctxo_step m m' l regs c ovf (be_bytes regsH) 32 ovf' HA
+    ltac:(change Int64.max_unsigned with 18446744073709551615; lia)
+    ltac:(rewrite be_bytes_length, HrH; reflexivity)
+    HOut' HCnt' HOvf' HBlk' HReg' HMem' HPerm') as HA'.
+  exists m'. split; [exact HUc|]. split; [exact HA'|]. split; [|split; [exact HPerm'|exact HVal']].
+  intros ch b ofs Hv H1 H2. apply HMem'; [exact Hv|left; exact H1|exact H2].
+Qed.
+
+Theorem ctxo_finalize (Hmodel : memcpy_model) m l regs c ovf :
+  ctxo m bx bo obase l regs c ovf ->
+  exists m',
+    Clight2.eval_funcall sha_ge m (Internal f_sha256_finalize)
+      [Vptr bx (Ptrofs.repr 0)] E0 m' (Vint (bit_int (negb ovf))) /\
+    (forall i, (i < 8)%nat ->
+       Mem.load Mint32 m' bo (obase + 4 * Z.of_nat i) =
+         Some (Vint (nth i (snd (absorb_i l regs (sha_pad c))) Int.zero))) /\
+    (forall ch b ofs, Mem.valid_block m b -> b <> bx ->
+       (b <> bo \/ ofs + size_chunk ch <= obase \/ obase + 32 <= ofs) ->
+       Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.valid_block m b -> Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b).
+Proof.
+  intros HA.
+  pose proof HA as (HOut & HCnt & HOvf & HBlk & HRegs & HMod & HLen & Hr & PX & Hdisp & HMax).
+  destruct (eval_sha256_finalize Hmodel m bx 0 bo obase l regs c ovf
+    ltac:(lia) ltac:(change Ptrofs.max_unsigned with 18446744073709551615; lia)
+    (proj1 Hob) (proj2 Hob) Hox Hgx Hgo Hcx Hco Hr HOut HCnt HMod HOvf HBlk HRegs Hdisp HMax
+    (ctxo_block_perm _ _ _ _ _ HA) ltac:(exists 0; reflexivity))
+    as (m' & HUc & HReg' & HMem' & HPerm' & HVal').
+  exists m'. split; [exact HUc|]. split; [exact HReg'|].
+  split; [|split; [exact HPerm'|exact HVal']].
+  intros ch b ofs Hv H1 H2. apply HMem'; [exact Hv|left; exact H1|exact H2].
+Qed.
+
+(** [ctx = sha256_init(out)]: the call into the result temporary [br] and
+    the struct copy into the context [bx]. *)
+Theorem ctxo_init m br :
+  br <> bo -> br <> bx -> (4 | obase) ->
+  Mem.valid_block m GC -> Mem.valid_block m GM -> GC <> br -> GM <> br ->
+  Mem.range_perm m br 0 88 Cur Freeable -> Mem.range_perm m bx 0 88 Cur Freeable ->
+  Mem.range_perm m bo obase (obase + 32) Cur Writable ->
+  sha_dispatch_ok m -> Mem.load Mint64 m GM 0 = Some (Vlong sha_max_counter) ->
+  exists mi mx bytes,
+    Clight2.eval_funcall sha_ge m (Internal jets.f_sha256_init)
+      [Vptr br Ptrofs.zero; Vptr bo (Ptrofs.repr obase)] E0 mi Vundef /\
+    Mem.loadbytes mi br 0 88 = Some bytes /\ Mem.storebytes mi bx 0 bytes = Some mx /\
+    ctxo mx bx bo obase [] sha256_iv_words Int64.zero false /\
+    (forall ch b ofs, Mem.valid_block m b -> b <> br -> b <> bx ->
+       (b <> bo \/ ofs + size_chunk ch <= obase \/ obase + 32 <= ofs) ->
+       Mem.load ch mx b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm mx b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mx b).
+Proof.
+  intros Hro Hrx HoA VG VM Hgr Hcr PR PX PO Hdisp HMax.
+  destruct (sha_init_copy m br bx bo obase Hro (not_eq_sym Hox) Hrx (proj1 Hob) (proj2 Hob) HoA)
+    as (mi & mx & bytes & HInit & HB & HS & HOut & HCnt & HOvf & HArr & HL & HP & HV).
+  { intros ofs Hr0. eapply Mem.perm_implies; [apply PR, Hr0|constructor]. }
+  { intros ofs Hr0. eapply Mem.perm_implies; [apply PX, Hr0|constructor]. }
+  { exact PO. }
+  exists mi, mx, bytes. split; [exact HInit|]. split; [exact HB|]. split; [exact HS|].
+  split; [|split; [exact HL|split; [exact HP|exact HV]]].
+  split; [exact HOut|]. split; [exact HCnt|]. split; [exact HOvf|].
+  split; [intros i Hi; cbn in Hi; lia|].
+  split.
+  { intros i Hi. split.
+    - apply (jet_sha_add_n_calls.u32_nth mx bo obase sha256_iv_words HArr). exact Hi.
+    - split.
+      + intros ofs Hr0. change (size_chunk Mint32) with 4 in Hr0. apply HP, PO. lia.
+      + change (align_chunk Mint32) with 4. apply Z.divide_add_r; [exact HoA|exists (Z.of_nat i); lia]. }
+  split; [reflexivity|]. split; [cbn; lia|]. split; [reflexivity|].
+  split; [intros ofs Hr0; apply HP, PX, Hr0|].
+  split.
+  - unfold sha_dispatch_ok. rewrite HL; [exact Hdisp|exact VG|exact Hgr|exact Hgx|left; exact Hgo].
+  - rewrite HL; [exact HMax|exact VM|exact Hcr|exact Hcx|left; exact Hco].
+Qed.
+End Ctxo.
