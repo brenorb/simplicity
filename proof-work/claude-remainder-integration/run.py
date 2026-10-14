@@ -58,6 +58,11 @@ GROUPS = {
 }
 NS = {'JetStartup': 'Coq/startup/proofs', 'JetForward': 'Coq/forward/proofs',
       'BitcoinEnvStartup': 'Coq/bitcoin-env/startup', 'ElementsStartup': 'Coq/elements-sha/startup'}
+GENERATORS = ['check-elements-generated', 'check-elements-prim-port',
+              'gen-elements-current-ptr-jets', 'gen-elements-indexed-gen',
+              'gen-elements-input-hash-jets', 'gen-elements-pegin-jet',
+              'port-bitcoin-count-to-elements', 'port-bitcoin-timelock-to-elements',
+              'port-bitcoin-to-elements']
 
 
 @lru_cache(maxsize=None)
@@ -505,18 +510,94 @@ def install(work):
                       'normal_registration': False, 'coverage_added': 0}, indent=2))
 
 
+def generation():
+    preservation()
+    work = Path(tempfile.mkdtemp(prefix='jet-remainder-generation.', dir='/tmp')).resolve()
+    (work / 'Haskell').symlink_to(REPO / 'Haskell', target_is_directory=True)
+    (work / 'C').symlink_to(REPO / 'C', target_is_directory=True)
+    paths = ['Coq/C/' + n + '.py' for n in GENERATORS]
+    # These are generator inputs/output references, not an extra proof
+    # closure. No Coq compiler is run and no main source is written.
+    paths += [p for p in PATHS if p.startswith(('Coq/C/jet_bitcoin_', 'Coq/C/jet_elements_')) and p.endswith('.v')]
+    changes, hashes = {}, {}
+    for path in paths:
+        raw = blob(path)
+        if path.endswith('.v'):
+            safe_source(raw.decode(), path)
+        local = REPO / path
+        if local.exists() and local.read_bytes() != raw:
+            raise ValueError('current generator input/reference differs from frozen source: ' + path)
+        changes[work / path] = raw.decode()
+        hashes[path] = sha(raw)
+    changed(changes)
+    evidence = run(work, [sys.executable, '-B', 'C/check-elements-generated.py'], 'generation', 120)
+    log = (work / 'generation.log').read_text()
+    if ('31 constructors, types, names and prefix' not in log
+            or '32 exact ports, 17 generated' not in log):
+        raise ValueError('incomplete generation check')
+    receipt = {'source_commit': COMMIT, 'candidate': str(work), 'kind': 'generation-only; not a proof audit',
+               'inputs': hashes, 'generation': evidence, 'normal_registration': False, 'coverage_added': 0,
+               'canonical_source_review': 'signature only; primitive semantic clauses not checked'}
+    changed({HERE / 'generation/REVIEW.json': json.dumps(receipt, indent=2) + '\n'})
+    print('Elements generation checks passed: 32 exact ports, 17 generated; signature only')
+
+
+def review_generation():
+    preservation()
+    receipt = json.loads((HERE / 'generation/REVIEW.json').read_text())
+    work = Path(receipt['candidate'])
+    if (receipt['source_commit'] != COMMIT or receipt['kind'] != 'generation-only; not a proof audit'
+            or receipt['normal_registration'] is not False or receipt['coverage_added'] != 0
+            or receipt['canonical_source_review'] != 'signature only; primitive semantic clauses not checked'
+            or receipt['generation']['exit_code'] != 0
+            or receipt['generation']['command'] != [sys.executable, '-B', 'C/check-elements-generated.py']
+            or receipt['generation']['log_sha256'] != sha((work / 'generation.log').read_bytes())):
+        raise ValueError('generation receipt drift')
+    expected = {'Coq/C/' + n + '.py' for n in GENERATORS} | {
+        p for p in PATHS if p.startswith(('Coq/C/jet_bitcoin_', 'Coq/C/jet_elements_')) and p.endswith('.v')}
+    if set(receipt['inputs']) != expected:
+        raise ValueError('generation input/reference inventory drift')
+    for path, digest in receipt['inputs'].items():
+        if sha((work / path).read_bytes()) != digest or (work / path).read_bytes() != blob(path):
+            raise ValueError('generation input/reference drift')
+        if (REPO / path).exists() and (REPO / path).read_bytes() != blob(path):
+            raise ValueError('current generation input/reference drift')
+    return receipt
+
+
+def install_generation():
+    receipt = review_generation()
+    paths = ['Coq/C/' + n + '.py' for n in GENERATORS]
+    changes = {REPO / p: blob(p).decode() for p in paths}
+    changes[HERE / 'generation/INSTALLATION.json'] = json.dumps({
+        'source_commit': COMMIT, 'group': 'generation',
+        'sources': {p: sha(blob(p)) for p in paths},
+        'new_paths': sorted(p for p in paths if not (REPO / p).exists()),
+        'normal_registration': False, 'coverage_added': 0,
+    }, indent=2) + '\n'
+    changed(changes)
+    preservation()
+    print('Installed nine checked Elements maintenance tools; no semantic admission')
+
+
 if __name__ == '__main__':
     cli = argparse.ArgumentParser()
-    cli.add_argument('mode', choices=['prepare', 'check', 'freeze-baseline', 'seal', 'review', 'archive', 'install', 'post-check'])
+    cli.add_argument('mode', choices=['prepare', 'check', 'freeze-baseline', 'seal', 'review', 'archive', 'install', 'post-check', 'generation', 'install-generation'])
     cli.add_argument('--group', choices=GROUPS)
     cli.add_argument('--candidate', type=Path)
     args = cli.parse_args()
-    if args.mode == 'freeze-baseline':
+    if args.mode == 'generation':
+        generation()
+    elif args.mode == 'install-generation':
+        install_generation()
+    elif args.mode == 'freeze-baseline':
         freeze_baseline()
     elif args.mode == 'post-check':
         preservation()
         for path in HERE.glob('*/ASSEMBLY.json'):
             review(Path(json.loads(path.read_text())['candidate']))
+        if (HERE / 'generation/REVIEW.json').exists():
+            review_generation()
         print('Installed sources, audit artifacts and preexisting inputs preserved')
     elif args.mode == 'prepare':
         prepare(args.group)
