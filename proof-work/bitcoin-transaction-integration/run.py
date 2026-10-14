@@ -6,6 +6,7 @@ Source installation uses apply_patch and never changes the normal registry.
 """
 import argparse
 import contextlib
+import copy
 import importlib.util
 import io
 import json
@@ -65,7 +66,11 @@ def correct_inventory(meta):
 
 
 def prepare():
-    old_post.check()
+    if (HERE / 'ASSEMBLY.json').exists():
+        previous = Path(json.loads((HERE / 'ASSEMBLY.json').read_text())['candidate'])
+        preservation(previous, installed=True)
+    else:
+        old_post.check()
     prior = json.loads((BASE / 'REVIEW.json').read_text())
     prior_work = Path(prior['candidate'])
     with contextlib.redirect_stdout(io.StringIO()) as out:
@@ -133,6 +138,10 @@ def review(work):
     result, files = gate.review(work)
     meta = json.loads((work / 'ASSEMBLY.json').read_text())
     receipt = json.loads((work / 'REVIEW.json').read_text())
+    expected = copy.deepcopy(meta)
+    correct_inventory(expected)
+    if expected['modules'] != meta['modules']:
+        raise ValueError('exported declaration inventory drift')
     if meta['roots'] != stage.ROOTS or receipt['explicit_boundaries'] != BOUNDARIES:
         raise ValueError('transaction scope drift')
     for path, value in receipt['evidence_sha256'].items():
