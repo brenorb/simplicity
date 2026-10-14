@@ -61,3 +61,13 @@ python3 -B proof-work/claude-remainder-integration/run.py post-check
   No goal-completion claim follows from these support additions.
 
 Batch completion and exclusions are recorded separately in `STATUS.md`.
+
+## Maintenance generators
+
+The separate `generation` mode checks 32 exact text ports and 17 generated
+modules, plus the 31-constructor primitive signature, in a copied tree with
+temporary outputs. `install-generation` adds only the nine generators and
+checkers, after validating their input/reference hashes and terminal result.
+This is generation provenance, **not** a semantic-equivalence or kernel proof
+audit. `post-check` validates this receipt as well. The live registries' older
+executability generators are not imported as current-registry evidence.
