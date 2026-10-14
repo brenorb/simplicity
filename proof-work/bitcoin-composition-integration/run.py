@@ -61,6 +61,18 @@ current.BOUNDARIES = [
 ]
 original_review = current.review
 original_run = current.gate.audit.run
+original_patch = current.stage.patch.patch_files
+
+
+def patch_changed(changes):
+    # apply_patch rejects an empty patch; the shared helper compares split lines.
+    actual = {path: text for path, text in changes.items()
+              if not path.exists() or path.read_text().splitlines() != text.splitlines()}
+    if actual:
+        original_patch(actual)
+
+
+current.stage.patch.patch_files = patch_changed
 
 
 def audit_run(work, command, stem, timeout):
