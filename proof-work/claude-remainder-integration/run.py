@@ -378,6 +378,14 @@ def review(work, seal=False):
         proof = receipt[stem]
         if proof['exit_code'] != 0 or proof['command'] != command or proof['log_sha256'] != sha((work / (stem + '.log')).read_bytes()):
             raise ValueError('command/terminal evidence drift: ' + stem)
+    if 'integration_corruption_tests' in receipt:
+        proof = receipt['integration_corruption_tests']
+        command = [sys.executable, '-B', str(HERE / 'test-review.py'), str(work)]
+        if (proof['exit_code'] != 0 or proof['command'] != command
+                or proof['log_sha256'] != sha((work / 'review-fixtures.log').read_bytes())
+                or (work / 'review-fixtures.log').read_text().strip() !=
+                'Remainder corruption fixtures passed: 13; lexical fixtures passed: 6'):
+            raise ValueError('review corruption-test evidence drift')
     kernel.kernel((work / 'kernel.log').read_text(), sorted((REPO / 'Coq/C/jet_coqchk_axioms.expected').read_text().split()))
     for relative, digest in receipt['evidence_sha256'].items():
         path = work / relative
@@ -460,7 +468,20 @@ def review(work, seal=False):
     return meta, receipt, additions
 
 
+def archive(work):
+    meta, receipt, _ = review(work)
+    if 'integration_corruption_tests' not in receipt:
+        receipt['integration_corruption_tests'] = run(work,
+            [sys.executable, '-B', str(HERE / 'test-review.py'), str(work)], 'review-fixtures', 180)
+        changed({work / 'REVIEW.json': json.dumps(receipt, indent=2) + '\n'})
+    review(work)
+    changed({HERE / meta['group'] / name: (work / name).read_text()
+             for name in ['ASSEMBLY.json', 'REVIEW.json']})
+    print('Completed review archived: ' + meta['group'])
+
+
 def install(work):
+    archive(work)
     meta, receipt, additions = review(work)
     group_dir = HERE / meta['group']
     sources = {p: sha(s.encode()) for p, s in additions.items()}
@@ -486,7 +507,7 @@ def install(work):
 
 if __name__ == '__main__':
     cli = argparse.ArgumentParser()
-    cli.add_argument('mode', choices=['prepare', 'check', 'freeze-baseline', 'seal', 'review', 'install', 'post-check'])
+    cli.add_argument('mode', choices=['prepare', 'check', 'freeze-baseline', 'seal', 'review', 'archive', 'install', 'post-check'])
     cli.add_argument('--group', choices=GROUPS)
     cli.add_argument('--candidate', type=Path)
     args = cli.parse_args()
@@ -504,5 +525,7 @@ if __name__ == '__main__':
     elif args.mode in ['review', 'seal']:
         meta, receipt, additions = review(args.candidate.resolve(), seal=args.mode == 'seal')
         print(json.dumps({'group': meta['group'], 'sources': sorted(additions)}, indent=2))
+    elif args.mode == 'archive':
+        archive(args.candidate.resolve())
     else:
         install(args.candidate.resolve())
