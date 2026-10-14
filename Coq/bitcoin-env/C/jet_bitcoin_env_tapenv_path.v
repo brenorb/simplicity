@@ -1,0 +1,207 @@
+(** [simplicity_bitcoin_mallocTapEnv], fifth part: the tap-path hash
+      { sha256_context ctx = sha256_init(env->tappathHash.s);
+        for (...) { ... }  sha256_finalize(&ctx); }
+    The loop is [te_loop_exec]; this module adds the initialisation and the
+    finalisation and states what the allocated block holds afterwards. *)
+From Coq Require Import ZArith List Lia PeanoNat.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_uint32_array_init C.jet_sha256_iv_init.
+Require C.jets.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_add_n_init C.jet_sha_be32_exec C.jet_sha_ctx8_model.
+Require Import C.jet_sha_block_local C.jet_sha_block_local C.jet_bitmachine_rep C.jet_sha_be32_write C.jet_sha_uchars_prep C.jet_sha_uchars_exec C.jet_sha_add_n_calls.
+Require Import C.jet_sha_hash_exec C.jet_sha_finalize_exec C.jet_sha_tapdata_prep C.jet_sha_ctx_abs.
+Require Import C.jet_env_store_words C.jet_bitcoin_env_field_eval C.jet_bitcoin_env_tomidstate C.jet_bitcoin_env_ctxo.
+Require Import C.jet_bitcoin_env_tapenv_prelude C.jet_bitcoin_env_tapenv_key C.jet_bitcoin_env_tapenv_fill.
+Require Import C.jet_bitcoin_env_tapenv_cmr C.jet_bitcoin_env_tapenv_loop.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 300.
+
+Definition te_rest5 : statement :=
+  ltac:(let b := eval cbv delta [te_rest4] in te_rest4 in
+        let r := drop_seq 1%nat b in exact r).
+
+Lemma te_loop_shape : exists init copy fin,
+  te_p5 = Ssequence (Ssequence init copy)
+            (Ssequence (Ssequence (Sset _i (Econst_int (Int.repr 0) tint)) (Sloop te_loop_s1 te_loop_s2)) fin).
+Proof. do 3 eexists. reflexivity. Qed.
+
+Local Opaque sha_ge.
+
+Lemma te_call_init e le m m' (idres : ident) (a2 : expr) br bo oo :
+  e!_sha256_init = None -> e!idres = Some (br, CTX) ->
+  eval_expr sha_ge e le m a2 (Vptr bo oo) -> typeof a2 = tarray tuint 8 ->
+  Clight2.eval_funcall sha_ge m (Internal jets.f_sha256_init) [Vptr br Ptrofs.zero; Vptr bo oo] E0 m' Vundef ->
+  Clight2.exec_stmt sha_ge e le m
+    (Scall None (Evar _sha256_init
+       (Tfunction (Tcons CTXP (Tcons (tptr tuint) Tnil)) tvoid
+          {| cc_vararg := None; cc_unproto := false; cc_structret := true |}))
+       [Eaddrof (Evar idres CTX) CTXP; a2]) E0 le m' Out_normal.
+Proof.
+  intros He Hr H2 T2 HC. change le with (set_opttemp None Vundef le) at 2.
+  eapply exec_Scall with (vf := Vptr (sha_symbol_block _sha256_init) Ptrofs.zero)
+    (vargs := [Vptr br Ptrofs.zero; Vptr bo oo]) (f := Internal jets.f_sha256_init).
+  - reflexivity.
+  - eapply eval_Elvalue; [apply eval_Evar_global; [exact He|exact tap_init_symbol]|].
+    apply deref_loc_reference; reflexivity.
+  - eapply eval_Econs; [eapply eval_Eaddrof; apply eval_Evar_local; exact Hr|reflexivity|].
+    eapply eval_Econs; [exact H2|rewrite T2; reflexivity|apply eval_Enil].
+  - exact tap_init_funct.
+  - reflexivity.
+  - exact HC.
+Qed.
+
+Lemma te_call_finalize e le m m' (id : ident) bx vr :
+  e!_sha256_finalize = None -> e!id = Some (bx, CTX) ->
+  Clight2.eval_funcall sha_ge m (Internal f_sha256_finalize) [Vptr bx (Ptrofs.repr 0)] E0 m' vr ->
+  Clight2.exec_stmt sha_ge e le m
+    (Scall None (Evar _sha256_finalize (Tfunction (Tcons CTXP Tnil) tbool cc_default))
+       [Eaddrof (Evar id CTX) CTXP]) E0 le m' Out_normal.
+Proof.
+  intros He Hx HC. change le with (set_opttemp None vr le) at 2.
+  eapply exec_Scall with (vf := Vptr (sha_symbol_block _sha256_finalize) Ptrofs.zero)
+    (vargs := [Vptr bx Ptrofs.zero]) (f := Internal f_sha256_finalize).
+  - reflexivity.
+  - eapply eval_Elvalue; [apply eval_Evar_global; [exact He|exact sha_finalize_symbol]|].
+    apply deref_loc_reference; reflexivity.
+  - eapply eval_Econs; [eapply eval_Eaddrof; apply eval_Evar_local; exact Hx|reflexivity|apply eval_Enil].
+  - exact sha_finalize_funct.
+  - reflexivity.
+  - exact HC.
+Qed.
+
+(** The SHA-256 state written to [env->tappathHash]. *)
+Definition te_tappath_regs (pb : nat -> list int) (n : nat) : list int :=
+  snd (absorb_i (fst (te_st pb n)) (snd (te_st pb n)) (sha_pad (Int64.repr (32 * Z.of_nat n)))).
+
+Section Path.
+Variable Hmodel : memcpy_model.
+Variables (e : env) (bC bR2 bA braw bcb : block) (oraw : Z) (ocb : ptrofs) (nb : int) (pb : nat -> list int).
+Hypothesis HeT : e!_sha256_toMidstate = None.
+Hypothesis HeH : e!_sha256_hash = None.
+Hypothesis HeI : e!_sha256_init = None.
+Hypothesis HeF : e!_sha256_finalize = None.
+Hypothesis HeCtx : e!_ctx = Some (bC, CTX).
+Hypothesis HeR2 : e!__res__2 = Some (bR2, CTX).
+Hypothesis NAC : bA <> bC.
+Hypothesis NGC : GC <> bC.
+Hypothesis NGA : GC <> bA.
+Hypothesis NMC : GM <> bC.
+Hypothesis NMA : GM <> bA.
+Hypothesis NAcb : bA <> bcb.
+Hypothesis NrC : braw <> bC.
+Hypothesis NrA : braw <> bA.
+Hypothesis NcC : bcb <> bC.
+Hypothesis NRA : bR2 <> bA.
+Hypothesis NRC : bR2 <> bC.
+Hypothesis NGR : GC <> bR2.
+Hypothesis NMR : GM <> bR2.
+Hypothesis NrR : braw <> bR2.
+Hypothesis NcR : bcb <> bR2.
+Hypothesis Horaw : 0 <= oraw /\ oraw + 24 <= Ptrofs.max_unsigned.
+Hypothesis HN : 0 <= Int.unsigned nb <= 128.
+
+Let rawv := Vptr braw (Ptrofs.repr oraw).
+Let N := Int.unsigned nb.
+Let Nn := Z.to_nat N.
+
+Theorem te_path le4 m :
+  te_le2 le4 rawv N bA ->
+  Mem.load Mptr m braw oraw = Some (Vptr bcb ocb) ->
+  Ptrofs.unsigned ocb + 33 + 32 * N <= Ptrofs.max_unsigned ->
+  (forall j i, (j < Nn)%nat -> (i < 32)%nat ->
+     Mem.load Mint8unsigned m bcb (Ptrofs.unsigned ocb + 33 + 32 * Z.of_nat j + Z.of_nat i) =
+       Some (Vint (nth i (pb j) Int.zero))) ->
+  Mem.load Mint8unsigned m bA 168 = Some (Vint nb) ->
+  Mem.valid_block m bcb ->
+  Mem.range_perm m bA 0 (176 + 32 * N) Cur Writable ->
+  Mem.range_perm m bC 0 88 Cur Freeable -> Mem.range_perm m bR2 0 88 Cur Freeable ->
+  sha_dispatch_ok m -> Mem.load Mint64 m GM 0 = Some (Vlong sha_max_counter) ->
+  exists m' le5,
+    (forall i, (i < 8)%nat ->
+       Mem.load Mint32 m' bA (40 + 4 * Z.of_nat i) = Some (Vint (nth i (te_tappath_regs pb Nn) Int.zero))) /\
+    (forall j i, (j < Nn)%nat -> (i < 8)%nat ->
+       Mem.load Mint32 m' bA (176 + 32 * Z.of_nat j + 4 * Z.of_nat i) =
+         Some (Vint (nth i (tm_words (pb j)) Int.zero))) /\
+    (forall ch b ofs, Mem.valid_block m b -> b <> bC -> b <> bR2 ->
+       (b <> bA \/ ofs + size_chunk ch <= 40 \/ (72 <= ofs /\ ofs + size_chunk ch <= 176)) ->
+       Mem.load ch m' b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm m' b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block m' b) /\
+    te_le2 le5 rawv N bA /\
+    (forall t le' mf out,
+       Clight2.exec_stmt sha_ge e le5 m' te_rest5 t le' mf out ->
+       Clight2.exec_stmt sha_ge e le4 m te_rest4 t le' mf out).
+Proof.
+  intros (HlRaw & HlEnv & HlPath) HCb Hocb HPb HPl Vcb PA PC PR Hdisp HMax.
+  pose proof HN as HN'. fold N in HN'.
+  assert (VG : Mem.valid_block m GC) by (eapply load_valid_block; exact Hdisp).
+  assert (VM : Mem.valid_block m GM) by (eapply load_valid_block; exact HMax).
+  assert (Vraw : Mem.valid_block m braw) by (eapply load_valid_block; exact HCb).
+  assert (VA : Mem.valid_block m bA) by (eapply load_valid_block; exact HPl).
+  assert (Hob40 : 0 <= 40 /\ 40 + 32 <= Ptrofs.max_unsigned)
+    by (change Ptrofs.max_unsigned with 18446744073709551615; lia).
+  destruct (ctxo_init bC bA 40 NAC NGC NGA NMC NMA Hob40 m bR2 NRA NRC ltac:(exists 10; reflexivity)
+    VG VM NGR NMR PR PC ltac:(intros o Ho; apply PA; lia) Hdisp HMax)
+    as (mi & mx & bytes & HInit & HLB & HSB & HC0 & HLx & HPx & HVx).
+  assert (Kx : forall ch b ofs, Mem.valid_block m b -> b <> bC -> b <> bR2 ->
+    (b <> bA \/ ofs + size_chunk ch <= 40 \/ 72 <= ofs) -> Mem.load ch mx b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs Hb H1 H2 Hr. apply HLx; assumption. }
+  set (le0 := PTree.set _i (Vint (Int.repr 0)) le4).
+  assert (HI0 : te_inv bC bA braw oraw nb pb mx 0 le0 mx).
+  { unfold te_inv, le0. split; [apply PTree.gss|]. rewrite !PTree.gso by discriminate.
+    split; [exact HlEnv|]. split; [exact HlPath|]. split; [exact HlRaw|].
+    split; [exists false; exact HC0|]. split; [intros j i Hj; lia|].
+    split; [reflexivity|]. split; auto. }
+  (* the loop *)
+  destruct (te_loop_exec Hmodel e bC bA braw bcb oraw ocb nb pb mx HeT HeH HeCtx NAC NGC NGA NMC NMA
+    NAcb NrC NrA NcC Horaw HN) with (d := Nn) (k := 0%nat) (le := le0) (m := mx)
+    as (le1 & m1 & HI1 & HLoop).
+  { rewrite Kx; [exact HCb|exact Vraw|exact NrC|exact NrR|left; exact NrA]. }
+  { exact Hocb. }
+  { intros j i Hj Hi.
+    rewrite Kx; [apply HPb; assumption|exact Vcb|exact NcC|exact NcR|left; congruence]. }
+  { rewrite Kx; [exact HPl|exact VA|exact NAC|congruence|right; right; lia]. }
+  { intros o Ho. apply HPx, PA, Ho. }
+  { apply HVx, Vraw. }
+  { apply HVx, Vcb. }
+  { apply HVx, VA. }
+  { reflexivity. }
+  { exact HI0. }
+  destruct HI1 as (Hi1 & Henv1 & Hpath1 & Hraw1 & (ovf & HC1) & HP1 & HF1 & HPm1 & HV1).
+  (* sha256_finalize(&ctx) *)
+  destruct (ctxo_finalize bC bA 40 NAC NGC NGA NMC NMA Hob40 Hmodel m1 _ _ _ _ HC1)
+    as (m2 & HFin & HReg & HL2 & HP2 & HV2).
+  exists m2, le1.
+  split; [intros i Hi; apply HReg; exact Hi|].
+  split.
+  { intros j i Hj Hi. rewrite HL2; [apply HP1; assumption|apply HV1, HVx, VA|exact NAC|right; right; lia]. }
+  split.
+  { intros ch b ofs Hb H1 H2 Hr.
+    rewrite HL2; [|apply HV1, HVx, Hb|exact H1|destruct Hr as [Hr|[Hr|Hr]]; [left; exact Hr|right; left; exact Hr|right; right; lia]].
+    rewrite HF1; [|apply HVx, Hb|exact H1|exact Hr].
+    apply Kx; [exact Hb|exact H1|exact H2|destruct Hr as [Hr|[Hr|Hr]]; [left; exact Hr|right; left; exact Hr|right; right; lia]]. }
+  split.
+  { intros b ofs k p Hp. apply HP2; [eapply Mem.perm_valid_block; apply HPm1, HPx, Hp|apply HPm1, HPx, Hp]. }
+  split; [intros b Hb; apply HV2, HV1, HVx, Hb|].
+  split; [repeat split; assumption|].
+  intros t le' mf out HRest.
+  change te_rest4 with (Ssequence te_p5 te_rest5).
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := t) (le1 := le1) (m1 := m2); [|exact HRest].
+  cbv delta [te_p5] beta iota.
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le4) (m1 := mx).
+  { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le4) (m1 := mi).
+    - eapply te_call_init with (br := bR2) (bo := bA) (oo := Ptrofs.repr 40);
+        [exact HeI|exact HeR2| |reflexivity|exact HInit].
+      pose proof (ev_env_mid_s e le4 m bA _tappathHash 40 HlEnv envu_bitcoinTapEnv_tappathHash) as HE.
+      rewrite Ptrofs.add_zero_l in HE. exact HE.
+    - eapply (exec_ctx_struct_copy e le4 mi mx _ctx __res__2 bC bR2 bytes);
+        [exact HeCtx|exact HeR2|congruence|exact HLB|exact HSB]. }
+  eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le1) (m1 := m1).
+  { eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (le1 := le0) (m1 := mx).
+    - apply exec_Sset. apply eval_Econst_int.
+    - exact HLoop. }
+  eapply te_call_finalize; [exact HeF|exact HeCtx|exact HFin].
+Qed.
+End Path.

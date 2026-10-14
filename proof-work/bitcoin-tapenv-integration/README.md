@@ -36,3 +36,10 @@ Invalid/null raw arguments and excessive paths are not claimed by this result.
 The environment AST also contains transaction/build_txEnv functions, but this
 batch does not claim their proofs. Actual transaction builders, whole txEnv
 composition, frees and evaluator integration remain subsequent batches.
+
+After import, `post-check.py` verifies all caller source/object/report hashes,
+the terminal getter receipt, the unchanged staged patch and the prior complete
+input fingerprint with only these exact checked additions excluded. It does
+not alter the normal verifier or claim a new whole-worktree acceptance run.
+`test-post-check.py` rejects three in-memory source/production/registry changes.
+Replay this supporting audit with `stage.py`, then `check.py --candidate DIR`.
