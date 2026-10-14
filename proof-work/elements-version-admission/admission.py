@@ -32,6 +32,8 @@ normal = load('version_admission_records', HERE.parent / 'scalar-multiply-integr
 nullable = load('version_dependency_records', HERE.parent / 'nullable-admission/review.py')
 FILES = patch.FILES
 COVERAGE = 'simplicity_version C.jet_elements_version_local elements_version_local_spec\n'
+NEW_RESULTS, NEW_DEFINITIONS, COVERAGE_ADDED = 34, 3, 1
+KERNEL_ROOTS = ['C.jet_elements_version_local']
 ENV = dict(os.environ, PATH='/nix/store/57myhb98wx8k9dr21cf51bsmvxjs67h6-coq-8.17.1/bin:' + os.environ['PATH'],
            PYTHONDONTWRITEBYTECODE='1')
 
@@ -147,7 +149,7 @@ def prepare(candidate):
 def kernel(candidate):
     provenance()
     # coqchk prints its successful context summary on stderr, unlike coqc.
-    command = ['bash', 'build-jets.sh', '--coqchk', '-silent', '-o', 'C.jet_elements_version_local']
+    command = ['bash', 'build-jets.sh', '--coqchk', '-silent', '-o'] + KERNEL_ROOTS
     with (candidate / 'new_kernel.log').open('wb') as log:
         done = subprocess.run(command, cwd=candidate / 'Coq', env=ENV, stdout=log, stderr=subprocess.STDOUT, timeout=1800)
     patch.patch_files({candidate / 'KERNEL.json': json.dumps({'exit_code': done.returncode,
@@ -189,7 +191,8 @@ def review(candidate):
     if [(k, t) for k, t in new if k in old_keys] != old:
         raise ValueError('inherited contract bytes/order changed')
     added = [(k, t) for k, t in new if k not in old_keys]
-    if len(added) != 37 or len(r1) - len(r0) != 34 or len(d1) - len(d0) != 3:
+    if (len(added) != NEW_RESULTS + NEW_DEFINITIONS or len(r1) - len(r0) != NEW_RESULTS
+            or len(d1) - len(d0) != NEW_DEFINITIONS):
         raise ValueError('unexpected Version result/definition inventory')
     report = (candidate / 'new_contracts.out').read_text()
     marks = list(re.finditer(r'(?m)^VERSION_DEEP_(TYPE|DEF) (\S+)\n', report))
@@ -225,7 +228,7 @@ def review(candidate):
         raise ValueError('kernel exit/log evidence drift')
     load('version_review_kernel', HERE.parent / 'scalar-mul/review.py').kernel(
         (candidate / 'new_kernel.log').read_text(), sorted((MAIN / 'C/jet_coqchk_axioms.expected').read_text().split()))
-    return {'candidate': str(candidate), 'new_results': 34, 'new_definitions': 3, 'coverage_added': 1,
+    return {'candidate': str(candidate), 'new_results': NEW_RESULTS, 'new_definitions': NEW_DEFINITIONS, 'coverage_added': COVERAGE_ADDED,
             'inherited_contract_records_byte_identical': len(old), 'inherited_dependencies_unchanged': len(dep0),
             'fresh_closure_kernel_checked': True, 'deep_new_records_checked': True,
             'snapshots_sha256': {n: patch.sha((coq / n).read_bytes()) for n in FILES},
