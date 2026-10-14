@@ -27,8 +27,7 @@ the preceding driver's patch helper. Commands:
 python3 -B proof-work/linked-repair/run.py freeze
 python3 -B proof-work/linked-repair/run.py prepare core  # also sha, bitcoin
 python3 -B proof-work/linked-repair/run.py audit /absolute/candidate
-python3 -B proof-work/linked-repair/test-review.py /absolute/candidate
-python3 -B proof-work/linked-repair/run.py install /absolute/candidate
+python3 -B proof-work/linked-repair/finish-batch.py /absolute/candidate
 python3 -B proof-work/linked-repair/run.py post-check
 ```
 
