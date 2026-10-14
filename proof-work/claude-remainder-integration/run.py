@@ -122,8 +122,19 @@ def preservation():
     return baseline
 
 
+def roots_for(group, baseline):
+    if group != 'normal':
+        return GROUPS[group]['roots']
+    roots = ['C.' + Path(p).stem for p in PATHS if p.startswith('Coq/C/') and p.endswith('.v')
+             and p not in baseline['inputs'] and Path(p).stem not in ['jets_elements_env', 'jet_frame_constructible_secp']]
+    roots += ['JetForward.' + Path(p).stem for p in PATHS if p.startswith('Coq/forward/proofs/') and p.endswith('.v')]
+    return roots
+
+
 def prepare(group):
     config = GROUPS[group]
+    baseline = preservation() if (HERE / 'BASELINE.json').exists() else None
+    roots = roots_for(group, baseline) if baseline else config['roots']
     work = Path(tempfile.mkdtemp(prefix='jet-remainder-' + group + '.', dir='/tmp')).resolve()
     coq = work / 'Coq'
     shutil.copytree(REPO / 'Coq/Simplicity', coq / 'Simplicity')
@@ -165,13 +176,13 @@ def prepare(group):
         affected[logical] = bool(config['program']) and (logical == 'C.jets_sha' or any(affected[d] for d in deps))
         entries.append({'logical': logical, 'origin': origin, 'relative': relative, 'sha256': sha(raw),
                         'dependencies': deps, 'affected': affected[logical],
-                        'new': not local.exists(),
+                        'new': (origin not in baseline['inputs'] and ns != 'JetStartupReview') if baseline else not local.exists(),
                         'results': re.findall(r"^(?:Theorem|Lemma|Corollary|Fact)\s+([\w']+)", code, re.M),
                         'definitions': re.findall(r"^(?:Definition|Fixpoint|CoFixpoint|Inductive|Record)\s+([\w']+)", code, re.M)})
         order.append(relative)
         seen.add(logical)
         visiting.remove(logical)
-    for root in config['roots']:
+    for root in roots:
         visit(root)
     # Keep program provenance/regeneration inputs at their original paths.
     extra = [p for p in PATHS if p.startswith('Coq/C/') and p.endswith(('.c', '.sh', '.py'))]
@@ -186,8 +197,8 @@ def prepare(group):
     namespaces = sorted({e['logical'].rsplit('.', 1)[0] for e in entries})
     project = '-Q Simplicity Simplicity\n' + ''.join('-Q ' + n + ' ' + n + '\n' for n in namespaces)
     project += '\n'.join([str(p.relative_to(coq)) for p in sorted((coq / 'Simplicity').rglob('*.v'))] + order) + '\n'
-    meta = {'group': group, 'candidate': str(work), 'source_commit': COMMIT, 'roots': config['roots'],
-            'modules': entries, 'baseline_input_sha256': inputs.fingerprint(REPO / 'Coq', REPO),
+    meta = {'group': group, 'candidate': str(work), 'source_commit': COMMIT, 'roots': roots,
+            'modules': entries, 'baseline_input_sha256': baseline['input_sha256'] if baseline else inputs.fingerprint(REPO / 'Coq', REPO),
             'staged_patch_sha256': index_hash(), 'normal_registration': False, 'coverage_added': 0}
     sources[coq / '_CoqProject.jets'] = project
     sources[work / 'ASSEMBLY.json'] = json.dumps(meta, indent=2) + '\n'
@@ -325,11 +336,7 @@ def review(work, seal=False):
             or meta['staged_patch_sha256'] != baseline['staged_patch_sha256']):
         raise ValueError('audit baseline mismatch')
     config = GROUPS[meta['group']]
-    roots = config['roots']
-    if meta['group'] == 'normal':
-        roots = ['C.' + Path(p).stem for p in PATHS if p.startswith('Coq/C/') and p.endswith('.v')
-                 and p not in baseline['inputs'] and Path(p).stem not in ['jets_elements_env', 'jet_frame_constructible_secp']]
-        roots += ['JetForward.' + Path(p).stem for p in PATHS if p.startswith('Coq/forward/proofs/') and p.endswith('.v')]
+    roots = roots_for(meta['group'], baseline)
     if meta['roots'] != roots:
         raise ValueError('recursive kernel root scope drift')
     by_name = {e['logical']: e for e in meta['modules']}
@@ -457,6 +464,7 @@ def install(work):
     meta, receipt, additions = review(work)
     group_dir = HERE / meta['group']
     sources = {p: sha(s.encode()) for p, s in additions.items()}
+    new_paths = sorted(p for p in additions if not (REPO / p).exists())
     for origin, source in additions.items():
         target = REPO / origin
         if target.exists() and target.read_text() != source:
@@ -465,14 +473,14 @@ def install(work):
     for name in ['ASSEMBLY.json', 'REVIEW.json']:
         changes[group_dir / name] = (work / name).read_text()
     changes[group_dir / 'INSTALLATION.json'] = json.dumps({
-        'source_commit': COMMIT, 'group': meta['group'], 'sources': sources,
+        'source_commit': COMMIT, 'group': meta['group'], 'sources': sources, 'new_paths': new_paths,
         'review_sha256': sha((work / 'REVIEW.json').read_bytes()),
         'current_whole_worktree_full_acceptance': False,
         'normal_registration': False, 'coverage_added': 0,
     }, indent=2) + '\n'
     changed(changes)
     preservation()
-    print(json.dumps({'group': meta['group'], 'installed_sources': len(sources),
+    print(json.dumps({'group': meta['group'], 'verified_sources': len(sources), 'new_files_added': len(new_paths),
                       'normal_registration': False, 'coverage_added': 0}, indent=2))
 
 
