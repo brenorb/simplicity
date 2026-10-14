@@ -1,0 +1,54 @@
+(** [secp256k1_fe_normalize_var] computes the canonical limbs of its
+    argument modulo the field prime. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_sx_exec C.jet_sx_pure.
+Require Import C.jet_sx_zval C.jet_sx_rep C.jet_sx_zrep.
+Require Import C.jets_secp C.jet_secp_linkage C.jet_secp_fns C.jet_secp_fe_math.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+(** A field element in memory: five 64-bit limbs. *)
+Definition fe_at (m : mem) (b : block) (ofs : Z) (l : list int64) : Prop :=
+  0 <= ofs /\ (8 | ofs) /\ ofs + 40 <= Ptrofs.max_unsigned /\
+  Mem.range_perm m b ofs (ofs + 40) Cur Writable /\
+  forall i x, nth_error l i = Some x -> Mem.load Mint64 m b (ofs + 8 * Z.of_nat i) = Some (Vlong x).
+
+Definition fe_reg (xs : list sx) : region := mkreg (u64_cells 0 xs) true None.
+Definition vars5 (n : nat) : list sx := [XLv n; XLv (n + 1); XLv (n + 2); XLv (n + 3); XLv (n + 4)].
+Definition rho5 (t0 t1 t2 t3 t4 : int64) (n : nat) : int64 := nth n [t0; t1; t2; t3; t4] Int64.zero.
+
+Lemma fe_at_rep m b ofs t0 t1 t2 t3 t4 :
+  fe_at m b ofs [t0; t1; t2; t3; t4] ->
+  rep (rho5 t0 t1 t2 t3 t4) [(b, ofs)] [fe_reg (vars5 0)] m.
+Proof.
+  intros (H0 & Hal & Hmax & Hperm & Hl).
+  apply (rep_add _ [] [] m b ofs); [apply rep_nil|simpl; tauto|].
+  apply region_u64; unfold blk, bas, lay; simpl; try assumption; try lia.
+  - eapply Mem.perm_valid_block. apply (Hperm ofs). lia.
+  - intros i x Hn.
+    destruct i as [|i]; [inversion Hn; subst x; split; [exact (Hl 0%nat _ eq_refl)|reflexivity]|].
+    destruct i as [|i]; [inversion Hn; subst x; split; [exact (Hl 1%nat _ eq_refl)|reflexivity]|].
+    destruct i as [|i]; [inversion Hn; subst x; split; [exact (Hl 2%nat _ eq_refl)|reflexivity]|].
+    destruct i as [|i]; [inversion Hn; subst x; split; [exact (Hl 3%nat _ eq_refl)|reflexivity]|].
+    destruct i as [|i]; [inversion Hn; subst x; split; [exact (Hl 4%nat _ eq_refl)|reflexivity]|].
+    destruct i; discriminate.
+Qed.
+
+Definition nv_run : option res :=
+  xfun (genv_cenv secp_ge) [] (int_table secp_pure) 400 f_secp256k1_fe_normalize_var
+    [XP 0 0] [fe_reg (vars5 0)] [] 5.
+Definition nv_tree : option res := Eval vm_compute in nv_run.
+Definition nv_c : sx :=
+  Eval vm_compute in match nv_tree with Some (RIf c _ _) => c | _ => XIc Int.zero end.
+Definition nv_a : sstate :=
+  Eval vm_compute in match nv_tree with Some (RIf _ (RDone a _) _) => a | _ => mkst (PTree.empty sx) [] [] 0 end.
+Definition nv_b : sstate :=
+  Eval vm_compute in match nv_tree with Some (RIf _ _ (RDone b _)) => b | _ => mkst (PTree.empty sx) [] [] 0 end.
+
+Lemma nv_run_eq : nv_run = Some (RIf nv_c (RDone nv_a ONormal) (RDone nv_b ONormal)).
+Proof. timeout 10 (vm_compute; reflexivity). Qed.
+
+
+Print Assumptions nv_run_eq.
