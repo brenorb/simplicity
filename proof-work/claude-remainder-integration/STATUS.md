@@ -1,5 +1,14 @@
 # Claude remainder: integration completed, 2026-10-14
 
+Follow-up: the previously excluded linked families below have now been
+repaired, independently audited and integrated. See
+[`linked-repair/STATUS.md`](../linked-repair/STATUS.md). Its three reviewed
+source batches add 28 files (26 `.v` sources), with no normal-registry change.
+The exclusions and preservation hashes in this earlier report describe the
+original non-linked phase; the linked installation ledgers now compose with
+its post-installation check. Secp constructibility is still deferred, with a
+successful bounded equality diagnostic recorded for its next scoped repair.
+
 Reviewed snapshot: `claude/shared-obligations` at
 `30404face45383153528f36d915de6d7df11f3f4`. Target:
 `feat/jet-equivalence`; pre-review HEAD `3f20b6db`. All commits are signed
