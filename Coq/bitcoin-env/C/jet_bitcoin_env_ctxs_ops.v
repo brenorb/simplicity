@@ -1,0 +1,197 @@
+(** Operating on one of several live contexts: the operated context takes
+    its new state, the others are kept.  Separation is a property of the
+    context blocks and output fields only, so it survives every update. *)
+From Coq Require Import ZArith List Lia PeanoNat.
+From compcert Require Import Coqlib Integers AST Values Memory.
+Require Import C.jet_sha_linkage C.jet_sha_block_local C.jet_sha_ctx_abs C.jet_bitmachine_rep.
+Require Import C.jets_sha C.jet_bitcoin_env_ctxo C.jet_bitcoin_env_ctxs.
+Import ListNotations.
+Local Open Scope Z_scope.
+
+Fixpoint upd {A} (l : list A) (k : nat) (x : A) : list A :=
+  match l, k with
+  | [], _ => []
+  | _ :: t, O => x :: t
+  | a :: t, S k' => a :: upd t k' x
+  end.
+
+Lemma nth_error_upd_same {A} (l : list A) : forall k x y, nth_error l k = Some y -> nth_error (upd l k x) k = Some x.
+Proof. induction l as [|a l IH]; intros [|k] x y H; cbn in *; try discriminate; [reflexivity|eapply IH; exact H]. Qed.
+
+Lemma nth_error_upd_other {A} (l : list A) : forall k j x, j <> k -> nth_error (upd l k x) j = nth_error l j.
+Proof.
+  induction l as [|a l IH]; intros [|k] [|j] x H; cbn; try reflexivity; try congruence.
+  apply IH. congruence.
+Qed.
+
+Lemma upd_length {A} (l : list A) : forall k x, length (upd l k x) = length l.
+Proof. induction l as [|a l IH]; intros [|k] x; cbn; try reflexivity. f_equal. apply IH. Qed.
+
+Definition ctxs_sep (bA : block) (cs : list ctx_entry) : Prop :=
+  GC <> bA /\ GM <> bA /\
+  (forall k c, nth_error cs k = Some c ->
+     ctx_block c <> bA /\ GC <> ctx_block c /\ GM <> ctx_block c /\
+     0 <= ctx_out c /\ ctx_out c + 32 <= Ptrofs.max_unsigned) /\
+  (forall i j ci cj, nth_error cs i = Some ci -> nth_error cs j = Some cj -> i <> j ->
+     ctx_block ci <> ctx_block cj /\ (ctx_out ci + 32 <= ctx_out cj \/ ctx_out cj + 32 <= ctx_out ci)).
+
+Lemma ctxs_sep_upd bA cs k (c c' : ctx_entry) :
+  ctxs_sep bA cs -> nth_error cs k = Some c ->
+  ctx_block c' = ctx_block c -> ctx_out c' = ctx_out c ->
+  ctxs_sep bA (upd cs k c').
+Proof.
+  intros (NG & NM & H1 & H2) Hk Eb Eo. split; [exact NG|]. split; [exact NM|]. split.
+  - intros j cj Hj. destruct (Nat.eq_dec j k) as [->|Hne].
+    + rewrite (nth_error_upd_same cs k c' c Hk) in Hj. injection Hj as <-. rewrite Eb, Eo. exact (H1 k c Hk).
+    + rewrite nth_error_upd_other in Hj by exact Hne. exact (H1 j cj Hj).
+  - intros i j ci cj Hi Hj Hij.
+    destruct (Nat.eq_dec i k) as [->|Hik]; destruct (Nat.eq_dec j k) as [->|Hjk]; try congruence.
+    + rewrite (nth_error_upd_same cs k c' c Hk) in Hi. injection Hi as <-.
+      rewrite nth_error_upd_other in Hj by exact Hjk. rewrite Eb, Eo. exact (H2 k j c cj Hk Hj Hij).
+    + rewrite (nth_error_upd_same cs k c' c Hk) in Hj. injection Hj as <-.
+      rewrite nth_error_upd_other in Hi by exact Hik. rewrite Eb, Eo. exact (H2 i k ci c Hi Hk Hij).
+    + rewrite nth_error_upd_other in Hi by exact Hik. rewrite nth_error_upd_other in Hj by exact Hjk.
+      exact (H2 i j ci cj Hi Hj Hij).
+Qed.
+
+Lemma ctxs_nth m bA cs k c : ctxs m bA cs -> nth_error cs k = Some c -> ctx_holds m bA c.
+Proof. intros H Hk. unfold ctxs in H. rewrite Forall_forall in H. apply H. eapply nth_error_In. exact Hk. Qed.
+
+(** The generic step: context [k] is replaced by its new state. *)
+Theorem ctxs_step m m' bA (cs : list ctx_entry) k bx ob l regs c ovf l' regs' c' ovf' :
+  ctxs m bA cs -> ctxs_sep bA cs ->
+  nth_error cs k = Some (bx, ob, l, regs, c, ovf) ->
+  ctxo m' bx bA ob l' regs' c' ovf' ->
+  (forall ch b ofs, Mem.valid_block m b -> b <> bx ->
+     (b <> bA \/ ofs + size_chunk ch <= ob \/ ob + 32 <= ofs) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs kk p, Mem.valid_block m b -> Mem.perm m b ofs kk p -> Mem.perm m' b ofs kk p) ->
+  ctxs m' bA (upd cs k (bx, ob, l', regs', c', ovf')).
+Proof.
+  intros HC (NG & NM & H1 & H2) Hk HNew HL HP.
+  unfold ctxs. rewrite Forall_forall. intros cj Hin.
+  destruct (In_nth_error _ _ Hin) as [j Hj].
+  destruct (Nat.eq_dec j k) as [->|Hne].
+  - rewrite (nth_error_upd_same cs k _ _ Hk) in Hj. injection Hj as <-. exact HNew.
+  - rewrite nth_error_upd_other in Hj by exact Hne.
+    pose proof (ctxs_nth m bA cs j cj HC Hj) as Hold.
+    destruct (H1 j cj Hj) as (Dj1 & Dj2 & Dj3 & _).
+    destruct (H1 k _ Hk) as (Dk1 & Dk2 & Dk3 & _). cbn [ctx_block ctx_out] in Dk1, Dk2, Dk3.
+    destruct (H2 j k cj _ Hj Hk Hne) as [Db Do]. cbn [ctx_block ctx_out] in Db, Do.
+    assert (HV : Mem.valid_block m (ctx_block cj) /\ Mem.valid_block m bA /\
+      Mem.valid_block m GC /\ Mem.valid_block m GM).
+    { destruct cj as [[[[[bxj obj] lj] regsj] cntj] ovfj]. cbn [ctx_holds ctx_block] in *.
+      destruct Hold as (HOut & _ & _ & _ & HRegs & _ & _ & _ & _ & Hdisp & HMax).
+      split; [eapply load_valid_block; exact HOut|].
+      split; [eapply load_valid_block; exact (proj1 (HRegs 0%nat ltac:(lia)))|].
+      split; eapply load_valid_block; eassumption. }
+    destruct HV as (V1 & V2 & V3 & V4).
+    eapply ctx_holds_other; [exact Hold| |].
+    + intros ch b ofs Hb. destruct Hb as [->|[->|[->|[-> Hr]]]].
+      * apply HL; [exact V1|exact Db|left; exact Dj1].
+      * apply HL; [exact V3|exact Dk2|left; exact NG].
+      * apply HL; [exact V4|exact Dk3|left; exact NM].
+      * apply HL; [exact V2|exact (not_eq_sym Dk1)|right; lia].
+    + intros b ofs kk p _ Hp. apply HP; [eapply Mem.perm_valid_block; exact Hp|exact Hp].
+Qed.
+
+(** ** Contexts with a liveness set
+
+    After [sha256_finalize] a context is spent while the others stay live;
+    [ctxs_live] keeps the list (so positions are stable) and records which
+    positions still hold. *)
+Definition ctxs_live (m : mem) (bA : block) (cs : list ctx_entry) (live : nat -> Prop) : Prop :=
+  forall j cj, nth_error cs j = Some cj -> live j -> ctx_holds m bA cj.
+
+Lemma ctxs_live_all m bA cs : ctxs m bA cs -> ctxs_live m bA cs (fun _ => True).
+Proof. intros H j cj Hj _. exact (ctxs_nth m bA cs j cj H Hj). Qed.
+
+Lemma ctxs_live_weaken m bA cs (live live' : nat -> Prop) :
+  ctxs_live m bA cs live -> (forall j, live' j -> live j) -> ctxs_live m bA cs live'.
+Proof. intros H HW j cj Hj Hl. exact (H j cj Hj (HW j Hl)). Qed.
+
+Section Live.
+Variables (m m' : mem) (bA : block) (cs : list ctx_entry) (live : nat -> Prop).
+Hypothesis HC : ctxs_live m bA cs live.
+Hypothesis HSep : ctxs_sep bA cs.
+
+Lemma live_valid j cj : nth_error cs j = Some cj -> live j ->
+  Mem.valid_block m (ctx_block cj) /\ Mem.valid_block m bA /\ Mem.valid_block m GC /\ Mem.valid_block m GM.
+Proof.
+  intros Hj Hl. pose proof (HC j cj Hj Hl) as Hold.
+  destruct cj as [[[[[bxj obj] lj] regsj] cntj] ovfj]. cbn [ctx_holds ctx_block] in *.
+  destruct Hold as (HOut & _ & _ & _ & HRegs & _ & _ & _ & _ & Hdisp & HMax).
+  split; [eapply load_valid_block; exact HOut|].
+  split; [eapply load_valid_block; exact (proj1 (HRegs 0%nat ltac:(lia)))|].
+  split; eapply load_valid_block; eassumption.
+Qed.
+
+(** A frame around context [k]'s block and output field keeps every other
+    live context. *)
+Lemma live_frame k ck :
+  nth_error cs k = Some ck ->
+  (forall ch b ofs, Mem.valid_block m b -> b <> ctx_block ck ->
+     (b <> bA \/ ofs + size_chunk ch <= ctx_out ck \/ ctx_out ck + 32 <= ofs) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs kk p, Mem.valid_block m b -> Mem.perm m b ofs kk p -> Mem.perm m' b ofs kk p) ->
+  forall j cj, nth_error cs j = Some cj -> live j -> j <> k -> ctx_holds m' bA cj.
+Proof.
+  intros Hk HL HP j cj Hj Hl Hne.
+  destruct HSep as (NG & NM & H1 & H2).
+  destruct (live_valid j cj Hj Hl) as (V1 & V2 & V3 & V4).
+  destruct (H1 j cj Hj) as (Dj1 & _). destruct (H1 k ck Hk) as (Dk1 & Dk2 & Dk3 & _).
+  destruct (H2 j k cj ck Hj Hk Hne) as [Db Do].
+  eapply ctx_holds_other; [exact (HC j cj Hj Hl)| |].
+  - intros ch b ofs Hb. destruct Hb as [->|[->|[->|[-> Hr]]]].
+    + apply HL; [exact V1|exact Db|left; exact Dj1].
+    + apply HL; [exact V3|exact Dk2|left; exact NG].
+    + apply HL; [exact V4|exact Dk3|left; exact NM].
+    + apply HL; [exact V2|exact (not_eq_sym Dk1)|right; lia].
+  - intros b ofs kk p _ Hp. apply HP; [eapply Mem.perm_valid_block; exact Hp|exact Hp].
+Qed.
+
+(** A memory change away from all live contexts keeps them. *)
+Lemma live_other :
+  (forall j cj ch b ofs, nth_error cs j = Some cj -> live j ->
+     b = ctx_block cj \/ b = GC \/ b = GM \/ (b = bA /\ ctx_out cj <= ofs /\ ofs + size_chunk ch <= ctx_out cj + 32) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs kk p, Mem.perm m b ofs kk p -> Mem.perm m' b ofs kk p) ->
+  ctxs_live m' bA cs live.
+Proof.
+  intros HL HP j cj Hj Hl. eapply ctx_holds_other; [exact (HC j cj Hj Hl)| |].
+  - intros ch b ofs Hb. exact (HL j cj ch b ofs Hj Hl Hb).
+  - intros b ofs kk p _ Hp. apply HP, Hp.
+Qed.
+End Live.
+
+(** The operated context takes its new state. *)
+Theorem live_step m m' bA (cs : list ctx_entry) (live : nat -> Prop) k bx ob l regs c ovf l' regs' c' ovf' :
+  ctxs_live m bA cs live -> ctxs_sep bA cs ->
+  nth_error cs k = Some (bx, ob, l, regs, c, ovf) ->
+  ctxo m' bx bA ob l' regs' c' ovf' ->
+  (forall ch b ofs, Mem.valid_block m b -> b <> bx ->
+     (b <> bA \/ ofs + size_chunk ch <= ob \/ ob + 32 <= ofs) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs kk p, Mem.valid_block m b -> Mem.perm m b ofs kk p -> Mem.perm m' b ofs kk p) ->
+  ctxs_live m' bA (upd cs k (bx, ob, l', regs', c', ovf')) live.
+Proof.
+  intros HC HSep Hk HNew HL HP j cj Hj Hl.
+  destruct (Nat.eq_dec j k) as [->|Hne].
+  - rewrite (nth_error_upd_same cs k _ _ Hk) in Hj. injection Hj as <-. exact HNew.
+  - rewrite nth_error_upd_other in Hj by exact Hne.
+    exact (live_frame m m' bA cs live HC HSep k _ Hk HL HP j cj Hj Hl Hne).
+Qed.
+
+(** The operated context is spent (finalised); the others stay live. *)
+Theorem live_kill m m' bA (cs : list ctx_entry) (live : nat -> Prop) k ck :
+  ctxs_live m bA cs live -> ctxs_sep bA cs ->
+  nth_error cs k = Some ck ->
+  (forall ch b ofs, Mem.valid_block m b -> b <> ctx_block ck ->
+     (b <> bA \/ ofs + size_chunk ch <= ctx_out ck \/ ctx_out ck + 32 <= ofs) ->
+     Mem.load ch m' b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs kk p, Mem.valid_block m b -> Mem.perm m b ofs kk p -> Mem.perm m' b ofs kk p) ->
+  ctxs_live m' bA cs (fun j => live j /\ j <> k).
+Proof.
+  intros HC HSep Hk HL HP j cj Hj [Hl Hne].
+  exact (live_frame m m' bA cs live HC HSep k ck Hk HL HP j cj Hj Hl Hne).
+Qed.
