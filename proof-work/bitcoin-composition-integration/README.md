@@ -41,3 +41,12 @@ conditions. No libc model or input premise is silently discharged here.
 `post-check` verifies the exact additive delta from the previous source
 fingerprint, all imported blobs/artifacts, and the original staged patch. The
 receipts do not claim a new combined normal whole-worktree acceptance run.
+
+Verification completed: 50 derived builder modules in a 352-module C closure,
+441 theorem/lemma reports and 173 definition records. Build, production AST
+regeneration, report checks, and full recursive kernel checks for both roots
+exited 0. Of the reported results, 270 are closed; all others stay within
+the six reviewed inherited dependencies. Inherited transaction assumption
+records are unchanged. No new axiom, unchecked cast, or unsafe kernel flag
+was introduced. JSON receipts pin detailed logs/objects in their named
+isolated candidate; import adds only the five reviewed source files.
