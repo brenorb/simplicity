@@ -230,8 +230,38 @@ def flags(meta):
 
 def policy(name):
     if re.fullmatch(r'C\.jet_(?:linked(?:_sha)?|bitcoin_env_linked)_program\.linked_program_is_(?:link_program|compcert_link)', name):
-        return old.EIGHT | {'Axioms.proof_irr'}
+        return old.EIGHT | {'lib.Axioms.proof_irr'}
     return old.EIGHT
+
+
+def assumptions(text):
+    # Do not widen the inherited normal-registry parser's global allowlist.
+    # Coq prints CompCert's axiom here as lib.Axioms.proof_irr; retain that
+    # exact spelling and check each result against policy(name) below.
+    result, current, mode = {}, None, None
+    def finish():
+        if current is not None and (mode is None or mode == 'axioms' and not result[current]):
+            raise ValueError('unfinished assumption report: ' + current)
+    for line in text.splitlines():
+        match = re.fullmatch(r'JET_ASSUMPTIONS (\S+)', line)
+        if match:
+            finish()
+            current = match[1]
+            if current in result:
+                raise ValueError('duplicate assumption marker')
+            result[current], mode = set(), None
+        elif line == 'Axioms:':
+            if current is None or mode is not None:
+                raise ValueError('unexpected axiom section')
+            mode = 'axioms'
+        elif line == 'Closed under the global context':
+            if current is None or mode is not None:
+                raise ValueError('unexpected closed section')
+            mode = 'closed'
+        elif mode == 'axioms' and line and not line[0].isspace():
+            result[current].add(line.split()[0])
+    finish()
+    return result
 
 
 def audit(work):
@@ -250,6 +280,11 @@ def audit(work):
         if target.read_bytes() != (work / 'inputs' / (alias + '.v')).read_bytes():
             raise ValueError('original/reference AST differs: ' + alias)
         ast.append(evidence)
+    if (work / 'build.log').exists() and not (work / 'build-initial.log').exists():
+        # An interrupted/rejected report can be retried without discarding
+        # the fresh compilation trace. The confirming make must still exit 0,
+        # and every compiled object is checked recursively afterward.
+        shutil.copy2(work / 'build.log', work / 'build-initial.log')
     build = command(work, ['bash', 'build-jets.sh', '-j2'], 'build')
     print('Fresh build passed: ' + meta['group'], flush=True)
     selected, results, definitions = inventories(meta)
@@ -263,7 +298,7 @@ def audit(work):
         d += ['Goal True. idtac "LINKED_' + kind + ' ' + n + '". exact I. Qed.', ('Check ' if kind == 'TYPE' else 'Print ') + n + '.']
     old.changed({work / 'assumptions.v': '\n'.join(a) + '\n', work / 'contracts.v': '\n'.join(d) + '\n'})
     ar = command(work, ['bash', 'build-jets.sh', '--coqc'] + flags(meta) + ['-q', str(work / 'assumptions.v')], 'assumptions')
-    deps = old.reports.assumptions((work / 'assumptions.log').read_text())
+    deps = assumptions((work / 'assumptions.log').read_text())
     if set(deps) != set(results) or any(not ds <= policy(n) for n, ds in deps.items()):
         raise ValueError('missing/unreviewed assumptions')
     cr = command(work, ['bash', 'build-jets.sh', '--coqc'] + flags(meta) + ['-q', str(work / 'contracts.v')], 'contracts')
@@ -316,7 +351,11 @@ def review(work):
         p = work / relative
         if not p.is_relative_to(work) or p.is_symlink() or old.sha(p.read_bytes()) != digest:
             raise ValueError('terminal/object evidence drift: ' + relative)
-    compiled = set(re.findall(r'(?m)^COQC (\S+\.v)$', (work / 'build.log').read_text()))
+    traces = [work / 'build.log'] + ([work / 'build-initial.log'] if (work / 'build-initial.log').exists() else [])
+    for trace in traces:
+        if str(trace.relative_to(work)) not in receipt['evidence_sha256']:
+            raise ValueError('unbound fresh compilation trace')
+    compiled = set(re.findall(r'(?m)^COQC (\S+\.v)$', '\n'.join(p.read_text() for p in traces)))
     additions = {}
     for e in meta['modules']:
         if (e['new'] or e['affected']) and e['relative'] not in compiled:
@@ -326,7 +365,7 @@ def review(work):
         if e['new'] and e['transform'] in ['identity', 'checked-conversion-proof']:
             additions[e['origin']] = sources[work / 'Coq' / e['relative']]
     _, results, definitions = inventories(meta)
-    deps = old.reports.assumptions((work / 'assumptions.log').read_text())
+    deps = assumptions((work / 'assumptions.log').read_text())
     if (set(deps) != set(results) or {n: sorted(ds) for n, ds in deps.items()} != receipt['expected_dependencies']
             or any(not ds <= policy(n) for n, ds in deps.items())
             or receipt['results'] != len(results) or receipt['definitions'] != len(definitions)
