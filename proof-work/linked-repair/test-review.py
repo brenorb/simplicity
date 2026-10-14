@@ -56,8 +56,8 @@ for text in ['Lemma bad : True. Admitted.', 'Axiom bad : True.', 'Parameter bad 
         pass
     else:
         raise AssertionError('accepted proof escape')
-assert 'Axioms.proof_irr' not in gate.policy('C.jet_linked_memcpy_jets.leftmost_8_1_local_spec_linked')
-assert 'Axioms.proof_irr' in gate.policy('C.jet_linked_program.linked_program_is_compcert_link')
+assert 'lib.Axioms.proof_irr' not in gate.policy('C.jet_linked_memcpy_jets.leftmost_8_1_local_spec_linked')
+assert 'lib.Axioms.proof_irr' in gate.policy('C.jet_linked_program.linked_program_is_compcert_link')
 for entry in json.loads(assembly.read_text())['modules']:
     if entry['logical'] in ['C.jets_unlinked', 'C.jets_sha_unlinked']:
         assert entry['affected'], 'renamed program object must be freshly compiled'
@@ -71,6 +71,6 @@ meta, report, _ = gate.review(work)
 for n, deps in report['expected_dependencies'].items():
     if n.endswith('.linked_ast_is_compcert_link') or n.endswith('.ast_link_defs'):
         assert deps == [], 'AST-level checked link equality must be closed'
-    if 'Axioms.proof_irr' in deps:
-        assert 'Axioms.proof_irr' in gate.policy(n), 'unexpected link axiom inheritance'
+    if 'lib.Axioms.proof_irr' in deps:
+        assert 'lib.Axioms.proof_irr' in gate.policy(n), 'unexpected link axiom inheritance'
 print('Linked corruption fixtures passed: 16; lexical fixtures passed: 6; namespace/specification/link-policy checks passed')

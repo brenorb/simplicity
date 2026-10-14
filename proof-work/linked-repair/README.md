@@ -45,6 +45,12 @@ CompCert's composite-environment linking. AST-level link results must be
 closed. Jet execution contracts retain only the previously documented
 inherited assumptions. This is not a new axiom or a normal-registry allowlist
 change. Review receipts list every observed dependency individually.
+The linking report parser retains Coq's exact printed name
+`lib.Axioms.proof_irr`; the older normal-registry parser remains unchanged.
+If a report is retried after a completed build, `build-initial.log` retains
+the fresh compilation trace and a confirming `make` must exit successfully.
+Both traces and all compiled objects are hash-bound in the final receipt;
+recursive kernel checking is still mandatory.
 
 Installation is additive and source-only, in program-specific directories.
 Supporting original `JetStartup` modules are imported only when required by
