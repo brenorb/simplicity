@@ -8,7 +8,8 @@ jets in their existing C dependency modules are not added to coverage.
 
 Candidate: `/private/tmp/jet-digest-getters-admission.jd1i0nr6`.
 The baseline is the fingerprint-bound seven-jet timelock/pegin candidate at
-`545af5c8...`, **not** a claim that its live audit has already succeeded.
+`545af5c8...`. At assembly its audit was still running; it has now passed and
+been installed through its own guarded receipt/ledger, not through this batch.
 Objects were copied only from the completed immutable final-name pegin proof
 tree. The predecessor supplies source-text deltas only. Before any additions,
 the reconstructed baseline fingerprint was verified byte-identical to the
@@ -49,31 +50,35 @@ The proposed count is **386/533**, including the unchanged 104 explicit
 python3 -B proof-work/elements-digest-getters-admission/review.py review /private/tmp/jet-digest-getters-admission.jd1i0nr6
 ```
 
-## Full acceptance has not been launched
+## Full isolated acceptance is running
 
-Main's distinct 371-jet acceptance has passed with exit 0; see
-`../elements-direct-getters-admission/MAIN-ACCEPTANCE.json`. Main remains
-installed at 371/533. The seven-jet predecessor's isolated full audit is still
-running as session **96260** (confirmed live during preparation); its kernel
-checking passed on 1,023 modules, with the assumption gate still running.
-Do not restart that audit or edit its inputs.
+Main's distinct 371-jet acceptance and the seven-jet predecessor's isolated
+full audit both passed with exit 0. The predecessor is now installed at
+378/533, with source/index/history identity verified by its composed postcheck.
+Its separate actual-main audit is running as session **3224**; main inputs
+must remain frozen until it terminates. Session 96260 is complete: do not
+poll or restart it.
 
 `accept.py` refuses to launch until the seven-jet candidate has a successful
 terminal acceptance, guarded source-only installation and passing composed
 postcheck at exactly `545af5c8...`. It also requires this candidate's terminal
 review/evidence hashes and refuses to overwrite an existing audit launch.
-Its missing-predecessor guard has been tested without launching an audit or
-changing main/index. When these conditions hold, launch it once:
+Its missing-predecessor guard was tested without launching an audit or
+changing main/index. After the required receipts and installation existed,
+it was launched **once**, as session **87596**, with fingerprint
+`f362c518...`. `AUDIT-RUN.json` records launch, not success.
+Log: `/private/tmp/jet-digest-getters-admission.jd1i0nr6/acceptance.log`.
+The launch command was:
 
 ```sh
 ulimit -s 65520
 python3 -B proof-work/elements-digest-getters-admission/accept.py /private/tmp/jet-digest-getters-admission.jd1i0nr6
 ```
 
-It runs exactly `bash check-jets.sh --accept`, without update/skip flags. A
-launch record is not success. Preserve the returned handle and terminal log;
-do not start another run because output is quiet. The predecessor's distinct
-actual-main audit may run concurrently with this isolated audit, but **both**
+It runs exactly `bash check-jets.sh --accept`, without update/skip flags.
+Preserve and poll the existing handle and terminal log; do not repeat the
+command above or start another run because output is quiet. The predecessor's
+distinct actual-main audit is concurrent with this isolated audit, but **both**
 must pass before installing these eight getters. Never copy compiler objects
 to main or silently commit unrelated staged metadata. Retain an exact owned
 installation patch/ledger, verify main equals this accepted candidate, then
