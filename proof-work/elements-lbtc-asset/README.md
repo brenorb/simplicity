@@ -8,6 +8,8 @@ Private tree: `/private/tmp/jet-elements-lbtc-asset.dAZaZ0`. Its compiler object
 were copied only from the completed normal tap-getter tree (`c86dfb59...`), not
 from a running audit. All inherited Coq/C/Haskell source/metadata files retain
 their bytes; three new modules are archived under `source/`.
+Checked input:
+`9fc56dff734e3aec3b79111fcf521054abb2f35451ed0bda7ca6644c327af644`.
 
 ## The actual implementation and target
 
@@ -63,11 +65,10 @@ recursive `coqchk` all passed. `PREPARATION.json` and full logs bind those
 checks. Four constant/byte/parametricity results are closed; the C endpoint
 retains the six inherited Coq/CompCert assumptions, with no libc premise.
 
-The independent review already passed. Its durable review/23-negative-fixture
-harness is currently live as **62819**. Poll that handle; do not restart it
-because its output is quiet. The successful terminal negative result and
-`EVIDENCE-REVIEW.json` are still required before declaring the evidence review
-complete. Historical commands:
+The independent review and all **23 evidence-corruption fixtures passed**;
+harness **62819 terminated with exit 0**. `EVIDENCE-REVIEW.json` binds those
+terminal commands, tools, complete logs and the original preparation/review
+receipts. Historical commands:
 
 ```sh
 # Checker already completed; do not overwrite its recorded objects/receipts.
@@ -77,18 +78,20 @@ python3 -B proof-work/elements-lbtc-asset/review.py
 python3 -B proof-work/elements-lbtc-asset/test-review.py
 ```
 
-After the review harness terminates, verify/archive its terminal commands, tool
-and log hashes, and make a separate evidence checkpoint. Normal registration,
+The terminal evidence and all full type/definition/assumption/AST/kernel/source/
+negative logs are archived here. Normal registration,
 full normal acceptance, guarded source-only installation and distinct actual-
 main acceptance remain necessary. Reuse the existing admission machinery and
 preserve the complete older snapshots/dependency sets; do not count a helper or
 this private receipt as an extra registered jet.
 
-The actual-main 386 audit **92335 passed**, with its complete receipt/log in
-`../elements-digest-getters-admission/`. The isolated 399 audit **61966** remains
-live at its assumption gate. Do not alter that candidate or copy its objects.
-The 399 installer and proposed 401 candidate are already prepared; coordinate
-this next jet with that existing chain without restarting audits.
+The actual-main 386 audit **92335** and isolated 399 audit **61966 both passed**.
+This proof's independent preservation check was completed at the original main
+386 checkpoint, before successor installation; its context is historical once
+main advances. The private source/object/log fingerprints remain authoritative
+for the proof itself. The 399 installer and proposed 401 candidate are already
+prepared; coordinate this next jet with that existing chain without restarting
+completed audits or copying objects from future live audits.
 
 The source guard is not a formal compiler or host lens/serialization proof.
 LP64/RECKLESS and the six inherited assumptions remain explicit. There are no
