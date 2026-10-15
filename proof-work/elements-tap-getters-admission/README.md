@@ -8,7 +8,8 @@ Candidate: `/private/tmp/jet-tap-getters-admission.ouwiobpu`.
 Reviewed candidate input:
 `c86dfb5924df9474a3168b5923c508f236576737c3fbb18b9d59a40afaa3752d`.
 Main was **386/533** at preparation and has since advanced through the guarded
-399 installation. This 401 candidate itself is not installed or fully accepted.
+399 installation. This 401 candidate has passed full isolated acceptance;
+guarded installation is the next step.
 
 ## Source provenance and the explicit inherited-source change
 
@@ -110,12 +111,15 @@ ulimit -s 65520
 python3 -B proof-work/elements-tap-getters-admission/accept.py /private/tmp/jet-tap-getters-admission.ouwiobpu
 ```
 
-`AUDIT-RUN.json` binds input `c86dfb59...`, reviewed evidence, the driver and real
-399 acceptance/installation. It records launch, not success. Log:
-`/private/tmp/jet-tap-getters-admission.ouwiobpu/acceptance.log`. Keep this private
-candidate frozen and poll **55506**; never restart on silence. The distinct
-actual-main 399 audit is live as **90475**. Both must pass before 401 can be
-installed. Main remains 399/533, not 401/533.
+The isolated audit **55506 terminated with exit 0**, as did the distinct
+actual-main 399 audit **90475**. `ACCEPTANCE.json` and `TERMINAL.json` bind the
+real isolated result at `c86dfb59...`, reviewed evidence, driver, predecessor
+receipts and full log. All acceptance gates passed, including recursive
+kernel checking of 1,037 modules and five regenerated ASTs. The complete log is
+archived as `acceptance.log`, SHA-256
+`634f954807f68035ed7ee058838ba4f5c5f0c4d4845fd157bdb04633f3e284e9`.
+Both prerequisites for guarded 401 installation are now satisfied. Keep the
+completed private candidate immutable; do not restart either completed audit.
 
 The guarded source-only `integration.py` and once-only `main-accept.py` are now
 prepared. The read-only plan and 14 refusal tests passed (harness **21893**,
@@ -124,8 +128,9 @@ Exactly 15 source/metadata/gate targets are permitted, including only the
 explicitly reviewed nullable-tappath overwrite. Object copying and other
 inherited-source overwrites are rejected. These checks did not install anything
 or manufacture positive acceptance evidence. Both real terminal acceptances
-are still required before installation; then run the composed postcheck and
-distinct actual-main acceptance. The entire original staging is preserved.
+have now been independently verified. Read-only planning against exact main399
+also passed again. Next run the once-only source installer, composed postcheck
+and distinct actual-main acceptance. The entire original staging is preserved.
 
 This proposed registry retains the 104 explicit `memcpy_model` conditions;
 132 public declarations would still be missing. LP64/RECKLESS, represented
