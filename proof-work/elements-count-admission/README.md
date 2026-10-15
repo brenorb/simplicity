@@ -24,6 +24,35 @@ registration, inherited snapshots, sources and command/exit evidence.
 
 ## Status and scope
 
+Preparation/review is committed and pushed as `2f69bf90`. The whole normal
+build and all four explicit fresh compiles passed. Review retained all 7,374
+inherited contract records byte-for-byte/in order and all 4,878 inherited
+dependency records. All twenty-four new deep records passed; two compact
+records needed checked deep supplements. Source, coverage and sixteen evidence
+corruption fixtures passed.
+
+The full isolated acceptance run (session **96437**) terminated with exit 0
+after 3,126.87 seconds. Static/source checks, the normal build, recursive
+`coqchk` on all 960 registered modules, per-result assumptions, full contract
+snapshots, negative tests and all five production AST regenerations passed.
+`ACCEPTANCE.json` and `TERMINAL.json` bind its actual terminal output and
+unchanged input fingerprint. A durable identical log is `acceptance.log`.
+
+The exact reviewed metadata/gate delta was then installed in main, without
+changing any proof/C/Haskell source or compiler object. `INSTALLATION.json`
+and `DELTA.patch` bind that installation. The complete old source map plus
+this exact delta equals the actual main map, and the preexisting staged patch
+is unchanged. The main source fingerprint now exactly equals the accepted
+candidate's `aa2c41604a5cae0c69d6900799ecd8b6a824b26ec3c4b2b4bcf23cb6817f5bce`.
+
+The separate actual-main acceptance is running as session **49451**, launched
+by `main-accept.py`; `MAIN-AUDIT-RUN.json` records launch only. Poll that live
+handle, not the completed isolated one. Its log is
+`/private/tmp/jet-count-admission.ww8e4z3b/main-acceptance.log`. Keep main Coq,
+C/Haskell, manifests, gates and snapshots frozen during this run; proof-work
+and independent external proof trees remain available. Only a terminal
+`MAIN-ACCEPTANCE.json` establishes actual-main acceptance.
+
 The isolated tree is `/private/tmp/jet-count-admission.ww8e4z3b`. `ASSEMBLY.json`
 pins the complete main source map, staged patch, exact additions and cached
 objects. Preparation rebuilds the normal project and explicitly recompiles
@@ -44,9 +73,10 @@ and the complete final marker establishes isolated full acceptance.
 registered modules, kernel chains, assumptions, contract snapshots, negative
 tests, source targets and all five production ASTs must pass.
 
-The proposed count is **366/533**, including the unchanged 104 explicit
-`memcpy_model` conditions. Main remains **364/533** until reviewed installation.
-Neither number completes the all-jet goal or the inherited fidelity review.
+Installed main registration and the fully accepted isolated candidate are
+**366/533**, including the unchanged 104 explicit `memcpy_model` conditions;
+the distinct actual-main run is still pending. This does not complete the
+all-jet goal or the inherited fidelity review.
 The count domain remains bounded by the C raw uint32 count interface, not
 arbitrarily large Haskell vectors. Full Elements environment-builder and
 runtime/evaluator composition remain distinct obligations.
@@ -76,3 +106,15 @@ installed. Main's resulting full source fingerprint must equal the accepted
 candidate's exactly. Actual-main acceptance remains a separate terminal run.
 `INSTALLATION.json`, if present, records installation rather than claiming that
 separate main run already succeeded. The all-jet goal stays active.
+
+Guarded post-acceptance workflow (installation and main launch already done):
+
+```sh
+python3 -B proof-work/elements-count-admission/install.py /absolute/candidate
+python3 -B proof-work/elements-count-admission/main-accept.py
+python3 -B proof-work/elements-count-admission/post-check.py
+```
+
+The installed-main precheck passed with exact source identity and staging
+preservation. The actual-main compiler/checker run has not been replaced by
+that precheck. Do not launch it a second time while session 49451 is live.

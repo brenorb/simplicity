@@ -1,0 +1,766 @@
+--- a/Coq/_CoqProject
++++ b/Coq/_CoqProject
+@@ -1166,3 +1166,7 @@
+ C/jet_elements_current_index_exec.v
+ C/jet_elements_current_index_layout.v
+ C/jet_elements_current_index_local.v
++C/jet_elements_count_canonical.v
++C/jet_elements_count_bridge.v
++C/jet_elements_count_local.v
++C/jet_elements_count_payload.v
+--- a/Coq/_CoqProject.jets
++++ b/Coq/_CoqProject.jets
+@@ -1157,3 +1157,7 @@
+ C/jet_elements_current_index_exec.v
+ C/jet_elements_current_index_layout.v
+ C/jet_elements_current_index_local.v
++C/jet_elements_count_canonical.v
++C/jet_elements_count_bridge.v
++C/jet_elements_count_local.v
++C/jet_elements_count_payload.v
+--- a/Coq/C/jet_public_theorems.txt
++++ b/Coq/C/jet_public_theorems.txt
+@@ -4934,3 +4934,21 @@
+ C.jet_elements_current_index_local elements_transaction_current_index_spec_sem
+ C.jet_elements_current_index_local elements_current_index_carrier_matches_primitive
+ C.jet_elements_current_index_local elements_current_index_local_spec
++C.jet_elements_count_canonical elements_transaction_num_inputs_spec_parametric
++C.jet_elements_count_canonical elements_transaction_num_outputs_spec_parametric
++C.jet_elements_count_canonical elements_transaction_num_inputs_spec_search
++C.jet_elements_count_canonical elements_transaction_num_outputs_spec_search
++C.jet_elements_count_bridge elements_transaction_num_inputs_spec_length
++C.jet_elements_count_bridge elements_transaction_num_outputs_spec_length
++C.jet_elements_count_local elements_num_inputs_getter32_body
++C.jet_elements_count_local elements_num_outputs_getter32_body
++C.jet_elements_count_local elements_tx_num_inputs_field
++C.jet_elements_count_local elements_tx_num_outputs_field
++C.jet_elements_count_local elements_count_carrier_encoding
++C.jet_elements_count_local elements_count_getter_local_spec
++C.jet_elements_count_local elements_num_inputs_local_spec
++C.jet_elements_count_local elements_num_outputs_local_spec
++C.jet_elements_count_payload elements_count_observation_spec_value
++C.jet_elements_count_payload application_jet_local_spec_pointwise
++C.jet_elements_count_payload elements_num_inputs_any_payload_local_spec
++C.jet_elements_count_payload elements_num_outputs_any_payload_local_spec
+--- a/Coq/C/jet_contract_definitions.txt
++++ b/Coq/C/jet_contract_definitions.txt
+@@ -2514,3 +2514,9 @@
+ C.jet_elements_current_index_exec elements_current_index_ready
+ C.jet_elements_current_index_local elements_transaction_current_index_spec
+ C.jet_elements_current_index_local elements_current_index_env_rep
++C.jet_elements_count_canonical elements_transaction_num_inputs_spec
++C.jet_elements_count_canonical elements_transaction_num_outputs_spec
++C.jet_elements_count_local elements_count_env_rep
++C.jet_elements_count_local elements_num_inputs_env_rep
++C.jet_elements_count_local elements_num_outputs_env_rep
++C.jet_elements_count_payload elements_count_observation_spec
+--- a/Coq/C/jet_coverage.tsv
++++ b/Coq/C/jet_coverage.tsv
+@@ -367,3 +367,5 @@
+ simplicity_version C.jet_elements_version_local elements_version_local_spec
+ simplicity_lock_time C.jet_elements_locktime_local elements_locktime_local_spec
+ simplicity_current_index C.jet_elements_current_index_local elements_current_index_local_spec
++simplicity_num_inputs C.jet_elements_count_local elements_num_inputs_local_spec
++simplicity_num_outputs C.jet_elements_count_local elements_num_outputs_local_spec
+--- a/Coq/C/jet_assumptions.expected
++++ b/Coq/C/jet_assumptions.expected
+@@ -1222,6 +1222,24 @@
+ C.jet_divmod_wide_layout.wide_divmod_context_guarantees : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_properties, Events.external_functions_sem, Events.inline_assembly_properties, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_divmod_wide_layout.wide_divmod_guarantees : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_properties, Events.external_functions_sem, Events.inline_assembly_properties, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_divmod_wide_layout.wide_divmod_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_bridge.elements_transaction_num_inputs_spec_length : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_bridge.elements_transaction_num_outputs_spec_length : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_canonical.elements_transaction_num_inputs_spec_parametric : closed
++C.jet_elements_count_canonical.elements_transaction_num_inputs_spec_search : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_canonical.elements_transaction_num_outputs_spec_parametric : closed
++C.jet_elements_count_canonical.elements_transaction_num_outputs_spec_search : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_local.elements_count_carrier_encoding : closed
++C.jet_elements_count_local.elements_count_getter_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_local.elements_num_inputs_getter32_body : closed
++C.jet_elements_count_local.elements_num_inputs_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_local.elements_num_outputs_getter32_body : closed
++C.jet_elements_count_local.elements_num_outputs_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_local.elements_tx_num_inputs_field : closed
++C.jet_elements_count_local.elements_tx_num_outputs_field : closed
++C.jet_elements_count_payload.application_jet_local_spec_pointwise : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_payload.elements_count_observation_spec_value : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_payload.elements_num_inputs_any_payload_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_count_payload.elements_num_outputs_any_payload_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_current_index_exec.call_elements_write32_arg : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_current_index_exec.elements_current_index_entry : closed
+ C.jet_elements_current_index_exec.elements_env_index_field : closed
+--- a/Coq/C/jet_contracts.expected
++++ b/Coq/C/jet_contracts.expected
+@@ -93324,6 +93324,220 @@
+           @jet_elements_current_index_local.elements_transaction_current_index_spec
+             (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+             environment)
++jet_elements_count_canonical.elements_transaction_num_inputs_spec_parametric
++     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
++         (@jet_elements_count_canonical.elements_transaction_num_inputs_spec)
++jet_elements_count_canonical.elements_transaction_num_outputs_spec_parametric
++     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
++         (@jet_elements_count_canonical.elements_transaction_num_outputs_spec)
++jet_elements_count_canonical.elements_transaction_num_inputs_spec_search
++     : forall environment : jet_elements_prim.Elements.env,
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
++         (@jet_elements_count_canonical.elements_transaction_num_inputs_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
++            environment)
++         (@first_fail_run (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++            (fun w : Ty.tySem (Word.Word (S (S (S (S (S O)))))) =>
++             @jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
++               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               jet_elements_prim.Elements.InputScriptHash w environment))
++jet_elements_count_canonical.elements_transaction_num_outputs_spec_search
++     : forall environment : jet_elements_prim.Elements.env,
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
++         (@jet_elements_count_canonical.elements_transaction_num_outputs_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
++            environment)
++         (@first_fail_run (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++            (fun w : Ty.tySem (Word.Word (S (S (S (S (S O)))))) =>
++             @jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
++               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               jet_elements_prim.Elements.OutputScriptHash w environment))
++jet_elements_count_bridge.elements_transaction_num_inputs_spec_length
++     : forall environment : jet_elements_prim.Elements.env,
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
++         (@jet_elements_count_canonical.elements_transaction_num_inputs_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
++            environment)
++         (@Some (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
++            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
++               (BinInt.Z.of_nat
++                  (@length jet_elements_prim.sigTxInput
++                     (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment))))))
++jet_elements_count_bridge.elements_transaction_num_outputs_spec_length
++     : forall environment : jet_elements_prim.Elements.env,
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
++         (@jet_elements_count_canonical.elements_transaction_num_outputs_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
++            environment)
++         (@Some (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
++            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
++               (BinInt.Z.of_nat
++                  (@length jet_elements_prim.txOutput
++                     (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))))))
++jet_elements_count_local.elements_num_inputs_getter32_body
++     : @eq Clight.statement (Clight.fn_body jets_elements.f_simplicity_num_inputs)
++         (jet_elements_getter32_exec.elements_getter32_body jets_elements._numInputs)
++jet_elements_count_local.elements_num_outputs_getter32_body
++     : @eq Clight.statement (Clight.fn_body jets_elements.f_simplicity_num_outputs)
++         (jet_elements_getter32_exec.elements_getter32_body jets_elements._numOutputs)
++jet_elements_count_local.elements_tx_num_inputs_field
++     : match
++         @Maps.PTree.get Ctypes.composite jets_elements._elementsTransaction
++           (Clight.genv_cenv jet_elements_linkage.elements_ge) return Prop
++       with
++       | Some co =>
++           @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
++             (Ctypes.field_offset (Clight.genv_cenv jet_elements_linkage.elements_ge) jets_elements._numInputs
++                (Ctypes.co_members co))
++             (@Errors.OK (prod BinNums.Z Ctypes.bitfield)
++                (@pair BinNums.Z Ctypes.bitfield
++                   (BinNums.Zpos
++                      (BinNums.xO
++                         (BinNums.xO
++                            (BinNums.xO
++                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
++                   Ctypes.Full))
++       | None => False
++       end
++jet_elements_count_local.elements_tx_num_outputs_field
++     : match
++         @Maps.PTree.get Ctypes.composite jets_elements._elementsTransaction
++           (Clight.genv_cenv jet_elements_linkage.elements_ge) return Prop
++       with
++       | Some co =>
++           @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
++             (Ctypes.field_offset (Clight.genv_cenv jet_elements_linkage.elements_ge) jets_elements._numOutputs
++                (Ctypes.co_members co))
++             (@Errors.OK (prod BinNums.Z Ctypes.bitfield)
++                (@pair BinNums.Z Ctypes.bitfield
++                   (BinNums.Zpos
++                      (BinNums.xO
++                         (BinNums.xO
++                            (BinNums.xO
++                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
++                   Ctypes.Full))
++       | None => False
++       end
++jet_elements_count_local.elements_count_carrier_encoding
++     : forall (r : Integers.Int64.int) (count : BinNums.Z) (_ : @eq BinNums.Z (Integers.Int64.unsigned r) count),
++       @eq (Ty.tySem (Word.Word (wide_log W32)))
++         (decode_wide W32
++            (Integers.Int64.zero_ext
++               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) r))
++         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) count)
++jet_elements_count_local.elements_count_getter_local_spec
++     : forall (f : Clight.function) (field : AST.ident) (delta : BinNums.Z)
++         (count : forall _ : jet_elements_prim.Elements.env, BinNums.Z)
++         (spec : forall (_ : Ty.tySem Ty.Unit) (_ : jet_elements_prim.Elements.env),
++                 option (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
++         (_ : and (BinInt.Z.le BinNums.Z0 delta)
++                (BinInt.Z.le delta
++                   (BinNums.Zpos
++                      (BinNums.xO
++                         (BinNums.xO
++                            (BinNums.xO
++                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
++         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_vars f)
++                (Clight.fn_vars jets_elements.f_simplicity_version))
++         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_params f)
++                (Clight.fn_params jets_elements.f_simplicity_version))
++         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_temps f)
++                (Clight.fn_temps jets_elements.f_simplicity_version))
++         (_ : @eq Ctypes.type (Clight.fn_return f) Ctypesdefs.tbool)
++         (_ : @eq Clight.statement (Clight.fn_body f) (jet_elements_getter32_exec.elements_getter32_body field))
++         (_ : match
++                @Maps.PTree.get Ctypes.composite jets_elements._elementsTransaction
++                  (Clight.genv_cenv jet_elements_linkage.elements_ge) return Prop
++              with
++              | Some co =>
++                  @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
++                    (Ctypes.field_offset (Clight.genv_cenv jet_elements_linkage.elements_ge) field
++                       (Ctypes.co_members co))
++                    (@Errors.OK (prod BinNums.Z Ctypes.bitfield) (@pair BinNums.Z Ctypes.bitfield delta Ctypes.Full))
++              | None => False
++              end)
++         (_ : forall environment : jet_elements_prim.Elements.env,
++              @eq (option (Ty.tySem (Word.Word (S (S (S (S (S O)))))))) (spec tt environment)
++                (@Some (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
++                   (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) (count environment)))),
++       application_jet_local_spec f jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
++         (Word.Word (S (S (S (S (S O)))))) (jet_elements_count_local.elements_count_env_rep delta count) spec
++jet_elements_count_local.elements_num_inputs_local_spec
++     : application_jet_local_spec jets_elements.f_simplicity_num_inputs jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S O))))))
++         jet_elements_count_local.elements_num_inputs_env_rep
++         (fun (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env) =>
++          @jet_elements_count_canonical.elements_transaction_num_inputs_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++jet_elements_count_local.elements_num_outputs_local_spec
++     : application_jet_local_spec jets_elements.f_simplicity_num_outputs jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S O))))))
++         jet_elements_count_local.elements_num_outputs_env_rep
++         (fun (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env) =>
++          @jet_elements_count_canonical.elements_transaction_num_outputs_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++@jet_elements_count_payload.elements_count_observation_spec_value ?X
++     : forall (elems : forall _ : jet_elements_prim.Elements.env, list ?X)
++         (payload : forall _ : ?X, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         (e : jet_elements_prim.Elements.env)
++         (_ : BinInt.Z.lt (BinInt.Z.of_nat (@length ?X (elems e)))
++                (BinNums.Zpos
++                   (BinNums.xO
++                      (BinNums.xO
++                         (BinNums.xO
++                            (BinNums.xO
++                               (BinNums.xO
++                                  (BinNums.xO
++                                     (BinNums.xO
++                                        (BinNums.xO
++                                           (BinNums.xO
++                                              (BinNums.xO
++                                                 (BinNums.xO
++                                                    (BinNums.xO
++                                                       (BinNums.xO
++                                                          (BinNums.xO
++                                                             (BinNums.xO
++                                                                (BinNums.xO
++                                                                   (BinNums.xO
++                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))))),
++       @eq (option (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
++         (@jet_elements_count_payload.elements_count_observation_spec ?X elems payload tt e)
++         (@Some (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
++            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) (BinInt.Z.of_nat (@length ?X (elems e)))))
++where
++?X : [ |- Set]
++jet_elements_count_payload.application_jet_local_spec_pointwise
++     : forall (f : Clight.function) (ge : Clight.genv) (E : Set) (A B : Ty.Ty)
++         (rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : E), Prop)
++         (spec1 spec2 : forall (_ : Ty.tySem A) (_ : E), option (Ty.tySem B))
++         (_ : forall (a : Ty.tySem A) (e : E), @eq (option (Ty.tySem B)) (spec1 a e) (spec2 a e))
++         (_ : application_jet_local_spec f ge E A B rep spec1), application_jet_local_spec f ge E A B rep spec2
++jet_elements_count_payload.elements_num_inputs_any_payload_local_spec
++     : forall payload : forall _ : jet_elements_prim.sigTxInput, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
++       application_jet_local_spec jets_elements.f_simplicity_num_inputs jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S O))))))
++         jet_elements_count_local.elements_num_inputs_env_rep
++         (@jet_elements_count_payload.elements_count_observation_spec jet_elements_prim.sigTxInput
++            (fun e : jet_elements_prim.Elements.env => jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
++            payload)
++jet_elements_count_payload.elements_num_outputs_any_payload_local_spec
++     : forall payload : forall _ : jet_elements_prim.txOutput, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
++       application_jet_local_spec jets_elements.f_simplicity_num_outputs jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S O))))))
++         jet_elements_count_local.elements_num_outputs_env_rep
++         (@jet_elements_count_payload.elements_count_observation_spec jet_elements_prim.txOutput
++            (fun e : jet_elements_prim.Elements.env => jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
++            payload)
+ frame_fields =
+ fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
+ and
+@@ -198229,3 +198443,95 @@
+      : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env), Prop
+ 
+ Arguments jet_elements_current_index_local.elements_current_index_env_rep m env environment
++jet_elements_count_canonical.elements_transaction_num_inputs_spec =
++fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
++@first_fail_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++  (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toAssertion alg)
++  (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
++     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) alg jet_elements_prim.Elements.InputScriptHash)
++     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
++       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
++
++Arguments jet_elements_count_canonical.elements_transaction_num_inputs_spec {alg}
++jet_elements_count_canonical.elements_transaction_num_outputs_spec =
++fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
++@first_fail_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++  (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toAssertion alg)
++  (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
++     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) alg jet_elements_prim.Elements.OutputScriptHash)
++     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
++       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
++
++Arguments jet_elements_count_canonical.elements_transaction_num_outputs_spec {alg}
++jet_elements_count_local.elements_count_env_rep =
++fun (delta : BinNums.Z) (count : forall _ : jet_elements_prim.Elements.env, BinNums.Z) (m : Memory.Mem.mem)
++  (env : Values.val) (environment : jet_elements_prim.Elements.env) =>
++@ex Values.block
++  (fun be : Values.block =>
++   @ex BinNums.Z
++     (fun ebase : BinNums.Z =>
++      @ex Values.block
++        (fun bt : Values.block =>
++         @ex BinNums.Z
++           (fun txbase : BinNums.Z =>
++            @ex Integers.Int64.int
++              (fun value : Integers.Int64.int =>
++               and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
++                 (and (and (BinInt.Z.le BinNums.Z0 ebase) (BinInt.Z.le ebase Integers.Ptrofs.max_unsigned))
++                    (and (BinInt.Z.le BinNums.Z0 txbase)
++                       (and
++                          (BinInt.Z.le
++                             (BinInt.Z.add txbase
++                                (BinNums.Zpos
++                                   (BinNums.xO
++                                      (BinNums.xO
++                                         (BinNums.xO
++                                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))
++                             Integers.Ptrofs.max_unsigned)
++                          (and
++                             (@eq (option Values.val) (Memory.Mem.load AST.Mptr m be ebase)
++                                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
++                             (and
++                                (@eq (option Values.val) (Memory.Mem.load AST.Mint64 m bt (BinInt.Z.add txbase delta))
++                                   (@Some Values.val (Values.Vlong value)))
++                                (@eq BinNums.Z (Integers.Int64.unsigned value) (count environment))))))))))))
++     : forall (_ : BinNums.Z) (_ : forall _ : jet_elements_prim.Elements.env, BinNums.Z) (_ : Memory.Mem.mem)
++         (_ : Values.val) (_ : jet_elements_prim.Elements.env), Prop
++
++Arguments jet_elements_count_local.elements_count_env_rep delta%Z_scope count%function_scope m env environment
++jet_elements_count_local.elements_num_inputs_env_rep =
++jet_elements_count_local.elements_count_env_rep
++  (BinNums.Zpos
++     (BinNums.xO
++        (BinNums.xO
++           (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
++  (fun environment : jet_elements_prim.Elements.env =>
++   BinInt.Z.of_nat
++     (@length jet_elements_prim.sigTxInput (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment))))
++     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env), Prop
++
++Arguments jet_elements_count_local.elements_num_inputs_env_rep m env environment
++jet_elements_count_local.elements_num_outputs_env_rep =
++jet_elements_count_local.elements_count_env_rep
++  (BinNums.Zpos
++     (BinNums.xO
++        (BinNums.xO
++           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
++  (fun environment : jet_elements_prim.Elements.env =>
++   BinInt.Z.of_nat
++     (@length jet_elements_prim.txOutput (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))))
++     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env), Prop
++
++Arguments jet_elements_count_local.elements_num_outputs_env_rep m env environment
++jet_elements_count_payload.elements_count_observation_spec =
++fun (X : Set) (elems : forall _ : jet_elements_prim.Elements.env, list X)
++  (payload : forall _ : X, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) =>
++@first_fail_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++  (Alg.AssertionSem (Reader.ReaderT_CIMonadZero jet_elements_prim.Elements.env Option.option_Monad_Zero))
++  (fun (w : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env) =>
++   @indexed_list_primitive (S (S (S (S (S O))))) X (Word.Word (S (S (S (S (S (S (S (S O))))))))) (elems e) payload w)
++     : forall (X : Set) (_ : forall _ : jet_elements_prim.Elements.env, list X)
++         (_ : forall _ : X, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : Ty.tySem Ty.Unit)
++         (_ : jet_elements_prim.Elements.env), option (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
++
++Arguments jet_elements_count_payload.elements_count_observation_spec {X}%type_scope (elems payload)%function_scope _ _
+--- a/Coq/jet-coverage.py
++++ b/Coq/jet-coverage.py
+@@ -130,11 +130,11 @@
+                         rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                         r"bitcoin_ge\s+(?:Bitcoin\.env|raw_bitcoin_environment)\b")
+         else:
+-            # Only these three primitive correspondences are reviewed so far.
++            # Only these five selected primitive/program correspondences are reviewed so far.
+             # Its literal target and environment relation have a source gate.
+             contract = (rf"\bapplication_jet_local_spec\s+f_{re.escape(name)}\s+"
+                         r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word32\b"
+-                        if name in {"simplicity_version", "simplicity_lock_time", "simplicity_current_index"} else r"(?!)")
++                        if name in {"simplicity_version", "simplicity_lock_time", "simplicity_current_index", "simplicity_num_inputs", "simplicity_num_outputs"} else r"(?!)")
+         body = statement[1].strip() if statement else ""
+         conditional = body.startswith("memcpy_model")
+         arrows = top_level_connectives(body)
+--- a/Coq/test-jet-coverage.py
++++ b/Coq/test-jet-coverage.py
+@@ -296,6 +296,34 @@
+                 file.write_text(text.replace(old, new, 1))
+                 rejects(coverage.inventory, 'not a direct canonical jet theorem')
+             file.write_text(text)
++        # Count contracts retain the exact function, linked environment, width
++        # and entire proposition. The separate source gate pins their literal
++        # firstFail specification and initial environment relation.
++        for suffix in ['num_inputs', 'num_outputs']:
++            module = 'C.jet_elements_count_local'
++            theorem = 'elements_' + suffix + '_local_spec'
++            file = project / 'C/jet_elements_count_local.v'
++            shutil.copy2(SOURCE / 'C/jet_elements_count_local.v', file)
++            text = file.read_text()
++            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
++                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
++            if [module, theorem] not in coverage.records(audited, 2):
++                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
++            declaration = 'Theorem ' + theorem + ' :'
++            for old, new in [
++                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
++                ('elements_ge Elements.env', 'ge0 Elements.env'),
++                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
++                ('Elements.env Ty.Unit Word32', 'Elements.env Ty.Unit Word64'),
++                (declaration, declaration + ' False ->'),
++                ('application_jet_local_spec f_simplicity_' + suffix, 'jet_local_spec f_simplicity_' + suffix),
++            ]:
++                start = text.index(declaration)
++                assert old in text[start:]
++                file.write_text(text[:start] + text[start:].replace(old, new, 1))
++                rejects(coverage.inventory, 'not a direct canonical jet theorem')
++            file.write_text(text)
++            assert coverage.inventory()
+     print("coverage tests passed: exact core/partial/application contracts; wrong function/global/logical environment and unknown/duplicate/helper/unaudited entries rejected")
+ 
+ 
+--- a/Coq/check-jets.sh
++++ b/Coq/check-jets.sh
+@@ -66,6 +66,8 @@
+ python3 elements-version-review/test-version-source.py "${JET_C_REPO:-..}" .
+ python3 elements-version-review/check-getters-source.py --repo "${JET_C_REPO:-..}" --coq .
+ python3 elements-version-review/test-getters-source.py "${JET_C_REPO:-..}" .
++python3 elements-count-review/check-source.py --repo "${JET_C_REPO:-..}" --coq .
++python3 elements-count-review/test-source.py "${JET_C_REPO:-..}" .
+ python3 check-fullshift-specification.py
+ python3 test-fullshift-specification.py
+ python3 check-secp-normalize-specification.py
+--- /dev/null
++++ b/Coq/elements-count-review/check-source.py
+@@ -0,0 +1,175 @@
++"""Selected Elements count-program/primitive observation review, not admission.
++
++Only indexed lookup presence is reviewed for the two hash primitives. Hash
++payload fidelity is intentionally not claimed; the any-payload C contracts
++discharge that dependence formally. Other Elements primitive clauses remain
++outside this review. Compilation and recursive kernel checking are separate.
++"""
++import argparse
++import hashlib
++import importlib.util
++from pathlib import Path
++import re
++import sys
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++
++
++def load(name, path):
++    spec = importlib.util.spec_from_file_location(name, path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++def between(text, first, last):
++    if text.count(first) != 1 or text.count(last) != 1:
++        raise ValueError('missing/ambiguous source boundary: ' + first)
++    return text.split(first, 1)[1].split(last, 1)[0]
++
++
++def check(repo, coq):
++    helper = repo / 'Coq/check-secp-predicates-specification.py'
++    parser = load('count_active_source_parser', helper)
++    compact = parser.compact
++    paths = [helper]
++    def read(path):
++        paths.append(path)
++        return parser.read_code(path)
++    def equal(actual, expected, label):
++        if compact(actual) != compact(expected):
++            raise ValueError('count source differs: ' + label)
++    def definition(path, name, expected):
++        equal(parser.definition(read(path), name), expected, name)
++
++    jets = read(repo / 'Haskell/Simplicity/Elements/Jets.hs')
++    transaction = read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs')
++    library = read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs')
++    parser.require(jets, 'import qualified Simplicity.Elements.Programs.Transaction.Lib as Prog', 'catalog module')
++    parser.require(library, 'import qualified Simplicity.Elements.Programs.Transaction as Transaction', 'library module')
++    program = transaction.split('l@Lib{..} = Lib {', 1)[1]
++    hs = read(repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs')
++    parser.require(hs, 'primPrefix = "Elements"', 'canonical primitive namespace')
++    for fragment in ['primSem p a env = interpret p a', 'tx = envTx env',
++                     'lookupInput = (sigTxIn tx !?) . fromIntegral',
++                     'lookupOutput = (sigTxOut tx !?) . fromIntegral',
++                     'cast (Just x) = Right x', 'cast Nothing = Left ()',
++                     'atInput f = cast . fmap f . lookupInput . fromInteger . fromWord32',
++                     'atOutput f = cast . fmap f . lookupOutput . fromInteger . fromWord32']:
++        parser.require(hs, fragment, fragment)
++    port = read(coq / 'C/jet_elements_prim.v')
++    equal(parser.definition(port, 'primName'), '"Elements"', 'namespace')
++    parser.require(port, 'Module Elements <: PrimitiveSig.', 'actual primitive module')
++    parser.require(port, 'Module Export PrimitiveElements := PrimitiveModule Elements.', 'primitive algebra')
++    sem = parser.definition(port, 'sem')
++    before = sem.split('(match p in prim A B return A -> option B with', 1)[0]
++    equal(before, '''let tx := envTx e in let ix := envIx e in
++      let atInput {A : Ty} (f : sigTxInput -> A) (i : Word32) : option (tySem (S A)) :=
++        Some (cast (option_map f (nth_error (sigTxIn tx) (Z.to_nat (toZ i))))) in
++      let atOutput {A : Ty} (f : txOutput -> A) (i : Word32) : option (tySem (S A)) :=
++        Some (cast (option_map f (nth_error (sigTxOut tx) (Z.to_nat (toZ i))))) in''', 'primitive lookup domain')
++    if not compact(sem).endswith('end)a'):
++        raise ValueError('primitive result application changed')
++    cast = re.search(r'Let cast\b.*?:=(.*?)\.\s*\n', port, re.S)
++    if not cast:
++        raise ValueError('missing primitive option-to-sum embedding')
++    equal(cast[1], 'match x with | Some a => inr a | None => inl tt end', 'primitive lookup verdict')
++    root = read(coq / 'C/jet_elements_count_local.v')
++    for constructor, accessor, nxt, prim, prim_next, at, field, offset in [
++        ('NumInputs', 'numInputs', 'numOutputs', 'InputScriptHash', 'InputSequence', 'atInput', 'sigTxIn', 696),
++        ('NumOutputs', 'numOutputs', 'outputAmount', 'OutputScriptHash', 'OutputNullDatum', 'atOutput', 'sigTxOut', 704),
++    ]:
++        suffix = 'num_inputs' if constructor == 'NumInputs' else 'num_outputs'
++        parser.require(jets, constructor + ' :: TransactionJet () Word32', 'jet type')
++        dispatch = re.findall(r'(?m)^specificationTransaction ' + constructor + r'\s*=([^\n]*)$', jets)
++        if len(dispatch) != 1:
++            raise ValueError('missing/duplicate catalog dispatch')
++        equal(dispatch[0], 'Prog.' + accessor, 'catalog dispatch')
++        parser.require(library, accessor + ' = Transaction.' + accessor + ' Transaction.lib', 'library binding')
++        parser.exact_program(program, accessor, nxt, 'firstFail word32 (primitive ' + prim + ')')
++        parser.require(hs, prim + ' :: Prim Word32 (S Word256)', 'indexed primitive type')
++        name = 'inputScriptHash' if prim == 'InputScriptHash' else 'outputScriptHash'
++        parser.require(hs, 'primName ' + prim + ' = "' + name + '"', 'primitive identity')
++        parser.require(port, '| ' + prim + ' : prim Word32 (S Word256)', 'Coq primitive type')
++        identities = re.findall(r'(?m)^\s*\| ' + prim + r'\s*=>\s*"([^"\n]*)"\s*$', port)
++        if identities != [name]:
++            raise ValueError('Coq primitive identity changed')
++        interpretation = re.findall(r'(?m)^  interpret ' + prim + r'\s*=([^\n]*)$', hs)
++        expression = ('encodeHash . bslHash . utxoScript . sigTxiTxo' if prim == 'InputScriptHash' else
++                      'encodeHash . bslHash . txoScript')
++        if len(interpretation) != 1:
++            raise ValueError('missing/duplicate canonical primitive clause')
++        equal(interpretation[0], 'return . (' + at + ' $ ' + expression + ')', 'canonical lookup observation')
++        clause = re.findall(r'(?ms)^\s*\| ' + prim + r'\s*=>(.*?)(?=^\s*\| ' + prim_next + r'\s*=>)', sem)
++        if len(clause) != 1 or not re.fullmatch(at + r'\s*\(fun\s+\w+\s*=>.+\)', clause[0].strip(), re.S):
++            raise ValueError('indexed primitive does not directly map a total payload through lookup')
++        definition(coq / 'C/jet_elements_count_canonical.v', 'elements_transaction_' + suffix + '_spec',
++                   'first_fail_program 5 (Primitive.Combinators.prim Elements.' + prim + ')')
++        wanted = ('application_jet_local_spec f_simplicity_' + suffix + ' elements_ge Elements.env Ty.Unit Word32 '
++                  'elements_' + suffix + '_env_rep (fun a environment => @elements_transaction_' + suffix +
++                  '_spec (PrimitivePrimSem option_Monad_Zero) a environment).')
++        statement = re.findall(r'\bTheorem elements_' + suffix + r'_local_spec\s*:(.*?)\bProof\s*\.', root, re.S)
++        if len(statement) != 1:
++            raise ValueError('missing/duplicate C contract')
++        equal(statement[0], wanted, 'actual C function/environment/specification/whole local contract')
++        equal(parser.definition(root, 'elements_' + suffix + '_env_rep'),
++              'elements_count_env_rep ' + str(offset) +
++              ' (fun environment => Z.of_nat (length (' + field + ' (Elements.envTx environment))))', 'count field')
++    equal(parser.definition(root, 'elements_count_env_rep'), r'''exists be ebase bt txbase value,
++      env = Vptr be (Ptrofs.repr ebase) /\
++      0 <= ebase <= Ptrofs.max_unsigned /\ 0 <= txbase /\ txbase + 760 <= Ptrofs.max_unsigned /\
++      Mem.load Mptr m be ebase = Some (Vptr bt (Ptrofs.repr txbase)) /\
++      Mem.load Mint64 m bt (txbase + delta) = Some (Vlong value) /\
++      Int64.unsigned value = count environment''', 'initial physical/logical boundary')
++    definition(coq / 'C/jet_firstFail_spec.v', 'first_fail_body',
++               'take (drop ((op &&& iden) >>> case (injl (I H)) (injr unit)))')
++    definition(coq / 'C/jet_firstFail_spec.v', 'first_fail_program',
++               '(unit &&& unit) >>> for_while_program n (first_fail_body n op) >>> (iden &&& unit) >>> assertl (O H) assertion_cmr_fail0')
++    word = read(repo / 'Haskell/Core/Simplicity/Programs/Word.hs')
++    equal(between(word, 'firstFail w op =', 'data ConstWord'),
++          '(unit &&& unit) >>> forWhile w (take (drop (op &&& iden >>> match (injl ih) (injr unit)))) '
++          '>>> iden &&& unit >>> assertl (take iden) cmrFail0', 'literal firstFail')
++    equal(between(word, 'forWhile SingleV body =', 'firstFail ::'),
++          '(((oh &&& false) &&& ih) >>> monobody) &&& oh >>> match (injl oh) (((ih &&& true) &&& oh) >>> monobody) '
++          'where monobody = body forWhile (DoubleV n) body = forWhile n (forWhile n ((oooh &&& (ooih &&& oih)) &&& ih >>> body))',
++          'literal forWhile recursion')
++    definition(coq / 'C/jet_forWhile_spec.v', 'for_while_program', '''
++      match n as k return alg ((C * Word k) * A) (B + A) -> alg (C * A) (B + A) with
++      | 0 => fun body => ((((O H &&& Bit.false) &&& I H) >>> body) &&& O H) >>>
++          case (injl (O H)) (((I H &&& Bit.true) &&& O H) >>> body)
++      | S k => fun body => for_while_program k (for_while_program k
++          (((O O O H &&& (O O I H &&& O I H)) &&& I H) >>> body)) end body''')
++    words = read(repo / 'Haskell/Core/Simplicity/Ty/Word.hs')
++    for fragment in ['type Vector1 x = x', 'vector1 = SingleV', 'word32 = vector32',
++                     'type Word32 = Vector32 Bit']:
++        parser.require(words, fragment, '32-bit word carrier')
++    for size, half in [(2, 1), (4, 2), (8, 4), (16, 8), (32, 16)]:
++        parser.require(words, 'vector' + str(size) + ' = DoubleV vector' + str(half), 'word32 depth')
++    definition(coq / 'C/jet_assertion_spec.v', 'assertion_hash0', '''Simplicity.Digest.Hash256
++      [Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero; Int.zero] eq_refl''')
++    definition(coq / 'C/jet_assertion_spec.v', 'assertion_cmr_fail0', '''
++      @Alg.Assertion.Combinators.fail Ty.Unit Ty.Unit
++      Simplicity.MerkleRoot.CommitmentRoot_Assertion_alg (assertion_hash0, assertion_hash0)''')
++    merkle = read(repo / 'Haskell/Core/Simplicity/MerkleRoot/Impl.hs')
++    core = read(repo / 'Haskell/Core/Simplicity/Term/Core.hs')
++    parser.require(merkle, 'cmrFail0 = commitmentRoot (fail0 :: CommitmentRoot () ())', 'assertion branch root')
++    parser.require(core, 'fail0 = fail (hash0, hash0)', 'literal fail root payload')
++    raw = read(repo / 'C/include/simplicity/elements/env.h')
++    raw = re.sub(r'/\*.*?\*/|//[^\n]*', '', raw, flags=re.S)
++    record = between(raw, 'typedef struct rawElementsTransaction {', '} rawElementsTransaction;')
++    for name in ['numInputs', 'numOutputs']:
++        if len(re.findall(r'(?m)^\s*uint32_t ' + name + r';\s*$', record)) != 1:
++            raise ValueError('C raw count domain changed: ' + name)
++    parser.require(port, 'sigTxInBounds : (0 < Zlength sigTxIn < Int.modulus)%Z', 'bounded input domain')
++    parser.require(port, 'sigTxOutBounds : (0 <= Zlength sigTxOut < Int.modulus)%Z', 'bounded output domain')
++    return {'scope': 'two count jets; literal programs and indexed lookup presence only',
++            'hash_payload_fidelity_reviewed': False, 'other_primitive_semantics_reviewed': False,
++            'kernel_checked_by_this_tool': False, 'AST_checked_by_this_tool': False,
++            'normal_registration': False, 'coverage_added': 0,
++            'hashes': {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(set(paths))}}
++
++
++if __name__ == '__main__':
++    p = argparse.ArgumentParser(); p.add_argument('--repo', type=Path, required=True); p.add_argument('--coq', type=Path, required=True)
++    args = p.parse_args(); import json; print(json.dumps(check(args.repo, args.coq), indent=2))
+--- /dev/null
++++ b/Coq/elements-count-review/test-source.py
+@@ -0,0 +1,111 @@
++"""In-memory corruption fixtures; never rewrite live C/Coq/Haskell inputs."""
++import importlib.util
++from pathlib import Path
++import sys
++from unittest.mock import patch
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++s = importlib.util.spec_from_file_location('count_source_gate', HERE / 'check-source.py')
++gate = importlib.util.module_from_spec(s)
++s.loader.exec_module(gate)
++repo, coq = map(Path, sys.argv[1:])
++gate.check(repo, coq)
++fixtures = []
++for constructor, suffix, field, primitive, offset in [
++    ('NumInputs', 'num_inputs', 'sigTxIn', 'InputScriptHash', '696'),
++    ('NumOutputs', 'num_outputs', 'sigTxOut', 'OutputScriptHash', '704'),
++]:
++    accessor = 'numInputs' if constructor == 'NumInputs' else 'numOutputs'
++    fixtures += [
++        (repo / 'Haskell/Simplicity/Elements/Jets.hs', 'specificationTransaction ' + constructor + ' = Prog.' + accessor,
++         'specificationTransaction ' + constructor + ' = Prog.currentIndex'),
++        (repo / 'Haskell/Simplicity/Elements/Jets.hs', constructor + ' :: TransactionJet () Word32',
++         constructor + ' :: TransactionJet () Word64'),
++        (repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs', 'firstFail word32 (primitive ' + primitive + ')',
++         'firstFail word16 (primitive ' + primitive + ')'),
++        (repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs', accessor + ' = Transaction.' + accessor + ' Transaction.lib',
++         accessor + ' = Transaction.currentIndex Transaction.lib'),
++        (coq / 'C/jet_elements_count_canonical.v', 'first_fail_program 5 (Primitive.Combinators.prim Elements.' + primitive + ')',
++         'first_fail_program 4 (Primitive.Combinators.prim Elements.' + primitive + ')'),
++        (coq / 'C/jet_elements_count_local.v', 'Theorem elements_' + suffix + '_local_spec :',
++         'Theorem elements_' + suffix + '_local_spec : False ->'),
++        (coq / 'C/jet_elements_count_local.v', 'application_jet_local_spec f_simplicity_' + suffix + ' elements_ge',
++         'application_jet_local_spec f_simplicity_version elements_ge'),
++        (coq / 'C/jet_elements_count_local.v', 'elements_count_env_rep ' + offset,
++         'elements_count_env_rep 0'),
++        (coq / 'C/jet_elements_count_local.v', 'length (' + field + ' (Elements.envTx environment))',
++         'length (' + ('sigTxOut' if field == 'sigTxIn' else 'sigTxIn') + ' (Elements.envTx environment))'),
++    ]
++fixtures += [
++    (coq / 'C/jet_elements_count_local.v',
++     'application_jet_local_spec f_simplicity_num_inputs elements_ge Elements.env Ty.Unit Word32',
++     'application_jet_local_spec f_simplicity_num_inputs ge0 Elements.env Ty.Unit Word32'),
++    (coq / 'C/jet_elements_count_local.v', 'Mem.load Mint64 m bt (txbase + delta)', 'Mem.load Mint32 m bt (txbase + delta)'),
++    (coq / 'C/jet_elements_count_local.v', 'Int64.unsigned value = count environment',
++     'Int64.unsigned value = count environment mod Int64.modulus'),
++    (coq / 'C/jet_elements_prim.v', 'Some a => inr a', 'Some a => inl tt'),
++    (coq / 'C/jet_elements_prim.v', 'None => inl tt', 'None => inr tt'),
++    (coq / 'C/jet_elements_prim.v', 'nth_error (sigTxIn tx)', 'nth_error (sigTxOut tx)'),
++    (coq / 'C/jet_elements_prim.v', 'Z.to_nat (toZ i)', '0%nat'),
++    (coq / 'C/jet_elements_prim.v', '| InputScriptHash => atInput', '| InputScriptHash => atOutput'),
++    (coq / 'C/jet_elements_prim.v', '| OutputScriptHash => atOutput', '| OutputScriptHash => atInput'),
++    (coq / 'C/jet_elements_prim.v', '0 < Zlength sigTxIn < Int.modulus', '0 < Zlength sigTxIn <= Int.modulus'),
++    (coq / 'C/jet_elements_prim.v', '0 <= Zlength sigTxOut < Int.modulus', '0 <= Zlength sigTxOut <= Int.modulus'),
++    (repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs', 'cast Nothing = Left ()', 'cast Nothing = Right ()'),
++    (repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs', 'lookupInput = (sigTxIn tx !?)', 'lookupInput = (sigTxOut tx !?)'),
++    (repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs', 'atOutput f = cast . fmap f . lookupOutput',
++     'atOutput f = cast . fmap f . lookupInput'),
++    (repo / 'Haskell/Core/Simplicity/Programs/Word.hs', 'assertl (take iden) cmrFail0', 'assertr cmrFail0 (take iden)'),
++    (repo / 'Haskell/Core/Simplicity/Programs/Word.hs', 'forWhile (DoubleV n) body = forWhile n (forWhile n',
++     'forWhile (DoubleV n) body = forWhile n (forWhile SingleV'),
++    (repo / 'Haskell/Core/Simplicity/Ty/Word.hs', 'word32 = vector32', 'word32 = vector16'),
++    (coq / 'C/jet_firstFail_spec.v', 'assertl (O H) assertion_cmr_fail0', 'assertr assertion_cmr_fail0 (O H)'),
++    (coq / 'C/jet_forWhile_spec.v', 'case (injl (O H))', 'case (injr (O H))'),
++    (coq / 'C/jet_assertion_spec.v', '(assertion_hash0, assertion_hash0)', '(assertion_hash0, other_hash)'),
++    (repo / 'C/include/simplicity/elements/env.h', 'uint32_t numInputs;', 'uint64_t numInputs;'),
++    (repo / 'C/include/simplicity/elements/env.h', 'uint32_t numOutputs;', 'uint64_t numOutputs;'),
++    (repo / 'C/include/simplicity/elements/env.h', 'uint32_t numInputs;',
++     'uint64_t numInputs; /* uint32_t numInputs; */'),
++    (repo / 'C/include/simplicity/elements/env.h', 'uint32_t numOutputs;',
++     'uint64_t numOutputs; /*\nuint32_t numOutputs;\n*/'),
++    (repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs', 'firstFail word32 (primitive InputScriptHash)',
++     'firstFail word16 (primitive InputScriptHash) {- firstFail word32 (primitive InputScriptHash) -}'),
++    (repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs', 'firstFail word32 (primitive OutputScriptHash)',
++     'firstFail word16 (primitive OutputScriptHash) {- firstFail word32 (primitive OutputScriptHash) -}'),
++    (repo / 'Haskell/Simplicity/Elements/Jets.hs', 'import qualified Simplicity.Elements.Programs.Transaction.Lib as Prog',
++     'import qualified Simplicity.Bitcoin.Programs.Transaction.Lib as Prog'),
++    (repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs', 'import qualified Simplicity.Elements.Programs.Transaction as Transaction',
++     'import qualified Simplicity.Bitcoin.Programs.Transaction as Transaction'),
++    (coq / 'C/jet_elements_prim.v', '| InputScriptHash => "inputScriptHash"', '| InputScriptHash => "other"'),
++    (coq / 'C/jet_elements_prim.v', '| OutputScriptHash => "outputScriptHash"', '| OutputScriptHash => "other"'),
++    (repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs', 'primPrefix = "Elements"', 'primPrefix = "Bitcoin"'),
++]
++original = Path.read_text
++for target, old, new in fixtures:
++    text = original(target)
++    if old not in text:
++        raise AssertionError('inactive fixture: ' + old)
++    changed = text.replace(old, new, 1)
++    def read(self, *args, **kwargs):
++        return changed if self == target else original(self, *args, **kwargs)
++    with patch.object(Path, 'read_text', read):
++        try:
++            gate.check(repo, coq)
++        except ValueError:
++            pass
++        else:
++            raise AssertionError('count corruption accepted: ' + old)
++
++# Hash payloads cannot affect a count: changing a total payload is deliberately
++# outside the gate's observation claim, and is covered by the any-payload proof.
++target = coq / 'C/jet_elements_prim.v'
++text = original(target)
++changed = text.replace('encodeHash (byteStringHash (utxoScript (sigTxiTxo txi)))', 'fromZ 0', 1)
++assert changed != text
++def read(self, *args, **kwargs):
++    return changed if self == target else original(self, *args, **kwargs)
++with patch.object(Path, 'read_text', read):
++    gate.check(repo, coq)
++gate.check(repo, coq)
++print(str(len(fixtures)) + ' count source corruptions rejected; 1 observation-only payload fixture accepted')
