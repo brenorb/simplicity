@@ -38,59 +38,48 @@ coverage tests, both selected source guards and mutation suites, and twenty
 in-memory evidence-corruption tests. Invalid proofs are never compiled.
 Its terminal `REVIEW.json` is required before full acceptance can start.
 
-## Acceptance boundary and continuation
+## Full isolated acceptance passed; main installation completed
 
-Preparation and independent review passed. All selected source checks and
-their 32 mutations, twenty evidence mutations, coverage tests and the ordinary
-full contract comparison passed; `REVIEW.json` seals this evidence. Full
-acceptance and installation are not yet claimed.
-Main remains at **368/533**, with 104 explicit `memcpy_model` conditions.
-The candidate inventory is **371/533**, not accepted coverage until the full
-normal gate terminates successfully. The all-jet goal remains unfinished.
+Session **54262** terminated with exit 0 after **3,297.22 seconds**. The command
+was exactly `bash check-jets.sh --accept`, without update/skip flags. The normal
+build, all 989 kernel-checked modules, assumption audit (5,069 results, 2,800
+closed), full contract comparison, negative tests and all five production AST
+regenerations passed. `ACCEPTANCE.json` and `TERMINAL.json` bind its terminal
+status and unchanged `bf7b39ba...` input fingerprint; the durable complete log
+is `acceptance.log` (SHA-256 `6d9e1693...`).
+
+The prerequisite actual-main sequence audit also passed, as recorded in
+`../elements-sequence-admission/MAIN-ACCEPTANCE.json`. The one-time installer
+verified both histories and installed exactly seven metadata/snapshot files,
+four gate/printer scripts, four source/negative guards and three proof sources.
+It copied no compiler objects. `INSTALLATION.json` and `DELTA.patch` bind that
+exact owned change; all other main source bytes and the original staged patch
+remain unchanged. Main's full input fingerprint is byte-identical to the
+accepted candidate's. Installed registration is **371/533**, including the
+unchanged 104 explicit `memcpy_model` conditions. The all-jet goal is unfinished.
+
 These receipts describe the actual dirty/staged checkout, including the
-preexisting shared word-conversion module, not a clean-HEAD build.
+preexisting shared word-conversion module, not a clean-HEAD build. The exact
+registry/snapshot/script worktree delta is retained separately from unrelated
+staged changes; it is not silently swept into a commit.
 
-Do not alter main Coq/C/Haskell sources while its predecessor sequence audit
-is live (session 42404, log in the sequence candidate). Poll the real handle;
-a recorded identifier alone is not liveness. Its successful actual-main
-receipt is a prerequisite for any subsequent main installation.
-
-```sh
-ulimit -s 65520
-python3 -B proof-work/elements-direct-getters-admission/review.py finish /private/tmp/jet-direct-getters-admission.yc45qogt
-python3 -B proof-work/elements-direct-getters-admission/accept.py /private/tmp/jet-direct-getters-admission.yc45qogt
-```
-
-Do not duplicate live checks. `accept.py` runs exactly
-`bash check-jets.sh --accept`, without update/skip flags. It pins the reviewed
-tools, evidence and input fingerprint, preserves terminal status/log hashes,
-and requires every build, kernel, assumptions, contracts, negative-test and
-five-AST check. `AUDIT-RUN.json` records launch, not success;
-only `ACCEPTANCE.json` records a successful terminal full audit.
-No main installation or compiler-object copying is performed by these tools.
-
-Full isolated acceptance was launched as session **54262**, with log
-`/private/tmp/jet-direct-getters-admission.yc45qogt/acceptance.log`.
-Poll this handle rather than duplicating the run. Main's sequence audit
-session **42404** has now terminated with exit 0 after 3,278.07 seconds;
-all 978 modules, assumption/contract/negative gates and five ASTs passed.
-Its terminal receipt is `../elements-sequence-admission/MAIN-ACCEPTANCE.json`.
-Main must still remain frozen for this getter run's terminal source validation.
-The preparation commit is `6f1fb64d`, pushed only to `brenorb/simplicity`.
-
-The guarded continuation tools are prepared but have **not** installed main:
+The distinct actual-main getter acceptance is now running as session **74479**,
+launched by `main-accept.py`. `MAIN-AUDIT-RUN.json` records launch, not success.
+Log: `/private/tmp/jet-direct-getters-admission.yc45qogt/main-acceptance.log`.
+Keep main Coq/C/Haskell inputs, registries, guards and snapshots frozen during
+this run. Poll the actual handle for liveness; a recorded identifier alone is
+not evidence of a live process. Only a terminal `MAIN-ACCEPTANCE.json` confirms
+the distinct actual-main audit. Do not duplicate the live or completed runs,
+and never rerun the one-time installer.
 
 ```sh
-python3 -B proof-work/elements-direct-getters-admission/install.py /private/tmp/jet-direct-getters-admission.yc45qogt
 python3 -B proof-work/elements-direct-getters-admission/post-check.py
-ulimit -s 65520
-python3 -B proof-work/elements-direct-getters-admission/main-accept.py
 ```
 
-The one-time installer requires this candidate's successful terminal full
-acceptance **and** the predecessor's successful actual-main sequence receipt
-and postcheck. It binds both histories, copies only the exact reviewed source/
-metadata/guard delta (no `.vo`), checks full input identity and preserves the
-original staged patch. Do not run it until both audits are terminal and green.
-The new postcheck then replaces the historical sequence postcheck for current
-source identity; predecessor postchecks intentionally do not match later trees.
+The installed-main postcheck has passed with predecessor verification, exact
+source identity and staging preservation, with actual-main acceptance still
+pending. Use this postcheck for current source identity: the old sequence
+postcheck represents its historical `7e55c862...` source state and intentionally
+does not match the later installation. This ledger composes the old source
+map, exact new delta and both prerequisite terminal receipts. Further proof
+work can continue in independent external trees.
