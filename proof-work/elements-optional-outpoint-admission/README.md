@@ -1,5 +1,13 @@
 # Eleven optional/outpoint/output getters: normal admission candidate
 
+**Superseded for acceptance by `../elements-thirteen-getters-admission/`.**
+The two additional output-proof getters are now checked and are being combined
+with this reviewed delta to propose 399/533 over the same 386 predecessor.
+This eleven-getter checkpoint remains preserved and reviewed, but its audit
+has not been launched: do not run its `accept.py` below. The combined candidate
+still requires its own complete review and full acceptance. This historical
+receipt is not acceptance of either candidate.
+
 Proposed successor: **397/533**, over the reviewed 386-jet candidate. This folder
 does not install proofs or claim full acceptance. Scope: indexed/current annex
 hash; indexed/current reissuance blinding, new issuance contract, and reissuance
