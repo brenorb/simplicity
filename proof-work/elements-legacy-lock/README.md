@@ -43,17 +43,18 @@ Coq/CompCert assumptions, without an extra libc premise. Elements AST
 regeneration also passed. Source input:
 `72b6728a0d20b01799638071bbc39936e4bc71e8ede50d22626db0c77a98239a`.
 
-Recursive kernel checking is live as **42973**; poll that handle rather than
-restarting it. `RUN.json` binds the fresh compilation, reports, source/object
-hashes, preserved main inputs and original staging. Only `CHECKED.json`
-confirms recursive kernel success; a launch receipt is not a terminal result.
+Recursive kernel checking **42973 terminated with exit 0**. `CHECKED.json`
+and the complete kernel/AST logs record that terminal result; `RUN.json` is
+the earlier pre-kernel checkpoint. Both bind the fresh compilation, reports,
+source/object hashes, preserved main inputs and original staging. There are
+no unsafe fixpoints, disabled positivity checks, or new kernel assumptions.
 
 ```sh
 ulimit -s 65520
 python3 -B proof-work/elements-legacy-lock/check.py /private/tmp/jet-elements-legacy-lock.0mJMjD
 ```
 
-Do not repeat a launched checker. Its canonical source/corruption guard is not
+Do not repeat this completed checker. Its canonical source/corruption guard is not
 yet complete, and there is no normal registration or full normal acceptance.
 Before admission, freeze the selected Haskell dispatch, complete loop/core
 definitions and conversion interfaces with source/corruption review; inspect
