@@ -45,13 +45,16 @@ this exact delta equals the actual main map, and the preexisting staged patch
 is unchanged. The main source fingerprint now exactly equals the accepted
 candidate's `aa2c41604a5cae0c69d6900799ecd8b6a824b26ec3c4b2b4bcf23cb6817f5bce`.
 
-The separate actual-main acceptance is running as session **49451**, launched
-by `main-accept.py`; `MAIN-AUDIT-RUN.json` records launch only. Poll that live
-handle, not the completed isolated one. Its log is
-`/private/tmp/jet-count-admission.ww8e4z3b/main-acceptance.log`. Keep main Coq,
-C/Haskell, manifests, gates and snapshots frozen during this run; proof-work
-and independent external proof trees remain available. Only a terminal
-`MAIN-ACCEPTANCE.json` establishes actual-main acceptance.
+The separate actual-main acceptance (session **49451**) also terminated with
+exit 0 after 3,474.96 seconds. `MAIN-ACCEPTANCE.json` binds the unchanged
+`aa2c4160...` input fingerprint and complete successful log; its durable copy
+is `main-acceptance.log`. Build, all 960 kernel-checked modules, assumptions,
+contract snapshots, negative tests and all five production ASTs passed in the
+actual checkout. `post-check.py` confirms both exact accepted-source identity
+and unchanged preexisting staging, with `actual_main_acceptance: true`.
+`MAIN-AUDIT-RUN.json` and the installation ledger keep their historical launch/
+installation meanings; neither was rewritten to masquerade as a terminal run.
+Do not restart either completed count acceptance.
 
 The isolated tree is `/private/tmp/jet-count-admission.ww8e4z3b`. `ASSEMBLY.json`
 pins the complete main source map, staged patch, exact additions and cached
@@ -75,8 +78,8 @@ tests, source targets and all five production ASTs must pass.
 
 Installed main registration and the fully accepted isolated candidate are
 **366/533**, including the unchanged 104 explicit `memcpy_model` conditions;
-the distinct actual-main run is still pending. This does not complete the
-all-jet goal or the inherited fidelity review.
+both isolated and actual-main full acceptance have passed. This does not
+complete the all-jet goal or the inherited fidelity review.
 The count domain remains bounded by the C raw uint32 count interface, not
 arbitrarily large Haskell vectors. Full Elements environment-builder and
 runtime/evaluator composition remain distinct obligations.
@@ -115,6 +118,8 @@ python3 -B proof-work/elements-count-admission/main-accept.py
 python3 -B proof-work/elements-count-admission/post-check.py
 ```
 
-The installed-main precheck passed with exact source identity and staging
-preservation. The actual-main compiler/checker run has not been replaced by
-that precheck. Do not launch it a second time while session 49451 is live.
+The installed-main precheck and full compiler/checker run both passed with
+exact source identity and staging preservation. After a later reviewed batch
+changes main's source fingerprint, this count ledger remains historical
+evidence: do not run its unchanged-source postcheck as if the checkout still
+contained only this delta. The next admission needs its own composed ledger.
