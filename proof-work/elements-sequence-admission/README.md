@@ -66,14 +66,20 @@ map. The original staged patch is unchanged, and main's full input fingerprint
 exactly equals the accepted candidate's. Installed registration is **368/533**,
 including the unchanged 104 explicit `memcpy_model` conditions.
 
-The distinct actual-main sequence acceptance is now live as session **42404**,
-launched by `main-accept.py`; `MAIN-AUDIT-RUN.json` records launch, not success.
-Log: `/private/tmp/jet-sequence-admission.xtajlnf7/main-acceptance.log`.
-Keep main Coq/C/Haskell inputs, registries, guards and snapshots frozen during
-that run. Poll the actual handle for liveness; recorded identifiers alone do
-not establish continued execution. Only a terminal `MAIN-ACCEPTANCE.json`
-proves actual-main acceptance. The two completed predecessor runs must not be
-restarted. Proof work can continue in independent external trees.
+The distinct actual-main sequence acceptance (session **42404**) terminated
+with exit 0 after **3,278.07 seconds**. `MAIN-ACCEPTANCE.json` binds its exact
+`7e55c862...` input fingerprint, all-checks terminal marker and log hash
+`616fb789...`. The normal build, all 978 kernel-checked modules, assumptions,
+contract comparison, negative tests and all five AST regenerations passed.
+The installed-main postcheck now confirms actual-main acceptance, predecessor
+acceptance, exact source identity and preservation of the original staging.
+A durable full log is `main-acceptance.log`. Do not restart the completed run.
+
+The independent three-getter candidate is still undergoing full acceptance;
+its tools require main's current source map to remain unchanged until their
+terminal validation. Keep main's proof inputs frozen for that remaining run.
+The getter installer requires both that terminal result and this actual-main
+sequence receipt/postcheck; preparation or an active handle is not success.
 
 ```sh
 python3 -B proof-work/elements-sequence-admission/admission.py assemble
@@ -92,10 +98,10 @@ ulimit -s 65520
 python3 -B proof-work/elements-sequence-admission/main-accept.py
 ```
 
-Installation and main launch have already happened; do not rerun the one-time
-installer or duplicate the live main audit. The installed-main postcheck has
-passed with predecessor verification, exact source identity and staging
-preservation; that precheck is not a substitute for terminal main acceptance.
+Installation and actual-main acceptance have already completed; do not rerun
+the one-time installer or duplicate the completed audit. The installed-main
+postcheck verifies both terminal receipts, exact source identity and staging
+preservation. These receipts describe the actual staged/dirty checkout.
 Do not use the old count postcheck after this source change: it represents
 its historical `aa2c4160...` source state. This batch's postcheck composes the
 old source map, the exact new delta, and both terminal predecessor receipts.
