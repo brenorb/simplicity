@@ -62,8 +62,9 @@ The full added reports and all twelve review-stage logs are archived here.
 
 The proposed registry is **378/533**, including the unchanged 104 explicit
 `memcpy_model` conditions. It is not accepted coverage yet. Main remains at
-371/533, with the distinct actual-main getter audit (session 74479) still
-running when this preparation was written. Its inputs remain frozen.
+371/533. The distinct actual-main getter audit (session 74479) has now passed
+with exit 0; its terminal receipt/log are in the predecessor folder. That
+does not complete the separate seven-jet candidate audit below.
 
 ```sh
 python3 -B proof-work/elements-timelock-pegin-admission/review.py review /private/tmp/jet-timelock-pegin-admission.dw295nit
@@ -82,14 +83,37 @@ The launcher refuses to overwrite an existing launch. Poll the existing
 handle; silence or an observation timeout is not a failed run.
 
 Installation requires both the candidate's terminal acceptance and the
-371-jet actual-main audit's successful terminal receipt/postcheck. Reuse the
-guarded source-only installation pattern from the direct-getter batch: exact
+371-jet actual-main audit's successful terminal receipt/postcheck. The prepared
+`install.py` reuses the guarded direct-getter installation pattern: exact
 metadata/script/guard/four-source delta, archived patch and ledger, no copied
 objects, unchanged original staging, then a distinct actual-main acceptance.
 Do not rerun completed predecessor installers or their historical postchecks
 against a later source state. These receipts describe the actual dirty/staged
 checkout, including preexisting untracked dependencies, not clean-HEAD
 reproducibility.
+
+The three lifecycle adapters (`install.py`, `post-check.py`, `main-accept.py`)
+have been syntax-checked and their predecessor paths reviewed. A mocked
+missing-acceptance preflight confirms the installer stops before changing
+main/index; no installation has been performed. The installer requires both
+successful terminal receipts, exact reviewed source/report/object evidence,
+the previous composed postcheck, fresh targets and unchanged staging. Its
+postcheck composes both histories with the exact source-only delta. The
+distinct actual-main driver refuses to overwrite an existing audit launch.
+Execute these only in order after session 96260 successfully terminates:
+
+```sh
+python3 -B proof-work/elements-timelock-pegin-admission/install.py /private/tmp/jet-timelock-pegin-admission.dw295nit
+python3 -B proof-work/elements-timelock-pegin-admission/post-check.py
+ulimit -s 65520
+python3 -B proof-work/elements-timelock-pegin-admission/main-accept.py
+```
+
+Do not change main inputs during that new actual-main audit. The next eight
+digest-getter candidate has its own completed preparation/review at
+`../elements-digest-getters-admission/`; its isolated full audit may start only
+after this candidate is accepted and installed. Its installation must also
+wait for this candidate's distinct actual-main audit to pass.
 
 The original frame/cursor/prefix/environment/memory contracts and
 LP64/RECKLESS configuration are unchanged. Environment-builder/evaluator
