@@ -91,7 +91,7 @@ accepted source identity. Its distinct actual-main acceptance is the next
 predecessor step. Keep completed candidates immutable; never repeat their
 completed audit commands or copy objects from future live audits.
 
-`accept.py` is prepared here but **has not been launched**. It requires this
+`accept.py` is prepared here and has now been launched **once as 55506**. It requires this
 candidate's completed bound review, real full isolated 399 acceptance, guarded
 399 installation and its passing postcheck at exactly `50f56ff9...`. Its own
 full audit may run alongside actual-main 399, but installation of 401 must also
@@ -102,13 +102,20 @@ Three negative-only start checks passed without launching a subprocess or
 attempting writes. `START-GUARD.json` binds their driver, test and log. These
 are refusal tests, not an invented positive acceptance.
 
-Only after all start prerequisites and the completed finish review, launch
-the following **once** and retain its handle:
+All start prerequisites and the completed finish review were verified before
+the following historical launch; do not repeat it:
 
 ```sh
 ulimit -s 65520
 python3 -B proof-work/elements-tap-getters-admission/accept.py /private/tmp/jet-tap-getters-admission.ouwiobpu
 ```
+
+`AUDIT-RUN.json` binds input `c86dfb59...`, reviewed evidence, the driver and real
+399 acceptance/installation. It records launch, not success. Log:
+`/private/tmp/jet-tap-getters-admission.ouwiobpu/acceptance.log`. Keep this private
+candidate frozen and poll **55506**; never restart on silence. The distinct
+actual-main 399 audit is live as **90475**. Both must pass before 401 can be
+installed. Main remains 399/533, not 401/533.
 
 There is no 401 installer yet. After successful isolated 401 and actual-main
 399 acceptance, prepare a guarded installer that explicitly permits only the
