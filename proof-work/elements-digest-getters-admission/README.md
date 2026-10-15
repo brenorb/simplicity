@@ -136,6 +136,15 @@ ulimit -s 65520
 python3 -B proof-work/elements-digest-getters-admission/main-accept.py
 ```
 
+The distinct actual-main 386 audit was launched **once**, as session **92335**,
+after installation/postcheck and a signed scoped installation commit. Its
+input fingerprint is `f362c518...`; `MAIN-AUDIT-RUN.json` records launch, not
+success. Log: `/private/tmp/jet-digest-getters-admission.jd1i0nr6/main-acceptance.log`.
+Keep main Coq/C/Haskell sources, metadata and gates frozen until that handle
+terminates and validates its source. Poll the existing run; do not repeat the
+command above because its output is quiet. Only a successful terminal
+`MAIN-ACCEPTANCE.json` establishes actual-main 386 acceptance.
+
 The checked eleven-getter successor is being combined with two further checked
 output-proof getters in `../elements-thirteen-getters-admission/`, proposing
 399/533. Preserve the eleven-getter receipts as historical review evidence;
