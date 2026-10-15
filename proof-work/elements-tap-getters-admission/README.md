@@ -8,8 +8,8 @@ Candidate: `/private/tmp/jet-tap-getters-admission.ouwiobpu`.
 Reviewed candidate input:
 `c86dfb5924df9474a3168b5923c508f236576737c3fbb18b9d59a40afaa3752d`.
 Main was **386/533** at preparation and has since advanced through the guarded
-399 installation. This 401 candidate has passed full isolated acceptance;
-guarded installation is the next step.
+399 installation. This 401 candidate has passed full isolated acceptance and
+has now been installed through the guarded source-only installer.
 
 ## Source provenance and the explicit inherited-source change
 
@@ -129,8 +129,18 @@ explicitly reviewed nullable-tappath overwrite. Object copying and other
 inherited-source overwrites are rejected. These checks did not install anything
 or manufacture positive acceptance evidence. Both real terminal acceptances
 have now been independently verified. Read-only planning against exact main399
-also passed again. Next run the once-only source installer, composed postcheck
-and distinct actual-main acceptance. The entire original staging is preserved.
+also passed again. The once-only installer and composed postcheck passed as
+67607, exit 0. Main now matches accepted input `c86dfb59...` exactly, at 401/533;
+the entire original staged patch is preserved. `INSTALLATION.json` and
+`DELTA.patch` bind the exact fifteen-target source-only change. No compiler
+objects were copied. Do not repeat installation or apply an obsolete
+exact-main399 postcheck to main401.
+
+The separate actual-main401 audit must still run once through `main-accept.py`;
+its launch/terminal receipts are distinct from isolated acceptance. The next
+isolated402 audit may run alongside it, but installing402 must wait for both
+real audits to pass. Keep main and each audited candidate's semantic inputs
+frozen throughout their audits.
 
 This proposed registry retains the 104 explicit `memcpy_model` conditions;
 132 public declarations would still be missing. LP64/RECKLESS, represented

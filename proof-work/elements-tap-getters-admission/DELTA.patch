@@ -1,0 +1,1570 @@
+--- a/Coq/_CoqProject
++++ b/Coq/_CoqProject
+@@ -1241,3 +1241,9 @@
+ C/jet_elements_indexed_literal.v
+ C/jet_elements_output_proof_jets.v
+ C/jet_elements_output_proof_literal.v
++C/jet_elements_hash_getter_local.v
++C/jet_elements_hash_getter_writehash.v
++C/jet_elements_hash_field_jets.v
++C/jet_elements_tappath_local.v
++C/jet_elements_tappath_nullable.v
++C/jet_elements_tap_getters_literal.v
+--- a/Coq/_CoqProject.jets
++++ b/Coq/_CoqProject.jets
+@@ -1232,3 +1232,9 @@
+ C/jet_elements_indexed_literal.v
+ C/jet_elements_output_proof_jets.v
+ C/jet_elements_output_proof_literal.v
++C/jet_elements_hash_getter_local.v
++C/jet_elements_hash_getter_writehash.v
++C/jet_elements_hash_field_jets.v
++C/jet_elements_tappath_local.v
++C/jet_elements_tappath_nullable.v
++C/jet_elements_tap_getters_literal.v
+--- a/Coq/C/jet_public_theorems.txt
++++ b/Coq/C/jet_public_theorems.txt
+@@ -5500,3 +5500,41 @@
+ C.jet_elements_output_proof_literal elements_output_range_proof_literal_matches
+ C.jet_elements_output_proof_literal elements_output_surjection_proof_literal_local_spec
+ C.jet_elements_output_proof_literal elements_output_range_proof_literal_local_spec
++C.jet_elements_hash_getter_local elements_hash_getter_write32s_local
++C.jet_elements_hash_getter_writehash exec_elements_hash_getter_writeHash
++C.jet_elements_hash_getter_writehash elements_hash_getter_writeHash_local
++C.jet_elements_hash_field_jets elements_transaction_id_spec_parametric
++C.jet_elements_hash_field_jets elements_transaction_id_getter_body
++C.jet_elements_hash_field_jets elements_transaction_txid_at
++C.jet_elements_hash_field_jets elements_transaction_id_local_spec
++C.jet_elements_hash_field_jets elements_internal_key_spec_parametric
++C.jet_elements_hash_field_jets elements_internal_key_getter_body
++C.jet_elements_hash_field_jets elements_internal_key_local_spec
++C.jet_elements_tappath_local elements_read8_step
++C.jet_elements_tappath_local elements_tappath_shape
++C.jet_elements_tappath_local elements_tapEnv_path
++C.jet_elements_tappath_local elements_tapEnv_pathLen
++C.jet_elements_tappath_local eval_elements_env_taproot
++C.jet_elements_tappath_local elements_tappath_sem
++C.jet_elements_tappath_local tappath_index_ptr
++C.jet_elements_tappath_local sem_add_ptr_uchar_sizeof
++C.jet_elements_tappath_local elements_sizeof_midstate
++C.jet_elements_tappath_local zero_ext8_small
++C.jet_elements_tappath_local tappath_lt_small
++C.jet_elements_tappath_local elements_tappath_local_spec
++C.jet_elements_tappath_nullable elements_tappath_nullable_128_unchanged
++C.jet_elements_tappath_nullable elements_tappath_rep_bounded_mono
++C.jet_elements_tappath_nullable elements_tappath_nullable_in_u8
++C.jet_elements_tappath_nullable elements_tappath_env_rep_weaken
++C.jet_elements_tappath_nullable elements_tappath_bounded_local_spec
++C.jet_elements_tappath_nullable elements_tappath_nullable_local_spec
++C.jet_elements_tappath_nullable elements_tappath_u8_local_spec
++C.jet_elements_tap_getters_literal haskell_encode_pubkey_matches
++C.jet_elements_tap_getters_literal elements_internal_key_literal_matches
++C.jet_elements_tap_getters_literal nth_error_is_list_to_maybe_drop
++C.jet_elements_tap_getters_literal word_indexed_digest_literal_matches
++C.jet_elements_tap_getters_literal tappath_literal_index_range
++C.jet_elements_tap_getters_literal elements_tappath_literal_matches
++C.jet_elements_tap_getters_literal elements_internal_key_literal_local_spec
++C.jet_elements_tap_getters_literal elements_tappath_nullable_literal_local_spec
++C.jet_elements_tap_getters_literal elements_tappath_u8_literal_local_spec
+--- a/Coq/C/jet_contract_definitions.txt
++++ b/Coq/C/jet_contract_definitions.txt
+@@ -2856,3 +2856,22 @@
+ C.jet_elements_output_proof_literal elements_output_proof_digest_literal_spec
+ C.jet_elements_output_proof_literal elements_output_surjection_proof_literal_spec
+ C.jet_elements_output_proof_literal elements_output_range_proof_literal_spec
++C.jet_elements_hash_getter_local hash_getter_rep
++C.jet_elements_hash_field_jets elements_transaction_id_spec
++C.jet_elements_hash_field_jets elements_internal_key_spec
++C.jet_elements_tappath_local elements_env_taproot_expr
++C.jet_elements_tappath_local tappath_head
++C.jet_elements_tappath_local tappath_cond
++C.jet_elements_tappath_local tappath_then
++C.jet_elements_tappath_local tappath_rest
++C.jet_elements_tappath_local tappath_cells
++C.jet_elements_tappath_local elements_tappath_env_rep
++C.jet_elements_tappath_local elements_tappath_spec
++C.jet_elements_tappath_local elements_tappath_result
++C.jet_elements_tappath_nullable elements_tappath_env_rep_bounded
++C.jet_elements_tappath_nullable elements_tappath_env_rep_nullable
++C.jet_elements_tappath_nullable elements_tappath_env_rep_u8
++C.jet_elements_tap_getters_literal haskell_encode_pubkey
++C.jet_elements_tap_getters_literal elements_internal_key_literal_spec
++C.jet_elements_tap_getters_literal word_indexed_digest_literal
++C.jet_elements_tap_getters_literal elements_tappath_literal_spec
+--- a/Coq/C/jet_coverage.tsv
++++ b/Coq/C/jet_coverage.tsv
+@@ -402,3 +402,5 @@
+ simplicity_output_script_hash C.jet_elements_indexed_ptr_jets elements_output_script_hash_local_spec
+ simplicity_output_surjection_proof C.jet_elements_output_proof_jets elements_output_surjection_proof_local_spec
+ simplicity_output_range_proof C.jet_elements_output_proof_jets elements_output_range_proof_local_spec
++simplicity_internal_key C.jet_elements_hash_field_jets elements_internal_key_local_spec
++simplicity_tappath C.jet_elements_tappath_nullable elements_tappath_u8_local_spec
+--- a/Coq/C/jet_assumptions.expected
++++ b/Coq/C/jet_assumptions.expected
+@@ -1477,6 +1477,16 @@
+ C.jet_elements_hash_elem.hash_cells_len_256 : closed
+ C.jet_elements_hash_elem.hash_elem_pay : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_hash_elem.hash_elem_rep_mono : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_hash_field_jets.elements_internal_key_getter_body : closed
++C.jet_elements_hash_field_jets.elements_internal_key_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_hash_field_jets.elements_internal_key_spec_parametric : closed
++C.jet_elements_hash_field_jets.elements_transaction_id_getter_body : closed
++C.jet_elements_hash_field_jets.elements_transaction_id_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_hash_field_jets.elements_transaction_id_spec_parametric : closed
++C.jet_elements_hash_field_jets.elements_transaction_txid_at : closed
++C.jet_elements_hash_getter_local.elements_hash_getter_write32s_local : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_hash_getter_writehash.elements_hash_getter_writeHash_local : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_hash_getter_writehash.exec_elements_hash_getter_writeHash : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_hash_getters.eval_elements_hash_array_arg : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_hash_getters.eval_elements_hash_field_addr : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_hash_getters.exec_elements_env_ptr : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+@@ -1761,6 +1771,15 @@
+ C.jet_elements_steps.elements_writeBit_step : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_steps.elements_write_wide_step : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_steps.wide_writer_helper : closed
++C.jet_elements_tap_getters_literal.elements_internal_key_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tap_getters_literal.elements_internal_key_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tap_getters_literal.elements_tappath_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tap_getters_literal.elements_tappath_nullable_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tap_getters_literal.elements_tappath_u8_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tap_getters_literal.haskell_encode_pubkey_matches : closed
++C.jet_elements_tap_getters_literal.nth_error_is_list_to_maybe_drop : closed
++C.jet_elements_tap_getters_literal.tappath_literal_index_range : closed
++C.jet_elements_tap_getters_literal.word_indexed_digest_literal_matches : closed
+ C.jet_elements_tapleaf_literal.elements_tapleaf_version_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_tapleaf_literal.elements_tapleaf_version_literal_matches : FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_tapleaf_version_local.elements_tapEnv_leafVersion : closed
+@@ -1769,6 +1788,25 @@
+ C.jet_elements_tapleaf_version_local.elements_tapleaf_version_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_tapleaf_version_local.elements_tapleaf_version_spec_sem : closed
+ C.jet_elements_tapleaf_version_local.exec_elements_tapleaf_version_mid : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_local.elements_read8_step : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_local.elements_sizeof_midstate : closed
++C.jet_elements_tappath_local.elements_tapEnv_path : closed
++C.jet_elements_tappath_local.elements_tapEnv_pathLen : closed
++C.jet_elements_tappath_local.elements_tappath_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_local.elements_tappath_sem : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_local.elements_tappath_shape : closed
++C.jet_elements_tappath_local.eval_elements_env_taproot : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_local.sem_add_ptr_uchar_sizeof : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_local.tappath_index_ptr : closed
++C.jet_elements_tappath_local.tappath_lt_small : closed
++C.jet_elements_tappath_local.zero_ext8_small : closed
++C.jet_elements_tappath_nullable.elements_tappath_bounded_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_nullable.elements_tappath_env_rep_weaken : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_nullable.elements_tappath_nullable_128_unchanged : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_nullable.elements_tappath_nullable_in_u8 : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_nullable.elements_tappath_nullable_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_nullable.elements_tappath_rep_bounded_mono : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_tappath_nullable.elements_tappath_u8_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_transport.elements_core_helpers_entries : closed
+ C.jet_elements_transport.elements_core_helpers_ok : closed
+ C.jet_elements_transport.elements_transport_call : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+--- a/Coq/C/jet_contracts.expected
++++ b/Coq/C/jet_contracts.expected
+@@ -103523,6 +103523,453 @@
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+          jet_elements_output_proof_literal.elements_output_range_proof_literal_spec
++@jet_elements_hash_getter_local.elements_hash_getter_write32s_local
++     : forall (E : Set) (hash_of : forall _ : E, Digest.hash256) (pdelta hdelta psz : BinNums.Z)
++         (ptrfield sid hashfield : AST.ident) (f : Clight.function)
++         (spec : forall (_ : Ty.tySem Ty.Unit) (_ : E), option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++         (_ : forall e : E,
++              @eq (option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (spec tt e)
++                (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.from_hash256 (hash_of e))))
++         (_ : jet_elements_wrapper.elements_wrapper_shape f
++                (jet_elements_wrapper.elements_simple_rest
++                   (jet_elements_hash_getters.elements_hash_mid_write32s ptrfield sid hashfield)))
++         (_ : jet_elements_field_eval.elements_field_at jets_elements._txEnv ptrfield pdelta)
++         (_ : jet_elements_field_eval.elements_field_at sid hashfield hdelta)
++         (_ : and (BinInt.Z.le BinNums.Z0 pdelta)
++                (BinInt.Z.le (BinInt.Z.add pdelta (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
++                   (BinNums.Zpos
++                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
++         (_ : and (BinInt.Z.le BinNums.Z0 hdelta)
++                (BinInt.Z.le
++                   (BinInt.Z.add hdelta
++                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) psz)),
++       application_jet_local_spec_sep f jet_elements_linkage.elements_ge E Ty.Unit
++         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++         (@jet_elements_hash_getter_local.hash_getter_rep E hash_of pdelta hdelta psz) spec
++jet_elements_hash_getter_writehash.exec_elements_hash_getter_writeHash
++     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
++         (mc me : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (be : Values.block)
++         (ebase : BinNums.Z) (bt : Values.block) (tbase : BinNums.Z) (ptrfield : AST.ident)
++         (pdelta : BinNums.Z) (sid hashfield : AST.ident) (hdelta : BinNums.Z)
++         (_ : @eq (option (prod Values.block Ctypes.type))
++                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeHash e)
++                (@None (prod Values.block Ctypes.type)))
++         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
++                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
++         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
++                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase)))) (_ : BinInt.Z.le BinNums.Z0 ebase)
++         (_ : BinInt.Z.le BinNums.Z0 pdelta) (_ : BinInt.Z.le (BinInt.Z.add ebase pdelta) Integers.Ptrofs.max_unsigned)
++         (_ : BinInt.Z.le BinNums.Z0 tbase) (_ : BinInt.Z.le BinNums.Z0 hdelta)
++         (_ : BinInt.Z.le (BinInt.Z.add tbase hdelta) Integers.Ptrofs.max_unsigned)
++         (_ : jet_elements_field_eval.elements_field_at jets_elements._txEnv ptrfield pdelta)
++         (_ : jet_elements_field_eval.elements_field_at sid hashfield hdelta)
++         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mc be (BinInt.Z.add ebase pdelta))
++                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
++         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge mc
++                (@Ctypes.Internal Clight.function jets_elements.f_writeHash)
++                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
++                   (@cons Values.val (Values.Vptr bt (Integers.Ptrofs.repr (BinInt.Z.add tbase hdelta)))
++                      (@nil Values.val))) Events.E0 me Values.Vundef),
++       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le mc
++         (jet_elements_hash_getters.elements_hash_mid_writeHash ptrfield sid hashfield) Events.E0
++         (@Maps.PTree.set Values.val jets_elements._t'1 (Values.Vptr bt (Integers.Ptrofs.repr tbase)) le) me
++         ClightBigstep.Out_normal
++@jet_elements_hash_getter_writehash.elements_hash_getter_writeHash_local
++     : forall (E : Set) (hash_of : forall _ : E, Digest.hash256) (pdelta hdelta psz : BinNums.Z)
++         (ptrfield sid hashfield : AST.ident) (f : Clight.function)
++         (spec : forall (_ : Ty.tySem Ty.Unit) (_ : E), option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++         (_ : forall e : E,
++              @eq (option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (spec tt e)
++                (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.from_hash256 (hash_of e))))
++         (_ : jet_elements_wrapper.elements_wrapper_shape f
++                (jet_elements_wrapper.elements_simple_rest
++                   (jet_elements_hash_getters.elements_hash_mid_writeHash ptrfield sid hashfield)))
++         (_ : jet_elements_field_eval.elements_field_at jets_elements._txEnv ptrfield pdelta)
++         (_ : jet_elements_field_eval.elements_field_at sid hashfield hdelta)
++         (_ : and (BinInt.Z.le BinNums.Z0 pdelta)
++                (BinInt.Z.le (BinInt.Z.add pdelta (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
++                   (BinNums.Zpos
++                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
++         (_ : and (BinInt.Z.le BinNums.Z0 hdelta)
++                (BinInt.Z.le
++                   (BinInt.Z.add hdelta
++                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) psz)),
++       application_jet_local_spec_sep f jet_elements_linkage.elements_ge E Ty.Unit
++         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++         (@jet_elements_hash_getter_local.hash_getter_rep E hash_of pdelta hdelta psz) spec
++jet_elements_hash_field_jets.elements_transaction_id_spec_parametric
++     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++         (@jet_elements_hash_field_jets.elements_transaction_id_spec)
++jet_elements_hash_field_jets.elements_transaction_id_getter_body
++     : jet_elements_wrapper.elements_wrapper_shape jets_elements.f_simplicity_transaction_id
++         (jet_elements_wrapper.elements_simple_rest
++            (jet_elements_hash_getters.elements_hash_mid_write32s jets_elements._tx jets_elements._elementsTransaction
++               jets_elements._txid))
++jet_elements_hash_field_jets.elements_transaction_txid_at
++     : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction jets_elements._txid
++         (BinNums.Zpos
++            (BinNums.xO
++               (BinNums.xO
++                  (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
++jet_elements_hash_field_jets.elements_transaction_id_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_transaction_id jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.environment
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.txid (jet_elements_prim.Elements.envTx e)) BinNums.Z0
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
++         (fun (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env) =>
++          @jet_elements_hash_field_jets.elements_transaction_id_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++jet_elements_hash_field_jets.elements_internal_key_spec_parametric
++     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++         (@jet_elements_hash_field_jets.elements_internal_key_spec)
++jet_elements_hash_field_jets.elements_internal_key_getter_body
++     : jet_elements_wrapper.elements_wrapper_shape jets_elements.f_simplicity_internal_key
++         (jet_elements_wrapper.elements_simple_rest
++            (jet_elements_hash_getters.elements_hash_mid_writeHash jets_elements._taproot jets_elements._elementsTapEnv
++               jets_elements._internalKey))
++jet_elements_hash_field_jets.elements_internal_key_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_internal_key jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.environment
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.tapInternalKey (jet_elements_prim.Elements.envTap e))
++            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
++            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
++            (BinNums.Zpos
++               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
++         (fun (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env) =>
++          @jet_elements_hash_field_jets.elements_internal_key_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++jet_elements_tappath_local.elements_read8_step
++     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (mc : Memory.Mem.mem) (bl bs : Values.block)
++         (sbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (x : Ty.tySem (Word.Word (S (S (S O)))))
++         (bytes : list Memdata.memval)
++         (_ : and (BinInt.Z.le BinNums.Z0 rc)
++                (BinInt.Z.le rc
++                   (BinInt.Z.sub Integers.Int64.max_unsigned
++                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
++         (_ : frame_fields_at m bs sbase bi edge rc) (_ : @frame_input_word_at (S (S (S O))) m bi edge rc x)
++         (_ : @eq (prod Memory.Mem.mem' Values.block)
++                (Memory.Mem.alloc m BinNums.Z0
++                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
++                (@pair Memory.Mem.mem' Values.block ma bl))
++         (_ : @eq (option (list Memdata.memval))
++                (Memory.Mem.loadbytes ma bs sbase
++                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
++                (@Some (list Memdata.memval) bytes))
++         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes ma bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc)),
++       @ex Memory.Mem.mem
++         (fun mr : Memory.Mem.mem =>
++          and
++            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge mc
++               (@Ctypes.Internal Clight.function f_simplicity_read8)
++               (@cons Values.val (Values.Vptr bl (Integers.Ptrofs.repr BinNums.Z0)) (@nil Values.val)) Events.E0 mr
++               (Values.Vint (Integers.Int.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x))))
++            (and
++               (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
++                  (_ : not (@eq Values.block b bl)),
++                @eq (option Values.val) (Memory.Mem.load chunk mr b ofs) (Memory.Mem.load chunk mc b ofs))
++               (and
++                  (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind) (p : Memtype.permission)
++                     (_ : Memory.Mem.perm mc b ofs kind p), Memory.Mem.perm mr b ofs kind p)
++                  (and (forall (b : Values.block) (_ : Memory.Mem.valid_block mc b), Memory.Mem.valid_block mr b)
++                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
++                        (v : Values.val)
++                        (_ : @eq (option Values.val) (Memory.Mem.load chunk m b ofs) (@Some Values.val v)),
++                      @eq (option Values.val) (Memory.Mem.load chunk mr b ofs) (@Some Values.val v))))))
++jet_elements_tappath_local.elements_tappath_shape
++     : jet_elements_wrapper.elements_wrapper_shape jets_elements.f_simplicity_tappath
++         jet_elements_tappath_local.tappath_rest
++jet_elements_tappath_local.elements_tapEnv_path
++     : jet_elements_field_eval.elements_field_at jets_elements._elementsTapEnv jets_elements._path BinNums.Z0
++jet_elements_tappath_local.elements_tapEnv_pathLen
++     : jet_elements_field_eval.elements_field_at jets_elements._elementsTapEnv jets_elements._pathLen
++         (BinNums.Zpos
++            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
++jet_elements_tappath_local.eval_elements_env_taproot
++     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (be : Values.block)
++         (ebase : BinNums.Z) (bt : Values.block) (tbase : BinNums.Z)
++         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
++                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)))) (_ : BinInt.Z.le BinNums.Z0 ebase)
++         (_ : BinInt.Z.le
++                (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
++                Integers.Ptrofs.max_unsigned)
++         (_ : @eq (option Values.val)
++                (Memory.Mem.load AST.Mptr m be
++                   (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
++                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase)))),
++       Clight.eval_expr jet_elements_linkage.elements_ge e le m jet_elements_tappath_local.elements_env_taproot_expr
++         (Values.Vptr bt (Integers.Ptrofs.repr tbase))
++jet_elements_tappath_local.elements_tappath_sem
++     : forall (environment : jet_elements_prim.Elements.env) (a : Ty.tySem (Word.Word (S (S (S O))))),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
++         (@jet_elements_tappath_local.elements_tappath_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++         (@Some (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++            (jet_elements_tappath_local.elements_tappath_result
++               (jet_elements_prim.tappath (jet_elements_prim.Elements.envTap environment)) a))
++jet_elements_tappath_local.tappath_index_ptr
++     : forall (pbase z : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 pbase)
++         (_ : and (BinInt.Z.le BinNums.Z0 z)
++                (BinInt.Z.lt z
++                   (BinNums.Zpos
++                      (BinNums.xO
++                         (BinNums.xO
++                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
++         (_ : BinInt.Z.le
++                (BinInt.Z.add
++                   (BinInt.Z.add pbase
++                      (BinInt.Z.mul
++                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) z))
++                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
++                Integers.Ptrofs.max_unsigned),
++       @eq Integers.Ptrofs.int
++         (Integers.Ptrofs.add (Integers.Ptrofs.repr pbase)
++            (Integers.Ptrofs.mul
++               (Integers.Ptrofs.repr
++                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
++               (Integers.Ptrofs.of_ints (Integers.Int.repr z))))
++         (Integers.Ptrofs.repr
++            (BinInt.Z.add pbase
++               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
++                  z)))
++jet_elements_tappath_local.sem_add_ptr_uchar_sizeof
++     : forall (ce : Ctypes.composite_env) (S : Ctypes.type) (i : Integers.Int.int) (ofs : Integers.Ptrofs.int)
++         (b : Values.block) (sz : BinNums.Z) (m : Memory.Mem.mem) (_ : @eq BinNums.Z (Ctypes.sizeof ce S) sz),
++       @eq (option Values.val)
++         (Cop.sem_add ce (Values.Vptr b ofs) (Ctypesdefs.tptr S) (Values.Vint i) Ctypesdefs.tuchar m)
++         (@Some Values.val
++            (Values.Vptr b
++               (Integers.Ptrofs.add ofs (Integers.Ptrofs.mul (Integers.Ptrofs.repr sz) (Integers.Ptrofs.of_ints i)))))
++jet_elements_tappath_local.elements_sizeof_midstate
++     : @eq BinNums.Z
++         (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge)
++            (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
++         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
++jet_elements_tappath_local.zero_ext8_small
++     : forall (z : BinNums.Z)
++         (_ : and (BinInt.Z.le BinNums.Z0 z)
++                (BinInt.Z.lt z
++                   (BinNums.Zpos
++                      (BinNums.xO
++                         (BinNums.xO
++                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))),
++       @eq Integers.Int.int
++         (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (Integers.Int.repr z))
++         (Integers.Int.repr z)
++jet_elements_tappath_local.tappath_lt_small
++     : forall (a n : BinNums.Z)
++         (_ : and (BinInt.Z.le BinNums.Z0 a)
++                (BinInt.Z.lt a
++                   (BinNums.Zpos
++                      (BinNums.xO
++                         (BinNums.xO
++                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
++         (_ : and (BinInt.Z.le BinNums.Z0 n)
++                (BinInt.Z.lt n
++                   (BinNums.Zpos
++                      (BinNums.xO
++                         (BinNums.xO
++                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))),
++       @eq bool (Integers.Int.lt (Integers.Int.repr a) (Integers.Int.repr n)) (BinInt.Z.ltb a n)
++jet_elements_tappath_local.elements_tappath_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_tappath jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
++         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         jet_elements_tappath_local.elements_tappath_env_rep
++         (fun (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env) =>
++          @jet_elements_tappath_local.elements_tappath_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++jet_elements_tappath_nullable.elements_tappath_nullable_128_unchanged
++     : forall (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
++         (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)),
++       iff (jet_elements_tappath_nullable.elements_tappath_env_rep_nullable m env e fp)
++         (@ex Values.block
++            (fun be : Values.block =>
++             @ex BinNums.Z
++               (fun ebase : BinNums.Z =>
++                @ex Values.block
++                  (fun bt : Values.block =>
++                   @ex BinNums.Z
++                     (fun tbase : BinNums.Z =>
++                      @ex Values.block
++                        (fun bp : Values.block =>
++                         @ex BinNums.Z
++                           (fun pbase : BinNums.Z =>
++                            and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
++                              (and
++                                 (le
++                                    (@length Digest.hash256
++                                       (jet_elements_prim.tappath (jet_elements_prim.Elements.envTap e)))
++                                    (S (S (S (S (S (S (S (S (S (S (...))))))))))))
++                                 (and (BinInt.Z.le BinNums.Z0 ebase)
++                                    (and
++                                       (BinInt.Z.le
++                                          (BinInt.Z.add ebase
++                                             (BinNums.Zpos
++                                                (BinNums.xO
++                                                   (BinNums.xO
++                                                      (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
++                                          Integers.Ptrofs.max_unsigned)
++                                       (and (BinInt.Z.le BinNums.Z0 tbase)
++                                          (and
++                                             (BinInt.Z.le
++                                                (BinInt.Z.add tbase
++                                                   (BinNums.Zpos
++                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))
++                                                Integers.Ptrofs.max_unsigned)
++                                             (and (BinInt.Z.le BinNums.Z0 pbase)
++                                                (and
++                                                   (BinInt.Z.le
++                                                      (BinInt.Z.add pbase
++                                                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (...)))
++                                                            (BinInt.Z.of_nat (@length Digest.hash256 (...)))))
++                                                      Integers.Ptrofs.max_unsigned)
++                                                   (and
++                                                      (@eq (option Values.val)
++                                                         (Memory.Mem.load AST.Mptr m be
++                                                            (BinInt.Z.add ebase (BinNums.Zpos (...))))
++                                                         (@Some Values.val
++                                                            (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
++                                                      (and
++                                                         (forall _ : BinInt.Z.lt BinNums.Z0 (BinInt.Z.of_nat ...),
++                                                          @eq (option Values.val)
++                                                            (Memory.Mem.load AST.Mptr m bt
++                                                               (BinInt.Z.add tbase BinNums.Z0))
++                                                            (@Some Values.val (Values.Vptr bp ...)))
++                                                         (and
++                                                            (@eq (option Values.val)
++                                                               (Memory.Mem.load AST.Mint8unsigned m bt (...))
++                                                               (@Some Values.val (...)))
++                                                            (and
++                                                               (forall ... ... ...,
++                                                                jet_elements_hash_elem.hash_elem_rep m bp ... h)
++                                                               (@eq (...) fp (...))))))))))))))))))))
++jet_elements_tappath_nullable.elements_tappath_rep_bounded_mono
++     : forall (small large : nat) (_ : le small large) (m : Memory.Mem.mem) (env : Values.val)
++         (e : jet_elements_prim.Elements.env) (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z))
++         (_ : jet_elements_tappath_nullable.elements_tappath_env_rep_bounded small m env e fp),
++       jet_elements_tappath_nullable.elements_tappath_env_rep_bounded large m env e fp
++jet_elements_tappath_nullable.elements_tappath_nullable_in_u8
++     : forall (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
++         (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z))
++         (_ : jet_elements_tappath_nullable.elements_tappath_env_rep_nullable m env e fp),
++       jet_elements_tappath_nullable.elements_tappath_env_rep_u8 m env e fp
++jet_elements_tappath_nullable.elements_tappath_env_rep_weaken
++     : forall (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
++         (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z))
++         (_ : jet_elements_tappath_local.elements_tappath_env_rep m env e fp),
++       jet_elements_tappath_nullable.elements_tappath_env_rep_nullable m env e fp
++jet_elements_tappath_nullable.elements_tappath_bounded_local_spec
++     : forall (limit : nat)
++         (_ : le limit (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
++       application_jet_local_spec_sep jets_elements.f_simplicity_tappath jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
++         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         (jet_elements_tappath_nullable.elements_tappath_env_rep_bounded limit)
++         (fun (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env) =>
++          @jet_elements_tappath_local.elements_tappath_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++jet_elements_tappath_nullable.elements_tappath_nullable_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_tappath jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
++         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         jet_elements_tappath_nullable.elements_tappath_env_rep_nullable
++         (fun (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env) =>
++          @jet_elements_tappath_local.elements_tappath_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++jet_elements_tappath_nullable.elements_tappath_u8_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_tappath jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
++         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         jet_elements_tappath_nullable.elements_tappath_env_rep_u8
++         (fun (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env) =>
++          @jet_elements_tappath_local.elements_tappath_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++jet_elements_tap_getters_literal.haskell_encode_pubkey_matches
++     : forall h : Digest.hash256,
++       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         (jet_elements_tap_getters_literal.haskell_encode_pubkey h) (Word.from_hash256 h)
++jet_elements_tap_getters_literal.elements_internal_key_literal_matches
++     : forall (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++         (@jet_elements_hash_field_jets.elements_internal_key_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment) (jet_elements_tap_getters_literal.elements_internal_key_literal_spec a environment)
++@jet_elements_tap_getters_literal.nth_error_is_list_to_maybe_drop
++     : forall (A : Type) (xs : list A) (n : nat),
++       @eq (option A) (@List.nth_error A xs n) (@List.hd_error A (@List.skipn A n xs))
++jet_elements_tap_getters_literal.word_indexed_digest_literal_matches
++     : forall (depth : nat) (values : list Digest.hash256) (a : Ty.tySem (Word.ToZ.obj (Word.WordToZ depth))),
++       @eq (option (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
++         (@Some (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++            match
++              @List.nth_error Digest.hash256 values (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ depth) a))
++              return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++            with
++            | Some h => @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.from_hash256 h)
++            | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) tt
++            end) (jet_elements_tap_getters_literal.word_indexed_digest_literal depth values a)
++jet_elements_tap_getters_literal.tappath_literal_index_range
++     : forall a : Ty.tySem (Word.Word (S (S (S O)))),
++       and (BinInt.Z.le BinNums.Z0 (jet_elements_sequence_literal.haskell_from_word (S (S (S O))) a))
++         (BinInt.Z.lt (jet_elements_sequence_literal.haskell_from_word (S (S (S O))) a)
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
++jet_elements_tap_getters_literal.elements_tappath_literal_matches
++     : forall (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
++         (@jet_elements_tappath_local.elements_tappath_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment) (jet_elements_tap_getters_literal.elements_tappath_literal_spec a environment)
++jet_elements_tap_getters_literal.elements_internal_key_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_internal_key jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.environment
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.tapInternalKey (jet_elements_prim.Elements.envTap e))
++            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
++            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
++            (BinNums.Zpos
++               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
++         jet_elements_tap_getters_literal.elements_internal_key_literal_spec
++jet_elements_tap_getters_literal.elements_tappath_nullable_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_tappath jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
++         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         jet_elements_tappath_nullable.elements_tappath_env_rep_nullable
++         jet_elements_tap_getters_literal.elements_tappath_literal_spec
++jet_elements_tap_getters_literal.elements_tappath_u8_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_tappath jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
++         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         jet_elements_tappath_nullable.elements_tappath_env_rep_u8
++         jet_elements_tap_getters_literal.elements_tappath_literal_spec
+ frame_fields =
+ fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
+ and
+@@ -214306,3 +214753,389 @@
+        option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+ 
+ Arguments jet_elements_output_proof_literal.elements_output_range_proof_literal_spec a environment
++jet_elements_hash_getter_local.hash_getter_rep =
++fun (E : Set) (hash_of : forall _ : E, Digest.hash256) (pdelta hdelta psz : BinNums.Z) (m : Memory.Mem.mem)
++  (env : Values.val) (e : E) (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
++@ex Values.block
++  (fun be : Values.block =>
++   @ex BinNums.Z
++     (fun ebase : BinNums.Z =>
++      @ex Values.block
++        (fun bt : Values.block =>
++         @ex BinNums.Z
++           (fun tbase : BinNums.Z =>
++            and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
++              (and (BinInt.Z.le BinNums.Z0 ebase)
++                 (and
++                    (BinInt.Z.le
++                       (BinInt.Z.add ebase
++                          (BinNums.Zpos
++                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
++                       Integers.Ptrofs.max_unsigned)
++                    (and (BinInt.Z.le BinNums.Z0 tbase)
++                       (and (BinInt.Z.le (BinInt.Z.add tbase psz) Integers.Ptrofs.max_unsigned)
++                          (and
++                             (@eq (option Values.val) (Memory.Mem.load AST.Mptr m be (BinInt.Z.add ebase pdelta))
++                                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
++                             (and (uint32_array_at m bt (BinInt.Z.add tbase hdelta) (Digest.hash256_reg (hash_of e)))
++                                (@eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) fp
++                                   (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
++                                      (@pair (prod Values.block BinNums.Z) BinNums.Z
++                                         (@pair Values.block BinNums.Z be (BinInt.Z.add ebase pdelta))
++                                         (BinInt.Z.add (BinInt.Z.add ebase pdelta)
++                                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
++                                      (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
++                                         (@pair (prod Values.block BinNums.Z) BinNums.Z
++                                            (@pair Values.block BinNums.Z bt (BinInt.Z.add tbase hdelta))
++                                            (BinInt.Z.add (BinInt.Z.add tbase hdelta)
++                                               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))
++                                         (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))))))))))))))
++     : forall (E : Set) (_ : forall _ : E, Digest.hash256) (_ : BinNums.Z) (_ : BinNums.Z)
++         (_ : BinNums.Z) (_ : Memory.Mem.mem) (_ : Values.val) (_ : E)
++         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
++
++Arguments jet_elements_hash_getter_local.hash_getter_rep {E}%type_scope hash_of%function_scope
++  (pdelta hdelta psz)%Z_scope m env e fp%list_scope
++jet_elements_hash_field_jets.elements_transaction_id_spec =
++fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
++@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++  alg jet_elements_prim.Elements.TransactionId
++     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
++       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++
++Arguments jet_elements_hash_field_jets.elements_transaction_id_spec {alg}
++jet_elements_hash_field_jets.elements_internal_key_spec =
++fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
++@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++  alg jet_elements_prim.Elements.InternalKey
++     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
++       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++
++Arguments jet_elements_hash_field_jets.elements_internal_key_spec {alg}
++jet_elements_tappath_local.elements_env_taproot_expr =
++Clight.Efield
++  (Clight.Ederef
++     (Clight.Etempvar jets_elements._env (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._txEnv Ctypes.noattr)))
++     (Ctypes.Tstruct jets_elements._txEnv Ctypes.noattr)) jets_elements._taproot
++  (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTapEnv Ctypes.noattr))
++     : Clight.expr
++jet_elements_tappath_local.tappath_head =
++Clight.Ssequence
++  (Clight.Scall (@Some AST.ident jets_elements._t'1)
++     (Clight.Evar jets_elements._simplicity_read8
++        (Ctypes.Tfunction
++           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)) Ctypes.Tnil)
++           Ctypesdefs.tuchar AST.cc_default))
++     (@cons Clight.expr
++        (Clight.Eaddrof (Clight.Evar jets_elements._src (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
++           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))) (@nil Clight.expr)))
++  (Clight.Sset jets_elements._i (Clight.Ecast (Clight.Etempvar jets_elements._t'1 Ctypesdefs.tuchar) Ctypesdefs.tuchar))
++     : Clight.statement
++jet_elements_tappath_local.tappath_cond =
++Clight.Ssequence (Clight.Sset jets_elements._t'5 jet_elements_tappath_local.elements_env_taproot_expr)
++  (Clight.Ssequence
++     (Clight.Sset jets_elements._t'6
++        (Clight.Efield
++           (Clight.Ederef
++              (Clight.Etempvar jets_elements._t'5
++                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTapEnv Ctypes.noattr)))
++              (Ctypes.Tstruct jets_elements._elementsTapEnv Ctypes.noattr)) jets_elements._pathLen Ctypesdefs.tuchar))
++     (Clight.Scall (@Some AST.ident jets_elements._t'2)
++        (Clight.Evar jets_elements._writeBit
++           (Ctypes.Tfunction
++              (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
++                 (Ctypes.Tcons Ctypesdefs.tbool Ctypes.Tnil)) Ctypesdefs.tbool AST.cc_default))
++        (@cons Clight.expr
++           (Clight.Etempvar jets_elements._dst
++              (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
++           (@cons Clight.expr
++              (Clight.Ebinop Cop.Olt (Clight.Etempvar jets_elements._i Ctypesdefs.tuchar)
++                 (Clight.Etempvar jets_elements._t'6 Ctypesdefs.tuchar) Ctypesdefs.tint) (@nil Clight.expr)))))
++     : Clight.statement
++jet_elements_tappath_local.tappath_then =
++Clight.Ssequence (Clight.Sset jets_elements._t'3 jet_elements_tappath_local.elements_env_taproot_expr)
++  (Clight.Ssequence
++     (Clight.Sset jets_elements._t'4
++        (Clight.Efield
++           (Clight.Ederef
++              (Clight.Etempvar jets_elements._t'3
++                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTapEnv Ctypes.noattr)))
++              (Ctypes.Tstruct jets_elements._elementsTapEnv Ctypes.noattr)) jets_elements._path
++           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))))
++     (Clight.Scall (@None AST.ident)
++        (Clight.Evar jets_elements._writeHash
++           (Ctypes.Tfunction
++              (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
++                 (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
++                    Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
++        (@cons Clight.expr
++           (Clight.Etempvar jets_elements._dst
++              (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
++           (@cons Clight.expr
++              (Clight.Ebinop Cop.Oadd
++                 (Clight.Etempvar jets_elements._t'4
++                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
++                 (Clight.Etempvar jets_elements._i Ctypesdefs.tuchar)
++                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
++              (@nil Clight.expr)))))
++     : Clight.statement
++jet_elements_tappath_local.tappath_rest =
++Clight.Ssequence jet_elements_tappath_local.tappath_head
++  (Clight.Ssequence
++     (Clight.Ssequence jet_elements_tappath_local.tappath_cond
++        (Clight.Sifthenelse (Clight.Etempvar jets_elements._t'2 Ctypesdefs.tbool)
++           jet_elements_tappath_local.tappath_then
++           (jet_elements_indexed_scalar.elements_skip_stmt
++              (BinNums.Zpos
++                 (BinNums.xO
++                    (BinNums.xO
++                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
++     (Clight.Sreturn
++        (@Some Clight.expr (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint))))
++     : Clight.statement
++jet_elements_tappath_local.tappath_cells =
++fun (path : list Digest.hash256) (a : Ty.tySem (Word.Word (S (S (S O))))) =>
++match
++  @List.nth_error Digest.hash256 path (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) a))
++  return (list Cell)
++with
++| Some h => @cons (option bool) (@Some bool true) (jet_elements_hash_write.hash_cells (Digest.hash256_reg h))
++| None =>
++    @cons (option bool) (@Some bool false)
++      (@List.repeat (option bool) (@None bool)
++         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))
++end
++     : forall (_ : list Digest.hash256) (_ : Ty.tySem (Word.Word (S (S (S O))))), list Cell
++
++Arguments jet_elements_tappath_local.tappath_cells path%list_scope a
++jet_elements_tappath_local.elements_tappath_env_rep =
++fun (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
++  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
++@ex Values.block
++  (fun be : Values.block =>
++   @ex BinNums.Z
++     (fun ebase : BinNums.Z =>
++      @ex Values.block
++        (fun bt : Values.block =>
++         @ex BinNums.Z
++           (fun tbase : BinNums.Z =>
++            @ex Values.block
++              (fun bp : Values.block =>
++               @ex BinNums.Z
++                 (fun pbase : BinNums.Z =>
++                  and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
++                    (and
++                       (le (@length Digest.hash256 (jet_elements_prim.tappath (jet_elements_prim.Elements.envTap e)))
++                          (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))
++                       (and (BinInt.Z.le BinNums.Z0 ebase)
++                          (and
++                             (BinInt.Z.le
++                                (BinInt.Z.add ebase
++                                   (BinNums.Zpos
++                                      (BinNums.xO
++                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
++                                Integers.Ptrofs.max_unsigned)
++                             (and (BinInt.Z.le BinNums.Z0 tbase)
++                                (and
++                                   (BinInt.Z.le
++                                      (BinInt.Z.add tbase
++                                         (BinNums.Zpos
++                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))
++                                      Integers.Ptrofs.max_unsigned)
++                                   (and (BinInt.Z.le BinNums.Z0 pbase)
++                                      (and
++                                         (BinInt.Z.le
++                                            (BinInt.Z.add pbase
++                                               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO ...)))
++                                                  (BinInt.Z.of_nat
++                                                     (@length Digest.hash256 (jet_elements_prim.tappath ...)))))
++                                            Integers.Ptrofs.max_unsigned)
++                                         (and
++                                            (@eq (option Values.val)
++                                               (Memory.Mem.load AST.Mptr m be
++                                                  (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO ...))))
++                                               (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
++                                            (and
++                                               (@eq (option Values.val)
++                                                  (Memory.Mem.load AST.Mptr m bt (BinInt.Z.add tbase BinNums.Z0))
++                                                  (@Some Values.val (Values.Vptr bp (Integers.Ptrofs.repr pbase))))
++                                               (and
++                                                  (@eq (option Values.val)
++                                                     (Memory.Mem.load AST.Mint8unsigned m bt (BinInt.Z.add tbase ...))
++                                                     (@Some Values.val (Values.Vint ...)))
++                                                  (and
++                                                     (forall (j : nat) (h : Digest.hash256) (_ : ...),
++                                                      jet_elements_hash_elem.hash_elem_rep m bp (...) h)
++                                                     (@eq (list ...) fp (@cons ... ... ...)))))))))))))))))))
++     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
++         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
++
++Arguments jet_elements_tappath_local.elements_tappath_env_rep m env e fp%list_scope
++jet_elements_tappath_local.elements_tappath_spec =
++fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
++@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S O))))
++  (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) alg jet_elements_prim.Elements.Tappath
++     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
++       jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S O))))
++         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++
++Arguments jet_elements_tappath_local.elements_tappath_spec {alg}
++jet_elements_tappath_local.elements_tappath_result =
++fun (path : list Digest.hash256) (a : Ty.tySem (Word.Word (S (S (S O))))) =>
++match
++  @List.nth_error Digest.hash256 path (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) a))
++  return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++with
++| Some h => @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.from_hash256 h)
++| None =>
++    @inl unit
++      (prod
++         ((fix tySem (X : Ty.Ty) : Set :=
++             match X return Set with
++             | Ty.Unit => unit
++             | Ty.Sum A B => sum (tySem A) (tySem B)
++             | Ty.Prod A B => prod (tySem A) (tySem B)
++             end)
++            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
++                match n return Ty.Ty with
++                | O => X
++                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
++                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
++         ((fix tySem (X : Ty.Ty) : Set :=
++             match X return Set with
++             | Ty.Unit => unit
++             | Ty.Sum A B => sum (tySem A) (tySem B)
++             | Ty.Prod A B => prod (tySem A) (tySem B)
++             end)
++            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
++                match n return Ty.Ty with
++                | O => X
++                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
++                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) tt
++end
++     : forall (_ : list Digest.hash256) (_ : Ty.tySem (Word.Word (S (S (S O))))),
++       Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++
++Arguments jet_elements_tappath_local.elements_tappath_result path%list_scope a
++jet_elements_tappath_nullable.elements_tappath_env_rep_bounded =
++fun (limit : nat) (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
++  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
++@ex Values.block
++  (fun be : Values.block =>
++   @ex BinNums.Z
++     (fun ebase : BinNums.Z =>
++      @ex Values.block
++        (fun bt : Values.block =>
++         @ex BinNums.Z
++           (fun tbase : BinNums.Z =>
++            @ex Values.block
++              (fun bp : Values.block =>
++               @ex BinNums.Z
++                 (fun pbase : BinNums.Z =>
++                  and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
++                    (and
++                       (le (@length Digest.hash256 (jet_elements_prim.tappath (jet_elements_prim.Elements.envTap e)))
++                          limit)
++                       (and (BinInt.Z.le BinNums.Z0 ebase)
++                          (and
++                             (BinInt.Z.le
++                                (BinInt.Z.add ebase
++                                   (BinNums.Zpos
++                                      (BinNums.xO
++                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
++                                Integers.Ptrofs.max_unsigned)
++                             (and (BinInt.Z.le BinNums.Z0 tbase)
++                                (and
++                                   (BinInt.Z.le
++                                      (BinInt.Z.add tbase
++                                         (BinNums.Zpos
++                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))
++                                      Integers.Ptrofs.max_unsigned)
++                                   (and (BinInt.Z.le BinNums.Z0 pbase)
++                                      (and
++                                         (BinInt.Z.le
++                                            (BinInt.Z.add pbase
++                                               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO ...)))
++                                                  (BinInt.Z.of_nat
++                                                     (@length Digest.hash256 (jet_elements_prim.tappath ...)))))
++                                            Integers.Ptrofs.max_unsigned)
++                                         (and
++                                            (@eq (option Values.val)
++                                               (Memory.Mem.load AST.Mptr m be
++                                                  (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO ...))))
++                                               (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
++                                            (and
++                                               (forall _ : BinInt.Z.lt BinNums.Z0 (BinInt.Z.of_nat (...)),
++                                                @eq (option Values.val)
++                                                  (Memory.Mem.load AST.Mptr m bt (BinInt.Z.add tbase BinNums.Z0))
++                                                  (@Some Values.val (Values.Vptr bp (...))))
++                                               (and
++                                                  (@eq (option Values.val)
++                                                     (Memory.Mem.load AST.Mint8unsigned m bt (BinInt.Z.add tbase ...))
++                                                     (@Some Values.val (Values.Vint ...)))
++                                                  (and
++                                                     (forall (j : nat) (h : Digest.hash256) (_ : ...),
++                                                      jet_elements_hash_elem.hash_elem_rep m bp (...) h)
++                                                     (@eq (list ...) fp (@cons ... ... ...)))))))))))))))))))
++     : forall (_ : nat) (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
++         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
++
++Arguments jet_elements_tappath_nullable.elements_tappath_env_rep_bounded limit%nat_scope m env e fp%list_scope
++jet_elements_tappath_nullable.elements_tappath_env_rep_nullable =
++jet_elements_tappath_nullable.elements_tappath_env_rep_bounded
++  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
++     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
++         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
++
++Arguments jet_elements_tappath_nullable.elements_tappath_env_rep_nullable m env e fp%list_scope
++jet_elements_tappath_nullable.elements_tappath_env_rep_u8 =
++jet_elements_tappath_nullable.elements_tappath_env_rep_bounded
++  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
++     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
++         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
++
++Arguments jet_elements_tappath_nullable.elements_tappath_env_rep_u8 m env e fp%list_scope
++jet_elements_tap_getters_literal.haskell_encode_pubkey =
++fun h : Digest.hash256 =>
++haskell_to_word (S (S (S (S (S (S (S (S O))))))))
++  (jet_haskell_hash_word.haskell_word256_integer
++     (jet_haskell_hash_word.haskell_be256_run (Digest.hash256_to_bytelist h)
++        (jet_haskell_hash_word.haskell_word256_from_integer BinNums.Z0)))
++     : forall _ : Digest.hash256, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++
++Arguments jet_elements_tap_getters_literal.haskell_encode_pubkey h
++jet_elements_tap_getters_literal.elements_internal_key_literal_spec =
++fun (_ : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env) =>
++@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++  (jet_elements_tap_getters_literal.haskell_encode_pubkey
++     (jet_elements_prim.tapInternalKey (jet_elements_prim.Elements.envTap environment)))
++     : forall (_ : Ty.tySem Ty.Unit) (_ : jet_elements_prim.Elements.env),
++       option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++
++Arguments jet_elements_tap_getters_literal.elements_internal_key_literal_spec _ environment
++jet_elements_tap_getters_literal.word_indexed_digest_literal =
++fun (depth : nat) (values : list Digest.hash256) (a : Ty.tySem (Word.Word depth)) =>
++@Some (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++  match
++    @List.hd_error Digest.hash256
++      (@List.skipn Digest.hash256 (BinInt.Z.to_nat (jet_elements_sequence_literal.haskell_from_word depth a)) values)
++    return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++  with
++  | Some h =>
++      @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++        (haskell_to_word (S (S (S (S (S (S (S (S O))))))))
++           (jet_haskell_hash_word.haskell_integer_hash256 (Digest.hash256_to_bytelist h)))
++  | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) tt
++  end
++     : forall (depth : nat) (_ : list Digest.hash256) (_ : Ty.tySem (Word.Word depth)),
++       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++
++Arguments jet_elements_tap_getters_literal.word_indexed_digest_literal depth%nat_scope values%list_scope a
++jet_elements_tap_getters_literal.elements_tappath_literal_spec =
++fun (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env) =>
++jet_elements_tap_getters_literal.word_indexed_digest_literal (S (S (S O)))
++  (jet_elements_prim.tappath (jet_elements_prim.Elements.envTap environment)) a
++     : forall (_ : Ty.tySem (Word.Word (S (S (S O))))) (_ : jet_elements_prim.Elements.env),
++       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++
++Arguments jet_elements_tap_getters_literal.elements_tappath_literal_spec a environment
+--- a/Coq/jet-coverage.py
++++ b/Coq/jet-coverage.py
+@@ -130,7 +130,7 @@
+                         rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                         r"bitcoin_ge\s+(?:Bitcoin\.env|raw_bitcoin_environment)\b")
+         else:
+-            # Only these thirty-eight selected correspondences have a reviewed
++            # Only these forty selected correspondences have a reviewed
+             # literal target, environment relation and whole-C-contract gate.
+             if name in {"simplicity_input_script_hash", "simplicity_input_script_sig_hash", "simplicity_issuance_asset_proof", "simplicity_issuance_token_proof"}:
+                 contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+@@ -153,6 +153,12 @@
+             elif name in {"simplicity_output_script_hash", "simplicity_output_surjection_proof", "simplicity_output_range_proof"}:
+                 contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                             r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+Word256\)")
++            elif name == "simplicity_internal_key":
++                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
++                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word256\b")
++            elif name == "simplicity_tappath":
++                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
++                            r"elements_ge\s+Elements\.env\s+Word8\s+\(Ty\.Sum\s+Ty\.Unit\s+Word256\)")
+             elif name == "simplicity_tx_is_final":
+                 contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                             r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Bit\b")
+--- a/Coq/test-jet-coverage.py
++++ b/Coq/test-jet-coverage.py
+@@ -491,6 +491,38 @@
+                 rejects(coverage.inventory, 'not a direct canonical jet theorem')
+             file.write_text(text)
+             assert coverage.inventory()
++        # Two raw-key/byte-index contracts; never compile bad fixtures.
++        for suffix, filename, theorem, domain, output in [('internal_key', 'jet_elements_hash_field_jets', 'elements_internal_key_local_spec', 'Ty.Unit', 'Word256'), ('tappath', 'jet_elements_tappath_nullable', 'elements_tappath_u8_local_spec', 'Word8', '(Ty.Sum Ty.Unit Word256)')]:
++            module = 'C.' + filename
++            file = project / (module.replace('.', '/') + '.v')
++            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
++            text = file.read_text()
++            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
++                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
++            if [module, theorem] not in coverage.records(audited, 2):
++                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
++            declaration = 'Theorem ' + theorem + ' :'
++            for old, new in [
++                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
++                ('elements_ge Elements.env', 'ge0 Elements.env'),
++                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
++                (domain + ' ' + output, 'Word64 ' + output),
++                (domain + ' ' + output, domain + ' Word16'),
++                (declaration, declaration + ' False ->'),
++                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
++            ]:
++                start = text.index(declaration)
++                stop = text.index('Proof.', start)
++                tail = text[start:stop]
++                if old not in tail:
++                    import re
++                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
++                    assert match, (suffix, old)
++                    old = match[0]
++                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
++                rejects(coverage.inventory, 'not a direct canonical jet theorem')
++            file.write_text(text)
++            assert coverage.inventory()
+     print("coverage tests passed: exact core/partial/application contracts; wrong function/global/logical environment and unknown/duplicate/helper/unaudited entries rejected")
+ 
+ 
+--- a/Coq/check-jets.sh
++++ b/Coq/check-jets.sh
+@@ -96,6 +96,8 @@
+ python3 elements-outpoint-output/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_indexed_literal.v
+ python3 elements-output-proof/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_output_proof_literal.v
+ python3 elements-output-proof/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_output_proof_literal.v
++python3 elements-tap-getters/check-source.py "${JET_C_REPO:-..}"
++python3 elements-tap-getters/test-source.py "${JET_C_REPO:-..}"
+ python3 check-fullshift-specification.py
+ python3 test-fullshift-specification.py
+ python3 check-secp-normalize-specification.py
+--- a/Coq/audit-jet-contracts.sh
++++ b/Coq/audit-jet-contracts.sh
+@@ -29,7 +29,7 @@
+   echo 'Set Printing All.'
+   echo 'Set Printing Width 120.'
+   awk '!/^#/ && NF==2 {
+-    explicit = ($1 ~ /^C\.jet_elements_(field_eval|effects|wrapper|transport|call|read_step|steps|index_eval|indexed_exec|indexed_then|env_load|indexed_scalar|indexed_scalar_jets|sequence_literal|current_spec|current_exec|current_jets|current_sequence_literal)$/) || ($1 ~ /^(C[.]jet_elements_write32s_exec|C[.]jet_elements_write32s_layout|C[.]jet_elements_hash_write|C[.]jet_elements_hash_getters|C[.]jet_elements_write8_step|C[.]jet_elements_tapleaf_version_local|C[.]jet_elements_tapleaf_literal|C[.]jet_haskell_hash_word|C[.]jet_elements_script_cmr_local|C[.]jet_elements_genesis_hash_local|C[.]jet_elements_hash_literal)$/) || ($1 ~ /^(C[.]jet_elements_tx_field_set|C[.]jet_elements_is_final_spec|C[.]jet_elements_is_final_local|C[.]jet_elements_lock_spec|C[.]jet_elements_lock_exec|C[.]jet_elements_lock_local|C[.]jet_elements_lock_literal|C[.]jet_elements_prim_sem|C[.]jet_elements_bool_wrapper|C[.]jet_elements_check_lock|C[.]jet_application_partial_transport|C[.]jet_elements_check_lock_literal|C[.]jet_elements_indexed_ptr_then|C[.]jet_elements_indexed_ptr|C[.]jet_elements_hash_helpers|C[.]jet_elements_indexed_ptr_jets|C[.]jet_elements_hash_elem|C[.]jet_elements_pegin_local|C[.]jet_elements_input_hash_jets|C[.]jet_elements_asset_helper|C[.]jet_elements_asset_jets|C[.]jet_elements_amt_helper|C[.]jet_elements_indexed_gen|C[.]jet_elements_indexed_ptr2|C[.]jet_elements_amount_jets|C[.]jet_elements_issuance_helper|C[.]jet_elements_issuance_jets|C[.]jet_elements_issuance_amount_jets|C[.]jet_elements_current_ptr|C[.]jet_elements_current_ptr_jets|C[.]jet_elements_current_gen|C[.]jet_elements_current_input_jets|C[.]jet_elements_current_gen_jets|C[.]jet_elements_pegin_literal)$/) || ($1 ~ /^(C[.]jet_elements_script_hash_literal|C[.]jet_elements_issuance_proof_literal)$/) || ($1 ~ /^(C[.]jet_elements_annex_local|C[.]jet_elements_optional_digest_literal|C[.]jet_elements_issuance_digest_literal|C[.]jet_elements_indexed_literal|C[.]jet_elements_output_proof_jets|C[.]jet_elements_output_proof_literal)$/)
++    explicit = ($1 ~ /^C\.jet_elements_(field_eval|effects|wrapper|transport|call|read_step|steps|index_eval|indexed_exec|indexed_then|env_load|indexed_scalar|indexed_scalar_jets|sequence_literal|current_spec|current_exec|current_jets|current_sequence_literal)$/) || ($1 ~ /^(C[.]jet_elements_write32s_exec|C[.]jet_elements_write32s_layout|C[.]jet_elements_hash_write|C[.]jet_elements_hash_getters|C[.]jet_elements_write8_step|C[.]jet_elements_tapleaf_version_local|C[.]jet_elements_tapleaf_literal|C[.]jet_haskell_hash_word|C[.]jet_elements_script_cmr_local|C[.]jet_elements_genesis_hash_local|C[.]jet_elements_hash_literal)$/) || ($1 ~ /^(C[.]jet_elements_tx_field_set|C[.]jet_elements_is_final_spec|C[.]jet_elements_is_final_local|C[.]jet_elements_lock_spec|C[.]jet_elements_lock_exec|C[.]jet_elements_lock_local|C[.]jet_elements_lock_literal|C[.]jet_elements_prim_sem|C[.]jet_elements_bool_wrapper|C[.]jet_elements_check_lock|C[.]jet_application_partial_transport|C[.]jet_elements_check_lock_literal|C[.]jet_elements_indexed_ptr_then|C[.]jet_elements_indexed_ptr|C[.]jet_elements_hash_helpers|C[.]jet_elements_indexed_ptr_jets|C[.]jet_elements_hash_elem|C[.]jet_elements_pegin_local|C[.]jet_elements_input_hash_jets|C[.]jet_elements_asset_helper|C[.]jet_elements_asset_jets|C[.]jet_elements_amt_helper|C[.]jet_elements_indexed_gen|C[.]jet_elements_indexed_ptr2|C[.]jet_elements_amount_jets|C[.]jet_elements_issuance_helper|C[.]jet_elements_issuance_jets|C[.]jet_elements_issuance_amount_jets|C[.]jet_elements_current_ptr|C[.]jet_elements_current_ptr_jets|C[.]jet_elements_current_gen|C[.]jet_elements_current_input_jets|C[.]jet_elements_current_gen_jets|C[.]jet_elements_pegin_literal)$/) || ($1 ~ /^(C[.]jet_elements_script_hash_literal|C[.]jet_elements_issuance_proof_literal)$/) || ($1 ~ /^(C[.]jet_elements_annex_local|C[.]jet_elements_optional_digest_literal|C[.]jet_elements_issuance_digest_literal|C[.]jet_elements_indexed_literal|C[.]jet_elements_output_proof_jets|C[.]jet_elements_output_proof_literal)$/) || ($1 ~ /^(C[.]jet_elements_hash_getter_local|C[.]jet_elements_hash_getter_writehash|C[.]jet_elements_hash_field_jets|C[.]jet_elements_tappath_local|C[.]jet_elements_tappath_nullable|C[.]jet_elements_tap_getters_literal)$/)
+     printf "Check %s%s.%s.\n", (explicit ? "@" : ""), $1, $2
+   }' C/jet_public_theorems.txt
+   awk '!/^#/ && NF==2 {printf "Print %s.%s.\n", $1, $2}' C/jet_contract_definitions.txt
+--- /dev/null
++++ b/Coq/elements-tap-getters/check-source.py
+@@ -0,0 +1,185 @@
++"""Selected raw-key/byte-index source correspondence, not a proof checker.
++
++Preserve the original nullable-128 relation and execution proof while reviewing
++the explicit 255 generalization. No host-library or caller-construction claim.
++"""
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import re
++import sys
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++
++
++def load(name, path):
++    sp = importlib.util.spec_from_file_location(name, path)
++    m = importlib.util.module_from_spec(sp)
++    sp.loader.exec_module(m)
++    return m
++
++
++def check(repo):
++    coq = repo / 'Coq'
++    shared = load('tap_hash_source', HERE.parent / 'elements-hash-literal/check-source.py')
++    r = shared.check(repo, coq, coq / 'C/jet_haskell_hash_word.v', coq / 'C/jet_elements_hash_literal.v')
++    p = load('tap_source_parser', coq / 'check-secp-predicates-specification.py')
++    paths = []
++
++    def read(path):
++        paths.append(path)
++        return p.read_code(path)
++
++    def equal(a, b, label):
++        if p.compact(a) != p.compact(b):
++            raise ValueError('tap-getter source differs: ' + label)
++
++    def definition(path, name, expected):
++        found = re.findall(r'\b(?:Definition|Fixpoint|Let)\s+' + re.escape(name) +
++                           r"(?![\w']).*?:=(.*?)\.\s*(?:\n|$)", read(path), re.S)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous definition: ' + name)
++        equal(found[0], expected, name)
++
++    def line(code, start, expected):
++        found = re.findall(r'(?m)^\s*' + re.escape(start) + r'\s*=([^\n]*)$', code)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous Haskell clause: ' + start)
++        equal(found[0], expected, start)
++
++    def statement(path, name, expected):
++        found = re.findall(r'\b(?:Theorem|Lemma)\s+' + re.escape(name) +
++                           r"(?![\w'])(.*?)\bProof\.", read(path), re.S)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous full contract: ' + name)
++        equal(found[0], expected, name)
++
++    catalog = read(repo / 'Haskell/Simplicity/Elements/Jets.hs')
++    hs = read(repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs')
++    for tag, name, domain, codomain, body in [
++        ('InternalKey', 'internalKey', '()', 'PubKey',
++         'element . return . encodeKey . tapInternalKey $ envTap env'),
++        ('Tappath', 'tappath', 'Word8', '(S Word256)',
++         'return . cast . fmap encodeHash . listToMaybe . flip drop (tappath (envTap env)) . fromInteger . fromWord8')]:
++        p.require(catalog, tag + ' :: TransactionJet ' + domain + ' ' + codomain, 'catalog type')
++        line(catalog, 'specificationTransaction ' + tag, 'primitive Prim.' + tag)
++        p.require(hs, tag + ' :: Prim ' + domain + ' ' + codomain, 'primitive type')
++        line(hs, 'primName ' + tag, '"' + name + '"')
++        line(hs, 'interpret ' + tag, body)
++    line(hs, 'encodeKey (Schnorr.PubKey x)', 'toWord256 . toInteger $ x')
++    schnorr = read(repo / 'Haskell/Core/Simplicity/LibSecp256k1/Schnorr.hs')
++    p.require(schnorr, 'import Simplicity.Word', 'native Word256 import')
++    found = re.findall(r'(?m)^data PubKey\s*=([^\n]*)$', schnorr)
++    if len(found) != 1:
++        raise ValueError('missing/ambiguous PubKey carrier')
++    equal(found[0], 'PubKey Word256', 'raw four-limb key, not FE/point')
++    line(schnorr, 'put (PubKey x)', 'put x')
++    numeric = read(repo / 'Haskell/Core/Simplicity/Word.hs')
++    line(numeric, 'put (Word256 a3 a2 a1 a0)', 'put a3 >> put a2 >> put a1 >> put a0')
++    data = read(repo / 'Haskell/Elements/Simplicity/Elements/DataTypes.hs')
++    for fragment in ['tapInternalKey :: PubKey', 'tappath :: [Hash256]']:
++        p.require(data, fragment, 'tap field carrier')
++    words = read(repo / 'Haskell/Core/Simplicity/Ty/Word.hs')
++    line(words, 'fromWord8', 'fromWord word8')
++    # Shared guard checks the recursive word shape and bit injections.
++    p.require(words, 'type Word8 = Vector8 Bit', 'eight-bit index')
++    portpath = coq / 'C/jet_elements_prim.v'
++    port = read(portpath)
++    for fragment in ['; tapInternalKey : hash256', '; tappath : list hash256',
++                     '| Tappath : prim Word8 (S Word256)', '| InternalKey : prim Unit Word256',
++                     '| Tappath => "tappath"', '| InternalKey => "internalKey"']:
++        p.require(port, fragment, 'Coq carrier/identity')
++    sem = p.definition(port, 'sem')
++    for tag, following, expected in [
++        ('Tappath', 'InternalKey', '''fun i : Word8 => Some (cast (option_map encodeHash
++            (nth_error (tappath (envTap e)) (Z.to_nat (toZ i)))))'''),
++        ('InternalKey', 'OutputAsset', 'fun _ => Some (from_hash256 (tapInternalKey (envTap e)))')]:
++        if sem.count('| ' + tag + ' =>') != 1 or sem.count('| ' + following + ' =>') != 1:
++            raise ValueError('ambiguous primitive case')
++        equal(sem.split('| ' + tag + ' =>', 1)[1].split('| ' + following + ' =>', 1)[0], expected, tag)
++    literal = coq / 'C/jet_elements_tap_getters_literal.v'
++    definition(literal, 'haskell_encode_pubkey', '''haskell_to_word 8 (haskell_word256_integer
++      (haskell_be256_run (hash256_to_bytelist h) (haskell_word256_from_integer 0)))''')
++    definition(literal, 'elements_internal_key_literal_spec',
++               'Some (haskell_encode_pubkey (tapInternalKey (Elements.envTap environment)))')
++    definition(literal, 'word_indexed_digest_literal', '''Some
++      (match hd_error (skipn (Z.to_nat (haskell_from_word depth a)) values) with
++       | None => inl tt | Some h => inr (haskell_to_word 8
++         (haskell_integer_hash256 (hash256_to_bytelist h))) end)''')
++    definition(literal, 'elements_tappath_literal_spec',
++               'word_indexed_digest_literal 3 (tappath (Elements.envTap environment)) a')
++    statement(literal, 'nth_error_is_list_to_maybe_drop',
++              '{A : Type} (xs : list A) n : nth_error xs n = hd_error (skipn n xs).')
++    statement(literal, 'tappath_literal_index_range',
++              '(a : tySem Word8) : 0 <= haskell_from_word 3 a < 256.')
++    indexed = coq / 'C/jet_elements_tappath_local.v'
++    key = coq / 'C/jet_elements_hash_field_jets.v'
++    definition(indexed, 'elements_tappath_spec', 'Primitive.Combinators.prim Elements.Tappath')
++    definition(key, 'elements_internal_key_spec', 'Primitive.Combinators.prim Elements.InternalKey')
++    definition(coq / 'C/jet_elements_hash_getter_local.v', 'hash_getter_rep', r'''
++      exists be ebase bt tbase,
++        env = Vptr be (Ptrofs.repr ebase) /\
++        0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
++        0 <= tbase /\ tbase + psz <= Ptrofs.max_unsigned /\
++        Mem.load Mptr m be (ebase + pdelta) = Some (Vptr bt (Ptrofs.repr tbase)) /\
++        uint32_array_at m bt (tbase + hdelta) (hash256_reg (hash_of e)) /\
++        fp = [(be, ebase + pdelta, ebase + pdelta + 8); (bt, tbase + hdelta, tbase + hdelta + 32)]''')
++    key_prefix = ': application_jet_local_spec_sep f_simplicity_internal_key elements_ge Elements.env Ty.Unit Word256 '
++    key_rep = '(hash_getter_rep (fun e => tapInternalKey (Elements.envTap e)) 8 104 176) '
++    statement(key, 'elements_internal_key_local_spec', key_prefix + key_rep +
++              '(fun a environment => @elements_internal_key_spec (PrimitivePrimSem option_Monad_Zero) a environment).')
++    statement(literal, 'elements_internal_key_literal_local_spec', key_prefix + key_rep + 'elements_internal_key_literal_spec.')
++    nullable = coq / 'C/jet_elements_tappath_nullable.v'
++    # Exact original predicate (source SHA256 3bf756ed25aa63ebd6b2bd8155ffcd336
++    # 20df78043820523b271b82f7c32f768). No dependence on a temporary base path.
++    original_body = r'''exists be ebase bt tbase bp pbase,
++      env = Vptr be (Ptrofs.repr ebase) /\
++      (length (tappath (Elements.envTap e)) <= 128)%nat /\
++      0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
++      0 <= tbase /\ tbase + 176 <= Ptrofs.max_unsigned /\
++      0 <= pbase /\ pbase + 32 * Z.of_nat (length (tappath (Elements.envTap e))) <= Ptrofs.max_unsigned /\
++      Mem.load Mptr m be (ebase + 8) = Some (Vptr bt (Ptrofs.repr tbase)) /\
++      (0 < Z.of_nat (length (tappath (Elements.envTap e))) ->
++       Mem.load Mptr m bt (tbase + 0) = Some (Vptr bp (Ptrofs.repr pbase))) /\
++      Mem.load Mint8unsigned m bt (tbase + 168) =
++        Some (Vint (Int.repr (Z.of_nat (length (tappath (Elements.envTap e)))))) /\
++      (forall j h, nth_error (tappath (Elements.envTap e)) j = Some h ->
++        hash_elem_rep m bp (pbase + 32 * Z.of_nat j) h) /\
++      fp = [(be, ebase + 8, ebase + 16); (bt, tbase + 0, tbase + 8);
++            (bp, pbase, pbase + 32 * Z.of_nat (length (tappath (Elements.envTap e))))]'''
++    definition(nullable, 'elements_tappath_env_rep_bounded', original_body.replace('<= 128', '<= limit'))
++    definition(nullable, 'elements_tappath_env_rep_nullable', 'elements_tappath_env_rep_bounded 128')
++    definition(nullable, 'elements_tappath_env_rep_u8', 'elements_tappath_env_rep_bounded 255')
++    statement(nullable, 'elements_tappath_nullable_128_unchanged',
++              'm env e fp : elements_tappath_env_rep_nullable m env e fp <-> ' + original_body + '.')
++    prefix = ': application_jet_local_spec_sep f_simplicity_tappath elements_ge Elements.env Word8 (Ty.Sum Ty.Unit Word256) '
++    target = '(fun a environment => @elements_tappath_spec (PrimitivePrimSem option_Monad_Zero) a environment).'
++    for version in ['nullable', 'u8']:
++        rep = 'elements_tappath_env_rep_' + version + ' '
++        statement(nullable, 'elements_tappath_' + version + '_local_spec', prefix + rep + target)
++        statement(literal, 'elements_tappath_' + version + '_literal_local_spec', prefix + rep + 'elements_tappath_literal_spec.')
++    statement(nullable, 'elements_tappath_bounded_local_spec',
++              '(limit : nat) (Hlimit : (limit <= 255)%nat) ' + prefix + '(elements_tappath_env_rep_bounded limit) ' + target)
++    # No new execution premise is slipped into the reused C proof. Its only
++    # proof-body change is the bound supplied by the new explicit parameter.
++    def proof(code, name):
++        found = re.findall(r'\b(?:Lemma|Theorem)\s+' + re.escape(name) + r'\b.*?\bProof\.(.*?)\bQed\.', code, re.S)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous execution proof: ' + name)
++        return found[0]
++    body = p.compact(proof(read(nullable), 'elements_tappath_bounded_local_spec'))
++    if hashlib.sha256(body.encode()).hexdigest() != 'e123c18958a81a1a5dc38a6343b1980b984b823641bc36948cb8eebc340bceaf':
++        raise ValueError('actual execution proof differs beyond the generalized byte bound')
++    r['source_sha256'].update({str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in set(paths)})
++    r.update(selected_jets=['Elements.InternalKey', 'Elements.Tappath'],
++             original_nullable_128_preserved=True, c_byte_length_bound=255,
++             null_pointer_allowed_for_empty_path=True, whole_contracts_reviewed=True,
++             caller_cache_construction_proved=False, formal_host_library_equivalence=False,
++             normal_registration=False, kernel_checked_by_this_tool=False)
++    return r
++
++
++if __name__ == '__main__':
++    print(json.dumps(check(Path(sys.argv[1]).resolve()), indent=2))
+--- /dev/null
++++ b/Coq/elements-tap-getters/test-source.py
+@@ -0,0 +1,93 @@
++"""In-memory source/representation/whole-contract mutations; no invalid proofs compiled."""
++import importlib.util
++from pathlib import Path
++import sys
++from unittest.mock import patch
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++sp = importlib.util.spec_from_file_location('tap_source_negative', HERE / 'check-source.py')
++g = importlib.util.module_from_spec(sp)
++sp.loader.exec_module(g)
++repo = Path(sys.argv[1]).resolve()
++coq = repo / 'Coq'
++literal = coq / 'C/jet_elements_tap_getters_literal.v'
++nullable = coq / 'C/jet_elements_tappath_nullable.v'
++hs = repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs'
++catalog = repo / 'Haskell/Simplicity/Elements/Jets.hs'
++fixtures = [
++    (catalog, 'specificationTransaction InternalKey = primitive Prim.InternalKey',
++     'specificationTransaction InternalKey = primitive Prim.ScriptCMR'),
++    (catalog, 'specificationTransaction Tappath = primitive Prim.Tappath',
++     'specificationTransaction Tappath = primitive Prim.InternalKey'),
++    (hs, 'encodeKey (Schnorr.PubKey x) = toWord256 . toInteger $ x',
++     'encodeKey (Schnorr.PubKey x) = toWord256 . Schnorr.fe_repr $ x'),
++    (hs, 'element . return . encodeKey . tapInternalKey $ envTap env',
++     'element . return . encodeHash . tapScriptCMR $ envTap env'),
++    (hs, 'listToMaybe . flip drop (tappath (envTap env)) . fromInteger . fromWord8',
++     'listToMaybe . flip drop (tappath (envTap env)) . fromInteger . fromWord32'),
++    (hs, 'listToMaybe . flip drop', 'listToMaybe . flip take'),
++    (repo / 'Haskell/Core/Simplicity/LibSecp256k1/Schnorr.hs',
++     'data PubKey = PubKey Word256', 'data PubKey = PubKey FE'),
++    (repo / 'Haskell/Core/Simplicity/LibSecp256k1/Schnorr.hs',
++     'put (PubKey x) = put x', 'put (PubKey x) = put (fe_pack x)'),
++    (repo / 'Haskell/Core/Simplicity/Word.hs',
++     'put a3 >> put a2 >> put a1 >> put a0', 'put a0 >> put a1 >> put a2 >> put a3'),
++    (repo / 'Haskell/Core/Simplicity/Ty/Word.hs', 'fromWord8 = fromWord word8', 'fromWord8 = fromWord word16'),
++    (literal, 'haskell_word256_integer', 'haskell_word64_modulus'),
++    (literal, 'haskell_be256_run (hash256_to_bytelist h)',
++     'haskell_be256_run (hash256_to_bytelist sha256_iv)'),
++    (literal, 'haskell_to_word 8', 'haskell_to_word 7'),
++    (literal, 'word_indexed_digest_literal 3', 'word_indexed_digest_literal 5'),
++    (literal, 'hd_error (skipn', 'hd_error (firstn'),
++    (literal, 'haskell_from_word depth a', 'haskell_from_word depth (fromZ 0)'),
++    (literal, '0 <= haskell_from_word 3 a < 256', '0 <= haskell_from_word 3 a < 65536'),
++    (literal, '| None => inl tt', '| None => inr (from_hash256 sha256_iv)'),
++    (nullable, 'elements_tappath_env_rep_bounded 128', 'elements_tappath_env_rep_bounded 255'),
++    (nullable, 'elements_tappath_env_rep_bounded 255', 'elements_tappath_env_rep_bounded 128'),
++    (nullable, 'length (tappath (Elements.envTap e)) <= limit', 'length (tappath (Elements.envTap e)) < limit'),
++    (nullable, 'tbase + 168', 'tbase + 169'),
++    (nullable, '(0 < Z.of_nat (length (tappath (Elements.envTap e))) ->', '(0 <= Z.of_nat (length (tappath (Elements.envTap e))) ->'),
++    (nullable, 'hash_elem_rep m bp (pbase + 32 * Z.of_nat j) h', 'hash_elem_rep m bp (pbase + 16 * Z.of_nat j) h'),
++    (nullable, '(be, ebase + 8, ebase + 16)', '(be, ebase + 8, ebase + 8)'),
++    (nullable, '0 <= nn <= 255', '0 <= nn <= 128'),
++    (nullable, '(length (tappath (Elements.envTap e)) <= 128)%nat', '(length (tappath (Elements.envTap e)) <= 255)%nat'),
++]
++for path, name in [
++    (coq / 'C/jet_elements_hash_field_jets.v', 'elements_internal_key_local_spec'),
++    (literal, 'elements_internal_key_literal_local_spec'),
++    (nullable, 'elements_tappath_nullable_local_spec'),
++    (nullable, 'elements_tappath_u8_local_spec'),
++    (nullable, 'elements_tappath_bounded_local_spec'),
++    (literal, 'elements_tappath_nullable_literal_local_spec'),
++    (literal, 'elements_tappath_u8_literal_local_spec')]:
++    text = path.read_text()
++    start = text.index('Theorem ' + name)
++    stop = text.index('Proof.', start)
++    statement = text[start:stop]
++    for old, new in [('application_jet_local_spec_sep', 'False -> application_jet_local_spec_sep'),
++                     ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
++                     ('Word256', 'Word128')]:
++        assert old in statement, (name, old)
++        fixtures.append((path, statement, statement.replace(old, new, 1)))
++    if name == 'elements_internal_key_literal_local_spec':
++        fixtures.append((path, statement, statement.replace('8 104 176', '8 136 176', 1)))
++    if name == 'elements_tappath_bounded_local_spec':
++        fixtures.append((path, statement, statement.replace('limit <= 255', 'limit <= 256', 1)))
++original = Path.read_text
++g.check(repo)
++for path, old, new in fixtures:
++    text = original(path)
++    assert old in text, ('inactive mutation', path, old)
++    altered = text.replace(old, new, 1)
++    def read(self, *a, **kw):
++        return altered if self == path else original(self, *a, **kw)
++    with patch.object(Path, 'read_text', read):
++        try:
++            g.check(repo)
++        except ValueError:
++            pass
++        else:
++            raise AssertionError('accepted tap-getter corruption: ' + old)
++g.check(repo)
++print(str(len(fixtures)) + ' raw-key/byte-index/nullable-128/u8-bound/whole-contract corruptions rejected')
+--- /dev/null
++++ b/Coq/C/jet_elements_tap_getters_literal.v
+@@ -0,0 +1,93 @@
++(** Actual C internal-key and tappath contracts. The key is a raw four-limb
++    Word256, not a curve point; path hashing uses the same checked decoder.
++    The indexing helper is polymorphic in logical word depth; only the byte
++    instance is claimed here as a Haskell drop-index correspondence. *)
++From Coq Require Import ZArith List Lia.
++From compcert Require Import Integers.
++Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Util.Option.
++Require Import C.jet_elements_prim C.jets_elements C.jet_elements_linkage C.jet_application_sep.
++Require Import C.jet_haskell_word_conversion C.jet_elements_sequence_literal C.jet_haskell_hash_word.
++Require Import C.jet_elements_hash_field_jets C.jet_elements_hash_getter_local.
++Require Import C.jet_elements_tappath_local C.jet_elements_tappath_nullable.
++Require Import C.jet_word_repr.
++Set Default Timeout 10.
++Local Open Scope Z_scope.
++
++Definition haskell_encode_pubkey (h : hash256) : tySem Word256 :=
++  haskell_to_word 8 (haskell_word256_integer
++    (haskell_be256_run (hash256_to_bytelist h) (haskell_word256_from_integer 0))).
++
++Lemma haskell_encode_pubkey_matches h : haskell_encode_pubkey h = from_hash256 h.
++Proof. apply haskell_hash_word256. Qed.
++
++Definition elements_internal_key_literal_spec (_ : tySem Ty.Unit) (environment : Elements.env) :=
++  Some (haskell_encode_pubkey (tapInternalKey (Elements.envTap environment))).
++
++Lemma elements_internal_key_literal_matches a environment :
++  @elements_internal_key_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_internal_key_literal_spec a environment.
++Proof.
++  destruct a. change (Some (from_hash256 (tapInternalKey (Elements.envTap environment))) =
++    elements_internal_key_literal_spec tt environment).
++  unfold elements_internal_key_literal_spec. f_equal. symmetry. apply haskell_encode_pubkey_matches.
++Qed.
++
++Lemma nth_error_is_list_to_maybe_drop {A : Type} (xs : list A) n :
++  nth_error xs n = hd_error (skipn n xs).
++Proof. revert xs. induction n as [|n IH]; intros [|x xs]; cbn; try reflexivity; apply IH. Qed.
++
++Definition word_indexed_digest_literal (depth : nat) (values : list hash256)
++    (a : tySem (Word depth)) : option (tySem (Ty.Sum Ty.Unit Word256)) :=
++  Some (match hd_error (skipn (Z.to_nat (haskell_from_word depth a)) values) with
++        | None => inl tt
++        | Some h => inr (haskell_to_word 8 (haskell_integer_hash256 (hash256_to_bytelist h))) end).
++
++Lemma word_indexed_digest_literal_matches depth values a :
++  Some (match nth_error values (Z.to_nat (@toZ (WordToZ depth) a)) with
++        | None => inl tt | Some h => inr (from_hash256 h) end) =
++    word_indexed_digest_literal depth values a.
++Proof.
++  unfold word_indexed_digest_literal. rewrite haskell_from_word_matches, <- nth_error_is_list_to_maybe_drop.
++  destruct (nth_error values (Z.to_nat (@toZ (WordToZ depth) a))) as [h|];
++    [rewrite haskell_hash_word256|]; reflexivity.
++Qed.
++
++Lemma tappath_literal_index_range (a : tySem Word8) :
++  0 <= haskell_from_word 3 a < 256.
++Proof. rewrite haskell_from_word_matches. exact (word_toZ_range 3 a). Qed.
++
++Definition elements_tappath_literal_spec (a : tySem Word8) (environment : Elements.env) :=
++  word_indexed_digest_literal 3 (tappath (Elements.envTap environment)) a.
++
++Lemma elements_tappath_literal_matches a environment :
++  @elements_tappath_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_tappath_literal_spec a environment.
++Proof.
++  rewrite elements_tappath_sem. unfold elements_tappath_result, elements_tappath_literal_spec.
++  apply word_indexed_digest_literal_matches.
++Qed.
++
++Theorem elements_internal_key_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_internal_key elements_ge Elements.env Ty.Unit Word256
++    (hash_getter_rep (fun e => tapInternalKey (Elements.envTap e)) 8 104 176)
++    elements_internal_key_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_internal_key_literal_matches|exact elements_internal_key_local_spec].
++Qed.
++
++Theorem elements_tappath_nullable_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_tappath elements_ge Elements.env Word8
++    (Ty.Sum Ty.Unit Word256) elements_tappath_env_rep_nullable elements_tappath_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_tappath_literal_matches|exact elements_tappath_nullable_local_spec].
++Qed.
++
++Theorem elements_tappath_u8_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_tappath elements_ge Elements.env Word8
++    (Ty.Sum Ty.Unit Word256) elements_tappath_env_rep_u8 elements_tappath_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_tappath_literal_matches|exact elements_tappath_u8_local_spec].
++Qed.
+--- a/Coq/C/jet_elements_tappath_nullable.v
++++ b/Coq/C/jet_elements_tappath_nullable.v
+@@ -27,9 +27,31 @@
+ Set Default Timeout 120.
+ Require Import C.jet_elements_tappath_local.
+ 
+-Definition elements_tappath_env_rep_nullable (m : mem) (env : val) (e : Elements.env)
++Definition elements_tappath_env_rep_bounded (limit : nat) (m : mem) (env : val) (e : Elements.env)
+     (fp : list (block * Z * Z)) : Prop :=
+   exists be ebase bt tbase bp pbase,
++    env = Vptr be (Ptrofs.repr ebase) /\
++    (length (tappath (Elements.envTap e)) <= limit)%nat /\
++    0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
++    0 <= tbase /\ tbase + 176 <= Ptrofs.max_unsigned /\
++    0 <= pbase /\ pbase + 32 * Z.of_nat (length (tappath (Elements.envTap e))) <= Ptrofs.max_unsigned /\
++    Mem.load Mptr m be (ebase + 8) = Some (Vptr bt (Ptrofs.repr tbase)) /\
++    (0 < Z.of_nat (length (tappath (Elements.envTap e))) ->
++     Mem.load Mptr m bt (tbase + 0) = Some (Vptr bp (Ptrofs.repr pbase))) /\
++    Mem.load Mint8unsigned m bt (tbase + 168) =
++      Some (Vint (Int.repr (Z.of_nat (length (tappath (Elements.envTap e)))))) /\
++    (forall j h, nth_error (tappath (Elements.envTap e)) j = Some h ->
++      hash_elem_rep m bp (pbase + 32 * Z.of_nat j) h) /\
++    fp = [(be, ebase + 8, ebase + 16); (bt, tbase + 0, tbase + 8);
++          (bp, pbase, pbase + 32 * Z.of_nat (length (tappath (Elements.envTap e))))].
++
++(** The original nullable-128 relation is definitionally preserved. *)
++Definition elements_tappath_env_rep_nullable := elements_tappath_env_rep_bounded 128.
++Definition elements_tappath_env_rep_u8 := elements_tappath_env_rep_bounded 255.
++
++Lemma elements_tappath_nullable_128_unchanged m env e fp :
++  elements_tappath_env_rep_nullable m env e fp <->
++exists be ebase bt tbase bp pbase,
+     env = Vptr be (Ptrofs.repr ebase) /\
+     (length (tappath (Elements.envTap e)) <= 128)%nat /\
+     0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
+@@ -44,6 +66,20 @@
+       hash_elem_rep m bp (pbase + 32 * Z.of_nat j) h) /\
+     fp = [(be, ebase + 8, ebase + 16); (bt, tbase + 0, tbase + 8);
+           (bp, pbase, pbase + 32 * Z.of_nat (length (tappath (Elements.envTap e))))].
++Proof. reflexivity. Qed.
++
++Lemma elements_tappath_rep_bounded_mono small large :
++  (small <= large)%nat -> forall m env e fp,
++  elements_tappath_env_rep_bounded small m env e fp ->
++  elements_tappath_env_rep_bounded large m env e fp.
++Proof.
++  intros Hbound m env e fp (be & ebase & bt & tbase & bp & pbase & HE & HL & Hrest).
++  exists be, ebase, bt, tbase, bp, pbase. split; [exact HE|]. split; [lia|exact Hrest].
++Qed.
++
++Lemma elements_tappath_nullable_in_u8 m env e fp :
++  elements_tappath_env_rep_nullable m env e fp -> elements_tappath_env_rep_u8 m env e fp.
++Proof. apply elements_tappath_rep_bounded_mono. lia. Qed.
+ 
+ Lemma elements_tappath_env_rep_weaken m env e fp :
+   elements_tappath_env_rep m env e fp -> elements_tappath_env_rep_nullable m env e fp.
+@@ -53,9 +89,9 @@
+   repeat (split; [assumption|]). assumption.
+ Qed.
+ 
+-Theorem elements_tappath_nullable_local_spec :
++Theorem elements_tappath_bounded_local_spec (limit : nat) (Hlimit : (limit <= 255)%nat) :
+   application_jet_local_spec_sep f_simplicity_tappath elements_ge Elements.env Word8
+-    (Ty.Sum Ty.Unit Word256) elements_tappath_env_rep_nullable
++    (Ty.Sum Ty.Unit Word256) (elements_tappath_env_rep_bounded limit)
+     (fun a environment => @elements_tappath_spec
+       (PrimitivePrimSem option_Monad_Zero) a environment).
+ Proof.
+@@ -67,7 +103,7 @@
+   set (path := tappath (Elements.envTap environment)) in *.
+   set (nn := Z.of_nat (length path)) in *.
+   pose proof HPL0 as HPL. fold path in HPL.
+-  assert (Hnn : 0 <= nn <= 128) by (subst nn; lia).
++  assert (Hnn : 0 <= nn <= 255) by (subst nn; lia).
+   assert (HB : Z.of_nat (bitSize (Ty.Sum Ty.Unit Word256)) = 257) by reflexivity.
+   rewrite HB in HSep, HFrame.
+   change (Z.of_nat (bitSize Word8)) with 8 in HRmax.
+@@ -316,3 +352,17 @@
+     + exact HCells.
+   - split; [exact HPrefix|]. rewrite HB. split; [exact HFields|]. exact HMem.
+ Qed.
++
++Theorem elements_tappath_nullable_local_spec :
++  application_jet_local_spec_sep f_simplicity_tappath elements_ge Elements.env Word8
++    (Ty.Sum Ty.Unit Word256) elements_tappath_env_rep_nullable
++    (fun a environment => @elements_tappath_spec
++      (PrimitivePrimSem option_Monad_Zero) a environment).
++Proof. apply (elements_tappath_bounded_local_spec 128). lia. Qed.
++
++Theorem elements_tappath_u8_local_spec :
++  application_jet_local_spec_sep f_simplicity_tappath elements_ge Elements.env Word8
++    (Ty.Sum Ty.Unit Word256) elements_tappath_env_rep_u8
++    (fun a environment => @elements_tappath_spec
++      (PrimitivePrimSem option_Monad_Zero) a environment).
++Proof. apply (elements_tappath_bounded_local_spec 255). lia. Qed.
