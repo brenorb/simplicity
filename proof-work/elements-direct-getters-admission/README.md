@@ -63,23 +63,29 @@ preexisting shared word-conversion module, not a clean-HEAD build. The exact
 registry/snapshot/script worktree delta is retained separately from unrelated
 staged changes; it is not silently swept into a commit.
 
-The distinct actual-main getter acceptance is now running as session **74479**,
-launched by `main-accept.py`. `MAIN-AUDIT-RUN.json` records launch, not success.
-Log: `/private/tmp/jet-direct-getters-admission.yc45qogt/main-acceptance.log`.
-Keep main Coq/C/Haskell inputs, registries, guards and snapshots frozen during
-this run. Poll the actual handle for liveness; a recorded identifier alone is
-not evidence of a live process. Only a terminal `MAIN-ACCEPTANCE.json` confirms
-the distinct actual-main audit. Do not duplicate the live or completed runs,
-and never rerun the one-time installer.
+The distinct actual-main getter acceptance **passed**: session **74479**
+terminated with exit 0 after **3,298.87 seconds**. `MAIN-ACCEPTANCE.json` and
+`MAIN-TERMINAL.json` retain the exact command, terminal status, duration and
+unchanged `bf7b39ba...` source fingerprint. The complete durable log is
+`main-acceptance.log` (SHA-256 `a82b1986...`). All 989 kernel-checked modules,
+the 5,069-result assumption audit (2,800 closed), full contract comparison,
+negative suites and all five production AST regenerations passed. The
+installed-main postcheck confirms actual-main acceptance, source identity
+and preservation of the entire preexisting staged patch.
+
+`MAIN-AUDIT-RUN.json` remains a historical launch record, not the success
+receipt. Do not poll/restart this completed run or rerun the one-time installer.
+The distinct seven-jet candidate has its own live audit and is not accepted
+by this earlier 371-jet result.
 
 ```sh
 python3 -B proof-work/elements-direct-getters-admission/post-check.py
 ```
 
-The installed-main postcheck has passed with predecessor verification, exact
-source identity and staging preservation, with actual-main acceptance still
-pending. Use this postcheck for current source identity: the old sequence
+Use this postcheck for the 371-jet source identity: the old sequence
 postcheck represents its historical `7e55c862...` source state and intentionally
 does not match the later installation. This ledger composes the old source
-map, exact new delta and both prerequisite terminal receipts. Further proof
-work can continue in independent external trees.
+map, exact new delta and both prerequisite terminal receipts. After a later
+reviewed installation changes main's source state, use that installation's
+composed postcheck instead of requiring this historical one to match new
+inputs. The all-jet goal remains unfinished.
