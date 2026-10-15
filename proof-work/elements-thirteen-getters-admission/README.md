@@ -1,6 +1,6 @@
 # Thirteen optional/output getters: combined normal candidate
 
-Proposed successor: **399/533**, over the accepted/installed 386-jet source.
+Accepted and installed successor: **399/533**, over the 386-jet source.
 Scope: indexed/current annex hash; indexed/current reissuance blinding, new
 issuance contract, and reissuance entropy; indexed/current previous outpoint;
 output script hash; output surjection-proof and range-proof hashes.
@@ -142,11 +142,13 @@ ulimit -s 65520
 python3 -B proof-work/elements-thirteen-getters-admission/main-accept.py
 ```
 
-That driver is prepared but **has not been launched yet**. It requires a passing
-installed-source postcheck, refuses an existing launch receipt, binds its log
-and terminal result to this installation and driver, and never uses update or
-skip flags. Keep main frozen throughout that future audit. No new acceptance,
-actual-main acceptance is claimed by installation alone.
+That driver has now been launched **once as 90475**, after the signed guarded
+installation commit. `MAIN-AUDIT-RUN.json` binds input `50f56ff9...`, the real
+installation and the driver. It is a launch record, not success. Log:
+`/private/tmp/jet-thirteen-getters-admission.9r1oz8pi/main-acceptance.log`.
+Keep main Coq/C/Haskell, manifests, snapshots and gates frozen until successful
+terminal validation. Poll the existing handle; do not repeat the command above
+on quiet output. Distinct actual-main acceptance remains pending.
 
 ## Scope remains explicit
 

@@ -92,7 +92,9 @@ This proof's independent preservation check was completed at the original main
 main advances. The private source/object/log fingerprints remain authoritative
 for the proof itself. The 399 installer and proposed 401 candidate are already
 prepared; coordinate this next jet with that existing chain without restarting
-completed audits or copying objects from future live audits.
+completed audits or copying objects from live audits. The actual-main 399 and
+isolated 401 audits have since been launched as **90475** and **55506**; keep
+their source inputs frozen. This lbtc proof remains separate and unregistered.
 
 The source guard is not a formal compiler or host lens/serialization proof.
 LP64/RECKLESS and the six inherited assumptions remain explicit. There are no
