@@ -91,28 +91,29 @@ against a later source state. These receipts describe the actual dirty/staged
 checkout, including preexisting untracked dependencies, not clean-HEAD
 reproducibility.
 
-## Distinct actual-main acceptance is running
+## Distinct actual-main acceptance passed
 
-The actual-main driver was launched once as session **3224**, with the same
-`545af5c8...` input fingerprint. `MAIN-AUDIT-RUN.json` records launch only.
-Log: `/private/tmp/jet-timelock-pegin-admission.dw295nit/main-acceptance.log`.
-Keep all main Coq/C/Haskell sources, registries, guards and snapshots frozen
-until its terminal source validation finishes. Poll this existing handle;
-silence or an observation timeout is not failure. Do not rerun the installer
-or launch another main audit. The main driver refuses an existing launch.
-Only a terminal `MAIN-ACCEPTANCE.json` confirms distinct main acceptance.
-For current installed source/index/history validation use:
+Session **3224** completed with exit 0 after **3,685.71 seconds**, with the same
+`545af5c8...` fingerprint. Build, all 1,023 kernel modules, assumption/contracts,
+negative suites and all five ASTs passed. `MAIN-ACCEPTANCE.json` and
+`MAIN-TERMINAL.json` bind that successful outcome and the complete durable
+`main-acceptance.log` (SHA-256 `8e59b12d...`). The composed postcheck confirmed
+actual-main acceptance, exact source identity and the original index. The old
+launch/installation records retain their historical pending flags.
+
+This run is terminal: do not poll or restart it. Until the next installation,
+the installed source/index/history can be checked with:
 
 ```sh
 python3 -B proof-work/elements-timelock-pegin-admission/post-check.py
 ```
 
-The next eight digest-getter candidate has its own completed preparation/
-review at `../elements-digest-getters-admission/`. Its isolated full audit is
-now running as **87596**, after this candidate's successful acceptance and
-installation. It cannot be installed until both its isolated acceptance and
-this distinct actual-main audit successfully terminate. The old direct-getter
-postcheck is historical after this installation; use the composed one above.
+The next eight-getter candidate's isolated full audit also completed with
+exit 0 as **87596**. Both installation prerequisites are now satisfied. Use
+its guarded installer and postcheck, not a repeated predecessor installer.
+After it changes main to 386, this 378 postcheck becomes historical; use the
+successor's composed postcheck. The full receipts/logs remain evidence for
+this exact 378 source state, not for later changes.
 
 The original frame/cursor/prefix/environment/memory contracts and
 LP64/RECKLESS configuration are unchanged. Environment-builder/evaluator
