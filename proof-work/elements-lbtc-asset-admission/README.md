@@ -40,10 +40,13 @@ fragments are checked against the retained complete records.
 assembly, preparation receipt and shared engine. The complete new contract and
 assumption reports and the build/fresh-compile logs are archived here.
 
-The six-stage finish review is live as **90872**: coverage, coverage tests,
+The six-stage finish review **90872 terminated with exit 0**: coverage, coverage tests,
 ordinary contract comparison, source correspondence, source corruptions, and
-admission/evidence corruptions. Poll that handle and inspect its terminal
-receipt; do not infer success from this preparation note. Historical launch:
+admission/evidence corruptions all pass. The 22 source and 30 admission/evidence
+corruptions are rejected. `REVIEW.json` binds the six commands/logs, source
+fingerprint, tools, shared engine and 1,252 object/report evidence hashes;
+`FINISH-CHECKPOINT.json` independently verifies every recorded evidence hash.
+All six stage logs are archived here. Historical launch (completed; do not repeat):
 
 ```sh
 python3 -B proof-work/elements-lbtc-asset-admission/review.py finish /private/tmp/jet-lbtc-asset-admission.yddis97l
