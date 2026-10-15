@@ -1,0 +1,165 @@
+SEQUENCE_TYPE SequenceReview.jet_elements_sequence_literal.haskell_from_word_acc_matches
+jet_elements_sequence_literal.haskell_from_word_acc_matches
+     : forall (n : nat) (i : BinNums.Z) (a : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z (jet_elements_sequence_literal.haskell_from_word_acc n i a)
+         (BinInt.Z.add (BinInt.Z.mul i (jet_predicate_spec.word_modulus n)) (@Word.ToZ.Theory.toZ (Word.WordToZ n) a))
+SEQUENCE_TYPE SequenceReview.jet_elements_sequence_literal.haskell_from_word_matches
+jet_elements_sequence_literal.haskell_from_word_matches
+     : forall (n : nat) (a : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z (jet_elements_sequence_literal.haskell_from_word n a) (@Word.ToZ.Theory.toZ (Word.WordToZ n) a)
+SEQUENCE_TYPE SequenceReview.jet_elements_sequence_literal.elements_input_sequence_literal_matches
+jet_elements_sequence_literal.elements_input_sequence_literal_matches
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))))
+         (@jet_elements_indexed_scalar_jets.elements_input_sequence_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (jet_elements_sequence_literal.elements_input_sequence_literal_spec a environment)
+SEQUENCE_TYPE SequenceReview.jet_elements_sequence_literal.application_jet_local_spec_sep_pointwise
+jet_elements_sequence_literal.application_jet_local_spec_sep_pointwise
+     : forall (f : Clight.function) (ge : Clight.genv) (E : Set) (A B : Ty.Ty)
+         (rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : E)
+                  (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+         (spec1 spec2 : forall (_ : Ty.tySem A) (_ : E), option (Ty.tySem B))
+         (_ : forall (a : Ty.tySem A) (e : E), @eq (option (Ty.tySem B)) (spec1 a e) (spec2 a e))
+         (_ : jet_application_sep.application_jet_local_spec_sep f ge E A B rep spec1),
+       jet_application_sep.application_jet_local_spec_sep f ge E A B rep spec2
+SEQUENCE_TYPE SequenceReview.jet_elements_sequence_literal.elements_input_sequence_literal_local_spec
+jet_elements_sequence_literal.elements_input_sequence_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_input_sequence
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+         (@jet_elements_indexed_scalar.indexed_scalar_rep jet_elements_prim.sigTxInput
+            (fun e : jet_elements_prim.Elements.env => jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+            (fun txi : jet_elements_prim.sigTxInput => Integers.Int.unsigned (jet_elements_prim.sigTxiSequence txi))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         jet_elements_sequence_literal.elements_input_sequence_literal_spec
+SEQUENCE_DEF SequenceReview.jet_elements_sequence_literal.elements_input_sequence_literal_spec
+jet_elements_sequence_literal.elements_input_sequence_literal_spec =
+fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+@Some (sum unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+  match
+    @List.nth_error jet_elements_prim.sigTxInput
+      (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment))
+      (BinInt.Z.to_nat (jet_elements_sequence_literal.haskell_from_word (S (S (S (S (S O))))) a))
+    return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+  with
+  | Some txi =>
+      @inr unit (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+        (jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S O)))))
+           (Integers.Int.unsigned (jet_elements_prim.sigTxiSequence txi)))
+  | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))) tt
+  end
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
+       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+
+Arguments jet_elements_sequence_literal.elements_input_sequence_literal_spec a environment
+SEQUENCE_DEF SequenceReview.jet_elements_sequence_literal.haskell_from_word_acc
+jet_elements_sequence_literal.haskell_from_word_acc =
+fix haskell_from_word_acc (n : nat) : forall (_ : BinNums.Z) (_ : Ty.tySem (Word.Word n)), BinNums.Z :=
+  match n as k return (forall (_ : BinNums.Z) (_ : Ty.tySem (Word.Word k)), BinNums.Z) with
+  | O =>
+      fun (i : BinNums.Z) (w : Ty.tySem (Word.Word O)) =>
+      match w return BinNums.Z with
+      | inl _ => BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) i
+      | inr _ => BinInt.Z.add (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) i) (BinNums.Zpos BinNums.xH)
+      end
+  | S k =>
+      fun (i : BinNums.Z) (w : Ty.tySem (Word.Word (S k))) =>
+      match w return BinNums.Z with
+      | pair hi lo => haskell_from_word_acc k (haskell_from_word_acc k i hi) lo
+      end
+  end
+     : forall (n : nat) (_ : BinNums.Z) (_ : Ty.tySem (Word.Word n)), BinNums.Z
+
+Arguments jet_elements_sequence_literal.haskell_from_word_acc n%nat_scope _%Z_scope _
+SEQUENCE_DEF SequenceReview.jet_elements_sequence_literal.haskell_from_word
+jet_elements_sequence_literal.haskell_from_word =
+fun (n : nat) (a : Ty.tySem (Word.Word n)) => jet_elements_sequence_literal.haskell_from_word_acc n BinNums.Z0 a
+     : forall (n : nat) (_ : Ty.tySem (Word.Word n)), BinNums.Z
+
+Arguments jet_elements_sequence_literal.haskell_from_word n%nat_scope a
+SEQUENCE_DEF C.jet_application_sep.application_jet_local_spec_sep
+jet_application_sep.application_jet_local_spec_sep =
+fun (f : Clight.function) (ge : Clight.genv) (E : Set) (A B : Ty.Ty)
+  (env_rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : E)
+               (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+  (spec : forall (_ : Ty.tySem A) (_ : E), option (Ty.tySem B)) =>
+forall (logical_env : E) (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+  (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+  (a : Ty.tySem A) (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (_ : env_rep m env logical_env fp)
+  (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+         (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+          match pat return Prop with
+          | pair y hi =>
+              match y return Prop with
+              | pair b lo =>
+                  jet_application_sep.out_sep bd dbase bw outedge cursor (BinInt.Z.of_nat (Translate.bitSize B)) b lo
+                    hi
+              end
+          end) fp) (_ : jet_frame_layout.frame_base_valid sbase)
+  (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+  (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+  (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize A))) Integers.Int64.max_unsigned)
+  (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor (@Translate.encode A a))
+  (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor (BinInt.Z.of_nat (Translate.bitSize B))),
+@ex Memory.Mem.mem
+  (fun mf : Memory.Mem.mem =>
+   @ex (Ty.tySem B)
+     (fun value : Ty.tySem B =>
+      and (@eq (option (Ty.tySem B)) (spec a logical_env) (@Some (Ty.tySem B) value))
+        (and
+           (ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function f)
+              (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                 (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                    (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+           (and (jet_encoding.frame_output_cells_at mf bw outedge cursor (@Translate.encode B value))
+              (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                 (and
+                    (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                       (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize B))))
+                    (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                       (_ : Memory.Mem.valid_block m b)
+                       (_ : or (not (@eq Values.block b bd))
+                              (or
+                                 (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                    (BinInt.Z.add dbase
+                                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                 (BinInt.Z.le
+                                    (BinInt.Z.add dbase
+                                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                    ofs)))
+                       (_ : or (not (@eq Values.block b bw))
+                              (or
+                                 (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                    (BinInt.Z.add outedge
+                                       (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                          (BinInt.Z.div (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize B)))
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                 (BinInt.Z.le
+                                    (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                     @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))))
+     : forall (_ : Clight.function) (_ : Clight.genv) (E : Set) (A B : Ty.Ty)
+         (_ : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : E)
+                (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+         (_ : forall (_ : Ty.tySem A) (_ : E), option (Ty.tySem B)), Prop
+
+Arguments jet_application_sep.application_jet_local_spec_sep f ge E%type_scope (A B)%ty_scope
+  (env_rep spec)%function_scope
