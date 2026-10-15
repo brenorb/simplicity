@@ -27,7 +27,7 @@ Definition sb_leaf : sstate :=
 Definition sb_ret : sx :=
   Eval vm_compute in match (stemps sb_leaf)!1%positive with Some x => x | None => XIc Int.zero end.
 Lemma sb_run_eq : sb_run = Some (RDone sb_leaf ONormal).
-Proof. vm_cast_no_check (eq_refl (Some (RDone sb_leaf ONormal))). Qed.
+Proof. timeout 10 (vm_compute; reflexivity). Qed.
 
 Ltac pow_facts :=
   pose proof (eq_refl : 2 ^ 4 = 16); pose proof (eq_refl : 2 ^ 8 = 256);
@@ -91,7 +91,7 @@ Definition gb_tree : option res := Eval vm_compute in gb_run.
 Definition gb_leaf : sstate :=
   Eval vm_compute in match gb_tree with Some (RDone a _) => a | _ => mkst (PTree.empty sx) [] [] 0 end.
 Lemma gb_run_eq : gb_run = Some (RDone gb_leaf ONormal).
-Proof. vm_cast_no_check (eq_refl (Some (RDone gb_leaf ONormal))). Qed.
+Proof. timeout 10 (vm_compute; reflexivity). Qed.
 
 Definition be_bytes (W : Z) : list Z :=
   map (fun j => (W / 2 ^ (8 * (31 - Z.of_nat j))) mod 2 ^ 8) (seq 0 32).

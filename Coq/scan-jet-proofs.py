@@ -42,7 +42,7 @@ def code_only(source):
 
 def violations(source):
     pattern = re.compile(
-        r"\b(?:Axioms?|Parameters?|Conjecture|Admitted|admit|give_up|Abort|bypass_check)\b"
+        r"\b(?:Axioms?|Parameters?|Conjecture|Admitted|admit|give_up|Abort|bypass_check|vm_cast_no_check|native_cast_no_check)\b"
         r"|\bUnset\s+(?:Guard|Universe|Positivity)\s+Checking\b")
     return list(pattern.finditer(code_only(source)))
 

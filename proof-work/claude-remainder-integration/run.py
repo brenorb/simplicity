@@ -122,6 +122,8 @@ def preservation():
             if path in expected and expected[path] != digest:
                 raise ValueError('import overwrote existing source: ' + path)
             expected[path] = digest
+    policy = load('remainder_checked_conversion_policy', REPO / 'proof-work/secp-checked-conversions/preservation.py')
+    expected = policy.apply_reviewed_repairs(expected, REPO)
     if input_map() != expected:
         raise ValueError('main inputs changed beyond the reviewed additive imports')
     return baseline

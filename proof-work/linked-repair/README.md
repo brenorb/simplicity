@@ -68,17 +68,23 @@ environment readability, separation and application-input bounds remain as
 stated in the individual contracts. Registered coverage stays 364/533; this
 review neither resumes nor completes the paused all-jets goal.
 
-An old unchecked conversion in the existing secp normalization dependency is
-a separate repair, not hidden by this integration. `probe-secp.py` tests its
+Follow-up: all four unchecked conversions found across the existing secp
+function table, normalization and byte-conversion modules are now replaced by
+checked proofs. Their selected public caller closure and the formerly excluded
+`jet_frame_constructible_secp.v` pass independent kernel checking and are
+installed source-only. See
+[`secp-checked-conversions`](../secp-checked-conversions/README.md), including
+the exact repair overlay used by this driver's preservation check. Coverage
+and normal registries remain unchanged; whole-checkout acceptance is separate.
+
+Historical diagnostic: `probe-secp.py` tested the normalization dependency's
 ground equality with the same ten-second checked conversion in a temporary
 prefix module, without editing main. The probe compiled successfully and
 printed a closed assumption report. This is **not** a full normalization
 module/caller/kernel audit, nor admission of `jet_frame_constructible_secp`.
-The next scoped repair should replace the clean tracked main lemma, rebuild
-its transitive callers and check the new constructibility result. Record that
-intentional existing-source change in its own baseline/repair ledger; do not
-silently weaken these additive-only preservation gates or touch concurrent
-secp work. Claude's uncommitted
+That follow-up is now completed for the selected closure with an explicit
+existing-source repair ledger; no concurrent secp experiments were edited.
+Claude's uncommitted
 Elements copyInput experiment, the radix-sort obligation, remaining Elements
 specification bridges and runtime-driver composition remain outside this
 batch. No remote is modified.

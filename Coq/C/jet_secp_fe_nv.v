@@ -48,7 +48,7 @@ Definition nv_b : sstate :=
   Eval vm_compute in match nv_tree with Some (RIf _ _ (RDone b _)) => b | _ => mkst (PTree.empty sx) [] [] 0 end.
 
 Lemma nv_run_eq : nv_run = Some (RIf nv_c (RDone nv_a ONormal) (RDone nv_b ONormal)).
-Proof. vm_cast_no_check (eq_refl (Some (RIf nv_c (RDone nv_a ONormal) (RDone nv_b ONormal)))). Qed.
+Proof. timeout 10 (vm_compute; reflexivity). Qed.
 
 Definition nvz_list (z0 z1 z2 z3 z4 : Z) : list Z :=
   match nvz z0 z1 z2 z3 z4 with (r0, r1, r2, r3, r4) => [r0; r1; r2; r3; r4] end.
