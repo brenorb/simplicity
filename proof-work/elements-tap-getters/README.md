@@ -35,8 +35,11 @@ overflow. Do not extrapolate that host conversion to arbitrary Word64 inputs.
 `elements_tappath_env_rep_bounded limit` factors the existing environment relation.
 Its 128 instance is **definitionally the original nullable relation**, witnessed
 by `elements_tappath_nullable_128_unchanged`, whose right side is the complete
-original predicate. The old theorem name and statement are retained. A closed
-monotonicity lemma relates bounds, including nullable-128 to nullable-255.
+original predicate. The old theorem name and statement are retained. A
+monotonicity lemma relates bounds, including nullable-128 to nullable-255. These
+three memory-representation compatibility results retain four inherited
+assumptions, as printed in the receipt; unlike the four conversion lemmas, they
+are not closed under the global context. No new assumption is introduced.
 
 `elements_tappath_bounded_local_spec` proves the C contract for any explicit
 `limit <= 255`. The existing execution proof changes only its local numeric
