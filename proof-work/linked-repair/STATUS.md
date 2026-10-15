@@ -1,5 +1,13 @@
 # Checked linked families integrated, 2026-10-14
 
+Follow-up: the four unchecked conversions in the normal secp dependency tree
+are repaired and kernel-checked, along with their selected local-contract
+callers and the newly installed frame-constructibility module. See
+[`secp-checked-conversions`](../secp-checked-conversions/README.md). The earlier
+diagnostic-only/deferred notes below are historical. Original linked receipts
+are unchanged; their driver provenance and source-preservation checks compose
+only the exact documented successor hooks and five source repairs.
+
 Source: `claude/shared-obligations` at
 `30404face45383153528f36d915de6d7df11f3f4`. Target:
 `feat/jet-equivalence`. This follows the earlier 185-file non-linked review.

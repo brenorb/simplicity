@@ -87,6 +87,8 @@ def main():
             "Lemma cheat : False. Proof. admit. Qed.",
             "Lemma cheat : False. Proof. Abort.",
             "Lemma cheat : False. Proof. give_up. Qed.",
+            "Lemma cheat : True. Proof. vm_cast_no_check I. Qed.",
+            "Lemma cheat : True. Proof. native_cast_no_check I. Qed.",
             "Unset Guard Checking.",
             "Unset Universe Checking.",
             "Unset Positivity Checking.",
