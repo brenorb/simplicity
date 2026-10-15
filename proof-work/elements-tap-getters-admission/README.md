@@ -7,7 +7,8 @@ versions in `../elements-tap-getters/` represent two jets, not three.
 Candidate: `/private/tmp/jet-tap-getters-admission.ouwiobpu`.
 Reviewed candidate input:
 `c86dfb5924df9474a3168b5923c508f236576737c3fbb18b9d59a40afaa3752d`.
-Main remains **386/533**. No new full acceptance or installation is claimed.
+Main was **386/533** at preparation and has since advanced through the guarded
+399 installation. This 401 candidate itself is not installed or fully accepted.
 
 ## Source provenance and the explicit inherited-source change
 
@@ -83,13 +84,12 @@ still do not constitute full normal acceptance.
 
 ## Predecessor, start guards and remaining acceptance
 
-The actual-main 386 audit **92335** and isolated 399 audit **61966** are still
-live. Both have passed recursive kernel checking and are at assumption gates.
-Keep both source trees frozen. The 399 source-only installer/postcheck is
-prepared in `../elements-thirteen-getters-admission/integration.py`; it must
-wait for both successful terminal receipts, then preserve the original index
-and run a separate actual-main 399 acceptance. Poll existing handles, never
-launch replacements on silence.
+The actual-main 386 audit **92335** and isolated 399 audit **61966 both passed**
+with exit 0, including all acceptance gates. The guarded 399 source-only
+installation/postcheck also passed, preserving the complete old index and exact
+accepted source identity. Its distinct actual-main acceptance is the next
+predecessor step. Keep completed candidates immutable; never repeat their
+completed audit commands or copy objects from future live audits.
 
 `accept.py` is prepared here but **has not been launched**. It requires this
 candidate's completed bound review, real full isolated 399 acceptance, guarded

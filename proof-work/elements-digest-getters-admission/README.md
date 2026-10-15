@@ -156,3 +156,8 @@ output-proof getters in `../elements-thirteen-getters-admission/`, proposing
 do not start its superseded audit. Neither successor is installed or fully
 accepted merely by preparing it. All remaining jets and shared/fidelity/
 configuration obligations stay in the active full goal.
+
+The 399 successor has since passed full isolated acceptance and guarded
+source-only installation. This folder's 386 receipt is now historical; do not
+run its exact-386 postcheck against 399 main. Use the successor's composed
+`elements-thirteen-getters-admission/integration.py check` instead.

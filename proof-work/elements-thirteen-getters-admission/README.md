@@ -96,7 +96,7 @@ full isolated acceptance and actual-main 386 (**92335, also exit 0**) have both
 been independently validated, satisfying the installer prerequisites. The older
 eleven-getter audit was not launched and must remain unlaunched.
 
-## Guarded installation is prepared, not performed
+## Guarded installation completed
 
 `integration.py` now implements read-only planning, one-time source-only
 installation, and the successor postcheck. The exact **23-file** delta is seven
@@ -117,14 +117,22 @@ compiler objects. The postcheck verifies current source equals the accepted
 fingerprint and independently validates historical acceptance/installation
 bindings without applying an obsolete predecessor postcheck to successor main.
 
-**Only after both existing handles are confirmed successfully terminal**, use:
+Both existing handles were confirmed successfully terminal. The following
+one-time installation and composed postcheck **have now passed** (79109, exit
+0); do not repeat installation:
 
 ```sh
 python3 -B proof-work/elements-thirteen-getters-admission/integration.py install /private/tmp/jet-thirteen-getters-admission.9r1oz8pi
 python3 -B proof-work/elements-thirteen-getters-admission/integration.py check
 ```
 
-Then archive the completed actual-main 386 and isolated 399 logs/receipts, commit
+Main now matches the fully accepted `50f56ff9...` source exactly. Its coverage is
+399/533, the original staged-patch hash is unchanged, and no compiler objects
+were copied. `INSTALLATION.json` records the exact 23-target source-only delta;
+`DELTA.patch` preserves the owned metadata/script edits without committing
+unrelated dirty registries. Historical receipts/logs are already archived.
+
+Commit
 the owned new sources/guards and exact delta/ledger (not unrelated dirty
 registries), verify the original staged-patch hash is unchanged, and launch the
 separate actual-main 399 audit **once**:
@@ -134,11 +142,11 @@ ulimit -s 65520
 python3 -B proof-work/elements-thirteen-getters-admission/main-accept.py
 ```
 
-That driver is prepared but **has not been launched**. It requires a passing
+That driver is prepared but **has not been launched yet**. It requires a passing
 installed-source postcheck, refuses an existing launch receipt, binds its log
 and terminal result to this installation and driver, and never uses update or
 skip flags. Keep main frozen throughout that future audit. No new acceptance,
-installation or main coverage is claimed by this readiness checkpoint.
+actual-main acceptance is claimed by installation alone.
 
 ## Scope remains explicit
 
