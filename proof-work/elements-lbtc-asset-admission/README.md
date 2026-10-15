@@ -1,7 +1,7 @@
 # Original C lbtc_asset: normal-registration candidate
 
 Proposed successor: **402/533**, adding only `simplicity_lbtc_asset` to the
-reviewed 401-jet predecessor. Main remains **399/533**. This candidate is not
+reviewed 401-jet predecessor. Main is now **401/533**. This candidate is not
 installed and does not yet have full normal acceptance.
 
 Candidate: `/private/tmp/jet-lbtc-asset-admission.yddis97l`.
@@ -52,16 +52,38 @@ All six stage logs are archived here. Historical launch (completed; do not repea
 python3 -B proof-work/elements-lbtc-asset-admission/review.py finish /private/tmp/jet-lbtc-asset-admission.yddis97l
 ```
 
-`accept.py` is prepared but **has not been launched**. Its preflight requires
-real isolated 401 full acceptance and guarded 401 installation with the exact
-reviewed source identity and passing postcheck. It may then run alongside the
-distinct actual-main 401 audit; any later 402 installation must wait for both
-real terminal acceptances. Do not restart either existing audit or copy its
-live objects. Main 399 audit **90475** and isolated 401 audit **55506** are still
-live. The every-jet goal remains unfinished, including 104 explicit
+`accept.py` has been launched **once as 26900**, after main399 **90475** and
+isolated401 **55506** both passed all gates and guarded401 installation
+succeeded. The exact reviewed source identity and composed postcheck passed.
+`AUDIT-RUN.json` binds the source, review, driver and real predecessor receipts.
+Its live log is `/private/tmp/jet-lbtc-asset-admission.yddis97l/acceptance.log`.
+It runs alongside the distinct actual-main401 audit **92989**; later402
+installation must wait for both real terminal acceptances. Poll these handles,
+do not restart quiet audits, and do not copy live objects. The every-jet goal
+remains unfinished, including 104 explicit
 `memcpy_model` conditional entries and the other missing public jets.
 
 The three negative-only start tests passed without writes or subprocess
 launches; `START-GUARD.json` binds the driver, tests and log. Missing real 401
 acceptance, missing installation, and duplicate launch are all refused. These
 tests do not substitute invented positive receipts for the real prerequisites.
+
+## Guarded successor installation is prepared, not executed
+
+The additive `integration.py` and once-only `main-accept.py` are now prepared.
+Read-only planning against the exact installed401 source and fourteen refusal
+checks passed as 45562, exit 0. `INTEGRATION-REVIEW.json` binds the three tools,
+complete test log and planned delta. Tests reject missing real terminal audits,
+duplicate installs/launches, target escapes, object copying, inherited-source
+overwrites, review promoted to acceptance, changed provenance and changed
+staging. No positive installation or successful terminal audit was fabricated.
+
+Exactly sixteen source-only targets are permitted: seven metadata/snapshot
+files, four gate/printer scripts, two source guards and three new proof modules.
+No inherited proof source overwrite is allowed. The installer requires real
+actual-main401 and isolated402 success with matching logs, drivers, reviewed
+evidence and source identity. Its postcheck validates historical predecessor
+receipts without running the obsolete exact-main401 postcheck on main402.
+Original staging and unrelated source are preserved. Do not install until both
+live audit handles have successfully terminated; then run the installer once,
+its composed postcheck, and distinct actual-main402 acceptance.
