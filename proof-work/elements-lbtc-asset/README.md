@@ -1,7 +1,8 @@
 # Original C lbtc_asset to canonical Simplicity scribe
 
 This is one **unregistered** whole-jet equivalence, not another specification-
-only lemma. Main stays at 386/533. The separately reviewed 401 candidate is
+only lemma. Main was 386/533 at preparation and has since advanced to 399/533
+through guarded installation. The separately reviewed 401 candidate is
 unchanged; this proof is not silently folded into either existing candidate.
 
 Private tree: `/private/tmp/jet-elements-lbtc-asset.dAZaZ0`. Its compiler objects
