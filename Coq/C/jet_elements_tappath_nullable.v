@@ -27,9 +27,31 @@ Local Opaque elements_ge ge0.
 Set Default Timeout 120.
 Require Import C.jet_elements_tappath_local.
 
-Definition elements_tappath_env_rep_nullable (m : mem) (env : val) (e : Elements.env)
+Definition elements_tappath_env_rep_bounded (limit : nat) (m : mem) (env : val) (e : Elements.env)
     (fp : list (block * Z * Z)) : Prop :=
   exists be ebase bt tbase bp pbase,
+    env = Vptr be (Ptrofs.repr ebase) /\
+    (length (tappath (Elements.envTap e)) <= limit)%nat /\
+    0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
+    0 <= tbase /\ tbase + 176 <= Ptrofs.max_unsigned /\
+    0 <= pbase /\ pbase + 32 * Z.of_nat (length (tappath (Elements.envTap e))) <= Ptrofs.max_unsigned /\
+    Mem.load Mptr m be (ebase + 8) = Some (Vptr bt (Ptrofs.repr tbase)) /\
+    (0 < Z.of_nat (length (tappath (Elements.envTap e))) ->
+     Mem.load Mptr m bt (tbase + 0) = Some (Vptr bp (Ptrofs.repr pbase))) /\
+    Mem.load Mint8unsigned m bt (tbase + 168) =
+      Some (Vint (Int.repr (Z.of_nat (length (tappath (Elements.envTap e)))))) /\
+    (forall j h, nth_error (tappath (Elements.envTap e)) j = Some h ->
+      hash_elem_rep m bp (pbase + 32 * Z.of_nat j) h) /\
+    fp = [(be, ebase + 8, ebase + 16); (bt, tbase + 0, tbase + 8);
+          (bp, pbase, pbase + 32 * Z.of_nat (length (tappath (Elements.envTap e))))].
+
+(** The original nullable-128 relation is definitionally preserved. *)
+Definition elements_tappath_env_rep_nullable := elements_tappath_env_rep_bounded 128.
+Definition elements_tappath_env_rep_u8 := elements_tappath_env_rep_bounded 255.
+
+Lemma elements_tappath_nullable_128_unchanged m env e fp :
+  elements_tappath_env_rep_nullable m env e fp <->
+exists be ebase bt tbase bp pbase,
     env = Vptr be (Ptrofs.repr ebase) /\
     (length (tappath (Elements.envTap e)) <= 128)%nat /\
     0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
@@ -44,6 +66,20 @@ Definition elements_tappath_env_rep_nullable (m : mem) (env : val) (e : Elements
       hash_elem_rep m bp (pbase + 32 * Z.of_nat j) h) /\
     fp = [(be, ebase + 8, ebase + 16); (bt, tbase + 0, tbase + 8);
           (bp, pbase, pbase + 32 * Z.of_nat (length (tappath (Elements.envTap e))))].
+Proof. reflexivity. Qed.
+
+Lemma elements_tappath_rep_bounded_mono small large :
+  (small <= large)%nat -> forall m env e fp,
+  elements_tappath_env_rep_bounded small m env e fp ->
+  elements_tappath_env_rep_bounded large m env e fp.
+Proof.
+  intros Hbound m env e fp (be & ebase & bt & tbase & bp & pbase & HE & HL & Hrest).
+  exists be, ebase, bt, tbase, bp, pbase. split; [exact HE|]. split; [lia|exact Hrest].
+Qed.
+
+Lemma elements_tappath_nullable_in_u8 m env e fp :
+  elements_tappath_env_rep_nullable m env e fp -> elements_tappath_env_rep_u8 m env e fp.
+Proof. apply elements_tappath_rep_bounded_mono. lia. Qed.
 
 Lemma elements_tappath_env_rep_weaken m env e fp :
   elements_tappath_env_rep m env e fp -> elements_tappath_env_rep_nullable m env e fp.
@@ -53,9 +89,9 @@ Proof.
   repeat (split; [assumption|]). assumption.
 Qed.
 
-Theorem elements_tappath_nullable_local_spec :
+Theorem elements_tappath_bounded_local_spec (limit : nat) (Hlimit : (limit <= 255)%nat) :
   application_jet_local_spec_sep f_simplicity_tappath elements_ge Elements.env Word8
-    (Ty.Sum Ty.Unit Word256) elements_tappath_env_rep_nullable
+    (Ty.Sum Ty.Unit Word256) (elements_tappath_env_rep_bounded limit)
     (fun a environment => @elements_tappath_spec
       (PrimitivePrimSem option_Monad_Zero) a environment).
 Proof.
@@ -67,7 +103,7 @@ Proof.
   set (path := tappath (Elements.envTap environment)) in *.
   set (nn := Z.of_nat (length path)) in *.
   pose proof HPL0 as HPL. fold path in HPL.
-  assert (Hnn : 0 <= nn <= 128) by (subst nn; lia).
+  assert (Hnn : 0 <= nn <= 255) by (subst nn; lia).
   assert (HB : Z.of_nat (bitSize (Ty.Sum Ty.Unit Word256)) = 257) by reflexivity.
   rewrite HB in HSep, HFrame.
   change (Z.of_nat (bitSize Word8)) with 8 in HRmax.
@@ -316,3 +352,17 @@ Proof.
     + exact HCells.
   - split; [exact HPrefix|]. rewrite HB. split; [exact HFields|]. exact HMem.
 Qed.
+
+Theorem elements_tappath_nullable_local_spec :
+  application_jet_local_spec_sep f_simplicity_tappath elements_ge Elements.env Word8
+    (Ty.Sum Ty.Unit Word256) elements_tappath_env_rep_nullable
+    (fun a environment => @elements_tappath_spec
+      (PrimitivePrimSem option_Monad_Zero) a environment).
+Proof. apply (elements_tappath_bounded_local_spec 128). lia. Qed.
+
+Theorem elements_tappath_u8_local_spec :
+  application_jet_local_spec_sep f_simplicity_tappath elements_ge Elements.env Word8
+    (Ty.Sum Ty.Unit Word256) elements_tappath_env_rep_u8
+    (fun a environment => @elements_tappath_spec
+      (PrimitivePrimSem option_Monad_Zero) a environment).
+Proof. apply (elements_tappath_bounded_local_spec 255). lia. Qed.
