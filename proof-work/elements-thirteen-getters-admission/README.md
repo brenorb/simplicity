@@ -50,7 +50,7 @@ The finish workflow **passed all twelve stages**: coverage and 91 new
 statement-confined corruption fixtures, the ordinary contract comparison,
 all four deployed source/negative pairs (184 source corruptions: 26/75/48/35),
 and 32 independent admission/evidence corruptions. Invalid proof fixtures are
-never compiled. `REVIEW.json` binds successful terminal statuses and all
+never compiled. `REVIEW.json` binds successful terminal statuses and 1,257
 report/object evidence hashes. Full added type/assumption reports and all
 twelve stage logs are archived here. Snapshot generation/preparation is not
 full acceptance.
@@ -81,6 +81,17 @@ both must finish successfully before installing this successor.
 ulimit -s 65520
 python3 -B proof-work/elements-thirteen-getters-admission/accept.py /private/tmp/jet-thirteen-getters-admission.9r1oz8pi
 ```
+
+That launch has now happened **once**, as session **61966**, after the signed
+reviewed-candidate commit. `AUDIT-RUN.json` binds the `50f56ff9...` input,
+review/driver hashes and the real predecessor acceptance/installation receipts;
+it records launch, **not success**. Log:
+`/private/tmp/jet-thirteen-getters-admission.9r1oz8pi/acceptance.log`.
+Keep this candidate's Coq/C/Haskell sources, metadata and gates frozen until
+terminal validation. Poll this handle, never restart by silence, and do not
+repeat the command above. Its full isolated acceptance and actual-main 386
+(92335) must both pass before any successor installation. The older eleven-
+getter audit was not launched and must remain unlaunched.
 
 This candidate has no installer yet. After full isolated 399 and actual-main
 386 acceptance, prepare the guarded source-only installer/postcheck. The owned
