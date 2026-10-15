@@ -13,7 +13,7 @@ import tempfile
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
-s = importlib.util.spec_from_file_location('count_previous', HERE.parent / 'claude-remainder-integration/run.py')
+s = importlib.util.spec_from_file_location('count_support', HERE / 'support.py')
 gate = importlib.util.module_from_spec(s)
 s.loader.exec_module(gate)
 ROOT = 'C.jet_elements_count_constructible'
@@ -25,7 +25,7 @@ def write(path, value):
     gate.changed({path: json.dumps(value, indent=2) + '\n'})
 
 
-def prepare():
+def prepare(payload=False):
     work = Path(tempfile.mkdtemp(prefix='jet-elements-count.', dir='/tmp')).resolve()
     coq = work / 'Coq'
     shutil.copytree(REPO / 'Coq/Simplicity', coq / 'Simplicity')
@@ -40,7 +40,8 @@ def prepare():
             raise ValueError('cycle')
         visiting.add(logical)
         name = logical[2:]
-        origin = ('proof-work/elements-count/source/' + name + '.v.source') if logical == ROOT else ('Coq/C/' + name + '.v')
+        archived = logical in [ROOT, 'C.jet_elements_count_payload']
+        origin = ('proof-work/elements-count/source/' + name + '.v.source') if archived else ('Coq/C/' + name + '.v')
         raw = (REPO / origin).read_bytes()
         code = gate.safe_source(raw.decode(), origin)
         deps = sorted(set(re.findall(r"\b(C\.[\w']+)", code)) - {logical})
@@ -49,10 +50,12 @@ def prepare():
         relative = 'C/' + name + '.v'
         sources[coq / relative] = raw.decode()
         entries.append({'logical': logical, 'relative': relative, 'origin': origin,
-                        'sha256': gate.sha(raw), 'dependencies': deps, 'fresh': logical in FRESH})
+                        'sha256': gate.sha(raw), 'dependencies': deps, 'fresh': logical in FRESH or archived})
         visiting.remove(logical)
         seen.add(logical)
     visit(ROOT)
+    if payload:
+        visit('C.jet_elements_count_payload')
     sources[coq / '_CoqProject.jets'] = '-Q Simplicity Simplicity\n-Q C C\n' + '\n'.join(
         [str(p.relative_to(coq)) for p in sorted((coq / 'Simplicity').rglob('*.v'))]
         + [e['relative'] for e in entries]) + '\n'
@@ -77,7 +80,8 @@ def prepare():
                 if source.with_suffix(suffix).exists():
                     shutil.copy2(source.with_suffix(suffix), target.with_suffix(suffix))
             reused[key] = prior['evidence_sha256'][key]
-    meta = {'candidate': str(work), 'roots': [ROOT, 'C.jet_elements_count_local'],
+    meta = {'candidate': str(work), 'roots': [ROOT, 'C.jet_elements_count_local'] +
+            (['C.jet_elements_count_payload'] if payload else []), 'group': 'payload' if payload else 'constructible',
             'modules': entries, 'reused_checked_objects': reused,
             'main_inputs_sha256': gate.inputs.fingerprint(REPO / 'Coq', REPO),
             'staged_patch_sha256': gate.index_hash(), 'coverage_added': 0,
@@ -95,11 +99,11 @@ def check(work):
             raise ValueError('candidate source drift')
     build = gate.run(work, ['bash', 'build-jets.sh', '-j2'], 'build')
     print('Count proof closure freshly built', flush=True)
-    results = ['C.jet_elements_count_constructible.' + n for n in re.findall(
-        r'^(?:Lemma|Theorem)\s+(\w+)', (work / 'Coq/C/jet_elements_count_constructible.v').read_text(), re.M)]
+    results = [e['logical'] + '.' + n for e in meta['modules'] if e['origin'].startswith('proof-work/elements-count/source/')
+               for n in re.findall(r'^(?:Lemma|Theorem)\s+(\w+)', (work / 'Coq' / e['relative']).read_text(), re.M)]
     results += ['C.jet_elements_count_local.elements_num_inputs_local_spec',
                 'C.jet_elements_count_local.elements_num_outputs_local_spec']
-    prefix = ['Require C.jet_elements_count_constructible C.jet_elements_count_local.']
+    prefix = ['Require ' + ' '.join(meta['roots']) + '.']
     a = prefix[:]
     for n in results:
         a += ['Goal True. idtac "JET_ASSUMPTIONS ' + n + '". exact I. Qed.', 'Print Assumptions ' + n + '.']
@@ -129,15 +133,16 @@ def check(work):
                'results': results, 'dependencies': {n: sorted(d) for n, d in deps.items()},
                'evidence_sha256': evidence, 'coverage_added': 0, 'normal_registration': False}
     write(work / 'REVIEW.json', receipt)
-    gate.changed({HERE / 'ASSEMBLY.json': (work / 'ASSEMBLY.json').read_text(),
-                  HERE / 'REVIEW.json': (work / 'REVIEW.json').read_text()})
+    destination = HERE / meta.get('group', 'constructible')
+    gate.changed({destination / 'ASSEMBLY.json': (work / 'ASSEMBLY.json').read_text(),
+                  destination / 'REVIEW.json': (work / 'REVIEW.json').read_text()})
     print('Count proof closure kernel-checked', flush=True)
 
 
 if __name__ == '__main__':
-    p = argparse.ArgumentParser(); p.add_argument('action', choices=['prepare', 'check']); p.add_argument('work', nargs='?')
+    p = argparse.ArgumentParser(); p.add_argument('action', choices=['prepare', 'prepare-payload', 'check']); p.add_argument('work', nargs='?')
     args = p.parse_args()
-    if args.action == 'prepare':
-        prepare()
+    if args.action in ['prepare', 'prepare-payload']:
+        prepare(args.action == 'prepare-payload')
     else:
         check(Path(args.work).resolve())
