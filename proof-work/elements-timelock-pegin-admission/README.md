@@ -58,62 +58,61 @@ contract comparison, all coverage fixtures, all 108 source corruptions and
 commands, 24 checked deep supplements and 1,278 report/object evidence hashes.
 The full added reports and all twelve review-stage logs are archived here.
 
-## Remaining acceptance and installation
+## Full isolated acceptance and source-only installation passed
 
-The proposed registry is **378/533**, including the unchanged 104 explicit
-`memcpy_model` conditions. It is not accepted coverage yet. Main remains at
-371/533. The distinct actual-main getter audit (session 74479) has now passed
-with exit 0; its terminal receipt/log are in the predecessor folder. That
-does not complete the separate seven-jet candidate audit below.
+The isolated registry at **378/533** passed full normal acceptance, including
+the unchanged 104 explicit `memcpy_model` conditions. Session **96260**
+terminated with exit 0 after **3,397.39 seconds**. All 1,023 kernel-checked
+modules, assumption audit (5,377 results, 2,965 closed), full contracts,
+negative suites and all five production AST regenerations passed.
+`ACCEPTANCE.json`, `TERMINAL.json` and the complete durable `acceptance.log`
+(SHA-256 `eac815da...`) bind the unchanged `545af5c8...` input fingerprint.
+The predecessor's distinct actual-main 371-jet audit also passed.
 
 ```sh
 python3 -B proof-work/elements-timelock-pegin-admission/review.py review /private/tmp/jet-timelock-pegin-admission.dw295nit
 ```
 
-Full isolated acceptance has now been launched **once**, as session **96260**,
-with input fingerprint
+The completed isolated run used input fingerprint
 `545af5c820533dfebce815c8d03aeb3db3aef9235b6e4bad03a73e32f8df78de`.
-The exact driver is `accept.py`; its log is
-`/private/tmp/jet-timelock-pegin-admission.dw295nit/acceptance.log`.
-It runs the normal
-`bash check-jets.sh --accept` without update/skip flags. `AUDIT-RUN.json` is a
-launch record, not success. Only terminal `ACCEPTANCE.json`, its unchanged
-source fingerprint and the complete final log marker establish acceptance.
-The launcher refuses to overwrite an existing launch. Poll the existing
-handle; silence or an observation timeout is not a failed run.
+The exact driver was `accept.py`, running `bash check-jets.sh --accept` without
+update/skip flags. `AUDIT-RUN.json` is retained as a historical launch, not a
+success receipt. Do not restart or poll that completed run.
 
-Installation requires both the candidate's terminal acceptance and the
-371-jet actual-main audit's successful terminal receipt/postcheck. The prepared
-`install.py` reuses the guarded direct-getter installation pattern: exact
-metadata/script/guard/four-source delta, archived patch and ledger, no copied
-objects, unchanged original staging, then a distinct actual-main acceptance.
+The guarded one-time `install.py` verified both terminal histories and
+installed exactly seven metadata/snapshot files, four gate/printer scripts,
+eight source/negative guards and four proof sources. `INSTALLATION.json` and
+`DELTA.patch` bind that exact owned source-only delta. No objects were copied.
+Main is byte-identical to the accepted `545af5c8...` candidate at **378/533**;
+the entire preexisting index and all other main source bytes are preserved.
+The composed `post-check.py` passed with actual-main acceptance still pending.
 Do not rerun completed predecessor installers or their historical postchecks
 against a later source state. These receipts describe the actual dirty/staged
 checkout, including preexisting untracked dependencies, not clean-HEAD
 reproducibility.
 
-The three lifecycle adapters (`install.py`, `post-check.py`, `main-accept.py`)
-have been syntax-checked and their predecessor paths reviewed. A mocked
-missing-acceptance preflight confirms the installer stops before changing
-main/index; no installation has been performed. The installer requires both
-successful terminal receipts, exact reviewed source/report/object evidence,
-the previous composed postcheck, fresh targets and unchanged staging. Its
-postcheck composes both histories with the exact source-only delta. The
-distinct actual-main driver refuses to overwrite an existing audit launch.
-Execute these only in order after session 96260 successfully terminates:
+## Distinct actual-main acceptance is running
+
+The actual-main driver was launched once as session **3224**, with the same
+`545af5c8...` input fingerprint. `MAIN-AUDIT-RUN.json` records launch only.
+Log: `/private/tmp/jet-timelock-pegin-admission.dw295nit/main-acceptance.log`.
+Keep all main Coq/C/Haskell sources, registries, guards and snapshots frozen
+until its terminal source validation finishes. Poll this existing handle;
+silence or an observation timeout is not failure. Do not rerun the installer
+or launch another main audit. The main driver refuses an existing launch.
+Only a terminal `MAIN-ACCEPTANCE.json` confirms distinct main acceptance.
+For current installed source/index/history validation use:
 
 ```sh
-python3 -B proof-work/elements-timelock-pegin-admission/install.py /private/tmp/jet-timelock-pegin-admission.dw295nit
 python3 -B proof-work/elements-timelock-pegin-admission/post-check.py
-ulimit -s 65520
-python3 -B proof-work/elements-timelock-pegin-admission/main-accept.py
 ```
 
-Do not change main inputs during that new actual-main audit. The next eight
-digest-getter candidate has its own completed preparation/review at
-`../elements-digest-getters-admission/`; its isolated full audit may start only
-after this candidate is accepted and installed. Its installation must also
-wait for this candidate's distinct actual-main audit to pass.
+The next eight digest-getter candidate has its own completed preparation/
+review at `../elements-digest-getters-admission/`. Its isolated full audit is
+now running as **87596**, after this candidate's successful acceptance and
+installation. It cannot be installed until both its isolated acceptance and
+this distinct actual-main audit successfully terminate. The old direct-getter
+postcheck is historical after this installation; use the composed one above.
 
 The original frame/cursor/prefix/environment/memory contracts and
 LP64/RECKLESS configuration are unchanged. Environment-builder/evaluator
