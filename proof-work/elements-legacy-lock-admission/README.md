@@ -53,10 +53,13 @@ an independent read-only reviewer with explicit batch configuration. It does
 not mutate predecessor module globals or accept/install anything. Older
 completed reviewers and their tool hashes remain unchanged.
 
-The six-stage finish workflow is live as **76002**: coverage, coverage tests,
+The six-stage finish workflow **76002 terminated with exit 0**: coverage, coverage tests,
 ordinary contract comparison, canonical source, 61 source corruptions and
-normal-admission/evidence corruptions. Poll that handle; a preparation
-checkpoint is not its terminal result. Historical launch:
+30 normal-admission/evidence corruptions all pass. `REVIEW.json` binds the six
+commands/logs, candidate input, tools, both shared engines and object/report
+hashes. `FINISH-CHECKPOINT.json` independently verifies every recorded evidence
+hash; all six stage logs are archived here. The earlier preparation checkpoint
+is historical, not a second acceptance. Historical launch (completed; do not repeat):
 
 ```sh
 python3 -B proof-work/elements-legacy-lock-admission/review.py finish /private/tmp/jet-legacy-lock-admission.yzxj2nkf
