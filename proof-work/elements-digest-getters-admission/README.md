@@ -94,3 +94,37 @@ or cryptography implementations. These receipts describe the actual dirty/
 staged source base, not clean-HEAD reproducibility. All other jets, caller/
 environment obligations, conditional library links and remaining fidelity/
 configuration work stay in the unfinished all-jet goal.
+
+## Guarded integration lifecycle prepared, not executed
+
+`install.py`, `post-check.py`, and `main-accept.py` are prepared for use only
+after sessions 3224 and 87596 both terminate successfully. Three early refusal
+guards passed: repeated installation, missing isolated acceptance, and missing
+actual-main predecessor acceptance. The tests prohibit subprocesses/writes
+inside those early-guard experiments and verify unchanged main inputs/index.
+`LIFECYCLE-REVIEW.json` records that **positive installation is not yet tested**.
+No integration or actual-main 386 acceptance is claimed by these scripts' presence.
+
+The installer compares against the reconstructed **378 baseline**, not the
+older 371 checkout that existed when the candidate was first assembled. It
+requires both real terminal receipts and their log/input/review/driver hashes,
+then copies only seven metadata/snapshot files, four scripts, four new guards,
+and two new proof sources. It preserves the entire original index, records the
+exact owned delta/ledger, and requires installed main to match the accepted
+386 source fingerprint. No compiler objects are copied. The postcheck composes
+the historical predecessor acceptance, isolated acceptance and current source
+identity; the separate main audit refuses duplicate launches.
+
+Once both prerequisites pass, archive their complete logs/terminal receipts
+before invoking this **one-time** installation, then its postcheck and distinct
+actual-main audit. Do not execute these commands merely because kernel checking
+has passed; all remaining acceptance stages must also pass.
+
+```sh
+python3 -B proof-work/elements-digest-getters-admission/test-lifecycle.py
+# Only after both complete terminal acceptances:
+python3 -B proof-work/elements-digest-getters-admission/install.py /private/tmp/jet-digest-getters-admission.jd1i0nr6
+python3 -B proof-work/elements-digest-getters-admission/post-check.py
+ulimit -s 65520
+python3 -B proof-work/elements-digest-getters-admission/main-accept.py
+```
