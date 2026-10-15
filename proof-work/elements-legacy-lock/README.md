@@ -54,11 +54,23 @@ ulimit -s 65520
 python3 -B proof-work/elements-legacy-lock/check.py /private/tmp/jet-elements-legacy-lock.0mJMjD
 ```
 
-Do not repeat this completed checker. Its canonical source/corruption guard is not
-yet complete, and there is no normal registration or full normal acceptance.
-Before admission, freeze the selected Haskell dispatch, complete loop/core
-definitions and conversion interfaces with source/corruption review; inspect
-every actual public type/definition/dependency delta. Afterwards extend the
+Do not repeat this completed checker. The separate canonical source/evidence
+review now passes: the positive source guard, **61 source-corruption fixtures**,
+and **35 evidence-corruption fixtures** all pass (finish harness **36154**,
+exit 0). `EVIDENCE-REVIEW.json` binds these commands/logs, all five review tools,
+the historical `RUN.json`, the terminal `CHECKED.json` and the private source
+fingerprint. Its complete logs are archived here. The earlier checker receipts'
+`canonical_source_gate_complete=false` describes their historical scope;
+the later evidence review completes that separate selected source guard.
+
+The guard reuses the accepted Version/InputSequence, state traversal and
+forWhile/subtraction/routing correspondences, then pins the exact legacy
+dispatch, both loop bodies, parse/max/version definitions, full initial cache
+relation, whole-C endpoints and original C helper/jet bodies. It is not a
+formal Haskell compiler or host-library proof, nor caller cache construction.
+There is still no normal registration or full normal acceptance. Before
+admission, inspect every actual public type/definition/dependency delta.
+Afterwards extend the
 same execution/specification infrastructure to the two assertion/check jets,
 and connect the cached aggregate relation to the actual environment builder.
 
