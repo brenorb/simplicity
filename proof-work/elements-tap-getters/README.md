@@ -54,25 +54,35 @@ proof fixture was compiled. Four shared word/key/list conversion lemmas are
 closed. C endpoints retain their original inherited assumptions, not an
 axiom-free claim.
 
-The full private checker was launched as **4458**; its fresh eleven-module
-closure, independent old nullable baseline, complete type/definition/assumption
-reports, source tests and Elements AST regeneration have passed. It is currently
-performing recursive `coqchk`. Poll that handle; do not restart it because its
-silent kernel log is quiet. Its successful terminal result is still required.
+The full private checker **4458 terminated with exit 0**, including its fresh
+eleven-module closure, independent old nullable baseline, complete type/definition/
+assumption reports, source tests, Elements AST regeneration and recursive
+`coqchk`. `PREPARATION.json` and the complete logs bind this result to input
+`2a6bde9f69ca75da50c5a150959ebf4abb2914ae2a353d1e1060c7ef087bd08a`.
+The proof closure contains 65 results and 35 definitions. The literal module adds
+nine results (including three whole endpoints) and four definitions. Exactly
+1,585 inherited source/metadata files retain their bytes; the nullable module's
+generalization is the sole reviewed inherited-source change.
 
 ```sh
-# Only for a fresh/retry run after the existing handle is confirmed terminal:
+# Historical completed command; do not overwrite these recorded objects or
+# receipts. For reproduction, copy the proof folder/tree and use new paths.
 ulimit -s 65520
 python3 -B proof-work/elements-tap-getters/check.py /private/tmp/jet-elements-tap-getters.jq5mpvwy
 
-# After the checker succeeds:
+# Independent review of the successful recorded check:
 python3 -B proof-work/elements-tap-getters/review.py
+python3 -B proof-work/elements-tap-getters/test-review.py
 ```
 
 `review.py` separately compares the exact old nullable theorem types and
 assumptions against the fresh original baseline, checks source/object/log hashes,
-complete inventories and commands, and replays the source guard. Add independent
-evidence-corruption tests before normal admission. A normal candidate must
+complete inventories and commands, and replays the source guard. Its review
+passed, as did 38 independent evidence-corruption fixtures, including a forged
+legacy-type report whose log hashes were made internally consistent. The
+durable `EVIDENCE-REVIEW.json` binds the independent review/negative commands,
+successful exits, their logs, the preparation receipt, and the reviewer tools.
+A normal candidate must
 explicitly review the inherited nullable-source generalization, register all
 needed modules/results/definitions, preserve the old 128 contract, review the
 snapshot delta, pass full acceptance and then install source-only. Do not count
@@ -83,3 +93,19 @@ of its host serialization/list libraries. These theorems do not establish real
 caller construction of represented environments. LP64/RECKLESS and the existing
 six inherited assumptions remain explicit boundaries. No new assumptions,
 admissions, unsafe casts or skipped kernel checks are used.
+
+## Next integration step
+
+Both older normal audits were confirmed live after this checker completed:
+actual-main 386 as **92335**, and isolated 399 as **61966**. Their source inputs
+remain frozen. Do not copy compiler objects from either live audit or start a
+replacement on silence. The 399 candidate first needs its guarded source-only
+installer/postcheck, after both terminal acceptances pass.
+
+Then prepare a successor including these two jets (not three), carrying the
+explicitly reviewed nullable source generalization. The old nullable type and
+predicate must remain at 128, the added endpoint at 255, and every original
+public assumption set must be preserved. Run the normal whole build, source/
+negative guards, full actual type/definition/assumption-delta review, and full
+isolated acceptance before installation. A proof-folder receipt is not that
+normal acceptance. Keep main's prior staged patch unchanged.
