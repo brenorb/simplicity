@@ -117,11 +117,15 @@ candidate frozen and poll **55506**; never restart on silence. The distinct
 actual-main 399 audit is live as **90475**. Both must pass before 401 can be
 installed. Main remains 399/533, not 401/533.
 
-There is no 401 installer yet. After successful isolated 401 and actual-main
-399 acceptance, prepare a guarded installer that explicitly permits only the
-reviewed nullable-source change, not just new files. Review/install the exact
-source delta, preserve unrelated edits and the entire old staging, copy no
-objects, run its composed postcheck, then run distinct actual-main acceptance.
+The guarded source-only `integration.py` and once-only `main-accept.py` are now
+prepared. The read-only plan and 14 refusal tests passed (harness **21893**,
+exit 0); `INTEGRATION-REVIEW.json` binds their tools, log and planned delta.
+Exactly 15 source/metadata/gate targets are permitted, including only the
+explicitly reviewed nullable-tappath overwrite. Object copying and other
+inherited-source overwrites are rejected. These checks did not install anything
+or manufacture positive acceptance evidence. Both real terminal acceptances
+are still required before installation; then run the composed postcheck and
+distinct actual-main acceptance. The entire original staging is preserved.
 
 This proposed registry retains the 104 explicit `memcpy_model` conditions;
 132 public declarations would still be missing. LP64/RECKLESS, represented
