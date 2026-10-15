@@ -43,8 +43,9 @@ Full added reports and all eight review-stage logs are archived here.
 
 The resulting input fingerprint is
 `f362c5187bf3554d8703f739275629c64a154f4e9098e3185e2a9e9e49e7dec8`.
-The proposed count is **386/533**, including the unchanged 104 explicit
-`memcpy_model` conditions. This is not yet accepted coverage.
+The count is **386/533**, including the unchanged 104 explicit
+`memcpy_model` conditions. Full isolated acceptance and guarded main
+installation have passed; distinct actual-main acceptance remains separate.
 
 ```sh
 python3 -B proof-work/elements-digest-getters-admission/review.py review /private/tmp/jet-digest-getters-admission.jd1i0nr6
@@ -98,15 +99,20 @@ staged source base, not clean-HEAD reproducibility. All other jets, caller/
 environment obligations, conditional library links and remaining fidelity/
 configuration work stay in the unfinished all-jet goal.
 
-## Guarded integration lifecycle prepared, not executed
+## Guarded source-only integration passed
 
-`install.py`, `post-check.py`, and `main-accept.py` are prepared for use only
-after sessions 3224 and 87596 both terminate successfully. Three early refusal
+`install.py`, `post-check.py`, and `main-accept.py` were prepared before either
+prerequisite audit finished. Three early refusal
 guards passed: repeated installation, missing isolated acceptance, and missing
 actual-main predecessor acceptance. The tests prohibit subprocesses/writes
 inside those early-guard experiments and verify unchanged main inputs/index.
-`LIFECYCLE-REVIEW.json` records that **positive installation is not yet tested**.
-No integration or actual-main 386 acceptance is claimed by these scripts' presence.
+`LIFECYCLE-REVIEW.json` retains that historical **positive installation not yet
+tested** status. Later, after both actual terminal acceptances passed, the
+one-time installation and composed postcheck passed. `INSTALLATION.json` and
+`DELTA.patch` bind that actual source-only delta; main now matches the accepted
+`f362c518...` source exactly at **386/533**, preserving the complete original
+index and all unrelated source bytes. No compiler objects were copied.
+Distinct actual-main acceptance is not claimed by installation.
 
 The installer compares against the reconstructed **378 baseline**, not the
 older 371 checkout that existed when the candidate was first assembled. It
@@ -118,16 +124,21 @@ exact owned delta/ledger, and requires installed main to match the accepted
 the historical predecessor acceptance, isolated acceptance and current source
 identity; the separate main audit refuses duplicate launches.
 
-Once both prerequisites pass, archive their complete logs/terminal receipts
-before invoking this **one-time** installation, then its postcheck and distinct
-actual-main audit. Do not execute these commands merely because kernel checking
-has passed; all remaining acceptance stages must also pass.
+The predecessor and isolated complete logs/receipts are archived. Do not repeat
+the completed installer or use a historical 378 postcheck against this source.
+Use this batch's composed postcheck and its distinct actual-main audit. Never
+launch acceptance merely because kernel checking passed, or launch twice.
 
 ```sh
 python3 -B proof-work/elements-digest-getters-admission/test-lifecycle.py
-# Only after both complete terminal acceptances:
-python3 -B proof-work/elements-digest-getters-admission/install.py /private/tmp/jet-digest-getters-admission.jd1i0nr6
 python3 -B proof-work/elements-digest-getters-admission/post-check.py
 ulimit -s 65520
 python3 -B proof-work/elements-digest-getters-admission/main-accept.py
 ```
+
+The checked eleven-getter successor is being combined with two further checked
+output-proof getters in `../elements-thirteen-getters-admission/`, proposing
+399/533. Preserve the eleven-getter receipts as historical review evidence;
+do not start its superseded audit. Neither successor is installed or fully
+accepted merely by preparing it. All remaining jets and shared/fidelity/
+configuration obligations stay in the active full goal.
