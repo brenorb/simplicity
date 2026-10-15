@@ -93,14 +93,49 @@ repeat the command above. Its full isolated acceptance and actual-main 386
 (92335) must both pass before any successor installation. The older eleven-
 getter audit was not launched and must remain unlaunched.
 
-This candidate has no installer yet. After full isolated 399 and actual-main
-386 acceptance, prepare the guarded source-only installer/postcheck. The owned
-delta is seven metadata/snapshot files, four gate/printer scripts, eight new
-source/negative guards and four new proof sources; both existing execution
-sources remain byte-identical. Preserve all unrelated edits and the entire old
-index, archive the exact delta/ledger, copy no objects, verify installed source
-equals this accepted fingerprint, and run separate actual-main acceptance.
-Do not use update/skip flags for acceptance or silently commit dirty registries.
+## Guarded installation is prepared, not performed
+
+`integration.py` now implements read-only planning, one-time source-only
+installation, and the successor postcheck. The exact **23-file** delta is seven
+metadata/snapshot files, four gate/printer scripts, eight new source/negative
+guards and four new proof sources; both existing execution sources remain
+byte-identical. Planning passed against the real reviewed candidate and current
+386 main. Sixteen refusal tests passed without modifying main, the candidate,
+or the original index; no synthetic positive acceptance or installation was
+used. `INTEGRATION-REVIEW.json` binds the tools, read-only plan and complete
+test log. This is installation-readiness evidence, not terminal acceptance.
+
+The installer requires the real successful actual-main 386 and isolated 399
+receipts/logs, exact reviewed candidate/source/object evidence and the unchanged
+main/index baseline. It rejects duplicate installs, preexisting new targets,
+escaping paths, compiler-object targets and unreviewed source changes. It writes
+only the planned sources, `DELTA.patch` and `INSTALLATION.json`; it copies no
+compiler objects. The postcheck verifies current source equals the accepted
+fingerprint and independently validates historical acceptance/installation
+bindings without applying an obsolete predecessor postcheck to successor main.
+
+**Only after both existing handles are confirmed successfully terminal**, use:
+
+```sh
+python3 -B proof-work/elements-thirteen-getters-admission/integration.py install /private/tmp/jet-thirteen-getters-admission.9r1oz8pi
+python3 -B proof-work/elements-thirteen-getters-admission/integration.py check
+```
+
+Then archive the completed actual-main 386 and isolated 399 logs/receipts, commit
+the owned new sources/guards and exact delta/ledger (not unrelated dirty
+registries), verify the original staged-patch hash is unchanged, and launch the
+separate actual-main 399 audit **once**:
+
+```sh
+ulimit -s 65520
+python3 -B proof-work/elements-thirteen-getters-admission/main-accept.py
+```
+
+That driver is prepared but **has not been launched**. It requires a passing
+installed-source postcheck, refuses an existing launch receipt, binds its log
+and terminal result to this installation and driver, and never uses update or
+skip flags. Keep main frozen throughout that future audit. No new acceptance,
+installation or main coverage is claimed by this readiness checkpoint.
 
 ## Scope remains explicit
 
