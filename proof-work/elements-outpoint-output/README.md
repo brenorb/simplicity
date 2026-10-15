@@ -45,15 +45,15 @@ python3 -B proof-work/elements-outpoint-output/review.py
 python3 -B proof-work/elements-outpoint-output/test-review.py
 ```
 
-## Next: canonical-source correspondence, then normal admission
+## Supplementary canonical-source review
 
-`canonical_source_review_complete`, `normal_registration`, and `full_acceptance`
-are deliberately **false**; coverage added is zero. No proof is installed in
-main. This checkpoint proves the explicit Coq bridges and C execution contracts;
-the selected Haskell/Coq source correspondence has not yet received its own
-complete guarded review.
+The earlier `CHECKED.json` and `EVIDENCE-REVIEW.json` deliberately retain their
+historical `canonical_source_review_complete: false` status. The subsequent
+`PREPARATION.json` and `SOURCE-REVIEW.json` establish the selected source review
+without rewriting that history. Normal registration/full acceptance remain
+**false**, coverage added remains zero, and no proof is installed in main.
 
-Add a source guard and in-memory negative tests for:
+The supplementary guard checks:
 
 1. The three exact catalog identities/types/bindings, Haskell `atInput` and
    `atOutput`, `encodeOutpoint`'s hash/index pair order, `opIndex :: Word32`,
@@ -69,13 +69,24 @@ Add a source guard and in-memory negative tests for:
    outpoint offset 96; output-script digest words at offset 180 within each
    248-byte output; input/output array/count offsets 0/696 and 8/704.
 
-Run source/negative and exact AST checks, bind their successful logs in a new
-supplementary preparation receipt, and independently review it. Preserve this
-earlier checkpoint's explicitly incomplete review status. Only then consider
-adding these three jets to a normal batch, alongside the separately reviewed
-annex/optional-issuance work (possible combined successor 397/533 rather than
-394/533). All snapshots, dependency/type diffs, exact coverage negatives,
-full acceptance, and guarded source-only installation still apply.
+Source/negative and exact AST checks all passed. The guard rejected 48 in-memory
+corruptions; independent supplementary review rejected 18 receipt/scope/status/
+source/command/report/AST corruptions. A negative fixture exposed that a substring
+carrier check accepted `int64` for `int`; the guard now compares the entire Coq
+outpoint record, and that fixture passes. The proof and compiled objects were
+unchanged. This is selected source correspondence, not a formal proof about the
+host Haskell compiler, cryptographic library, or caller construction of caches.
+
+```sh
+python3 -B proof-work/elements-outpoint-output/review-source.py
+python3 -B proof-work/elements-outpoint-output/test-source-review.py
+```
+
+These three jets are now ready to consider for a normal batch, alongside the
+separately reviewed annex/optional-issuance work (possible combined successor
+397/533 rather than 394/533). All snapshots, dependency/type diffs, exact
+coverage negatives, full acceptance, and guarded source-only installation
+still apply.
 
 Main's live 378 actual-checkout audit (3224) and isolated 386 candidate audit
 (87596) were both confirmed running during this checkpoint. Do not change
