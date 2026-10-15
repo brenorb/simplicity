@@ -82,16 +82,19 @@ ulimit -s 65520
 python3 -B proof-work/elements-thirteen-getters-admission/accept.py /private/tmp/jet-thirteen-getters-admission.9r1oz8pi
 ```
 
-That launch has now happened **once**, as session **61966**, after the signed
-reviewed-candidate commit. `AUDIT-RUN.json` binds the `50f56ff9...` input,
-review/driver hashes and the real predecessor acceptance/installation receipts;
-it records launch, **not success**. Log:
+That launch happened **once**, as session **61966**, after the signed
+reviewed-candidate commit, and **terminated with exit 0**. `ACCEPTANCE.json`,
+`TERMINAL.json` and the complete `acceptance.log` now establish full isolated
+399 acceptance: all source/negative gates, the whole normal build, recursive
+`coqchk` on 1,031 modules, assumptions, reviewed contracts and five directly
+regenerated ASTs passed. The audited input is `50f56ff9...`; log SHA-256:
+`6a75ce6904b09f8aff21bf2305b8f950fb78f0bebfe8cface88756a464e9caf4`.
+Original log:
 `/private/tmp/jet-thirteen-getters-admission.9r1oz8pi/acceptance.log`.
-Keep this candidate's Coq/C/Haskell sources, metadata and gates frozen until
-terminal validation. Poll this handle, never restart by silence, and do not
-repeat the command above. Its full isolated acceptance and actual-main 386
-(92335) must both pass before any successor installation. The older eleven-
-getter audit was not launched and must remain unlaunched.
+Keep this completed candidate immutable. Do not repeat the command above. Its
+full isolated acceptance and actual-main 386 (**92335, also exit 0**) have both
+been independently validated, satisfying the installer prerequisites. The older
+eleven-getter audit was not launched and must remain unlaunched.
 
 ## Guarded installation is prepared, not performed
 
