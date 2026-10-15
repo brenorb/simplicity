@@ -136,14 +136,19 @@ ulimit -s 65520
 python3 -B proof-work/elements-digest-getters-admission/main-accept.py
 ```
 
-The distinct actual-main 386 audit was launched **once**, as session **92335**,
-after installation/postcheck and a signed scoped installation commit. Its
-input fingerprint is `f362c518...`; `MAIN-AUDIT-RUN.json` records launch, not
-success. Log: `/private/tmp/jet-digest-getters-admission.jd1i0nr6/main-acceptance.log`.
-Keep main Coq/C/Haskell sources, metadata and gates frozen until that handle
-terminates and validates its source. Poll the existing run; do not repeat the
-command above because its output is quiet. Only a successful terminal
-`MAIN-ACCEPTANCE.json` establishes actual-main 386 acceptance.
+The distinct actual-main 386 audit **92335 terminated with exit 0**, after
+installation/postcheck and the signed scoped installation commit. It passed
+all checks, including recursive `coqchk` on 1,025 modules, reviewed snapshots,
+assumptions, negative tests and all five directly regenerated ASTs. The complete
+`main-acceptance.log`, `MAIN-TERMINAL.json` and `MAIN-ACCEPTANCE.json` are archived
+here. Input:
+`f362c5187bf3554d8703f739275629c64a154f4e9098e3185e2a9e9e49e7dec8`;
+log SHA-256:
+`d2973c36b5157c7dc12c1a8042608309761b778f33688fa2e0661c7cafe6dac4`.
+The composed postcheck now confirms actual-main acceptance, exact source identity
+and the unchanged original staged patch. Do not repeat the completed main-audit
+command above. Keep main at this exact checkpoint until the separately running
+399 successor passes and its guarded source-only installer is used.
 
 The checked eleven-getter successor is being combined with two further checked
 output-proof getters in `../elements-thirteen-getters-admission/`, proposing
