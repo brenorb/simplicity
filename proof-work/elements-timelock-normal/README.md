@@ -70,10 +70,15 @@ python3 -B proof-work/elements-timelock-normal/test-review.py
 ## Next admission
 
 This batch adds **zero** registered jets. Main's current registration remains
-368/533 while its sequence actual-main audit runs; the separate getter
-candidate proposes 371/533. Poll the actual live handles rather than starting
-duplicates. Do not install these timelock sources or change main's audit
-inputs while a main audit remains live.
+368/533; its sequence actual-main audit has now passed. The separate getter
+candidate proposes 371/533 and is still running. Poll the actual live handle
+rather than starting duplicates. Keep main unchanged for that run's terminal
+source validation.
+
+The later `../elements-check-lock-normal/` preparation includes this entire
+family plus both check-lock assertion jets under final C names. Prefer that
+combined five-jet admission after the predecessor succeeds; retain this
+smaller preparation as its historical prerequisite, not a competing batch.
 
 After successful predecessor acceptance/installation, assemble a new normal
 candidate from this final-name tree. Register the seven modules and their
