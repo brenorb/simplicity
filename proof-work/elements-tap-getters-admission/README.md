@@ -5,6 +5,8 @@ Only `internal_key` and `tappath` gain entries. The three checked endpoint
 versions in `../elements-tap-getters/` represent two jets, not three.
 
 Candidate: `/private/tmp/jet-tap-getters-admission.ouwiobpu`.
+Reviewed candidate input:
+`c86dfb5924df9474a3168b5923c508f236576737c3fbb18b9d59a40afaa3752d`.
 Main remains **386/533**. No new full acceptance or installation is claimed.
 
 ## Source provenance and the explicit inherited-source change
@@ -61,19 +63,23 @@ The read-only snapshot review passed:
 python3 -B proof-work/elements-tap-getters-admission/review.py review /private/tmp/jet-tap-getters-admission.ouwiobpu
 ```
 
-The **finish workflow is currently live as 27354**, running coverage tests before
-the ordinary contract comparison, source/negative tests and independent evidence
-corruptions. Poll that handle, do not restart on quiet logs. No completed
-`REVIEW.json` is claimed until every finish stage passes. Its historical launch:
+The **finish workflow 27354 terminated with exit 0**, passing all six stages:
+coverage, coverage tests (including 14 new statement-confined fixtures), ordinary
+contract comparison, source correspondence, 50 source corruptions and 29
+admission/evidence corruptions. `REVIEW.json` binds the successful commands/logs,
+source input, tools and 1,252 report/object hashes. `FINISH-CHECKPOINT.json` records
+an additional independent check of every bound evidence hash. Its historical
+launch (already completed; do not repeat it):
 
 ```sh
 python3 -B proof-work/elements-tap-getters-admission/review.py finish /private/tmp/jet-tap-getters-admission.ouwiobpu
 ```
 
-On successful termination, archive the complete new type/assumption reports,
-all six stage logs and `REVIEW.json`, independently recheck their hashes, and
-make a scoped signed checkpoint. If it fails, inspect the exact failed stage;
-do not regenerate or accept snapshots to hide a mismatch.
+The complete new type/assumption reports, all six stage logs and review receipts
+are archived here. The earlier `PREPARATION-CHECKPOINT.json` preserves the
+historical pre-finish state, not a second or conflicting acceptance. Snapshot
+generation, a completed finish review and the scoped proof-folder kernel checks
+still do not constitute full normal acceptance.
 
 ## Predecessor, start guards and remaining acceptance
 
