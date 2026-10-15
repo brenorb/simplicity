@@ -136,11 +136,13 @@ the entire original staged patch is preserved. `INSTALLATION.json` and
 objects were copied. Do not repeat installation or apply an obsolete
 exact-main399 postcheck to main401.
 
-The separate actual-main401 audit must still run once through `main-accept.py`;
-its launch/terminal receipts are distinct from isolated acceptance. The next
-isolated402 audit may run alongside it, but installing402 must wait for both
-real audits to pass. Keep main and each audited candidate's semantic inputs
-frozen throughout their audits.
+The separate actual-main401 audit was launched once as **92989**, through
+`main-accept.py`. `MAIN-AUDIT-RUN.json` binds its input, installation and driver;
+that launch is not terminal acceptance. Log:
+`/private/tmp/jet-tap-getters-admission.ouwiobpu/main-acceptance.log`.
+The isolated402 audit runs alongside it as **26900**. Installing402 must wait
+for both real audits to pass. Keep main and each audited candidate's semantic
+inputs frozen, poll these existing handles, and do not restart on quiet output.
 
 This proposed registry retains the 104 explicit `memcpy_model` conditions;
 132 public declarations would still be missing. LP64/RECKLESS, represented
