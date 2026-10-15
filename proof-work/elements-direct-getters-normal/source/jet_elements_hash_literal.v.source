@@ -1,0 +1,52 @@
+(** Full original-C contracts for the direct ScriptCMR and genesis getters,
+    against literal four-limb Haskell digest decoding and toWord256. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers Clight Ctypes Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Util.Option.
+Require Import C.jet_elements_prim C.jets_elements C.jet_elements_linkage C.jet_application_sep.
+Require Import C.jet_haskell_word_conversion C.jet_elements_sequence_literal.
+Require Import C.jet_elements_script_cmr_local C.jet_elements_genesis_hash_local.
+Require Import C.jet_haskell_hash_word.
+Set Default Timeout 10.
+
+Definition elements_hash_literal_spec (field : Elements.env -> hash256)
+    (_ : tySem Ty.Unit) (environment : Elements.env) : option (tySem Word256) :=
+  Some (haskell_to_word 8 (haskell_integer_hash256 (hash256_to_bytelist (field environment)))).
+
+Lemma elements_script_cmr_literal_matches a environment :
+  @elements_script_cmr_spec (PrimitivePrimSem option_Monad_Zero) a environment =
+    elements_hash_literal_spec (fun e => tapScriptCMR (Elements.envTap e)) a environment.
+Proof.
+  destruct a. rewrite elements_script_cmr_spec_sem. unfold elements_hash_literal_spec.
+  f_equal. symmetry. apply haskell_hash_word256.
+Qed.
+
+Lemma elements_genesis_hash_literal_matches a environment :
+  @elements_genesis_hash_spec (PrimitivePrimSem option_Monad_Zero) a environment =
+    elements_hash_literal_spec Elements.envGenesisBlock a environment.
+Proof.
+  destruct a.
+  change (Some (from_hash256 (Elements.envGenesisBlock environment)) =
+    elements_hash_literal_spec Elements.envGenesisBlock tt environment).
+  unfold elements_hash_literal_spec. f_equal. symmetry. apply haskell_hash_word256.
+Qed.
+
+Theorem elements_script_cmr_literal_local_spec :
+  application_jet_local_spec_sep f_simplicity_script_cmr elements_ge Elements.env Ty.Unit Word256
+    elements_script_cmr_env_rep
+    (elements_hash_literal_spec (fun e => tapScriptCMR (Elements.envTap e))).
+Proof.
+  eapply application_jet_local_spec_sep_pointwise;
+    [exact elements_script_cmr_literal_matches|exact elements_script_cmr_local_spec].
+Qed.
+
+Theorem elements_genesis_hash_literal_local_spec :
+  application_jet_local_spec_sep f_simplicity_genesis_block_hash elements_ge Elements.env Ty.Unit Word256
+    elements_genesis_hash_env_rep (elements_hash_literal_spec Elements.envGenesisBlock).
+Proof.
+  eapply application_jet_local_spec_sep_pointwise;
+    [exact elements_genesis_hash_literal_matches|exact elements_genesis_block_hash_local_spec].
+Qed.
+
+Print Assumptions elements_script_cmr_literal_local_spec.
+Print Assumptions elements_genesis_hash_literal_local_spec.
