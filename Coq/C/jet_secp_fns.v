@@ -127,7 +127,7 @@ Definition secp_pure : list (ident * function) :=
 
 Lemma secp_pure_lookup :
   map (symbol_lookup secp_ge) secp_pure = map (fun p => Some (Internal (snd p))) secp_pure.
-Proof. vm_cast_no_check (eq_refl (map (fun p => Some (Internal (snd p))) secp_pure)). Qed.
+Proof. timeout 10 (vm_compute; reflexivity). Qed.
 
 Lemma secp_pure_ok : forall id f, In (id, f) secp_pure ->
   exists b, Genv.find_symbol secp_ge id = Some b /\ Genv.find_funct_ptr secp_ge b = Some (Internal f).

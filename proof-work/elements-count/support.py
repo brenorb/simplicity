@@ -93,5 +93,7 @@ def preservation():
             if name in expected and expected[name] != value:
                 raise ValueError('non-additive source overwrite')
             expected[name] = value
+    policy = load('count_checked_conversion_policy', REPO / 'proof-work/secp-checked-conversions/preservation.py')
+    expected = policy.apply_reviewed_repairs(expected, REPO)
     if index_hash() != baseline['staged_patch_sha256'] or input_map() != expected:
         raise ValueError('original staged/main inputs changed')

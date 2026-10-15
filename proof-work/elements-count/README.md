@@ -71,8 +71,9 @@ review is complete. A separate registry/snapshot/full-acceptance batch remains
 required before counting these two jets as admitted coverage. Do not equate a
 source guard or the shared list-count lemma with a C execution proof, and do
 not treat this scoped audit as whole-checkout acceptance. Existing unchecked
-conversion proofs elsewhere in the secp tree must be repaired before rebuilding
-that broader tree under this goal's no-shortcuts rule.
+conversion proofs elsewhere in the secp tree were subsequently repaired in
+[`secp-checked-conversions`](../secp-checked-conversions/README.md), removing
+that source-policy obstacle to a broader normal-registry rebuild.
 
 Domain: the Coq Elements environment requires counts below 2^32. This is the
 representable C raw-transaction interface (`uint32_t numInputs/numOutputs`),

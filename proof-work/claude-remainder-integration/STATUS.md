@@ -1,13 +1,20 @@
 # Claude remainder: integration completed, 2026-10-14
 
+Further follow-up: the previously deferred secp frame-constructibility source
+is now imported after checked replacements for all four unchecked conversions
+found in its normal-tree dependencies. The selected 138-module closure passes
+independent kernel checking, with no registry change. See
+[`secp-checked-conversions`](../secp-checked-conversions/README.md). The
+exclusion notes below record the earlier snapshot, not the current repair.
+
 Follow-up: the previously excluded linked families below have now been
 repaired, independently audited and integrated. See
 [`linked-repair/STATUS.md`](../linked-repair/STATUS.md). Its three reviewed
 source batches add 28 files (26 `.v` sources), with no normal-registry change.
 The exclusions and preservation hashes in this earlier report describe the
 original non-linked phase; the linked installation ledgers now compose with
-its post-installation check. Secp constructibility is still deferred, with a
-successful bounded equality diagnostic recorded for its next scoped repair.
+its post-installation check. Secp constructibility was initially deferred;
+the further checked-conversion repair above now resolves that exclusion.
 
 Reviewed snapshot: `claude/shared-obligations` at
 `30404face45383153528f36d915de6d7df11f3f4`. Target:

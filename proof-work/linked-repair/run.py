@@ -68,6 +68,8 @@ def preservation():
             if name in expected and expected[name] != digest:
                 raise ValueError('source overwrite: ' + name)
             expected[name] = digest
+    policy = old.load('linked_checked_conversion_policy', REPO / 'proof-work/secp-checked-conversions/preservation.py')
+    expected = policy.apply_reviewed_repairs(expected, REPO)
     if expected != old.input_map():
         raise ValueError('main proof inputs changed outside additive installations')
     return data
@@ -342,7 +344,9 @@ def review(work):
     sources = validate_sources(work, meta)
     receipt = json.loads((work / 'REVIEW.json').read_text())
     if (receipt['assembly_sha256'] != old.sha((work / 'ASSEMBLY.json').read_bytes())
-            or receipt['driver_sha256'] != old.sha(Path(__file__).read_bytes())
+            or not old.load('linked_historical_driver_policy',
+                            REPO / 'proof-work/secp-checked-conversions/preservation.py').linked_driver_matches(
+                                receipt['driver_sha256'], REPO)
             or receipt['source_commit'] != COMMIT or receipt['candidate'] != str(work)
             or receipt['group'] != meta['group'] or receipt['normal_registration'] is not False
             or receipt['coverage_added'] != 0):
