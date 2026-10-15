@@ -47,22 +47,33 @@ review tools. Durable new-record reports are `new_contracts.log` and
 `new_assumptions.log`. These describe the actual dirty/staged checkout,
 including the existing shared word converter, not a clean-HEAD build.
 
-## Full acceptance is running, not yet established
+## Isolated acceptance passed; exact main installation completed
 
-Session **53695** runs `accept.py` against the candidate. The command is
-exactly `bash check-jets.sh --accept`, without update/no-build/unchecked flags.
-It has reached recursive kernel checking; the full normal build and static
-checks passed. `AUDIT-RUN.json` records launch only. Poll the actual session
-for liveness; this file and its identifiers do not themselves establish it.
-Log: `/private/tmp/jet-sequence-admission.xtajlnf7/acceptance.log`.
+Session **53695** terminated with exit 0 after 3,215.00 seconds. The command
+was exactly `bash check-jets.sh --accept`, without update/no-build/unchecked
+flags. The normal build, all 978 kernel-checked modules, assumptions, contract
+snapshots, negative tests and all five production AST regenerations passed.
+`ACCEPTANCE.json` and `TERMINAL.json` bind the actual terminal result, log and
+unchanged `7e55c862...` input fingerprint. A durable log is `acceptance.log`.
 
-Keep the candidate's Coq/C/Haskell source inputs, metadata, guards and snapshots
-frozen while this run is live. Do not change the three hash-bound preparation/
-review tools either. Proof development can continue in separate external trees.
-Only terminal exit 0, the unchanged fingerprint and the complete final marker
-will produce `ACCEPTANCE.json`. The proposed **368/533** is not accepted/main
-coverage at this milestone. Main remains **366/533**, with its own live count
-acceptance in session **49451**; it too remains frozen.
+The prerequisite actual-main count acceptance also passed (recorded separately
+in `../elements-count-admission/MAIN-ACCEPTANCE.json`). The one-time installer
+then installed exactly seven metadata/snapshot files, four gate/printer
+scripts, four selected guard files and two literal proof sources. It copied
+no compiler objects. `INSTALLATION.json` and `DELTA.patch` bind this owned delta;
+the complete original source map plus only that delta equals main's current
+map. The original staged patch is unchanged, and main's full input fingerprint
+exactly equals the accepted candidate's. Installed registration is **368/533**,
+including the unchanged 104 explicit `memcpy_model` conditions.
+
+The distinct actual-main sequence acceptance is now live as session **42404**,
+launched by `main-accept.py`; `MAIN-AUDIT-RUN.json` records launch, not success.
+Log: `/private/tmp/jet-sequence-admission.xtajlnf7/main-acceptance.log`.
+Keep main Coq/C/Haskell inputs, registries, guards and snapshots frozen during
+that run. Poll the actual handle for liveness; recorded identifiers alone do
+not establish continued execution. Only a terminal `MAIN-ACCEPTANCE.json`
+proves actual-main acceptance. The two completed predecessor runs must not be
+restarted. Proof work can continue in independent external trees.
 
 ```sh
 python3 -B proof-work/elements-sequence-admission/admission.py assemble
@@ -72,11 +83,21 @@ python3 -B proof-work/elements-sequence-admission/review.py finish /absolute/can
 python3 -B proof-work/elements-sequence-admission/accept.py /absolute/candidate
 ```
 
-The first four phases and launch have already happened for the recorded tree;
-do not restart either live audit. After both terminal acceptances succeed,
-implement a one-time exact-delta installer preserving the original staged
-patch, recheck the complete old map plus only this reviewed delta, and install
-no compiler objects. A separate actual-main run remains necessary. Do not use
-the old count installer's pre-installation baseline checks after changing main;
-the next batch needs its own preservation ledger. Broader environment-builder/
-evaluator composition and every other uncovered jet remain separate work.
+Those phases are complete for the recorded tree. The guarded continuation is:
+
+```sh
+python3 -B proof-work/elements-sequence-admission/install.py /absolute/candidate
+python3 -B proof-work/elements-sequence-admission/post-check.py
+ulimit -s 65520
+python3 -B proof-work/elements-sequence-admission/main-accept.py
+```
+
+Installation and main launch have already happened; do not rerun the one-time
+installer or duplicate the live main audit. The installed-main postcheck has
+passed with predecessor verification, exact source identity and staging
+preservation; that precheck is not a substitute for terminal main acceptance.
+Do not use the old count postcheck after this source change: it represents
+its historical `aa2c4160...` source state. This batch's postcheck composes the
+old source map, the exact new delta, and both terminal predecessor receipts.
+Broader environment/evaluator composition and every other uncovered jet remain
+work for the unchanged all-jet goal.
