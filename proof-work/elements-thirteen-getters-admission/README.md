@@ -142,13 +142,17 @@ ulimit -s 65520
 python3 -B proof-work/elements-thirteen-getters-admission/main-accept.py
 ```
 
-That driver has now been launched **once as 90475**, after the signed guarded
-installation commit. `MAIN-AUDIT-RUN.json` binds input `50f56ff9...`, the real
-installation and the driver. It is a launch record, not success. Log:
-`/private/tmp/jet-thirteen-getters-admission.9r1oz8pi/main-acceptance.log`.
-Keep main Coq/C/Haskell, manifests, snapshots and gates frozen until successful
-terminal validation. Poll the existing handle; do not repeat the command above
-on quiet output. Distinct actual-main acceptance remains pending.
+That driver was launched **once as 90475** and **terminated with exit 0**.
+`MAIN-ACCEPTANCE.json` and `MAIN-TERMINAL.json` bind input `50f56ff9...`, the
+real installation, driver and complete log. All normal acceptance gates passed,
+including recursive kernel checking, assumption/contract checks, negative tests
+and all five regenerated ASTs. The full log is archived as `main-acceptance.log`;
+its SHA-256 is
+`6d7719b6a1028c3cc394b43c7003191e580c3c7c183fadfd22362215ef519bd1`.
+The composed postcheck confirms actual-main acceptance and preservation of the
+original index. This satisfies the predecessor requirement for guarded 401
+installation. Do not rerun either completed audit. After a successor installs,
+use its composed postcheck rather than this historical exact-399-main check.
 
 ## Scope remains explicit
 
