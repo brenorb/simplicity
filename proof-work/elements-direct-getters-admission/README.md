@@ -40,7 +40,10 @@ Its terminal `REVIEW.json` is required before full acceptance can start.
 
 ## Acceptance boundary and continuation
 
-Preparation is complete; full acceptance and installation are not yet claimed.
+Preparation and independent review passed. All selected source checks and
+their 32 mutations, twenty evidence mutations, coverage tests and the ordinary
+full contract comparison passed; `REVIEW.json` seals this evidence. Full
+acceptance and installation are not yet claimed.
 Main remains at **368/533**, with 104 explicit `memcpy_model` conditions.
 The candidate inventory is **371/533**, not accepted coverage until the full
 normal gate terminates successfully. The all-jet goal remains unfinished.
@@ -65,3 +68,26 @@ and requires every build, kernel, assumptions, contracts, negative-test and
 five-AST check. `AUDIT-RUN.json` records launch, not success;
 only `ACCEPTANCE.json` records a successful terminal full audit.
 No main installation or compiler-object copying is performed by these tools.
+
+Full isolated acceptance was launched as session **54262**, with log
+`/private/tmp/jet-direct-getters-admission.yc45qogt/acceptance.log`.
+Poll this handle rather than duplicating the run. Main's sequence audit
+session **42404** also remains live; its 978-module recursive check passed.
+The preparation commit is `6f1fb64d`, pushed only to `brenorb/simplicity`.
+
+The guarded continuation tools are prepared but have **not** installed main:
+
+```sh
+python3 -B proof-work/elements-direct-getters-admission/install.py /private/tmp/jet-direct-getters-admission.yc45qogt
+python3 -B proof-work/elements-direct-getters-admission/post-check.py
+ulimit -s 65520
+python3 -B proof-work/elements-direct-getters-admission/main-accept.py
+```
+
+The one-time installer requires this candidate's successful terminal full
+acceptance **and** the predecessor's successful actual-main sequence receipt
+and postcheck. It binds both histories, copies only the exact reviewed source/
+metadata/guard delta (no `.vo`), checks full input identity and preserves the
+original staged patch. Do not run it until both audits are terminal and green.
+The new postcheck then replaces the historical sequence postcheck for current
+source identity; predecessor postchecks intentionally do not match later trees.
