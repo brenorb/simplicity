@@ -72,7 +72,10 @@ No main installation or compiler-object copying is performed by these tools.
 Full isolated acceptance was launched as session **54262**, with log
 `/private/tmp/jet-direct-getters-admission.yc45qogt/acceptance.log`.
 Poll this handle rather than duplicating the run. Main's sequence audit
-session **42404** also remains live; its 978-module recursive check passed.
+session **42404** has now terminated with exit 0 after 3,278.07 seconds;
+all 978 modules, assumption/contract/negative gates and five ASTs passed.
+Its terminal receipt is `../elements-sequence-admission/MAIN-ACCEPTANCE.json`.
+Main must still remain frozen for this getter run's terminal source validation.
 The preparation commit is `6f1fb64d`, pushed only to `brenorb/simplicity`.
 
 The guarded continuation tools are prepared but have **not** installed main:
