@@ -7,8 +7,18 @@ Actual main remains independently accepted **418/533**.
 
 The full normal build and all **28 explicit fresh lambda-module compiles** have
 passed. New assumption/type/definition reports are complete and archived.
-Independent normal review is running; preparation is not acceptance.
-There is no main installation or accepted coverage increase in this batch yet.
+Independent normal review has completed successfully: all six stages exited
+zero, all 8,792 predecessor contract records and 5,745 dependency sets are
+unchanged, and 36 source/Ready/dependency/evidence corruptions are rejected.
+All 148 new records have full deep reports; seven compact printer ellipses
+have exact checked supplements. Source and normal reviews also pass the
+existing25 public-boundary mutations. The complete review chain and its
+source/object/tool/command/log identities have been independently postchecked.
+
+The full combined420 audit is now running with fingerprint
+`c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`.
+`AUDIT-RUN.json` is only a launch record, not terminal success. Main remains
+accepted418; there is no installation or accepted coverage increase yet.
 
 ## Exact scope
 
@@ -90,3 +100,18 @@ The original staged patch remains unchanged:
 As before, evidence binds the actual dirty main inputs, not an invented clean
 HEAD build. Nothing is pushed to Blockstream; scoped signed commits go only
 to the user's fork.
+
+## Read-only source integration plan
+
+`INSTALLATION-PLAN.json` records the exact combined delta: 11 shared metadata/
+gate files, 50 new proof source files and five source-guard files, totaling
+66 source-only targets. The two reused proof sources are checked byte-identical
+and are not overwritten. No compiler object is copied. The semantic source
+maps differ only by this reviewed delta, starting at actual accepted418.
+
+`prepare-integration.py` records or rechecks that plan without installation.
+`test-integration-plan.py` rejects 12 unsafe target or missing-review cases
+without writing candidate/main sources. A later installer must require actual
+combined420 terminal acceptance, unchanged reviewed identities and an exact
+plan recheck; the current plan explicitly claims neither acceptance nor
+installation. Keep the live audit inputs frozen.
