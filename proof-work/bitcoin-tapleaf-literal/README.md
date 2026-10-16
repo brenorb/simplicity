@@ -49,9 +49,9 @@ python3 -B proof-work/bitcoin-tapleaf-literal/check.py /private/tmp/jet-bitcoin-
 The script refuses a second launch once `RUN.json` exists. `CHECKED.json`
 binds the fresh sources/objects, all commands/logs,
 full types/definitions, exact per-result assumptions, kernel check, unchanged
-main/index and the accepted418 base. Independently review that evidence and
-the selected canonical Haskell/Coq program, primitives, tag/decoder and SHA
-helper definitions before normal delta preparation. In particular, source
+main/index and the accepted418 base. The independent review below covers the
+selected canonical Haskell/Coq program, primitives, tag/decoder and SHA helper
+definitions before normal delta preparation. In particular, source
 correspondence is not a formal Haskell runtime/crypto-library equivalence.
 
 The selected-source guard now passes, including 87 read-only corruptions.
@@ -69,3 +69,24 @@ C environment-constructor result is claimed here.
 The all-jet goal remains incomplete. Keep main418 frozen while the combined420
 audit finishes, then use its guarded installer and actual-main audit; do not
 install this unregistered proof as an unrelated part of that reviewed delta.
+
+## Guard deployment into the normal audit
+
+The immutable proof-work review uses `source-model.json`, explicitly hashed
+in its evidence receipt. The normal Coq audit's semantic inventory includes
+`.txt` but not `.json`; do not deploy an untracked runtime model into that
+audit. `deploy-guards.py.sources()` prepares the exact three runtime files:
+`check-source.py`, `test-source.py` and byte-identical `source-model.txt` under
+`Coq/bitcoin-tapleaf-literal/`. The only tool change is the model filename in
+those two tools. Historical tools/model/proof/receipts are not rewritten.
+
+The completed deployment trial clones only the finished tapleaf tree, never a
+live audit's object cache. Both deployed source checks and all87 mutations
+pass. `GUARD-DEPLOYMENT.json` binds that private tree, exact transported bytes,
+model, commands and logs. `test-deployment.py` independently postchecks them
+and verifies that changing **each** runtime file, including the model data,
+changes the real normal audit fingerprint. No proof source, main input,
+registration, original stage or acceptance snapshot changes in this trial.
+Use these three fingerprinted guard files in the later normal batch; retain
+the full exact contract/representation/term checks, rather than admitting all
+`ext_environment` contracts through a broad coverage regex.
