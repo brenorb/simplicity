@@ -90,6 +90,15 @@ proofs, four guards and integration evidence are committed here; existing dirty
 registries are preserved and their owned delta is archived in `DELTA.patch`.
 Actual-main418 acceptance must still run separately.
 
+The once-only actual-main418 audit has now launched as **6155** after the
+completed installation and independent postcheck. `MAIN-AUDIT-RUN.json` binds
+the exact418 source fingerprint, installation SHA-256
+`e0b0c58d26fa6f3d97a6d0f5f68b9a7c545d3a2488f405e0a6c928dcf836f73c`,
+the full `check-jets.sh --accept` command and the reviewed driver. Its log is
+`/private/tmp/jet-txid-admission.gvp5bmft/main-acceptance.log`.
+This is a launch, not terminal actual-main418 acceptance. Poll that existing
+handle, keep main semantic inputs frozen and do not start another main audit.
+
 The proposed registry has115 missing declarations and104 entries with an
 explicit `memcpy_model` condition. Caller/domain, evaluator/library/fidelity
 and configuration obligations remain explicit; the every-jet goal is active.
