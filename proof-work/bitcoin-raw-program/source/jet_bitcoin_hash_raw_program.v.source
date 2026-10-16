@@ -1,0 +1,172 @@
+(** Whole original-C hash getters against their original Simplicity programs
+    interpreted on raw transaction/taproot data, not independent hash inputs.
+    The shared transport preserves the complete separated frame contract. *)
+From Coq Require Import ZArith List.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Util.Option.
+Require Import Simplicity.Primitive.Bitcoin C.jet_bitcoin_ext_prim.
+Require Import C.jet_application_sep C.jets_bitcoin C.jet_bitcoin_linkage.
+Require Import C.jet_bitcoin_full_prim C.jet_bitcoin_raw_env C.jet_bitcoin_raw_jets.
+Require Import C.jet_bitcoin_hash_getter_local C.jet_bitcoin_words_hash.
+Require Import C.jet_bitcoin_raw_program C.jet_bitcoin_tapleaf_hash_spec.
+Require Import C.jet_bitcoin_tapleaf_hash_local C.jet_bitcoin_tapleaf_literal.
+Require Import C.jet_bitcoin_composite_hash C.jet_bitcoin_tx_hash C.jet_bitcoin_sig_all_hash.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Theorem bitcoin_output_values_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_output_values_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256
+    (raw_env_rep (hash_getter_rep (fun e => words_hash_of 3 5 (output_values_of e)) 0 16 432))
+    (fun a environment => @prim_words_hash_spec 3 5 (BitcoinFull.Base Bitcoin.OutputValue) raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [apply prim_words_hash_spec_parametric|].
+  exact bitcoin_output_values_hash_local_spec.
+Qed.
+
+Theorem bitcoin_output_scripts_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_output_scripts_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256
+    (raw_env_rep (hash_getter_rep (fun e => words_hash_of 5 5 (output_scripts_of e)) 0 48 432))
+    (fun a environment => @prim_words_hash_spec 5 5 (BitcoinFull.Base Bitcoin.OutputScriptHash) raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [apply prim_words_hash_spec_parametric|].
+  exact bitcoin_output_scripts_hash_local_spec.
+Qed.
+
+Theorem bitcoin_input_values_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_input_values_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256
+    (raw_env_rep (hash_getter_rep (fun e => words_hash_of 3 5 (input_values_of e)) 0 144 432))
+    (fun a environment => @prim_words_hash_spec 3 5 (BitcoinFull.Base Bitcoin.InputValue) raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [apply prim_words_hash_spec_parametric|].
+  exact bitcoin_input_values_hash_local_spec.
+Qed.
+
+Theorem bitcoin_input_scripts_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_input_scripts_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256
+    (raw_env_rep (hash_getter_rep (fun e => words_hash_of 5 5 (input_scripts_of e)) 0 176 432))
+    (fun a environment => @prim_words_hash_spec 5 5 (BitcoinFull.Ext BitcoinExt.InputScriptHash) raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [apply prim_words_hash_spec_parametric|].
+  exact bitcoin_input_scripts_hash_local_spec.
+Qed.
+
+Theorem bitcoin_input_sequences_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_input_sequences_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256
+    (raw_env_rep (hash_getter_rep (fun e => words_hash_of 2 5 (input_sequences_of e)) 0 240 432))
+    (fun a environment => @prim_words_hash_spec 2 5 (BitcoinFull.Base Bitcoin.InputSequence) raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [apply prim_words_hash_spec_parametric|].
+  exact bitcoin_input_sequences_hash_local_spec.
+Qed.
+
+Theorem bitcoin_input_script_sigs_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_input_script_sigs_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256
+    (raw_env_rep (hash_getter_rep (fun e => words_hash_of 5 5 (input_script_sigs_of e)) 0 304 432))
+    (fun a environment => @prim_words_hash_spec 5 5 (BitcoinFull.Ext BitcoinExt.InputScriptSigHash) raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [apply prim_words_hash_spec_parametric|].
+  exact bitcoin_input_script_sigs_hash_local_spec.
+Qed.
+
+Theorem bitcoin_tappath_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_tappath_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256
+    (raw_env_rep (hash_getter_rep (fun e => words_hash_of 5 3 (tappath_of e)) 8 40 176))
+    (fun a environment => @prim_words_hash_spec 5 3 (BitcoinFull.Ext BitcoinExt.Tappath) raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [apply prim_words_hash_spec_parametric|].
+  exact bitcoin_tappath_hash_local_spec.
+Qed.
+
+Lemma tapleaf_hash_literal_parametric : PF.Parametric (@tapleaf_hash_literal_spec).
+Proof.
+  intros alg1 alg2 R.
+  rewrite <- (tapleaf_hash_literal_matches alg1), <- (tapleaf_hash_literal_matches alg2).
+  apply tapleaf_hash_spec_parametric.
+Qed.
+
+Theorem bitcoin_tapleaf_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_tapleaf_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256 (raw_env_rep (hash_getter_rep tapleaf_hash_of 8 8 176))
+    (fun a environment => @tapleaf_hash_literal_spec raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [exact tapleaf_hash_literal_parametric|].
+  exact bitcoin_tapleaf_hash_literal_local_spec.
+Qed.
+
+Theorem bitcoin_outputs_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_outputs_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256 (raw_env_rep (hash_getter_rep outputs_hash_of 0 80 432))
+    (fun a environment => @outputs_hash_spec raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [exact outputs_hash_spec_parametric|].
+  exact bitcoin_outputs_hash_local_spec.
+Qed.
+
+Theorem bitcoin_input_utxos_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_input_utxos_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256 (raw_env_rep (hash_getter_rep input_utxos_hash_of 0 208 432))
+    (fun a environment => @input_utxos_hash_spec raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [exact input_utxos_hash_spec_parametric|].
+  exact bitcoin_input_utxos_hash_local_spec.
+Qed.
+
+Theorem bitcoin_tap_env_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_tap_env_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256 (raw_env_rep (hash_getter_rep tap_env_hash_of 8 72 176))
+    (fun a environment => @tap_env_hash_spec raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [exact tap_env_hash_spec_parametric|].
+  exact bitcoin_tap_env_hash_local_spec.
+Qed.
+
+Theorem bitcoin_input_outpoints_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_input_outpoints_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256 (raw_env_rep (hash_getter_rep input_outpoints_hash_of 0 112 432))
+    (fun a environment => @input_outpoints_hash_spec raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [exact input_outpoints_hash_spec_parametric|].
+  exact bitcoin_input_outpoints_hash_local_spec.
+Qed.
+
+Theorem bitcoin_input_annexes_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_input_annexes_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256 (raw_env_rep (hash_getter_rep input_annexes_hash_of 0 272 432))
+    (fun a environment => @input_annexes_hash_spec raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [exact input_annexes_hash_spec_parametric|].
+  exact bitcoin_input_annexes_hash_local_spec.
+Qed.
+
+Theorem bitcoin_inputs_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_inputs_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256 (raw_env_rep (hash_getter_rep inputs_hash_of 0 336 432))
+    (fun a environment => @inputs_hash_spec raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [exact inputs_hash_spec_parametric|].
+  exact bitcoin_inputs_hash_local_spec.
+Qed.
+
+Theorem bitcoin_tx_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_tx_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256 (raw_env_rep (hash_getter_rep tx_hash_of 0 368 432))
+    (fun a environment => @tx_hash_spec raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [exact tx_hash_spec_parametric|].
+  exact bitcoin_tx_hash_local_spec.
+Qed.
+
+Theorem bitcoin_sig_all_hash_raw_program_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_sig_all_hash bitcoin_ge raw_bitcoin_environment
+    Ty.Unit Word256 (raw_env_rep (env_hash_rep sig_all_hash_of 16))
+    (fun a environment => @sig_all_hash_spec raw_fullalg a environment).
+Proof.
+  apply application_raw_program_local_spec_sep; [exact sig_all_hash_spec_parametric|].
+  exact bitcoin_sig_all_hash_local_spec.
+Qed.
