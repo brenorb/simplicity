@@ -119,6 +119,15 @@ acceptance, not an intermediate402 installation. Combined407 audit23810 remains
 the required successor audit. Do not restart either completed audit or install
 intermediate402/404/406 trees under the combined plan.
 
+Combined407 audit23810 has now terminated with exit0 after3868 seconds and
+the complete final acceptance marker. `ACCEPTANCE.json`, `TERMINAL.json` and
+the full `acceptance.log` are archived here. The accepted source fingerprint is
+`b5d5d74a...`; the log SHA-256 is
+`f3d1f24798220babdaf9e91c24bd6c70c8ed3a612d144a719097e0d025dc446d`.
+The integration checker independently validated its exact command, source,
+driver, review-chain and baseline bindings, plus real actual-main401 success.
+This is successful isolated full acceptance, not yet actual-main407 acceptance.
+
 The proposed407 registry retains104 explicit `memcpy_model` conditions and126
 missing public declarations. The full every-jet goal, caller/domain/evaluator,
 library/fidelity and configuration obligations remain unfinished. These
