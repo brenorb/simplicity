@@ -85,3 +85,27 @@ Main semantic fingerprint stayed
 the original staged patch stayed
 `f2083389e06d3a5aed12c83d0aae554895eab94eef8e107c5d445f9268d86bbe`.
 The separate live full447 and SHA-adapter audits were not changed or restarted.
+
+## Formal reference checks (not a C execution proof)
+
+`jet_null_data_overlap_reference.v.source` contains five closed, compiled and
+recursively kernel-checked facts: the two bytes parse as one OP_1; the original
+`Elements.OutputNullDatum` primitive returns the present/present OP_1 value at
+`(0,0)`; it returns datum-absent at `(0,16)`; the original result cannot be the
+observed absent value; and setting bit4 of a zero64-bit word yields16.
+The environment-parametric facts require the selected output's actual script
+to be those bytes. They do not assume any C execution or assert the complete
+C-builder/logical-environment correspondence.
+
+`REFERENCE-RUN.json`, `REFERENCE-CHECKED.json` and exact reports/logs bind the
+checks. The first kernel process succeeded, but its parent used the overly
+broad full-Clight library-context comparison and therefore failed its postcheck.
+That receipt/driver is preserved. `finish-reference.py` reran only the kernel
+phase after inspecting the pure root's exact ten-axiom library context (a
+strict subset of the unchanged normal15-axiom context), and completed with
+exit zero under handle72556. All five individual results are closed under
+the global context. No normal allowance, proof or source was weakened.
+
+The formal facts corroborate the expected result and overwritten-index
+mechanism. A full CompCert execution counterexample for overlapping memory
+remains unproved; this validation does not claim one.
