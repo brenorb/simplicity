@@ -8,12 +8,15 @@ Completed, with real terminal exits and committed evidence:
 - preparation37168: all ten fresh modules, 123 assumption records, thirteen logs;
 - complete normal contract comparison75735, matching the prepared snapshot.
 
-The full six-stage independent review was launched under exec session
-**10965**. The last observed output confirmed the coverage stage passed and
-the coverage-fixture stage began. Poll that actual handle; do not duplicate
-the invocation. A receipt/launch file alone is not a liveness check. Once
-terminal, inspect the real exit and the matching private/local `REVIEW.json`.
-Do not infer that the other stages passed from the earlier contract preflight.
+The full six-stage independent review completed under exec session **10965**
+with terminal exit zero. The matching private/local `REVIEW.json` records all
+six stages and all72 passing evidence-corruption tests. All9099 inherited
+contract records and5969 dependency sets are preserved, with138 complete new
+type/definition records and12 closed results. Do not duplicate that invocation.
+
+The combined full-audit preflight (`test-accept.py`) was launched under
+session **32523**. Poll that actual handle and inspect its real terminal exit
+before launching a full audit. A launch file alone is not a liveness check.
 
 Freeze this candidate's proof sources, registries, source guards, drivers,
 objects and original main inputs through all review postchecks. Commit the
@@ -34,13 +37,19 @@ acceptance may be fabricated. A combined successor may include additional
 genuinely reviewed deltas with that explicit provenance instead of requiring
 a redundant full audit at each intermediate bookkeeping count.
 
-The next available isolated proof delta is `../elements-nonces/`: its complete
+The next completed isolated proof delta is `../elements-nonces/`: its complete
 C endpoint, canonical-source tests, recursive kernel check and independent
 evidence review all passed (59 source and59 evidence corruptions rejected).
 Its receipts and final fingerprint are in that package. Add it only through
-a fresh reviewed delta, after this candidate is terminal; do not modify the
-running467 proposal to insert it. The named cached-hash representation is
-still an explicit caller obligation, not a proved builder result.
+a fresh reviewed delta, not by modifying this reviewed467 proposal. The
+additional `../elements-amounts-hash/` package has two freshly compiled C
+endpoints sharing the canonical asset/amount serializer and loop; its kernel
+phase is under62838 and its other review stages remain separate. It may make
+sense to review both packages as one three-jet delta and audit the combined470
+union, with explicit actual447-plus-reviewed-deltas provenance. Do not claim
+any intermediate full acceptance that has not happened. The named cached-hash
+representation remains an explicit caller obligation, not a proved builder
+result.
 
 Main remains its preexisting420 checkpoint, with semantic input identity and
 original staging unchanged. The all533 implementation-to-Simplicity goal is
