@@ -37,7 +37,11 @@ python3 -B proof-work/elements-tapenv/check.py kernel /private/tmp/jet-elements-
 
 `CHECKED.json`, `KERNEL-RUN.json`, `ast.log` and `kernel.log` bind the actual
 recursive kernel and Elements AST-regeneration success. Independent evidence
-review completed separately; its receipt/log are a later checkpoint.
+review also completed with exit zero, including55 proof/kernel/command/source/
+report/object/dependency corruption fixtures. `EVIDENCE-REVIEW.json` and
+`evidence-tests.log` bind that separate stage and the completed tapleaf
+dependency review. Its historical source map is checked against actual
+immutable private-tree bytes, not a requirement that main stay420 forever.
 Normal registration/admission remains. This is not accepted extra coverage or
 full normal acceptance. The separate private443 full audit and main420
 source/index checkpoint remain frozen.
