@@ -42,9 +42,11 @@ recursive kernel and Elements AST-regeneration results. The candidate source
 fingerprint is
 `d9526f804b5c9d67cd9f55e900a686d9ca85cdfa3402e2a4a3e27d9aaff656ae`.
 Canonical source review and63 read-only mutation tests also passed, recorded
-separately in `../elements-annexes-source/`. Independent evidence review is
-running; normal registration still remains. This is not an accepted coverage
-addition or a full normal acceptance result.
+separately in `../elements-annexes-source/`. Independent evidence review also
+completed with exit zero, including54 proof/kernel/command/source/report/
+object/dependency corruption fixtures. `EVIDENCE-REVIEW.json` and
+`evidence-tests.log` record that stage. Normal registration still remains;
+this is not an accepted coverage addition or a full normal acceptance result.
 
 The environment relation remains explicit: the actual cached transaction
 field at offset 376 is represented by the computed raw-annex program hash,
