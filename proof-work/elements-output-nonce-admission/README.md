@@ -100,6 +100,14 @@ no compiler object copied, and no main input changed. This is a plan, not an
 installer or positive acceptance; actual-main401 and combined407 success remain
 mandatory before any future source integration.
 
+Actual-main401 audit92989 and isolated402 audit26900 have now both terminated
+with exit0 and complete acceptance markers. Their receipts/log hashes and
+driver/source/installation bindings were independently verified, and full logs
+are archived in their respective folders. This establishes actual-main401
+acceptance, not an intermediate402 installation. Combined407 audit23810 remains
+the required successor audit. Do not restart either completed audit or install
+intermediate402/404/406 trees under the combined plan.
+
 The proposed407 registry retains104 explicit `memcpy_model` conditions and126
 missing public declarations. The full every-jet goal, caller/domain/evaluator,
 library/fidelity and configuration obligations remain unfinished. These

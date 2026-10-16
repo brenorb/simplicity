@@ -96,3 +96,12 @@ actual-main402 while following the combined plan. Let the existing isolated402
 audit finish and preserve its result. The tested402 installer remains a
 historical alternative, not an instruction to bypass the combined plan. See
 `../elements-output-nonce-admission/README.md`.
+
+The isolated402 audit26900 has now terminated with exit0 and all acceptance
+gates passed. `ACCEPTANCE.json` and `TERMINAL.json` bind exact input
+`3665d2a8...`, the real401 receipts, completed review, driver and complete log.
+The full log is archived as `acceptance.log`, SHA-256
+`dfcc25879bd111b09bf92f6e04ff966b9a7ad09fa56395ab91cfef615809b505`.
+Actual-main401 audit92989 also passed; both receipt chains were independently
+verified. Do not restart either audit. This does not install402: follow the
+combined407 plan, preserving this completed candidate as historical evidence.

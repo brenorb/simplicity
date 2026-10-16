@@ -151,6 +151,16 @@ actual-main401 and combined407 both pass; do not install402/404/406 in between.
 See `../elements-output-nonce-admission/README.md`. Existing audits continue
 unchanged, and their exact-source results will be preserved.
 
+The actual-main401 audit92989 has now terminated with exit0. All acceptance
+gates passed, including recursive kernel checking, assumptions/contracts,
+negative tests and five ASTs. `MAIN-ACCEPTANCE.json` and `MAIN-TERMINAL.json`
+bind the exact accepted `c86dfb59...` input, installation, driver and complete
+log, archived as `main-acceptance.log` (SHA-256
+`51dc41fa375337c139e4a7d74e9fd20ff9aa5c56a342a169a1c2e1ae66b2c8b5`).
+The composed postcheck reports actual-main acceptance with the original index
+preserved. Do not repeat the completed audit. Main remains401 until the
+combined407 successor also passes and guarded integration is ready.
+
 This proposed registry retains the 104 explicit `memcpy_model` conditions;
 132 public declarations would still be missing. LP64/RECKLESS, represented
 environments, global/fidelity/evaluator/domain obligations and host-library
