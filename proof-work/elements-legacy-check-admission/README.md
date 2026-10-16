@@ -76,7 +76,11 @@ here. The preparation checkpoint remains historical, not a second acceptance.
 No full406 audit or installation has been launched. They must follow the real
 predecessor acceptance/installation chain, not a prepared snapshot or launch
 record. Main401 audit **92989** and isolated402 audit **26900** are live; keep
-their semantic inputs frozen. Next install402 only after both pass, audit its
-actual main, then audit/install404, followed by this406 candidate. Scoped signed
+their semantic inputs frozen. The combined407 plan now supersedes the earlier
+serial402/404/406 installation sequence: this reviewed delta is included
+unchanged, and the combined audit checks all407 entries over installed401.
+Keep main at401 until actual-main401 and combined407 both pass; do not install
+intermediate candidates. See `../elements-output-nonce-admission/README.md`.
+Scoped signed
 commits go only to the brenorb fork, preserving unrelated dirty registries and
 the entire original index.

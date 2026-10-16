@@ -80,6 +80,12 @@ Actual-main401 **92989** and isolated402 **26900** are now live. Do not restart
 them or change their semantic inputs. This reviewed404 candidate remains
 immutable; the isolated406 assertion candidate is prepared separately.
 
+The new combined407 audit/installation plan supersedes the serial402/404/406
+plan: all four reviewed deltas are checked together over installed401. Do not
+launch this older404 audit or install intermediate candidates while following
+that plan. This completed review remains unchanged and is explicitly checked
+by the combined driver. See `../elements-output-nonce-admission/README.md`.
+
 All operations here preserve main and the entire original staging. This
 proposed registry still has 104 explicit `memcpy_model` conditions and 129
 missing public declarations. The full every-jet goal remains unfinished.

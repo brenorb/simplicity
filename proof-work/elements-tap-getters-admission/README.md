@@ -144,6 +144,13 @@ The isolated402 audit runs alongside it as **26900**. Installing402 must wait
 for both real audits to pass. Keep main and each audited candidate's semantic
 inputs frozen, poll these existing handles, and do not restart on quiet output.
 
+Successor batching now supersedes the earlier serial-install plan: the fully
+reviewed407 candidate includes the402/404/406/407 deltas, and its combined audit
+checks all six added jets over this exact401 baseline. Keep main at401 until
+actual-main401 and combined407 both pass; do not install402/404/406 in between.
+See `../elements-output-nonce-admission/README.md`. Existing audits continue
+unchanged, and their exact-source results will be preserved.
+
 This proposed registry retains the 104 explicit `memcpy_model` conditions;
 132 public declarations would still be missing. LP64/RECKLESS, represented
 environments, global/fidelity/evaluator/domain obligations and host-library
