@@ -11,10 +11,24 @@ parser relation. All fresh dependency sets equal the checked proof batches;
 the complete C endpoint has only the six inherited assumptions. Full build,
 deep/compact type-definition and assumption reports are archived here.
 
-This is **not full acceptance**. At this checkpoint the independent normal
-review is running; neither installation nor a 419th accepted main jet is
-claimed. `REVIEW.json`, then `ACCEPTANCE.json`, must supply actual successful
-terminal evidence before their corresponding milestones can be claimed.
+This is **not full acceptance**. The independent normal review completed
+successfully: all six stages exited zero, preserving 8,545 inherited contract
+records and 5,601 inherited dependency sets, and rejecting 32 normal-evidence
+corruptions. All 247 new type/definition records have untruncated deep reports;
+nine compact printer ellipses have checked exact supplements. All review
+commands, logs, source/object/tool identities were independently postchecked.
+
+The full isolated audit is now running as the recorded
+`bash check-jets.sh --accept`, without update/skip flags. Its fingerprint is
+`166ee74d09d2221332e56f36255fc3631afc4e96d0bedf65c7f8037cfba48eb6`.
+`AUDIT-RUN.json` binds the completed review, selected-source review, predecessor
+actual-main acceptance, exact command and original stage identity. It is a
+launch record, not success evidence. Keep candidate/main C/Haskell inputs
+frozen and poll the existing run rather than starting another.
+
+Neither installation nor a 419th accepted main jet is claimed. Actual terminal
+`ACCEPTANCE.json` evidence is still required, followed by guarded installation
+and independent actual-main acceptance. Main remains accepted at 418/533.
 
 ## Proof and source boundaries
 
