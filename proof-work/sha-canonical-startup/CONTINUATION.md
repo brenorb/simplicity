@@ -13,8 +13,12 @@ All phases below are terminal successes; do not restart them:
 The immutable proof tree is
 `/private/tmp/jet-sha-canonical-startup.8SBgLe7u`, fingerprint
 `1539d2c8e8e7ed927a97a81a395b034b78bb22261e2012cc7c53d9e7d7a923a8`.
-No normal SHA admission has been assembled. Main remains420; the every-jet
-goal is not complete.
+The normal SHA admission proposal is now assembled in
+`../sha-startup-admission/`; preparation succeeded under handle61853 and
+independent delta review is live under handle27849 in
+`/private/tmp/jet-sha-startup-admission.yiddvkw8`. Main remains420; the
+every-jet goal is not complete. Poll the existing review handle and
+use that folder's current continuation; do not assemble a second candidate.
 
 ## Exact next registration scope
 
@@ -65,11 +69,15 @@ dependency sets preserved; two new endpoints,14 results, nine definitions,
 six closed results;48 evidence corruptions. Its full audit has not launched.
 See `../elements-composite-admission/REVIEW.json` and continuation.
 
-The full447 audit remains live under handle50964 in
+The full447 audit completed with exit zero under handle50964 in
 `/private/tmp/jet-elements-context-admission.3e5uce7s`. It passed `coqchk` on
-1116 modules and is auditing assumptions. Poll the existing handle. Do not
-infer full acceptance from these intermediate markers, copy its live objects,
-restart it from silence or change main/source/evidence while it runs.
+1116 modules, all remaining gates and terminal provenance/main/index
+postchecks passed. The actual receipt and full log are in
+`../elements-context-admission/ACCEPTANCE.json` and `acceptance.log`.
+Its actual input fingerprint is
+`791cc1727e2866d55ad6a61b2c80943253490bbd1c37e3a439c6e80dbb09ba05`.
+Do not restart the completed audit or confuse this private447 success with
+main installation. The new467 preparation still requires main420 unchanged.
 
 A future combined proposal would be467/533 (346 without an extra libc premise,
 121 conditional); this is arithmetic planning, not accepted coverage. A single
@@ -79,7 +87,9 @@ the real successful predecessor terminal, both exact independent review
 chains, all source changes and the complete union of gates/roots. Use a new
 controller with that explicit provenance; do not fabricate a449 acceptance
 receipt or silently bypass an existing controller's predecessor requirement.
-No combined candidate/controller has been created yet.
+A combined467 candidate and explicitly bound controller are now in
+`../sha-startup-admission/`; full positive preflight and acceptance have
+not launched. The former449 controller is left unchanged, not bypassed.
 
 Actual main420 fingerprint remains
 `c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`;

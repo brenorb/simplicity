@@ -12,10 +12,14 @@ jet completion or additional accepted coverage on main.
   candidate is `/private/tmp/jet-elements-composite-admission.vr1_ywx1`;
   `REVIEW.json`, `PREPARATION.json` and exact logs bind both phases. Do not
   rerun either completed phase.
-- 50964: full447 acceptance in
-  `/private/tmp/jet-elements-context-admission.3e5uce7s`. It passed recursive
-  kernel checking on1116 modules and entered the assumption gate. Require its
-  actual terminal/postchecks; the last observed state is live, not accepted.
+- Full447 acceptance completed with exit zero under handle50964, including
+  all gates and final provenance/source/main/index postchecks. The exact
+  successful terminal and full log are in `../elements-context-admission/`.
+- 27849: the new combined467 independent normal-delta review is live in
+  `/private/tmp/jet-sha-startup-admission.yiddvkw8`. The449 tree is its
+  completed, immutable source/object seed. Follow `../sha-startup-admission/`
+  and poll that existing handle. Preparation completed with exit zero under
+  handle61853; do not restart either phase from silence.
 
 Keep both trees, main420 semantic inputs, completed proof packages and all
 bound drivers immutable through the controllers' terminal postchecks. Use
@@ -39,7 +43,16 @@ assumptions, and all six runtime guards are fingerprinted. The eight real
 review stages passed, including48 independent evidence corruptions. Do not
 call this snapshot/delta review full acceptance.
 
-Only after the real successful447 terminal and completed449 review, run the
+The real successful447 terminal and completed449 review now exist. The
+current plan combines this exact two-jet delta with the fully checked SHA
+closure in a467 proposal. Its new controller explicitly binds both reviewed
+deltas and the real447 terminal, then runs all union roots/gates. It does not
+claim a nonexistent449 acceptance receipt. Use that folder's preparation,
+independent review and full-audit preflight before launching a combined audit.
+The former standalone449 route below remains unchanged but has not launched;
+do not launch it redundantly while progressing the combined candidate.
+
+For a separately chosen standalone449 route, run the
 full-audit preflight tests and retain their actual exit/log evidence:
 
 ```sh
@@ -72,7 +85,10 @@ inherited endpoint assumptions. Canonical/transitive source fidelity also
 completed with327 read-only corruptions in `../sha-canonical-startup-source/`.
 Independent evidence review and normal admission remain; the kernel/source
 results alone do not register it or prove optimized runtime dispatch. A full
-dependency report for the nine startup support modules is live under handle89405.
+dependency report for the nine startup support modules completed under
+handle89405:104 results,15 definitions,12 closed results. Independent SHA
+evidence review also passed under handle29836 with117 corruptions. The
+complete ten-module registration is now in the combined467 proposal.
 
 Native null-data overlap validation is complete and independent of these
 audits. C/header changes still await the user's explicit choice between a
