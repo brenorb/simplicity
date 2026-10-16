@@ -7,10 +7,11 @@ jet completion or additional accepted coverage on main.
 
 ## Live controllers — poll, never restart from silence
 
-- 40716: independent normal449 delta review in
-  `/private/tmp/jet-elements-composite-admission.vr1_ywx1`. Preparation under
-  handle77708 completed with exit zero; `PREPARATION.json` and five archived
-  logs bind the real fresh compiles and full reports. Do not rerun preparation.
+- Independent normal449 review completed with exit zero under handle40716.
+  Preparation under handle77708 also completed with exit zero. The recorded
+  candidate is `/private/tmp/jet-elements-composite-admission.vr1_ywx1`;
+  `REVIEW.json`, `PREPARATION.json` and exact logs bind both phases. Do not
+  rerun either completed phase.
 - 50964: full447 acceptance in
   `/private/tmp/jet-elements-context-admission.3e5uce7s`. It passed recursive
   kernel checking on1116 modules and entered the assumption gate. Require its
@@ -31,11 +32,12 @@ and assumption logs. Then run the recorded independent normal-delta review:
 python3 -B proof-work/elements-composite-admission/review.py finish /private/tmp/jet-elements-composite-admission.vr1_ywx1
 ```
 
-That review is live under handle40716. It must preserve every inherited contract byte
-and dependency set, check all23 new type/definition records, six closed
-results, both C endpoint assumption sets, exact independent proof sources,
-six fingerprinted guards, and the eight real review stages including negative
-source/coverage/evidence tests. Do not call a snapshot accepted.
+That review completed: all9076 inherited contract bytes and5955 dependency
+sets are unchanged; all23 new type/definition records are complete, six
+results are closed, both C endpoints retain the exact six inherited
+assumptions, and all six runtime guards are fingerprinted. The eight real
+review stages passed, including48 independent evidence corruptions. Do not
+call this snapshot/delta review full acceptance.
 
 Only after the real successful447 terminal and completed449 review, run the
 full-audit preflight tests and retain their actual exit/log evidence:
@@ -66,9 +68,11 @@ equivalence is added by this batch.
 
 The SHA startup batch in `../sha-canonical-startup/` is now recursively kernel/
 AST checked, with18 C endpoint adapters,17 explicit memcpy premises and eight
-inherited endpoint assumptions. Canonical/transitive source fidelity,
-independent evidence review and normal admission remain; the kernel result
-alone does not register it or prove optimized runtime dispatch.
+inherited endpoint assumptions. Canonical/transitive source fidelity also
+completed with327 read-only corruptions in `../sha-canonical-startup-source/`.
+Independent evidence review and normal admission remain; the kernel/source
+results alone do not register it or prove optimized runtime dispatch. A full
+dependency report for the nine startup support modules is live under handle89405.
 
 Native null-data overlap validation is complete and independent of these
 audits. C/header changes still await the user's explicit choice between a

@@ -38,9 +38,13 @@ python3 -B proof-work/elements-composite-admission/admission.py prepare /private
 ```
 
 `PREPARATION.json` and the five exact build/fresh-compile/report logs record
-success. Independent review is now running under handle40716; poll that
-handle and keep its source, metadata, proof evidence and tools immutable.
-Snapshot preparation is not acceptance. The separate447 full controller
+success. Independent review completed with exit zero under handle40716:
+all9076 inherited contract records remain byte-identical, all5955 inherited
+dependency sets unchanged, and all23 new type/definition records are full
+and untruncated. All eight checks passed, including48 independent evidence
+corruptions and the two canonical-source negative suites. `REVIEW.json` and
+eight exact logs bind the result. Snapshot/delta review is not acceptance.
+Keep its source, metadata, proof evidence and tools immutable. The separate447 full controller
 remains live under handle50964; its log records `coqchk passed on 1116 modules`
 and entry into the assumption gate, not terminal acceptance.
 
