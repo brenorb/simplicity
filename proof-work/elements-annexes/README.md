@@ -31,17 +31,20 @@ python3 -B proof-work/elements-annexes/check.py compile /private/tmp/jet-element
 The public C endpoint has exactly the six inherited assumptions; no new
 assumed declaration, disabled kernel check or desired-execution premise.
 
-The recursive-kernel phase was launched using:
+The recursive-kernel phase completed with exit zero using:
 
 ```sh
 python3 -B proof-work/elements-annexes/check.py kernel /private/tmp/jet-elements-annex.sihNn4TS
 ```
 
-Poll its existing task handle. `KERNEL-RUN.json` is a launch, not success;
-only `CHECKED.json` and the successful kernel/AST logs establish that phase.
-Canonical Haskell/source-boundary review, independent evidence review and
-normal registration are still required. This is not an accepted coverage
-addition or a full acceptance result.
+`CHECKED.json`, `KERNEL-RUN.json`, `kernel.log` and `ast.log` bind the successful
+recursive kernel and Elements AST-regeneration results. The candidate source
+fingerprint is
+`d9526f804b5c9d67cd9f55e900a686d9ca85cdfa3402e2a4a3e27d9aaff656ae`.
+Canonical source review and63 read-only mutation tests also passed, recorded
+separately in `../elements-annexes-source/`. Independent evidence review is
+running; normal registration still remains. This is not an accepted coverage
+addition or a full normal acceptance result.
 
 The environment relation remains explicit: the actual cached transaction
 field at offset 376 is represented by the computed raw-annex program hash,
