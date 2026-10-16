@@ -1,0 +1,77 @@
+(** Literal Bitcoin tapleafHash program and its actual C getter contract.
+    Compute the TapLeaf tag midstate from its seven ASCII bytes, not an
+    unconnected numeric constant. Reuse the checked whole-function execution
+    proof, including its separated frames and cached-field representation.
+    Actual C environment construction remains a separate obligation. *)
+From Coq Require Import ZArith List String.
+From compcert Require Import Integers.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Util.Option.
+Require Import Simplicity.Primitive.Bitcoin.
+Require Import Simplicity.Alg.
+Require Import C.jet_application_sep C.jets_bitcoin C.jet_bitcoin_linkage.
+Require Import C.jet_buffer_empty_spec.
+Require Import C.jet_bitcoin_ext_prim C.jet_bitcoin_full_prim.
+Require Import C.jet_bitcoin_hash_getter_local C.jet_bitcoin_tapleaf_hash_spec.
+Require Import C.jet_bitcoin_tapleaf_hash_local C.jet_sha_ctx8_spec C.jet_sha_finalize_spec.
+Require Import C.jet_haskell_word_conversion C.jet_haskell_hash_word.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition tapleaf_ascii : list byte := map Byte.repr [84; 97; 112; 76; 101; 97; 102].
+Definition tapleaf_literal_tag_digest := byteStringHash tapleaf_ascii.
+Definition tapleaf_literal_midstate :=
+  compress Digest.sha256_iv tapleaf_literal_tag_digest tapleaf_literal_tag_digest.
+Definition tapleaf_literal_prefix : tySem (Word 8) :=
+  haskell_to_word 8 (haskell_integer_hash256 (hash256_to_bytelist tapleaf_literal_midstate)).
+
+Lemma tapleaf_ascii_string : tapleaf_ascii = sha.SHA256.str_to_bytes "TapLeaf"%string.
+Proof. reflexivity. Qed.
+
+Lemma tapleaf_literal_prefix_matches : tapleaf_literal_prefix = tapleaf_prefix.
+Proof.
+  unfold tapleaf_literal_prefix. rewrite haskell_hash_word256.
+  vm_compute. reflexivity.
+Qed.
+
+(** Same combinator tree as Bitcoin.Programs.SigHash.tapleafHash, exposing
+    its two compile-time constants so their literal construction is checked. *)
+Definition tapleaf_hash_program (prefix : tySem (Word 8)) (leaf_size : tySem (Word 3))
+    {alg : PF.Algebra} : PF.domain alg Ty.Unit Word256 :=
+  let term := PF.CanonicalStructures.toAssertion alg in
+  let core := Alg.Assertion.toCore term in
+  @AC.comp _ _ _ core
+    (@AC.pair _ _ _ core
+       (@AC.comp _ _ _ core
+          (@AC.pair _ _ _ core (@ctx8_init_tag_spec prefix core)
+             (@AC.pair _ _ _ core
+                (@PF.Combinators.prim _ _ alg (BitcoinFull.Ext BitcoinExt.TapleafVersion))
+                (@Alg.scribe Ty.Unit (Word 3) leaf_size core)))
+          (@ctx8_addn_spec 1 term))
+       (@PF.Combinators.prim _ _ alg (BitcoinFull.Base Bitcoin.ScriptCMR)))
+    (@AC.comp _ _ _ core (@ctx8_addn_spec 5 term) (@ctx8_finalize_spec term)).
+
+Definition tapleaf_hash_literal_spec {alg : PF.Algebra} : PF.domain alg Ty.Unit Word256 :=
+  @tapleaf_hash_program tapleaf_literal_prefix (haskell_to_word 3 32) alg.
+
+Lemma tapleaf_hash_literal_matches (alg : PF.Algebra) :
+  @tapleaf_hash_spec alg = @tapleaf_hash_literal_spec alg.
+Proof.
+  unfold tapleaf_hash_literal_spec.
+  rewrite tapleaf_literal_prefix_matches, haskell_to_word_matches.
+  reflexivity.
+Qed.
+
+Theorem bitcoin_tapleaf_hash_literal_local_spec :
+  application_jet_local_spec_sep f_simplicity_bitcoin_tapleaf_hash bitcoin_ge ext_environment Ty.Unit Word256
+    (hash_getter_rep tapleaf_hash_of 8 8 176)
+    (fun a environment => @tapleaf_hash_literal_spec fullalg a environment).
+Proof.
+  rewrite <- (tapleaf_hash_literal_matches fullalg).
+  exact bitcoin_tapleaf_hash_local_spec.
+Qed.
+
+Print Assumptions tapleaf_literal_prefix_matches.
+Print Assumptions tapleaf_ascii_string.
+Print Assumptions tapleaf_hash_literal_matches.
+Print Assumptions bitcoin_tapleaf_hash_literal_local_spec.

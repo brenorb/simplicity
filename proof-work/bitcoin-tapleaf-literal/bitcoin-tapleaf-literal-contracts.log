@@ -1,0 +1,119 @@
+TAP_TYPE C.jet_bitcoin_tapleaf_literal.tapleaf_ascii_string
+jet_bitcoin_tapleaf_literal.tapleaf_ascii_string
+     : @eq (list Integers.Byte.int) jet_bitcoin_tapleaf_literal.tapleaf_ascii
+         (SHA256.str_to_bytes
+            (String.String (Ascii.Ascii false false true false true false true false)
+               (String.String (Ascii.Ascii true false false false false true true false)
+                  (String.String (Ascii.Ascii false false false false true true true false)
+                     (String.String (Ascii.Ascii false false true true false false true false)
+                        (String.String (Ascii.Ascii true false true false false true true false)
+                           (String.String (Ascii.Ascii true false false false false true true false)
+                              (String.String (Ascii.Ascii false true true false false true true false)
+                                 String.EmptyString))))))))
+TAP_TYPE C.jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix_matches
+jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix_matches
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix
+         jet_bitcoin_tapleaf_hash_spec.tapleaf_prefix
+TAP_TYPE C.jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_matches
+jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_matches
+     : forall alg : jet_bitcoin_full_prim.PF.Algebra,
+       @eq (jet_bitcoin_full_prim.PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_bitcoin_tapleaf_hash_spec.tapleaf_hash_spec alg)
+         (@jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec alg)
+TAP_TYPE C.jet_bitcoin_tapleaf_literal.bitcoin_tapleaf_hash_literal_local_spec
+jet_bitcoin_tapleaf_literal.bitcoin_tapleaf_hash_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tapleaf_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_ext_prim.ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+            jet_bitcoin_tapleaf_hash_spec.tapleaf_hash_of
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+TAP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_ascii
+jet_bitcoin_tapleaf_literal.tapleaf_ascii =
+@List.map BinNums.Z Integers.Byte.int Integers.Byte.repr
+  (@cons BinNums.Z
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+     (@cons BinNums.Z
+        (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+        (@cons BinNums.Z
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+           (@cons BinNums.Z
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+              (@cons BinNums.Z
+                 (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                 (@cons BinNums.Z
+                    (BinNums.Zpos
+                       (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                    (@cons BinNums.Z
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                       (@nil BinNums.Z))))))))
+     : list Integers.Byte.int
+TAP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest
+jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest =
+Digest.byteStringHash jet_bitcoin_tapleaf_literal.tapleaf_ascii
+     : Digest.hash256
+TAP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_literal_midstate
+jet_bitcoin_tapleaf_literal.tapleaf_literal_midstate =
+Digest.compress Digest.sha256_iv jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest
+  jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest
+     : Digest.hash256
+TAP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix
+jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix =
+jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+  (jet_haskell_hash_word.haskell_integer_hash256
+     (Digest.hash256_to_bytelist jet_bitcoin_tapleaf_literal.tapleaf_literal_midstate))
+     : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+TAP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_hash_program
+jet_bitcoin_tapleaf_literal.tapleaf_hash_program =
+fun (prefix : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (leaf_size : Ty.tySem (Word.Word (S (S (S O)))))
+  (alg : jet_bitcoin_full_prim.PF.Algebra) =>
+let term : Alg.Assertion.Algebra := jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion alg in
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_buffer_empty_spec.AC.comp Ty.Unit
+  (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+  (@jet_buffer_empty_spec.AC.pair Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+     (@jet_buffer_empty_spec.AC.comp Ty.Unit
+        (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))) jet_sha256_ctx8_init_spec.sha256_ctx8_type
+        core
+        (@jet_buffer_empty_spec.AC.pair Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) core
+           (@jet_bitcoin_tapleaf_hash_spec.ctx8_init_tag_spec prefix core)
+           (@jet_buffer_empty_spec.AC.pair Ty.Unit (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))) core
+              (@jet_bitcoin_full_prim.PF.Combinators.prim Ty.Unit (Word.Word (S (S (S O)))) alg
+                 (@jet_bitcoin_full_prim.BitcoinFull.Ext Ty.Unit (Word.Word (S (S (S O))))
+                    jet_bitcoin_ext_prim.BitcoinExt.TapleafVersion))
+              (@Alg.scribe Ty.Unit (Word.Word (S (S (S O)))) leaf_size core)))
+        (@jet_sha_ctx8_spec.ctx8_addn_spec (S O) term))
+     (@jet_bitcoin_full_prim.PF.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) alg
+        (@jet_bitcoin_full_prim.BitcoinFull.Base Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+           Bitcoin.Bitcoin.ScriptCMR)))
+  (@jet_buffer_empty_spec.AC.comp
+     (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+     jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+     (@jet_sha_ctx8_spec.ctx8_addn_spec (S (S (S (S (S O))))) term) (@jet_sha_finalize_spec.ctx8_finalize_spec term))
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : Ty.tySem (Word.Word (S (S (S O)))))
+         (alg : jet_bitcoin_full_prim.PF.Algebra),
+       jet_bitcoin_full_prim.PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments jet_bitcoin_tapleaf_literal.tapleaf_hash_program prefix leaf_size {alg}
+TAP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec
+jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec =
+fun alg : jet_bitcoin_full_prim.PF.Algebra =>
+@jet_bitcoin_tapleaf_literal.tapleaf_hash_program jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix
+  (jet_haskell_word_conversion.haskell_to_word (S (S (S O)))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) alg
+     : forall alg : jet_bitcoin_full_prim.PF.Algebra,
+       jet_bitcoin_full_prim.PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec {alg}
