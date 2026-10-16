@@ -70,8 +70,14 @@ the recorded twelve-stage447 review before launching the full command. It also
 checks both again at completion. Read-only `test-accept.py` passed24 missing-
 terminal, bad-exit, provenance, scope and review-evidence corruptions;
 `FULL-AUDIT-PREFLIGHT.json` records its real exit status and captured stdout.
-The full447 controller is now running under handle50964; its candidate log is
+The full447 controller completed with exit zero under handle50964, including
+its final provenance/source/evidence/main/index postchecks. `TERMINAL.json`,
+`ACCEPTANCE.json` and the exact `acceptance.log` record the real successful
+full command. This supersedes the earlier pending-full447 statements above;
+no historical preparation/review record was rewritten into acceptance.
+Its candidate log is
 `/private/tmp/jet-elements-context-admission.3e5uce7s/acceptance.log`.
-Wait for that controller's actual terminal and postchecks before claiming
-full447 success or changing main420. `inputs_hash` and subsequent proof work
-live in distinct private trees and are not covered by this audit.
+The candidate is fully accepted447, but main420 has not been changed.
+`inputs_hash` and subsequent proof work live in distinct private trees and
+are not covered by this audit. SHA registration is being prepared separately
+over the completed449 delta; a combined full audit still remains necessary.
