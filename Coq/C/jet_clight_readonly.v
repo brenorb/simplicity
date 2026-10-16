@@ -1,0 +1,107 @@
+(** Read-only bytes cannot acquire a different value during real Clight2 execution.
+    This is backwards preservation: it does not assert final readability. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Coqlib Ctypes Cop Clight ClightBigstep Memory Events.
+Require Import C.jet_clight_forward.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition readonly_readback (m mf : Mem.mem) : Prop :=
+  mem_forward m mf /\
+  forall b ofs n bytes, Mem.valid_block m b ->
+    Mem.loadbytes mf b ofs n = Some bytes ->
+    (forall i, ofs <= i < ofs+n -> ~ Mem.perm m b i Max Writable) ->
+    Mem.loadbytes m b ofs n = Some bytes.
+
+Lemma readonly_readback_refl m : readonly_readback m m.
+Proof. split; [apply mem_forward_refl|intros; assumption]. Qed.
+Lemma readonly_readback_trans m mi mf :
+  readonly_readback m mi -> readonly_readback mi mf -> readonly_readback m mf.
+Proof.
+  intros (HF1 & HB1) (HF2 & HB2); split.
+  - eapply mem_forward_trans; eassumption.
+  - intros b ofs n bytes HV HL HReadOnly.
+    destruct (HF1 b HV) as (HVI & HPI).
+    eapply HB1; [exact HV| |exact HReadOnly].
+    eapply HB2; [exact HVI|exact HL|].
+    intros i Hi HP; apply (HReadOnly i Hi); exact (HPI i Writable HP).
+Qed.
+Lemma readonly_readback_unchanged m mf :
+  mem_forward m mf -> Mem.unchanged_on (loc_not_writable m) m mf -> readonly_readback m mf.
+Proof. intros HF HU; split; [exact HF|intros; eapply unchanged_on_readonly; eassumption]. Qed.
+
+Lemma store_readonly_readback chunk m b ofs v mf :
+  Mem.store chunk m b ofs v = Some mf -> readonly_readback m mf.
+Proof.
+  intro HS; apply readonly_readback_unchanged; [eapply store_forward; exact HS|].
+  eapply Mem.store_unchanged_on; [exact HS|].
+  intros i Hi HNot; apply HNot; apply Mem.perm_cur_max.
+  exact (proj1 (Mem.store_valid_access_3 _ _ _ _ _ _ HS) i Hi).
+Qed.
+Lemma storebytes_readonly_readback m b ofs bytes mf :
+  Mem.storebytes m b ofs bytes = Some mf -> readonly_readback m mf.
+Proof.
+  intro HS; apply readonly_readback_unchanged; [eapply storebytes_forward; exact HS|].
+  eapply Mem.storebytes_unchanged_on; [exact HS|].
+  intros i Hi HNot; apply HNot; apply Mem.perm_cur_max.
+  exact (Mem.storebytes_range_perm _ _ _ _ _ HS i Hi).
+Qed.
+Lemma alloc_readonly_readback m lo hi mf fresh :
+  Mem.alloc m lo hi = (mf,fresh) -> readonly_readback m mf.
+Proof.
+  intro HA; apply readonly_readback_unchanged; [eapply alloc_forward; exact HA|].
+  eapply Mem.alloc_unchanged_on; exact HA.
+Qed.
+Lemma free_readonly_readback m b lo hi mf :
+  Mem.free m b lo hi = Some mf -> readonly_readback m mf.
+Proof.
+  intro HF; apply readonly_readback_unchanged; [eapply free_forward; exact HF|].
+  eapply Mem.free_unchanged_on; [exact HF|].
+  intros i Hi HNot; apply HNot; apply Mem.perm_cur_max.
+  eapply Mem.perm_implies; [exact (Mem.free_range_perm _ _ _ _ _ HF i Hi)|constructor].
+Qed.
+Lemma freelist_readonly_readback blocks m mf :
+  Mem.free_list m blocks = Some mf -> readonly_readback m mf.
+Proof.
+  revert m mf; induction blocks as [|[[b lo] hi] rest IH]; intros m mf HF.
+  - cbn in HF; inversion HF; subst; apply readonly_readback_refl.
+  - cbn in HF; destruct (Mem.free m b lo hi) as [mi|] eqn:HE; [|discriminate].
+    eapply readonly_readback_trans; [eapply free_readonly_readback; exact HE|apply IH; exact HF].
+Qed.
+Lemma external_readonly_readback ef ge args m t result mf :
+  external_call ef ge args m t result mf -> readonly_readback m mf.
+Proof.
+  intro HE; split; [eapply external_call_mem_forward; exact HE|].
+  intros; eapply external_call_readonly; eassumption.
+Qed.
+Lemma alloc_variables_readonly_readback ge e m vars e' m' :
+  alloc_variables ge e m vars e' m' -> readonly_readback m m'.
+Proof.
+  intro H; induction H; eauto using readonly_readback_refl, readonly_readback_trans, alloc_readonly_readback.
+Qed.
+Lemma entry2_readonly_readback ge f args m e le m' :
+  function_entry2 ge f args m e le m' -> readonly_readback m m'.
+Proof. intro H; inversion H; subst; eapply alloc_variables_readonly_readback; eassumption. Qed.
+Lemma assign_readonly_readback ce ty m b ofs bf v m' :
+  assign_loc ce ty m b ofs bf v m' -> readonly_readback m m'.
+Proof.
+  intro H; inversion H; subst.
+  - eapply store_readonly_readback; cbn [Mem.storev] in *; eassumption.
+  - eapply storebytes_readonly_readback; eassumption.
+  - match goal with HBits : store_bitfield _ _ _ _ _ _ _ _ _ _ |- _ => inversion HBits; subst end.
+    eapply store_readonly_readback; cbn [Mem.storev] in *; eassumption.
+Qed.
+
+Theorem clight_exec_readonly_readback ge :
+  (forall e le m s t le' m' out,
+    Clight2.exec_stmt ge e le m s t le' m' out -> readonly_readback m m') /\
+  (forall m f args t m' result,
+    Clight2.eval_funcall ge m f args t m' result -> readonly_readback m m').
+Proof.
+  apply (exec_stmt_funcall_ind function_entry2 ge
+    (fun e le m s t le' m' out => readonly_readback m m')
+    (fun m f args t m' result => readonly_readback m m'));
+    intros; eauto 8 using readonly_readback_refl, readonly_readback_trans,
+      assign_readonly_readback, entry2_readonly_readback, external_readonly_readback,
+      freelist_readonly_readback.
+Qed.

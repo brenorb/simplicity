@@ -1,0 +1,69 @@
+(** Actual initializer bounds and tight readonly framing of the borrowed call. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Integers Values Memory Globalenvs Clight ClightBigstep Events.
+Require Import Simplicity.Ty Simplicity.Word.
+Require Simplicity.Alg.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_mem C.jet_secp_linkage C.jets_secp
+  C.jet_secp_scalar_writer_run C.jet_secp_scalar_get_b32_numeric
+  C.jet_secp_scalar_get_b32_storage C.jet_secp_canonical_scalar.
+Require Import C.jet_secp_scalar_mul_borrowed_alloc
+  C.jet_secp_scalar_lambda_global C.jet_secp_scalar_lambda_region
+  C.jet_secp_canonical_scalar_lambda C.jet_secp_scalar_lambda_from_reader
+  C.jet_clight_forward C.jet_clight_readonly_frame.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque scalar_lambda_block secp_ge.
+
+Theorem scalar_lambda_initial_bounds m :
+  Genv.init_mem jets_secp.prog = Some m -> readonly_region_bounds m scalar_lambda_block 0 32.
+Proof.
+  intro HI; pose proof scalar_lambda_global_info as HG.
+  rewrite scalar_lambda_genv_projection in HG.
+  destruct (Genv.init_mem_characterization jets_secp.prog scalar_lambda_block HG HI)
+    as (HP & HO & _).
+  change (Mem.range_perm m scalar_lambda_block 0 32 Cur Readable) in HP.
+  unfold readonly_region_bounds; intros ofs k p; split.
+  - intro HPerm; exact (HO ofs k p HPerm).
+  - intros (HRange & HOrder); eapply Mem.perm_implies; [|exact HOrder].
+    destruct k; [apply Mem.perm_cur_max; exact (HP ofs HRange)|exact (HP ofs HRange)].
+Qed.
+
+Lemma scalar_lambda_borrowed_foot ba block ofs :
+  foot [(ba,0);(scalar_lambda_block,0)] (map rshape scalar_mul_borrowed_inputs) block ofs ->
+  foot [(ba,0)] (map rshape scalar_writer_initial_regs) block ofs \/ block = scalar_lambda_block.
+Proof.
+  intros (r & sh & d & ch & HS & HC & HB & HR); destruct r as [|[|r]].
+  - left; exists 0%nat,sh,d,ch; exact (conj HS (conj HC (conj HB HR))).
+  - right; exact HB.
+  - destruct r; discriminate HS.
+Qed.
+
+Theorem eval_scalar_lambda_tight_frame m ba (value : Ty.tySem (Word 8)) :
+  scalar_at m ba 0 (map Int64.repr (scalar_limbs_of
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)))) ->
+  Mem.range_perm m ba 0 32 Cur Freeable -> ba <> scalar_lambda_block ->
+  scalar_lambda_global_rep m -> readonly_region_bounds m scalar_lambda_block 0 32 ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul)
+      [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr scalar_lambda_block Ptrofs.zero] E0 mf Vundef /\
+    rep (scalar_limb_rho (@toZ (WordToZ 8)
+      (@canonical_scalar_multiply_lambda Alg.CoreFunSem value))) [(ba,0)] scalar_writer_initial_regs mf /\
+    Mem.range_perm mf ba 0 32 Cur Freeable /\ scalar_lambda_global_rep mf /\
+    readonly_region_bounds mf scalar_lambda_block 0 32 /\
+    lframe (fun block ofs => ~ foot [(ba,0)] (map rshape scalar_writer_initial_regs) block ofs) m mf.
+Proof.
+  intros SA PA Hneq HG HB.
+  destruct (eval_scalar_lambda_from_normalized_scalar m ba value SA PA Hneq HG)
+    as (mf & HC & HW & HFree & HGF & HF).
+  destruct HG as (HV & _); destruct HGF as (HVF & HPF & HLF).
+  pose proof (proj2 (clight_exec_forward secp_ge) m _ _ _ mf _ HC) as HForward.
+  pose proof (readonly_bounds_transport m mf scalar_lambda_block 0 32 HV HB HForward HPF) as HBF.
+  pose proof (clight_funcall_readonly_lframe secp_ge m _ _ _ mf _ scalar_lambda_block 0 32
+    HC HV HB HPF) as HGlobalFrame.
+  exists mf; split; [exact HC|]. split; [exact HW|]. split; [exact HFree|].
+  split; [exact (conj HVF (conj HPF HLF))|]. split; [exact HBF|].
+  eapply lframe_add_block; [exact HF|exact HGlobalFrame|].
+  intros block ofs HNotGlobal HNotOutput HFoot.
+  destruct (scalar_lambda_borrowed_foot ba block ofs HFoot); contradiction.
+Qed.

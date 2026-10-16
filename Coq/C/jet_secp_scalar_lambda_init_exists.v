@@ -1,0 +1,20 @@
+(** Actual secp initial memory exists and establishes the lambda state. *)
+From compcert Require Import Ctypes Globalenvs Memory.
+Require Import C.jets_secp C.jet_secp_scalar_lambda_initialized
+  C.jet_program_initialization.
+Set Default Timeout 10.
+Definition secp_initialization_succeeds : bool := program_initialization_okb jets_secp.prog.
+Lemma secp_initialization_succeeds_true : secp_initialization_succeeds = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Local Opaque program_initialization_okb Genv.init_mem jets_secp.prog.
+Theorem secp_initial_memory_exists : exists m, Genv.init_mem jets_secp.prog = Some m.
+Proof.
+  exact (program_initialization_checked (Ctypes.program_of_program jets_secp.prog)
+    secp_initialization_succeeds_true).
+Qed.
+Theorem scalar_lambda_initialized_memory_exists :
+  exists m, Genv.init_mem jets_secp.prog = Some m /\ scalar_lambda_initialized m.
+Proof.
+  destruct secp_initial_memory_exists as (m & HI); exists m; split;
+    [exact HI|apply scalar_lambda_initialized_from_init; exact HI].
+Qed.

@@ -1,0 +1,68 @@
+(** Actual original lambda jet runs for every input on fresh caller frames.
+    All frame/global premises are discharged, including actual program startup. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Values Memory Globalenvs Clight ClightBigstep Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_frame_inv
+  C.jet_encoding C.jet_secp_frame C.jet_secp_wrapper_run C.jet_secp_linkage C.jets_secp C.jet_sx_mem.
+Require Import C.jet_frame_constructible C.jet_secp_scalar_lambda_frame_state
+  C.jet_secp_scalar_lambda_initialized C.jet_secp_scalar_lambda_init_exists
+  C.jet_secp_canonical_scalar_lambda.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque canonical_scalar_multiply_lambda encode secp_ge Genv.init_mem jets_secp.prog.
+
+Theorem scalar_lambda_runs_from_initialized (value : Ty.tySem (Word 8)) env m0 :
+  scalar_lambda_initialized m0 ->
+  exists m bd bs bi bw edge mf,
+    scalar_lambda_initialized m /\
+    frame_fields_at m bs 0 bi edge 0 /\ frame_input_cells_at m bi edge 0 (encode value) /\
+    write_frame_at m bd 0 bw 0 256 256 /\
+    (forall b chunk ofs, Mem.valid_block m0 b -> Mem.load chunk m b ofs = Mem.load chunk m0 b ofs) /\
+    Clight2.eval_funcall secp_ge m (Internal f_simplicity_scalar_multiply_lambda)
+      [Vptr bd Ptrofs.zero;Vptr bs Ptrofs.zero;env] E0 mf (Vint Int.one) /\
+    finv m bd 0 bw 0 256 256 bi mf true (encode (@canonical_scalar_multiply_lambda Alg.CoreFunSem value)) /\
+    scalar_lambda_initialized mf /\
+    (forall b chunk ofs, Mem.valid_block m0 b -> Mem.load chunk mf b ofs = Mem.load chunk m0 b ofs).
+Proof.
+  intro HReady.
+  destruct (jet_frames_constructible m0 (encode value) 256)
+    as (m & bd & bs & bi & bw & edge & HBase & HAlign & HFields & HInput & HOutput & HSep & HOld).
+  { rewrite encode_length; change (256 <= 18446744073709551615); lia. }
+  { change (0 <= 256 <= 18446744073709551615); lia. }
+  assert (HReadyM : scalar_lambda_initialized m).
+  { eapply scalar_lambda_initialized_old_blocks; [exact HReady|].
+    intros b Hb; destruct (HOld b Hb) as (HV & _ & _ & _ & _ & HL & HP).
+    exact (conj HV (conj HL HP)). }
+  pose proof HInput as HReaderInput; rewrite encode_word in HReaderInput.
+  destruct (eval_secp_scalar_lambda_initialized env m bd 0 bs 0 bw 0 256 256 bi edge 0 value
+    HReadyM HOutput ltac:(lia) HBase HAlign HFields HReaderInput ltac:(lia)
+    ltac:(change (256 <= 18446744073709551615); lia)) as (mf & HC & HFinal & HF & HReadyF).
+  exists m,bd,bs,bi,bw,edge,mf; split; [exact HReadyM|].
+  split; [exact HFields|]. split; [exact HInput|]. split; [exact HOutput|]. split.
+  - intros b chunk ofs Hb; destruct (HOld b Hb) as (_ & _ & _ & _ & _ & HL & _); exact (HL chunk ofs).
+  - split; [exact HC|]. split; [exact HFinal|]. split; [exact HReadyF|].
+    intros b chunk ofs Hb; destruct (HOld b Hb) as (HV & ND & _ & NI & NW & HL & _).
+    rewrite (proj1 HF); [exact (HL chunk ofs)|exact HV|].
+    intros pos HPos; unfold extA, fext; intros [[HE|[HE|HE]] _]; contradiction.
+Qed.
+
+Theorem scalar_lambda_runs_from_actual_init (value : Ty.tySem (Word 8)) env :
+  exists mi m bd bs bi bw edge mf,
+    Genv.init_mem jets_secp.prog = Some mi /\ scalar_lambda_initialized mi /\
+    frame_fields_at m bs 0 bi edge 0 /\ frame_input_cells_at m bi edge 0 (encode value) /\
+    write_frame_at m bd 0 bw 0 256 256 /\
+    Clight2.eval_funcall secp_ge m (Internal f_simplicity_scalar_multiply_lambda)
+      [Vptr bd Ptrofs.zero;Vptr bs Ptrofs.zero;env] E0 mf (Vint Int.one) /\
+    finv m bd 0 bw 0 256 256 bi mf true (encode (@canonical_scalar_multiply_lambda Alg.CoreFunSem value)) /\
+    scalar_lambda_initialized mf /\
+    (forall b chunk ofs, Mem.valid_block mi b -> Mem.load chunk mf b ofs = Mem.load chunk mi b ofs).
+Proof.
+  destruct scalar_lambda_initialized_memory_exists as (mi & HI & HReady).
+  destruct (scalar_lambda_runs_from_initialized value env mi HReady)
+    as (m & bd & bs & bi & bw & edge & mf & HM & HFields & HInput & HOutput & HBefore & HC & HF & HReadyF & HAfter).
+  exists mi,m,bd,bs,bi,bw,edge,mf.
+  exact (conj HI (conj HReady (conj HFields (conj HInput (conj HOutput (conj HC (conj HF (conj HReadyF HAfter)))))))).
+Qed.
