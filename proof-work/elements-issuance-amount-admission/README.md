@@ -77,6 +77,22 @@ semantic input map is exactly407 plus that delta; no inherited proof is
 overwritten and no compiler object would be copied. This is a plan, not an
 installer or positive full acceptance. Main is unchanged by this planning.
 
+## Guarded integration implementation
+
+`integration.py` now implements the source-only plan, followed by the separate
+once-only actual-main415 driver `main-accept.py`. Installation requires both
+real successful terminal receipts: actual-main407 and isolated415. It refuses
+to install while either result is absent. Historical407 provenance is checked
+without requiring a successor main to remain407 after installation.
+
+The logged refusal suite88498 terminated with exit0: all27 unsafe or premature
+operations were rejected, including absent terminal receipts, duplicate
+installation/launch, index drift, changed provenance, compiler objects and
+inherited proof overwrites. `INTEGRATION-REVIEW.json` binds the three exact
+tools, frozen plan, command and terminal log. No positive installation or
+actual-main415 audit was exercised by those tests; no successful terminal
+full415 or actual-main407 result is claimed at this checkpoint.
+
 This proposed registry has118 missing public declarations and104 entries with
 the explicit `memcpy_model` condition. The every-jet goal and caller/domain,
 evaluator/library/fidelity/configuration obligations remain unfinished. These
