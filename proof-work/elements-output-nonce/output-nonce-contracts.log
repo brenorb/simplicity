@@ -1,0 +1,262 @@
+TAP_TYPE C.jet_elements_output_nonce_literal.native_hash_word_literal_matches
+jet_elements_output_nonce_literal.native_hash_word_literal_matches
+     : forall h : Digest.hash256,
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_elements_output_nonce_literal.native_hash_word_literal h) (Word.from_hash256 h)
+TAP_TYPE C.jet_elements_output_nonce_literal.encode_nonce_literal_matches
+jet_elements_output_nonce_literal.encode_nonce_literal_matches
+     : forall n : option jet_elements_prim.nonce,
+       @eq
+         (Ty.tySem
+            (Ty.Sum Ty.Unit
+               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.Word (S (S (S (S (S (S (S (S O)))))))))))) (jet_elements_asset_jets.encode_nonce n)
+         (jet_elements_output_nonce_literal.encode_nonce_literal n)
+TAP_TYPE C.jet_elements_output_nonce_literal.word_indexed_value_literal_matches
+@jet_elements_output_nonce_literal.word_indexed_value_literal_matches
+     : forall (A : Type) (B : Ty.Ty) (depth : nat) (enc literal : forall _ : A, Ty.tySem B) 
+         (values : list A) (a : Ty.tySem (Word.ToZ.obj (Word.WordToZ depth)))
+         (_ : forall x : A, @eq (Ty.tySem B) (enc x) (literal x)),
+       @eq (option (sum unit (Ty.tySem B)))
+         (@Some (sum unit (Ty.tySem B))
+            match
+              @List.nth_error A values (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ depth) a))
+              return (sum unit (Ty.tySem B))
+            with
+            | Some v => @inr unit (Ty.tySem B) (enc v)
+            | None => @inl unit (Ty.tySem B) tt
+            end) (@jet_elements_output_nonce_literal.word_indexed_value_literal A B depth literal values a)
+TAP_TYPE C.jet_elements_output_nonce_literal.output_nonce_literal_index_range
+jet_elements_output_nonce_literal.output_nonce_literal_index_range
+     : forall a : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       and (BinInt.Z.le BinNums.Z0 (jet_elements_sequence_literal.haskell_from_word (S (S (S (S (S O))))) a))
+         (BinInt.Z.lt (jet_elements_sequence_literal.haskell_from_word (S (S (S (S (S O))))) a)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO
+                                                                        (BinNums.xO
+                                                                           (BinNums.xO
+                                                                              (BinNums.xO
+                                                                                 (BinNums.xO
+                                                                                    (BinNums.xO
+                                                                                       (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))))
+TAP_TYPE C.jet_elements_output_nonce_literal.elements_output_nonce_literal_matches
+jet_elements_output_nonce_literal.elements_output_nonce_literal_matches
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum Ty.Unit
+                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Word.Word (S (S (S (S (S (S (S (S O))))))))))))))
+         (@jet_elements_asset_jets.elements_output_nonce_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (jet_elements_output_nonce_literal.elements_output_nonce_literal_spec a environment)
+TAP_TYPE C.jet_elements_output_nonce_literal.elements_output_nonce_literal_local_spec
+jet_elements_output_nonce_literal.elements_output_nonce_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_output_nonce
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit
+            (Ty.Sum Ty.Unit
+               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.txOutput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txo : jet_elements_prim.txOutput) =>
+             jet_elements_asset_jets.nonce_rep m b ofs (jet_elements_prim.txoNonce txo))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         jet_elements_output_nonce_literal.elements_output_nonce_literal_spec
+TAP_DEF C.jet_elements_output_nonce_literal.native_hash_word_literal
+jet_elements_output_nonce_literal.native_hash_word_literal =
+fun h : Digest.hash256 =>
+jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+  (jet_haskell_hash_word.haskell_word256_integer
+     (jet_haskell_hash_word.haskell_be256_run (Digest.hash256_to_bytelist h)
+        (jet_haskell_hash_word.haskell_word256_from_integer BinNums.Z0)))
+     : forall _ : Digest.hash256, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments jet_elements_output_nonce_literal.native_hash_word_literal h
+TAP_DEF C.jet_elements_output_nonce_literal.nonce_payload_literal
+jet_elements_output_nonce_literal.nonce_payload_literal =
+fun n : jet_elements_prim.nonce =>
+match
+  n
+  return
+    (Ty.tySem
+       (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+          (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+with
+| inl p =>
+    match
+      p
+      return
+        (Ty.tySem
+           (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+    with
+    | pair odd w =>
+        @inl (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+          (prod
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A B => sum (tySem A) (tySem B)
+                 | Ty.Prod A B => prod (tySem A) (tySem B)
+                 end)
+                ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                    match n0 return Ty.Ty with
+                    | O => X
+                    | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                    end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A B => sum (tySem A) (tySem B)
+                 | Ty.Prod A B => prod (tySem A) (tySem B)
+                 end)
+                ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                    match n0 return Ty.Ty with
+                    | O => X
+                    | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                    end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+          (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+             match odd return (sum unit unit) with
+             | true => @inr unit unit tt
+             | false => @inl unit unit tt
+             end (jet_elements_output_nonce_literal.native_hash_word_literal w))
+    end
+| inr h =>
+    @inr
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Ty.Sum Ty.Unit Ty.Unit))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+      (jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+         (jet_haskell_hash_word.haskell_integer_hash256 (Digest.hash256_to_bytelist h)))
+end
+     : forall _ : jet_elements_prim.nonce,
+       Ty.tySem
+         (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments jet_elements_output_nonce_literal.nonce_payload_literal n
+TAP_DEF C.jet_elements_output_nonce_literal.encode_nonce_literal
+jet_elements_output_nonce_literal.encode_nonce_literal =
+fun n : option jet_elements_prim.nonce =>
+match
+  n
+  return
+    (Ty.tySem
+       (Ty.Sum Ty.Unit
+          (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+             (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+with
+| Some v =>
+    @inr unit
+      (Ty.tySem
+         (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (jet_elements_output_nonce_literal.nonce_payload_literal v)
+| None =>
+    @inl unit
+      (sum
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) tt
+end
+     : forall _ : option jet_elements_prim.nonce,
+       Ty.tySem
+         (Ty.Sum Ty.Unit
+            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments jet_elements_output_nonce_literal.encode_nonce_literal n
+TAP_DEF C.jet_elements_output_nonce_literal.word_indexed_value_literal
+jet_elements_output_nonce_literal.word_indexed_value_literal =
+fun (A : Type) (B : Ty.Ty) (depth : nat) (enc : forall _ : A, Ty.tySem B) (values : list A)
+  (a : Ty.tySem (Word.Word depth)) =>
+@Some (sum unit (Ty.tySem B))
+  match
+    @List.hd_error A (@List.skipn A (BinInt.Z.to_nat (jet_elements_sequence_literal.haskell_from_word depth a)) values)
+    return (sum unit (Ty.tySem B))
+  with
+  | Some v => @inr unit (Ty.tySem B) (enc v)
+  | None => @inl unit (Ty.tySem B) tt
+  end
+     : forall (A : Type) (B : Ty.Ty) (depth : nat) (_ : forall _ : A, Ty.tySem B) (_ : list A)
+         (_ : Ty.tySem (Word.Word depth)), option (Ty.tySem (Ty.Sum Ty.Unit B))
+
+Arguments jet_elements_output_nonce_literal.word_indexed_value_literal {A}%type_scope {B}%ty_scope 
+  depth%nat_scope enc%function_scope values%list_scope a
+TAP_DEF C.jet_elements_output_nonce_literal.elements_output_nonce_literal_spec
+jet_elements_output_nonce_literal.elements_output_nonce_literal_spec =
+fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+@jet_elements_output_nonce_literal.word_indexed_value_literal jet_elements_prim.txOutput
+  (Ty.Sum Ty.Unit
+     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (S (S (S (S (S O)))))
+  (fun txo : jet_elements_prim.txOutput =>
+   jet_elements_output_nonce_literal.encode_nonce_literal (jet_elements_prim.txoNonce txo))
+  (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment)) a
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
+       option
+         (Ty.tySem
+            (Ty.Sum Ty.Unit
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+
+Arguments jet_elements_output_nonce_literal.elements_output_nonce_literal_spec a environment
