@@ -75,9 +75,18 @@ and recursive kernel check. The completed `CHECKED.json`, `ast.log` and
 `kernel.log` record actual terminal success, not just a launch or a stale
 object cache. All sixteen whole-C endpoints were recursively kernel-checked.
 
-Then independently review the proof evidence, raw primitive projection, exact
-whole-C contracts and the canonical Haskell stream/composite programs before
-normal registration. The prior tapleaf source review already checks the
-selected SHA helpers and literal word/hash conversions, but does not itself
-review the new stream/composite dispatches and loop bodies. Preserve that
-distinction. No new coverage, full acceptance or all-caller result is claimed.
+The independent proof/source/evidence review now also completed with exit
+zero (handle78001). `EVIDENCE-REVIEW.json` binds the exact sources, fresh
+objects, complete reporting drivers/types/definitions, per-result assumptions,
+original-C AST regeneration, recursive kernel outcome and review tools. The
+canonical source check and 328 read-only source-corruption tests passed,
+together with the separate proof-evidence corruption tests. The selected
+stream/composite programs, primitive encodings and edge cases are documented
+in `../bitcoin-raw-program-source/README.md`; they reuse the prior reviewed
+TapLeaf/SHA/word/hash dependencies without claiming host-library equivalence.
+
+Next: isolated normal registration of this three-module closure (these two
+modules and `C.jet_bitcoin_tapleaf_literal`) over the checked420 candidate,
+independent delta review, then real full acceptance. Do not change main proof
+inputs while actual-main420 handle27494 is running. No new coverage, full
+acceptance or all-caller result is claimed by this development checkpoint.
