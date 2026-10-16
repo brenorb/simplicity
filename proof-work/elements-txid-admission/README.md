@@ -1,9 +1,10 @@
 # Transaction-ID getter: reviewed normal418 and combined audit boundary
 
-Proposed registry: **418/533**. This folder adds one transaction_id endpoint
+Fully accepted isolated candidate: **418/533**. This folder adds one transaction_id endpoint
 over the independently reviewed417 token candidate. Main remains the guarded
-415 source tree; its separate actual-main audit is47915. No418 installation
-or successful full418 audit is claimed here.
+415 source tree; its separate actual-main audit47915 has passed. Combined
+isolated418 audit91871 has also passed. Main installation and actual-main418
+acceptance are still separate operations at this checkpoint.
 
 Private tree: `/private/tmp/jet-txid-admission.gvp5bmft`.
 Source fingerprint:
@@ -67,10 +68,16 @@ launch guards, the once-only combined418 audit has launched as **91871**.
 acceptance/installation, committed driver and full `check-jets.sh --accept`
 command. Its log is
 `/private/tmp/jet-txid-admission.gvp5bmft/acceptance.log`.
-This is a launch, not successful terminal full acceptance. Actual-main415
-continues independently as47915. Poll those existing handles; do not restart
-either audit, change their semantic inputs or install418 until both full
-results actually succeed.
+Audit91871 has now terminated with exit0 after4081.428seconds, ending in the
+complete final acceptance marker. Build, recursive kernel check on1056 modules,
+reviewed assumptions/contracts, negative tests and all five regenerated ASTs
+passed. `ACCEPTANCE.json`, `TERMINAL.json` and the complete `acceptance.log`
+are archived here. `ACCEPTANCE-CHECKPOINT.json` independently binds the source,
+terminal receipt/log/driver, both completed review chains, exact22-source plan
+and the real successful actual-main415 receipt. The log SHA-256 is
+`80fab176fae475c93e69eb2e656b57d27ec2843037661e1e0131d0311f1ffc9b`.
+Both full prerequisites for guarded418 integration are satisfied. This
+checkpoint does not itself install418 or claim actual-main418 acceptance.
 
 The proposed registry has115 missing declarations and104 entries with an
 explicit `memcpy_model` condition. Caller/domain, evaluator/library/fidelity
