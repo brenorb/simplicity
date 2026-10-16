@@ -1,4 +1,4 @@
-# Elements transaction_id: checked proof, source admission pending
+# Elements transaction_id: checked proof and selected source review
 
 Private tree: `/private/tmp/jet-elements-txid.d7yt0o01`.
 Fingerprint:
@@ -20,17 +20,16 @@ the generated Elements AST check passed, and recursive `coqchk` passed. The
 pointwise conversion uses inherited functional extensionality; the C endpoint
 has exactly the six inherited Coq/CompCert assumptions. Neither is claimed
 axiom-free. `RUN.json`, `CHECKED.json` and archived logs bind these facts;
-`review.py PRIVATE_TREE` independently verifies the proof checkpoint.
+`review.py PRIVATE_TREE` independently verifies the proof and source checkpoint.
 
 Two initial compiler errors were an absent import for `hash_getter_rep` and a
 missing integer scope. They were corrected before the successful fresh check;
 no admissions or unchecked casts were used.
 
-## Remaining work before any coverage claim
+## Selected canonical serialization review
 
-The target still uses the existing Coq port's `txid`, rather than an independently
-reviewed literal serialization target. Review the complete transitive selected
-source correspondence, not only `interpret TransactionId`:
+The target uses the existing Coq port's `txid`. Its complete selected source
+correspondence has now been reviewed, not only `interpret TransactionId`:
 
 - Haskell `specificationTransaction TransactionId`, primitive type/name,
   `encodeHash`, `element` and the logical environment transaction projection.
@@ -45,8 +44,24 @@ source correspondence, not only `interpret TransactionId`:
 - Exact Coq definitions and whole-C contracts, with mutation tests for routing,
   byte order, flags, varints, tags, zero cases, representation and framing.
 
-Then complete independent source/evidence review and normal delta preparation
-over the reviewed417 candidate. Preserve all inherited records and dependencies,
-run full acceptance and guarded source-only integration. No source-admission
-receipt, normal registration, coverage increment or full acceptance is claimed
-by this folder. The every-jet goal remains active.
+`check-source.py` checks the complete Haskell no-witness serializer, all18
+selected Coq serialization/hash definitions, the packed-field/native-nonce and
+four-limb decoder dependencies, represented transaction/script bounds, the
+actual C getter body, exact unchanged representation and both whole-C contracts.
+Source comparison does not prove a Haskell compiler, host serialization/crypto
+library or C environment-constructor theorem. It adds no logical assumptions.
+
+Independent finish30226 terminated with exit0:63 selected source corruptions
+and36 proof/evidence/object/kernel-scope corruptions were rejected. The source
+fixtures are confined to the selected serializer where expressions have
+unrelated textual look-alikes. `EVIDENCE-REVIEW.json` binds the five tools,
+completed proof receipts and all three terminal source/evidence commands/logs.
+No Coq proof or accepted source changed during this review.
+
+## Remaining work before any coverage claim
+
+Normal delta preparation is tracked in `../elements-txid-admission/` over the
+reviewed417 candidate. Preserve all inherited records and dependencies, run
+full acceptance and guarded source-only integration. No normal registration,
+coverage increment, full acceptance, caller cache construction or formal host
+library equivalence is claimed by this folder. The every-jet goal remains active.
