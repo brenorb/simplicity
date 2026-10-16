@@ -90,6 +90,16 @@ exact reviewed combined source identity and original-index preservation;
 distinct actual-main407 acceptance follows installation. No installer or
 actual-main407 audit has been executed.
 
+`prepare-integration.py` has now completed read-only aggregate planning during
+the existing audit (94631, exit0). `INSTALLATION-PLAN.json` binds exact401/407
+source identities, original staging, all four review hashes, before/after
+hashes and the28 additive targets: seven metadata files, four scripts, eight
+guards and nine new proof sources. The candidate's entire semantic input map
+equals baseline401 plus exactly that delta. No inherited proof is overwritten,
+no compiler object copied, and no main input changed. This is a plan, not an
+installer or positive acceptance; actual-main401 and combined407 success remain
+mandatory before any future source integration.
+
 The proposed407 registry retains104 explicit `memcpy_model` conditions and126
 missing public declarations. The full every-jet goal, caller/domain/evaluator,
 library/fidelity and configuration obligations remain unfinished. These
