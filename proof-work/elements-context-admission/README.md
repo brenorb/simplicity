@@ -64,3 +64,14 @@ ASTs. Its real terminal is in `../elements-stream-admission/ACCEPTANCE.json`.
 Require that actual successful terminal, the completed normal447 review and a real full447 audit before a later
 guarded source-only installation. Keep main420 and the443/447 source inputs
 frozen while the corresponding controllers run; do not restart from silence.
+
+`accept.py` requires the exact real443 terminal/log/unchanged review chain and
+the recorded twelve-stage447 review before launching the full command. It also
+checks both again at completion. Read-only `test-accept.py` passed24 missing-
+terminal, bad-exit, provenance, scope and review-evidence corruptions;
+`FULL-AUDIT-PREFLIGHT.json` records its real exit status and captured stdout.
+The full447 controller is now running under handle50964; its candidate log is
+`/private/tmp/jet-elements-context-admission.3e5uce7s/acceptance.log`.
+Wait for that controller's actual terminal and postchecks before claiming
+full447 success or changing main420. `inputs_hash` and subsequent proof work
+live in distinct private trees and are not covered by this audit.
