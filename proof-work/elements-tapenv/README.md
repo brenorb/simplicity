@@ -27,10 +27,19 @@ functional extensionality, and the C endpoint has exactly the six inherited
 assumptions. The 96-byte SHA length bound is discharged. No new axiom,
 desired-execution premise or kernel bypass is introduced.
 
-Canonical-source and independent evidence reviews, recursive kernel/AST checks,
-and normal registration remain. The `kernel` subcommand is available but not
-yet claimed as launched or successful here. This is a compiled development
-checkpoint, not accepted extra coverage or full normal acceptance.
+Canonical-source review and38 read-only corruption fixtures passed, recorded
+in `../elements-tapenv-source/`. The once-only recursive-kernel/AST phase was
+launched under handle49735:
+
+```sh
+python3 -B proof-work/elements-tapenv/check.py kernel /private/tmp/jet-elements-tapenv.blTXWMDA
+```
+
+`KERNEL-RUN.json` is a launch, not a successful terminal result. Poll the
+existing handle; do not restart from silence or an absent `CHECKED.json`.
+Independent evidence review and normal registration/admission also remain.
+This is not accepted extra coverage or full normal acceptance. The separate
+private443 full audit and main420 source/index checkpoint remain frozen.
 
 The native Haskell `Schnorr.PubKey` wraps `Word256`; `encodeKey` uses its integer
 conversion. This getter/program does not deserialize arbitrary bits as a field
