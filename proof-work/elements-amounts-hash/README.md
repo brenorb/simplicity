@@ -52,8 +52,13 @@ the regenerated Elements AST match, recursive kernel success, exact inherited
 global axiom profile, no unsafe kernel flags, and preserved private/main/index
 identities. The two public endpoints retain six inherited assumptions;
 the larger15-axiom imported-library context is not their dependency set.
-Independent evidence review and normal registration remain separate; this
-isolated checked package adds no accepted coverage by itself.
+`EVIDENCE-REVIEW.json` now binds the independent reconciliation and actual
+negative-test exit zero:57 active proof/kernel/command/source/report/object/
+dependency corruptions were rejected. The first negative run stopped on a
+misspelled reporting-driver fixture path; only that fixture path was corrected
+before the complete successful run. No proof or allowance was changed.
+Normal registration remains separate; this isolated checked package adds no
+accepted coverage by itself.
 
 ```sh
 python3 -B proof-work/elements-amounts-hash/check.py /private/tmp/jet-elements-amounts-hash.66_lhzdf
