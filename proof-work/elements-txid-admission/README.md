@@ -49,7 +49,17 @@ four guards and seven new proofs. No inherited proof is overwritten, no
 compiler object copied and no unrelated source changed. A future guarded418
 installer must wait for real successful actual-main415 AND isolated418
 results, then run separate actual-main418 acceptance. This plan is not an
-installation; no418 installer/actual-main driver is implemented yet.
+installation.
+
+The source-only418 installer and separate once-only actual-main418 driver are
+now implemented. Logged test58125 terminated with exit0: all27 premature or
+unsafe integration/launch conditions were rejected, including missing full
+receipts, duplicate operations, altered provenance/index, compiler objects,
+escaping targets and inherited proof overwrites. No writes or acceptance
+subprocess were attempted. `INTEGRATION-REVIEW.json` binds the exact tools,
+frozen22-source plan and terminal log. Historical415 provenance is checked
+without requiring a successor main to remain415. No positive418 installation
+or actual-main418 acceptance was exercised or claimed by those tests.
 
 The proposed registry has115 missing declarations and104 entries with an
 explicit `memcpy_model` condition. Caller/domain, evaluator/library/fidelity
