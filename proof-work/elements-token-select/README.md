@@ -36,3 +36,8 @@ Next, preserve the initialization boundary explicitly while composing frame
 writes, then discharge it from fresh allocation and the actual free. Do not
 weaken the final write-effect contract, assume local-memory preservation, or
 count a branch theorem as the requested jet-equivalence endpoint.
+
+Later progress: `../elements-token-amount-complete/` now contains the checked
+complete helper, wrappers and literal endpoints. The archived receipt here
+still certifies only its original selection/armed stage. Normal registration
+and full normal acceptance of the complete token endpoints remain outstanding.
