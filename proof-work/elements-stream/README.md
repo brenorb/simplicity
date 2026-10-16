@@ -80,7 +80,20 @@ read-only corruptions rejected; its exact scope and receipt are in
 `../elements-stream-source/`. It establishes selected source correspondence,
 not formal host-runtime equivalence or C cache-builder correctness.
 
-Next: independently bind the complete proof/kernel/source evidence, then
-normal registration/review/full acceptance over the eventual accepted436
-successor. No normal coverage, full acceptance or all-caller construction
-result is claimed by this development checkpoint.
+The independent combined evidence review now also completed with exit zero
+(handle9780). `EVIDENCE-REVIEW.json` binds both proof phases, all fresh sources
+and objects, exact reporting drivers and full reports, the36 per-result
+dependency sets, AST regeneration/kernel terminal and selected canonical
+source-review receipt. It rejected73 read-only evidence corruptions and
+reconstructed the original Reader-only phase's fingerprint from actual
+immutable bytes; adding the endpoint module did not rewrite that checkpoint.
+
+Next: normal registration/review/full acceptance over the reviewed436
+successor. The private436 audit (handle65786) is still running, and main
+remains frozen at its now fully accepted420 source state. A later combined
+443 candidate can use completed420 objects plus source-only436 metadata/
+proof additions, never copying the live436 audit's mutable objects. Require
+the relevant real full-audit terminals and an exact reviewed source-only
+installation boundary before integration. No normal coverage, full
+acceptance or all-caller construction result is claimed for these seven jets
+by this development checkpoint.
