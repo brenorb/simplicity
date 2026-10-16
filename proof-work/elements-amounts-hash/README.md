@@ -41,10 +41,15 @@ coordinates use the existing packed-field projection interface; no assertion
 that every arbitrary word is a valid field element is added. No execution,
 output or framing conclusion is moved into a new final-theorem premise.
 
+Canonical source review completed in `../elements-amounts-hash-source/`, with
+actual positive/negative exits zero and139 active corruptions rejected. Its
+fixed model includes both complete endpoint statements, the original C getter
+bodies, the literal serializers, primitive pairing and canonical Haskell loops.
+
 The once-only kernel/AST phase was launched under session62838. Inspect that
-actual handle and terminal receipt before any restart. Canonical source review,
-recursive kernel completion, evidence review and normal registration remain
-distinct from compilation; no accepted coverage is added by `RUN.json`.
+actual handle and terminal receipt before any restart. Recursive kernel
+completion, evidence review and normal registration remain distinct from
+compilation/source comparison; no accepted coverage is added by `RUN.json`.
 
 ```sh
 python3 -B proof-work/elements-amounts-hash/check.py /private/tmp/jet-elements-amounts-hash.66_lhzdf
