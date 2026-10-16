@@ -33,10 +33,11 @@ parameters. The explicit `memcpy_model` premise is preserved for17 endpoints;
 only the compression endpoint has no extra libc premise. No new axiom or
 allowlist change is made.
 
-The once-only recursive kernel/SHA-AST controller is running under handle5964;
-`KERNEL-RUN.json` binds its actual launch. Poll that existing handle, preserve
-the private source/object tree and do not restart from silence or a missing
-terminal receipt. Canonical-source/transitive-port review, independent
+The once-only recursive kernel/SHA-AST controller completed with exit zero
+under handle5964. `KERNEL-RUN.json` binds its actual launch; `CHECKED.json`,
+`ast.log` and `kernel.log` record terminal success for the original sources
+and objects. Preserve that evidence; do not restart the completed phase.
+Canonical-source/transitive-port review, independent
 evidence review and normal admission remain. These are adapters
 of existing execution proofs, not18 new execution derivations. No extra
 coverage, full acceptance, runtime-optimized dispatch support or completion of
