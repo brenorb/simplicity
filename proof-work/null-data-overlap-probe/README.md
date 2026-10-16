@@ -5,6 +5,12 @@ This diagnostic tests a scope distinction exposed while proving
 not a Coq/CompCert execution counterexample or an informal substitute for one.
 No implementation/specification/header was edited to make this test pass.
 
+Follow-up: `../null-data-overlap-validation/` now reproduces the discrepancy
+using the real transaction/taproot/txEnv builders and parser, with eight
+sanitizer-clean native configurations and16 passing disjoint controls. That
+removes the manual-environment limitation of this original probe; it still
+does not establish a formal Clight or evaluator-valid counterexample.
+
 ## Observation
 
 The `C/jets.h` jet interface lists valid source/destination frames and non-null
