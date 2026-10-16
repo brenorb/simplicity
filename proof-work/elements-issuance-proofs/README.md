@@ -29,7 +29,10 @@ Its explicit separated cache/frame relation places the computed raw hash at
 transaction offset536 in the760-byte transaction structure, checked against
 the generated layout by the proof.
 
-Recursive kernel/AST verification and canonical-source/evidence review remain.
+Recursive kernel/Elements-AST verification completed with exit zero under
+handle8870. `CHECKED.json` and the exact AST/kernel logs bind that result.
+Canonical-source review and43 mutations also passed in
+`../elements-issuance-proofs-source/`. Independent evidence review remains.
 Actual caller cache construction, formal host-library verification, normal
 registration and full acceptance are not claimed. This proof is not part of
 the separate447 candidate or its full audit.
