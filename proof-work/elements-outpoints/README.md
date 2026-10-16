@@ -34,7 +34,15 @@ initial proof-side312 assumption (that is the different inputUTXOsHash field);
 the checked theorem uses216. This was not a C/specification mismatch. Actual
 caller cache construction and host-library verification are not claimed.
 
-Remaining: recursive kernel/Elements-AST checks, canonical-source and
-independent evidence reviews, then normal registration/admission. This is a
-compiled C-to-program checkpoint, not accepted extra coverage, full normal
-acceptance or completion of the every-jet goal.
+The once-only recursive-kernel/Elements-AST phase was launched under handle41935:
+
+```sh
+python3 -B proof-work/elements-outpoints/kernel.py /private/tmp/jet-elements-outpoints.W5XLYp4T
+```
+
+`KERNEL-RUN.json` is a launch, not success. Poll the existing handle; do not
+restart from an observation timeout or missing `CHECKED.json`. Canonical-source
+and independent evidence reviews, then normal registration/admission, also
+remain. This is not accepted extra coverage, full normal acceptance or
+completion of the every-jet goal. Main420 and the isolated443 full audit stay
+frozen and separate; neither's inputs or objects were changed by this work.
