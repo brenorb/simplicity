@@ -100,6 +100,17 @@ no compiler object copied, and no main input changed. This is a plan, not an
 installer or positive acceptance; actual-main401 and combined407 success remain
 mandatory before any future source integration.
 
+The guarded `integration.py` and separate once-only `main-accept.py` are now
+implemented. Read-only tests86836 terminated with exit0: the real aggregate
+plan and historical actual-main401 receipt were checked, and27 refusal cases
+passed (missing successful receipts, duplicate installation/launch, unsafe or
+object targets, inherited overwrite, index drift, and altered review/plan
+provenance). `INTEGRATION-REVIEW.json` binds the exact tools, plan and captured
+terminal stdout. These tests neither install anything nor invent successful
+407 acceptance. The postchecker composes immutable historical evidence without
+running an obsolete exact-main401 check against a successor tree. Installation
+still requires real combined407 success, and actual-main407 follows separately.
+
 Actual-main401 audit92989 and isolated402 audit26900 have now both terminated
 with exit0 and complete acceptance markers. Their receipts/log hashes and
 driver/source/installation bindings were independently verified, and full logs
