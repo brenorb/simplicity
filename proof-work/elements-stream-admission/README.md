@@ -29,10 +29,11 @@ C endpoints. No new assumption or allowlist change is introduced.
 The initial independent delta review passed: all8977 inherited contract
 records are byte-identical, all5888 inherited dependency sets are unchanged,
 and all46 added full type/definition records are complete without compact/deep
-supplements. The six-stage recorded review is now running under the handle
-saved in the task: coverage, coverage-corruption fixtures, normal contract
-comparison, selected source checks, their203 corruptions, and normal evidence
-corruptions. Poll its existing handle; do not restart from a missing receipt.
+supplements. The six-stage recorded review completed with all exit statuses
+zero: coverage, coverage-corruption fixtures, normal contract comparison,
+selected source checks, their203 corruptions, and40 normal evidence
+corruptions. `REVIEW.json` and the six exact logs record this separately from
+the pending full acceptance.
 
 The three runtime guard/model files are copied byte-identically from
 `../elements-stream-source/`. The fixed `.py` model participates in the normal
@@ -63,3 +64,4 @@ all real full-audit terminals, unchanged original stage and stopped baseline
 controllers before any write. No main proof input, live audit object, inherited
 proof, C/Haskell source or original stage was changed by this preparation.
 No full443 acceptance, main443 installation or every-jet completion is claimed.
+
