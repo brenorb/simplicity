@@ -18,24 +18,29 @@ parser relation. All fresh dependency sets equal the checked proof batches;
 the complete C endpoint has only the six inherited assumptions. Full build,
 deep/compact type-definition and assumption reports are archived here.
 
-This is **not full acceptance**. The independent normal review completed
+The **isolated419 full acceptance passed**, with controller exit zero after
+4117 seconds. This is not actual-main acceptance or installation.
+The independent normal review completed
 successfully: all six stages exited zero, preserving 8,545 inherited contract
 records and 5,601 inherited dependency sets, and rejecting 32 normal-evidence
 corruptions. All 247 new type/definition records have untruncated deep reports;
 nine compact printer ellipses have checked exact supplements. All review
 commands, logs, source/object/tool identities were independently postchecked.
 
-The full isolated audit is now running as the recorded
+The full isolated audit completed as the recorded
 `bash check-jets.sh --accept`, without update/skip flags. Its fingerprint is
 `166ee74d09d2221332e56f36255fc3631afc4e96d0bedf65c7f8037cfba48eb6`.
 `AUDIT-RUN.json` binds the completed review, selected-source review, predecessor
 actual-main acceptance, exact command and original stage identity. It is a
-launch record, not success evidence. Keep candidate/main C/Haskell inputs
-frozen and poll the existing run rather than starting another.
+launch record; `TERMINAL.json`, `ACCEPTANCE.json` and the archived
+`acceptance.log` now record and bind the real successful terminal. Its log
+SHA-256 is `38eb4c251c29dff4c697757d98ca590ef6ce5c977162adf99d86855c74a28e36`.
+Keep candidate/main C/Haskell inputs frozen while the combined420 controller
+still validates its baseline; do not restart either audit.
 
-Neither installation nor a 419th accepted main jet is claimed. Actual terminal
-`ACCEPTANCE.json` evidence is still required, followed by guarded installation
-and independent actual-main acceptance. Main remains accepted at 418/533.
+Neither installation nor a 419th accepted main jet is claimed. Continue with
+the guarded combined420 installation only after its own terminal acceptance,
+then independent actual-main acceptance. Main remains accepted at 418/533.
 
 ## Proof and source boundaries
 
