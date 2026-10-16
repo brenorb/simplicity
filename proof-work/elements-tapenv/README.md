@@ -28,18 +28,19 @@ assumptions. The 96-byte SHA length bound is discharged. No new axiom,
 desired-execution premise or kernel bypass is introduced.
 
 Canonical-source review and38 read-only corruption fixtures passed, recorded
-in `../elements-tapenv-source/`. The once-only recursive-kernel/AST phase was
-launched under handle49735:
+in `../elements-tapenv-source/`. The once-only recursive-kernel/AST phase
+completed with exit zero under handle49735:
 
 ```sh
 python3 -B proof-work/elements-tapenv/check.py kernel /private/tmp/jet-elements-tapenv.blTXWMDA
 ```
 
-`KERNEL-RUN.json` is a launch, not a successful terminal result. Poll the
-existing handle; do not restart from silence or an absent `CHECKED.json`.
-Independent evidence review and normal registration/admission also remain.
-This is not accepted extra coverage or full normal acceptance. The separate
-private443 full audit and main420 source/index checkpoint remain frozen.
+`CHECKED.json`, `KERNEL-RUN.json`, `ast.log` and `kernel.log` bind the actual
+recursive kernel and Elements AST-regeneration success. Independent evidence
+review completed separately; its receipt/log are a later checkpoint.
+Normal registration/admission remains. This is not accepted extra coverage or
+full normal acceptance. The separate private443 full audit and main420
+source/index checkpoint remain frozen.
 
 The native Haskell `Schnorr.PubKey` wraps `Word256`; `encodeKey` uses its integer
 conversion. This getter/program does not deserialize arbitrary bits as a field
