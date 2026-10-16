@@ -1,0 +1,39 @@
+# Elements tap_env_hash: literal program composition and original C getter
+
+Private tree: `/private/tmp/jet-elements-tapenv.blTXWMDA`.
+Seed: completed seven-stream-getter Elements proof tree
+`/private/tmp/jet-elements-stream.1zVQb2CU`. The compiled tapleaf dependency
+was copied as source only and recompiled here. No object from a running kernel
+or full-audit tree was copied; main Coq inputs/stage stay unchanged.
+
+`C.jet_elements_tap_env_hash_program` defines the original program composition:
+initialize SHA, absorb the tapleaf hash, then the tappath hash and `InternalKey`,
+and finalize. It reuses the checked generic Reader and SHA results, the literal
+Elements tapleaf semantics, and the checked 8-bit tappath program semantics.
+The final theorem covers actual `f_simplicity_tap_env_hash` execution in
+`elements_ge`, with the computed value in the explicit taproot cache/frame
+relation at offset72. It does not assume the desired C execution/output.
+
+The complete fresh dependency/module compilation and type/assumption reporting
+phase passed:
+
+```sh
+python3 -B proof-work/elements-tapenv/check.py compile /private/tmp/jet-elements-tapenv.blTXWMDA
+```
+
+`RUN.json` and exact logs record all three new results and two definitions.
+The parametric result is closed, the pure semantic result uses inherited
+functional extensionality, and the C endpoint has exactly the six inherited
+assumptions. The 96-byte SHA length bound is discharged. No new axiom,
+desired-execution premise or kernel bypass is introduced.
+
+Canonical-source and independent evidence reviews, recursive kernel/AST checks,
+and normal registration remain. The `kernel` subcommand is available but not
+yet claimed as launched or successful here. This is a compiled development
+checkpoint, not accepted extra coverage or full normal acceptance.
+
+The native Haskell `Schnorr.PubKey` wraps `Word256`; `encodeKey` uses its integer
+conversion. This getter/program does not deserialize arbitrary bits as a field
+element or prove curve validity. Host-library correspondence and actual caller
+cache establishment remain separate obligations; source review must preserve
+this native-word boundary.
