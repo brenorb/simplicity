@@ -115,3 +115,34 @@ without writing candidate/main sources. A later installer must require actual
 combined420 terminal acceptance, unchanged reviewed identities and an exact
 plan recheck; the current plan explicitly claims neither acceptance nor
 installation. Keep the live audit inputs frozen.
+
+## Guarded installer (prepared, not run)
+
+`integration.py` implements the once-only source-only installation of those
+66 targets. It requires the real combined420 acceptance, exact reviewed plan,
+actual418 acceptance, unchanged review/source/object/log/tool identities, and
+both frozen-baseline audit controllers to have stopped. Controller liveness
+is checked from the process table, not inferred from a receipt or lock file.
+The419 audit need not succeed for420 to be valid, but its controller must no
+longer be validating main418 when integration begins.
+
+`test-integration.py` passed 20 premature/live-controller/unsafe-plan cases,
+then successfully reconstructed the real historical418 acceptance and both
+reviewed deltas. This was read-only: no positive acceptance was synthesized,
+no installation was attempted, and main/index remained unchanged. Its output
+is archived in `integration-tests.log`.
+
+After actual combined420 acceptance and controller completion:
+
+```sh
+python3 -B proof-work/scalar-lambda-admission/integration.py install /private/tmp/jet-scalar-lambda-admission.ebjcqzyk
+python3 -B proof-work/scalar-lambda-admission/main-accept.py
+```
+
+The installer archives the exact `DELTA.patch`, full isolated acceptance log
+and installation ledger. Its postcheck reconstructs immutable predecessor
+history instead of incorrectly asking installed main420 to still be418.
+`main-accept.py` then performs a fresh full actual-main audit with no skip or
+update flags, binds the original staged patch, and records the real terminal.
+Keep its inputs frozen and poll its returned handle. Neither a plan nor a
+successful isolated audit alone establishes actual-main420 acceptance.
