@@ -44,14 +44,25 @@ the named startup state. Its `SOURCE-REVIEW.json` binds the actual successful
 kernel receipt and preserves the host-library, libc and build boundaries.
 The older `CHECKED.json` retains its historical source-review-false flag;
 the later source receipt records the completed phase without rewriting it.
-Independent evidence review and normal admission remain. These are adapters
+Independent evidence review now passed under handle29836, including117
+read-only corruptions of receipts, commands, reports, source/objects,
+dependency boundaries and all three unsafe kernel-summary flags. The latter
+tests alter both log copies and the recorded hash consistently, so rejection
+comes from parsing the actual unsafe summary, not merely a copy mismatch.
+`EVIDENCE-REVIEW.json` and `evidence-tests.log` bind the result. The historical
+review reads the original main input bytes in the private tree rather than
+consulting today's checkout. Normal admission remains. These are adapters
 of existing execution proofs, not18 new execution derivations. No extra
 coverage, full acceptance, runtime-optimized dispatch support or completion of
 the every-jet goal is claimed. Eventual registration must include the startup
 support dependency closure; source files being present is not build coverage.
 
-`report-support.py` is running under handle89405 against this same completed
-source/object tree. It reports the actual nine-module dependency closure's
-types, definitions and assumptions for eventual normal admission; it does
-not modify the Coq source tree or claim new coverage. Poll that handle before
-starting any other writer of the same report logs.
+`report-support.py` completed with exit zero under handle89405 against this
+same completed source/object tree. `SUPPORT-REPORT.json` and two exact logs
+report the actual nine-module dependency closure:104 results,15 definitions,
+12 closed results and no assumption beyond the same inherited eight. These
+support modules are not yet in the normal449 manifests/public registry.
+The complete admission delta therefore needs123 results (104 support plus19
+adapter/nonvacuity results),15 definitions and ten module registrations,
+not just18 endpoint names. None of the reporting changed the Coq source tree
+or added accepted coverage. See `CONTINUATION.md` before admission.
