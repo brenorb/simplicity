@@ -1,0 +1,2219 @@
+--- a/Coq/_CoqProject
++++ b/Coq/_CoqProject
+@@ -1256,3 +1256,6 @@
+ C/jet_elements_legacy_lock_local.v
+ C/jet_elements_legacy_check.v
+ C/jet_elements_output_nonce_literal.v
++C/jet_elements_asset_literal.v
++C/jet_elements_amount_literal.v
++C/jet_elements_issuance_amount_literal.v
+--- a/Coq/_CoqProject.jets
++++ b/Coq/_CoqProject.jets
+@@ -1247,3 +1247,6 @@
+ C/jet_elements_legacy_lock_local.v
+ C/jet_elements_legacy_check.v
+ C/jet_elements_output_nonce_literal.v
++C/jet_elements_asset_literal.v
++C/jet_elements_amount_literal.v
++C/jet_elements_issuance_amount_literal.v
+--- a/Coq/C/jet_public_theorems.txt
++++ b/Coq/C/jet_public_theorems.txt
+@@ -5597,3 +5597,25 @@
+ C.jet_elements_output_nonce_literal output_nonce_literal_index_range
+ C.jet_elements_output_nonce_literal elements_output_nonce_literal_matches
+ C.jet_elements_output_nonce_literal elements_output_nonce_literal_local_spec
++C.jet_elements_asset_literal packed_fe_to_word_literal_matches
++C.jet_elements_asset_literal encode_confidential_literal_matches
++C.jet_elements_asset_literal encode_asset_literal_matches
++C.jet_elements_asset_literal elements_input_asset_literal_matches
++C.jet_elements_asset_literal elements_output_asset_literal_matches
++C.jet_elements_asset_literal elements_current_asset_literal_matches
++C.jet_elements_asset_literal elements_input_asset_literal_local_spec
++C.jet_elements_asset_literal elements_output_asset_literal_local_spec
++C.jet_elements_asset_literal elements_current_asset_literal_local_spec
++C.jet_elements_amount_literal encode_amount_literal_matches
++C.jet_elements_amount_literal amount_pair_literal_matches
++C.jet_elements_amount_literal elements_input_amount_literal_matches
++C.jet_elements_amount_literal elements_output_amount_literal_matches
++C.jet_elements_amount_literal elements_current_amount_literal_matches
++C.jet_elements_amount_literal elements_input_amount_literal_local_spec
++C.jet_elements_amount_literal elements_output_amount_literal_local_spec
++C.jet_elements_amount_literal elements_current_amount_literal_local_spec
++C.jet_elements_issuance_amount_literal issuance_asset_amount_literal_matches
++C.jet_elements_issuance_amount_literal elements_issuance_asset_amount_literal_matches
++C.jet_elements_issuance_amount_literal elements_current_issuance_asset_amount_literal_matches
++C.jet_elements_issuance_amount_literal elements_issuance_asset_amount_literal_local_spec
++C.jet_elements_issuance_amount_literal elements_current_issuance_asset_amount_literal_local_spec
+--- a/Coq/C/jet_contract_definitions.txt
++++ b/Coq/C/jet_contract_definitions.txt
+@@ -2916,3 +2916,17 @@
+ C.jet_elements_output_nonce_literal encode_nonce_literal
+ C.jet_elements_output_nonce_literal word_indexed_value_literal
+ C.jet_elements_output_nonce_literal elements_output_nonce_literal_spec
++C.jet_elements_asset_literal packed_fe_integer_literal
++C.jet_elements_asset_literal encode_confidential_literal
++C.jet_elements_asset_literal encode_asset_literal
++C.jet_elements_asset_literal elements_input_asset_literal_spec
++C.jet_elements_asset_literal elements_output_asset_literal_spec
++C.jet_elements_asset_literal elements_current_asset_literal_spec
++C.jet_elements_amount_literal encode_amount_literal
++C.jet_elements_amount_literal amount_pair_literal
++C.jet_elements_amount_literal elements_input_amount_literal_spec
++C.jet_elements_amount_literal elements_output_amount_literal_spec
++C.jet_elements_amount_literal elements_current_amount_literal_spec
++C.jet_elements_issuance_amount_literal issuance_asset_amount_literal
++C.jet_elements_issuance_amount_literal elements_issuance_asset_amount_literal_spec
++C.jet_elements_issuance_amount_literal elements_current_issuance_asset_amount_literal_spec
+--- a/Coq/C/jet_coverage.tsv
++++ b/Coq/C/jet_coverage.tsv
+@@ -410,3 +410,11 @@
+ simplicity_broken_do_not_use_check_lock_distance C.jet_elements_legacy_check elements_broken_check_lock_distance_local_spec
+ simplicity_broken_do_not_use_check_lock_duration C.jet_elements_legacy_check elements_broken_check_lock_duration_local_spec
+ simplicity_output_nonce C.jet_elements_output_nonce_literal elements_output_nonce_literal_local_spec
++simplicity_input_asset C.jet_elements_asset_literal elements_input_asset_literal_local_spec
++simplicity_output_asset C.jet_elements_asset_literal elements_output_asset_literal_local_spec
++simplicity_current_asset C.jet_elements_asset_literal elements_current_asset_literal_local_spec
++simplicity_input_amount C.jet_elements_amount_literal elements_input_amount_literal_local_spec
++simplicity_output_amount C.jet_elements_amount_literal elements_output_amount_literal_local_spec
++simplicity_current_amount C.jet_elements_amount_literal elements_current_amount_literal_local_spec
++simplicity_issuance_asset_amount C.jet_elements_issuance_amount_literal elements_issuance_asset_amount_literal_local_spec
++simplicity_current_issuance_asset_amount C.jet_elements_issuance_amount_literal elements_current_issuance_asset_amount_literal_local_spec
+--- a/Coq/C/jet_assumptions.expected
++++ b/Coq/C/jet_assumptions.expected
+@@ -1246,6 +1246,14 @@
+ C.jet_elements_amount_jets.encode_conf64_inl : closed
+ C.jet_elements_amount_jets.encode_conf64_inr : closed
+ C.jet_elements_amount_jets.encode_inr_pair : closed
++C.jet_elements_amount_literal.amount_pair_literal_matches : closed
++C.jet_elements_amount_literal.elements_current_amount_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_amount_literal.elements_current_amount_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_amount_literal.elements_input_amount_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_amount_literal.elements_input_amount_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_amount_literal.elements_output_amount_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_amount_literal.elements_output_amount_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_amount_literal.encode_amount_literal_matches : closed
+ C.jet_elements_amt_helper.amt_cells_length_Z : closed
+ C.jet_elements_amt_helper.elements_amt_funct : closed
+ C.jet_elements_amt_helper.elements_amt_symbol : closed
+@@ -1303,6 +1311,15 @@
+ C.jet_elements_asset_jets.encode_conf_inr : closed
+ C.jet_elements_asset_jets.encode_nonce_cells : closed
+ C.jet_elements_asset_jets.nonce_words_length : closed
++C.jet_elements_asset_literal.elements_current_asset_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_asset_literal.elements_current_asset_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_asset_literal.elements_input_asset_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_asset_literal.elements_input_asset_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_asset_literal.elements_output_asset_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_asset_literal.elements_output_asset_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_asset_literal.encode_asset_literal_matches : closed
++C.jet_elements_asset_literal.encode_confidential_literal_matches : closed
++C.jet_elements_asset_literal.packed_fe_to_word_literal_matches : closed
+ C.jet_elements_bool_wrapper.elements_bool_wrapper : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_call.elements_helper_lookup : closed
+ C.jet_elements_call.exec_elements_helper_call : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+@@ -1618,6 +1635,11 @@
+ C.jet_elements_issuance_amount_jets.encode_inr_inr_conf64 : closed
+ C.jet_elements_issuance_amount_jets.issuance_amount_pcells_length : closed
+ C.jet_elements_issuance_amount_jets.issuance_tag_present : closed
++C.jet_elements_issuance_amount_literal.elements_current_issuance_asset_amount_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_issuance_amount_literal.elements_current_issuance_asset_amount_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_issuance_amount_literal.elements_issuance_asset_amount_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_issuance_amount_literal.elements_issuance_asset_amount_literal_matches : FunctionalExtensionality.functional_extensionality_dep
++C.jet_elements_issuance_amount_literal.issuance_asset_amount_literal_matches : closed
+ C.jet_elements_issuance_digest_literal.elements_current_new_issuance_contract_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_issuance_digest_literal.elements_current_new_issuance_contract_literal_matches : FunctionalExtensionality.functional_extensionality_dep
+ C.jet_elements_issuance_digest_literal.elements_current_reissuance_blinding_literal_local_spec : ClassicalDedekindReals.sig_forall_dec, ClassicalDedekindReals.sig_not_dec, Classical_Prop.classic, Events.external_functions_sem, Events.inline_assembly_sem, FunctionalExtensionality.functional_extensionality_dep
+--- a/Coq/C/jet_contracts.expected
++++ b/Coq/C/jet_contracts.expected
+@@ -104951,6 +104951,428 @@
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+          jet_elements_output_nonce_literal.elements_output_nonce_literal_spec
++jet_elements_asset_literal.packed_fe_to_word_literal_matches
++     : forall packed : Digest.hash256,
++       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         (haskell_to_word (S (S (S (S (S (S (S (S O))))))))
++            (jet_elements_asset_literal.packed_fe_integer_literal packed)) (Word.from_hash256 packed)
++@jet_elements_asset_literal.encode_confidential_literal_matches
++     : forall (A : Set) (B : Ty.Ty) (old literal : forall _ : A, Ty.tySem B)
++         (c : jet_elements_prim.confidential unit A) (_ : forall x : A, @eq (Ty.tySem B) (old x) (literal x)),
++       @eq (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
++         match
++           c
++           return
++             (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
++         with
++         | jet_elements_prim.Explicit x =>
++             @inr
++               (prod (sum unit unit)
++                  ((fix tySem (X : Ty.Ty) : Set :=
++                      match X return Set with
++                      | Ty.Unit => unit
++                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
++                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
++                      end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (Ty.tySem B) (old x)
++         | jet_elements_prim.Confidential pt _ =>
++             match
++               pt
++               return
++                 (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
++             with
++             | jet_elements_prim.Point odd packed =>
++                 @inl (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++                   ((fix tySem (X : Ty.Ty) : Set :=
++                       match X return Set with
++                       | Ty.Unit => unit
++                       | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
++                       | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
++                       end) B)
++                   (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                      match odd return (sum unit unit) with
++                      | true => @inr unit unit tt
++                      | false => @inl unit unit tt
++                      end (Word.from_hash256 packed))
++             end
++         end (@jet_elements_asset_literal.encode_confidential_literal A B literal c)
++jet_elements_asset_literal.encode_asset_literal_matches
++     : forall a : jet_elements_prim.assetWith unit,
++       @eq
++         (Ty.tySem
++            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (jet_elements_asset_jets.encode_asset a)
++         (jet_elements_asset_literal.encode_asset_literal a)
++jet_elements_asset_literal.elements_input_asset_literal_matches
++     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem
++               (Ty.Sum Ty.Unit
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
++         (@jet_elements_asset_jets.elements_input_asset_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment) (jet_elements_asset_literal.elements_input_asset_literal_spec a environment)
++jet_elements_asset_literal.elements_output_asset_literal_matches
++     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem
++               (Ty.Sum Ty.Unit
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
++         (@jet_elements_asset_jets.elements_output_asset_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment) (jet_elements_asset_literal.elements_output_asset_literal_spec a environment)
++jet_elements_asset_literal.elements_current_asset_literal_matches
++     : forall (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
++         (@jet_elements_current_input_jets.elements_current_asset_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment) (jet_elements_asset_literal.elements_current_asset_literal_spec a environment)
++jet_elements_asset_literal.elements_input_asset_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_input_asset jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
++         (Ty.Sum Ty.Unit
++            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.sigTxInput
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
++            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput) =>
++             jet_elements_asset_jets.asset_rep m b ofs (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
++            (BinNums.Zpos
++               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
++            BinNums.Z0
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
++         jet_elements_asset_literal.elements_input_asset_literal_spec
++jet_elements_asset_literal.elements_output_asset_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_output_asset jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
++         (Ty.Sum Ty.Unit
++            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.txOutput
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
++            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txo : jet_elements_prim.txOutput) =>
++             jet_elements_asset_jets.asset_rep m b ofs
++               (@jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256 (jet_elements_prim.txoAsset txo)))
++            (BinNums.Zpos
++               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
++            BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
++         jet_elements_asset_literal.elements_output_asset_literal_spec
++jet_elements_asset_literal.elements_current_asset_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_current_asset jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env Ty.Unit
++         (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++            (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++         (@jet_elements_current_ptr_jets.current_ptr_rep jet_elements_prim.Elements.environment
++            jet_elements_prim.sigTxInput
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e)) jet_elements_prim.Elements.envIx
++            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput) =>
++             jet_elements_asset_jets.asset_rep m b ofs (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
++            (BinNums.Zpos
++               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
++            BinNums.Z0
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
++         jet_elements_asset_literal.elements_current_asset_literal_spec
++jet_elements_amount_literal.encode_amount_literal_matches
++     : forall a : jet_elements_prim.amountWith unit,
++       @eq
++         (Ty.tySem
++            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Word.Word (S (S (S (S (S (S O))))))))) (jet_elements_amount_jets.encode_amount a)
++         (jet_elements_amount_literal.encode_amount_literal a)
++@jet_elements_amount_literal.amount_pair_literal_matches
++     : forall (X : Type) (values : list X) (asset_of : forall _ : X, jet_elements_prim.assetWith unit)
++         (amount_of : forall _ : X, jet_elements_prim.amountWith unit) (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
++       @eq
++         (option
++            (Ty.tySem
++               (Ty.Sum Ty.Unit
++                  (Ty.Prod
++                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                        (Word.Word (S (S (S (S (S (S O))))))))))))
++         (@Some
++            (Ty.tySem
++               (Ty.Sum Ty.Unit
++                  (Ty.Prod
++                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                        (Word.Word (S (S (S (S (S (S O)))))))))))
++            (@jet_elements_amount_jets.amount_pair_result X values asset_of amount_of a))
++         (@jet_elements_amount_literal.amount_pair_literal X values asset_of amount_of a)
++jet_elements_amount_literal.elements_input_amount_literal_matches
++     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem
++               (Ty.Sum Ty.Unit
++                  (Ty.Prod
++                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                        (Word.Word (S (S (S (S (S (S O))))))))))))
++         (@jet_elements_amount_jets.elements_input_amount_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment) (jet_elements_amount_literal.elements_input_amount_literal_spec a environment)
++jet_elements_amount_literal.elements_output_amount_literal_matches
++     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem
++               (Ty.Sum Ty.Unit
++                  (Ty.Prod
++                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                        (Word.Word (S (S (S (S (S (S O))))))))))))
++         (@jet_elements_amount_jets.elements_output_amount_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment) (jet_elements_amount_literal.elements_output_amount_literal_spec a environment)
++jet_elements_amount_literal.elements_current_amount_literal_matches
++     : forall (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem
++               (Ty.Prod
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S O)))))))))))
++         (@jet_elements_current_gen_jets.elements_current_amount_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment) (jet_elements_amount_literal.elements_current_amount_literal_spec a environment)
++jet_elements_amount_literal.elements_input_amount_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_input_amount jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
++         (Ty.Sum Ty.Unit
++            (Ty.Prod
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S O))))))))))
++         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.sigTxInput
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
++            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput) =>
++             and
++               (jet_elements_asset_jets.asset_rep m b
++                  (BinInt.Z.add ofs
++                     (BinNums.Zpos
++                        (BinNums.xO
++                           (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
++                  (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
++               (jet_elements_amount_jets.amount_rep m b
++                  (BinInt.Z.add ofs
++                     (BinNums.Zpos
++                        (BinNums.xO
++                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))
++                  (jet_elements_prim.utxoAmount (jet_elements_prim.sigTxiTxo txi))))
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
++            BinNums.Z0 BinNums.Z0
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
++         jet_elements_amount_literal.elements_input_amount_literal_spec
++jet_elements_amount_literal.elements_output_amount_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_output_amount jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
++         (Ty.Sum Ty.Unit
++            (Ty.Prod
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S O))))))))))
++         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.txOutput
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
++            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txo : jet_elements_prim.txOutput) =>
++             and
++               (jet_elements_asset_jets.asset_rep m b (BinInt.Z.add ofs BinNums.Z0)
++                  (@jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256 (jet_elements_prim.txoAsset txo)))
++               (jet_elements_amount_jets.amount_rep m b
++                  (BinInt.Z.add ofs
++                     (BinNums.Zpos
++                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
++                  (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
++                     (jet_elements_prim.txoAmount txo))))
++            (BinNums.Zpos
++               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
++            BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
++         jet_elements_amount_literal.elements_output_amount_literal_spec
++jet_elements_amount_literal.elements_current_amount_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_current_amount jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env Ty.Unit
++         (Ty.Prod
++            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Word.Word (S (S (S (S (S (S O)))))))))
++         (@jet_elements_current_gen.current_gen_rep jet_elements_prim.sigTxInput
++            (fun e : jet_elements_prim.Elements.env => jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
++            jet_elements_current_gen_jets.input_amount_elem_rep
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
++            BinNums.Z0
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
++         jet_elements_amount_literal.elements_current_amount_literal_spec
++jet_elements_issuance_amount_literal.issuance_asset_amount_literal_matches
++     : forall txi : jet_elements_prim.sigTxInput,
++       @eq
++         (sum unit
++            (Ty.tySem
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S O))))))))))
++         match
++           jet_elements_prim.sigTxiIssuance txi
++           return
++             (sum unit
++                (Ty.tySem
++                   (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                      (Word.Word (S (S (S (S (S (S O))))))))))
++         with
++         | Some i =>
++             @inr unit
++               (Ty.tySem
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S O)))))))))
++               (jet_elements_amount_jets.encode_amount
++                  (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
++                     (jet_elements_issuance_amount_jets.issuance_amount i)))
++         | None =>
++             @inl unit
++               (Ty.tySem
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S O))))))))) tt
++         end (jet_elements_issuance_amount_literal.issuance_asset_amount_literal txi)
++jet_elements_issuance_amount_literal.elements_issuance_asset_amount_literal_matches
++     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem
++               (Ty.Sum Ty.Unit
++                  (Ty.Sum Ty.Unit
++                     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                        (Word.Word (S (S (S (S (S (S O))))))))))))
++         (@jet_elements_issuance_amount_jets.elements_issuance_asset_amount_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++         (jet_elements_issuance_amount_literal.elements_issuance_asset_amount_literal_spec a environment)
++jet_elements_issuance_amount_literal.elements_current_issuance_asset_amount_literal_matches
++     : forall (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env),
++       @eq
++         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
++            (Ty.tySem
++               (Ty.Sum Ty.Unit
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S O)))))))))))
++         (@jet_elements_current_input_jets.elements_current_issuance_asset_amount_spec
++            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
++            environment)
++         (jet_elements_issuance_amount_literal.elements_current_issuance_asset_amount_literal_spec a environment)
++jet_elements_issuance_amount_literal.elements_issuance_asset_amount_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_issuance_asset_amount jet_elements_linkage.elements_ge
++         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
++         (Ty.Sum Ty.Unit
++            (Ty.Sum Ty.Unit
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S O))))))))))
++         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.sigTxInput
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
++            jet_elements_issuance_amount_jets.issuance_amount_rep
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
++            BinNums.Z0
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
++         jet_elements_issuance_amount_literal.elements_issuance_asset_amount_literal_spec
++jet_elements_issuance_amount_literal.elements_current_issuance_asset_amount_literal_local_spec
++     : application_jet_local_spec_sep jets_elements.f_simplicity_current_issuance_asset_amount
++         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
++         (Ty.Sum Ty.Unit
++            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Word.Word (S (S (S (S (S (S O)))))))))
++         (@jet_elements_current_ptr_jets.current_ptr_rep jet_elements_prim.Elements.environment
++            jet_elements_prim.sigTxInput
++            (fun e : jet_elements_prim.Elements.environment =>
++             jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e)) jet_elements_prim.Elements.envIx
++            jet_elements_issuance_amount_jets.issuance_amount_rep
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
++            BinNums.Z0
++            (BinNums.Zpos
++               (BinNums.xO
++                  (BinNums.xO
++                     (BinNums.xO
++                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
++         jet_elements_issuance_amount_literal.elements_current_issuance_asset_amount_literal_spec
+ frame_fields =
+ fun (m : Memory.Mem.mem) (bf bw : Values.block) (edge cursor : BinNums.Z) =>
+ and
+@@ -217281,3 +217703,296 @@
+                      (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+ 
+ Arguments jet_elements_output_nonce_literal.elements_output_nonce_literal_spec a environment
++jet_elements_asset_literal.packed_fe_integer_literal =
++fun packed : Digest.hash256 =>
++jet_haskell_hash_word.haskell_word256_integer
++  (jet_haskell_hash_word.haskell_be256_run (Digest.hash256_to_bytelist packed)
++     (jet_haskell_hash_word.haskell_word256_from_integer BinNums.Z0))
++     : forall _ : Digest.hash256, BinNums.Z
++
++Arguments jet_elements_asset_literal.packed_fe_integer_literal packed
++jet_elements_asset_literal.encode_confidential_literal =
++fun (A : Set) (B : Ty.Ty) (enc : forall _ : A, Ty.tySem B) (c : jet_elements_prim.confidential unit A) =>
++match
++  c return (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
++with
++| jet_elements_prim.Explicit x =>
++    @inr
++      (prod
++         ((fix tySem (X : Ty.Ty) : Set :=
++             match X return Set with
++             | Ty.Unit => unit
++             | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
++             | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
++             end) (Ty.Sum Ty.Unit Ty.Unit))
++         ((fix tySem (X : Ty.Ty) : Set :=
++             match X return Set with
++             | Ty.Unit => unit
++             | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
++             | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
++             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (Ty.tySem B) (enc x)
++| jet_elements_prim.Confidential pt _ =>
++    match
++      pt return (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
++    with
++    | jet_elements_prim.Point odd packed =>
++        @inl (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++          ((fix tySem (X : Ty.Ty) : Set :=
++              match X return Set with
++              | Ty.Unit => unit
++              | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
++              | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
++              end) B)
++          (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++             match odd return (sum unit unit) with
++             | true => @inr unit unit tt
++             | false => @inl unit unit tt
++             end
++             (haskell_to_word (S (S (S (S (S (S (S (S O))))))))
++                (jet_elements_asset_literal.packed_fe_integer_literal packed)))
++    end
++end
++     : forall (A : Set) (B : Ty.Ty) (_ : forall _ : A, Ty.tySem B) (_ : jet_elements_prim.confidential unit A),
++       Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B)
++
++Arguments jet_elements_asset_literal.encode_confidential_literal {A}%type_scope {B}%ty_scope enc%function_scope c
++jet_elements_asset_literal.encode_asset_literal =
++fun a : jet_elements_prim.assetWith unit =>
++@jet_elements_asset_literal.encode_confidential_literal Digest.hash256 (Word.Word (S (S (S (S (S (S (S (S O)))))))))
++  (fun h : Digest.hash256 =>
++   haskell_to_word (S (S (S (S (S (S (S (S O))))))))
++     (jet_haskell_hash_word.haskell_integer_hash256 (Digest.hash256_to_bytelist h))) a
++     : forall _ : jet_elements_prim.assetWith unit,
++       Ty.tySem
++         (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++            (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++
++Arguments jet_elements_asset_literal.encode_asset_literal a
++jet_elements_asset_literal.elements_input_asset_literal_spec =
++fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
++@jet_elements_output_nonce_literal.word_indexed_value_literal jet_elements_prim.sigTxInput
++  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (S (S (S (S (S O)))))
++  (fun txi : jet_elements_prim.sigTxInput =>
++   jet_elements_asset_literal.encode_asset_literal (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
++  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment)) a
++     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
++       option
++         (Ty.tySem
++            (Ty.Sum Ty.Unit
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
++
++Arguments jet_elements_asset_literal.elements_input_asset_literal_spec a environment
++jet_elements_asset_literal.elements_output_asset_literal_spec =
++fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
++@jet_elements_output_nonce_literal.word_indexed_value_literal jet_elements_prim.txOutput
++  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (S (S (S (S (S O)))))
++  (fun txo : jet_elements_prim.txOutput =>
++   jet_elements_asset_literal.encode_asset_literal
++     (@jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256 (jet_elements_prim.txoAsset txo)))
++  (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment)) a
++     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
++       option
++         (Ty.tySem
++            (Ty.Sum Ty.Unit
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
++
++Arguments jet_elements_asset_literal.elements_output_asset_literal_spec a environment
++jet_elements_asset_literal.elements_current_asset_literal_spec =
++@jet_elements_current_sequence_literal.elements_current_literal_result
++  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_elements_asset_literal.elements_input_asset_literal_spec
++     : forall (_ : Ty.tySem Ty.Unit) (_ : jet_elements_prim.Elements.env),
++       option
++         (Ty.tySem
++            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++
++Arguments jet_elements_asset_literal.elements_current_asset_literal_spec _ environment
++jet_elements_amount_literal.encode_amount_literal =
++fun a : jet_elements_prim.amountWith unit =>
++@jet_elements_asset_literal.encode_confidential_literal Integers.Int64.int (Word.Word (S (S (S (S (S (S O)))))))
++  (fun v : Integers.Int64.int => haskell_to_word (S (S (S (S (S (S O)))))) (Integers.Int64.unsigned v)) a
++     : forall _ : jet_elements_prim.amountWith unit,
++       Ty.tySem
++         (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++            (Word.Word (S (S (S (S (S (S O))))))))
++
++Arguments jet_elements_amount_literal.encode_amount_literal a
++jet_elements_amount_literal.amount_pair_literal =
++fun (X : Type) (values : list X) (asset_of : forall _ : X, jet_elements_prim.assetWith unit)
++  (amount_of : forall _ : X, jet_elements_prim.amountWith unit) (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) =>
++@jet_elements_output_nonce_literal.word_indexed_value_literal X
++  (Ty.Prod
++     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++        (Word.Word (S (S (S (S (S (S O))))))))) (S (S (S (S (S O)))))
++  (fun x : X =>
++   @pair
++     (Ty.tySem
++        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++           (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++     (Ty.tySem
++        (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++           (Word.Word (S (S (S (S (S (S O))))))))) (jet_elements_asset_literal.encode_asset_literal (asset_of x))
++     (jet_elements_amount_literal.encode_amount_literal (amount_of x))) values a
++     : forall (X : Type) (_ : list X) (_ : forall _ : X, jet_elements_prim.assetWith unit)
++         (_ : forall _ : X, jet_elements_prim.amountWith unit) (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
++       option
++         (Ty.tySem
++            (Ty.Sum Ty.Unit
++               (Ty.Prod
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S O)))))))))))
++
++Arguments jet_elements_amount_literal.amount_pair_literal {X}%type_scope values%list_scope
++  (asset_of amount_of)%function_scope a
++jet_elements_amount_literal.elements_input_amount_literal_spec =
++fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
++@jet_elements_amount_literal.amount_pair_literal jet_elements_prim.sigTxInput
++  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment))
++  (fun txi : jet_elements_prim.sigTxInput => jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi))
++  (fun txi : jet_elements_prim.sigTxInput => jet_elements_prim.utxoAmount (jet_elements_prim.sigTxiTxo txi)) a
++     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
++       option
++         (Ty.tySem
++            (Ty.Sum Ty.Unit
++               (Ty.Prod
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S O)))))))))))
++
++Arguments jet_elements_amount_literal.elements_input_amount_literal_spec a environment
++jet_elements_amount_literal.elements_output_amount_literal_spec =
++fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
++@jet_elements_amount_literal.amount_pair_literal jet_elements_prim.txOutput
++  (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))
++  (fun txo : jet_elements_prim.txOutput =>
++   @jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256 (jet_elements_prim.txoAsset txo))
++  (fun txo : jet_elements_prim.txOutput =>
++   @jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int (jet_elements_prim.txoAmount txo)) a
++     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
++       option
++         (Ty.tySem
++            (Ty.Sum Ty.Unit
++               (Ty.Prod
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S O)))))))))))
++
++Arguments jet_elements_amount_literal.elements_output_amount_literal_spec a environment
++jet_elements_amount_literal.elements_current_amount_literal_spec =
++@jet_elements_current_sequence_literal.elements_current_literal_result
++  (Ty.Prod
++     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++        (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++        (Word.Word (S (S (S (S (S (S O))))))))) jet_elements_amount_literal.elements_input_amount_literal_spec
++     : forall (_ : Ty.tySem Ty.Unit) (_ : jet_elements_prim.Elements.env),
++       option
++         (Ty.tySem
++            (Ty.Prod
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S O))))))))))
++
++Arguments jet_elements_amount_literal.elements_current_amount_literal_spec _ environment
++jet_elements_issuance_amount_literal.issuance_asset_amount_literal =
++fun txi : jet_elements_prim.sigTxInput =>
++match
++  jet_elements_prim.sigTxiIssuance txi
++  return
++    (Ty.tySem
++       (Ty.Sum Ty.Unit
++          (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++             (Word.Word (S (S (S (S (S (S O))))))))))
++with
++| Some i =>
++    match
++      i
++      return
++        (Ty.tySem
++           (Ty.Sum Ty.Unit
++              (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                 (Word.Word (S (S (S (S (S (S O))))))))))
++    with
++    | inl new =>
++        @inr unit
++          (Ty.tySem
++             (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                (Word.Word (S (S (S (S (S (S O)))))))))
++          (jet_elements_amount_literal.encode_amount_literal
++             (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
++                (jet_elements_prim.newIssuanceAmount new)))
++    | inr re =>
++        @inr unit
++          (Ty.tySem
++             (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                (Word.Word (S (S (S (S (S (S O)))))))))
++          (jet_elements_amount_literal.encode_amount_literal
++             (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
++                (jet_elements_prim.reissuanceAmount re)))
++    end
++| None =>
++    @inl unit
++      (sum
++         ((fix tySem (X : Ty.Ty) : Set :=
++             match X return Set with
++             | Ty.Unit => unit
++             | Ty.Sum A B => sum (tySem A) (tySem B)
++             | Ty.Prod A B => prod (tySem A) (tySem B)
++             end) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
++         ((fix tySem (X : Ty.Ty) : Set :=
++             match X return Set with
++             | Ty.Unit => unit
++             | Ty.Sum A B => sum (tySem A) (tySem B)
++             | Ty.Prod A B => prod (tySem A) (tySem B)
++             end) (Word.Word (S (S (S (S (S (S O))))))))) tt
++end
++     : forall _ : jet_elements_prim.sigTxInput,
++       Ty.tySem
++         (Ty.Sum Ty.Unit
++            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++               (Word.Word (S (S (S (S (S (S O)))))))))
++
++Arguments jet_elements_issuance_amount_literal.issuance_asset_amount_literal txi
++jet_elements_issuance_amount_literal.elements_issuance_asset_amount_literal_spec =
++fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
++@jet_elements_output_nonce_literal.word_indexed_value_literal jet_elements_prim.sigTxInput
++  (Ty.Sum Ty.Unit
++     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++        (Word.Word (S (S (S (S (S (S O))))))))) (S (S (S (S (S O)))))
++  jet_elements_issuance_amount_literal.issuance_asset_amount_literal
++  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment)) a
++     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
++       option
++         (Ty.tySem
++            (Ty.Sum Ty.Unit
++               (Ty.Sum Ty.Unit
++                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                     (Word.Word (S (S (S (S (S (S O)))))))))))
++
++Arguments jet_elements_issuance_amount_literal.elements_issuance_asset_amount_literal_spec a environment
++jet_elements_issuance_amount_literal.elements_current_issuance_asset_amount_literal_spec =
++@jet_elements_current_sequence_literal.elements_current_literal_result
++  (Ty.Sum Ty.Unit
++     (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++        (Word.Word (S (S (S (S (S (S O)))))))))
++  jet_elements_issuance_amount_literal.elements_issuance_asset_amount_literal_spec
++     : forall (_ : Ty.tySem Ty.Unit) (_ : jet_elements_prim.Elements.env),
++       option
++         (Ty.tySem
++            (Ty.Sum Ty.Unit
++               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
++                  (Word.Word (S (S (S (S (S (S O))))))))))
++
++Arguments jet_elements_issuance_amount_literal.elements_current_issuance_asset_amount_literal_spec _ environment
+--- a/Coq/jet-coverage.py
++++ b/Coq/jet-coverage.py
+@@ -130,7 +130,7 @@
+                         rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                         r"bitcoin_ge\s+(?:Bitcoin\.env|raw_bitcoin_environment)\b")
+         else:
+-            # Only these forty-six selected correspondences have a reviewed
++            # Only these fifty-four selected correspondences have a reviewed
+             # literal target, environment relation and whole-C-contract gate.
+             if name in {"simplicity_input_script_hash", "simplicity_input_script_sig_hash", "simplicity_issuance_asset_proof", "simplicity_issuance_token_proof"}:
+                 contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+@@ -172,6 +172,24 @@
+                 contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                             r"elements_ge\s+Elements\.env\s+Word32\s+"
+                             r"\(Ty\.Sum\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+ConfNonce\)\)")
++            elif name in {"simplicity_input_asset", "simplicity_output_asset"}:
++                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
++                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+AssetConf\)")
++            elif name == "simplicity_current_asset":
++                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
++                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+AssetConf\b")
++            elif name in {"simplicity_input_amount", "simplicity_output_amount"}:
++                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
++                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+AmountPair\)")
++            elif name == "simplicity_current_amount":
++                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
++                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+AmountPair\b")
++            elif name == "simplicity_issuance_asset_amount":
++                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
++                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+ConfAmount\)\)")
++            elif name == "simplicity_current_issuance_asset_amount":
++                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
++                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+ConfAmount\)")
+             elif name == "simplicity_tx_is_final":
+                 contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                             r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Bit\b")
+--- a/Coq/test-jet-coverage.py
++++ b/Coq/test-jet-coverage.py
+@@ -651,6 +651,102 @@
+                 rejects(coverage.inventory, 'not a direct canonical jet theorem')
+             file.write_text(text)
+             assert coverage.inventory()
++        # Literal asset getter whole-C contracts; never compile bad fixtures.
++        for suffix, filename, theorem, domain, output in [('input_asset', 'jet_elements_asset_literal', 'elements_input_asset_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit AssetConf)'), ('output_asset', 'jet_elements_asset_literal', 'elements_output_asset_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit AssetConf)'), ('current_asset', 'jet_elements_asset_literal', 'elements_current_asset_literal_local_spec', 'Ty.Unit', 'AssetConf')]:
++            module = 'C.' + filename
++            file = project / (module.replace('.', '/') + '.v')
++            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
++            text = file.read_text()
++            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
++                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
++            if [module, theorem] not in coverage.records(audited, 2):
++                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
++            declaration = 'Theorem ' + theorem + ' :'
++            for old, new in [
++                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
++                ('elements_ge Elements.env', 'ge0 Elements.env'),
++                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
++                (domain + ' ' + output, 'Word64 ' + output),
++                (domain + ' ' + output, domain + ' Word64'),
++                (declaration, declaration + ' False ->'),
++                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
++            ]:
++                start = text.index(declaration)
++                stop = text.index('Proof.', start)
++                tail = text[start:stop]
++                if old not in tail:
++                    import re
++                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
++                    assert match, (suffix, old)
++                    old = match[0]
++                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
++                rejects(coverage.inventory, 'not a direct canonical jet theorem')
++            file.write_text(text)
++            assert coverage.inventory()
++        # Literal amount getter whole-C contracts; never compile bad fixtures.
++        for suffix, filename, theorem, domain, output in [('input_amount', 'jet_elements_amount_literal', 'elements_input_amount_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit AmountPair)'), ('output_amount', 'jet_elements_amount_literal', 'elements_output_amount_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit AmountPair)'), ('current_amount', 'jet_elements_amount_literal', 'elements_current_amount_literal_local_spec', 'Ty.Unit', 'AmountPair')]:
++            module = 'C.' + filename
++            file = project / (module.replace('.', '/') + '.v')
++            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
++            text = file.read_text()
++            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
++                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
++            if [module, theorem] not in coverage.records(audited, 2):
++                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
++            declaration = 'Theorem ' + theorem + ' :'
++            for old, new in [
++                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
++                ('elements_ge Elements.env', 'ge0 Elements.env'),
++                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
++                (domain + ' ' + output, 'Word64 ' + output),
++                (domain + ' ' + output, domain + ' Word64'),
++                (declaration, declaration + ' False ->'),
++                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
++            ]:
++                start = text.index(declaration)
++                stop = text.index('Proof.', start)
++                tail = text[start:stop]
++                if old not in tail:
++                    import re
++                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
++                    assert match, (suffix, old)
++                    old = match[0]
++                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
++                rejects(coverage.inventory, 'not a direct canonical jet theorem')
++            file.write_text(text)
++            assert coverage.inventory()
++        # Literal issuance asset-amount whole-C contracts; never compile bad fixtures.
++        for suffix, filename, theorem, domain, output in [('issuance_asset_amount', 'jet_elements_issuance_amount_literal', 'elements_issuance_asset_amount_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit ConfAmount))'), ('current_issuance_asset_amount', 'jet_elements_issuance_amount_literal', 'elements_current_issuance_asset_amount_literal_local_spec', 'Ty.Unit', '(Ty.Sum Ty.Unit ConfAmount)')]:
++            module = 'C.' + filename
++            file = project / (module.replace('.', '/') + '.v')
++            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
++            text = file.read_text()
++            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
++                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
++            if [module, theorem] not in coverage.records(audited, 2):
++                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
++            declaration = 'Theorem ' + theorem + ' :'
++            for old, new in [
++                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
++                ('elements_ge Elements.env', 'ge0 Elements.env'),
++                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
++                (domain + ' ' + output, 'Word64 ' + output),
++                (domain + ' ' + output, domain + ' Word64'),
++                (declaration, declaration + ' False ->'),
++                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
++            ]:
++                start = text.index(declaration)
++                stop = text.index('Proof.', start)
++                tail = text[start:stop]
++                if old not in tail:
++                    import re
++                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
++                    assert match, (suffix, old)
++                    old = match[0]
++                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
++                rejects(coverage.inventory, 'not a direct canonical jet theorem')
++            file.write_text(text)
++            assert coverage.inventory()
+     print("coverage tests passed: exact core/partial/application contracts; wrong function/global/logical environment and unknown/duplicate/helper/unaudited entries rejected")
+ 
+ 
+--- a/Coq/check-jets.sh
++++ b/Coq/check-jets.sh
+@@ -106,6 +106,12 @@
+ python3 elements-legacy-check/test-source.py "${JET_C_REPO:-..}"
+ python3 elements-output-nonce/check-source.py "${JET_C_REPO:-..}"
+ python3 elements-output-nonce/test-source.py "${JET_C_REPO:-..}"
++python3 elements-asset-literal/check-source.py "${JET_C_REPO:-..}"
++python3 elements-asset-literal/test-source.py "${JET_C_REPO:-..}"
++python3 elements-amount-literal/check-source.py "${JET_C_REPO:-..}"
++python3 elements-amount-literal/test-source.py "${JET_C_REPO:-..}"
++python3 elements-issuance-amount-literal/check-source.py "${JET_C_REPO:-..}"
++python3 elements-issuance-amount-literal/test-source.py "${JET_C_REPO:-..}"
+ python3 check-fullshift-specification.py
+ python3 test-fullshift-specification.py
+ python3 check-secp-normalize-specification.py
+--- a/Coq/audit-jet-contracts.sh
++++ b/Coq/audit-jet-contracts.sh
+@@ -31,7 +31,7 @@
+   echo 'Set Printing All.'
+   echo 'Set Printing Width 120.'
+   awk '!/^#/ && NF==2 {
+-    explicit = ($1 ~ /^C\.jet_elements_(field_eval|effects|wrapper|transport|call|read_step|steps|index_eval|indexed_exec|indexed_then|env_load|indexed_scalar|indexed_scalar_jets|sequence_literal|current_spec|current_exec|current_jets|current_sequence_literal)$/) || ($1 ~ /^(C[.]jet_elements_write32s_exec|C[.]jet_elements_write32s_layout|C[.]jet_elements_hash_write|C[.]jet_elements_hash_getters|C[.]jet_elements_write8_step|C[.]jet_elements_tapleaf_version_local|C[.]jet_elements_tapleaf_literal|C[.]jet_haskell_hash_word|C[.]jet_elements_script_cmr_local|C[.]jet_elements_genesis_hash_local|C[.]jet_elements_hash_literal)$/) || ($1 ~ /^(C[.]jet_elements_tx_field_set|C[.]jet_elements_is_final_spec|C[.]jet_elements_is_final_local|C[.]jet_elements_lock_spec|C[.]jet_elements_lock_exec|C[.]jet_elements_lock_local|C[.]jet_elements_lock_literal|C[.]jet_elements_prim_sem|C[.]jet_elements_bool_wrapper|C[.]jet_elements_check_lock|C[.]jet_application_partial_transport|C[.]jet_elements_check_lock_literal|C[.]jet_elements_indexed_ptr_then|C[.]jet_elements_indexed_ptr|C[.]jet_elements_hash_helpers|C[.]jet_elements_indexed_ptr_jets|C[.]jet_elements_hash_elem|C[.]jet_elements_pegin_local|C[.]jet_elements_input_hash_jets|C[.]jet_elements_asset_helper|C[.]jet_elements_asset_jets|C[.]jet_elements_amt_helper|C[.]jet_elements_indexed_gen|C[.]jet_elements_indexed_ptr2|C[.]jet_elements_amount_jets|C[.]jet_elements_issuance_helper|C[.]jet_elements_issuance_jets|C[.]jet_elements_issuance_amount_jets|C[.]jet_elements_current_ptr|C[.]jet_elements_current_ptr_jets|C[.]jet_elements_current_gen|C[.]jet_elements_current_input_jets|C[.]jet_elements_current_gen_jets|C[.]jet_elements_pegin_literal)$/) || ($1 ~ /^(C[.]jet_elements_script_hash_literal|C[.]jet_elements_issuance_proof_literal)$/) || ($1 ~ /^(C[.]jet_elements_annex_local|C[.]jet_elements_optional_digest_literal|C[.]jet_elements_issuance_digest_literal|C[.]jet_elements_indexed_literal|C[.]jet_elements_output_proof_jets|C[.]jet_elements_output_proof_literal)$/) || ($1 ~ /^(C[.]jet_elements_hash_getter_local|C[.]jet_elements_hash_getter_writehash|C[.]jet_elements_hash_field_jets|C[.]jet_elements_tappath_local|C[.]jet_elements_tappath_nullable|C[.]jet_elements_tap_getters_literal)$/) || ($1 ~ /^(C[.]jet_u32_local_init|C[.]jet_elements_lbtc_asset_exec|C[.]jet_elements_lbtc_asset_local)$/) || ($1 ~ /^(C[.]jet_forWhile_fold|C[.]jet_elements_legacy_lock_spec|C[.]jet_elements_legacy_lock_exec|C[.]jet_elements_legacy_lock_local)$/) || ($1 ~ /^(C[.]jet_elements_legacy_check)$/) || ($1 ~ /^(C[.]jet_elements_output_nonce_literal)$/)
++    explicit = ($1 ~ /^C\.jet_elements_(field_eval|effects|wrapper|transport|call|read_step|steps|index_eval|indexed_exec|indexed_then|env_load|indexed_scalar|indexed_scalar_jets|sequence_literal|current_spec|current_exec|current_jets|current_sequence_literal)$/) || ($1 ~ /^(C[.]jet_elements_write32s_exec|C[.]jet_elements_write32s_layout|C[.]jet_elements_hash_write|C[.]jet_elements_hash_getters|C[.]jet_elements_write8_step|C[.]jet_elements_tapleaf_version_local|C[.]jet_elements_tapleaf_literal|C[.]jet_haskell_hash_word|C[.]jet_elements_script_cmr_local|C[.]jet_elements_genesis_hash_local|C[.]jet_elements_hash_literal)$/) || ($1 ~ /^(C[.]jet_elements_tx_field_set|C[.]jet_elements_is_final_spec|C[.]jet_elements_is_final_local|C[.]jet_elements_lock_spec|C[.]jet_elements_lock_exec|C[.]jet_elements_lock_local|C[.]jet_elements_lock_literal|C[.]jet_elements_prim_sem|C[.]jet_elements_bool_wrapper|C[.]jet_elements_check_lock|C[.]jet_application_partial_transport|C[.]jet_elements_check_lock_literal|C[.]jet_elements_indexed_ptr_then|C[.]jet_elements_indexed_ptr|C[.]jet_elements_hash_helpers|C[.]jet_elements_indexed_ptr_jets|C[.]jet_elements_hash_elem|C[.]jet_elements_pegin_local|C[.]jet_elements_input_hash_jets|C[.]jet_elements_asset_helper|C[.]jet_elements_asset_jets|C[.]jet_elements_amt_helper|C[.]jet_elements_indexed_gen|C[.]jet_elements_indexed_ptr2|C[.]jet_elements_amount_jets|C[.]jet_elements_issuance_helper|C[.]jet_elements_issuance_jets|C[.]jet_elements_issuance_amount_jets|C[.]jet_elements_current_ptr|C[.]jet_elements_current_ptr_jets|C[.]jet_elements_current_gen|C[.]jet_elements_current_input_jets|C[.]jet_elements_current_gen_jets|C[.]jet_elements_pegin_literal)$/) || ($1 ~ /^(C[.]jet_elements_script_hash_literal|C[.]jet_elements_issuance_proof_literal)$/) || ($1 ~ /^(C[.]jet_elements_annex_local|C[.]jet_elements_optional_digest_literal|C[.]jet_elements_issuance_digest_literal|C[.]jet_elements_indexed_literal|C[.]jet_elements_output_proof_jets|C[.]jet_elements_output_proof_literal)$/) || ($1 ~ /^(C[.]jet_elements_hash_getter_local|C[.]jet_elements_hash_getter_writehash|C[.]jet_elements_hash_field_jets|C[.]jet_elements_tappath_local|C[.]jet_elements_tappath_nullable|C[.]jet_elements_tap_getters_literal)$/) || ($1 ~ /^(C[.]jet_u32_local_init|C[.]jet_elements_lbtc_asset_exec|C[.]jet_elements_lbtc_asset_local)$/) || ($1 ~ /^(C[.]jet_forWhile_fold|C[.]jet_elements_legacy_lock_spec|C[.]jet_elements_legacy_lock_exec|C[.]jet_elements_legacy_lock_local)$/) || ($1 ~ /^(C[.]jet_elements_legacy_check)$/) || ($1 ~ /^(C[.]jet_elements_output_nonce_literal)$/) || ($1 ~ /^(C[.]jet_elements_asset_literal)$/) || ($1 ~ /^(C[.]jet_elements_amount_literal)$/) || ($1 ~ /^(C[.]jet_elements_issuance_amount_literal)$/)
+     printf "Check %s%s.%s.\n", (explicit ? "@" : ""), $1, $2
+   }' C/jet_public_theorems.txt
+   awk '!/^#/ && NF==2 {printf "Print %s.%s.\n", $1, $2}' C/jet_contract_definitions.txt
+--- /dev/null
++++ b/Coq/elements-asset-literal/check-source.py
+@@ -0,0 +1,195 @@
++"""Asset getter source/representation correspondence, not field arithmetic.
++
++fe_repr reads fe_pack. The Coq point hash models that serialized packed word;
++this guard does not claim arbitrary words are valid FE values or prove a host
++lens/compiler theorem. Whole C contracts and existing preconditions stay exact.
++"""
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import re
++import sys
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++
++
++def load(name, path):
++    sp = importlib.util.spec_from_file_location(name, path)
++    m = importlib.util.module_from_spec(sp)
++    sp.loader.exec_module(m)
++    return m
++
++
++def check(repo):
++    coq = repo / 'Coq'
++    prior = load('asset_shared_nonce_source', HERE.parent / 'elements-output-nonce/check-source.py')
++    r = prior.check(repo)
++    p = load('asset_source_parser', coq / 'check-secp-predicates-specification.py')
++    paths = []
++
++    def read(path):
++        paths.append(path)
++        return p.read_code(path)
++
++    def equal(actual, expected, name):
++        if p.compact(actual) != p.compact(expected):
++            raise ValueError('asset source differs: ' + name)
++
++    def line(source, name, expected):
++        found = re.findall(r'(?m)^\s*' + re.escape(name) + r'\s*=([^\n]*)$', source)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous asset clause: ' + name)
++        equal(found[0], expected, name)
++
++    def definition(path, name, expected):
++        found = re.findall(r'\b(?:Definition|Fixpoint|Let)\s+' + re.escape(name) +
++                           r"(?![\w']).*?:=(.*?)\.\s*(?:\n|$)", read(path), re.S)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous asset definition: ' + name)
++        equal(found[0], expected, name)
++
++    def statement(path, name, expected):
++        found = re.findall(r'\b(?:Theorem|Lemma)\s+' + re.escape(name) +
++                           r"(?![\w'])(.*?)\bProof\.", read(path), re.S)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous whole asset contract: ' + name)
++        equal(found[0], expected, name)
++
++    hs = read(repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs')
++    catalog = read(repo / 'Haskell/Simplicity/Elements/Jets.hs')
++    for tag, name, route in [('InputAsset', 'inputAsset', 'utxoAsset . sigTxiTxo'),
++                             ('OutputAsset', 'outputAsset', 'clearAssetPrf . txoAsset')]:
++        p.require(catalog, tag + ' :: TransactionJet Word32 (S (Conf Word256))', 'catalog type')
++        line(catalog, 'specificationTransaction ' + tag, 'primitive Prim.' + tag)
++        p.require(hs, tag + ' :: Prim Word32 (S (Conf Word256))', 'primitive type')
++        line(hs, 'primName ' + tag, '"' + name + '"')
++        line(hs, 'interpret ' + tag, 'return . (at' + ('Input' if tag == 'InputAsset' else 'Output') +
++             ' $ encodeAsset . ' + route + ')')
++    p.require(catalog, 'CurrentAsset :: TransactionJet () (Conf Word256)', 'current asset type')
++    line(catalog, 'specificationTransaction CurrentAsset', 'Prog.currentAsset')
++    line(hs, 'encodeConfidential enc (Explicit a)', 'Right (enc a)')
++    line(hs, 'encodeConfidential enc (Confidential (Point by x) ())',
++         'Left (toBit by, toWord256 . Schnorr.fe_repr $ x)')
++    line(hs, 'encodeAsset', 'encodeConfidential encodeHash . view (under asset)')
++    p.require(hs, 'import qualified Simplicity.LibSecp256k1.Spec as Schnorr', 'fe_repr import origin')
++    data = read(repo / 'Haskell/Elements/Simplicity/Elements/DataTypes.hs')
++    p.require(data, 'data Confidential prf a = Explicit a | Confidential Point prf', 'confidential sum')
++    p.require(data, 'newtype AssetWith prf = Asset (Confidential prf Hash256)', 'asset newtype')
++    p.require(data, 'type Asset = AssetWith ()', 'unit proof carrier')
++    line(data, 'prf_ f (Confidential pt prf)', 'Confidential pt <$> f prf')
++    line(data, 'prf_ f (Explicit x)', 'pure (Explicit x)')
++    line(data, 'clearAssetPrf x', 'x & under asset . prf_ .~ ()')
++    if data.count('\nasset =') != 1 or data.count('clearAssetPrf ::') != 1:
++        raise ValueError('ambiguous asset lens adapter')
++    equal(data.split('\nasset =', 1)[1].split('clearAssetPrf ::', 1)[0],
++          'adapter to fro where to (Asset x) = x fro x = (Asset x)', 'asset adapter')
++    line(data, 'putFE', 'put . fe_pack')
++    spec = read(repo / 'Haskell/Core/Simplicity/LibSecp256k1/Spec.hs')
++    p.require(spec, 'data FE = FE { fe_pack :: Word256 }', 'packed field carrier')
++    p.require(spec, 'data Point = Point Bool FE', 'parity and packed field carrier')
++    line(spec, 'fe_repr', 'toInteger . fe_pack')
++    library = read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs')
++    line(library, 'currentAsset', 'Transaction.currentAsset Transaction.lib')
++    program = read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs')
++    if program.count('lib = l') != 1:
++        raise ValueError('ambiguous current asset library')
++    found = re.findall(r'(?m)^\s*, currentAsset\s*=([^\n]*)$', program.split('lib = l', 1)[1])
++    if len(found) != 1:
++        raise ValueError('missing/ambiguous current asset program')
++    equal(found[0], 'primitive CurrentIndex >>> assert (primitive InputAsset)', 'current asset assertion')
++    line(hs, 'cond', 'fromIntegral ix < Vector.length (sigTxIn tx)')
++
++    port = coq / 'C/jet_elements_prim.v'
++    code = read(port)
++    p.require(code, 'Record point : Set := Point { pointOdd : bool; pointX : hash256 }.', 'packed word port')
++    p.require(code, 'envIxBounded : (envIx < length (sigTxIn envTx))%nat', 'valid current input')
++    definition(port, 'clearPrf', 'match c with | Explicit a => Explicit a | Confidential pt _ => Confidential pt tt end')
++    sem = p.definition(code, 'sem')
++    for tag, following, expr in [
++        ('InputAsset', 'InputAmount', 'atInput (fun txi => encodeAsset (utxoAsset (sigTxiTxo txi)))'),
++        ('OutputAsset', 'OutputAmount', 'atOutput (fun txo => encodeAsset (clearPrf (txoAsset txo)))')]:
++        p.require(code, '| ' + tag + ' : prim Word32 (S (Conf Word256))', 'Coq primitive type')
++        if sem.count('| ' + tag + ' =>') != 1 or sem.count('| ' + following + ' =>') != 1:
++            raise ValueError('ambiguous asset primitive')
++        equal(sem.split('| ' + tag + ' =>', 1)[1].split('| ' + following + ' =>', 1)[0], expr, tag)
++
++    literal = coq / 'C/jet_elements_asset_literal.v'
++    p.require(read(literal), 'Local Notation ConfLiteral a := (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) a).',
++              'full confidential sum shape')
++    p.require(read(literal), 'Local Notation AssetConf := (ConfLiteral Word256).', 'asset payload width')
++    definition(literal, 'packed_fe_integer_literal', '''haskell_word256_integer
++      (haskell_be256_run (hash256_to_bytelist packed) (haskell_word256_from_integer 0))''')
++    definition(literal, 'encode_confidential_literal', '''match c with
++      | Explicit x => inr (enc x)
++      | Confidential (Point odd packed) _ =>
++        inl ((if odd then inr tt else inl tt), haskell_to_word 8 (packed_fe_integer_literal packed)) end''')
++    definition(literal, 'encode_asset_literal', '''encode_confidential_literal
++      (fun h => haskell_to_word 8 (haskell_integer_hash256 (hash256_to_bytelist h))) a''')
++    definition(literal, 'elements_input_asset_literal_spec', '''word_indexed_value_literal 5
++      (fun txi => encode_asset_literal (utxoAsset (sigTxiTxo txi))) (sigTxIn (Elements.envTx environment)) a''')
++    definition(literal, 'elements_output_asset_literal_spec', '''word_indexed_value_literal 5
++      (fun txo => encode_asset_literal (clearPrf (txoAsset txo))) (sigTxOut (Elements.envTx environment)) a''')
++    definition(literal, 'elements_current_asset_literal_spec', 'elements_current_literal_result elements_input_asset_literal_spec')
++    old = coq / 'C/jet_elements_asset_jets.v'
++    definition(old, 'asset_words', 'hash256_reg (match a with Explicit h => h | Confidential (Point _ x) _ => x end)')
++    definition(old, 'asset_rep', r'''uint32_array_at m b ofs (asset_words a) /\
++      Mem.load Mint32 m b (ofs + 32) = Some (Vint (conf_prefix a))''')
++    definition(old, 'encode_asset', '''match a with | Explicit h => inr (from_hash256 h)
++      | Confidential (Point odd x) _ => inl (conf_toBit odd, from_hash256 x) end''')
++    current = coq / 'C/jet_elements_current_input_jets.v'
++    for suffix, path in [('input', old), ('output', old), ('current', current)]:
++        definition(path, 'elements_' + suffix + '_asset_spec',
++            'elements_current_spec (@elements_input_asset_spec alg)' if suffix == 'current' else
++            'Primitive.Combinators.prim Elements.' + suffix.capitalize() + 'Asset')
++        isout, iscur = suffix == 'output', suffix == 'current'
++        rep = ('''(current_ptr_rep (fun e => sigTxIn (Elements.envTx e)) Elements.envIx
++          (fun m b ofs txi => asset_rep m b ofs (utxoAsset (sigTxiTxo txi))) 544 168 0 696) ''' if iscur else
++          '''(indexed_ptr_rep (fun e => sigTxOut (Elements.envTx e))
++          (fun m b ofs txo => asset_rep m b ofs (clearPrf (txoAsset txo))) 248 0 8 704) ''' if isout else
++          '''(indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e))
++          (fun m b ofs txi => asset_rep m b ofs (utxoAsset (sigTxiTxo txi))) 544 168 0 696) ''')
++        prefix = ': application_jet_local_spec_sep f_simplicity_' + suffix + '_asset elements_ge Elements.env '
++        oldty = 'Ty.Unit (ConfTy Word256) ' if iscur else 'Word32 (Ty.Sum Ty.Unit (ConfTy Word256)) '
++        newty = 'Ty.Unit AssetConf ' if iscur else 'Word32 (Ty.Sum Ty.Unit AssetConf) '
++        statement(path, 'elements_' + suffix + '_asset_local_spec', prefix + oldty + rep +
++            '(fun a environment => @elements_' + suffix + '_asset_spec (PrimitivePrimSem option_Monad_Zero) a environment).')
++        statement(literal, 'elements_' + suffix + '_asset_literal_local_spec', prefix + newty + rep +
++            'elements_' + suffix + '_asset_literal_spec.')
++
++    cpath = repo / 'C/elements/elementsJets.c'
++    paths.append(cpath)
++    c = re.sub(r'//[^\n]*|/\*.*?\*/', '', cpath.read_text(), flags=re.S)
++    def cbody(name, expected):
++        found = list(re.finditer(r'\b(?:bool|void)\s+' + re.escape(name) + r'\s*\([^)]*\)\s*\{', c))
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous actual asset C function')
++        start, end, depth = found[0].end(), found[0].end(), 1
++        while end < len(c) and depth:
++            depth += (c[end] == '{') - (c[end] == '}')
++            end += 1
++        if depth:
++            raise ValueError('unterminated C function')
++        equal(c[start:end-1], expected, name)
++    cbody('asset', '''if (writeBit(dst, EXPLICIT == asset->prefix)) { skipBits(dst, 1); }
++      else { writeBit(dst, ODD_Y == asset->prefix); } writeHash(dst, &asset->data);''')
++    for suffix, count, address in [('input', 'numInputs', 'input[i].txo.asset'),
++                                    ('output', 'numOutputs', 'output[i].asset')]:
++        cbody('simplicity_' + suffix + '_asset', '''uint_fast32_t i = simplicity_read32(&src);
++          if (writeBit(dst, i < env->tx->''' + count + ''')) { asset(dst, &env->tx->''' + address + '''); }
++          else { skipBits(dst, 258); } return true;''')
++    cbody('simplicity_current_asset', '''(void) src; if (env->tx->numInputs <= env->ix) return false;
++      asset(dst, &env->tx->input[env->ix].txo.asset); return true;''')
++    r['source_sha256'].update({str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in set(paths)})
++    r['shared_nonce_native_word_reviewed'] = r.pop('native_word_not_field_element')
++    r.update(selected_jets=['Elements.InputAsset', 'Elements.OutputAsset', 'Elements.CurrentAsset'],
++             packed_field_projection_reviewed=True, field_arithmetic_proved=False,
++             arbitrary_word_is_valid_field_element_claimed=False, whole_contracts_reviewed=True,
++             caller_environment_construction_proved=False, formal_host_library_equivalence=False,
++             normal_registration=False, kernel_checked_by_this_tool=False)
++    return r
++
++
++if __name__ == '__main__':
++    print(json.dumps(check(Path(sys.argv[1]).resolve()), indent=2))
+--- /dev/null
++++ b/Coq/elements-asset-literal/test-source.py
+@@ -0,0 +1,91 @@
++"""Read-only packed-field/asset/current/whole-C source corruptions."""
++import importlib.util
++from pathlib import Path
++import sys
++from unittest.mock import patch
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++sp = importlib.util.spec_from_file_location('asset_source_negative', HERE / 'check-source.py')
++g = importlib.util.module_from_spec(sp)
++sp.loader.exec_module(g)
++repo = Path(sys.argv[1]).resolve()
++coq = repo / 'Coq'
++hs = repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs'
++data = repo / 'Haskell/Elements/Simplicity/Elements/DataTypes.hs'
++catalog = repo / 'Haskell/Simplicity/Elements/Jets.hs'
++spec = repo / 'Haskell/Core/Simplicity/LibSecp256k1/Spec.hs'
++program = repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs'
++local = coq / 'C/jet_elements_asset_literal.v'
++old = coq / 'C/jet_elements_asset_jets.v'
++current = coq / 'C/jet_elements_current_input_jets.v'
++c = repo / 'C/elements/elementsJets.c'
++fixtures = [
++    (spec, 'fe_repr = toInteger . fe_pack', 'fe_repr = (`mod` fieldOrder) . toInteger . fe_pack'),
++    (spec, 'data Point = Point Bool FE', 'data Point = Point Bool Word256'),
++    (hs, 'toWord256 . Schnorr.fe_repr $ x', 'toWord256 . toInteger $ x'),
++    (data, 'clearAssetPrf x = x & under asset . prf_ .~ ()', 'clearAssetPrf x = x'),
++    (data, 'prf_ f (Confidential pt prf) = Confidential pt <$> f prf',
++           'prf_ f (Confidential pt prf) = Confidential zeroPoint <$> f prf'),
++    (local, 'Local Notation AssetConf := (ConfLiteral Word256)', 'Local Notation AssetConf := (ConfLiteral Word64)'),
++    (local, 'haskell_word256_integer', 'haskell_word256_from_integer'),
++    (local, 'if odd then inr tt else inl tt', 'if odd then inl tt else inr tt'),
++    (local, 'encode_confidential_literal\n    (fun h => haskell_to_word 8', 'encode_confidential_literal\n    (fun h => haskell_to_word 7'),
++    (local, '(fun txi => encode_asset_literal (utxoAsset (sigTxiTxo txi)))',
++            '(fun txi => encode_asset_literal (utxoAsset (sigTxiTxo txi))) >>> iden'),
++    (local, '(fun txo => encode_asset_literal (clearPrf (txoAsset txo)))',
++            '(fun txo => encode_asset_literal (txoAsset txo))'),
++    (local, 'elements_current_literal_result elements_input_asset_literal_spec',
++            'elements_current_literal_result elements_output_asset_literal_spec'),
++    (catalog, 'specificationTransaction CurrentAsset = Prog.currentAsset',
++              'specificationTransaction CurrentAsset = Prog.currentAmount'),
++    (program, 'currentAsset = primitive CurrentIndex >>> assert (primitive InputAsset)',
++              'currentAsset = primitive CurrentIndex >>> assert (primitive InputAmount)'),
++    (hs, 'cond = fromIntegral ix < Vector.length (sigTxIn tx)',
++         'cond = fromIntegral ix <= Vector.length (sigTxIn tx)'),
++    (old, 'if odd then Int.repr 3 else Int.repr 2', 'if odd then Int.repr 2 else Int.repr 3'),
++    (old, 'hash256_reg (match a with Explicit h => h | Confidential (Point _ x) _ => x end)',
++          'hash256_reg (match a with Explicit h => h | Confidential (Point _ x) _ => zeroHash end)'),
++    (old, 'Mem.load Mint32 m b (ofs + 32)', 'Mem.load Mint32 m b (ofs + 28)'),
++    (c, 'EXPLICIT == asset->prefix', 'EXPLICIT != asset->prefix'),
++    (c, 'asset(dst, &env->tx->input[i].txo.asset);', 'asset(dst, &env->tx->input[i].txo.amt);'),
++    (c, 'asset(dst, &env->tx->output[i].asset);', 'asset(dst, &env->tx->output[i].nonce);'),
++    (c, 'asset(dst, &env->tx->input[env->ix].txo.asset);', 'asset(dst, &env->tx->input[0].txo.asset);'),
++]
++for suffix, path in [('input', old), ('output', old), ('current', current)]:
++    for file, name in [(path, 'elements_' + suffix + '_asset_local_spec'),
++                       (local, 'elements_' + suffix + '_asset_literal_local_spec')]:
++        text = file.read_text()
++        start = text.index('Theorem ' + name)
++        stop = text.index('Proof.', start)
++        statement = text[start:stop]
++        for a, b in [
++            ('application_jet_local_spec_sep', 'False -> application_jet_local_spec_sep'),
++            ('application_jet_local_spec_sep', 'application_jet_local_spec'),
++            ('f_simplicity_' + suffix + '_asset', 'f_simplicity_version'),
++            ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
++            ('asset_rep m b ofs', '(fun _ _ _ _ => True) m b ofs'),
++            ('248 0 8 704' if suffix == 'output' else '544 168 0 696',
++             '248 4 8 704' if suffix == 'output' else '544 164 0 696'),
++            ('Ty.Unit\n' if suffix == 'current' else 'Word32\n',
++             'Word32\n' if suffix == 'current' else 'Word16\n')]:
++            assert a in statement, (name, a)
++            fixtures.append((file, statement, statement.replace(a, b, 1)))
++original = Path.read_text
++g.check(repo)
++for path, a, b in fixtures:
++    text = original(path)
++    assert a in text, ('inactive asset fixture', path, a)
++    altered = text.replace(a, b, 1)
++    assert altered != text
++    def read(self, *args, **kw):
++        return altered if self == path else original(self, *args, **kw)
++    with patch.object(Path, 'read_text', read):
++        try:
++            g.check(repo)
++        except ValueError:
++            pass
++        else:
++            raise AssertionError('accepted asset source corruption: ' + a)
++g.check(repo)
++print(str(len(fixtures)) + ' packed-field/asset/current/representation/whole-C corruptions rejected')
+--- /dev/null
++++ b/Coq/elements-amount-literal/check-source.py
+@@ -0,0 +1,216 @@
++"""Canonical amount/asset routing and exact original C pair contracts.
++
++Not field arithmetic, host-library verification, caller construction, or normal
++acceptance. Amount primitives and amount jets deliberately have different types.
++"""
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import re
++import sys
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++
++
++def load(name, path):
++    sp = importlib.util.spec_from_file_location(name, path)
++    m = importlib.util.module_from_spec(sp)
++    sp.loader.exec_module(m)
++    return m
++
++
++def check(repo):
++    coq = repo / 'Coq'
++    prior = load('amount_shared_asset_source', HERE.parent / 'elements-asset-literal/check-source.py')
++    r = prior.check(repo)
++    p = load('amount_source_parser', coq / 'check-secp-predicates-specification.py')
++    paths = []
++
++    def read(path):
++        paths.append(path)
++        return p.read_code(path)
++
++    def equal(actual, expected, name):
++        if p.compact(actual) != p.compact(expected):
++            raise ValueError('amount source differs: ' + name)
++
++    def line(source, name, expected):
++        found = re.findall(r'(?m)^\s*' + re.escape(name) + r'\s*=([^\n]*)$', source)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous amount clause: ' + name)
++        equal(found[0], expected, name)
++
++    def definition(path, name, expected):
++        found = re.findall(r'\b(?:Definition|Fixpoint|Let)\s+' + re.escape(name) +
++                           r"(?![\w']).*?:=(.*?)\.\s*(?:\n|$)", read(path), re.S)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous amount definition: ' + name)
++        equal(found[0], expected, name)
++
++    def statement(path, name, expected):
++        found = re.findall(r'\b(?:Theorem|Lemma)\s+' + re.escape(name) +
++                           r"(?![\w'])(.*?)\bProof\.", read(path), re.S)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous whole amount contract: ' + name)
++        equal(found[0], expected, name)
++
++    hs = read(repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs')
++    catalog = read(repo / 'Haskell/Simplicity/Elements/Jets.hs')
++    data = read(repo / 'Haskell/Elements/Simplicity/Elements/DataTypes.hs')
++    p.require(data, 'import Data.Word (Word64, Word32, Word16, Word8)', 'native unsigned amount carrier')
++    p.require(data, 'type Value = Word64', 'amount value width')
++    p.require(data, 'newtype AmountWith prf = Amount (Confidential prf Value)', 'amount wrapper')
++    line(data, 'clearAmountPrf x', 'x & under amount . prf_ .~ ()')
++    if data.count('\namount =') != 1 or data.count('clearAmountPrf ::') != 1:
++        raise ValueError('ambiguous amount adapter')
++    equal(data.split('\namount =', 1)[1].split('clearAmountPrf ::', 1)[0],
++          'adapter to fro where to (Amount x) = x fro x = (Amount x)', 'amount adapter')
++    line(hs, 'encodeAmount', 'encodeConfidential (toWord64 . toInteger) . view (under amount)')
++    for tag, name, route in [('InputAmount', 'inputAmount', 'utxoAmount . sigTxiTxo'),
++                             ('OutputAmount', 'outputAmount', 'clearAmountPrf . txoAmount')]:
++        p.require(hs, tag + ' :: Prim Word32 (S (Conf Word64))', 'amount-only primitive type')
++        p.require(catalog, tag + ' :: TransactionJet Word32 (S (Conf Word256, Conf Word64))', 'asset/amount jet type')
++        line(catalog, 'specificationTransaction ' + tag, 'Prog.' + name)
++        line(hs, 'primName ' + tag, '"' + name + '"')
++        line(hs, 'interpret ' + tag, 'return . (at' + ('Input' if tag == 'InputAmount' else 'Output') +
++             ' $ encodeAmount . ' + route + ')')
++    p.require(catalog, 'CurrentAmount :: TransactionJet () (Conf Word256, Conf Word64)', 'current pair type')
++    line(catalog, 'specificationTransaction CurrentAmount', 'Prog.currentAmount')
++    library = read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs')
++    for name in ['inputAmount', 'outputAmount', 'currentAmount']:
++        line(library, name, 'Transaction.' + name + ' Transaction.lib')
++    program = read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs')
++    if program.count('lib = l') != 1:
++        raise ValueError('ambiguous amount program library')
++    for name, expected in [
++        ('inputAmount', 'primitive InputAmount &&& primitive InputAsset >>> match (injl unit) (ih &&& oh >>> match (injl unit) (injr iden))'),
++        ('outputAmount', 'primitive OutputAmount &&& primitive OutputAsset >>> match (injl unit) (ih &&& oh >>> match (injl unit) (injr iden))'),
++        ('currentAmount', 'primitive CurrentIndex >>> assert (inputAmount)')]:
++        found = re.findall(r'(?ms)^\s*, ' + name + r'\s*=(.*?)(?=^\s*,|\Z)', program.split('lib = l', 1)[1])
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous amount program: ' + name)
++        equal(found[0], expected, name)
++    core = read(repo / 'Haskell/Core/Simplicity/Term/Core.hs')
++    line(core, 'ih', 'drop iden')
++    line(core, 'oh', 'take iden')
++
++    port = coq / 'C/jet_elements_prim.v'
++    definition(port, 'amountWith', 'confidential prf int64')
++    definition(port, 'encodeAmount', 'encodeConfidential (fun v => fromZ (Int64.unsigned v) : tySem Word64) a')
++    sem = p.definition(read(port), 'sem')
++    for tag, following, expected in [
++        ('InputAmount', 'InputScriptHash', 'atInput (fun txi => encodeAmount (utxoAmount (sigTxiTxo txi)))'),
++        ('OutputAmount', 'OutputNonce', 'atOutput (fun txo => encodeAmount (clearPrf (txoAmount txo)))')]:
++        p.require(read(port), '| ' + tag + ' : prim Word32 (S (Conf Word64))', 'Coq amount primitive type')
++        if sem.count('| ' + tag + ' =>') != 1 or sem.count('| ' + following + ' =>') != 1:
++            raise ValueError('ambiguous amount primitive')
++        equal(sem.split('| ' + tag + ' =>', 1)[1].split('| ' + following + ' =>', 1)[0], expected, tag)
++
++    old = coq / 'C/jet_elements_amount_jets.v'
++    definition(old, 'elements_amount_pair_spec', '''Alg.Core.Combinators.comp (Alg.Core.Combinators.pair pm pa)
++      (Alg.Core.Combinators.case (Alg.Core.Combinators.injl Alg.Core.Combinators.unit)
++        (Alg.Core.Combinators.comp
++          (Alg.Core.Combinators.pair (Alg.Core.Combinators.drop Alg.Core.Combinators.iden)
++            (Alg.Core.Combinators.take Alg.Core.Combinators.iden))
++          (Alg.Core.Combinators.case (Alg.Core.Combinators.injl Alg.Core.Combinators.unit)
++            (Alg.Core.Combinators.injr Alg.Core.Combinators.iden))))''')
++    definition(old, 'amount_rep', r'''match a with
++      | Explicit v => Mem.load Mint64 m b ofs = Some (Vlong v)
++      | Confidential (Point _ x) _ => uint32_array_at m b ofs (hash256_reg x) end /\
++      Mem.load Mint32 m b (ofs + 32) = Some (Vint (conf_prefix a))''')
++    definition(old, 'encode_amount', '''match a with
++      | Explicit v => inr (@fromZ (WordToZ 6) (Int64.unsigned v))
++      | Confidential (Point odd x) _ => inl (conf_toBit odd, from_hash256 x) end''')
++    definition(old, 'amount_pair_result', '''match nth_error elems (Z.to_nat (toZ a)) with
++      | Some x => inr (encode_asset (ga x), encode_amount (gm x)) | None => inl tt end''')
++    literal = coq / 'C/jet_elements_amount_literal.v'
++    p.require(read(literal), 'Local Notation AmountPair := (Ty.Prod (ConfLiteral Word256) (ConfLiteral Word64)).', 'asset-first pair widths')
++    p.require(read(literal), 'Local Notation ConfLiteral a := (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) a).', 'confidential sum shape')
++    definition(literal, 'encode_amount_literal', 'encode_confidential_literal (fun v => haskell_to_word 6 (Int64.unsigned v)) a')
++    definition(literal, 'amount_pair_literal', '''@word_indexed_value_literal X AmountPair 5
++      (fun x => (encode_asset_literal (asset_of x), encode_amount_literal (amount_of x))) values a''')
++    definition(literal, 'elements_input_amount_literal_spec', '''amount_pair_literal (sigTxIn (Elements.envTx environment))
++      (fun txi => utxoAsset (sigTxiTxo txi)) (fun txi => utxoAmount (sigTxiTxo txi)) a''')
++    definition(literal, 'elements_output_amount_literal_spec', '''amount_pair_literal (sigTxOut (Elements.envTx environment))
++      (fun txo => clearPrf (txoAsset txo)) (fun txo => clearPrf (txoAmount txo)) a''')
++    definition(literal, 'elements_current_amount_literal_spec', 'elements_current_literal_result elements_input_amount_literal_spec')
++    current = coq / 'C/jet_elements_current_gen_jets.v'
++    definition(current, 'elements_current_amount_spec', 'elements_current_spec (@elements_input_amount_spec alg)')
++    definition(current, 'input_amount_elem_rep', r'''asset_rep m b (ofs + 168) (utxoAsset (sigTxiTxo txi)) /\
++      amount_rep m b (ofs + 208) (utxoAmount (sigTxiTxo txi))''')
++    definition(coq / 'C/jet_elements_current_gen.v', 'current_gen_rep', r'''
++      exists be ebase bt txbase bin inbase nI ixv,
++        env = Vptr be (Ptrofs.repr ebase) /\
++        0 <= ebase /\ ebase + 88 <= Ptrofs.max_unsigned /\
++        0 <= txbase /\ txbase + 760 <= Ptrofs.max_unsigned /\
++        0 <= inbase /\ inbase + sz * Z.of_nat (length (elems_of environment)) <= Ptrofs.max_unsigned /\
++        Mem.load Mptr m be (ebase + 0) = Some (Vptr bt (Ptrofs.repr txbase)) /\
++        Mem.load Mptr m bt (txbase + adelta) = Some (Vptr bin (Ptrofs.repr inbase)) /\
++        Mem.load Mint64 m bt (txbase + cdelta) = Some (Vlong nI) /\
++        Mem.load Mint64 m be (ebase + 80) = Some (Vlong ixv) /\
++        Int64.unsigned nI = Z.of_nat (length (elems_of environment)) /\
++        Int64.unsigned ixv = Z.of_nat (Elements.envIx environment) /\
++        (forall j x, nth_error (elems_of environment) j = Some x ->
++          elemrep m bin (inbase + sz * Z.of_nat j) x) /\
++        fp = [(be, ebase, ebase + 8); (be, ebase + 80, ebase + 88);
++              (bt, txbase + adelta, txbase + adelta + 8);
++              (bin, inbase, inbase + sz * Z.of_nat (length (elems_of environment)))]''')
++    for suffix in ['input', 'output', 'current']:
++        iscur, isout = suffix == 'current', suffix == 'output'
++        if not iscur:
++            definition(old, 'elements_' + suffix + '_amount_spec', '''elements_amount_pair_spec
++              (Primitive.Combinators.prim Elements.''' + suffix.capitalize() + '''Amount)
++              (Primitive.Combinators.prim Elements.''' + suffix.capitalize() + '''Asset)''')
++        rep = ('''(current_gen_rep (fun e => sigTxIn (Elements.envTx e)) input_amount_elem_rep 544 0 696) ''' if iscur else
++          r'''(indexed_ptr_rep (fun e => sigTxOut (Elements.envTx e))
++            (fun m b ofs txo => asset_rep m b (ofs + 0) (clearPrf (txoAsset txo)) /\
++              amount_rep m b (ofs + 104) (clearPrf (txoAmount txo))) 248 0 8 704) ''' if isout else
++          r'''(indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e))
++            (fun m b ofs txi => asset_rep m b (ofs + 168) (utxoAsset (sigTxiTxo txi)) /\
++              amount_rep m b (ofs + 208) (utxoAmount (sigTxiTxo txi))) 544 0 0 696) ''')
++        prefix = ': application_jet_local_spec_sep f_simplicity_' + suffix + '_amount elements_ge Elements.env '
++        oldty = 'Ty.Unit (Ty.Prod (ConfTy Word256) (ConfTy Word64)) ' if iscur else 'Word32 (Ty.Sum Ty.Unit (Ty.Prod (ConfTy Word256) (ConfTy Word64))) '
++        newty = 'Ty.Unit AmountPair ' if iscur else 'Word32 (Ty.Sum Ty.Unit AmountPair) '
++        statement(current if iscur else old, 'elements_' + suffix + '_amount_local_spec', prefix + oldty + rep +
++            '(fun a environment => @elements_' + suffix + '_amount_spec (PrimitivePrimSem option_Monad_Zero) a environment).')
++        statement(literal, 'elements_' + suffix + '_amount_literal_local_spec', prefix + newty + rep +
++            'elements_' + suffix + '_amount_literal_spec.')
++
++    cpath = repo / 'C/elements/elementsJets.c'
++    paths.append(cpath)
++    c = re.sub(r'//[^\n]*|/\*.*?\*/', '', cpath.read_text(), flags=re.S)
++    def cbody(name, expected):
++        found = list(re.finditer(r'\b(?:bool|void)\s+' + re.escape(name) + r'\s*\([^)]*\)\s*\{', c))
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous actual amount C function')
++        start, end, depth = found[0].end(), found[0].end(), 1
++        while end < len(c) and depth:
++            depth += (c[end] == '{') - (c[end] == '}')
++            end += 1
++        if depth:
++            raise ValueError('unterminated C function')
++        equal(c[start:end-1], expected, name)
++    cbody('amt', '''if (writeBit(dst, EXPLICIT == amt->prefix)) {
++      skipBits(dst, 1 + 256 - 64); simplicity_write64(dst, amt->explicit);
++      } else { writeBit(dst, ODD_Y == amt->prefix); writeHash(dst, &amt->confidential); }''')
++    for suffix, count, asset, amount in [('input', 'numInputs', 'input[i].txo.asset', 'input[i].txo.amt'),
++                                       ('output', 'numOutputs', 'output[i].asset', 'output[i].amt')]:
++        cbody('simplicity_' + suffix + '_amount', '''uint_fast32_t i = simplicity_read32(&src);
++          if (writeBit(dst, i < env->tx->''' + count + ''')) {
++            asset(dst, &env->tx->''' + asset + '''); amt(dst, &env->tx->''' + amount + ''');
++          } else { skipBits(dst, 516); } return true;''')
++    cbody('simplicity_current_amount', '''(void) src; if (env->tx->numInputs <= env->ix) return false;
++      asset(dst, &env->tx->input[env->ix].txo.asset); amt(dst, &env->tx->input[env->ix].txo.amt); return true;''')
++    r['source_sha256'].update({str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in set(paths)})
++    r.update(selected_jets=['Elements.InputAmount', 'Elements.OutputAmount', 'Elements.CurrentAmount'],
++             primitive_and_jet_codomain_distinguished=True, canonical_pair_routing_reviewed=True,
++             explicit_word64_and_padding_reviewed=True, whole_contracts_reviewed=True,
++             caller_environment_construction_proved=False, formal_host_library_equivalence=False,
++             normal_registration=False, kernel_checked_by_this_tool=False)
++    return r
++
++
++if __name__ == '__main__':
++    print(json.dumps(check(Path(sys.argv[1]).resolve()), indent=2))
+--- /dev/null
++++ b/Coq/elements-amount-literal/test-source.py
+@@ -0,0 +1,96 @@
++"""Read-only amount/pair-routing/width/padding/full-contract corruptions."""
++import importlib.util
++from pathlib import Path
++import sys
++from unittest.mock import patch
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++sp = importlib.util.spec_from_file_location('amount_source_negative', HERE / 'check-source.py')
++g = importlib.util.module_from_spec(sp)
++sp.loader.exec_module(g)
++repo = Path(sys.argv[1]).resolve()
++coq = repo / 'Coq'
++hs = repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs'
++data = repo / 'Haskell/Elements/Simplicity/Elements/DataTypes.hs'
++catalog = repo / 'Haskell/Simplicity/Elements/Jets.hs'
++program = repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs'
++local = coq / 'C/jet_elements_amount_literal.v'
++old = coq / 'C/jet_elements_amount_jets.v'
++current = coq / 'C/jet_elements_current_gen_jets.v'
++c = repo / 'C/elements/elementsJets.c'
++fixtures = [
++    (data, 'type Value = Word64', 'type Value = Word32'),
++    (data, 'clearAmountPrf x = x & under amount . prf_ .~ ()', 'clearAmountPrf x = x'),
++    (hs, 'encodeAmount = encodeConfidential (toWord64 . toInteger)',
++         'encodeAmount = encodeConfidential (toWord32 . toInteger)'),
++    (catalog, 'specificationTransaction InputAmount = Prog.inputAmount',
++              'specificationTransaction InputAmount = primitive Prim.InputAmount'),
++    (catalog, 'specificationTransaction CurrentAmount = Prog.currentAmount',
++              'specificationTransaction CurrentAmount = Prog.currentAsset'),
++    (program, 'inputAmount = primitive InputAmount &&& primitive InputAsset',
++              'inputAmount = primitive InputAsset &&& primitive InputAmount'),
++    (program, 'outputAmount = primitive OutputAmount &&& primitive OutputAsset',
++              'outputAmount = primitive OutputAmount'),
++    (program, 'currentAmount = primitive CurrentIndex >>> assert (inputAmount)',
++              'currentAmount = primitive CurrentIndex >>> assert (outputAmount)'),
++    (repo / 'Haskell/Core/Simplicity/Term/Core.hs', 'ih = drop iden', 'ih = take iden'),
++    (old, '(Alg.Core.Combinators.pair pm pa)', '(Alg.Core.Combinators.pair pa pm)'),
++    (local, 'Local Notation AmountPair := (Ty.Prod (ConfLiteral Word256) (ConfLiteral Word64))',
++            'Local Notation AmountPair := (Ty.Prod (ConfLiteral Word64) (ConfLiteral Word256))'),
++    (local, 'haskell_to_word 6 (Int64.unsigned v)', 'haskell_to_word 5 (Int64.unsigned v)'),
++    (local, '@word_indexed_value_literal X AmountPair 5', '@word_indexed_value_literal X AmountPair 4'),
++    (local, '(encode_asset_literal (asset_of x), encode_amount_literal (amount_of x))',
++            '(encode_amount_literal (amount_of x), encode_asset_literal (asset_of x))'),
++    (local, 'elements_current_literal_result elements_input_amount_literal_spec',
++            'elements_current_literal_result elements_output_amount_literal_spec'),
++    (old, 'Mem.load Mint64 m b ofs = Some (Vlong v)', 'Mem.load Mint32 m b ofs = Some (Vint v)'),
++    (current, 'amount_rep m b (ofs + 208)', 'amount_rep m b (ofs + 204)'),
++    (coq / 'C/jet_elements_current_gen.v', 'Int64.unsigned ixv = Z.of_nat (Elements.envIx environment)',
++                                           'Int64.unsigned ixv = 0'),
++    (c, 'skipBits(dst, 1 + 256 - 64);', 'skipBits(dst, 256 - 64);'),
++    (c, 'simplicity_write64(dst, amt->explicit);', 'simplicity_write32(dst, amt->explicit);'),
++    (c, 'amt(dst, &env->tx->input[i].txo.amt);', 'amt(dst, &env->tx->input[i].txo.asset);'),
++    (c, 'amt(dst, &env->tx->output[i].amt);', 'amt(dst, &env->tx->output[0].amt);'),
++    (c, 'amt(dst, &env->tx->input[env->ix].txo.amt);', 'amt(dst, &env->tx->input[0].txo.amt);'),
++]
++for suffix, path in [('input', old), ('output', old), ('current', current)]:
++    for file, name in [(path, 'elements_' + suffix + '_amount_local_spec'),
++                       (local, 'elements_' + suffix + '_amount_literal_local_spec')]:
++        text = file.read_text()
++        start = text.index('Theorem ' + name)
++        stop = text.index('Proof.', start)
++        statement = text[start:stop]
++        codomain = 'AmountPair' if file == local else '(Ty.Prod (ConfTy Word256) (ConfTy Word64))'
++        relation = 'input_amount_elem_rep' if suffix == 'current' else 'amount_rep m b'
++        offset = '544 0 696' if suffix == 'current' else '248 0 8 704' if suffix == 'output' else '544 0 0 696'
++        for a, b in [
++            ('application_jet_local_spec_sep', 'False -> application_jet_local_spec_sep'),
++            ('application_jet_local_spec_sep', 'application_jet_local_spec'),
++            ('f_simplicity_' + suffix + '_amount', 'f_simplicity_version'),
++            ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
++            (relation, '(fun _ _ _ _ => True)' if suffix == 'current' else '(fun _ _ _ _ => True) m b'),
++            (offset, offset[:-1] + '5'),
++            ('Ty.Unit\n' if suffix == 'current' else 'Word32\n',
++             'Word32\n' if suffix == 'current' else 'Word16\n'),
++            (codomain, 'Word64')]:
++            assert a in statement, (name, a)
++            fixtures.append((file, statement, statement.replace(a, b, 1)))
++original = Path.read_text
++g.check(repo)
++for path, a, b in fixtures:
++    text = original(path)
++    assert a in text, ('inactive amount fixture', path, a)
++    altered = text.replace(a, b, 1)
++    assert altered != text
++    def read(self, *args, **kw):
++        return altered if self == path else original(self, *args, **kw)
++    with patch.object(Path, 'read_text', read):
++        try:
++            g.check(repo)
++        except ValueError:
++            pass
++        else:
++            raise AssertionError('accepted amount source corruption: ' + a)
++g.check(repo)
++print(str(len(fixtures)) + ' amount/pair/width/padding/representation/whole-C corruptions rejected')
+--- /dev/null
++++ b/Coq/elements-issuance-amount-literal/check-source.py
+@@ -0,0 +1,153 @@
++"""Canonical optional issuance amount selectors and original whole-C contracts.
++
++Reuse the reviewed Word64 encoder/index/current guards. No caller construction,
++host-library equivalence, token-amount proof or normal acceptance is claimed.
++"""
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import re
++import sys
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++
++
++def load(name, path):
++    sp = importlib.util.spec_from_file_location(name, path)
++    m = importlib.util.module_from_spec(sp)
++    sp.loader.exec_module(m)
++    return m
++
++
++def check(repo):
++    coq = repo / 'Coq'
++    prior = load('issuance_amount_shared_source', HERE.parent / 'elements-amount-literal/check-source.py')
++    r = prior.check(repo)
++    p = load('issuance_amount_source_parser', coq / 'check-secp-predicates-specification.py')
++    paths = []
++
++    def read(path):
++        paths.append(path)
++        return p.read_code(path)
++
++    def equal(actual, expected, name):
++        if p.compact(actual) != p.compact(expected):
++            raise ValueError('issuance amount source differs: ' + name)
++
++    def line(source, name, expected):
++        found = re.findall(r'(?m)^\s*' + re.escape(name) + r'\s*=([^\n]*)$', source)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous issuance amount clause: ' + name)
++        equal(found[0], expected, name)
++
++    def definition(path, name, expected):
++        found = re.findall(r'\b(?:Definition|Fixpoint|Let)\s+' + re.escape(name) +
++                           r"(?![\w']).*?:=(.*?)\.\s*(?:\n|$)", read(path), re.S)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous issuance amount definition: ' + name)
++        equal(found[0], expected, name)
++
++    def statement(path, name, expected):
++        found = re.findall(r'\b(?:Theorem|Lemma)\s+' + re.escape(name) +
++                           r"(?![\w'])(.*?)\bProof\.", read(path), re.S)
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous whole issuance amount contract: ' + name)
++        equal(found[0], expected, name)
++
++    hs = read(repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs')
++    catalog = read(repo / 'Haskell/Simplicity/Elements/Jets.hs')
++    line(hs, 'issuanceAmount', 'either newIssuanceAmount reissuanceAmount')
++    p.require(hs, 'IssuanceAssetAmount :: Prim Word32 (S (S (Conf Word64)))', 'indexed primitive type')
++    line(hs, 'primName IssuanceAssetAmount', '"issuanceAssetAmount"')
++    found = re.findall(r'(?ms)^\s*interpret IssuanceAssetAmount\s*=(.*?)(?=^\s*interpret )', hs)
++    if len(found) != 1:
++        raise ValueError('missing/ambiguous issuance amount interpretation')
++    equal(found[0], 'return . (atInput $ cast . fmap (encodeAmount . clearAmountPrf . issuanceAmount) . sigTxiIssuance)',
++          'optional issuance interpretation')
++    p.require(catalog, 'IssuanceAssetAmount :: TransactionJet Word32 (S (S (Conf Word64)))', 'indexed jet type')
++    p.require(catalog, 'CurrentIssuanceAssetAmount :: TransactionJet () (S (Conf Word64))', 'current jet type')
++    line(catalog, 'specificationTransaction IssuanceAssetAmount', 'primitive Prim.IssuanceAssetAmount')
++    line(catalog, 'specificationTransaction CurrentIssuanceAssetAmount', 'Prog.currentIssuanceAssetAmount')
++    library = read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction/Lib.hs')
++    line(library, 'currentIssuanceAssetAmount', 'Transaction.currentIssuanceAssetAmount Transaction.lib')
++    program = read(repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs')
++    if program.count('lib = l') != 1:
++        raise ValueError('ambiguous transaction program library')
++    line(program.split('lib = l', 1)[1], ', currentIssuanceAssetAmount',
++         'primitive CurrentIndex >>> assert (primitive IssuanceAssetAmount)')
++
++    port = coq / 'C/jet_elements_prim.v'
++    definition(port, 'issuanceAmount', 'match i with | inl new => newIssuanceAmount new | inr re => reissuanceAmount re end')
++    sem = p.definition(read(port), 'sem')
++    p.require(read(port), '| IssuanceAssetAmount : prim Word32 (S (S (Conf Word64)))', 'Coq primitive type')
++    if sem.count('| IssuanceAssetAmount =>') != 1 or sem.count('| IssuanceTokenAmount =>') != 1:
++        raise ValueError('ambiguous Coq issuance amount primitive')
++    equal(sem.split('| IssuanceAssetAmount =>', 1)[1].split('| IssuanceTokenAmount =>', 1)[0],
++          'atInput (fun txi => cast (option_map (fun i => encodeAmount (clearPrf (issuanceAmount i))) (sigTxiIssuance txi)))',
++          'Coq optional issuance semantics')
++    old = coq / 'C/jet_elements_issuance_amount_jets.v'
++    current = coq / 'C/jet_elements_current_input_jets.v'
++    local = coq / 'C/jet_elements_issuance_amount_literal.v'
++    definition(old, 'issuance_amount', 'match i with inl new => newIssuanceAmount new | inr re => reissuanceAmount re end')
++    definition(old, 'issuance_amount_rep', r'''Mem.load Mint32 m b (ofs + 272) = Some (Vint (issuance_tag (sigTxiIssuance txi))) /\
++      forall i, sigTxiIssuance txi = Some i -> amount_rep m b (ofs + 232) (clearPrf (issuance_amount i))''')
++    definition(old, 'issuance_amount_result', '''match nth_error elems (Z.to_nat (toZ a)) with
++      | Some txi => inr (match sigTxiIssuance txi with
++        | Some i => inr (encode_amount (clearPrf (issuance_amount i))) | None => inl tt end)
++      | None => inl tt end''')
++    definition(old, 'elements_issuance_asset_amount_spec', 'Primitive.Combinators.prim Elements.IssuanceAssetAmount')
++    definition(current, 'elements_current_issuance_asset_amount_spec', 'elements_current_spec (@elements_issuance_asset_amount_spec alg)')
++    p.require(read(local), 'Local Notation ConfAmount := (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) Word64).', 'amount widths')
++    definition(local, 'issuance_asset_amount_literal', '''match sigTxiIssuance txi with
++      | None => inl tt
++      | Some (inl new) => inr (encode_amount_literal (clearPrf (newIssuanceAmount new)))
++      | Some (inr re) => inr (encode_amount_literal (clearPrf (reissuanceAmount re))) end''')
++    definition(local, 'elements_issuance_asset_amount_literal_spec', '''@word_indexed_value_literal sigTxInput (Ty.Sum Ty.Unit ConfAmount) 5
++      issuance_asset_amount_literal (sigTxIn (Elements.envTx environment)) a''')
++    definition(local, 'elements_current_issuance_asset_amount_literal_spec',
++               'elements_current_literal_result elements_issuance_asset_amount_literal_spec')
++    for iscur in [False, True]:
++        suffix = ('current_' if iscur else '') + 'issuance_asset_amount'
++        rep = ('''(current_ptr_rep (fun e => sigTxIn (Elements.envTx e)) Elements.envIx issuance_amount_rep 544 256 0 696) ''' if iscur else
++               '''(indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e)) issuance_amount_rep 544 256 0 696) ''')
++        prefix = ': application_jet_local_spec_sep f_simplicity_' + suffix + ' elements_ge Elements.env '
++        prefix += 'Ty.Unit (Ty.Sum Ty.Unit ' if iscur else 'Word32 (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit '
++        for literal, path in [(False, current if iscur else old), (True, local)]:
++            name = 'elements_' + suffix + ('_literal' if literal else '')
++            ty = ('ConfAmount' if literal else '(ConfTy Word64)') + (') ' if iscur else ')) ')
++            spec = name + '_spec.' if literal else '(fun a environment => @elements_' + suffix + '_spec (PrimitivePrimSem option_Monad_Zero) a environment).'
++            statement(path, name + '_local_spec', prefix + ty + rep + spec)
++
++    cpath = repo / 'C/elements/elementsJets.c'
++    paths.append(cpath)
++    c = re.sub(r'//[^\n]*|/\*.*?\*/', '', cpath.read_text(), flags=re.S)
++    def cbody(name, expected):
++        found = list(re.finditer(r'\b(?:bool|void)\s+' + re.escape(name) + r'\s*\([^)]*\)\s*\{', c))
++        if len(found) != 1:
++            raise ValueError('missing/ambiguous issuance amount C function')
++        start, end, depth = found[0].end(), found[0].end(), 1
++        while end < len(c) and depth:
++            depth += (c[end] == '{') - (c[end] == '}')
++            end += 1
++        if depth:
++            raise ValueError('unterminated issuance amount C function')
++        equal(c[start:end-1], expected, name)
++    cbody('issuanceAssetAmt', '''if (writeBit(dst, NO_ISSUANCE != issuance->type)) {
++      amt(dst, &issuance->assetAmt); } else { skipBits(dst, 258); }''')
++    cbody('simplicity_issuance_asset_amount', '''uint_fast32_t i = simplicity_read32(&src);
++      if (writeBit(dst, i < env->tx->numInputs)) { issuanceAssetAmt(dst, &env->tx->input[i].issuance);
++      } else { skipBits(dst, 259); } return true;''')
++    cbody('simplicity_current_issuance_asset_amount', '''(void) src; if (env->tx->numInputs <= env->ix) return false;
++      issuanceAssetAmt(dst, &env->tx->input[env->ix].issuance); return true;''')
++    r['source_sha256'].update({str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in set(paths)})
++    r.update(selected_jets=['Elements.IssuanceAssetAmount', 'Elements.CurrentIssuanceAssetAmount'],
++             optional_issuance_branches_reviewed=True, whole_contracts_reviewed=True,
++             caller_environment_construction_proved=False, formal_host_library_equivalence=False,
++             token_amount_proved=False, normal_registration=False, kernel_checked_by_this_tool=False)
++    return r
++
++
++if __name__ == '__main__':
++    print(json.dumps(check(Path(sys.argv[1]).resolve()), indent=2))
+--- /dev/null
++++ b/Coq/elements-issuance-amount-literal/test-source.py
+@@ -0,0 +1,82 @@
++"""Read-only optional-issuance and original whole-contract corruption tests."""
++import importlib.util
++from pathlib import Path
++import sys
++from unittest.mock import patch
++
++sys.dont_write_bytecode = True
++HERE = Path(__file__).resolve().parent
++sp = importlib.util.spec_from_file_location('issuance_amount_source_negative', HERE / 'check-source.py')
++g = importlib.util.module_from_spec(sp)
++sp.loader.exec_module(g)
++repo = Path(sys.argv[1]).resolve()
++coq = repo / 'Coq'
++hs = repo / 'Haskell/Elements/Simplicity/Elements/Primitive.hs'
++catalog = repo / 'Haskell/Simplicity/Elements/Jets.hs'
++program = repo / 'Haskell/Simplicity/Elements/Programs/Transaction.hs'
++local = coq / 'C/jet_elements_issuance_amount_literal.v'
++old = coq / 'C/jet_elements_issuance_amount_jets.v'
++current = coq / 'C/jet_elements_current_input_jets.v'
++c = repo / 'C/elements/elementsJets.c'
++fixtures = [
++    (hs, 'issuanceAmount = either newIssuanceAmount reissuanceAmount',
++         'issuanceAmount = either newIssuanceTokenAmount reissuanceAmount'),
++    (hs, 'encodeAmount . clearAmountPrf . issuanceAmount', 'encodeAmount . issuanceAmount'),
++    (catalog, 'specificationTransaction IssuanceAssetAmount = primitive Prim.IssuanceAssetAmount',
++              'specificationTransaction IssuanceAssetAmount = primitive Prim.IssuanceTokenAmount'),
++    (program, 'currentIssuanceAssetAmount = primitive CurrentIndex >>> assert (primitive IssuanceAssetAmount)',
++              'currentIssuanceAssetAmount = primitive CurrentIndex >>> assert (primitive IssuanceTokenAmount)'),
++    (local, 'Some (inl new) => inr (encode_amount_literal (clearPrf (newIssuanceAmount new)))',
++            'Some (inl new) => inr (encode_amount_literal (clearPrf (newIssuanceTokenAmount new)))'),
++    (local, 'None => inl tt', 'None => inr tt'),
++    (local, '(Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) Word64)',
++            '(Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) Word32)'),
++    (local, '(Ty.Sum Ty.Unit ConfAmount) 5', '(Ty.Sum Ty.Unit ConfAmount) 4'),
++    (local, 'elements_current_literal_result elements_issuance_asset_amount_literal_spec',
++            'elements_current_literal_result elements_input_amount_literal_spec'),
++    (old, 'ofs + 272', 'ofs + 268'),
++    (old, 'ofs + 232', 'ofs + 228'),
++    (c, 'amt(dst, &issuance->assetAmt);', 'amt(dst, &issuance->tokenAmt);'),
++    (c, 'skipBits(dst, 258);', 'skipBits(dst, 257);'),
++    (c, 'issuanceAssetAmt(dst, &env->tx->input[i].issuance);',
++        'issuanceAssetAmt(dst, &env->tx->input[0].issuance);'),
++    (c, 'issuanceAssetAmt(dst, &env->tx->input[env->ix].issuance);',
++        'issuanceAssetAmt(dst, &env->tx->input[0].issuance);'),
++]
++for iscur, path in [(False, old), (True, current)]:
++    suffix = ('current_' if iscur else '') + 'issuance_asset_amount'
++    for file, name in [(path, 'elements_' + suffix + '_local_spec'),
++                       (local, 'elements_' + suffix + '_literal_local_spec')]:
++        text = file.read_text()
++        start = text.index('Theorem ' + name)
++        stop = text.index('Proof.', start)
++        statement = text[start:stop]
++        for a, b in [
++            ('application_jet_local_spec_sep', 'False -> application_jet_local_spec_sep'),
++            ('application_jet_local_spec_sep', 'application_jet_local_spec'),
++            ('f_simplicity_' + suffix, 'f_simplicity_version'),
++            ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
++            ('issuance_amount_rep', '(fun _ _ _ _ => True)'),
++            ('544 256 0 696', '544 256 0 695'),
++            ('Ty.Unit\n' if iscur else 'Word32\n', 'Word32\n' if iscur else 'Word16\n'),
++            ('ConfAmount' if file == local else '(ConfTy Word64)', 'Word64')]:
++            assert a in statement, (name, a)
++            fixtures.append((file, statement, statement.replace(a, b, 1)))
++original = Path.read_text
++g.check(repo)
++for path, a, b in fixtures:
++    text = original(path)
++    assert a in text, ('inactive issuance amount fixture', path, a)
++    altered = text.replace(a, b, 1)
++    assert altered != text
++    def read(self, *args, **kw):
++        return altered if self == path else original(self, *args, **kw)
++    with patch.object(Path, 'read_text', read):
++        try:
++            g.check(repo)
++        except ValueError:
++            pass
++        else:
++            raise AssertionError('accepted issuance amount source corruption: ' + a)
++g.check(repo)
++print(str(len(fixtures)) + ' issuance amount/branch/padding/representation/whole-C corruptions rejected')
+--- /dev/null
++++ b/Coq/C/jet_elements_asset_literal.v
+@@ -0,0 +1,139 @@
++(** Original C asset getters against literal primitive encoding. A point's
++    hash256 field represents the serialized fe_pack word. This is a projection
++    interface, not a claim that every arbitrary word is a canonical FE. *)
++From Coq Require Import ZArith List.
++From compcert Require Import Integers.
++Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Util.Option.
++Require Import C.jet_elements_prim C.jets_elements C.jet_elements_linkage C.jet_application_sep.
++Require Import C.jet_haskell_word_conversion C.jet_haskell_hash_word C.jet_elements_sequence_literal.
++Require Import C.jet_elements_output_nonce_literal C.jet_elements_asset_jets.
++Require Import C.jet_elements_indexed_ptr C.jet_elements_current_ptr_jets C.jet_elements_current_input_jets.
++Require Import C.jet_elements_current_spec C.jet_elements_current_sequence_literal.
++Local Open Scope Z_scope.
++Set Default Timeout 10.
++
++Local Notation ConfLiteral a := (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) a).
++Local Notation AssetConf := (ConfLiteral Word256).
++
++(** Haskell fe_repr = toInteger . fe_pack. The packed word is read in the
++    existing four-limb serialization order; no field reduction is performed. *)
++Definition packed_fe_integer_literal (packed : hash256) : Z :=
++  haskell_word256_integer
++    (haskell_be256_run (hash256_to_bytelist packed) (haskell_word256_from_integer 0)).
++
++Lemma packed_fe_to_word_literal_matches packed :
++  haskell_to_word 8 (packed_fe_integer_literal packed) = from_hash256 packed.
++Proof. apply native_hash_word_literal_matches. Qed.
++
++Definition encode_confidential_literal {A : Set} {B : Ty}
++    (enc : A -> tySem B) (c : confidential unit A) : tySem (ConfLiteral B) :=
++  match c with
++  | Explicit x => inr (enc x)
++  | Confidential (Point odd packed) _ =>
++      inl ((if odd then inr tt else inl tt), haskell_to_word 8 (packed_fe_integer_literal packed))
++  end.
++
++Lemma encode_confidential_literal_matches {A : Set} {B : Ty}
++    (old literal : A -> tySem B) (c : confidential unit A) :
++  (forall x, old x = literal x) ->
++  (match c with
++   | Explicit x => inr (old x)
++   | Confidential (Point odd packed) _ =>
++       inl ((if odd then inr tt else inl tt), from_hash256 packed)
++   end : tySem (ConfLiteral B)) = encode_confidential_literal literal c.
++Proof.
++  intro Henc. destruct c as [x|[odd packed] proof]; cbn [encode_confidential_literal].
++  - rewrite Henc. reflexivity.
++  - rewrite packed_fe_to_word_literal_matches. reflexivity.
++Qed.
++
++Definition encode_asset_literal (a : assetWith unit) : tySem AssetConf :=
++  encode_confidential_literal
++    (fun h => haskell_to_word 8 (haskell_integer_hash256 (hash256_to_bytelist h))) a.
++
++Lemma encode_asset_literal_matches a : encode_asset a = encode_asset_literal a.
++Proof.
++  unfold encode_asset, encode_asset_literal, conf_toBit.
++  apply (@encode_confidential_literal_matches hash256 Word256 from_hash256
++    (fun h => haskell_to_word 8 (haskell_integer_hash256 (hash256_to_bytelist h))) a).
++  intro h. symmetry. apply haskell_hash_word256.
++Qed.
++
++Definition elements_input_asset_literal_spec (a : tySem Word32) (environment : Elements.env) :=
++  word_indexed_value_literal 5 (fun txi => encode_asset_literal (utxoAsset (sigTxiTxo txi)))
++    (sigTxIn (Elements.envTx environment)) a.
++
++Lemma elements_input_asset_literal_matches a environment :
++  @elements_input_asset_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_input_asset_literal_spec a environment.
++Proof.
++  rewrite elements_input_asset_sem.
++  unfold elements_input_asset_result, elements_input_asset_literal_spec.
++  apply (@word_indexed_value_literal_matches sigTxInput AssetConf 5
++    (fun txi => encode_asset (utxoAsset (sigTxiTxo txi)))
++    (fun txi => encode_asset_literal (utxoAsset (sigTxiTxo txi)))
++    (sigTxIn (Elements.envTx environment)) a).
++  intro txi. apply encode_asset_literal_matches.
++Qed.
++
++Definition elements_output_asset_literal_spec (a : tySem Word32) (environment : Elements.env) :=
++  word_indexed_value_literal 5 (fun txo => encode_asset_literal (clearPrf (txoAsset txo)))
++    (sigTxOut (Elements.envTx environment)) a.
++
++Lemma elements_output_asset_literal_matches a environment :
++  @elements_output_asset_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_output_asset_literal_spec a environment.
++Proof.
++  rewrite elements_output_asset_sem.
++  unfold elements_output_asset_result, elements_output_asset_literal_spec.
++  apply (@word_indexed_value_literal_matches txOutput AssetConf 5
++    (fun txo => encode_asset (clearPrf (txoAsset txo)))
++    (fun txo => encode_asset_literal (clearPrf (txoAsset txo)))
++    (sigTxOut (Elements.envTx environment)) a).
++  intro txo. apply encode_asset_literal_matches.
++Qed.
++
++Definition elements_current_asset_literal_spec :=
++  elements_current_literal_result elements_input_asset_literal_spec.
++
++Lemma elements_current_asset_literal_matches a environment :
++  @elements_current_asset_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_current_asset_literal_spec a environment.
++Proof.
++  unfold elements_current_asset_spec, elements_current_asset_literal_spec.
++  apply (elements_current_literal_sem (B := AssetConf)).
++  exact elements_input_asset_literal_matches.
++Qed.
++
++Theorem elements_input_asset_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_input_asset elements_ge Elements.env Word32
++    (Ty.Sum Ty.Unit AssetConf)
++    (indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e))
++      (fun m b ofs txi => asset_rep m b ofs (utxoAsset (sigTxiTxo txi))) 544 168 0 696)
++    elements_input_asset_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_input_asset_literal_matches|exact elements_input_asset_local_spec].
++Qed.
++
++Theorem elements_output_asset_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_output_asset elements_ge Elements.env Word32
++    (Ty.Sum Ty.Unit AssetConf)
++    (indexed_ptr_rep (fun e => sigTxOut (Elements.envTx e))
++      (fun m b ofs txo => asset_rep m b ofs (clearPrf (txoAsset txo))) 248 0 8 704)
++    elements_output_asset_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_output_asset_literal_matches|exact elements_output_asset_local_spec].
++Qed.
++
++Theorem elements_current_asset_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_current_asset elements_ge Elements.env Ty.Unit
++    AssetConf
++    (current_ptr_rep (fun e => sigTxIn (Elements.envTx e)) Elements.envIx
++      (fun m b ofs txi => asset_rep m b ofs (utxoAsset (sigTxiTxo txi))) 544 168 0 696)
++    elements_current_asset_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_current_asset_literal_matches|exact elements_current_asset_local_spec].
++Qed.
+--- /dev/null
++++ b/Coq/C/jet_elements_amount_literal.v
+@@ -0,0 +1,114 @@
++(** C amount jets against the canonical amount/asset pair programs. Reuse the
++    payload-polymorphic confidential encoder; explicit amounts are Word64. *)
++From Coq Require Import ZArith List.
++From compcert Require Import Integers.
++Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Util.Option.
++Require Import C.jet_elements_prim C.jets_elements C.jet_elements_linkage C.jet_application_sep.
++Require Import C.jet_haskell_word_conversion C.jet_elements_sequence_literal.
++Require Import C.jet_elements_output_nonce_literal C.jet_elements_asset_literal C.jet_elements_asset_jets.
++Require Import C.jet_elements_amount_jets C.jet_elements_current_gen C.jet_elements_current_gen_jets.
++Require Import C.jet_elements_indexed_ptr C.jet_elements_current_spec C.jet_elements_current_sequence_literal.
++Local Open Scope Z_scope.
++Set Default Timeout 10.
++
++Local Notation ConfLiteral a := (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) a).
++Local Notation AmountPair := (Ty.Prod (ConfLiteral Word256) (ConfLiteral Word64)).
++
++Definition encode_amount_literal (a : amountWith unit) : tySem (ConfLiteral Word64) :=
++  encode_confidential_literal (fun v => haskell_to_word 6 (Int64.unsigned v)) a.
++
++Lemma encode_amount_literal_matches a : encode_amount a = encode_amount_literal a.
++Proof.
++  unfold encode_amount, encode_amount_literal, conf_toBit.
++  apply (@encode_confidential_literal_matches int64 Word64
++    (fun v => @fromZ (WordToZ 6) (Int64.unsigned v))
++    (fun v => haskell_to_word 6 (Int64.unsigned v)) a).
++  intro v. symmetry. apply haskell_to_word_matches.
++Qed.
++
++Definition amount_pair_literal {X : Type} (values : list X)
++    (asset_of : X -> assetWith unit) (amount_of : X -> amountWith unit)
++    (a : tySem Word32) : option (tySem (Ty.Sum Ty.Unit AmountPair)) :=
++  @word_indexed_value_literal X AmountPair 5
++    (fun x => (encode_asset_literal (asset_of x), encode_amount_literal (amount_of x))) values a.
++
++Lemma amount_pair_literal_matches {X : Type} (values : list X) asset_of amount_of a :
++  Some (amount_pair_result values asset_of amount_of a) =
++    amount_pair_literal values asset_of amount_of a.
++Proof.
++  unfold amount_pair_result, amount_pair_literal.
++  apply (@word_indexed_value_literal_matches X AmountPair 5
++    (fun x => (encode_asset (asset_of x), encode_amount (amount_of x)))
++    (fun x => (encode_asset_literal (asset_of x), encode_amount_literal (amount_of x))) values a).
++  intro x. rewrite encode_asset_literal_matches, encode_amount_literal_matches. reflexivity.
++Qed.
++
++Definition elements_input_amount_literal_spec (a : tySem Word32) (environment : Elements.env) :=
++  amount_pair_literal (sigTxIn (Elements.envTx environment))
++    (fun txi => utxoAsset (sigTxiTxo txi)) (fun txi => utxoAmount (sigTxiTxo txi)) a.
++
++Lemma elements_input_amount_literal_matches a environment :
++  @elements_input_amount_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_input_amount_literal_spec a environment.
++Proof.
++  rewrite elements_input_amount_sem. unfold elements_input_amount_literal_spec.
++  apply amount_pair_literal_matches.
++Qed.
++
++Definition elements_output_amount_literal_spec (a : tySem Word32) (environment : Elements.env) :=
++  amount_pair_literal (sigTxOut (Elements.envTx environment))
++    (fun txo => clearPrf (txoAsset txo)) (fun txo => clearPrf (txoAmount txo)) a.
++
++Lemma elements_output_amount_literal_matches a environment :
++  @elements_output_amount_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_output_amount_literal_spec a environment.
++Proof.
++  rewrite elements_output_amount_sem. unfold elements_output_amount_literal_spec.
++  apply amount_pair_literal_matches.
++Qed.
++
++Definition elements_current_amount_literal_spec :=
++  elements_current_literal_result elements_input_amount_literal_spec.
++
++Lemma elements_current_amount_literal_matches a environment :
++  @elements_current_amount_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_current_amount_literal_spec a environment.
++Proof.
++  unfold elements_current_amount_spec, elements_current_amount_literal_spec.
++  apply (elements_current_literal_sem (B := AmountPair)).
++  exact elements_input_amount_literal_matches.
++Qed.
++
++Theorem elements_input_amount_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_input_amount elements_ge Elements.env Word32
++    (Ty.Sum Ty.Unit AmountPair)
++    (indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e))
++      (fun m b ofs txi => asset_rep m b (ofs + 168) (utxoAsset (sigTxiTxo txi)) /\
++        amount_rep m b (ofs + 208) (utxoAmount (sigTxiTxo txi))) 544 0 0 696)
++    elements_input_amount_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_input_amount_literal_matches|exact elements_input_amount_local_spec].
++Qed.
++
++Theorem elements_output_amount_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_output_amount elements_ge Elements.env Word32
++    (Ty.Sum Ty.Unit AmountPair)
++    (indexed_ptr_rep (fun e => sigTxOut (Elements.envTx e))
++      (fun m b ofs txo => asset_rep m b (ofs + 0) (clearPrf (txoAsset txo)) /\
++        amount_rep m b (ofs + 104) (clearPrf (txoAmount txo))) 248 0 8 704)
++    elements_output_amount_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_output_amount_literal_matches|exact elements_output_amount_local_spec].
++Qed.
++
++Theorem elements_current_amount_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_current_amount elements_ge Elements.env Ty.Unit
++    AmountPair
++    (current_gen_rep (fun e => sigTxIn (Elements.envTx e)) input_amount_elem_rep 544 0 696)
++    elements_current_amount_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_current_amount_literal_matches|exact elements_current_amount_local_spec].
++Qed.
+--- /dev/null
++++ b/Coq/C/jet_elements_issuance_amount_literal.v
+@@ -0,0 +1,86 @@
++(** Original C issuance asset-amount getters against the literal optional
++    issuance primitive. Reuse the Word64 confidential encoder and index/current
++    routing; the original issuance tag, memory and framing relations remain. *)
++From Coq Require Import ZArith List.
++From compcert Require Import Integers.
++Require Import Simplicity.Ty Simplicity.Word Simplicity.Util.Option.
++Require Import C.jet_elements_prim C.jets_elements C.jet_elements_linkage C.jet_application_sep.
++Require Import C.jet_elements_output_nonce_literal C.jet_elements_amount_literal.
++Require Import C.jet_elements_amount_jets.
++Require Import C.jet_elements_sequence_literal.
++Require Import C.jet_elements_issuance_amount_jets C.jet_elements_current_input_jets.
++Require Import C.jet_elements_indexed_ptr C.jet_elements_current_ptr_jets.
++Require Import C.jet_elements_current_spec C.jet_elements_current_sequence_literal.
++Local Open Scope Z_scope.
++Set Default Timeout 10.
++
++Local Notation ConfAmount := (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) Word64).
++
++Definition issuance_asset_amount_literal (txi : sigTxInput) : tySem (Ty.Sum Ty.Unit ConfAmount) :=
++  match sigTxiIssuance txi with
++  | None => inl tt
++  | Some (inl new) => inr (encode_amount_literal (clearPrf (newIssuanceAmount new)))
++  | Some (inr re) => inr (encode_amount_literal (clearPrf (reissuanceAmount re)))
++  end.
++
++Lemma issuance_asset_amount_literal_matches txi :
++  (match sigTxiIssuance txi with
++   | None => inl tt
++   | Some i => inr (encode_amount (clearPrf (issuance_amount i)))
++   end) = issuance_asset_amount_literal txi.
++Proof.
++  unfold issuance_asset_amount_literal.
++  destruct (sigTxiIssuance txi) as [[new|re]|]; cbn [issuance_amount];
++    [rewrite encode_amount_literal_matches|rewrite encode_amount_literal_matches|]; reflexivity.
++Qed.
++
++Definition elements_issuance_asset_amount_literal_spec (a : tySem Word32) (environment : Elements.env) :=
++  @word_indexed_value_literal sigTxInput (Ty.Sum Ty.Unit ConfAmount) 5
++    issuance_asset_amount_literal (sigTxIn (Elements.envTx environment)) a.
++
++Lemma elements_issuance_asset_amount_literal_matches a environment :
++  @elements_issuance_asset_amount_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_issuance_asset_amount_literal_spec a environment.
++Proof.
++  rewrite elements_issuance_asset_amount_sem.
++  unfold issuance_amount_result, elements_issuance_asset_amount_literal_spec.
++  apply (@word_indexed_value_literal_matches sigTxInput (Ty.Sum Ty.Unit ConfAmount) 5
++    (fun txi => match sigTxiIssuance txi with
++                | None => inl tt
++                | Some i => inr (encode_amount (clearPrf (issuance_amount i)))
++                end)
++    issuance_asset_amount_literal (sigTxIn (Elements.envTx environment)) a).
++  exact issuance_asset_amount_literal_matches.
++Qed.
++
++Definition elements_current_issuance_asset_amount_literal_spec :=
++  elements_current_literal_result elements_issuance_asset_amount_literal_spec.
++
++Lemma elements_current_issuance_asset_amount_literal_matches a environment :
++  @elements_current_issuance_asset_amount_spec (PrimitivePrimSem option_Monad_Zero) a environment =
++    elements_current_issuance_asset_amount_literal_spec a environment.
++Proof.
++  unfold elements_current_issuance_asset_amount_spec, elements_current_issuance_asset_amount_literal_spec.
++  apply (elements_current_literal_sem (B := Ty.Sum Ty.Unit ConfAmount)).
++  exact elements_issuance_asset_amount_literal_matches.
++Qed.
++
++Theorem elements_issuance_asset_amount_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_issuance_asset_amount elements_ge Elements.env Word32
++    (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit ConfAmount))
++    (indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e)) issuance_amount_rep 544 256 0 696)
++    elements_issuance_asset_amount_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_issuance_asset_amount_literal_matches|exact elements_issuance_asset_amount_local_spec].
++Qed.
++
++Theorem elements_current_issuance_asset_amount_literal_local_spec :
++  application_jet_local_spec_sep f_simplicity_current_issuance_asset_amount elements_ge Elements.env Ty.Unit
++    (Ty.Sum Ty.Unit ConfAmount)
++    (current_ptr_rep (fun e => sigTxIn (Elements.envTx e)) Elements.envIx issuance_amount_rep 544 256 0 696)
++    elements_current_issuance_asset_amount_literal_spec.
++Proof.
++  eapply application_jet_local_spec_sep_pointwise;
++    [exact elements_current_issuance_asset_amount_literal_matches|exact elements_current_issuance_asset_amount_local_spec].
++Qed.
