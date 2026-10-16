@@ -13,10 +13,10 @@ The AST matches; all unsafe kernel flags are absent. Its launch remains
 `KERNEL-RUN.json`, bound to unchanged `kernel.py` and `RUN.json`. Do not
 duplicate that invocation or modify the frozen proof sources/objects/drivers.
 
-Next: independently reconcile the full proof/source/kernel evidence,
-including negative evidence tests. The first read-only reconciliation was
-launched under session90213; poll that actual handle before another run. Use
-the completed nonce package as the pattern, but adapt the inventories:
+Independent reconciliation90213 completed with exit zero. After correcting a
+misspelled negative-test fixture filename, the complete finish invocation99424
+also exited zero and wrote `EVIDENCE-REVIEW.json`: all57 evidence corruptions
+were rejected. Do not duplicate those completed runs. The inventory is:
 
 - two new modules,22 results,23 definitions;
 - 16 closed results;
