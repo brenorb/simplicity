@@ -6,9 +6,10 @@ acceptance or main installation.
 
 Private tree: `/private/tmp/jet-token-admission.ngw4e2fw`. Exact source identity
 is recorded in `REVIEW.json` and independently checked in
-`FINISH-CHECKPOINT.json`. Main remains407; its semantic sources and the original
-staged patch were preserved. No compiler objects were copied from either live
-audit.
+`FINISH-CHECKPOINT.json`. Main was407 during this review and is now the guarded,
+accepted415 source tree. Its semantic sources and the original staged patch
+were preserved throughout candidate preparation/review. No compiler objects
+were copied from a live audit.
 
 ## Complete proof scope
 
@@ -60,10 +61,23 @@ and refuses duplicate launches. A full417 result is not claimed here.
 `prepare-integration.py` plans only19 source targets: eleven metadata/scripts,
 two canonical guards and six new proof modules. It refuses inherited proof
 overwrites, compiler objects and unrelated source changes. Planning requires
-the actual installed415 predecessor; it has not been run while main407 is
-still under audit. Installation417 must additionally wait for real successful
+the actual installed415 predecessor. It completed as22737 with exit0 after
+guarded415 integration; `INSTALLATION-PLAN.json` binds the exact19-source delta,
+both complete source identities, reviewed proof chain, tools and preserved
+staging. Installation417 must additionally wait for real successful
 actual-main415 and isolated417 receipts, then receive a separate actual-main417
-audit. No417 installer or actual-main417 driver is implemented yet.
+audit.
+
+The once-only installer and actual-main driver are now implemented. Logged
+test86039 completed with exit0: all27 premature/unsafe source installation or
+audit-launch conditions were rejected, with no writes or acceptance subprocess.
+`INTEGRATION-REVIEW.json` binds the exact tools, plan and terminal log. No
+positive417 installation or full audit has been run.
+
+The preferred next audit is now the combined418 candidate in
+`../elements-txid-admission/`: these two token endpoints plus the independently
+reviewed transaction-ID getter, over the same exact415 base. Intermediate417
+remains a separately reviewed delta, not an invented accepted installation.
 
 The proposed registry has116 missing declarations and104 explicit
 `memcpy_model` conditions. The every-jet goal remains unfinished. Receipts bind
