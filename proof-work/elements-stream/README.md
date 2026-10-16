@@ -59,21 +59,28 @@ exactly six inherited assumptions for each of the seven whole-C endpoints.
 No assumption allowlist changes or admissions are introduced. Source archives
 are exact, including raw printer whitespace in the evidence logs.
 
-The separate once-only recursive kernel phase is now live under handle47464:
+The separate once-only recursive kernel phase completed with exit zero
+(handle47464), including Elements AST regeneration:
 
 ```sh
 python3 -B proof-work/elements-stream/check.py kernel /private/tmp/jet-elements-stream.1zVQb2CU
 ```
 
-It checks Elements AST regeneration and the recursive two-module closure.
+It checked Elements AST regeneration and the recursive two-module closure.
 Its private input fingerprint is
 `1ea5fc98311d57d465913a6ddf9c7587dce5875193f0dcd161d148219da354cd`.
-Do not edit that tree's proof inputs or frozen checker while it runs; poll the
-existing handle rather than restarting from a launch receipt. Only terminal
-success writes `CHECKED.json`.
+`CHECKED.json`, `ast.log` and `kernel.log` record the actual terminal result.
+The kernel context reports no type-in-type, unsafe fixpoints or assumed
+positivity. The endpoint-specific assumption reports remain exactly six
+inherited assumptions each; the wider imported kernel context is separate.
+Do not restart this completed kernel phase or alter its bound source/tools.
 
-Next: independently review canonical Haskell dispatches, the selected Elements
-primitive/carrier clauses, exact public contracts and evidence; then normal
-registration/review/full acceptance over the eventual accepted436 successor.
-No canonical-family review, normal coverage, full acceptance or all-caller
-construction result is claimed by this development checkpoint.
+The separate selected canonical source review also completed, with203
+read-only corruptions rejected; its exact scope and receipt are in
+`../elements-stream-source/`. It establishes selected source correspondence,
+not formal host-runtime equivalence or C cache-builder correctness.
+
+Next: independently bind the complete proof/kernel/source evidence, then
+normal registration/review/full acceptance over the eventual accepted436
+successor. No normal coverage, full acceptance or all-caller construction
+result is claimed by this development checkpoint.
