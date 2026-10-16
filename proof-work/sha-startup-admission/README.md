@@ -57,6 +57,19 @@ separate guarded source-only integration remain. `review.py` and
 type/definition records, all inherited contract/dependency bytes, exact
 fresh objects, guards, commands and dependency sets.
 
+Normal preparation completed with exit zero under handle61853:
+
+```sh
+python3 -B proof-work/sha-startup-admission/admission.py prepare /private/tmp/jet-sha-startup-admission.yiddvkw8
+```
+
+`PREPARATION.json` and thirteen exact successful build/module/report logs
+bind the completed phase. All ten fresh compiles succeeded and all123 new
+assumption records match the checked proofs. The six-stage independent
+review is now live under handle27849. Poll that existing handle and keep
+candidate sources/metadata, proof packages, normal drivers and main420 inputs
+immutable through its terminal postchecks. Preparation is not full acceptance.
+
 The isolated447 full audit has now actually passed under handle50964,
 including its terminal postchecks. Its real input fingerprint is
 `791cc1727e2866d55ad6a61b2c80943253490bbd1c37e3a439c6e80dbb09ba05`;
