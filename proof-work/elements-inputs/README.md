@@ -24,6 +24,9 @@ cache/frame relation places the computed raw digest at transaction offset440
 in the760-byte transaction structure. Actual caller cache construction and
 formal host-library equivalence are not claimed.
 
-Recursive kernel/AST verification and canonical-source/evidence review remain.
+The recursive kernel/Elements-AST phase completed with exit zero under
+handle39303; `CHECKED.json` and exact AST/kernel logs record it. Canonical-source
+review and26 source mutations also passed in `../elements-inputs-source/`.
+Independent proof/kernel/source evidence review and normal registration remain.
 This unregistered proof does not change accepted coverage or establish full
 normal acceptance or completion of the every-jet goal.
