@@ -44,7 +44,17 @@ python3 -B proof-work/elements-outpoints/kernel.py /private/tmp/jet-elements-out
 `CHECKED.json`, `KERNEL-RUN.json`, `ast.log` and `kernel.log` bind the actual
 recursive kernel and Elements AST-regeneration success. Canonical-source
 review and54 read-only mutation fixtures passed, recorded separately in
-`../elements-outpoints-source/`. Independent evidence review is running.
+`../elements-outpoints-source/`. Independent evidence review also completed
+with exit zero, including52 proof/kernel/command/source/report/object/
+dependency corruptions. `EVIDENCE-REVIEW.json` and `evidence-tests.log` bind it.
+
+`historical-annex-review.py` preserves the frozen annexes reviewer/receipt and
+all its checks, replacing only its live-main420 equality with the exact
+historical accepted map and actual immutable private bytes. It agreed with
+the original reviewer on real complete evidence. The new evidence tests also
+confirm historical review works when live-main-map access raises an error;
+no fictitious source map or filesystem view is supplied. This avoids making
+an old proof checkpoint depend on a successor's current main state.
 
 Normal registration/admission remains. This is not accepted extra coverage,
 full normal acceptance or completion of the every-jet goal. Main420 and the
