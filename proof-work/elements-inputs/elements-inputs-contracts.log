@@ -1,0 +1,81 @@
+TAP_TYPE C.jet_elements_inputs_hash_program.elements_inputs_hash_spec_parametric
+jet_elements_inputs_hash_program.elements_inputs_hash_spec_parametric
+     : @jet_elements_words_hash_program.EFP.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_inputs_hash_program.elements_inputs_hash_spec)
+TAP_TYPE C.jet_elements_inputs_hash_program.elements_inputs_hash_spec_sem
+jet_elements_inputs_hash_program.elements_inputs_hash_spec_sem
+     : forall e : jet_elements_prim.Elements.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_elements_inputs_hash_program.elements_inputs_hash_spec
+            (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt e)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.from_hash256 (jet_elements_inputs_hash_program.elements_inputs_hash_of e)))
+TAP_TYPE C.jet_elements_inputs_hash_program.elements_inputs_hash_program_local_spec
+jet_elements_inputs_hash_program.elements_inputs_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_inputs_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            jet_elements_inputs_hash_program.elements_inputs_hash_of BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @jet_elements_inputs_hash_program.elements_inputs_hash_spec
+            (jet_elements_words_hash_program.EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+TAP_DEF C.jet_elements_inputs_hash_program.elements_inputs_hash_spec
+jet_elements_inputs_hash_program.elements_inputs_hash_spec =
+fun alg : jet_elements_words_hash_program.EFP.Algebra =>
+let term : Alg.Assertion.Algebra := jet_elements_words_hash_program.EFP.CanonicalStructures.toAssertion alg in
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_sha256_ctx8_init_spec.AC.comp Ty.Unit
+  (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+  (@jet_sha256_ctx8_init_spec.AC.pair Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+     (@jet_sha256_ctx8_init_spec.AC.comp Ty.Unit
+        (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+        (@jet_sha256_ctx8_init_spec.AC.pair Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+           (@jet_sha256_ctx8_init_spec.sha256_ctx8_init_spec core)
+           (@jet_sha256_ctx8_init_spec.AC.pair Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+              (@jet_elements_outpoints_hash_program.elements_input_outpoints_hash_spec alg)
+              (@jet_elements_words_hash_program.elements_prim_words_hash_spec (S (S O)) (S (S (S (S (S O)))))
+                 jet_elements_prim.Elements.InputSequence alg)))
+        (@jet_sha_ctx8_spec.ctx8_addn_spec (S (S (S (S (S (S O)))))) term))
+     (@jet_elements_annexes_hash_program.elements_input_annexes_hash_spec alg))
+  (@jet_sha256_ctx8_init_spec.AC.comp
+     (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+     jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+     (@jet_sha_ctx8_spec.ctx8_addn_spec (S (S (S (S (S O))))) term) (@jet_sha_finalize_spec.ctx8_finalize_spec term))
+     : forall alg : jet_elements_words_hash_program.EFP.Algebra,
+       jet_elements_words_hash_program.EFP.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments jet_elements_inputs_hash_program.elements_inputs_hash_spec {alg}
+TAP_DEF C.jet_elements_inputs_hash_program.elements_inputs_hash_of
+jet_elements_inputs_hash_program.elements_inputs_hash_of =
+fun e : jet_elements_prim.Elements.env =>
+jet_bitcoin_composite_hash.sha256_bytes_of
+  (@app (Ty.tySem (Word.Word (S (S (S O)))))
+     (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S (S O))))))
+        (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.from_hash256 (jet_elements_outpoints_hash_program.elements_input_outpoints_hash_of e))
+           (Word.from_hash256
+              (jet_elements_words_hash_program.elements_words_hash_of (S (S O)) (S (S (S (S (S O)))))
+                 (jet_elements_words_hash_program.elements_input_sequences_words e)))))
+     (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))
+        (Word.from_hash256 (jet_elements_annexes_hash_program.elements_input_annexes_hash_of e))))
+     : forall _ : jet_elements_prim.Elements.env, Digest.hash256
+
+Arguments jet_elements_inputs_hash_program.elements_inputs_hash_of e
