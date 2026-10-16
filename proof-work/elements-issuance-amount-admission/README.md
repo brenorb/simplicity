@@ -112,6 +112,15 @@ copied. The postcheck confirms source identity, not actual-main415 acceptance.
 Only the three new proofs, six guards, installation ledger and exact patch are
 committed by this integration; inherited dirty registries are not swept in.
 
+The once-only actual-main415 audit is now running as **47915**.
+`MAIN-AUDIT-RUN.json` binds the exact415 source fingerprint, installation SHA-256
+`731b0063b1523bae06a93d5081c0fc8e8e25968a9450d3cb170c0d5af9ae5477`,
+acceptance command and committed driver. Its private log is
+`/private/tmp/jet-issuance-amount-admission.0ygmxl9r/main-acceptance.log`.
+This launch is not terminal acceptance. Poll the existing handle and keep main
+semantic inputs frozen; do not launch another main audit or install a successor
+until this run and the successor's full audit have both passed.
+
 This installed registry has118 missing public declarations and104 entries with
 the explicit `memcpy_model` condition. The every-jet goal and caller/domain,
 evaluator/library/fidelity/configuration obligations remain unfinished. These
