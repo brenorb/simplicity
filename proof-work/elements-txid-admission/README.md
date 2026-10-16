@@ -1,10 +1,10 @@
 # Transaction-ID getter: reviewed normal418 and combined audit boundary
 
 Fully accepted isolated candidate: **418/533**. This folder adds one transaction_id endpoint
-over the independently reviewed417 token candidate. Main remains the guarded
-415 source tree; its separate actual-main audit47915 has passed. Combined
-isolated418 audit91871 has also passed. Main installation and actual-main418
-acceptance are still separate operations at this checkpoint.
+over the independently reviewed417 token candidate. Main is now the guarded
+418 source tree. Actual-main415 audit47915 and combined isolated418 audit91871
+both passed before installation. Actual-main418 acceptance remains a separate
+operation, not implied by source identity or the isolated audit.
 
 Private tree: `/private/tmp/jet-txid-admission.gvp5bmft`.
 Source fingerprint:
@@ -78,6 +78,17 @@ and the real successful actual-main415 receipt. The log SHA-256 is
 `80fab176fae475c93e69eb2e656b57d27ec2843037661e1e0131d0311f1ffc9b`.
 Both full prerequisites for guarded418 integration are satisfied. This
 checkpoint does not itself install418 or claim actual-main418 acceptance.
+
+Guarded installation83232 has subsequently terminated with exit0.
+`INSTALLATION.json` and `DELTA.patch` bind the exact22-source delta from the
+accepted415 tree to the accepted418 tree. The postcheck confirms exact source
+identity and preservation of all unrelated semantic inputs and the original
+staged patch. No inherited proof was overwritten and no compiled object copied.
+`INSTALLATION-CHECKPOINT.json` independently binds the installation/delta,
+reviewed driver, source fingerprint and preserved staging. Only the seven new
+proofs, four guards and integration evidence are committed here; existing dirty
+registries are preserved and their owned delta is archived in `DELTA.patch`.
+Actual-main418 acceptance must still run separately.
 
 The proposed registry has115 missing declarations and104 entries with an
 explicit `memcpy_model` condition. Caller/domain, evaluator/library/fidelity
