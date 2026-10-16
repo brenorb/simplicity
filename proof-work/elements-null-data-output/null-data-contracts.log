@@ -1,0 +1,228 @@
+TAP_TYPE C.jet_elements_const_bits.exec_elements_const_bit
+jet_elements_const_bits.exec_elements_const_bit
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (bit : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur (BinNums.Zpos BinNums.xH)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               (jet_elements_const_bits.elements_const_bit bit) Events.E0 le mf ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur (BinNums.Zpos BinNums.xH)
+               (@cons (option bool) (@Some bool bit) (@nil (option bool)))))
+TAP_TYPE C.jet_elements_const_bits.exec_elements_const_bits
+jet_elements_const_bits.exec_elements_const_bits
+     : forall (bits : list bool) (_ : not (@eq (list bool) bits (@nil bool)))
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val) 
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur (BinInt.Z.of_nat (@length bool bits))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               (jet_elements_const_bits.elements_const_bits bits) Events.E0 le mf ClightBigstep.Out_break)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur (BinInt.Z.of_nat (@length bool bits))
+               (@List.map bool (option bool) (@Some bool) bits)))
+TAP_TYPE C.jet_elements_null_data_cases.elements_null_data_small_switch_expr
+jet_elements_null_data_cases.elements_null_data_small_switch_expr
+     : @eq Clight.expr
+         (@fst Clight.expr Clight.labeled_statements jet_elements_null_data_cases.elements_null_data_small_switch)
+         (Clight.Etempvar jets_elements._t'31 Ctypesdefs.tint)
+TAP_TYPE C.jet_elements_null_data_cases.elements_null_data_small_selected
+jet_elements_null_data_cases.elements_null_data_small_selected
+     : forall (n : nat) (_ : lt n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))),
+       @ex Clight.statement
+         (fun tail : Clight.statement =>
+          @eq Clight.statement
+            (Clight.seq_of_labeled_statement
+               (Clight.select_switch
+                  (BinInt.Z.add (BinInt.Z.of_nat n) (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))))
+                  (@snd Clight.expr Clight.labeled_statements
+                     jet_elements_null_data_cases.elements_null_data_small_switch)))
+            (Clight.Ssequence
+               (jet_elements_const_bits.elements_const_bits (jet_elements_null_data_cases.elements_nibble_bits n)) tail))
+TAP_TYPE C.jet_elements_null_data_cases.elements_null_data_push_switch_expr
+jet_elements_null_data_cases.elements_null_data_push_switch_expr
+     : @eq Clight.expr
+         (@fst Clight.expr Clight.labeled_statements jet_elements_null_data_cases.elements_null_data_push_switch)
+         (Clight.Etempvar jets_elements._t'15 Ctypesdefs.tint)
+TAP_TYPE C.jet_elements_null_data_cases.elements_null_data_push_selected
+jet_elements_null_data_cases.elements_null_data_push_selected
+     : forall (n : nat) (_ : lt n (S (S (S (S O))))),
+       @ex Clight.statement
+         (fun tail : Clight.statement =>
+          @eq Clight.statement
+            (Clight.seq_of_labeled_statement
+               (Clight.select_switch (BinInt.Z.of_nat n)
+                  (@snd Clight.expr Clight.labeled_statements
+                     jet_elements_null_data_cases.elements_null_data_push_switch)))
+            (Clight.Ssequence
+               (jet_elements_const_bits.elements_const_bits (jet_elements_null_data_cases.elements_push_kind_bits n))
+               tail))
+TAP_TYPE C.jet_elements_null_data_cases.elements_push_kind_cells
+jet_elements_null_data_cases.elements_push_kind_cells
+     : forall (n : nat) (_ : lt n (S (S (S (S O))))),
+       @eq (list (option bool))
+         (@List.map bool (option bool) (@Some bool) (jet_elements_null_data_cases.elements_push_kind_bits n))
+         (@Translate.encode (Word.Word (S O)) (@Word.ToZ.Theory.fromZ (Word.WordToZ (S O)) (BinInt.Z.of_nat n)))
+TAP_TYPE C.jet_elements_null_data_cases.exec_elements_null_data_push_switch
+jet_elements_null_data_cases.exec_elements_null_data_push_switch
+     : forall (n : nat) (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (_ : lt n (S (S (S (S O)))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._t'15 le)
+                (@Some Values.val (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat n)))))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur (BinNums.Zpos (BinNums.xO BinNums.xH))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               (Clight.Sswitch
+                  (@fst Clight.expr Clight.labeled_statements
+                     jet_elements_null_data_cases.elements_null_data_push_switch)
+                  (@snd Clight.expr Clight.labeled_statements
+                     jet_elements_null_data_cases.elements_null_data_push_switch)) Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (@Translate.encode (Word.Word (S O)) (@Word.ToZ.Theory.fromZ (Word.WordToZ (S O)) (BinInt.Z.of_nat n)))))
+TAP_TYPE C.jet_elements_null_data_cases.elements_nibble_cells
+jet_elements_null_data_cases.elements_nibble_cells
+     : forall (n : nat) (_ : lt n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))),
+       @eq (list (option bool))
+         (@List.map bool (option bool) (@Some bool) (jet_elements_null_data_cases.elements_nibble_bits n))
+         (@Translate.encode (Word.Word (S (S O))) (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S O))) (BinInt.Z.of_nat n)))
+TAP_TYPE C.jet_elements_null_data_cases.exec_elements_null_data_small_switch
+jet_elements_null_data_cases.exec_elements_null_data_small_switch
+     : forall (n : nat) (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (_ : lt n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._t'31 le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.repr
+                         (BinInt.Z.add (BinInt.Z.of_nat n) (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))))))))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur
+                (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               (Clight.Sswitch
+                  (@fst Clight.expr Clight.labeled_statements
+                     jet_elements_null_data_cases.elements_null_data_small_switch)
+                  (@snd Clight.expr Clight.labeled_statements
+                     jet_elements_null_data_cases.elements_null_data_small_switch)) Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur
+               (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+               (@Translate.encode (Word.Word (S (S O)))
+                  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S O))) (BinInt.Z.of_nat n)))))
+TAP_DEF C.jet_elements_const_bits.elements_const_bit
+jet_elements_const_bits.elements_const_bit =
+fun bit : bool =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._writeBit
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tbool Ctypes.Tnil)) Ctypesdefs.tbool AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Econst_int
+           match bit return Integers.Int.int with
+           | true => Integers.Int.one
+           | false => Integers.Int.zero
+           end Ctypesdefs.tint) (@nil Clight.expr)))
+     : forall _ : bool, Clight.statement
+
+Arguments jet_elements_const_bits.elements_const_bit bit%bool_scope
+TAP_DEF C.jet_elements_const_bits.elements_const_bits
+jet_elements_const_bits.elements_const_bits =
+fix elements_const_bits (bits : list bool) : Clight.statement :=
+  match bits return Clight.statement with
+  | nil => Clight.Sbreak
+  | cons bit rest => Clight.Ssequence (jet_elements_const_bits.elements_const_bit bit) (elements_const_bits rest)
+  end
+     : forall _ : list bool, Clight.statement
+
+Arguments jet_elements_const_bits.elements_const_bits bits%list_scope
+TAP_DEF C.jet_elements_null_data_cases.elements_statement_switches
+jet_elements_null_data_cases.elements_statement_switches =
+fix elements_statement_switches (s : Clight.statement) : list (prod Clight.expr Clight.labeled_statements) :=
+  match s return (list (prod Clight.expr Clight.labeled_statements)) with
+  | Clight.Sskip => @nil (prod Clight.expr Clight.labeled_statements)
+  | Clight.Sassign _ _ => @nil (prod Clight.expr Clight.labeled_statements)
+  | Clight.Sset _ _ => @nil (prod Clight.expr Clight.labeled_statements)
+  | Clight.Scall _ _ _ => @nil (prod Clight.expr Clight.labeled_statements)
+  | Clight.Sbuiltin _ _ _ _ => @nil (prod Clight.expr Clight.labeled_statements)
+  | Clight.Ssequence a b =>
+      @app (prod Clight.expr Clight.labeled_statements) (elements_statement_switches a) (elements_statement_switches b)
+  | Clight.Sifthenelse _ a b =>
+      @app (prod Clight.expr Clight.labeled_statements) (elements_statement_switches a) (elements_statement_switches b)
+  | Clight.Sloop a b =>
+      @app (prod Clight.expr Clight.labeled_statements) (elements_statement_switches a) (elements_statement_switches b)
+  | Clight.Sbreak => @nil (prod Clight.expr Clight.labeled_statements)
+  | Clight.Scontinue => @nil (prod Clight.expr Clight.labeled_statements)
+  | Clight.Sreturn _ => @nil (prod Clight.expr Clight.labeled_statements)
+  | Clight.Sswitch a cases =>
+      @cons (prod Clight.expr Clight.labeled_statements) (@pair Clight.expr Clight.labeled_statements a cases)
+        (@nil (prod Clight.expr Clight.labeled_statements))
+  | Clight.Slabel _ _ => @nil (prod Clight.expr Clight.labeled_statements)
+  | Clight.Sgoto _ => @nil (prod Clight.expr Clight.labeled_statements)
+  end
+     : forall _ : Clight.statement, list (prod Clight.expr Clight.labeled_statements)
+
+Arguments jet_elements_null_data_cases.elements_statement_switches s
+TAP_DEF C.jet_elements_null_data_cases.elements_null_data_small_switch
+jet_elements_null_data_cases.elements_null_data_small_switch =
+@List.nth (prod Clight.expr Clight.labeled_statements) O
+  (jet_elements_null_data_cases.elements_statement_switches
+     (Clight.fn_body jets_elements.f_simplicity_output_null_datum))
+  (@pair Clight.expr Clight.labeled_statements (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Clight.LSnil)
+     : prod Clight.expr Clight.labeled_statements
+TAP_DEF C.jet_elements_null_data_cases.elements_nibble_bits
+jet_elements_null_data_cases.elements_nibble_bits =
+fun n : nat =>
+@List.map BinNums.Z bool (BinInt.Z.testbit (BinInt.Z.of_nat n))
+  (@cons BinNums.Z (BinNums.Zpos (BinNums.xI BinNums.xH))
+     (@cons BinNums.Z (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (@cons BinNums.Z (BinNums.Zpos BinNums.xH) (@cons BinNums.Z BinNums.Z0 (@nil BinNums.Z)))))
+     : forall _ : nat, list bool
+
+Arguments jet_elements_null_data_cases.elements_nibble_bits n%nat_scope
+TAP_DEF C.jet_elements_null_data_cases.elements_null_data_push_switch
+jet_elements_null_data_cases.elements_null_data_push_switch =
+@List.nth (prod Clight.expr Clight.labeled_statements) (S O)
+  (jet_elements_null_data_cases.elements_statement_switches
+     (Clight.fn_body jets_elements.f_simplicity_output_null_datum))
+  (@pair Clight.expr Clight.labeled_statements (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Clight.LSnil)
+     : prod Clight.expr Clight.labeled_statements
+TAP_DEF C.jet_elements_null_data_cases.elements_push_kind_bits
+jet_elements_null_data_cases.elements_push_kind_bits =
+fun n : nat =>
+@List.map BinNums.Z bool (BinInt.Z.testbit (BinInt.Z.of_nat n))
+  (@cons BinNums.Z (BinNums.Zpos BinNums.xH) (@cons BinNums.Z BinNums.Z0 (@nil BinNums.Z)))
+     : forall _ : nat, list bool
+
+Arguments jet_elements_null_data_cases.elements_push_kind_bits n%nat_scope
