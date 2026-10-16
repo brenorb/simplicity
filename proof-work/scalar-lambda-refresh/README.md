@@ -77,8 +77,10 @@ accepted418; the separate419 audit remains authoritative for its own outcome.
 Next make a new normal candidate over the reviewed419 source predecessor,
 preserving its exact snapshot bytes and the initialized-state boundary.
 Only source copies may be taken from a still-live candidate; seed object
-caches from completed trees. If419 passes, the two reviewed deltas can be
-fully audited as a combined420 candidate before one guarded main installation.
+caches from completed trees. The two completed normal reviews can be
+fully audited as a combined420 tree over actual accepted418 before one guarded
+main installation; no intermediate419 successful terminal or installation
+is invented or required. The separate419 audit retains its own outcome.
 Do not count either unaccepted/uninstalled successor as current main coverage.
 
 Important inventory details for that promotion:
