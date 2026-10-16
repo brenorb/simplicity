@@ -1,4 +1,4 @@
-"""Read-only proof checkpoint; deliberately NOT canonical source admission."""
+"""Proof evidence and selected canonical source review; not normal admission."""
 import importlib.util
 import json
 from pathlib import Path
@@ -70,12 +70,47 @@ def review(work):
         raise ValueError('dependency or closedness claim differs')
     s.kernel.kernel((work / 'kernel.log').read_text(),
                     sorted((work / 'Coq/C/jet_coqchk_axioms.expected').read_text().split()))
+    source = s.load('txid_canonical_source', HERE / 'check-source.py').check(work)
+    if (source['canonical_serialization_source_review_complete'] is not True or
+        source['whole_contracts_reviewed'] is not True or
+        source['caller_cached_transaction_id_proved'] is not False or
+        source['caller_environment_construction_proved'] is not False or
+        source['formal_host_library_equivalence'] is not False or
+        source['normal_registration'] is not False):
+        raise ValueError('canonical/caller review scope differs')
     return dict(candidate=str(work), results=2, definitions=1, whole_c_endpoints=1,
         recursive_kernel_check=True, inherited_source_changes=0,
-        canonical_serialization_source_review_complete=False,
+        canonical_serialization_source_review_complete=True,
         caller_cached_transaction_id_proved=False,
         normal_registration=False, coverage_added=0, full_acceptance=False)
 
 
+def finish(work):
+    if (HERE / 'EVIDENCE-REVIEW.json').exists():
+        raise ValueError('review already recorded; inspect its existing receipt')
+    result, commands = review(work), {}
+    for stem, command in [
+        ('source-review', [sys.executable, '-B', str(HERE / 'check-source.py'), str(work)]),
+        ('source-negative', [sys.executable, '-B', str(HERE / 'test-source.py'), str(work)]),
+        ('evidence-tests', [sys.executable, '-B', str(HERE / 'test-review.py'), str(work)])]:
+        commands[stem] = s.run(work, command, stem, 600)
+    if review(work) != result:
+        raise ValueError('review changed during source/evidence checks')
+    r = dict(review=result, checked_sha256=s.sha((HERE / 'CHECKED.json').read_bytes()),
+        launch_sha256=s.sha((HERE / 'RUN.json').read_bytes()), commands=commands,
+        candidate_input_sha256=s.inputs.fingerprint(work / 'Coq', work),
+        tools_sha256={n: s.sha((HERE / n).read_bytes()) for n in
+                      ['check.py', 'check-source.py', 'test-source.py', 'review.py', 'test-review.py']},
+        canonical_source_gate_complete=True, normal_registration=False, full_acceptance=False)
+    s.changed({HERE / 'EVIDENCE-REVIEW.json': json.dumps(r, indent=2) + '\n',
+        **{HERE / (n + '.log'): (work / (n + '.log')).read_text() for n in commands}})
+    print('Transaction ID proof/source/evidence review complete; no normal registration or full acceptance', flush=True)
+
+
 if __name__ == '__main__':
-    print(json.dumps(review(Path(sys.argv[1]).resolve()), indent=2))
+    if len(sys.argv) == 2:
+        print(json.dumps(review(Path(sys.argv[1]).resolve()), indent=2))
+    elif len(sys.argv) == 3 and sys.argv[1] == 'finish':
+        finish(Path(sys.argv[2]).resolve())
+    else:
+        raise ValueError('usage: review.py [finish] PRIVATE_TREE')
