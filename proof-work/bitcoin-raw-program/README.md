@@ -60,8 +60,8 @@ python3 -B proof-work/bitcoin-raw-program/check.py compile /private/tmp/jet-bitc
 ```
 
 The once-only recursive kernel phase was launched **after** guarded main420
-integration, and is now running under handle58669 in parallel with the
-separate actual-main420 audit (handle27494):
+integration and completed with exit zero (handle58669). The separate
+actual-main420 audit (handle27494) remains running:
 
 ```sh
 python3 -B proof-work/bitcoin-raw-program/check.py kernel /private/tmp/jet-bitcoin-raw-program.9b5hGOH3
@@ -71,9 +71,9 @@ The phases separately bind unchanged main inputs and the original stage;
 authorized guarded main integration may occur **between** them. The exact
 private sources and all fresh object hashes must remain identical across the
 phases. Kernel mode records its launch before running the Bitcoin AST check
-and recursive kernel check. Poll handle58669; never restart from a
-launch file or observation timeout. Only actual terminal success writes
-`CHECKED.json`.
+and recursive kernel check. The completed `CHECKED.json`, `ast.log` and
+`kernel.log` record actual terminal success, not just a launch or a stale
+object cache. All sixteen whole-C endpoints were recursively kernel-checked.
 
 Then independently review the proof evidence, raw primitive projection, exact
 whole-C contracts and the canonical Haskell stream/composite programs before
