@@ -16,32 +16,36 @@ checking. The driver checks source/object identities before its invocation
 and source/main/index identities afterwards; the independent reviewer checks
 the object identities again. Do not infer success from a `.vo`.
 
-The evidence-review finish was launched under session **32533**. Inspect that
-handle and `EVIDENCE-REVIEW.json` before running the following commands again:
+The evidence-review finish completed under session **32533** with terminal
+exit zero. `EVIDENCE-REVIEW.json` and `evidence-tests.log` bind all59 passing
+negative-evidence tests. All verification processes in this package are now
+terminal. The read-only review remains reproducible with the first command;
+the finish command refuses to overwrite its completed receipt:
 
 ```sh
 python3 -B proof-work/elements-nonces/review.py /private/tmp/jet-elements-nonces.mniejwp9
 python3 -B proof-work/elements-nonces/review.py finish /private/tmp/jet-elements-nonces.mniejwp9
 ```
 
-The evidence reviewer has passed a positive reconciliation; its negative-test
-port still needs a genuine successful terminal result. Inspect the first
-failure rather than altering assumptions or weakening any contract gate.
-Then commit the completed evidence receipt/log and update the README's
-verification status. No new normal registry entries are justified until the
-separate admission stages also finish. A receipt or launch file by itself
-is not evidence that a process is live.
+Both positive reconciliation and the negative-evidence suite have passed.
+The next step is the separate normal-admission workflow, not another kernel
+run or rewriting these receipts. No new normal registry entries are justified
+until admission also finishes. A receipt or launch file by itself is not
+evidence that a process is live.
 
 The current main semantic inputs and original staged patch remain exactly
 those recorded in `RUN.json`. Preserve that staging. Signed commits of the
 completed compilation and source review are `244a8606` and `f4fbe312`.
 Only the user's `brenorb/simplicity` fork may receive pushes.
 
-For normal registration, first repair the distinct normal467 printer-context
-failure without rewriting its historical evidence. Its diagnosis is in
+For normal registration, first finish the distinct normal467 printer-context
+repair without rewriting its historical evidence. Its diagnosis is in
 `../sha-startup-admission/PRINTER-DIAGNOSIS.json` and README: preparation opens
 `C.jet_clight_forward` while the actual audit only loads it. Use a fresh,
 versioned phase/candidate, not altered snapshots under the old receipt.
+The fresh candidate's work is in `../sha-startup-admission-v2/`, with the
+v3 preparation engine deriving its header from the actual audit. Inspect that
+candidate's genuine assembly/preparation/review status before extending it.
 The fully accepted isolated447 and reviewed449 predecessor remain unchanged.
 
 The new nonce endpoint still takes the named cached-hash representation as a

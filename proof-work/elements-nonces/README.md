@@ -43,8 +43,11 @@ exactly; the recursive context matches the existing fifteen-axiom library
 profile, with no unsafe kernel features. This library-wide context is distinct
 from the six inherited assumptions of the individual C endpoint.
 The source-fidelity review and all59 targeted source-corruption tests also
-passed. The first independent evidence reconciliation passed under handle30568;
-the separate negative-evidence suite and final receipt are the next phase.
+passed. The independent evidence reconciliation passed under handle30568;
+the full evidence-review finish then completed under handle32533, with all59
+proof/kernel/command/source/report/object/dependency corruptions rejected.
+`EVIDENCE-REVIEW.json` binds the completed receipts, tools, logs and unchanged
+private sources. This is still an unregistered isolated proof package.
 
 The checked private input fingerprint is
 `0d090ba6b09dfa408a0df69674582d6278d14e77f7225557d9693927e4864a28`.
