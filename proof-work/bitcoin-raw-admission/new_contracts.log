@@ -1,0 +1,1247 @@
+DELTA_COMPACT_TYPE C.jet_bitcoin_tapleaf_literal.tapleaf_ascii_string
+jet_bitcoin_tapleaf_literal.tapleaf_ascii_string
+     : @eq (list Integers.Byte.int) jet_bitcoin_tapleaf_literal.tapleaf_ascii
+         (SHA256.str_to_bytes
+            (String.String (Ascii.Ascii false false true false true false true false)
+               (String.String (Ascii.Ascii true false false false false true true false)
+                  (String.String (Ascii.Ascii false false false false true true true false)
+                     (String.String (Ascii.Ascii false false true true false false true false)
+                        (String.String (Ascii.Ascii true false true false false true true false)
+                           (String.String (Ascii.Ascii true false false false false true true false)
+                              (String.String (Ascii.Ascii false true true false false true true false)
+                                 String.EmptyString))))))))
+DELTA_COMPACT_TYPE C.jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix_matches
+jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix_matches
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix
+         tapleaf_prefix
+DELTA_COMPACT_TYPE C.jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_matches
+jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_matches
+     : forall alg : PF.Algebra,
+       @eq (PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@tapleaf_hash_spec alg)
+         (@jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec alg)
+DELTA_COMPACT_TYPE C.jet_bitcoin_tapleaf_literal.bitcoin_tapleaf_hash_literal_local_spec
+jet_bitcoin_tapleaf_literal.bitcoin_tapleaf_hash_literal_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tapleaf_hash bitcoin_ge ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@hash_getter_rep ext_environment tapleaf_hash_of
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : ext_environment) =>
+          @jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec
+            (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_raw_program.raw_full_projection
+@jet_bitcoin_raw_program.raw_full_projection
+     : forall (A B : Ty.Ty) (p : BitcoinFull.t A B) (a : Ty.tySem A) (environment : raw_bitcoin_environment)
+         (Hpath : le (@length Digest.hash256 (raw_tap_path environment))
+                    (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq (option (Ty.tySem B)) (@BitcoinFull.sem A B p a (project_raw_environment environment Hpath))
+         (@jet_bitcoin_raw_program.raw_full_sem A B p a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_raw_program.raw_core_relation_class
+jet_bitcoin_raw_program.raw_core_relation_class
+     : @Alg.Core.Parametric.class
+         (Alg.Assertion.toCore
+            (PF.CanonicalStructures.toAssertion
+               (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)))
+         (PF.CanonicalStructures.toCore jet_bitcoin_raw_program.raw_fullalg)
+         (@jet_bitcoin_raw_program.raw_program_relation)
+DELTA_COMPACT_TYPE C.jet_bitcoin_raw_program.raw_assertion_relation_class
+jet_bitcoin_raw_program.raw_assertion_relation_class
+     : @Alg.Assertion.Parametric.class
+         (PF.CanonicalStructures.toAssertion
+            (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))
+         (PF.CanonicalStructures.toAssertion jet_bitcoin_raw_program.raw_fullalg)
+         (@jet_bitcoin_raw_program.raw_program_relation)
+DELTA_COMPACT_TYPE C.jet_bitcoin_raw_program.raw_program_relation_class
+jet_bitcoin_raw_program.raw_program_relation_class
+     : @PF.Parametric.class (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+         jet_bitcoin_raw_program.raw_fullalg (@jet_bitcoin_raw_program.raw_program_relation)
+DELTA_COMPACT_TYPE C.jet_bitcoin_raw_program.bitcoin_program_raw_projection
+@jet_bitcoin_raw_program.bitcoin_program_raw_projection
+     : forall (A B : Ty.Ty) (program : forall alg : PF.Algebra, PF.domain alg A B) (_ : @PF.Parametric A B program)
+         (a : Ty.tySem A) (environment : raw_bitcoin_environment)
+         (Hpath : le (@length Digest.hash256 (raw_tap_path environment))
+                    (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (program (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            (project_raw_environment environment Hpath)) (program jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_raw_program.application_raw_program_local_spec_sep
+jet_bitcoin_raw_program.application_raw_program_local_spec_sep
+     : forall (f : Clight.function) (ge : Clight.genv) (A B : Ty.Ty)
+         (rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : ext_environment)
+                  (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+         (program : forall alg : PF.Algebra, PF.domain alg A B) (_ : @PF.Parametric A B program)
+         (_ : application_jet_local_spec_sep f ge ext_environment A B rep
+                (program (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))),
+       application_jet_local_spec_sep f ge raw_bitcoin_environment A B (raw_env_rep rep)
+         (program jet_bitcoin_raw_program.raw_fullalg)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_output_values_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_output_values_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_output_values_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment => words_hash_of (S (S (S O))) (S (S (S (S (S O))))) (output_values_of e))
+               BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S O))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Base (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))
+               Bitcoin.Bitcoin.OutputValue) jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_output_scripts_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_output_scripts_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_output_scripts_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment =>
+                words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (output_scripts_of e)) BinNums.Z0
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Bitcoin.Bitcoin.OutputScriptHash)
+            jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_values_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_values_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_values_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment => words_hash_of (S (S (S O))) (S (S (S (S (S O))))) (input_values_of e))
+               BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S O))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Base (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))
+               Bitcoin.Bitcoin.InputValue) jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_scripts_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_scripts_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_scripts_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment =>
+                words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (input_scripts_of e)) BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Ext (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) BitcoinExt.InputScriptHash)
+            jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_sequences_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_sequences_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_sequences_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment => words_hash_of (S (S O)) (S (S (S (S (S O))))) (input_sequences_of e))
+               BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S O)) (S (S (S (S (S O)))))
+            (@BitcoinFull.Base (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+               Bitcoin.Bitcoin.InputSequence) jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_script_sigs_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_script_sigs_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_script_sigs_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment =>
+                words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (input_script_sigs_of e)) BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Ext (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) BitcoinExt.InputScriptSigHash)
+            jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_tappath_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_tappath_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tappath_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment => words_hash_of (S (S (S (S (S O))))) (S (S (S O))) (tappath_of e))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S O)))
+            (@BitcoinFull.Ext (Word.Word (S (S (S O)))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               BitcoinExt.Tappath) jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.tapleaf_hash_literal_parametric
+jet_bitcoin_hash_raw_program.tapleaf_hash_literal_parametric
+     : @PF.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_tapleaf_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_tapleaf_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tapleaf_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment tapleaf_hash_of
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_outputs_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_outputs_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_outputs_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment outputs_hash_of BinNums.Z0
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @outputs_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_utxos_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_utxos_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_utxos_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment input_utxos_hash_of BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @input_utxos_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_tap_env_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_tap_env_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tap_env_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment tap_env_hash_of
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @tap_env_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_outpoints_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_outpoints_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_outpoints_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment input_outpoints_hash_of BinNums.Z0
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @input_outpoints_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_annexes_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_annexes_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_annexes_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment input_annexes_hash_of BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @input_annexes_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_inputs_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_inputs_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_inputs_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment inputs_hash_of BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @inputs_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_tx_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_tx_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tx_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment tx_hash_of BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @tx_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_sig_all_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_sig_all_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_sig_all_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@env_hash_rep ext_environment sig_all_hash_of
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @sig_all_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_COMPACT_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_ascii
+jet_bitcoin_tapleaf_literal.tapleaf_ascii =
+@List.map BinNums.Z Integers.Byte.int Integers.Byte.repr
+  (@cons BinNums.Z
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+     (@cons BinNums.Z
+        (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+        (@cons BinNums.Z
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+           (@cons BinNums.Z
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+              (@cons BinNums.Z
+                 (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                 (@cons BinNums.Z
+                    (BinNums.Zpos
+                       (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                    (@cons BinNums.Z
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                       (@nil BinNums.Z))))))))
+     : list Integers.Byte.int
+DELTA_COMPACT_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest
+jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest =
+Digest.byteStringHash jet_bitcoin_tapleaf_literal.tapleaf_ascii
+     : Digest.hash256
+DELTA_COMPACT_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_literal_midstate
+jet_bitcoin_tapleaf_literal.tapleaf_literal_midstate =
+Digest.compress Digest.sha256_iv jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest
+  jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest
+     : Digest.hash256
+DELTA_COMPACT_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix
+jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix =
+haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+  (jet_haskell_hash_word.haskell_integer_hash256
+     (Digest.hash256_to_bytelist jet_bitcoin_tapleaf_literal.tapleaf_literal_midstate))
+     : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+DELTA_COMPACT_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_hash_program
+jet_bitcoin_tapleaf_literal.tapleaf_hash_program =
+fun (prefix : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (leaf_size : Ty.tySem (Word.Word (S (S (S O)))))
+  (alg : PF.Algebra) =>
+let term : Alg.Assertion.Algebra := PF.CanonicalStructures.toAssertion alg in
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_buffer_empty_spec.AC.comp Ty.Unit (Ty.Prod sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+  (@jet_buffer_empty_spec.AC.pair Ty.Unit sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+     (@jet_buffer_empty_spec.AC.comp Ty.Unit
+        (Ty.Prod sha256_ctx8_type (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))) sha256_ctx8_type core
+        (@jet_buffer_empty_spec.AC.pair Ty.Unit sha256_ctx8_type
+           (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) core (@ctx8_init_tag_spec prefix core)
+           (@jet_buffer_empty_spec.AC.pair Ty.Unit (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))) core
+              (@PF.Combinators.prim Ty.Unit (Word.Word (S (S (S O)))) alg
+                 (@BitcoinFull.Ext Ty.Unit (Word.Word (S (S (S O)))) BitcoinExt.TapleafVersion))
+              (@Alg.scribe Ty.Unit (Word.Word (S (S (S O)))) leaf_size core))) (@ctx8_addn_spec (S O) term))
+     (@PF.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) alg
+        (@BitcoinFull.Base Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) Bitcoin.Bitcoin.ScriptCMR)))
+  (@jet_buffer_empty_spec.AC.comp
+     (Ty.Prod sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) sha256_ctx8_type
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) core (@ctx8_addn_spec (S (S (S (S (S O))))) term)
+     (@ctx8_finalize_spec term))
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : Ty.tySem (Word.Word (S (S (S O)))))
+         (alg : PF.Algebra), PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments jet_bitcoin_tapleaf_literal.tapleaf_hash_program prefix leaf_size {alg}
+DELTA_COMPACT_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec
+jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec =
+fun alg : PF.Algebra =>
+@jet_bitcoin_tapleaf_literal.tapleaf_hash_program jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix
+  (haskell_to_word (S (S (S O)))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) alg
+     : forall alg : PF.Algebra, PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec {alg}
+DELTA_COMPACT_DEF C.jet_bitcoin_raw_program.raw_full_sem
+jet_bitcoin_raw_program.raw_full_sem =
+fun (A B : Ty.Ty) (p : BitcoinFull.t A B) (a : Ty.tySem A) (environment : raw_bitcoin_environment) =>
+match p in (BitcoinFull.prim A0 B0) return (forall _ : Ty.tySem A0, option (Ty.tySem B0)) with
+| @BitcoinFull.Base A0 B0 q => fun a0 : Ty.tySem A0 => @Bitcoin.Bitcoin.sem A0 B0 q a0 (raw_base environment)
+| @BitcoinFull.Ext A0 B0 q => fun a0 : Ty.tySem A0 => @raw_ext_sem A0 B0 q a0 environment
+end a
+     : forall (A B : Ty.Ty) (_ : BitcoinFull.t A B) (_ : Ty.tySem A) (_ : raw_bitcoin_environment), option (Ty.tySem B)
+
+Arguments jet_bitcoin_raw_program.raw_full_sem {A B}%ty_scope p a environment
+DELTA_COMPACT_DEF C.jet_bitcoin_raw_program.raw_fullalg
+jet_bitcoin_raw_program.raw_fullalg =
+@PF._Pack (fun A B : Ty.Ty => forall (_ : Ty.tySem A) (_ : raw_bitcoin_environment), option (Ty.tySem B))
+  (@PF.Class
+     (Alg.Assertion.domain
+        (Alg.AssertionSem (Reader.ReaderT_CIMonadZero raw_bitcoin_environment Option.option_Monad_Zero)))
+     (Alg.Assertion.class_of
+        (Alg.AssertionSem (Reader.ReaderT_CIMonadZero raw_bitcoin_environment Option.option_Monad_Zero)))
+     (PF.Mixin (fun A B : Ty.Ty => forall (_ : Ty.tySem A) (_ : raw_bitcoin_environment), option (Ty.tySem B))
+        (@jet_bitcoin_raw_program.raw_full_sem)))
+     : PF.Algebra
+DELTA_COMPACT_DEF C.jet_bitcoin_raw_program.raw_program_relation
+jet_bitcoin_raw_program.raw_program_relation =
+fun (A B : Ty.Ty) (f : PF.domain (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) A B)
+  (g : PF.domain jet_bitcoin_raw_program.raw_fullalg A B) =>
+forall (a : Ty.tySem A) (environment : raw_bitcoin_environment)
+  (Hpath : le (@length Digest.hash256 (raw_tap_path environment))
+             (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))),
+@eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+  (f a (project_raw_environment environment Hpath)) (g a environment)
+     : forall (A B : Ty.Ty)
+         (_ : PF.domain (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) A B)
+         (_ : PF.domain jet_bitcoin_raw_program.raw_fullalg A B), Prop
+
+Arguments jet_bitcoin_raw_program.raw_program_relation {A B}%ty_scope f g
+DELTA_COMPACT_DEF C.jet_bitcoin_raw_program.raw_program_parametric_relation
+jet_bitcoin_raw_program.raw_program_parametric_relation =
+@PF.Parametric.Pack (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+  jet_bitcoin_raw_program.raw_fullalg (@jet_bitcoin_raw_program.raw_program_relation)
+  jet_bitcoin_raw_program.raw_program_relation_class
+     : PF.Parametric.Rel (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+         jet_bitcoin_raw_program.raw_fullalg
+DELTA_DEEP_TYPE C.jet_bitcoin_tapleaf_literal.tapleaf_ascii_string
+jet_bitcoin_tapleaf_literal.tapleaf_ascii_string
+     : @eq (list Integers.Byte.int) jet_bitcoin_tapleaf_literal.tapleaf_ascii
+         (SHA256.str_to_bytes
+            (String.String (Ascii.Ascii false false true false true false true false)
+               (String.String (Ascii.Ascii true false false false false true true false)
+                  (String.String (Ascii.Ascii false false false false true true true false)
+                     (String.String (Ascii.Ascii false false true true false false true false)
+                        (String.String (Ascii.Ascii true false true false false true true false)
+                           (String.String (Ascii.Ascii true false false false false true true false)
+                              (String.String (Ascii.Ascii false true true false false true true false)
+                                 String.EmptyString))))))))
+DELTA_DEEP_TYPE C.jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix_matches
+jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix_matches
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix
+         tapleaf_prefix
+DELTA_DEEP_TYPE C.jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_matches
+jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_matches
+     : forall alg : PF.Algebra,
+       @eq (PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@tapleaf_hash_spec alg)
+         (@jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec alg)
+DELTA_DEEP_TYPE C.jet_bitcoin_tapleaf_literal.bitcoin_tapleaf_hash_literal_local_spec
+jet_bitcoin_tapleaf_literal.bitcoin_tapleaf_hash_literal_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tapleaf_hash bitcoin_ge ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@hash_getter_rep ext_environment tapleaf_hash_of
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : ext_environment) =>
+          @jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec
+            (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_raw_program.raw_full_projection
+@jet_bitcoin_raw_program.raw_full_projection
+     : forall (A B : Ty.Ty) (p : BitcoinFull.t A B) (a : Ty.tySem A) (environment : raw_bitcoin_environment)
+         (Hpath : le (@length Digest.hash256 (raw_tap_path environment))
+                    (S
+                       (S
+                          (S
+                             (S
+                                (S
+                                   (S
+                                      (S
+                                         (S
+                                            (S
+                                               (S
+                                                  (S
+                                                     (S
+                                                        (S
+                                                           (S
+                                                              (S
+                                                                 (S
+                                                                    (S
+                                                                       (S
+                                                                          (S
+                                                                             (S
+                                                                                (S
+                                                                                   (S
+                                                                                      (S
+                                                                                         (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S (S (S (S (S (S (S O))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),
+       @eq (option (Ty.tySem B)) (@BitcoinFull.sem A B p a (project_raw_environment environment Hpath))
+         (@jet_bitcoin_raw_program.raw_full_sem A B p a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_raw_program.raw_core_relation_class
+jet_bitcoin_raw_program.raw_core_relation_class
+     : @Alg.Core.Parametric.class
+         (Alg.Assertion.toCore
+            (PF.CanonicalStructures.toAssertion
+               (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)))
+         (PF.CanonicalStructures.toCore jet_bitcoin_raw_program.raw_fullalg)
+         (@jet_bitcoin_raw_program.raw_program_relation)
+DELTA_DEEP_TYPE C.jet_bitcoin_raw_program.raw_assertion_relation_class
+jet_bitcoin_raw_program.raw_assertion_relation_class
+     : @Alg.Assertion.Parametric.class
+         (PF.CanonicalStructures.toAssertion
+            (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))
+         (PF.CanonicalStructures.toAssertion jet_bitcoin_raw_program.raw_fullalg)
+         (@jet_bitcoin_raw_program.raw_program_relation)
+DELTA_DEEP_TYPE C.jet_bitcoin_raw_program.raw_program_relation_class
+jet_bitcoin_raw_program.raw_program_relation_class
+     : @PF.Parametric.class (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+         jet_bitcoin_raw_program.raw_fullalg (@jet_bitcoin_raw_program.raw_program_relation)
+DELTA_DEEP_TYPE C.jet_bitcoin_raw_program.bitcoin_program_raw_projection
+@jet_bitcoin_raw_program.bitcoin_program_raw_projection
+     : forall (A B : Ty.Ty) (program : forall alg : PF.Algebra, PF.domain alg A B) (_ : @PF.Parametric A B program)
+         (a : Ty.tySem A) (environment : raw_bitcoin_environment)
+         (Hpath : le (@length Digest.hash256 (raw_tap_path environment))
+                    (S
+                       (S
+                          (S
+                             (S
+                                (S
+                                   (S
+                                      (S
+                                         (S
+                                            (S
+                                               (S
+                                                  (S
+                                                     (S
+                                                        (S
+                                                           (S
+                                                              (S
+                                                                 (S
+                                                                    (S
+                                                                       (S
+                                                                          (S
+                                                                             (S
+                                                                                (S
+                                                                                   (S
+                                                                                      (S
+                                                                                         (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S (S (S (S (S (S (S O))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (program (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            (project_raw_environment environment Hpath)) (program jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_raw_program.application_raw_program_local_spec_sep
+jet_bitcoin_raw_program.application_raw_program_local_spec_sep
+     : forall (f : Clight.function) (ge : Clight.genv) (A B : Ty.Ty)
+         (rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : ext_environment)
+                  (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+         (program : forall alg : PF.Algebra, PF.domain alg A B) (_ : @PF.Parametric A B program)
+         (_ : application_jet_local_spec_sep f ge ext_environment A B rep
+                (program (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))),
+       application_jet_local_spec_sep f ge raw_bitcoin_environment A B (raw_env_rep rep)
+         (program jet_bitcoin_raw_program.raw_fullalg)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_output_values_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_output_values_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_output_values_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment => words_hash_of (S (S (S O))) (S (S (S (S (S O))))) (output_values_of e))
+               BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S O))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Base (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))
+               Bitcoin.Bitcoin.OutputValue) jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_output_scripts_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_output_scripts_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_output_scripts_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment =>
+                words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (output_scripts_of e)) BinNums.Z0
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Bitcoin.Bitcoin.OutputScriptHash)
+            jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_values_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_values_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_values_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment => words_hash_of (S (S (S O))) (S (S (S (S (S O))))) (input_values_of e))
+               BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S O))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Base (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))
+               Bitcoin.Bitcoin.InputValue) jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_scripts_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_scripts_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_scripts_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment =>
+                words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (input_scripts_of e)) BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Ext (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) BitcoinExt.InputScriptHash)
+            jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_sequences_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_sequences_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_sequences_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment => words_hash_of (S (S O)) (S (S (S (S (S O))))) (input_sequences_of e))
+               BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S O)) (S (S (S (S (S O)))))
+            (@BitcoinFull.Base (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+               Bitcoin.Bitcoin.InputSequence) jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_script_sigs_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_script_sigs_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_script_sigs_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment =>
+                words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (input_script_sigs_of e)) BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            (@BitcoinFull.Ext (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) BitcoinExt.InputScriptSigHash)
+            jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_tappath_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_tappath_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tappath_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment
+               (fun e : ext_environment => words_hash_of (S (S (S (S (S O))))) (S (S (S O))) (tappath_of e))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S O)))
+            (@BitcoinFull.Ext (Word.Word (S (S (S O)))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               BitcoinExt.Tappath) jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.tapleaf_hash_literal_parametric
+jet_bitcoin_hash_raw_program.tapleaf_hash_literal_parametric
+     : @PF.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_tapleaf_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_tapleaf_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tapleaf_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment tapleaf_hash_of
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_outputs_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_outputs_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_outputs_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment outputs_hash_of BinNums.Z0
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @outputs_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_utxos_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_utxos_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_utxos_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment input_utxos_hash_of BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @input_utxos_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_tap_env_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_tap_env_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tap_env_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment tap_env_hash_of
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @tap_env_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_outpoints_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_outpoints_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_outpoints_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment input_outpoints_hash_of BinNums.Z0
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @input_outpoints_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_input_annexes_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_input_annexes_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_annexes_hash bitcoin_ge
+         raw_bitcoin_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment input_annexes_hash_of BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @input_annexes_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_inputs_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_inputs_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_inputs_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment inputs_hash_of BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @inputs_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_tx_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_tx_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tx_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@hash_getter_rep ext_environment tx_hash_of BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @tx_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_TYPE C.jet_bitcoin_hash_raw_program.bitcoin_sig_all_hash_raw_program_local_spec
+jet_bitcoin_hash_raw_program.bitcoin_sig_all_hash_raw_program_local_spec
+     : application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_sig_all_hash bitcoin_ge raw_bitcoin_environment
+         Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@env_hash_rep ext_environment sig_all_hash_of
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : raw_bitcoin_environment) =>
+          @sig_all_hash_spec jet_bitcoin_raw_program.raw_fullalg a environment)
+DELTA_DEEP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_ascii
+jet_bitcoin_tapleaf_literal.tapleaf_ascii =
+@List.map BinNums.Z Integers.Byte.int Integers.Byte.repr
+  (@cons BinNums.Z
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+     (@cons BinNums.Z
+        (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+        (@cons BinNums.Z
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+           (@cons BinNums.Z
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+              (@cons BinNums.Z
+                 (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                 (@cons BinNums.Z
+                    (BinNums.Zpos
+                       (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                    (@cons BinNums.Z
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                       (@nil BinNums.Z))))))))
+     : list Integers.Byte.int
+DELTA_DEEP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest
+jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest =
+Digest.byteStringHash jet_bitcoin_tapleaf_literal.tapleaf_ascii
+     : Digest.hash256
+DELTA_DEEP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_literal_midstate
+jet_bitcoin_tapleaf_literal.tapleaf_literal_midstate =
+Digest.compress Digest.sha256_iv jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest
+  jet_bitcoin_tapleaf_literal.tapleaf_literal_tag_digest
+     : Digest.hash256
+DELTA_DEEP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix
+jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix =
+haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+  (jet_haskell_hash_word.haskell_integer_hash256
+     (Digest.hash256_to_bytelist jet_bitcoin_tapleaf_literal.tapleaf_literal_midstate))
+     : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+DELTA_DEEP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_hash_program
+jet_bitcoin_tapleaf_literal.tapleaf_hash_program =
+fun (prefix : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (leaf_size : Ty.tySem (Word.Word (S (S (S O)))))
+  (alg : PF.Algebra) =>
+let term : Alg.Assertion.Algebra := PF.CanonicalStructures.toAssertion alg in
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_buffer_empty_spec.AC.comp Ty.Unit (Ty.Prod sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+  (@jet_buffer_empty_spec.AC.pair Ty.Unit sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+     (@jet_buffer_empty_spec.AC.comp Ty.Unit
+        (Ty.Prod sha256_ctx8_type (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))) sha256_ctx8_type core
+        (@jet_buffer_empty_spec.AC.pair Ty.Unit sha256_ctx8_type
+           (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) core (@ctx8_init_tag_spec prefix core)
+           (@jet_buffer_empty_spec.AC.pair Ty.Unit (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))) core
+              (@PF.Combinators.prim Ty.Unit (Word.Word (S (S (S O)))) alg
+                 (@BitcoinFull.Ext Ty.Unit (Word.Word (S (S (S O)))) BitcoinExt.TapleafVersion))
+              (@Alg.scribe Ty.Unit (Word.Word (S (S (S O)))) leaf_size core))) (@ctx8_addn_spec (S O) term))
+     (@PF.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) alg
+        (@BitcoinFull.Base Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) Bitcoin.Bitcoin.ScriptCMR)))
+  (@jet_buffer_empty_spec.AC.comp
+     (Ty.Prod sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) sha256_ctx8_type
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) core (@ctx8_addn_spec (S (S (S (S (S O))))) term)
+     (@ctx8_finalize_spec term))
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : Ty.tySem (Word.Word (S (S (S O)))))
+         (alg : PF.Algebra), PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments jet_bitcoin_tapleaf_literal.tapleaf_hash_program prefix leaf_size {alg}
+DELTA_DEEP_DEF C.jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec
+jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec =
+fun alg : PF.Algebra =>
+@jet_bitcoin_tapleaf_literal.tapleaf_hash_program jet_bitcoin_tapleaf_literal.tapleaf_literal_prefix
+  (haskell_to_word (S (S (S O)))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) alg
+     : forall alg : PF.Algebra, PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments jet_bitcoin_tapleaf_literal.tapleaf_hash_literal_spec {alg}
+DELTA_DEEP_DEF C.jet_bitcoin_raw_program.raw_full_sem
+jet_bitcoin_raw_program.raw_full_sem =
+fun (A B : Ty.Ty) (p : BitcoinFull.t A B) (a : Ty.tySem A) (environment : raw_bitcoin_environment) =>
+match p in (BitcoinFull.prim A0 B0) return (forall _ : Ty.tySem A0, option (Ty.tySem B0)) with
+| @BitcoinFull.Base A0 B0 q => fun a0 : Ty.tySem A0 => @Bitcoin.Bitcoin.sem A0 B0 q a0 (raw_base environment)
+| @BitcoinFull.Ext A0 B0 q => fun a0 : Ty.tySem A0 => @raw_ext_sem A0 B0 q a0 environment
+end a
+     : forall (A B : Ty.Ty) (_ : BitcoinFull.t A B) (_ : Ty.tySem A) (_ : raw_bitcoin_environment), option (Ty.tySem B)
+
+Arguments jet_bitcoin_raw_program.raw_full_sem {A B}%ty_scope p a environment
+DELTA_DEEP_DEF C.jet_bitcoin_raw_program.raw_fullalg
+jet_bitcoin_raw_program.raw_fullalg =
+@PF._Pack (fun A B : Ty.Ty => forall (_ : Ty.tySem A) (_ : raw_bitcoin_environment), option (Ty.tySem B))
+  (@PF.Class
+     (Alg.Assertion.domain
+        (Alg.AssertionSem (Reader.ReaderT_CIMonadZero raw_bitcoin_environment Option.option_Monad_Zero)))
+     (Alg.Assertion.class_of
+        (Alg.AssertionSem (Reader.ReaderT_CIMonadZero raw_bitcoin_environment Option.option_Monad_Zero)))
+     (PF.Mixin (fun A B : Ty.Ty => forall (_ : Ty.tySem A) (_ : raw_bitcoin_environment), option (Ty.tySem B))
+        (@jet_bitcoin_raw_program.raw_full_sem)))
+     : PF.Algebra
+DELTA_DEEP_DEF C.jet_bitcoin_raw_program.raw_program_relation
+jet_bitcoin_raw_program.raw_program_relation =
+fun (A B : Ty.Ty) (f : PF.domain (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) A B)
+  (g : PF.domain jet_bitcoin_raw_program.raw_fullalg A B) =>
+forall (a : Ty.tySem A) (environment : raw_bitcoin_environment)
+  (Hpath : le (@length Digest.hash256 (raw_tap_path environment))
+             (S
+                (S
+                   (S
+                      (S
+                         (S
+                            (S
+                               (S
+                                  (S
+                                     (S
+                                        (S
+                                           (S
+                                              (S
+                                                 (S
+                                                    (S
+                                                       (S
+                                                          (S
+                                                             (S
+                                                                (S
+                                                                   (S
+                                                                      (S
+                                                                         (S
+                                                                            (S
+                                                                               (S
+                                                                                  (S
+                                                                                     (S
+                                                                                        (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S (S (S (S (S (S (S O))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))),
+@eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+  (f a (project_raw_environment environment Hpath)) (g a environment)
+     : forall (A B : Ty.Ty)
+         (_ : PF.domain (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) A B)
+         (_ : PF.domain jet_bitcoin_raw_program.raw_fullalg A B), Prop
+
+Arguments jet_bitcoin_raw_program.raw_program_relation {A B}%ty_scope f g
+DELTA_DEEP_DEF C.jet_bitcoin_raw_program.raw_program_parametric_relation
+jet_bitcoin_raw_program.raw_program_parametric_relation =
+@PF.Parametric.Pack (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+  jet_bitcoin_raw_program.raw_fullalg (@jet_bitcoin_raw_program.raw_program_relation)
+  jet_bitcoin_raw_program.raw_program_relation_class
+     : PF.Parametric.Rel (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+         jet_bitcoin_raw_program.raw_fullalg
