@@ -35,6 +35,22 @@ Canonical source-fidelity review, recursive kernel checking and normal
 registration are separate stages, not implied by compilation. Coverage added:
 zero until the admission workflow is complete.
 
+## Completed verification
+
+`CHECKED.json` records the successful recursive kernel/AST phase under
+handle96093 (terminal exit zero). The original Elements AST regenerates
+exactly; the recursive context matches the existing fifteen-axiom library
+profile, with no unsafe kernel features. This library-wide context is distinct
+from the six inherited assumptions of the individual C endpoint.
+The source-fidelity review and all59 targeted source-corruption tests also
+passed. The first independent evidence reconciliation passed under handle30568;
+the separate negative-evidence suite and final receipt are the next phase.
+
+The checked private input fingerprint is
+`0d090ba6b09dfa408a0df69674582d6278d14e77f7225557d9693927e4864a28`.
+No caller-cache construction, normal registration or full acceptance is
+implied by this isolated proof checkpoint.
+
 Reproduction (the drivers refuse to overwrite completed receipts):
 
 ```sh

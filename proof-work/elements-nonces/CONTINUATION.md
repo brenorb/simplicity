@@ -5,31 +5,32 @@ in `RUN.json`; the primitive and canonical serializer/loop source review is
 complete in `../elements-nonces-source/SOURCE-REVIEW.json` (59 negative tests).
 These are not normal acceptance or installed main coverage.
 
-The once-only kernel/AST driver was launched under exec session **96093**,
-with `KERNEL-RUN.json` written before checking. The AST comparison passed.
-Poll that session for the actual terminal result; the launch file alone is
-not evidence that a process is live. Do not start a duplicate. If the handle
-is unavailable, inspect the owned checker process and actual terminal files.
-The last process inspection found the Coq checker CPU-bound, not idle.
+The once-only kernel/AST driver completed under exec session **96093** with
+terminal exit zero. `CHECKED.json`, `ast.log` and `kernel.log` bind the actual
+successful result and postchecks. Do not start another kernel invocation.
+The first independent evidence review also passed under handle30568.
 
 Private tree: `/private/tmp/jet-elements-nonces.mniejwp9`. Freeze its three
 proof sources, inherited source tree, normal metadata and drivers while
-checking. `CHECKED.json` exists only after the recursive kernel check and all
-source/object/main/index postchecks pass. Do not infer success from a `.vo`.
+checking. The driver checks source/object identities before its invocation
+and source/main/index identities afterwards; the independent reviewer checks
+the object identities again. Do not infer success from a `.vo`.
 
-After a successful terminal kernel result:
+The evidence-review finish was launched under session **32533**. Inspect that
+handle and `EVIDENCE-REVIEW.json` before running the following commands again:
 
 ```sh
 python3 -B proof-work/elements-nonces/review.py /private/tmp/jet-elements-nonces.mniejwp9
 python3 -B proof-work/elements-nonces/review.py finish /private/tmp/jet-elements-nonces.mniejwp9
 ```
 
-The new independent evidence reviewer and its negative-test port have been
-syntax checked but not yet executed: they require the genuine kernel receipt.
-Inspect the first failure rather than altering assumptions or weakening any
-contract gate. Then commit the completed kernel/evidence receipts and logs,
-and update the README's verification status. No new normal registry entries
-are justified until the separate admission stages also finish.
+The evidence reviewer has passed a positive reconciliation; its negative-test
+port still needs a genuine successful terminal result. Inspect the first
+failure rather than altering assumptions or weakening any contract gate.
+Then commit the completed evidence receipt/log and update the README's
+verification status. No new normal registry entries are justified until the
+separate admission stages also finish. A receipt or launch file by itself
+is not evidence that a process is live.
 
 The current main semantic inputs and original staged patch remain exactly
 those recorded in `RUN.json`. Preserve that staging. Signed commits of the
