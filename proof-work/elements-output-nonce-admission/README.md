@@ -36,11 +36,13 @@ report is retained and every compact fragment is checked against it.
 preparation and both engines. The build/fresh-compile and full new
 contract/assumption logs are archived here.
 
-The six-stage finish review is live as **69468**. Poll it; do not restart on
-silence or promote its preparation checkpoint to acceptance. Coverage tests,
-ordinary contract comparison, canonical/source correspondence,33 source
-corruptions and independent evidence corruptions must all pass before the
-finish can write `REVIEW.json`.
+The six-stage finish review **69468 terminated with exit0**: coverage tests
+(including all seven new fixtures), ordinary contract comparison,
+canonical/source correspondence,33 source corruptions and31 independent
+evidence corruptions passed. `REVIEW.json` binds all commands, terminal results,
+source, tools, both engines and1,257 object/report hashes. An independent
+`FINISH-CHECKPOINT.json` verifies those bindings, and all six logs are archived.
+Do not restart the completed finish or promote its review to full acceptance.
 
 ## Combined acceptance over the real401 baseline
 
@@ -70,8 +72,12 @@ both pass.** Do not launch the older404 audit or install402/404/406 while
 following this plan. Completed historical results remain valid evidence for
 their exact source trees.
 
-The combined407 driver is prepared, not launched. Its refusal tests and real
-read-only preflight must finish after the six-stage407 review. Future guarded
+The combined407 driver is prepared, not launched. Six refusal tests passed as
+54539 without launching acceptance or attempting writes. `START-GUARD.json`
+binds the driver/test/log. After the six-stage407 review, the real read-only
+preflight also passed; `COMBINED-PREFLIGHT.json` binds all four completed review
+hashes, both candidate/baseline source fingerprints and the driver. This is
+readiness evidence, not positive acceptance. Future guarded
 source-only407 installation must additionally require actual-main401 success,
 exact reviewed combined source identity and original-index preservation;
 distinct actual-main407 acceptance follows installation. No installer or

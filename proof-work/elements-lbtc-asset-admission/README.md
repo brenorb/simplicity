@@ -87,3 +87,12 @@ receipts without running the obsolete exact-main401 postcheck on main402.
 Original staging and unrelated source are preserved. Do not install until both
 live audit handles have successfully terminated; then run the installer once,
 its composed postcheck, and distinct actual-main402 acceptance.
+
+The newer combined407 plan supersedes that serial next step. This reviewed
+delta is included unchanged in407, alongside the404/406/407 deltas. Its full
+audit runs against all407 entries, and guarded installation will use the real
+accepted401 baseline plus actual-main401 success. Do not install402 or launch
+actual-main402 while following the combined plan. Let the existing isolated402
+audit finish and preserve its result. The tested402 installer remains a
+historical alternative, not an instruction to bypass the combined plan. See
+`../elements-output-nonce-admission/README.md`.
