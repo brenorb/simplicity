@@ -72,7 +72,14 @@ both pass.** Do not launch the older404 audit or install402/404/406 while
 following this plan. Completed historical results remain valid evidence for
 their exact source trees.
 
-The combined407 driver is prepared, not launched. Six refusal tests passed as
+The combined407 driver was launched once as **23810**, after the signed
+completed-review/preflight commit. `AUDIT-RUN.json` binds exact input
+`b5d5d74a...`, the401 baseline receipts, all four completed review hashes and
+the driver. Its log is
+`/private/tmp/jet-output-nonce-admission.vy_b4hzc/acceptance.log`.
+This is a real launch, not successful terminal acceptance. Poll23810 and never
+restart on quiet output. Keep this candidate and main401 semantic inputs
+frozen. Six refusal tests passed as
 54539 without launching acceptance or attempting writes. `START-GUARD.json`
 binds the driver/test/log. After the six-stage407 review, the real read-only
 preflight also passed; `COMBINED-PREFLIGHT.json` binds all four completed review
