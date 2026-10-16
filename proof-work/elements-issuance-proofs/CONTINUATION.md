@@ -5,19 +5,18 @@ The original C-to-program proof freshly compiles; full reports are in
 `../elements-issuance-proofs-source/`. Source/private fingerprint:
 `33ffafe0efa1a2773f95474fc1a7800c426d878f9346abbb32d57ba8a2c58a51`.
 
-The once-only recursive kernel/AST controller is live under handle8870:
+The once-only recursive kernel/AST controller completed with exit zero under handle8870:
 
 ```sh
 python3 -B proof-work/elements-issuance-proofs/kernel.py /private/tmp/jet-elements-issuance-proofs.OurYz6Pe
 ```
 
-Poll that existing handle. The kernel is CPU-active and silent; do not restart
-because `CHECKED.json` is absent or observation times out. Do not change this
-private source/object tree while it runs.
+`CHECKED.json` and the exact AST/kernel logs record its terminal success.
+Do not restart that completed phase or change the evidence it binds.
 
 The added `review.py` and `test-review.py` are review tooling, not completed
 evidence. Their syntax and source/report phases passed on real current
-evidence. After the actual kernel controller succeeds, run:
+evidence. The actual kernel controller has succeeded; now run:
 
 ```sh
 python3 -B proof-work/elements-issuance-proofs/review.py finish /private/tmp/jet-elements-issuance-proofs.OurYz6Pe
