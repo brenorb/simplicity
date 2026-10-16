@@ -156,19 +156,30 @@ The once-only completed installation command was:
 python3 -B proof-work/scalar-lambda-admission/integration.py install /private/tmp/jet-scalar-lambda-admission.ebjcqzyk
 ```
 
-The fresh actual-main audit is now running under handle27494. Its exact
-command is `bash check-jets.sh --accept`, without skip/update flags, on main
-with fingerprint `c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`.
-`MAIN-AUDIT-RUN.json` binds the completed installation, original stage and
-driver. Its log is the candidate's `main-acceptance.log`. Poll the existing
-handle; keep main C/Haskell/proof/metadata/gate inputs frozen until terminal
-completion. Neither this launch record nor isolated420 acceptance proves
-actual-main420 acceptance. Do not repeat installation or restart the audit.
+The fresh actual-main audit completed with exit zero (handle27494), taking
+4349.42 seconds. Its exact command was `bash check-jets.sh --accept`, without
+skip/update flags, on main with fingerprint
+`c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`.
+`MAIN-ACCEPTANCE.json` and `MAIN-TERMINAL.json` bind the real terminal result,
+unchanged source identity, completed installation, original stage and driver.
+The full log is archived here as `main-acceptance.log`, SHA-256
+`da990917c01ae9147110c7d10ab8b2763f1eb555ac37a31690095ec7e82ecacf`.
+The acceptance receipt SHA-256 is
+`9a27b787e50c0f2b2ca267b4941ae2f86dc353dccbc04b418fec4d91260e4b0b`.
+The recursive kernel check covered1106 modules; build, assumption/contract
+snapshots, negative/source gates and all five AST checks passed. The final
+controller postcheck confirmed actual-main420 acceptance, source identity to
+the accepted candidate and byte-identical preservation of the staged patch.
+Do not repeat installation or restart this completed audit.
 
 The installer archives the exact `DELTA.patch`, full isolated acceptance log
 and installation ledger. Its postcheck reconstructs immutable predecessor
 history instead of incorrectly asking installed main420 to still be418.
-`main-accept.py` then performs a fresh full actual-main audit with no skip or
-update flags, binds the original staged patch, and records the real terminal.
-Keep its inputs frozen and poll its returned handle. Neither a plan nor a
-successful isolated audit alone establishes actual-main420 acceptance.
+`main-accept.py` performed the fresh full actual-main audit with no skip or
+update flags, bound the original staged patch, and recorded the real terminal.
+The broader goal remains incomplete, including the104 explicit library-model
+conditions. Later436/Elements candidates have separate verification outcomes;
+this result establishes neither their acceptance nor every-jet completion.
+Main inputs must still stay frozen for the active isolated436 controller's
+baseline checks until it finishes or an authorized verified successor takes
+over that boundary.
