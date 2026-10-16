@@ -1,0 +1,61 @@
+TAP_TYPE C.jet_elements_null_data_contract.elements_output_null_datum_bitmachine_spec
+jet_elements_null_data_contract.elements_output_null_datum_bitmachine_spec
+     : jet_application_context_contract.application_jet_bitmachine_spec jets_elements.f_simplicity_output_null_datum
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env
+         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (Ty.Sum Ty.Unit
+            (Ty.Sum Ty.Unit
+               (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))
+         jet_elements_null_data_environment.elements_null_data_environment_rep
+         (@jet_elements_null_data_layout.elements_output_null_datum_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))
+TAP_DEF C.jet_application_context_contract.application_jet_bitmachine_spec
+jet_application_context_contract.application_jet_bitmachine_spec =
+fun (f : Clight.function) (ge : Clight.genv) (E : Set) (A B : Ty.Ty)
+  (env_rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : E)
+               (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+  (spec : forall (_ : Ty.tySem A) (_ : E), option (Ty.tySem B)) =>
+forall (logical_env : E) (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout)
+  (s : BitMachine.RunState) (a : Ty.tySem A) (tail : list BitMachine.Cell)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (_ : env_rep m env logical_env fp)
+  (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+         (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+          match pat return Prop with
+          | pair y hi =>
+              match y return Prop with
+              | pair b lo =>
+                  jet_application_sep.out_sep (jet_bitmachine_rep.frames_blk L)
+                    (jet_bitmachine_rep.item_ofs (jet_bitmachine_rep.active_write_loc L))
+                    (jet_bitmachine_rep.cells_blk L)
+                    (jet_bitmachine_rep.edge_ofs (jet_bitmachine_rep.active_write_loc L))
+                    (BinInt.Z.of_nat (BitMachine.writeEmpty (BitMachine.activeWriteFrame s)))
+                    (BinInt.Z.of_nat (Translate.bitSize B)) b lo hi
+              end
+          end) fp) (_ : jet_bitmachine_rep.bm_rep m L s) (_ : jet_bitmachine_rep.bm_separated L s)
+  (_ : jet_bitmachine_rep.active_write_writable m L s)
+  (_ : @eq (list BitMachine.Cell) (BitMachine.nextData (BitMachine.activeReadFrame s))
+         (@app BitMachine.Cell (@Translate.encode A a) tail))
+  (_ : le (Translate.bitSize B) (BitMachine.writeEmpty (BitMachine.activeWriteFrame s))),
+@ex Memory.Mem.mem
+  (fun mf : Memory.Mem.mem =>
+   @ex (Ty.tySem B)
+     (fun value : Ty.tySem B =>
+      and (@eq (option (Ty.tySem B)) (spec a logical_env) (@Some (Ty.tySem B) value))
+        (and
+           (ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function f)
+              (jet_bitmachine_rep.jet_args env L) Events.E0 mf (Values.Vint Integers.Int.one))
+           (jet_bitmachine_rep.bm_rep mf L
+              (BitMachine.Build_RunState (BitMachine.inactiveReadFrames s) (BitMachine.activeReadFrame s)
+                 (BitMachine.Build_WriteFrame
+                    (@app BitMachine.Cell (@List.rev BitMachine.Cell (@Translate.encode B value))
+                       (BitMachine.writeData (BitMachine.activeWriteFrame s)))
+                    (Nat.sub (BitMachine.writeEmpty (BitMachine.activeWriteFrame s))
+                       (@length BitMachine.Cell (@Translate.encode B value)))) (BitMachine.inactiveWriteFrames s))))))
+     : forall (_ : Clight.function) (_ : Clight.genv) (E : Set) (A B : Ty.Ty)
+         (_ : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : E)
+                (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+         (_ : forall (_ : Ty.tySem A) (_ : E), option (Ty.tySem B)), Prop
+
+Arguments jet_application_context_contract.application_jet_bitmachine_spec f ge E%type_scope 
+  (A B)%ty_scope (env_rep spec)%function_scope
