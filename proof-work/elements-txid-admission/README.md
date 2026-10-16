@@ -61,6 +61,17 @@ frozen22-source plan and terminal log. Historical415 provenance is checked
 without requiring a successor main to remain415. No positive418 installation
 or actual-main418 acceptance was exercised or claimed by those tests.
 
+After the completed review, real415 acceptance/installation and successful
+launch guards, the once-only combined418 audit has launched as **91871**.
+`AUDIT-RUN.json` binds the exact418 fingerprint, both review hashes, the real415
+acceptance/installation, committed driver and full `check-jets.sh --accept`
+command. Its log is
+`/private/tmp/jet-txid-admission.gvp5bmft/acceptance.log`.
+This is a launch, not successful terminal full acceptance. Actual-main415
+continues independently as47915. Poll those existing handles; do not restart
+either audit, change their semantic inputs or install418 until both full
+results actually succeed.
+
 The proposed registry has115 missing declarations and104 entries with an
 explicit `memcpy_model` condition. Caller/domain, evaluator/library/fidelity
 and configuration obligations remain explicit; the every-jet goal is active.
