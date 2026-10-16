@@ -1,0 +1,31 @@
+(** Two concrete uses of the shared lifting theorem. Neither jet receives
+    extra coverage: their existing local C-to-spec proofs are reused. *)
+From Coq Require Import ZArith Lia.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Util.Option.
+Require Import Simplicity.Primitive.Bitcoin.
+Require Import C.jet_application_context_contract C.jet_application_context_lift.
+Require Import C.jets_elements C.jet_elements_linkage C.jet_elements_prim.
+Require Import C.jet_elements_indexed_scalar C.jet_elements_sequence_literal.
+Require Import C.jets_bitcoin C.jet_bitcoin_linkage C.jet_bitcoin_script_cmr_local.
+Set Default Timeout 10.
+
+Theorem elements_input_sequence_bitmachine_spec :
+  application_jet_bitmachine_spec f_simplicity_input_sequence elements_ge Elements.env Word32
+    (Ty.Sum Ty.Unit Word32)
+    (indexed_scalar_rep (fun e => sigTxIn (Elements.envTx e))
+      (fun txi => Integers.Int.unsigned (sigTxiSequence txi)) 544 248 0 696)
+    elements_input_sequence_literal_spec.
+Proof.
+  apply application_jet_local_sep_to_bitmachine;
+    [change (1 <= 33)%nat; lia|exact elements_input_sequence_literal_local_spec].
+Qed.
+
+Theorem bitcoin_script_cmr_bitmachine_spec :
+  application_jet_bitmachine_spec f_simplicity_bitcoin_script_cmr bitcoin_ge Bitcoin.env Ty.Unit Word256
+    bitcoin_script_cmr_env_rep
+    (fun a environment => @bitcoin_script_cmr_spec
+      (PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem option_Monad_Zero) a environment).
+Proof.
+  apply application_jet_local_sep_to_bitmachine;
+    [change (1 <= 256)%nat; lia|exact bitcoin_script_cmr_local_spec].
+Qed.
