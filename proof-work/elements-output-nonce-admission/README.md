@@ -1,8 +1,13 @@
 # Literal output_nonce registration and combined407 acceptance
 
-Prepared successor: **407/533**, adding `simplicity_output_nonce` to the
-reviewed406 source candidate. Main remains **401/533**. Snapshot preparation
-and review are not normal acceptance or installation.
+Current state: main is **407/533**, source-identical to the fully accepted
+isolated407 candidate. Guarded source-only installation80198 terminated with
+exit0; `INSTALLATION.json` and `DELTA.patch` bind its28 targets and preservation
+of the original staged patch. Distinct actual-main407 acceptance is still
+required. The following preparation/launch notes record the earlier history.
+
+The successor adds `simplicity_output_nonce` to the reviewed406 source
+candidate. Snapshot preparation and review alone were not normal acceptance.
 
 Private candidate: `/private/tmp/jet-output-nonce-admission.vy_b4hzc`.
 Input SHA-256:
