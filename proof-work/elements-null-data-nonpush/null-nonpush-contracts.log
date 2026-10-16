@@ -1,0 +1,809 @@
+TAP_TYPE C.jet_elements_bit_expr.exec_elements_bit_expr
+jet_elements_bit_expr.exec_elements_bit_expr
+     : forall (bit : bool) (ret : option AST.ident) (a : Clight.expr)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val) 
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (_ : @eq Ctypes.type (Clight.typeof a) Ctypesdefs.tint)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m a
+                (Values.Vint
+                   match bit return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end)) (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur (BinNums.Zpos BinNums.xH)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               (jet_elements_bit_expr.elements_bit_expr_stmt ret a) Events.E0
+               (Clight.set_opttemp ret
+                  (Values.Vint
+                     match bit return Integers.Int.int with
+                     | true => Integers.Int.one
+                     | false => Integers.Int.zero
+                     end) le) mf ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur (BinNums.Zpos BinNums.xH)
+               (@cons (option bool) (@Some bool bit) (@nil (option bool)))))
+TAP_TYPE C.jet_elements_bit_expr.exec_elements_skip_expr
+jet_elements_bit_expr.exec_elements_skip_expr
+     : forall (n : BinNums.Z) (a : Clight.expr) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bw : Values.block) (edge cur : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 n) (BinInt.Z.le n Integers.Int.max_signed))
+         (_ : @eq Ctypes.type (Clight.typeof a) Ctypesdefs.tint)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._skipBits e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m a (Values.Vint (Integers.Int.repr n)))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur n),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               (jet_elements_bit_expr.elements_skip_expr_stmt a) Events.E0 le mf ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur n
+               (@List.repeat (option bool) (@None bool) (BinInt.Z.to_nat n))))
+TAP_TYPE C.jet_elements_null_data_nonpush.elements_nonpush_is_small
+jet_elements_null_data_nonpush.elements_nonpush_is_small
+     : forall (n : nat) (bit small : bool) (_ : lt n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))),
+       @eq bool
+         (Integers.Int.cmp Integers.Cle (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))))
+            (jet_elements_null_data_nonpush.elements_nonpush_code n bit small)) small
+TAP_TYPE C.jet_elements_null_data_nonpush.eval_elements_null_data_small_test
+jet_elements_null_data_nonpush.eval_elements_null_data_small_test
+     : forall (n : nat) (bit small : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val) 
+         (m : Memory.Mem.mem) (_ : lt n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._t'35 le)
+                (@Some Values.val (Values.Vint (jet_elements_null_data_nonpush.elements_nonpush_code n bit small)))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         jet_elements_null_data_nonpush.elements_null_data_small_test
+         (Values.Vint
+            match small return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+TAP_TYPE C.jet_elements_null_data_nonpush.exec_elements_null_data_small_condition
+jet_elements_null_data_nonpush.exec_elements_null_data_small_condition
+     : forall (n : nat) (bit small : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bw : Values.block) (edge cur : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) 
+         (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) 
+         (bop : Values.block) (opbase : BinNums.Z) (i j : Integers.Int64.int)
+         (_ : lt n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._i le)
+                (@Some Values.val (Values.Vlong i)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._j le)
+                (@Some Values.val (Values.Vlong j)))
+         (_ : jet_elements_null_data_small.elements_null_data_path_valid m be ebase bt txbase bout outbase bop opbase i
+                j (jet_elements_null_data_nonpush.elements_nonpush_code n bit small))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur (BinNums.Zpos BinNums.xH)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               jet_elements_null_data_nonpush.elements_null_data_small_condition Events.E0
+               (jet_elements_null_data_nonpush.elements_nonpush_condition_temps n bit small bt txbase bout outbase bop
+                  opbase le) mf ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur (BinNums.Zpos BinNums.xH)
+               (@cons (option bool) (@Some bool small) (@nil (option bool)))))
+TAP_TYPE C.jet_elements_null_data_nonpush.elements_null_data_small_condition_source
+jet_elements_null_data_nonpush.elements_null_data_small_condition_source
+     : @eq (option Clight.statement)
+         (jet_elements_null_data_payload.elements_find_head_prefix jets_elements._t'32
+            (Clight.fn_body jets_elements.f_simplicity_output_null_datum))
+         (@Some Clight.statement
+            (Clight.Ssequence jet_elements_null_data_nonpush.elements_null_data_small_condition
+               (Clight.Sifthenelse (Clight.Etempvar jets_elements._t'4 Ctypesdefs.tbool)
+                  (jet_elements_null_data_loads.elements_append_stmt
+                     (jet_elements_null_data_loads.elements_null_data_reload jets_elements._t'28 jets_elements._t'29
+                        jets_elements._t'30 jets_elements._t'31)
+                     (Clight.Sswitch
+                        (@fst Clight.expr Clight.labeled_statements
+                           jet_elements_null_data_cases.elements_null_data_small_switch)
+                        (@snd Clight.expr Clight.labeled_statements
+                           jet_elements_null_data_cases.elements_null_data_small_switch)))
+                  jet_elements_null_data_reserved.elements_null_data_reserved_arm)))
+TAP_TYPE C.jet_elements_null_data_nonpush.elements_nonpush_value_cells
+jet_elements_null_data_nonpush.elements_nonpush_value_cells
+     : forall (n : nat) (bit small : bool),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))
+            (jet_elements_null_data_nonpush.elements_nonpush_value n bit small))
+         (@cons (option bool) (@Some bool small)
+            match small return (list (option bool)) with
+            | true =>
+                @Translate.encode (Word.Word (S (S O)))
+                  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S O))) (BinInt.Z.of_nat n))
+            | false =>
+                @cons (option bool) (@None bool)
+                  (@cons (option bool) (@None bool)
+                     (@cons (option bool) (@None bool) (@cons (option bool) (@Some bool bit) (@nil (option bool)))))
+            end)
+TAP_TYPE C.jet_elements_null_data_nonpush.elements_null_data_path_valid_after
+jet_elements_null_data_nonpush.elements_null_data_path_valid_after
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (edge cur count : BinNums.Z) (cells : list BitMachine.Cell) (be : Values.block) (ebase : BinNums.Z)
+         (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) 
+         (bop : Values.block) (opbase : BinNums.Z) (i j : Integers.Int64.int) (code : Integers.Int.int)
+         (_ : BinInt.Z.lt BinNums.Z0 count) (_ : BinInt.Z.le count cur)
+         (_ : jet_elements_effects.write_effect m mf bd dbase bw edge cur count cells)
+         (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                 match pat return Prop with
+                 | pair y hi =>
+                     match y return Prop with
+                     | pair b lo => jet_application_sep.out_sep bd dbase bw edge cur count b lo hi
+                     end
+                 end)
+                (jet_elements_null_data_loads.elements_null_data_path_footprint be ebase bt txbase bout outbase bop
+                   opbase i j))
+         (_ : jet_elements_null_data_small.elements_null_data_path_valid m be ebase bt txbase bout outbase bop opbase i
+                j code),
+       jet_elements_null_data_small.elements_null_data_path_valid mf be ebase bt txbase bout outbase bop opbase i j
+         code
+TAP_TYPE C.jet_elements_null_data_nonpush.exec_elements_null_data_nonpush_choice
+jet_elements_null_data_nonpush.exec_elements_null_data_nonpush_choice
+     : forall (n : nat) (bit small : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bw : Values.block) (edge cur : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) 
+         (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) 
+         (bop : Values.block) (opbase : BinNums.Z) (i j : Integers.Int64.int)
+         (_ : lt n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._skipBits e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._i le)
+                (@Some Values.val (Values.Vlong i)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._j le)
+                (@Some Values.val (Values.Vlong j)))
+         (_ : jet_elements_null_data_small.elements_null_data_path_valid m be ebase bt txbase bout outbase bop opbase i
+                j (jet_elements_null_data_nonpush.elements_nonpush_code n bit small))
+         (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                 match pat return Prop with
+                 | pair y hi =>
+                     match y return Prop with
+                     | pair b lo =>
+                         jet_application_sep.out_sep bd dbase bw edge cur
+                           (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))) b lo hi
+                     end
+                 end)
+                (jet_elements_null_data_loads.elements_null_data_path_footprint be ebase bt txbase bout outbase bop
+                   opbase i j))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur
+                (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+                  jet_elements_null_data_nonpush.elements_null_data_nonpush_choice Events.E0 le' mf
+                  ClightBigstep.Out_normal)
+               (jet_elements_effects.write_effect m mf bd dbase bw edge cur
+                  (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+                  (@Translate.encode (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))
+                     (jet_elements_null_data_nonpush.elements_nonpush_value n bit small)))))
+TAP_TYPE C.jet_elements_null_data_nonpush.eval_elements_null_data_padding_count
+jet_elements_null_data_nonpush.eval_elements_null_data_padding_count
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         jet_elements_null_data_nonpush.elements_null_data_padding_count
+         (Values.Vint
+            (Integers.Int.repr
+               (BinNums.Zpos
+                  (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+TAP_TYPE C.jet_elements_null_data_nonpush.exec_elements_null_data_nonpush_arm
+jet_elements_null_data_nonpush.exec_elements_null_data_nonpush_arm
+     : forall (n : nat) (bit small : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bw : Values.block) (edge cur : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) 
+         (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) 
+         (bop : Values.block) (opbase : BinNums.Z) (i j : Integers.Int64.int)
+         (_ : lt n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._skipBits e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._i le)
+                (@Some Values.val (Values.Vlong i)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._j le)
+                (@Some Values.val (Values.Vlong j)))
+         (_ : jet_elements_null_data_small.elements_null_data_path_valid m be ebase bt txbase bout outbase bop opbase i
+                j (jet_elements_null_data_nonpush.elements_nonpush_code n bit small))
+         (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                 match pat return Prop with
+                 | pair y hi =>
+                     match y return Prop with
+                     | pair b lo =>
+                         jet_application_sep.out_sep bd dbase bw edge cur
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           b lo hi
+                     end
+                 end)
+                (jet_elements_null_data_loads.elements_null_data_path_footprint be ebase bt txbase bout outbase bop
+                   opbase i j))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+                  jet_elements_null_data_nonpush.elements_null_data_nonpush_arm Events.E0 le' mf
+                  ClightBigstep.Out_normal)
+               (jet_elements_effects.write_effect m mf bd dbase bw edge cur
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xI
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (@app (option bool)
+                     (@List.repeat (option bool) (@None bool)
+                        (S
+                           (S
+                              (S
+                                 (S
+                                    (S
+                                       (S
+                                          (S
+                                             (S
+                                                (S
+                                                   (S
+                                                      (S
+                                                         (S
+                                                            (S
+                                                               (S
+                                                                  (S
+                                                                     (S
+                                                                        (S
+                                                                           (S
+                                                                              (S
+                                                                                 (S
+                                                                                    (S
+                                                                                       (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S (S (S (S (S (S (S O))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+                     (@Translate.encode (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))
+                        (jet_elements_null_data_nonpush.elements_nonpush_value n bit small))))))
+TAP_TYPE C.jet_elements_null_data_nonpush.elements_null_data_nonpush_arm_source
+jet_elements_null_data_nonpush.elements_null_data_nonpush_arm_source
+     : @eq (option Clight.statement)
+         (jet_elements_null_data_nonpush.elements_find_call_prefix jets_elements._skipBits
+            (Clight.fn_body jets_elements.f_simplicity_output_null_datum))
+         (@Some Clight.statement jet_elements_null_data_nonpush.elements_null_data_nonpush_arm)
+TAP_DEF C.jet_elements_bit_expr.elements_bit_expr_stmt
+jet_elements_bit_expr.elements_bit_expr_stmt =
+fun (ret : option AST.ident) (a : Clight.expr) =>
+Clight.Scall ret
+  (Clight.Evar jets_elements._writeBit
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tbool Ctypes.Tnil)) Ctypesdefs.tbool AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons Clight.expr a (@nil Clight.expr)))
+     : forall (_ : option AST.ident) (_ : Clight.expr), Clight.statement
+
+Arguments jet_elements_bit_expr.elements_bit_expr_stmt ret a
+TAP_DEF C.jet_elements_bit_expr.elements_skip_expr_stmt
+jet_elements_bit_expr.elements_skip_expr_stmt =
+fun a : Clight.expr =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._skipBits
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons Clight.expr a (@nil Clight.expr)))
+     : forall _ : Clight.expr, Clight.statement
+
+Arguments jet_elements_bit_expr.elements_skip_expr_stmt a
+TAP_DEF C.jet_elements_null_data_nonpush.elements_nonpush_code
+jet_elements_null_data_nonpush.elements_nonpush_code =
+fun (n : nat) (bit small : bool) =>
+Integers.Int.repr
+  match small return BinNums.Z with
+  | true => BinInt.Z.add (BinInt.Z.of_nat n) (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))
+  | false =>
+      match bit return BinNums.Z with
+      | true => BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))
+      | false => BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))
+      end
+  end
+     : forall (_ : nat) (_ : bool) (_ : bool), Integers.Int.int
+
+Arguments jet_elements_null_data_nonpush.elements_nonpush_code n%nat_scope (bit small)%bool_scope
+TAP_DEF C.jet_elements_null_data_nonpush.elements_null_data_small_test
+jet_elements_null_data_nonpush.elements_null_data_small_test =
+Clight.Ebinop Cop.Ole
+  (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))) Ctypesdefs.tint)
+  (Clight.Etempvar jets_elements._t'35 Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+TAP_DEF C.jet_elements_null_data_nonpush.elements_null_data_small_condition
+jet_elements_null_data_nonpush.elements_null_data_small_condition =
+jet_elements_null_data_loads.elements_append_stmt
+  (jet_elements_null_data_loads.elements_null_data_reload jets_elements._t'32 jets_elements._t'33 jets_elements._t'34
+     jets_elements._t'35)
+  (jet_elements_bit_expr.elements_bit_expr_stmt (@Some AST.ident jets_elements._t'4)
+     jet_elements_null_data_nonpush.elements_null_data_small_test)
+     : Clight.statement
+TAP_DEF C.jet_elements_null_data_nonpush.elements_nonpush_condition_temps
+jet_elements_null_data_nonpush.elements_nonpush_condition_temps =
+fun (n : nat) (bit small : bool) (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block) 
+  (outbase : BinNums.Z) (bop : Values.block) (opbase : BinNums.Z) (le : Maps.PTree.tree Values.val) =>
+@Maps.PTree.set Values.val jets_elements._t'4
+  (Values.Vint match small return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end)
+  (jet_elements_null_data_loads.elements_null_data_reload_temps jets_elements._t'32 jets_elements._t'33
+     jets_elements._t'34 jets_elements._t'35 bt txbase bout outbase bop opbase
+     (jet_elements_null_data_nonpush.elements_nonpush_code n bit small) le)
+     : forall (_ : nat) (_ : bool) (_ : bool) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) 
+         (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : Maps.PTree.tree Values.val),
+       Maps.PTree.tree Values.val
+
+Arguments jet_elements_null_data_nonpush.elements_nonpush_condition_temps n%nat_scope (bit small)%bool_scope 
+  bt txbase%Z_scope bout outbase%Z_scope bop opbase%Z_scope le
+TAP_DEF C.jet_elements_null_data_nonpush.elements_nonpush_value
+jet_elements_null_data_nonpush.elements_nonpush_value =
+fun (n : nat) (bit small : bool) =>
+match small return (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))) with
+| true =>
+    @inr
+      (sum
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) Ty.Unit)
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) Ty.Unit)) (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S O)))))
+      (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S O))) (BinInt.Z.of_nat n))
+| false =>
+    @inl (sum unit unit)
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                match n0 return Ty.Ty with
+                | O => X
+                | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S O)))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                match n0 return Ty.Ty with
+                | O => X
+                | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S O)))) (Bit.fromBool bit)
+end
+     : forall (_ : nat) (_ : bool) (_ : bool), Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))
+
+Arguments jet_elements_null_data_nonpush.elements_nonpush_value n%nat_scope (bit small)%bool_scope
+TAP_DEF C.jet_elements_null_data_nonpush.elements_null_data_nonpush_choice
+jet_elements_null_data_nonpush.elements_null_data_nonpush_choice =
+Clight.Ssequence jet_elements_null_data_nonpush.elements_null_data_small_condition
+  (Clight.Sifthenelse (Clight.Etempvar jets_elements._t'4 Ctypesdefs.tbool)
+     (jet_elements_null_data_loads.elements_append_stmt
+        (jet_elements_null_data_loads.elements_null_data_reload jets_elements._t'28 jets_elements._t'29
+           jets_elements._t'30 jets_elements._t'31)
+        (Clight.Sswitch
+           (@fst Clight.expr Clight.labeled_statements jet_elements_null_data_cases.elements_null_data_small_switch)
+           (@snd Clight.expr Clight.labeled_statements jet_elements_null_data_cases.elements_null_data_small_switch)))
+     jet_elements_null_data_reserved.elements_null_data_reserved_arm)
+     : Clight.statement
+TAP_DEF C.jet_elements_null_data_nonpush.elements_null_data_padding_count
+jet_elements_null_data_nonpush.elements_null_data_padding_count =
+Clight.Ebinop Cop.Osub
+  (Clight.Ebinop Cop.Oadd
+     (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))) Ctypesdefs.tint)
+     (Clight.Econst_int
+        (Integers.Int.repr
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+        Ctypesdefs.tint) Ctypesdefs.tint)
+  (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))) Ctypesdefs.tint)
+  Ctypesdefs.tint
+     : Clight.expr
+TAP_DEF C.jet_elements_null_data_nonpush.elements_null_data_nonpush_arm
+jet_elements_null_data_nonpush.elements_null_data_nonpush_arm =
+Clight.Ssequence
+  (jet_elements_bit_expr.elements_skip_expr_stmt jet_elements_null_data_nonpush.elements_null_data_padding_count)
+  jet_elements_null_data_nonpush.elements_null_data_nonpush_choice
+     : Clight.statement
+TAP_DEF C.jet_elements_null_data_nonpush.elements_find_call_prefix
+jet_elements_null_data_nonpush.elements_find_call_prefix =
+fix elements_find_call_prefix (id : AST.ident) (s : Clight.statement) {struct s} : option Clight.statement :=
+  match s return (option Clight.statement) with
+  | Clight.Sskip => @None Clight.statement
+  | Clight.Sassign _ _ => @None Clight.statement
+  | Clight.Sset _ _ => @None Clight.statement
+  | Clight.Scall _ _ _ => @None Clight.statement
+  | Clight.Sbuiltin _ _ _ _ => @None Clight.statement
+  | Clight.Ssequence a b =>
+      match a return (option Clight.statement) with
+      | Clight.Sskip =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Sassign _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Sset _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Scall o e _ =>
+          match o return (option Clight.statement) with
+          | Some _ =>
+              jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                (elements_find_call_prefix id b)
+          | None =>
+              match e return (option Clight.statement) with
+              | Clight.Econst_int _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Econst_float _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Econst_single _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Econst_long _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Evar id' _ =>
+                  match BinPos.Pos.eqb id id' return (option Clight.statement) with
+                  | true => @Some Clight.statement s
+                  | false =>
+                      jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                        (elements_find_call_prefix id b)
+                  end
+              | Clight.Etempvar _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Ederef _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Eaddrof _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Eunop _ _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Ebinop _ _ _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Ecast _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Efield _ _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Esizeof _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              | Clight.Ealignof _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+                    (elements_find_call_prefix id b)
+              end
+          end
+      | Clight.Sbuiltin _ _ _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Ssequence _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Sifthenelse _ _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Sloop _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Sbreak =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Scontinue =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Sreturn _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Sswitch _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Slabel _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      | Clight.Sgoto _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+            (elements_find_call_prefix id b)
+      end
+  | Clight.Sifthenelse _ a b =>
+      jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+        (elements_find_call_prefix id b)
+  | Clight.Sloop a b =>
+      jet_elements_null_data_small.elements_stmt_first (elements_find_call_prefix id a)
+        (elements_find_call_prefix id b)
+  | Clight.Sbreak => @None Clight.statement
+  | Clight.Scontinue => @None Clight.statement
+  | Clight.Sreturn _ => @None Clight.statement
+  | Clight.Sswitch _ _ => @None Clight.statement
+  | Clight.Slabel _ _ => @None Clight.statement
+  | Clight.Sgoto _ => @None Clight.statement
+  end
+     : forall (_ : AST.ident) (_ : Clight.statement), option Clight.statement
+
+Arguments jet_elements_null_data_nonpush.elements_find_call_prefix id s
