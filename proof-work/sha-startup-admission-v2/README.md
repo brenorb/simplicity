@@ -51,9 +51,19 @@ passed under handle75735: `CONTRACT-PREFLIGHT.json` and
 contract snapshot. Thus the original printer mismatch is repaired in this
 fresh candidate, without normalizing away identifiers or changing proofs.
 
-The six-stage independent review remains a distinct next phase. The preflight
-does not claim its coverage fixtures, canonical-source negatives or evidence
-negatives have run, and is not full acceptance.
+The six-stage independent review then completed under handle10965 with
+terminal exit zero. `REVIEW.json` and its six exact logs bind coverage,
+coverage fixtures, complete contract comparison, canonical-source positive/
+negative checks and evidence tests. All72 evidence corruptions are rejected,
+including the four added audited-header/report-driver checks. All9099
+inherited contracts remain byte-identical and all5969 inherited dependency
+sets remain unchanged. All138 added type/definition records have complete
+deep reports; one compact startup contract needs its reviewed deep supplement.
+The12 closed results remain closed and all eighteen C endpoints retain their
+eight inherited assumptions. This is a reviewed delta, not full acceptance.
+
+The combined-audit preflight was launched under handle32523. Inspect its
+actual terminal outcome before using the still-unaccepted full-audit driver.
 
 ```sh
 python3 -B proof-work/sha-startup-admission-v2/admission.py prepare /private/tmp/jet-sha-startup-admission-v2.j1g8pyb0
@@ -62,9 +72,8 @@ python3 -B proof-work/sha-startup-admission-v2/review.py finish /private/tmp/jet
 
 Do not duplicate a live invocation. Inspect actual process handles and
 terminal evidence; a receipt or launch file alone is not a liveness check.
-Preparation and the six-stage independent review must genuinely succeed
-before full-audit preflight or a complete audit is launched. The copied
-combined-audit driver/tests are drafts until that positive preflight passes.
+Preparation and independent review have succeeded. The copied combined-audit
+driver/tests remain drafts until their actual positive preflight succeeds.
 They continue to require the real successful isolated447 audit and reviewed449
 two-jet delta; they do not fabricate a full449 acceptance.
 
