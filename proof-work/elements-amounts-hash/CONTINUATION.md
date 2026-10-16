@@ -6,22 +6,20 @@ canonical-source comparison are complete. The source-review package is
 `../elements-amounts-hash-source/`: its139 active corruptions all failed as
 required, with real positive/negative terminal exits zero.
 
-The once-only AST/recursive-kernel invocation is **session62838**. Its launch
-is `KERNEL-RUN.json`, bound to the unchanged `kernel.py` and `RUN.json`.
-At the latest process inspection its actual coqchk child was actively using
-one CPU, not blocked on input. Poll that original handle; do not start a
-second check or infer completion from elapsed time. A successful terminal
-also has to pass the driver's assumption-profile, source, main-input and
-staged-patch postchecks before `CHECKED.json` is written. Do not alter its
-proof sources, objects, compiler/kernel drivers or original main inputs.
+The once-only AST/recursive-kernel invocation **session62838** completed with
+actual terminal exit zero. `CHECKED.json` was written only after the driver's
+assumption-profile, source, main-input and staged-patch postchecks passed.
+The AST matches; all unsafe kernel flags are absent. Its launch remains
+`KERNEL-RUN.json`, bound to unchanged `kernel.py` and `RUN.json`. Do not
+duplicate that invocation or modify the frozen proof sources/objects/drivers.
 
-Next after genuine kernel success: inspect and commit the exact terminal
-receipt and unmodified AST/kernel logs, then independently reconcile the
-full proof/source/kernel evidence, including negative evidence tests. Use
+Next: independently reconcile the full proof/source/kernel evidence,
+including negative evidence tests. The first read-only reconciliation was
+launched under session90213; poll that actual handle before another run. Use
 the completed nonce package as the pattern, but adapt the inventories:
 
 - two new modules,22 results,23 definitions;
--16 closed results;
+- 16 closed results;
 - three pure results inherit functional extensionality (the generic loop
   semantics and both indexed-reader semantics);
 - three execution results have the unchanged six-assumption set (generic C
