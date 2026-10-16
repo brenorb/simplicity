@@ -31,15 +31,16 @@ in this batch; all complete generated Python scripts parse. The failed seed
 no assembly/preparation/acceptance receipt. This was a tool lookup failure,
 not a rejected Coq theorem or a C/specification mismatch.
 
-Fresh normal preparation is running under handle77708:
+Fresh normal preparation completed with exit zero under handle77708:
 
 ```sh
 python3 -B proof-work/elements-composite-admission/admission.py prepare /private/tmp/jet-elements-composite-admission.vr1_ywx1
 ```
 
-Poll that handle; do not start another preparation on the same tree or alter
-its sources, metadata, bound proof evidence or tools while it runs. No
-`PREPARATION.json` success is claimed yet. The separate447 full controller
+`PREPARATION.json` and the five exact build/fresh-compile/report logs record
+success. Independent review is now running under handle40716; poll that
+handle and keep its source, metadata, proof evidence and tools immutable.
+Snapshot preparation is not acceptance. The separate447 full controller
 remains live under handle50964; its log records `coqchk passed on 1116 modules`
 and entry into the assumption gate, not terminal acceptance.
 
