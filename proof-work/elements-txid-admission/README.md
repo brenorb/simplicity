@@ -3,8 +3,8 @@
 Fully accepted isolated candidate: **418/533**. This folder adds one transaction_id endpoint
 over the independently reviewed417 token candidate. Main is now the guarded
 418 source tree. Actual-main415 audit47915 and combined isolated418 audit91871
-both passed before installation. Actual-main418 acceptance remains a separate
-operation, not implied by source identity or the isolated audit.
+both passed before installation. The subsequent separate actual-main418 audit
+6155 has also passed; its terminal result is independently verified below.
 
 Private tree: `/private/tmp/jet-txid-admission.gvp5bmft`.
 Source fingerprint:
@@ -88,7 +88,8 @@ staged patch. No inherited proof was overwritten and no compiled object copied.
 reviewed driver, source fingerprint and preserved staging. Only the seven new
 proofs, four guards and integration evidence are committed here; existing dirty
 registries are preserved and their owned delta is archived in `DELTA.patch`.
-Actual-main418 acceptance must still run separately.
+That installation alone did not establish actual-main418 acceptance; the
+separate completed run below supplies that evidence.
 
 The once-only actual-main418 audit has now launched as **6155** after the
 completed installation and independent postcheck. `MAIN-AUDIT-RUN.json` binds
@@ -96,10 +97,21 @@ the exact418 source fingerprint, installation SHA-256
 `e0b0c58d26fa6f3d97a6d0f5f68b9a7c545d3a2488f405e0a6c928dcf836f73c`,
 the full `check-jets.sh --accept` command and the reviewed driver. Its log is
 `/private/tmp/jet-txid-admission.gvp5bmft/main-acceptance.log`.
-This is a launch, not terminal actual-main418 acceptance. Poll that existing
-handle, keep main semantic inputs frozen and do not start another main audit.
+Audit6155 has now terminated with exit0 after4017.752seconds. The full build,
+recursive kernel check on1056 modules, assumption audit of5601 theorems
+(3053 closed), reviewed public contracts, gate/source negative tests and all
+five regenerated ASTs passed. `MAIN-ACCEPTANCE.json`, `MAIN-TERMINAL.json` and
+the complete `main-acceptance.log` are archived here.
 
-The proposed registry has115 missing declarations and104 entries with an
+`MAIN-CHECKPOINT.json` independently rechecks the full historical review/
+installation chain, the terminal command/log/driver identities, exact current
+main source identity and the original staged patch. The terminal log SHA-256
+is `c7d8d271c85d59145976fd09e213dc6a37f7f5982845f41949b74334a0ceb3ff`.
+The accepted actual main418 fingerprint remains exactly the source fingerprint
+above. No audit is left running and no second audit was launched to obtain this
+result.
+
+The accepted registry has115 missing declarations and104 entries with an
 explicit `memcpy_model` condition. Caller/domain, evaluator/library/fidelity
 and configuration obligations remain explicit; the every-jet goal is active.
 Receipts certify the actual dirty/staged base, not clean-HEAD reproducibility.
