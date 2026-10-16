@@ -1,0 +1,336 @@
+{
+  "declarations": [
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "declaration",
+      "tapleaf_ascii",
+      "Definition tapleaf_ascii : list byte := map Byte.repr [84; 97; 112; 76; 101; 97; 102]."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "declaration",
+      "tapleaf_literal_tag_digest",
+      "Definition tapleaf_literal_tag_digest := byteStringHash tapleaf_ascii."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "declaration",
+      "tapleaf_literal_midstate",
+      "Definition tapleaf_literal_midstate :=\n  compress Digest.sha256_iv tapleaf_literal_tag_digest tapleaf_literal_tag_digest."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "declaration",
+      "tapleaf_literal_prefix",
+      "Definition tapleaf_literal_prefix : tySem (Word 8) :=\n  haskell_to_word 8 (haskell_integer_hash256 (hash256_to_bytelist tapleaf_literal_midstate))."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "declaration",
+      "tapleaf_hash_program",
+      "Definition tapleaf_hash_program (prefix : tySem (Word 8)) (leaf_size : tySem (Word 3))\n    {alg : PF.Algebra} : PF.domain alg Ty.Unit Word256 :=\n  let term := PF.CanonicalStructures.toAssertion alg in\n  let core := Alg.Assertion.toCore term in\n  @AC.comp _ _ _ core\n    (@AC.pair _ _ _ core\n       (@AC.comp _ _ _ core\n          (@AC.pair _ _ _ core (@ctx8_init_tag_spec prefix core)\n             (@AC.pair _ _ _ core\n                (@PF.Combinators.prim _ _ alg (BitcoinFull.Ext BitcoinExt.TapleafVersion))\n                (@Alg.scribe Ty.Unit (Word 3) leaf_size core)))\n          (@ctx8_addn_spec 1 term))\n       (@PF.Combinators.prim _ _ alg (BitcoinFull.Base Bitcoin.ScriptCMR)))\n    (@AC.comp _ _ _ core (@ctx8_addn_spec 5 term) (@ctx8_finalize_spec term))."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "declaration",
+      "tapleaf_hash_literal_spec",
+      "Definition tapleaf_hash_literal_spec {alg : PF.Algebra} : PF.domain alg Ty.Unit Word256 :=\n  @tapleaf_hash_program tapleaf_literal_prefix (haskell_to_word 3 32) alg."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "statement",
+      "tapleaf_ascii_string",
+      "Lemma tapleaf_ascii_string : tapleaf_ascii = sha.SHA256.str_to_bytes \"TapLeaf\"%string."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "statement",
+      "tapleaf_literal_prefix_matches",
+      "Lemma tapleaf_literal_prefix_matches : tapleaf_literal_prefix = tapleaf_prefix."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "statement",
+      "tapleaf_hash_literal_matches",
+      "Lemma tapleaf_hash_literal_matches (alg : PF.Algebra) :\n  @tapleaf_hash_spec alg = @tapleaf_hash_literal_spec alg."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_literal.v",
+      "statement",
+      "bitcoin_tapleaf_hash_literal_local_spec",
+      "Theorem bitcoin_tapleaf_hash_literal_local_spec :\n  application_jet_local_spec_sep f_simplicity_bitcoin_tapleaf_hash bitcoin_ge ext_environment Ty.Unit Word256\n    (hash_getter_rep tapleaf_hash_of 8 8 176)\n    (fun a environment => @tapleaf_hash_literal_spec fullalg a environment)."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_hash_spec.v",
+      "declaration",
+      "ctx8_init_tag_spec",
+      "Definition ctx8_init_tag_spec (prefix : Ty.tySem (Word 8)) {term : Alg.Core.Algebra} :\n    @Alg.Core.domain term Ty.Unit sha256_ctx8_type :=\n  AC.pair (buffer_empty_spec (Word 3) 5 Ty.Unit) (AC.pair one64_spec (Alg.scribe prefix))."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_hash_spec.v",
+      "declaration",
+      "tapleaf_bytes",
+      "Definition tapleaf_bytes (e : ext_environment) : list (Ty.tySem (Word 3)) :=\n  [@fromZ (WordToZ 3) (extTapleafVersion e); byte32] ++\n  vector_values (Word 3) 5 (from_hash256 (Bitcoin.envScriptCMR (extBase e)))."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_hash_spec.v",
+      "declaration",
+      "tapleaf_hash_of",
+      "Definition tapleaf_hash_of (e : ext_environment) : hash256 :=\n  mk_hash256 (sha_stream [] (state_regs tapleaf_prefix) 1 (tapleaf_bytes e))."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_hash_local.v",
+      "statement",
+      "bitcoin_tapleaf_hash_local_spec",
+      "Theorem bitcoin_tapleaf_hash_local_spec :\n  application_jet_local_spec_sep f_simplicity_bitcoin_tapleaf_hash bitcoin_ge ext_environment Ty.Unit Word256\n    (hash_getter_rep tapleaf_hash_of 8 8 176)\n    (fun a environment => @tapleaf_hash_spec fullalg a environment)."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_hash_local.v",
+      "statement",
+      "bitcoin_tapleaf_hash_getter_body",
+      "Lemma bitcoin_tapleaf_hash_getter_body :\n  bitcoin_wrapper_shape f_simplicity_bitcoin_tapleaf_hash (bitcoin_simple_rest\n    (bitcoin_hash_mid_writeHash _taproot _bitcoinTapEnv _tapLeafHash))."
+    ],
+    [
+      "Coq/C/jet_bitcoin_tapleaf_hash_local.v",
+      "statement",
+      "bitcoin_tapLeafHash_at",
+      "Lemma bitcoin_tapLeafHash_at : bitcoin_field_at _bitcoinTapEnv _tapLeafHash 8."
+    ],
+    [
+      "Coq/C/jet_bitcoin_ext_prim.v",
+      "declaration",
+      "ext_environment",
+      "Record ext_environment :=\n{ extBase : Bitcoin.environment\n; extInScriptHash : list hash256\n; extInAnnexHash : list (option hash256)\n; extInScriptSigHash : list hash256\n; extTapleafVersion : Z\n; extTappath : list hash256\n; extInternalKey : hash256\n; extTxid : hash256\n; extInScriptHash_len : length extInScriptHash = length (sigTxIn (Bitcoin.envTx extBase))\n; extInAnnexHash_len : length extInAnnexHash = length (sigTxIn (Bitcoin.envTx extBase))\n; extInScriptSigHash_len : length extInScriptSigHash = length (sigTxIn (Bitcoin.envTx extBase))\n; extTapleafVersion_range : 0 <= extTapleafVersion < 256\n; extTappath_len : (length extTappath <= 128)%nat\n}."
+    ],
+    [
+      "Coq/C/jet_bitcoin_full_prim.v",
+      "declaration",
+      "sem",
+      "Definition sem {A B} (p : t A B) (a : A) (e : env) : option B :=\n  (match p in prim A B return A -> option B with\n   | Base q => fun a => Bitcoin.sem q a (extBase e)\n   | Ext q => fun a => BitcoinExt.sem q a e\n   end) a."
+    ],
+    [
+      "Coq/C/jet_bitcoin_hash_getter_local.v",
+      "declaration",
+      "hash_getter_rep",
+      "Definition hash_getter_rep {E : Set} (hash_of : E -> hash256) (pdelta hdelta psz : Z)\n    (m : mem) (env : val) (e : E) (fp : list (block * Z * Z)) : Prop :=\n  exists be ebase bt tbase,\n    env = Vptr be (Ptrofs.repr ebase) /\\\n    0 <= ebase /\\ ebase + 56 <= Ptrofs.max_unsigned /\\\n    0 <= tbase /\\ tbase + psz <= Ptrofs.max_unsigned /\\\n    Mem.load Mptr m be (ebase + pdelta) = Some (Vptr bt (Ptrofs.repr tbase)) /\\\n    uint32_array_at m bt (tbase + hdelta) (hash256_reg (hash_of e)) /\\\n    fp = [(be, ebase + pdelta, ebase + pdelta + 8); (bt, tbase + hdelta, tbase + hdelta + 32)]."
+    ],
+    [
+      "Coq/C/jet_application_sep.v",
+      "declaration",
+      "application_jet_local_spec_sep",
+      "Definition application_jet_local_spec_sep (f : function) (ge : Clight.genv) (E : Set)\n    (A B : Ty) (env_rep : mem -> val -> E -> list (block * Z * Z) -> Prop)\n    (spec : A -> E -> option B) : Prop :=\n  forall logical_env env m bd dbase bs sbase bi bw edge outedge cursor read_cursor (a : A) fp,\n    env_rep m env logical_env fp ->\n    Forall (fun '(b, lo, hi) => out_sep bd dbase bw outedge cursor (Z.of_nat (bitSize B)) b lo hi) fp ->\n    frame_base_valid sbase -> (8 | sbase) ->\n    frame_fields_at m bs sbase bi edge read_cursor ->\n    0 <= read_cursor -> read_cursor + Z.of_nat (bitSize A) <= Int64.max_unsigned ->\n    frame_input_cells_at m bi edge read_cursor (encode a) ->\n    write_frame_at m bd dbase bw outedge cursor (Z.of_nat (bitSize B)) ->\n    exists mf value,\n      spec a logical_env = Some value /\\\n      Clight2.eval_funcall ge m (Internal f)\n        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]\n        E0 mf (Vint Int.one) /\\\n      frame_output_cells_at mf bw outedge cursor (encode value) /\\\n      write_prefix_at m mf bw outedge cursor /\\\n      frame_fields_at mf bd dbase bw outedge (cursor - Z.of_nat (bitSize B)) /\\\n      (forall chunk b ofs, Mem.valid_block m b ->\n        (b <> bd \\/ ofs + size_chunk chunk <= dbase + 8 \\/ dbase + 16 <= ofs) ->\n        (b <> bw \\/\n          ofs + size_chunk chunk <= outedge + 8 * ((cursor - Z.of_nat (bitSize B)) / 64) \\/\n          write_word_address outedge cursor + 8 <= ofs) ->\n        Mem.load chunk mf b ofs = Mem.load chunk m b ofs)."
+    ],
+    [
+      "Coq/C/jet_application_sep.v",
+      "declaration",
+      "out_sep",
+      "Definition out_sep (bf : block) (base : Z) (bw : block) (edge cursor count : Z)\n    (b : block) (lo hi : Z) : Prop :=\n  (b <> bf \\/ hi <= base + 8 \\/ base + 16 <= lo) /\\\n  (b <> bw \\/ hi <= out_low edge cursor count \\/ out_high edge cursor <= lo)."
+    ],
+    [
+      "Coq/C/jet_buffer_empty_spec.v",
+      "declaration",
+      "buffer_type",
+      "Fixpoint buffer_type (X : Ty.Ty) (depth : nat) : Ty.Ty :=\n  match depth with\n  | Datatypes.O => Ty.Sum Ty.Unit X\n  | Datatypes.S d => Ty.Prod (Ty.Sum Ty.Unit (Vector X (Datatypes.S d))) (buffer_type X d)\n  end."
+    ],
+    [
+      "Coq/C/jet_buffer_empty_spec.v",
+      "declaration",
+      "buffer_empty_spec",
+      "Fixpoint buffer_empty_spec (X : Ty.Ty) (depth : nat) (A : Ty.Ty) {term : Alg.Core.Algebra} :\n    term A (buffer_type X depth) :=\n  match depth with\n  | Datatypes.O => AC.injl AC.unit\n  | Datatypes.S d => AC.pair (AC.injl AC.unit) (buffer_empty_spec X d A)\n  end."
+    ],
+    [
+      "Coq/C/jet_sha256_ctx8_init_spec.v",
+      "declaration",
+      "sha256_ctx8_type",
+      "Definition sha256_ctx8_type := Ty.Prod (buffer_type (Word 3) 5) (Ty.Prod (Word 6) (Word 8))."
+    ],
+    [
+      "Coq/C/jet_sha_tapdata_spec.v",
+      "declaration",
+      "one64_spec",
+      "Definition one64_spec {term : Alg.Core.Algebra} : @Alg.Core.domain term Ty.Unit (Word 6) :=\n  AC.comp Bit.true (left_pad_low_1_n 6)."
+    ],
+    [
+      "Coq/C/jet_sha_ctx8_spec.v",
+      "declaration",
+      "buffer_snoc_spec",
+      "Fixpoint buffer_snoc_spec (X : Ty.Ty) (depth : nat) {term : Alg.Core.Algebra} :\n    @Alg.Core.domain term (Ty.Prod (buffer_type X depth) X) (Ty.Sum (Vector X (S depth)) (buffer_type X depth)) :=\n  match depth with\n  | O => AC.case (AC.injr (AC.injr (AC.drop AC.iden))) (AC.injl AC.iden)\n  | S d =>\n      AC.comp\n        (AC.pair (AC.comp (AC.pair (AC.take (AC.drop AC.iden)) (AC.drop AC.iden)) (buffer_snoc_spec X d))\n                 (AC.take (AC.take AC.iden)))\n        (AC.case\n          (AC.comp (AC.pair (AC.drop AC.iden) (AC.take AC.iden))\n            (AC.case (AC.injr (AC.pair (AC.injr (AC.drop AC.iden)) (buffer_empty_spec X d _)))\n                     (AC.injl AC.iden)))\n          (AC.injr (AC.pair (AC.drop AC.iden) (AC.take AC.iden))))\n  end."
+    ],
+    [
+      "Coq/C/jet_sha_ctx8_spec.v",
+      "declaration",
+      "ctx8_add1_snoc",
+      "Definition ctx8_add1_snoc {term : Alg.Core.Algebra} :\n    @Alg.Core.domain term (Ty.Prod sha256_ctx8_type (Word 3)) (Ty.Prod (Ty.Sum (Word 9) ctx8_buf) ctx8_tail) :=\n  AC.pair\n    (AC.comp (AC.pair (AC.take (AC.take AC.iden)) (AC.drop AC.iden)) (buffer_snoc_spec (Word 3) 5))\n    (AC.take (AC.drop AC.iden))."
+    ],
+    [
+      "Coq/C/jet_sha_ctx8_spec.v",
+      "declaration",
+      "ctx8_add1_full",
+      "Definition ctx8_add1_full {term : Alg.Assertion.Algebra} :\n    @Alg.Assertion.domain term (Ty.Prod (Word 9) ctx8_tail) sha256_ctx8_type :=\n  AC.pair (AC.comp AC.unit (buffer_empty_spec (Word 3) 5 Ty.Unit))\n    (AC.pair\n      (AC.drop (AC.comp (AC.take (@increment_word_spec (Alg.Assertion.toCore term) 6))\n        (@Alg.Assertion.Combinators.assertl Ty.Unit Ty.Unit (Word 6) (Word 6) term\n          (@AC.drop Ty.Unit (Word 6) (Word 6) (Alg.Assertion.toCore term) (@AC.iden (Word 6) (Alg.Assertion.toCore term)))\n          assertion_cmr_fail0)))\n      (AC.comp (AC.pair (AC.drop (AC.drop AC.iden)) (AC.take AC.iden)) Simplicity.SHA256.hashBlock))."
+    ],
+    [
+      "Coq/C/jet_sha_ctx8_spec.v",
+      "declaration",
+      "ctx8_add1_spec",
+      "Definition ctx8_add1_spec {term : Alg.Assertion.Algebra} :\n    @Alg.Assertion.domain term (Ty.Prod sha256_ctx8_type (Word 3)) sha256_ctx8_type :=\n  AC.comp (@ctx8_add1_snoc (Alg.Assertion.toCore term))\n    (AC.comp (@AC.case _ _ _ _ (Alg.Assertion.toCore term) (@ctx8_add1_full term) AC.iden)\n      (AC.comp (@AC.pair _ _ _ (Alg.Assertion.toCore term) (@sha256_count_assertion_spec term) AC.iden)\n        (AC.drop AC.iden)))."
+    ],
+    [
+      "Coq/C/jet_sha_ctx8_spec.v",
+      "declaration",
+      "ctx8_addn_spec",
+      "Fixpoint ctx8_addn_spec (n : nat) {term : Alg.Assertion.Algebra} :\n    @Alg.Assertion.domain term (Ty.Prod sha256_ctx8_type (Vector (Word 3) n)) sha256_ctx8_type :=\n  match n with\n  | O => @ctx8_add1_spec term\n  | S n =>\n      @AC.comp _ _ _ (Alg.Assertion.toCore term)\n        (@AC.pair _ _ _ (Alg.Assertion.toCore term)\n          (@AC.comp _ _ _ (Alg.Assertion.toCore term)\n            (AC.pair (AC.take AC.iden) (AC.drop (AC.take AC.iden))) (@ctx8_addn_spec n term))\n          (AC.drop (AC.drop AC.iden)))\n        (@ctx8_addn_spec n term)\n  end."
+    ],
+    [
+      "Coq/C/jet_sha256_count_assertion.v",
+      "declaration",
+      "sha256_count_limit",
+      "Definition sha256_count_limit : Ty.tySem (Word 6) := @fromZ (WordToZ 6) 36028797018963968."
+    ],
+    [
+      "Coq/C/jet_sha256_count_assertion.v",
+      "declaration",
+      "sha256_count_check_spec",
+      "Definition sha256_count_check_spec {term : Alg.Core.Algebra} :\n    @Alg.Core.domain term sha256_ctx8_type Bit :=\n  AC.comp (AC.pair (AC.drop (AC.take AC.iden))\n    (AC.comp AC.unit (Alg.scribe sha256_count_limit))) (@lt_word_spec term 6)."
+    ],
+    [
+      "Coq/C/jet_sha256_count_assertion.v",
+      "declaration",
+      "sha256_count_assertion_spec",
+      "Definition sha256_count_assertion_spec {term : Alg.Assertion.Algebra} :\n    @Alg.Assertion.domain term sha256_ctx8_type Ty.Unit :=\n  AC.comp (AC.pair (@sha256_count_check_spec term) AC.unit)\n    (Alg.Assertion.Combinators.assertr assertion_cmr_fail0 (AC.take AC.iden))."
+    ],
+    [
+      "Coq/C/jet_sha_finalize_spec.v",
+      "declaration",
+      "buffer_pad_spec",
+      "Fixpoint buffer_pad_spec (d : nat) {term : Alg.Core.Algebra} :\n    @Alg.Core.domain term (buffer_type (Word 3) d) (Vector (Word 3) (S d)) :=\n  match d with\n  | O => AC.copair (@Word.zero 4 term) (AC.pair AC.iden (AC.comp AC.unit (@Word.zero 3 term)))\n  | S d' =>\n      AC.comp (AC.pair (AC.take AC.iden) (AC.drop (buffer_pad_spec d')))\n        (AC.case\n          (AC.pair (AC.drop AC.iden) (AC.take (@fill Ty.Unit (Word 3) (S d') term (@Word.zero 3 term))))\n          AC.iden)\n  end."
+    ],
+    [
+      "Coq/C/jet_sha_finalize_spec.v",
+      "declaration",
+      "flag_spec",
+      "Definition flag_spec {X : Ty.Ty} {term : Alg.Core.Algebra} :\n    @Alg.Core.domain term (Ty.Sum Ty.Unit X) Bit :=\n  AC.copair Bit.false Bit.true."
+    ],
+    [
+      "Coq/C/jet_sha_finalize_spec.v",
+      "declaration",
+      "buffer63_size_spec",
+      "Definition buffer63_size_spec {term : Alg.Core.Algebra} :\n    @Alg.Core.domain term (buffer_type (Word 3) 5) (Word 3) :=\n  AC.pair\n    (AC.pair (AC.pair Bit.false Bit.false)\n             (AC.pair (AC.take flag_spec) (AC.drop (AC.take flag_spec))))\n    (AC.drop (AC.drop\n      (AC.pair (AC.pair (AC.take flag_spec) (AC.drop (AC.take flag_spec)))\n               (AC.drop (AC.drop (AC.pair (AC.take flag_spec) (AC.drop flag_spec)))))))."
+    ],
+    [
+      "Coq/C/jet_sha_finalize_spec.v",
+      "declaration",
+      "ctx8_bitlen_spec",
+      "Definition ctx8_bitlen_spec {term : Alg.Core.Algebra} :\n    @Alg.Core.domain term sha256_ctx8_type (Word 6) :=\n  AC.comp\n    (AC.pair (AC.comp (AC.take buffer63_size_spec) (@left_pad_low_spec term 3 3))\n             (AC.drop (AC.take (@Word.shift_const 6 term 6))))\n    (AC.comp (AC.comp (@Word.adder 6 term) (AC.drop AC.iden)) (@Word.shift_const 6 term 3))."
+    ],
+    [
+      "Coq/C/jet_sha_finalize_spec.v",
+      "declaration",
+      "pad_word64",
+      "Definition pad_word64 : Ty.tySem (Word 6) := @fromZ (WordToZ 6) 9223372036854775808."
+    ],
+    [
+      "Coq/C/jet_sha_finalize_spec.v",
+      "declaration",
+      "ctx8_clear_count_spec",
+      "Definition ctx8_clear_count_spec {term : Alg.Assertion.Algebra} :\n    @Alg.Assertion.domain term sha256_ctx8_type sha256_ctx8_type :=\n  @AC.pair _ _ _ (Alg.Assertion.toCore term) (AC.take AC.iden)\n    (@AC.pair _ _ _ (Alg.Assertion.toCore term)\n      (@AC.comp _ _ _ (Alg.Assertion.toCore term) (@sha256_count_assertion_spec term)\n        (@Word.zero 6 (Alg.Assertion.toCore term)))\n      (AC.drop (AC.drop AC.iden)))."
+    ],
+    [
+      "Coq/C/jet_sha_finalize_spec.v",
+      "declaration",
+      "ctx8_finalize_pad_spec",
+      "Definition ctx8_finalize_pad_spec {term : Alg.Assertion.Algebra} :\n    @Alg.Assertion.domain term sha256_ctx8_type (Ty.Prod (Word 9) (Word 8)) :=\n  @AC.comp _ _ _ (Alg.Assertion.toCore term)\n    (@AC.pair _ _ (Word 6) (Alg.Assertion.toCore term) (@ctx8_clear_count_spec term)\n      (AC.comp AC.unit (Alg.scribe pad_word64)))\n    (@AC.comp _ _ _ (Alg.Assertion.toCore term) (@ctx8_addn_spec 3 term)\n      (AC.pair (AC.take (@buffer_pad_spec 5 (Alg.Assertion.toCore term))) (AC.drop (AC.drop AC.iden))))."
+    ],
+    [
+      "Coq/C/jet_sha_finalize_spec.v",
+      "declaration",
+      "ctx8_finalize_block_spec",
+      "Definition ctx8_finalize_block_spec {term : Alg.Core.Algebra} :\n    @Alg.Core.domain term (Ty.Prod (Ty.Prod (Word 9) (Word 8)) (Word 6)) (Ty.Prod (Word 8) (Word 9)) :=\n  AC.pair (AC.take (AC.drop AC.iden))\n    (AC.pair (AC.take (AC.take (AC.take AC.iden)))\n      (AC.pair (AC.take (AC.take (AC.drop (AC.take AC.iden))))\n        (AC.pair (AC.take (AC.take (AC.drop (AC.drop (AC.take AC.iden))))) (AC.drop AC.iden))))."
+    ],
+    [
+      "Coq/C/jet_sha_finalize_spec.v",
+      "declaration",
+      "ctx8_finalize_spec",
+      "Definition ctx8_finalize_spec {term : Alg.Assertion.Algebra} :\n    @Alg.Assertion.domain term sha256_ctx8_type (Word 8) :=\n  @AC.comp _ _ _ (Alg.Assertion.toCore term)\n    (@AC.pair _ _ _ (Alg.Assertion.toCore term) (@ctx8_finalize_pad_spec term)\n      (@ctx8_bitlen_spec (Alg.Assertion.toCore term)))\n    (AC.comp (@ctx8_finalize_block_spec (Alg.Assertion.toCore term)) Simplicity.SHA256.hashBlock)."
+    ],
+    [
+      "Coq/Simplicity/Digest.v",
+      "declaration",
+      "byteStringHash",
+      "Definition byteStringHash (x : list Integers.byte) : hash256 :=\n Hash256 (process_msg SHA256.init_registers (generate_and_pad_alt x))\n  (length_process_msg _)."
+    ],
+    [
+      "Coq/Simplicity/Digest.v",
+      "declaration",
+      "compress",
+      "Definition compress (iv h1 h2 : hash256) : hash256 :=\n  Hash256 (process_block iv (List.rev (hash256_reg h1 ++ hash256_reg h2)))\n   (length_process_block _ _ (hash256_len iv))."
+    ],
+    [
+      "Coq/C/jet_bitcoin_ext_prim.v",
+      "declaration",
+      "sem",
+      "Definition sem {A B} (p : t A B) (a : A) (e : env) : option B :=\nlet cast {C : Ty} (x : option C) : tySem (Unit + C) :=\n  match x with Some c => inr c | None => inl tt end in\n(match p in prim A B return A -> option B with\n | CurrentIndex => fun _ => Some (fromZ (Z.of_nat (Bitcoin.envIx (extBase e))))\n | InputScriptHash => fun i =>\n     Some (cast (option_map (fun h => from_hash256 h) (nth_error (extInScriptHash e) (Z.to_nat (toZ i)))))\n | InputAnnexHash => fun i =>\n     Some (match nth_error (extInAnnexHash e) (Z.to_nat (toZ i)) with\n           | None => inl tt\n           | Some None => inr (inl tt)\n           | Some (Some h) => inr (inr (from_hash256 h))\n           end)\n | InputScriptSigHash => fun i =>\n     Some (cast (option_map (fun h => from_hash256 h) (nth_error (extInScriptSigHash e) (Z.to_nat (toZ i)))))\n | TapleafVersion => fun _ => Some (fromZ (extTapleafVersion e))\n | Tappath => fun i =>\n     Some (cast (option_map (fun h => from_hash256 h) (nth_error (extTappath e) (Z.to_nat (toZ i)))))\n | InternalKey => fun _ => Some (from_hash256 (extInternalKey e))\n | TransactionId => fun _ => Some (from_hash256 (extTxid e))\n end) a."
+    ],
+    [
+      "Coq/C/jet_bitcoin_ext_prim.v",
+      "declaration",
+      "primName",
+      "Definition primName : string := \"Bitcoin\"."
+    ],
+    [
+      "Coq/C/jet_application_sep.v",
+      "declaration",
+      "out_low",
+      "Definition out_low (edge cursor count : Z) : Z := edge + 8 * ((cursor - count) / 64)."
+    ],
+    [
+      "Coq/C/jet_application_sep.v",
+      "declaration",
+      "out_high",
+      "Definition out_high (edge cursor : Z) : Z := write_word_address edge cursor + 8."
+    ]
+  ],
+  "blocks": [
+    [
+      "Haskell/Simplicity/Bitcoin/Programs/SigHash.hs",
+      "  , tapleafHash = ((Sha256.ctx8InitTag",
+      "  , tappathHash = hashWord256s8",
+      "\"TapLeaf\")\n              &&& (primitive TapleafVersion &&& scribe (toWord8 32)) >>> ctx8Addn vector2)\n              &&& (primitive ScriptCMR) >>> ctx8Addn vector32 >>> ctx8Finalize"
+    ],
+    [
+      "Haskell/Core/Simplicity/Programs/Sha256.hs",
+      "ctx8InitTag tag =",
+      "mkLibAssert ::",
+      "buffer63Empty &&& (one word64 &&& prefix)\n where\n  prefix = scribe . toWord256 . integerHash256 . ivHash . tagIv $ tag\n  buffer63Empty = bufferEmpty buffer63"
+    ],
+    [
+      "Haskell/Core/Simplicity/Programs/Sha256.hs",
+      "mkLibAssert Lib{..}  = l",
+      "libAssert ::",
+      "where\n  l@LibAssert{..} = LibAssert\n   { ctx8Add1 = (ooh &&& ih >>> buffer63Snoc) &&& oih\n            >>> match ((unit >>> buffer63Empty) &&& ((drop (take (increment word64) >>> assertl ih cmrFail0)) &&& (iih &&& oh >>> hashBlock)))\n                      iden\n            >>> (verifyNumCompression &&& iden) >>> ih\n   , ctx8Addn = \\v -> case v of\n                  SingleV -> ctx8Add1\n                  (DoubleV v) -> let rec = ctx8Addn v in\n                                 (oh &&& ioh >>> rec) &&& iih >>> rec\n   , ctx8AddBuffer = \\b -> case b of\n                       SingleB -> ih &&& oh >>> match (drop (iden &&& verifyNumCompression >>> oh)) (ih &&& oh >>> ctx8Add1)\n                       (DoubleB b) -> (ioh &&& oh >>> match ih (ih &&& oh >>> ctx8Addn (bufferVector b))) &&& iih >>> ctx8AddBuffer b\n     \n   , ctx8Finalize = ((oh &&& ((verifyNumCompression >>> zero word64) &&& iih)) &&& (unit >>> scribe (toWord64 (2^63))) >>> ctx8Add8 >>> (take pad063 &&& iih))\n                &&& ((take buffer63Size >>> left_pad_low word8 vector8) &&& drop (take (shift_const_by false word64 6)) >>> add64 >>> shift_const_by false word64 3)\n                >>> oih &&& (oooh &&& (take oioh &&& (take (take iioh) &&& ih))) >>> hashBlock\n   }\n   where\n    buffer63Empty = bufferEmpty buffer63\n    ctx8Add8 = ctx8Addn vector8\n    verifyNumCompression = assert (ioh &&& (unit >>> scribe (toWord64 (2^55))) >>> lt word64)\n    add64 = add word64 >>> ih\n    buffer63Snoc = bufferSnoc buffer63\n    buffer63Size = ((false &&& false) &&& (take (copair false true) &&& drop (take (copair false true))))\n               &&& drop (drop ((take (copair false true) &&& drop (take (copair false true))) &&& drop (drop (take (copair false true) &&& drop (copair false true)))))\n    pad063 = oh &&& drop pad031 >>> match (ih &&& take (zero word256)) iden\n    pad031 = oh &&& drop pad015 >>> match (ih &&& take (zero word128)) iden\n    pad015 = oh &&& drop pad07 >>> match (ih &&& take (zero word64)) iden\n    pad07 = oh &&& drop pad03 >>> match (ih &&& take (zero word32)) iden\n    pad03 = oh &&& drop pad01 >>> match (ih &&& take (zero word16)) iden\n    pad01 = copair (zero word16) (iden &&& (unit >>> zero word8))"
+    ],
+    [
+      "Haskell/Core/Simplicity/Digest.hs",
+      "tagIv tag =",
+      "ivHash ::",
+      "compress noTagIv (tagDigest, tagDigest)\n where\n  tagDigest = bsHash . BSC.pack $ tag"
+    ],
+    [
+      "Haskell/Core/Simplicity/Digest.hs",
+      "ivHash (IV state) =",
+      "freeStart ::",
+      "case pushEndOfInput state of\n  Done _ _ x -> Hash256 . BSS.toShort . BSL.toStrict . Binary.encode $ x\n  _          -> error \"getHash256 unexpected decoder state\""
+    ],
+    [
+      "Haskell/Core/Simplicity/Programs/Word.hs",
+      "bufferEmpty SingleB =",
+      "bufferSnoc ::",
+      "injl unit\nbufferEmpty (DoubleB b) = injl unit &&& bufferEmpty b"
+    ],
+    [
+      "Haskell/Core/Simplicity/Programs/Word.hs",
+      "bufferSnoc SingleB =",
+      "forWhile ::",
+      "match (injr (injr ih)) (injl iden)\nbufferSnoc (DoubleB b) = (oih &&& ih >>> bufferSnoc b) &&& ooh\n                     >>> match (ih &&& oh >>> match (injr (injr ih &&& bufferEmpty b)) (injl iden))\n                               (injr (ih &&& oh))"
+    ]
+  ]
+}
