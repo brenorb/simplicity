@@ -37,7 +37,7 @@ Review caught and corrected a copied fixture's contract-kind mismatch before
 running tests; no proof statement or assumption was changed. The repeated
 fixture blocks required unique long patch context to preserve the old block.
 
-## Completed preparation; independent finish review running
+## Completed preparation and independent finish review
 
 The normal build and explicit fresh compilation passed (83361, exit0).
 All **8,415 inherited contract records** retain bytes/order, and all **5,527
@@ -58,17 +58,20 @@ there is no permission for arbitrary main drift or mutation of predecessor
 configuration. The source/evidence tests include an unrecognized input-map
 corruption.
 
-The six-stage finish review was launched once as **31051**:
+The six-stage finish review was launched once as **31051** and terminated with
+exit0:
 
 ```sh
 python3 -B proof-work/elements-legacy-check-admission/review.py finish /private/tmp/jet-legacy-check-admission.7fdc0wok
 ```
 
-Poll that handle; do not repeat a live or completed finish. It must pass
-coverage, coverage-negative tests, ordinary contract comparison, canonical
-source correspondence, source corruptions and independent evidence corruptions
-before a `REVIEW.json` can claim completion. Its terminal status is not yet
-recorded here.
+Do not repeat the completed finish. Coverage and all fourteen new coverage
+fixtures, ordinary contract comparison, canonical source correspondence,
+32 source corruptions and31 independent evidence corruptions passed.
+`REVIEW.json` binds all six terminal stages, candidate input, tools, both
+shared engines and the object/report hashes. `FINISH-CHECKPOINT.json`
+independently verifies the recorded evidence. All six stage logs are archived
+here. The preparation checkpoint remains historical, not a second acceptance.
 
 No full406 audit or installation has been launched. They must follow the real
 predecessor acceptance/installation chain, not a prepared snapshot or launch
