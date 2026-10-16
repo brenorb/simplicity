@@ -156,8 +156,14 @@ The once-only completed installation command was:
 python3 -B proof-work/scalar-lambda-admission/integration.py install /private/tmp/jet-scalar-lambda-admission.ebjcqzyk
 ```
 
-Next run the fresh actual-main audit with `main-accept.py`; do not repeat the
-installation or confuse installed/isolated coverage with actual-main success.
+The fresh actual-main audit is now running under handle27494. Its exact
+command is `bash check-jets.sh --accept`, without skip/update flags, on main
+with fingerprint `c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`.
+`MAIN-AUDIT-RUN.json` binds the completed installation, original stage and
+driver. Its log is the candidate's `main-acceptance.log`. Poll the existing
+handle; keep main C/Haskell/proof/metadata/gate inputs frozen until terminal
+completion. Neither this launch record nor isolated420 acceptance proves
+actual-main420 acceptance. Do not repeat installation or restart the audit.
 
 The installer archives the exact `DELTA.patch`, full isolated acceptance log
 and installation ledger. Its postcheck reconstructs immutable predecessor
