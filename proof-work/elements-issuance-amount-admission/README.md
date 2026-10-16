@@ -1,8 +1,9 @@
-# Issuance asset-amount getters: reviewed normal415 candidate
+# Issuance asset-amount getters: installed combined415 sources
 
-Proposed successor: **415/533**, adding issuance_asset_amount and
-current_issuance_asset_amount over the reviewed413 source candidate. This is
-not normal full acceptance or main installation.
+Installed source registry: **415/533**. The combined delta adds eight jets over
+407, including issuance_asset_amount and current_issuance_asset_amount over
+the reviewed413 source candidate. Isolated full acceptance and guarded source
+installation passed; separate actual-main415 acceptance is still required.
 
 Private tree: `/private/tmp/jet-issuance-amount-admission.0ygmxl9r`.
 Input SHA-256:
@@ -103,7 +104,15 @@ Actual-main407 also passed separately as37961. Both prerequisites for guarded
 415 integration are satisfied. This checkpoint does not itself install415 or
 claim actual-main415 acceptance; those remain separate recorded operations.
 
-This proposed registry has118 missing public declarations and104 entries with
+Guarded installation67927 has now terminated with exit0. `INSTALLATION.json`
+and `DELTA.patch` bind the exact20-source delta from the accepted407 tree to
+the accepted415 tree. All unrelated semantic inputs and the original staged
+patch were preserved; no inherited proof was overwritten or compiler object
+copied. The postcheck confirms source identity, not actual-main415 acceptance.
+Only the three new proofs, six guards, installation ledger and exact patch are
+committed by this integration; inherited dirty registries are not swept in.
+
+This installed registry has118 missing public declarations and104 entries with
 the explicit `memcpy_model` condition. The every-jet goal and caller/domain,
 evaluator/library/fidelity/configuration obligations remain unfinished. These
 receipts bind the actual dirty/staged base, not clean-HEAD reproduction.
