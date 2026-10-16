@@ -39,7 +39,15 @@ python3 -B proof-work/elements-tapleaf/kernel.py /private/tmp/jet-elements-taple
 `CHECKED.json`, `KERNEL-RUN.json`, `ast.log` and `kernel.log` bind the actual
 recursive kernel and Elements AST-regeneration success. The canonical-source
 review and61 mutation tests also passed, recorded in
-`../elements-tapleaf-source/`. Independent evidence review is running.
+`../elements-tapleaf-source/`. Independent evidence review also completed with
+exit zero, including51 proof/kernel/command/source/report/object/dependency
+corruption fixtures. `EVIDENCE-REVIEW.json` and `evidence-tests.log` record it.
+
+The evidence reviewer checks the original main420 source map against actual
+immutable private-tree bytes and its accepted baseline fingerprint. It does
+not require today's main to remain420 forever. The review recorder separately
+checks preservation of the actual live main/index during its run. This avoids
+confusing historical proof evidence with a successor's current source state.
 
 Main420 and the private443 full audit remain frozen and separate. Normal
 registration/admission remains; no additional accepted coverage or full normal
