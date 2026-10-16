@@ -57,9 +57,12 @@ correspondence is not a formal Haskell runtime/crypto-library equivalence.
 The selected-source guard now passes, including 87 read-only corruptions.
 It pins 48 complete typed Coq declarations and seven complete Haskell program/
 helper blocks, plus selected routing, primitive, digest/carrier and C clauses.
-The independent evidence reviewer and its negative tests are running under
-handle68092; no successful evidence-review receipt is claimed until that
-controller actually finishes.
+The independent reviewer completed with exit zero under handle68092. All
+three source/evidence commands passed, including 87 selected-source and
+35 proof/object/type/assumption/command/scope corruptions. The final
+`EVIDENCE-REVIEW.json` binds the successful checks and exact tools/model/logs.
+Its historical baseline comparison deliberately validates immutable418 inputs
+rather than demanding that a later installed main successor still be418.
 
 No normal registration, full acceptance, actual-main coverage increment or
 C environment-constructor result is claimed here.
