@@ -1,0 +1,65 @@
+# Issuance asset-amount getters: reviewed normal415 candidate
+
+Proposed successor: **415/533**, adding issuance_asset_amount and
+current_issuance_asset_amount over the reviewed413 source candidate. This is
+not normal full acceptance or main installation.
+
+Private tree: `/private/tmp/jet-issuance-amount-admission.0ygmxl9r`.
+Input SHA-256:
+`ed584d806f021aa847775f203a59283c7e9743fe999450b45dac6885ef7765da`.
+Only completed issuance-proof objects were cloned; the reviewed413 predecessor
+supplied source. Main and the original staged patch were preserved throughout
+assembly, preparation and review.
+
+Both whole-C contracts are documented in `../elements-issuance-amount-literal/`.
+They retain the original indexed/current memory and frame relations, tag and
+amount loads, caller domain, arbitrary output contents and cursor/framing
+behavior. The literal primitive selects an optional new-issuance amount or
+reissuance amount and clears proof data, reusing the confidential Word64
+encoder and shared indexed/current transports. The selector lemma is closed;
+each C endpoint has exactly the six inherited Coq/CompCert assumptions.
+**The token-amount jets are not proved by this batch.**
+
+## Completed normal preparation and review
+
+Assembly85880 and preparation90879 terminated with exit0. The normal build
+and explicit fresh compilation passed. One module adds five results and three
+definitions. All **8,467 inherited contract records** retain bytes/order; all
+**5,558 inherited dependency sets** remain unchanged. All eight new records
+have complete deep reports without compact elision supplements. The shared
+preparation and checkpoint-aware review engines are reused unchanged.
+
+Six-stage finish72107 terminated with exit0: coverage, coverage tests
+(including14 new statement-confined corruptions), ordinary contract comparison,
+canonical/source correspondence,47 source corruptions and31 independent
+normal-review corruptions passed. `REVIEW.json` binds source, tools, engines,
+commands and terminal logs; `FINISH-CHECKPOINT.json` independently verifies1,259
+evidence hashes. All build, fresh-compile, full type/assumption and six review
+logs are archived. This review is not positive full acceptance.
+
+## Combined415 launch boundary
+
+`accept.py` audits all eight additions over the exact407 baseline: reviewed410
+asset3, reviewed413 amount3, and reviewed415 issuance2. It verifies each
+complete six-stage review, source fingerprint, predecessor chain, tool/engine
+hash, fresh object/report evidence, command and log. Intermediate410/413 trees
+are not represented as accepted installations.
+
+Independent chain review can run before407 installation, anchored to its
+reviewed source. Positive full launch additionally requires **real isolated407
+acceptance and guarded exact-main407 installation**. Its once-only guards
+reject any second launch. Test8731 terminated with exit0: all three real review
+chains were checked and nine invalid launch/chain conditions were refused,
+without writes or an acceptance subprocess. `START-GUARD.json` binds the exact
+driver, test, candidate and log. It is not positive acceptance evidence.
+
+Full415 acceptance may run alongside the distinct actual-main407 audit after
+guarded407 installation. Future415 installation must wait for both real full
+results, use only the reviewed source delta, preserve the original index and
+be followed by actual-main415 acceptance. No full415 audit or installation has
+yet been launched. Do not alter this candidate while its eventual audit runs.
+
+This proposed registry has118 missing public declarations and104 entries with
+the explicit `memcpy_model` condition. The every-jet goal and caller/domain,
+evaluator/library/fidelity/configuration obligations remain unfinished. These
+receipts bind the actual dirty/staged base, not clean-HEAD reproduction.
