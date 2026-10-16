@@ -15,10 +15,16 @@ have exact checked supplements. Source and normal reviews also pass the
 existing25 public-boundary mutations. The complete review chain and its
 source/object/tool/command/log identities have been independently postchecked.
 
-The full combined420 audit is now running with fingerprint
+The full combined420 audit passed with controller exit zero after4211 seconds,
+with fingerprint
 `c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`.
-`AUDIT-RUN.json` is only a launch record, not terminal success. Main remains
-accepted418; there is no installation or accepted coverage increase yet.
+`AUDIT-RUN.json` alone is only a launch record. `TERMINAL.json`,
+`ACCEPTANCE.json` and archived `acceptance.log` bind the real terminal success:
+1106 kernel-checked modules, 5861 assumption-audited theorems (3174 closed),
+reviewed snapshots, negative tests and all five regenerated ASTs. Its log
+SHA-256 is `68d25ea3fea4e1a4301de96451b7728577167637e69fcc90193efe927f7bed4b`.
+Guarded source-only installation and actual-main acceptance remain separate;
+the last completed actual-main checkpoint is418.
 
 ## Exact scope
 
