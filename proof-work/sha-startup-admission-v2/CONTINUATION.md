@@ -14,9 +14,11 @@ six stages and all72 passing evidence-corruption tests. All9099 inherited
 contract records and5969 dependency sets are preserved, with138 complete new
 type/definition records and12 closed results. Do not duplicate that invocation.
 
-The combined full-audit preflight (`test-accept.py`) was launched under
-session **32523**. Poll that actual handle and inspect its real terminal exit
-before launching a full audit. A launch file alone is not a liveness check.
+The combined full-audit preflight (`test-accept.py`) completed under session
+**32523**, with actual terminal exit zero: all24 missing-terminal,
+successful-exit, provenance, scope and six-stage-review corruptions were
+rejected after validating the real prerequisite chain. It did not launch a
+full audit. Do not duplicate that invocation or treat it as full acceptance.
 
 Freeze this candidate's proof sources, registries, source guards, drivers,
 objects and original main inputs through all review postchecks. Commit the
@@ -29,9 +31,9 @@ also binds its hash and both full reporting drivers. The old v2 engine and
 failed candidate/receipts are untouched. Do not reintroduce a hand-maintained
 header, normalize printed identifiers or weaken contract comparison.
 
-After a successful review, run the new combined-audit driver's preflight
-tests before any full audit. `accept.py`/`test-accept.py` are still copied
-drafts until their real positive preflight passes. They explicitly require
+The combined-audit driver's positive and negative preflight has now passed.
+Any changed successor driver still needs its own tests before a full audit.
+These drivers explicitly require
 the real isolated447 acceptance and reviewed449 delta; no full449 or full467
 acceptance may be fabricated. A combined successor may include additional
 genuinely reviewed deltas with that explicit provenance instead of requiring
