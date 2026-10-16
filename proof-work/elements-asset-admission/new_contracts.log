@@ -1,0 +1,556 @@
+DELTA_COMPACT_TYPE C.jet_elements_asset_literal.packed_fe_to_word_literal_matches
+jet_elements_asset_literal.packed_fe_to_word_literal_matches
+     : forall packed : Digest.hash256,
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+            (jet_elements_asset_literal.packed_fe_integer_literal packed)) (Word.from_hash256 packed)
+DELTA_COMPACT_TYPE C.jet_elements_asset_literal.encode_confidential_literal_matches
+@jet_elements_asset_literal.encode_confidential_literal_matches
+     : forall (A : Set) (B : Ty.Ty) (old literal : forall _ : A, Ty.tySem B)
+         (c : jet_elements_prim.confidential unit A) (_ : forall x : A, @eq (Ty.tySem B) (old x) (literal x)),
+       @eq (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+         match
+           c
+           return
+             (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+         with
+         | jet_elements_prim.Explicit x =>
+             @inr
+               (prod (sum unit unit)
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (Ty.tySem B) (old x)
+         | jet_elements_prim.Confidential pt _ =>
+             match
+               pt
+               return
+                 (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+             with
+             | jet_elements_prim.Point odd packed =>
+                 @inl (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                       | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                       end) B)
+                   (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      match odd return (sum unit unit) with
+                      | true => @inr unit unit tt
+                      | false => @inl unit unit tt
+                      end (Word.from_hash256 packed))
+             end
+         end (@jet_elements_asset_literal.encode_confidential_literal A B literal c)
+DELTA_COMPACT_TYPE C.jet_elements_asset_literal.encode_asset_literal_matches
+jet_elements_asset_literal.encode_asset_literal_matches
+     : forall a : jet_elements_prim.assetWith unit,
+       @eq
+         (Ty.tySem
+            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (jet_elements_asset_jets.encode_asset a)
+         (jet_elements_asset_literal.encode_asset_literal a)
+DELTA_COMPACT_TYPE C.jet_elements_asset_literal.elements_input_asset_literal_matches
+jet_elements_asset_literal.elements_input_asset_literal_matches
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+         (@jet_elements_asset_jets.elements_input_asset_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (jet_elements_asset_literal.elements_input_asset_literal_spec a environment)
+DELTA_COMPACT_TYPE C.jet_elements_asset_literal.elements_output_asset_literal_matches
+jet_elements_asset_literal.elements_output_asset_literal_matches
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+         (@jet_elements_asset_jets.elements_output_asset_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (jet_elements_asset_literal.elements_output_asset_literal_spec a environment)
+DELTA_COMPACT_TYPE C.jet_elements_asset_literal.elements_current_asset_literal_matches
+jet_elements_asset_literal.elements_current_asset_literal_matches
+     : forall (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem
+               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_current_input_jets.elements_current_asset_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (jet_elements_asset_literal.elements_current_asset_literal_spec a environment)
+DELTA_COMPACT_TYPE C.jet_elements_asset_literal.elements_input_asset_literal_local_spec
+jet_elements_asset_literal.elements_input_asset_literal_local_spec
+     : application_jet_local_spec_sep jets_elements.f_simplicity_input_asset jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit
+            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.sigTxInput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput) =>
+             jet_elements_asset_jets.asset_rep m b ofs (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         jet_elements_asset_literal.elements_input_asset_literal_spec
+DELTA_COMPACT_TYPE C.jet_elements_asset_literal.elements_output_asset_literal_local_spec
+jet_elements_asset_literal.elements_output_asset_literal_local_spec
+     : application_jet_local_spec_sep jets_elements.f_simplicity_output_asset jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit
+            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.txOutput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txo : jet_elements_prim.txOutput) =>
+             jet_elements_asset_jets.asset_rep m b ofs
+               (@jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256 (jet_elements_prim.txoAsset txo)))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         jet_elements_asset_literal.elements_output_asset_literal_spec
+DELTA_COMPACT_TYPE C.jet_elements_asset_literal.elements_current_asset_literal_local_spec
+jet_elements_asset_literal.elements_current_asset_literal_local_spec
+     : application_jet_local_spec_sep jets_elements.f_simplicity_current_asset jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env Ty.Unit
+         (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_elements_current_ptr_jets.current_ptr_rep jet_elements_prim.Elements.environment
+            jet_elements_prim.sigTxInput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e)) jet_elements_prim.Elements.envIx
+            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput) =>
+             jet_elements_asset_jets.asset_rep m b ofs (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         jet_elements_asset_literal.elements_current_asset_literal_spec
+DELTA_COMPACT_DEF C.jet_elements_asset_literal.packed_fe_integer_literal
+jet_elements_asset_literal.packed_fe_integer_literal =
+fun packed : Digest.hash256 =>
+jet_haskell_hash_word.haskell_word256_integer
+  (jet_haskell_hash_word.haskell_be256_run (Digest.hash256_to_bytelist packed)
+     (jet_haskell_hash_word.haskell_word256_from_integer BinNums.Z0))
+     : forall _ : Digest.hash256, BinNums.Z
+
+Arguments jet_elements_asset_literal.packed_fe_integer_literal packed
+DELTA_COMPACT_DEF C.jet_elements_asset_literal.encode_confidential_literal
+jet_elements_asset_literal.encode_confidential_literal =
+fun (A : Set) (B : Ty.Ty) (enc : forall _ : A, Ty.tySem B) (c : jet_elements_prim.confidential unit A) =>
+match
+  c return (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+with
+| jet_elements_prim.Explicit x =>
+    @inr
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+             | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+             end) (Ty.Sum Ty.Unit Ty.Unit))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+             | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (Ty.tySem B) (enc x)
+| jet_elements_prim.Confidential pt _ =>
+    match
+      pt return (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+    with
+    | jet_elements_prim.Point odd packed =>
+        @inl (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+          ((fix tySem (X : Ty.Ty) : Set :=
+              match X return Set with
+              | Ty.Unit => unit
+              | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+              | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+              end) B)
+          (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+             match odd return (sum unit unit) with
+             | true => @inr unit unit tt
+             | false => @inl unit unit tt
+             end
+             (haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+                (jet_elements_asset_literal.packed_fe_integer_literal packed)))
+    end
+end
+     : forall (A : Set) (B : Ty.Ty) (_ : forall _ : A, Ty.tySem B) (_ : jet_elements_prim.confidential unit A),
+       Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B)
+
+Arguments jet_elements_asset_literal.encode_confidential_literal {A}%type_scope {B}%ty_scope enc%function_scope c
+DELTA_COMPACT_DEF C.jet_elements_asset_literal.encode_asset_literal
+jet_elements_asset_literal.encode_asset_literal =
+fun a : jet_elements_prim.assetWith unit =>
+@jet_elements_asset_literal.encode_confidential_literal Digest.hash256 (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (fun h : Digest.hash256 =>
+   haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+     (jet_haskell_hash_word.haskell_integer_hash256 (Digest.hash256_to_bytelist h))) a
+     : forall _ : jet_elements_prim.assetWith unit,
+       Ty.tySem
+         (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments jet_elements_asset_literal.encode_asset_literal a
+DELTA_COMPACT_DEF C.jet_elements_asset_literal.elements_input_asset_literal_spec
+jet_elements_asset_literal.elements_input_asset_literal_spec =
+fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+@jet_elements_output_nonce_literal.word_indexed_value_literal jet_elements_prim.sigTxInput
+  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (S (S (S (S (S O)))))
+  (fun txi : jet_elements_prim.sigTxInput =>
+   jet_elements_asset_literal.encode_asset_literal (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
+  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment)) a
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
+       option
+         (Ty.tySem
+            (Ty.Sum Ty.Unit
+               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+
+Arguments jet_elements_asset_literal.elements_input_asset_literal_spec a environment
+DELTA_COMPACT_DEF C.jet_elements_asset_literal.elements_output_asset_literal_spec
+jet_elements_asset_literal.elements_output_asset_literal_spec =
+fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+@jet_elements_output_nonce_literal.word_indexed_value_literal jet_elements_prim.txOutput
+  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (S (S (S (S (S O)))))
+  (fun txo : jet_elements_prim.txOutput =>
+   jet_elements_asset_literal.encode_asset_literal
+     (@jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256 (jet_elements_prim.txoAsset txo)))
+  (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment)) a
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
+       option
+         (Ty.tySem
+            (Ty.Sum Ty.Unit
+               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+
+Arguments jet_elements_asset_literal.elements_output_asset_literal_spec a environment
+DELTA_COMPACT_DEF C.jet_elements_asset_literal.elements_current_asset_literal_spec
+jet_elements_asset_literal.elements_current_asset_literal_spec =
+@jet_elements_current_sequence_literal.elements_current_literal_result
+  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_elements_asset_literal.elements_input_asset_literal_spec
+     : forall (_ : Ty.tySem Ty.Unit) (_ : jet_elements_prim.Elements.env),
+       option
+         (Ty.tySem
+            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments jet_elements_asset_literal.elements_current_asset_literal_spec _ environment
+DELTA_DEEP_TYPE C.jet_elements_asset_literal.packed_fe_to_word_literal_matches
+jet_elements_asset_literal.packed_fe_to_word_literal_matches
+     : forall packed : Digest.hash256,
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+            (jet_elements_asset_literal.packed_fe_integer_literal packed)) (Word.from_hash256 packed)
+DELTA_DEEP_TYPE C.jet_elements_asset_literal.encode_confidential_literal_matches
+@jet_elements_asset_literal.encode_confidential_literal_matches
+     : forall (A : Set) (B : Ty.Ty) (old literal : forall _ : A, Ty.tySem B)
+         (c : jet_elements_prim.confidential unit A) (_ : forall x : A, @eq (Ty.tySem B) (old x) (literal x)),
+       @eq (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+         match
+           c
+           return
+             (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+         with
+         | jet_elements_prim.Explicit x =>
+             @inr
+               (prod (sum unit unit)
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (Ty.tySem B) (old x)
+         | jet_elements_prim.Confidential pt _ =>
+             match
+               pt
+               return
+                 (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+             with
+             | jet_elements_prim.Point odd packed =>
+                 @inl (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                       | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                       end) B)
+                   (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      match odd return (sum unit unit) with
+                      | true => @inr unit unit tt
+                      | false => @inl unit unit tt
+                      end (Word.from_hash256 packed))
+             end
+         end (@jet_elements_asset_literal.encode_confidential_literal A B literal c)
+DELTA_DEEP_TYPE C.jet_elements_asset_literal.encode_asset_literal_matches
+jet_elements_asset_literal.encode_asset_literal_matches
+     : forall a : jet_elements_prim.assetWith unit,
+       @eq
+         (Ty.tySem
+            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (jet_elements_asset_jets.encode_asset a)
+         (jet_elements_asset_literal.encode_asset_literal a)
+DELTA_DEEP_TYPE C.jet_elements_asset_literal.elements_input_asset_literal_matches
+jet_elements_asset_literal.elements_input_asset_literal_matches
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+         (@jet_elements_asset_jets.elements_input_asset_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (jet_elements_asset_literal.elements_input_asset_literal_spec a environment)
+DELTA_DEEP_TYPE C.jet_elements_asset_literal.elements_output_asset_literal_matches
+jet_elements_asset_literal.elements_output_asset_literal_matches
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+         (@jet_elements_asset_jets.elements_output_asset_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (jet_elements_asset_literal.elements_output_asset_literal_spec a environment)
+DELTA_DEEP_TYPE C.jet_elements_asset_literal.elements_current_asset_literal_matches
+jet_elements_asset_literal.elements_current_asset_literal_matches
+     : forall (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem
+               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_current_input_jets.elements_current_asset_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (jet_elements_asset_literal.elements_current_asset_literal_spec a environment)
+DELTA_DEEP_TYPE C.jet_elements_asset_literal.elements_input_asset_literal_local_spec
+jet_elements_asset_literal.elements_input_asset_literal_local_spec
+     : application_jet_local_spec_sep jets_elements.f_simplicity_input_asset jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit
+            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.sigTxInput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput) =>
+             jet_elements_asset_jets.asset_rep m b ofs (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         jet_elements_asset_literal.elements_input_asset_literal_spec
+DELTA_DEEP_TYPE C.jet_elements_asset_literal.elements_output_asset_literal_local_spec
+jet_elements_asset_literal.elements_output_asset_literal_local_spec
+     : application_jet_local_spec_sep jets_elements.f_simplicity_output_asset jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit
+            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.txOutput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txo : jet_elements_prim.txOutput) =>
+             jet_elements_asset_jets.asset_rep m b ofs
+               (@jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256 (jet_elements_prim.txoAsset txo)))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         jet_elements_asset_literal.elements_output_asset_literal_spec
+DELTA_DEEP_TYPE C.jet_elements_asset_literal.elements_current_asset_literal_local_spec
+jet_elements_asset_literal.elements_current_asset_literal_local_spec
+     : application_jet_local_spec_sep jets_elements.f_simplicity_current_asset jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env Ty.Unit
+         (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_elements_current_ptr_jets.current_ptr_rep jet_elements_prim.Elements.environment
+            jet_elements_prim.sigTxInput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e)) jet_elements_prim.Elements.envIx
+            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txi : jet_elements_prim.sigTxInput) =>
+             jet_elements_asset_jets.asset_rep m b ofs (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         jet_elements_asset_literal.elements_current_asset_literal_spec
+DELTA_DEEP_DEF C.jet_elements_asset_literal.packed_fe_integer_literal
+jet_elements_asset_literal.packed_fe_integer_literal =
+fun packed : Digest.hash256 =>
+jet_haskell_hash_word.haskell_word256_integer
+  (jet_haskell_hash_word.haskell_be256_run (Digest.hash256_to_bytelist packed)
+     (jet_haskell_hash_word.haskell_word256_from_integer BinNums.Z0))
+     : forall _ : Digest.hash256, BinNums.Z
+
+Arguments jet_elements_asset_literal.packed_fe_integer_literal packed
+DELTA_DEEP_DEF C.jet_elements_asset_literal.encode_confidential_literal
+jet_elements_asset_literal.encode_confidential_literal =
+fun (A : Set) (B : Ty.Ty) (enc : forall _ : A, Ty.tySem B) (c : jet_elements_prim.confidential unit A) =>
+match
+  c return (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+with
+| jet_elements_prim.Explicit x =>
+    @inr
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+             | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+             end) (Ty.Sum Ty.Unit Ty.Unit))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+             | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+             end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (Ty.tySem B) (enc x)
+| jet_elements_prim.Confidential pt _ =>
+    match
+      pt return (Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B))
+    with
+    | jet_elements_prim.Point odd packed =>
+        @inl (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+          ((fix tySem (X : Ty.Ty) : Set :=
+              match X return Set with
+              | Ty.Unit => unit
+              | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+              | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+              end) B)
+          (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+             match odd return (sum unit unit) with
+             | true => @inr unit unit tt
+             | false => @inl unit unit tt
+             end
+             (haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+                (jet_elements_asset_literal.packed_fe_integer_literal packed)))
+    end
+end
+     : forall (A : Set) (B : Ty.Ty) (_ : forall _ : A, Ty.tySem B) (_ : jet_elements_prim.confidential unit A),
+       Ty.tySem (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) B)
+
+Arguments jet_elements_asset_literal.encode_confidential_literal {A}%type_scope {B}%ty_scope enc%function_scope c
+DELTA_DEEP_DEF C.jet_elements_asset_literal.encode_asset_literal
+jet_elements_asset_literal.encode_asset_literal =
+fun a : jet_elements_prim.assetWith unit =>
+@jet_elements_asset_literal.encode_confidential_literal Digest.hash256 (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (fun h : Digest.hash256 =>
+   haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+     (jet_haskell_hash_word.haskell_integer_hash256 (Digest.hash256_to_bytelist h))) a
+     : forall _ : jet_elements_prim.assetWith unit,
+       Ty.tySem
+         (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments jet_elements_asset_literal.encode_asset_literal a
+DELTA_DEEP_DEF C.jet_elements_asset_literal.elements_input_asset_literal_spec
+jet_elements_asset_literal.elements_input_asset_literal_spec =
+fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+@jet_elements_output_nonce_literal.word_indexed_value_literal jet_elements_prim.sigTxInput
+  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (S (S (S (S (S O)))))
+  (fun txi : jet_elements_prim.sigTxInput =>
+   jet_elements_asset_literal.encode_asset_literal (jet_elements_prim.utxoAsset (jet_elements_prim.sigTxiTxo txi)))
+  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment)) a
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
+       option
+         (Ty.tySem
+            (Ty.Sum Ty.Unit
+               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+
+Arguments jet_elements_asset_literal.elements_input_asset_literal_spec a environment
+DELTA_DEEP_DEF C.jet_elements_asset_literal.elements_output_asset_literal_spec
+jet_elements_asset_literal.elements_output_asset_literal_spec =
+fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+@jet_elements_output_nonce_literal.word_indexed_value_literal jet_elements_prim.txOutput
+  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (S (S (S (S (S O)))))
+  (fun txo : jet_elements_prim.txOutput =>
+   jet_elements_asset_literal.encode_asset_literal
+     (@jet_elements_prim.clearPrf (list Integers.Byte.int) Digest.hash256 (jet_elements_prim.txoAsset txo)))
+  (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment)) a
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
+       option
+         (Ty.tySem
+            (Ty.Sum Ty.Unit
+               (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+
+Arguments jet_elements_asset_literal.elements_output_asset_literal_spec a environment
+DELTA_DEEP_DEF C.jet_elements_asset_literal.elements_current_asset_literal_spec
+jet_elements_asset_literal.elements_current_asset_literal_spec =
+@jet_elements_current_sequence_literal.elements_current_literal_result
+  (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_elements_asset_literal.elements_input_asset_literal_spec
+     : forall (_ : Ty.tySem Ty.Unit) (_ : jet_elements_prim.Elements.env),
+       option
+         (Ty.tySem
+            (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments jet_elements_asset_literal.elements_current_asset_literal_spec _ environment
