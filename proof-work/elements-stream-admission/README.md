@@ -50,11 +50,11 @@ The actual-main420 acceptance receipt is in `../scalar-lambda-admission/`.
 The original staged patch stays exactly
 `f2083389e06d3a5aed12c83d0aae554895eab94eef8e107c5d445f9268d86bbe`.
 
-The private436 full audit remains live under handle65786. It passed recursive
-kernel checking on1109 modules and reached the assumption gate. Normal443
-preparation requires its completed independent review, not an invented full
-terminal result. Require its actual successful full acceptance before a later
-combined443 full-audit launch or main installation.
+The private436 full audit completed with exit zero under handle65786, including
+recursive kernel checking on1109 modules and all acceptance gates. Its actual
+terminal receipt is in `../bitcoin-raw-admission/`. The separate actual-main420
+full audit also succeeded. Both real terminals were verified before launching
+the combined443 full audit; neither was inferred from preparation or review.
 
 To avoid an unnecessary intermediate installation, a later source-only443
 plan can compose both reviewed hash-jet deltas over actual accepted420:
@@ -75,6 +75,12 @@ No installer or main443 installation is provided by this read-only plan.
 
 `accept.py` gates a once-only full443 audit on the completed normal review,
 real isolated436 terminal acceptance and real actual-main420 acceptance.
-With436 still pending it refuses to launch; no443 audit marker is written.
-Do not replace the pending result with a guessed success or restart436.
+The missing436-terminal boundary was tested while436 was pending. After the
+actual436 successful terminal arrived, full443 acceptance was launched once
+under handle32105. `AUDIT-RUN.json` binds source fingerprint
+`1d0caf8744ee2803ee77f60396cbe02d5217303ce7e732444bb9a4621e9b3c8e`.
+Its log is `/private/tmp/jet-elements-stream-admission._4qt2u6m/acceptance.log`.
+Poll the existing handle. Keep main420 and the reviewed436/443 sources frozen
+until the controller's postchecks finish. A launch, elapsed observation or
+intermediate gate is not full acceptance; do not restart from silence.
 
