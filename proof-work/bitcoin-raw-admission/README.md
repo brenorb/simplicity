@@ -56,10 +56,25 @@ statement: original C function, Bitcoin global environment, raw logical
 environment, Unit/Word256 types, actual cache representation, exact canonical
 program and raw algebra. A generic cache-only theorem cannot substitute.
 
-Next: run the real full `check-jets.sh --accept` without update/skip flags in
-this private candidate, through the once-only `accept.py` controller.
+The real full `check-jets.sh --accept`, without update/skip flags, is now
+running under handle65786 through the once-only `accept.py` controller.
+`AUDIT-RUN.json` binds candidate fingerprint
+`359ce81e4400c70e0173c4a2d8f0d405ed723bd3e665db509459c519b61a000c`.
+Its log is `/private/tmp/jet-bitcoin-raw-admission.s02y9vio/acceptance.log`.
+Poll that handle; a launch receipt or observation timeout is not a terminal
+result and must not trigger another audit.
+
+The read-only `INSTALLATION-PLAN.json` proposes exactly20 source targets,
+including three new proofs and six new guard files. Its source-only delta
+hash is `ef4d8025a29d74aa46c55890efc74f7fd258bf71aba2c0111e7664acbb82592a`.
+The target-scope smoke check rejected seven escaping, compiled-object or
+incomplete target lists. This is not a full installer or an installation
+authorization inferred from successful planning.
+
 Actual-main420 audit handle27494 is separate and still owns frozen main
-inputs. Require its successful terminal result, this candidate's successful
-full audit, a reviewed source-only installation plan and stopped controllers
-before installing anything in main. No main436 installation or full candidate
+inputs. Its recursive kernel check passed on1106 modules and it has advanced
+to the assumption audit; its full terminal result is not yet claimed. Require
+its successful terminal result, this candidate's successful full audit, a
+reviewed source-only installation plan and stopped controllers before
+installing anything in main. No main436 installation or full candidate
 acceptance is claimed here.
