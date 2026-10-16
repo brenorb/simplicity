@@ -1,5 +1,14 @@
 # Continue lambda acceptance and preservation-safe integration
 
+> Historical handoff; reviewed again on 2026-10-16. Handle21530 is now missing,
+> with no matching live process. Its log reaches the old four-AST success
+> marker, but no terminal exit/acceptance receipt was saved. Do not treat the
+> running-status notes below as current, restart that old audit, or count it as
+> accepted from the log alone. The exact 28-module proof chain has now been
+> freshly compiled, source-reviewed and kernel-checked over accepted418 in
+> `../scalar-lambda-refresh`; see that guide for the next normal promotion.
+> Main remains418 while the separate null-data419 full audit is running.
+
 Active goal is all 533 public C jets to literal canonical Simplicity, not only
 mathematical properties of specifications. No admissions or new axioms.
 Signed atomic local commits, never push.
