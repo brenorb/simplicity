@@ -27,6 +27,10 @@ formal host-library equivalence are not claimed.
 The recursive kernel/Elements-AST phase completed with exit zero under
 handle39303; `CHECKED.json` and exact AST/kernel logs record it. Canonical-source
 review and26 source mutations also passed in `../elements-inputs-source/`.
-Independent proof/kernel/source evidence review and normal registration remain.
-This unregistered proof does not change accepted coverage or establish full
-normal acceptance or completion of the every-jet goal.
+Independent proof/kernel/source evidence review also completed with exit zero
+under handle24951, including52 command/source/report/object/dependency evidence
+corruptions. `EVIDENCE-REVIEW.json` and `evidence-tests.log` record it; the
+historical predecessor is checked against actual immutable bytes without
+consulting today's live main map. Normal registration remains. This unregistered
+proof does not change accepted coverage or establish full normal acceptance
+or completion of the every-jet goal.
