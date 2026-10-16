@@ -93,6 +93,16 @@ tools, frozen plan, command and terminal log. No positive installation or
 actual-main415 audit was exercised by those tests; no successful terminal
 full415 or actual-main407 result is claimed at this checkpoint.
 
+## Successful isolated415 full acceptance
+
+The combined audit63601 has now terminated with exit0 and the complete final
+acceptance marker. The full log and terminal receipts are archived here;
+`ACCEPTANCE-CHECKPOINT.json` independently verifies command, log, driver,
+source, all three review-chain identities and real407 acceptance/installation.
+Actual-main407 also passed separately as37961. Both prerequisites for guarded
+415 integration are satisfied. This checkpoint does not itself install415 or
+claim actual-main415 acceptance; those remain separate recorded operations.
+
 This proposed registry has118 missing public declarations and104 entries with
 the explicit `memcpy_model` condition. The every-jet goal and caller/domain,
 evaluator/library/fidelity/configuration obligations remain unfinished. These
