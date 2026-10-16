@@ -1,11 +1,12 @@
 # Isolated contextual null-data admission (candidate 419)
 
 Current successor: `../scalar-lambda-admission` now has a completed independent
-normal review and a live full **combined420** audit over actual accepted418.
+normal review, successful full **combined420** audit over actual accepted418,
+and completed source-only installation. A fresh actual-main420 audit remains.
 This419 audit retains its own outcome; it has not been restarted or counted as
-main acceptance. Keep main418 frozen while those audits validate their recorded
-baseline. Continue the combined66-target source-only plan for later installation
-rather than automatically installing intermediate419 from these older notes.
+main acceptance. The two old audit controllers have completed. Do not install
+intermediate419 or invoke an old exact-main418 checker on installed main420;
+use the combined successor's historical postchecker and fresh main audit.
 
 Candidate: `/private/tmp/jet-null-data-admission.i6xxdcrl`.
 Baseline: the actually accepted main **418/533** tree, identical in semantic
