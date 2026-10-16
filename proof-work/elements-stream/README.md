@@ -15,8 +15,10 @@ python3 -B proof-work/elements-stream/check-reader.py /private/tmp/jet-elements-
 ```
 
 `READER-CHECKED.json` binds the exact archived source, fresh object, commands,
-full reports, assumption sets and preserved main/index state. It is a
-development checkpoint, **not** recursive kernel success or C-jet coverage.
+full reports, assumption sets and preserved main/index state. Two results are
+closed; the other13 have only the existing dependent-functional-extensionality
+principle through the Reader dictionaries. This is a development checkpoint,
+**not** recursive kernel success or C-jet coverage.
 
 The helper generalizes only the environment-dependent evaluation layer of
 the existing literal `hashLoop` / `hash_words_spec` programs. It reuses the
@@ -26,9 +28,52 @@ and finalization. It handles empty arrays and both early-stop/counter-full
 paths for arbitrary widths and environments, without a new primitive
 signature, artificial Bitcoin environment witness or assumed hash oracle.
 
-The exported interface is `hash_words_reader_sem`. The remaining target is
-to instantiate it with the actual Elements primitive semantics and compose
-the existing complete `elements_hash_getter_writeHash_local` execution proof
-for output scripts/range proofs/surjection proofs, input scripts/sequences/
-scriptSigs and tappath. Cached-memory representation obligations must remain
-explicit and tied to those raw-data programs. No C endpoint is claimed yet.
+The exported interface is `hash_words_reader_sem`.
+
+## Seven complete C endpoints now compiled and reported
+
+`C.jet_elements_words_hash_program` instantiates that interface with the actual
+Elements primitive algebra. It proves the whole original C getters against
+the same literal hash-word programs for output scripts/range proofs/surjection
+proofs, input scripts/sequences/scriptSigs and tappath. Each endpoint composes
+the existing complete `elements_hash_getter_writeHash_local` execution proof,
+including original function/body, linked global environment, field layout,
+separated frame/output/prefix/load guarantees and all cursor positions covered
+by that contract. No desired execution or output fact is added as a premise.
+
+The cached-memory representation remains explicit: it requires each field to
+contain the hash determined by the represented raw scripts, proof bytes,
+sequences or path. This does **not** prove the actual C environment builders
+populate those fields. Confidential proofs retain the existing raw-byte
+primitive interpretation; no arbitrary independent digest input replaces it.
+
+Fresh compilation/reporting completed with exit zero (handle12829):
+
+```sh
+python3 -B proof-work/elements-stream/check.py compile /private/tmp/jet-elements-stream.1zVQb2CU
+```
+
+Both new modules and both reused C getter-helper modules compiled freshly.
+`RUN.json` binds all36 results /10 definitions, including13 closed results and
+exactly six inherited assumptions for each of the seven whole-C endpoints.
+No assumption allowlist changes or admissions are introduced. Source archives
+are exact, including raw printer whitespace in the evidence logs.
+
+The separate once-only recursive kernel phase is now live under handle47464:
+
+```sh
+python3 -B proof-work/elements-stream/check.py kernel /private/tmp/jet-elements-stream.1zVQb2CU
+```
+
+It checks Elements AST regeneration and the recursive two-module closure.
+Its private input fingerprint is
+`1ea5fc98311d57d465913a6ddf9c7587dce5875193f0dcd161d148219da354cd`.
+Do not edit that tree's proof inputs or frozen checker while it runs; poll the
+existing handle rather than restarting from a launch receipt. Only terminal
+success writes `CHECKED.json`.
+
+Next: independently review canonical Haskell dispatches, the selected Elements
+primitive/carrier clauses, exact public contracts and evidence; then normal
+registration/review/full acceptance over the eventual accepted436 successor.
+No canonical-family review, normal coverage, full acceptance or all-caller
+construction result is claimed by this development checkpoint.
