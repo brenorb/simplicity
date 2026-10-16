@@ -29,10 +29,12 @@ three compact records need their recorded deep supplements. Five results are
 closed, while all16 new whole-C getter endpoints retain six inherited
 assumptions. No new axiom or desired execution/output premise is introduced.
 
-The recorded review is now running (handle saved in the task), checking normal
-coverage fixtures, normal contract comparison, both deployed source guards
-and their corruption suites, then independent evidence corruptions. Poll the
-existing handle; do not restart based only on a missing terminal receipt.
+The recorded eight-stage review completed with exit zero (handle40096).
+`REVIEW.json` binds normal coverage fixtures, normal contract comparison, both
+deployed source guards and their87/328 corruption suites, and46 independent
+normal-evidence corruptions. All six runtime guard inputs independently
+change the actual normal audit fingerprint. The archived logs record those
+terminal results; this checkpoint still does not claim full acceptance.
 
 ## Deployment and review boundary
 
@@ -54,8 +56,8 @@ statement: original C function, Bitcoin global environment, raw logical
 environment, Unit/Word256 types, actual cache representation, exact canonical
 program and raw algebra. A generic cache-only theorem cannot substitute.
 
-Next: after the recorded independent normal review succeeds, run the real full
-`check-jets.sh --accept` without update/skip flags in this private candidate.
+Next: run the real full `check-jets.sh --accept` without update/skip flags in
+this private candidate, through the once-only `accept.py` controller.
 Actual-main420 audit handle27494 is separate and still owns frozen main
 inputs. Require its successful terminal result, this candidate's successful
 full audit, a reviewed source-only installation plan and stopped controllers
