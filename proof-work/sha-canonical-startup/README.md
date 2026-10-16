@@ -37,9 +37,21 @@ The once-only recursive kernel/SHA-AST controller completed with exit zero
 under handle5964. `KERNEL-RUN.json` binds its actual launch; `CHECKED.json`,
 `ast.log` and `kernel.log` record terminal success for the original sources
 and objects. Preserve that evidence; do not restart the completed phase.
-Canonical-source/transitive-port review, independent
-evidence review and normal admission remain. These are adapters
+Canonical-source/transitive-port review now passed in
+`../sha-canonical-startup-source/`, including327 read-only corruptions of
+programs, widths, ordering, padding, tags, C bodies, entire contracts and
+the named startup state. Its `SOURCE-REVIEW.json` binds the actual successful
+kernel receipt and preserves the host-library, libc and build boundaries.
+The older `CHECKED.json` retains its historical source-review-false flag;
+the later source receipt records the completed phase without rewriting it.
+Independent evidence review and normal admission remain. These are adapters
 of existing execution proofs, not18 new execution derivations. No extra
 coverage, full acceptance, runtime-optimized dispatch support or completion of
 the every-jet goal is claimed. Eventual registration must include the startup
 support dependency closure; source files being present is not build coverage.
+
+`report-support.py` is running under handle89405 against this same completed
+source/object tree. It reports the actual nine-module dependency closure's
+types, definitions and assumptions for eventual normal admission; it does
+not modify the Coq source tree or claim new coverage. Poll that handle before
+starting any other writer of the same report logs.
