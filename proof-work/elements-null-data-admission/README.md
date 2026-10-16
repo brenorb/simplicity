@@ -1,5 +1,12 @@
 # Isolated contextual null-data admission (candidate 419)
 
+Current successor: `../scalar-lambda-admission` now has a completed independent
+normal review and a live full **combined420** audit over actual accepted418.
+This419 audit retains its own outcome; it has not been restarted or counted as
+main acceptance. Keep main418 frozen while those audits validate their recorded
+baseline. Continue the combined66-target source-only plan for later installation
+rather than automatically installing intermediate419 from these older notes.
+
 Candidate: `/private/tmp/jet-null-data-admission.i6xxdcrl`.
 Baseline: the actually accepted main **418/533** tree, identical in semantic
 inputs to `/private/tmp/jet-txid-admission.gvp5bmft`.
