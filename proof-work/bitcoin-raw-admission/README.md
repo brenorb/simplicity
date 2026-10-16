@@ -34,7 +34,7 @@ The recorded eight-stage review completed with exit zero (handle40096).
 deployed source guards and their87/328 corruption suites, and46 independent
 normal-evidence corruptions. All six runtime guard inputs independently
 change the actual normal audit fingerprint. The archived logs record those
-terminal results; this checkpoint still does not claim full acceptance.
+terminal results; full acceptance is recorded separately below.
 
 ## Deployment and review boundary
 
@@ -56,13 +56,16 @@ statement: original C function, Bitcoin global environment, raw logical
 environment, Unit/Word256 types, actual cache representation, exact canonical
 program and raw algebra. A generic cache-only theorem cannot substitute.
 
-The real full `check-jets.sh --accept`, without update/skip flags, is now
-running under handle65786 through the once-only `accept.py` controller.
+The real full `check-jets.sh --accept`, without update/skip flags, completed
+with exit zero through the once-only `accept.py` controller (handle65786).
 `AUDIT-RUN.json` binds candidate fingerprint
 `359ce81e4400c70e0173c4a2d8f0d405ed723bd3e665db509459c519b61a000c`.
 Its log is `/private/tmp/jet-bitcoin-raw-admission.s02y9vio/acceptance.log`.
-Poll that handle; a launch receipt or observation timeout is not a terminal
-result and must not trigger another audit.
+`TERMINAL.json`, `ACCEPTANCE.json` and the exact archived `acceptance.log`
+record4483.84 seconds, recursive kernel checking on1109 modules and all gates,
+including all five AST-regeneration checks. The log digest is
+`79c7faf30634422162e74355d547f39b4f65a7896910e6e03b5bc7098cf5be50`.
+This is isolated436 acceptance, not main436 installation or goal completion.
 
 The read-only `INSTALLATION-PLAN.json` proposes exactly20 source targets,
 including three new proofs and six new guard files. Its source-only delta
@@ -71,10 +74,9 @@ The target-scope smoke check rejected seven escaping, compiled-object or
 incomplete target lists. This is not a full installer or an installation
 authorization inferred from successful planning.
 
-Actual-main420 audit handle27494 is separate and still owns frozen main
-inputs. Its recursive kernel check passed on1106 modules and it has advanced
-to the assumption audit; its full terminal result is not yet claimed. Require
-its successful terminal result, this candidate's successful full audit, a
-reviewed source-only installation plan and stopped controllers before
-installing anything in main. No main436 installation or full candidate
-acceptance is claimed here.
+Actual-main420 audit handle27494 separately completed with exit zero; its
+receipt and full log are in `../scalar-lambda-admission/`. Main remains420.
+A reviewed source-only plan and stopped baseline controllers are still
+required before installation. The reviewed seven-jet Elements successor
+can combine this delta into a420-to443 source-only installation; no intermediate
+main436 installation is needed or claimed.
