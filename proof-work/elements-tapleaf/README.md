@@ -29,7 +29,15 @@ results, the pure semantic theorem's inherited functional extensionality, and
 exactly the six inherited assumptions of the C endpoint. Source fingerprint:
 `cbbfd7c397e1ba21f74f0fcad2e7e4116f52219111adbdd5763fcd2a4cf25048`.
 
-Remaining: recursive kernel check, Elements AST regeneration, canonical-source
-and independent evidence reviews, then normal registration/admission. None of
-those later phases or any additional accepted coverage is claimed here.
+The once-only recursive-kernel/Elements-AST phase was launched under handle19181:
+
+```sh
+python3 -B proof-work/elements-tapleaf/kernel.py /private/tmp/jet-elements-tapleaf.XHgO5wjf
+```
+
+`KERNEL-RUN.json` records a launch, not success. Poll the existing handle;
+do not restart because `CHECKED.json` is not present yet. Main420 and the
+private443 full audit remain frozen and separate. Canonical-source and
+independent evidence reviews, then normal registration/admission, also remain.
+None of those later phases or additional accepted coverage is claimed here.
 Host-library equivalence and actual caller cache establishment remain separate.
