@@ -33,7 +33,7 @@ supplements. The six-stage recorded review completed with all exit statuses
 zero: coverage, coverage-corruption fixtures, normal contract comparison,
 selected source checks, their203 corruptions, and40 normal evidence
 corruptions. `REVIEW.json` and the six exact logs record this separately from
-the pending full acceptance.
+the separately completed full acceptance.
 
 The three runtime guard/model files are copied byte-identically from
 `../elements-stream-source/`. The fixed `.py` model participates in the normal
@@ -63,7 +63,7 @@ guard/model files, totaling25 targets. Validate that exact combined source map,
 all real full-audit terminals, unchanged original stage and stopped baseline
 controllers before any write. No main proof input, live audit object, inherited
 proof, C/Haskell source or original stage was changed by this preparation.
-No full443 acceptance, main443 installation or every-jet completion is claimed.
+No main443 installation or every-jet completion is claimed.
 
 The exact read-only combined420-to443 plan is now recorded in
 `INSTALLATION-PLAN.json`:25 source-only targets, five new proofs and nine
@@ -80,7 +80,13 @@ actual436 successful terminal arrived, full443 acceptance was launched once
 under handle32105. `AUDIT-RUN.json` binds source fingerprint
 `1d0caf8744ee2803ee77f60396cbe02d5217303ce7e732444bb9a4621e9b3c8e`.
 Its log is `/private/tmp/jet-elements-stream-admission._4qt2u6m/acceptance.log`.
-Poll the existing handle. Keep main420 and the reviewed436/443 sources frozen
-until the controller's postchecks finish. A launch, elapsed observation or
-intermediate gate is not full acceptance; do not restart from silence.
+Handle32105 completed with exit zero, including the controller's postchecks.
+`TERMINAL.json`, `ACCEPTANCE.json` and the complete `acceptance.log` record
+the real successful full audit:1111 modules recursively kernel-checked,
+5924 theorem assumption records (3192 closed), reviewed snapshots, negative
+tests and all five AST-regeneration gates. The log SHA-256 is
+`eab8a6810d6aa101e3ce5139dc999594eb67ab0659aa0a107f3c7fc41eed0095`.
+Main remains the separately accepted420 state, not installed443. The later
+four-getter447 candidate has its own registration review; that preparation
+does not inherit a claim of full447 acceptance from this443 terminal.
 
