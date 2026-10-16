@@ -65,3 +65,16 @@ controllers before any write. No main proof input, live audit object, inherited
 proof, C/Haskell source or original stage was changed by this preparation.
 No full443 acceptance, main443 installation or every-jet completion is claimed.
 
+The exact read-only combined420-to443 plan is now recorded in
+`INSTALLATION-PLAN.json`:25 source-only targets, five new proofs and nine
+runtime guard/model inputs. Its delta digest is
+`a1fd8bb42dda0b29e542caac908a71701fed2e080065e3b407236c72db28c20d`.
+`INTEGRATION-PREFLIGHT.json` and `integration-plan-tests.log` record13 rejected
+wrong-tree, escaping/object/duplicate/scope and missing-terminal cases.
+No installer or main443 installation is provided by this read-only plan.
+
+`accept.py` gates a once-only full443 audit on the completed normal review,
+real isolated436 terminal acceptance and real actual-main420 acceptance.
+With436 still pending it refuses to launch; no443 audit marker is written.
+Do not replace the pending result with a guessed success or restart436.
+
