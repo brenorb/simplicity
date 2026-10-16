@@ -65,13 +65,20 @@ is historical, not a second acceptance. Historical launch (completed; do not rep
 python3 -B proof-work/elements-legacy-lock-admission/review.py finish /private/tmp/jet-legacy-lock-admission.yzxj2nkf
 ```
 
-Full 404 acceptance and its guarded source-only installer are not yet prepared
-or launched. Full acceptance must require real isolated 402 acceptance and
-guarded 402 installation/postcheck, not this snapshot generation/review. A
-later 404 installation must additionally wait for actual-main 402 acceptance.
-The preceding main-399 audit **90475** and isolated-401 audit **55506** are
-still live; do not restart them or change their inputs. The separately reviewed
-402 candidate likewise stays immutable.
+The once-only full404 driver `accept.py` is prepared but **not launched**.
+Three refusal tests passed: missing isolated402 acceptance, missing guarded402
+installation and duplicate launch are rejected without writes/subprocesses.
+`START-GUARD.json` binds the driver/test/log; these are not positive acceptance.
+The driver requires the real successful isolated402 receipt, guarded402
+installation/postcheck and exact source, plus this completed review and all
+bound tools, shared engines and object/report evidence. Its audit may run
+alongside actual-main402; later404 installation must additionally wait for
+that actual-main result. No404 installer is prepared yet.
+
+Main399 **90475** and isolated401 **55506** have passed, and401 is installed.
+Actual-main401 **92989** and isolated402 **26900** are now live. Do not restart
+them or change their semantic inputs. This reviewed404 candidate remains
+immutable; the isolated406 assertion candidate is prepared separately.
 
 All operations here preserve main and the entire original staging. This
 proposed registry still has 104 explicit `memcpy_model` conditions and 129
