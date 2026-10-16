@@ -46,10 +46,14 @@ actual positive/negative exits zero and139 active corruptions rejected. Its
 fixed model includes both complete endpoint statements, the original C getter
 bodies, the literal serializers, primitive pairing and canonical Haskell loops.
 
-The once-only kernel/AST phase was launched under session62838. Inspect that
-actual handle and terminal receipt before any restart. Recursive kernel
-completion, evidence review and normal registration remain distinct from
-compilation/source comparison; no accepted coverage is added by `RUN.json`.
+The once-only kernel/AST phase completed under session62838, with actual
+terminal exit zero. `CHECKED.json` and the unchanged AST/kernel logs record
+the regenerated Elements AST match, recursive kernel success, exact inherited
+global axiom profile, no unsafe kernel flags, and preserved private/main/index
+identities. The two public endpoints retain six inherited assumptions;
+the larger15-axiom imported-library context is not their dependency set.
+Independent evidence review and normal registration remain separate; this
+isolated checked package adds no accepted coverage by itself.
 
 ```sh
 python3 -B proof-work/elements-amounts-hash/check.py /private/tmp/jet-elements-amounts-hash.66_lhzdf
