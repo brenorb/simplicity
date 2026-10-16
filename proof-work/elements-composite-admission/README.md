@@ -30,3 +30,20 @@ in this batch; all complete generated Python scripts parse. The failed seed
 `/private/tmp/jet-elements-composite-admission.cgnu513l` is preserved and has
 no assembly/preparation/acceptance receipt. This was a tool lookup failure,
 not a rejected Coq theorem or a C/specification mismatch.
+
+Fresh normal preparation is running under handle77708:
+
+```sh
+python3 -B proof-work/elements-composite-admission/admission.py prepare /private/tmp/jet-elements-composite-admission.vr1_ywx1
+```
+
+Poll that handle; do not start another preparation on the same tree or alter
+its sources, metadata, bound proof evidence or tools while it runs. No
+`PREPARATION.json` success is claimed yet. The separate447 full controller
+remains live under handle50964; its log records `coqchk passed on 1116 modules`
+and entry into the assumption gate, not terminal acceptance.
+
+The new full449 controller and its tests parse but have not run a positive
+preflight or full audit. Its real predecessor check has rejected the currently
+missing447 acceptance receipt. This is expected: never synthesize a receipt,
+substitute a prepared snapshot or remove the predecessor check to launch it.
