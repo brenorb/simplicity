@@ -1,0 +1,797 @@
+TAP_TYPE C.jet_elements_null_data_environment.elements_null_data_footprint_sub
+jet_elements_null_data_environment.elements_null_data_footprint_sub
+     : forall (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (bd : Values.block) 
+         (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z) (b : Values.block) 
+         (lo hi lo' hi' : BinNums.Z)
+         (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                 match pat return Prop with
+                 | pair y hi0 =>
+                     match y return Prop with
+                     | pair b0 lo0 =>
+                         jet_application_sep.out_sep bd dbase bw edge cur
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           b0 lo0 hi0
+                     end
+                 end) fp)
+         (_ : @List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z b lo) hi) fp)
+         (_ : BinInt.Z.le lo lo') (_ : BinInt.Z.le hi' hi),
+       jet_application_sep.out_sep bd dbase bw edge cur
+         (BinNums.Zpos
+            (BinNums.xI
+               (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         b lo' hi'
+TAP_TYPE C.jet_elements_null_data_environment.elements_null_data_output_count_bound
+jet_elements_null_data_environment.elements_null_data_output_count_bound
+     : forall environment : jet_elements_prim.Elements.environment,
+       BinInt.Z.le
+         (BinInt.Z.of_nat
+            (@length jet_elements_prim.txOutput
+               (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))))
+         Integers.Int64.max_unsigned
+TAP_TYPE C.jet_elements_null_data_environment.elements_null_data_environment_specialize
+jet_elements_null_data_environment.elements_null_data_environment_specialize
+     : forall (m : Memory.Mem.mem) (env : Values.val) (environment : jet_elements_prim.Elements.env)
+         (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (bd : Values.block) (dbase : BinNums.Z)
+         (bw : Values.block) (edge cur : BinNums.Z) (iw jw : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (_ : jet_elements_null_data_environment.elements_null_data_environment_rep m env environment fp)
+         (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                 match pat return Prop with
+                 | pair y hi =>
+                     match y return Prop with
+                     | pair b lo =>
+                         jet_application_sep.out_sep bd dbase bw edge cur
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           b lo hi
+                     end
+                 end) fp),
+       @ex Values.block
+         (fun be : Values.block =>
+          @ex BinNums.Z
+            (fun ebase : BinNums.Z =>
+             @ex Values.block
+               (fun bt : Values.block =>
+                @ex BinNums.Z
+                  (fun txbase : BinNums.Z =>
+                   @ex Values.block
+                     (fun bout : Values.block =>
+                      @ex BinNums.Z
+                        (fun outbase : BinNums.Z =>
+                         @ex Integers.Int64.int
+                           (fun count : Integers.Int64.int =>
+                            @ex bool
+                              (fun flag : bool =>
+                               @ex (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+                                 (fun parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) =>
+                                  and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                                    (and
+                                       (jet_elements_null_data_output_guard.elements_null_data_output_rep m be ebase bt
+                                          txbase bout outbase
+                                          (Integers.Int64.repr
+                                             (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) count flag)
+                                       (and
+                                          (forall
+                                             _ : @eq bool
+                                                   (andb
+                                                      (Integers.Int64.ltu
+                                                         (Integers.Int64.repr
+                                                            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O))))))
+                                                               iw)) count) flag) true,
+                                           jet_elements_null_data_bitmachine.elements_null_data_bm_environment_case m
+                                             bd dbase bw edge cur be ebase bt txbase bout outbase
+                                             (Integers.Int64.repr
+                                                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) jw
+                                             parsed (Digest.byteStringHash (@nil Integers.Byte.int)))
+                                          (@eq
+                                             (option (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+                                             match
+                                               @List.nth_error jet_elements_prim.txOutput
+                                                 (jet_elements_prim.sigTxOut
+                                                    (jet_elements_prim.Elements.envTx environment))
+                                                 (BinInt.Z.to_nat
+                                                    (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw))
+                                               return
+                                                 (option
+                                                    (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+                                             with
+                                             | Some txo =>
+                                                 jet_elements_prim.txNullData (jet_elements_prim.txoScript txo)
+                                             | None =>
+                                                 @None (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+                                             end
+                                             match
+                                               andb
+                                                 (Integers.Int64.ltu
+                                                    (Integers.Int64.repr
+                                                       (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw))
+                                                    count) flag
+                                               return
+                                                 (option
+                                                    (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+                                             with
+                                             | true =>
+                                                 @Some (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+                                                   parsed
+                                             | false =>
+                                                 @None (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+                                             end))))))))))))
+TAP_TYPE C.jet_elements_null_data_environment.elements_output_null_datum_environment_bitmachine
+jet_elements_null_data_environment.elements_output_null_datum_environment_bitmachine
+     : forall (environment : jet_elements_prim.Elements.env) (env : Values.val)
+         (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (iw jw : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout)
+         (s : BitMachine.RunState) (tail : list BitMachine.Cell)
+         (_ : jet_elements_null_data_environment.elements_null_data_environment_rep m env environment fp)
+         (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                 match pat return Prop with
+                 | pair y hi =>
+                     match y return Prop with
+                     | pair b lo =>
+                         jet_application_sep.out_sep (jet_bitmachine_rep.frames_blk L)
+                           (jet_bitmachine_rep.item_ofs (jet_bitmachine_rep.active_write_loc L))
+                           (jet_bitmachine_rep.cells_blk L)
+                           (jet_bitmachine_rep.edge_ofs (jet_bitmachine_rep.active_write_loc L))
+                           (BinInt.Z.of_nat (BitMachine.writeEmpty (BitMachine.activeWriteFrame s)))
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           b lo hi
+                     end
+                 end) fp) (_ : jet_bitmachine_rep.bm_rep m L s) (_ : jet_bitmachine_rep.bm_separated L s)
+         (_ : jet_bitmachine_rep.active_write_writable m L s)
+         (_ : @eq (list BitMachine.Cell) (BitMachine.nextData (BitMachine.activeReadFrame s))
+                (@app BitMachine.Cell
+                   (@Translate.encode (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+                      (@pair (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+                         iw jw)) tail))
+         (_ : le
+                (S
+                   (S
+                      (S
+                         (S
+                            (S
+                               (S
+                                  (S
+                                     (S
+                                        (S
+                                           (S
+                                              (S
+                                                 (S
+                                                    (S
+                                                       (S
+                                                          (S
+                                                             (S
+                                                                (S
+                                                                   (S
+                                                                      (S
+                                                                         (S
+                                                                            (S
+                                                                               (S
+                                                                                  (S
+                                                                                     (S
+                                                                                        (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S (S (S (S (S (S (S O)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+                (BitMachine.writeEmpty (BitMachine.activeWriteFrame s))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex
+            (Ty.tySem
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum Ty.Unit
+                     (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))))
+            (fun
+               value : Ty.tySem
+                         (Ty.Sum Ty.Unit
+                            (Ty.Sum Ty.Unit
+                               (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                  (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))) =>
+             and
+               (@eq
+                  (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                     (Ty.tySem
+                        (Ty.Sum Ty.Unit
+                           (Ty.Sum Ty.Unit
+                              (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))))
+                  (@jet_elements_null_data_layout.elements_output_null_datum_spec
+                     (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+                     (@pair (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+                        iw jw) environment)
+                  (@Some
+                     (Ty.tySem
+                        (Ty.Sum Ty.Unit
+                           (Ty.Sum Ty.Unit
+                              (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))) value))
+               (and
+                  (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+                     (@Ctypes.Internal Clight.function jets_elements.f_simplicity_output_null_datum)
+                     (jet_bitmachine_rep.jet_args env L) Events.E0 mf (Values.Vint Integers.Int.one))
+                  (jet_bitmachine_rep.bm_rep mf L
+                     (jet_elements_null_data_bitmachine.bm_state_after_output s
+                        (@Translate.encode
+                           (Ty.Sum Ty.Unit
+                              (Ty.Sum Ty.Unit
+                                 (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                    (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))) value))))))
+TAP_DEF C.jet_elements_null_data_environment.elements_null_data_script_flag
+jet_elements_null_data_environment.elements_null_data_script_flag =
+fun s : jet_elements_prim.script =>
+match jet_elements_prim.txNullData s return bool with
+| Some _ => true
+| None => false
+end
+     : forall _ : jet_elements_prim.script, bool
+
+Arguments jet_elements_null_data_environment.elements_null_data_script_flag s
+TAP_DEF C.jet_elements_null_data_environment.elements_null_data_opcode_environment
+jet_elements_null_data_environment.elements_null_data_opcode_environment =
+fun (m : Memory.Mem.mem) (bout : Values.block) (outbase : BinNums.Z) (k : nat)
+  (parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+and
+  (BinInt.Z.le (BinInt.Z.of_nat (@length (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) parsed))
+     Integers.Int64.max_unsigned)
+  (and
+     (@eq (option Values.val)
+        (Memory.Mem.load AST.Mint64 m bout
+           (BinInt.Z.add
+              (BinInt.Z.add outbase
+                 (BinInt.Z.mul
+                    (BinNums.Zpos
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                    (BinInt.Z.of_nat k)))
+              (BinNums.Zpos
+                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+        (@Some Values.val
+           (Values.Vlong
+              (Integers.Int64.repr
+                 (BinInt.Z.of_nat (@length (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) parsed))))))
+     (forall (j : nat) (d : jet_elements_prim.txNullDatumF (list Integers.Byte.int))
+        (_ : @eq (option (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+               (@List.nth_error (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) parsed j)
+               (@Some (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) d)),
+      @ex Values.block
+        (fun bop : Values.block =>
+         @ex BinNums.Z
+           (fun opbase : BinNums.Z =>
+            and (BinInt.Z.le BinNums.Z0 opbase)
+              (and
+                 (BinInt.Z.le
+                    (BinInt.Z.add
+                       (BinInt.Z.add opbase
+                          (BinInt.Z.mul
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                             (BinInt.Z.of_nat j)))
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                    Integers.Ptrofs.max_unsigned)
+                 (and
+                    (@eq (option Values.val)
+                       (Memory.Mem.load AST.Mptr m bout
+                          (BinInt.Z.add
+                             (BinInt.Z.add outbase
+                                (BinInt.Z.mul
+                                   (BinNums.Zpos
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                                   (BinInt.Z.of_nat k)))
+                             (BinNums.Zpos
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                       (@Some Values.val (Values.Vptr bop (Integers.Ptrofs.repr opbase))))
+                    (and
+                       (@eq (option Values.val)
+                          (Memory.Mem.load AST.Mint32 m bop
+                             (BinInt.Z.add
+                                (BinInt.Z.add opbase
+                                   (BinInt.Z.mul
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                      (BinInt.Z.of_nat j)))
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                          (@Some Values.val
+                             (Values.Vint
+                                (jet_elements_null_data_opcode.elements_datum_code
+                                   (@jet_elements_prim.mapNullDatum (list Integers.Byte.int) Digest.hash256
+                                      Digest.byteStringHash d)))))
+                       (and
+                          (@List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                             (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                (@pair Values.block BinNums.Z bop
+                                   (BinInt.Z.add
+                                      (BinInt.Z.add opbase
+                                         (BinInt.Z.mul
+                                            (BinNums.Zpos
+                                               (BinNums.xO
+                                                  (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                            (BinInt.Z.of_nat j)))
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                (BinInt.Z.add
+                                   (BinInt.Z.add opbase
+                                      (BinInt.Z.mul
+                                         (BinNums.Zpos
+                                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                         (BinInt.Z.of_nat j)))
+                                   (BinNums.Zpos
+                                      (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))) fp)
+                          match
+                            jet_elements_null_data_opcode.elements_datum_push
+                              (@jet_elements_prim.mapNullDatum (list Integers.Byte.int) Digest.hash256
+                                 Digest.byteStringHash d) return Prop
+                          with
+                          | true =>
+                              and
+                                (jet_uint32_array_init.uint32_array_at m bop
+                                   (BinInt.Z.add opbase
+                                      (BinInt.Z.mul
+                                         (BinNums.Zpos
+                                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                         (BinInt.Z.of_nat j)))
+                                   (Digest.hash256_reg
+                                      (jet_elements_null_data_opcode.elements_datum_hash
+                                         (@jet_elements_prim.mapNullDatum (list Integers.Byte.int) Digest.hash256
+                                            Digest.byteStringHash d) (Digest.byteStringHash (@nil Integers.Byte.int)))))
+                                (@List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                   (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                      (@pair Values.block BinNums.Z bop
+                                         (BinInt.Z.add opbase
+                                            (BinInt.Z.mul
+                                               (BinNums.Zpos
+                                                  (BinNums.xO
+                                                     (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                               (BinInt.Z.of_nat j))))
+                                      (BinInt.Z.add
+                                         (BinInt.Z.add opbase
+                                            (BinInt.Z.mul
+                                               (BinNums.Zpos
+                                                  (BinNums.xO
+                                                     (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                               (BinInt.Z.of_nat j)))
+                                         (BinNums.Zpos
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                   fp)
+                          | false => True
+                          end))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : nat)
+         (_ : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments jet_elements_null_data_environment.elements_null_data_opcode_environment m bout outbase%Z_scope 
+  k%nat_scope (parsed fp)%list_scope
+TAP_DEF C.jet_elements_null_data_environment.elements_null_data_output_environment
+jet_elements_null_data_environment.elements_null_data_output_environment =
+fun (m : Memory.Mem.mem) (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) 
+  (k : nat) (txo : jet_elements_prim.txOutput) (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+and (BinInt.Z.le BinNums.Z0 outbase)
+  (and
+     (BinInt.Z.le
+        (BinInt.Z.add
+           (BinInt.Z.add outbase
+              (BinInt.Z.mul
+                 (BinNums.Zpos
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                 (BinInt.Z.of_nat k)))
+           (BinNums.Zpos
+              (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+        Integers.Ptrofs.max_unsigned)
+     (and
+        (@eq (option Values.val)
+           (Memory.Mem.load AST.Mptr m bt
+              (BinInt.Z.add txbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+           (@Some Values.val (Values.Vptr bout (Integers.Ptrofs.repr outbase))))
+        (and
+           (@eq (option Values.val)
+              (Memory.Mem.load AST.Mint8unsigned m bout
+                 (BinInt.Z.add
+                    (BinInt.Z.add outbase
+                       (BinInt.Z.mul
+                          (BinNums.Zpos
+                             (BinNums.xO
+                                (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                          (BinInt.Z.of_nat k)))
+                    (BinNums.Zpos
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+              (@Some Values.val
+                 (Values.Vint
+                    match
+                      jet_elements_null_data_environment.elements_null_data_script_flag
+                        (jet_elements_prim.txoScript txo) return Integers.Int.int
+                    with
+                    | true => Integers.Int.one
+                    | false => Integers.Int.zero
+                    end)))
+           (and
+              (@List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                 (@pair (prod Values.block BinNums.Z) BinNums.Z
+                    (@pair Values.block BinNums.Z bt
+                       (BinInt.Z.add txbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                    (BinInt.Z.add txbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                 fp)
+              (and
+                 (@List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                    (@pair (prod Values.block BinNums.Z) BinNums.Z
+                       (@pair Values.block BinNums.Z bout
+                          (BinInt.Z.add
+                             (BinInt.Z.add outbase
+                                (BinInt.Z.mul
+                                   (BinNums.Zpos
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                                   (BinInt.Z.of_nat k)))
+                             (BinNums.Zpos
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                       (BinInt.Z.add
+                          (BinInt.Z.add outbase
+                             (BinInt.Z.mul
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                                (BinInt.Z.of_nat k)))
+                          (BinNums.Zpos
+                             (BinNums.xI
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                    fp)
+                 match jet_elements_prim.txNullData (jet_elements_prim.txoScript txo) return Prop with
+                 | Some parsed =>
+                     jet_elements_null_data_environment.elements_null_data_opcode_environment m bout outbase k parsed
+                       fp
+                 | None => True
+                 end)))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) 
+         (_ : nat) (_ : jet_elements_prim.txOutput) (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments jet_elements_null_data_environment.elements_null_data_output_environment m bt txbase%Z_scope 
+  bout outbase%Z_scope k%nat_scope txo fp%list_scope
+TAP_DEF C.jet_elements_null_data_environment.elements_null_data_environment_rep
+jet_elements_null_data_environment.elements_null_data_environment_rep =
+fun (m : Memory.Mem.mem) (env : Values.val) (environment : jet_elements_prim.Elements.env)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun txbase : BinNums.Z =>
+            @ex Values.block
+              (fun bout : Values.block =>
+               @ex BinNums.Z
+                 (fun outbase : BinNums.Z =>
+                  and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                    (and (BinInt.Z.le BinNums.Z0 ebase)
+                       (and
+                          (BinInt.Z.le
+                             (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                             Integers.Ptrofs.max_unsigned)
+                          (and (BinInt.Z.le BinNums.Z0 txbase)
+                             (and
+                                (BinInt.Z.le
+                                   (BinInt.Z.add txbase
+                                      (BinNums.Zpos
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+                                   Integers.Ptrofs.max_unsigned)
+                                (and
+                                   (@eq (option Values.val) (Memory.Mem.load AST.Mptr m be ebase)
+                                      (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+                                   (and
+                                      (@eq (option Values.val)
+                                         (Memory.Mem.load AST.Mint64 m bt
+                                            (BinInt.Z.add txbase
+                                               (BinNums.Zpos
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xO
+                                                                    (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                                         (@Some Values.val
+                                            (Values.Vlong
+                                               (Integers.Int64.repr
+                                                  (BinInt.Z.of_nat
+                                                     (@length jet_elements_prim.txOutput
+                                                        (jet_elements_prim.sigTxOut
+                                                           (jet_elements_prim.Elements.envTx environment))))))))
+                                      (and
+                                         (@List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                            (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                               (@pair Values.block BinNums.Z be ebase)
+                                               (BinInt.Z.add ebase
+                                                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) fp)
+                                         (and
+                                            (@List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                               (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                                  (@pair Values.block BinNums.Z bt
+                                                     (BinInt.Z.add txbase
+                                                        (BinNums.Zpos
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xO
+                                                                    (BinNums.xO
+                                                                       (BinNums.xO
+                                                                          (BinNums.xO
+                                                                             (BinNums.xI
+                                                                                (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                                                  (BinInt.Z.add txbase
+                                                     (BinNums.Zpos
+                                                        (BinNums.xO
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xI
+                                                                    (BinNums.xO
+                                                                       (BinNums.xO
+                                                                          (BinNums.xI
+                                                                             (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                                               fp)
+                                            (forall (k : nat) (txo : jet_elements_prim.txOutput)
+                                               (_ : @eq (option jet_elements_prim.txOutput)
+                                                      (@List.nth_error jet_elements_prim.txOutput
+                                                         (jet_elements_prim.sigTxOut
+                                                            (jet_elements_prim.Elements.envTx environment)) k)
+                                                      (@Some jet_elements_prim.txOutput txo)),
+                                             jet_elements_null_data_environment.elements_null_data_output_environment m
+                                               bt txbase bout outbase k txo fp)))))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments jet_elements_null_data_environment.elements_null_data_environment_rep m env environment fp%list_scope
