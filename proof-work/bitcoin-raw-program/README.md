@@ -12,6 +12,10 @@ reused C execution modules and both new modules compiled freshly, and all
 23 results / four definitions were reported completely. All16 concrete
 whole-C endpoints retain exactly the six inherited execution assumptions.
 `RUN.json` records compilation, not recursive kernel success or admission.
+Two results are closed; the four pure algebra/program-relation results use
+the inherited dependent functional-extensionality principle through the
+Reader algebra. They are not claimed axiom-free. No new assumed declaration
+or allowlist change is introduced.
 
 ## Shared proof, then complete C endpoints
 
@@ -55,8 +59,9 @@ The completed compile command was:
 python3 -B proof-work/bitcoin-raw-program/check.py compile /private/tmp/jet-bitcoin-raw-program.9b5hGOH3
 ```
 
-Next run the once-only recursive kernel phase, after any imminent guarded
-main420 integration so the main audit and this proof check can run in parallel:
+The once-only recursive kernel phase was launched **after** guarded main420
+integration, and is now running under handle58669 in parallel with the
+separate actual-main420 audit (handle27494):
 
 ```sh
 python3 -B proof-work/bitcoin-raw-program/check.py kernel /private/tmp/jet-bitcoin-raw-program.9b5hGOH3
@@ -66,7 +71,7 @@ The phases separately bind unchanged main inputs and the original stage;
 authorized guarded main integration may occur **between** them. The exact
 private sources and all fresh object hashes must remain identical across the
 phases. Kernel mode records its launch before running the Bitcoin AST check
-and recursive kernel check. Poll its returned handle; never restart from a
+and recursive kernel check. Poll handle58669; never restart from a
 launch file or observation timeout. Only actual terminal success writes
 `CHECKED.json`.
 
