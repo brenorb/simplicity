@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include "elements/elementsJets.h"
+#include "elements/txEnv.h"
+
+/* A diagnostic, not a formal proof. Both original logical indices are zero.
+ * The one output contains the parsed script OP_RETURN OP_1. */
+static int check_case(int overlap) {
+  opcode op = { .code = OP_1 };
+  sigOutput output = { .pnd = { .op = &op, .len = 1 }, .isNullData = true };
+  elementsTransaction tx = { .output = &output, .numOutputs = 1 };
+  elementsTapEnv tap = {0};
+  txEnv env = { .tx = &tx, .taproot = &tap };
+  UWORD cells[ROUND_UWORD(261) + ROUND_UWORD(64) + 4] = {0};
+  UWORD separate[ROUND_UWORD(64)] = {0};
+  const size_t first_output_word = 260 / UWORD_BIT;
+  const size_t input_edge = first_output_word + 1 + 32 / UWORD_BIT;
+  UWORD* input = overlap ? cells + input_edge - ROUND_UWORD(64) : separate;
+  frameItem src = initReadFrame(64, input);
+  frameItem dst = initWriteFrame(261, cells + ROUND_UWORD(261));
+  const bool ok = simplicity_output_null_datum(&dst, src, &env);
+  frameItem result = initReadFrame(261, cells);
+  const bool outer = readBit(&result);
+  const bool inner = readBit(&result);
+  printf("UWORD_BIT=%zu overlap=%d original_i=0 original_j=0 success=%d tags=%d,%d final_offset=%zu\n",
+         (size_t)UWORD_BIT, overlap, ok, outer, inner, dst.offset);
+  return ok && outer && inner && dst.offset == 0;
+}
+
+int main(void) {
+  const int control_matches = check_case(0);
+  const int overlap_matches = check_case(1);
+  printf("expected tags=1,1 (output0, datum0=OP_1); control_matches=%d overlap_matches=%d\n",
+         control_matches, overlap_matches);
+  /* Exit0 means this diagnostic reproduced the distinction, not correctness. */
+  return control_matches && !overlap_matches ? 0 : 1;
+}
