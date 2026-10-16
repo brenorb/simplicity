@@ -1,0 +1,54 @@
+(** Representation adapter for the actual readonly global, not a public jet. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib AST Values Integers Memory.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_secp_scalar_mul_borrowed_function
+  C.jet_secp_scalar_lambda_global.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque scalar_lambda_block.
+
+Definition scalar_lambda_mixed_rho (rho : nat -> int64) (i : nat) : int64 :=
+  if Nat.ltb i 4 then rho i else nth (i - 4) scalar_lambda_words Int64.zero.
+
+Lemma scalar_lambda_mixed_input rho i : (i < 4)%nat ->
+  scalar_lambda_mixed_rho rho i = rho i.
+Proof. intro HI; unfold scalar_lambda_mixed_rho; rewrite (proj2 (Nat.ltb_lt i 4) HI); reflexivity. Qed.
+Lemma scalar_lambda_mixed_rhs rho i w : nth_error scalar_lambda_words i = Some w ->
+  scalar_lambda_mixed_rho rho (i + 4)%nat = w.
+Proof.
+  intro Hnth; destruct i as [|[|[|[|i]]]];
+    cbn [scalar_lambda_words nth_error] in Hnth;
+    try (destruct i; discriminate Hnth); injection Hnth as E; subst w; reflexivity.
+Qed.
+
+Theorem scalar_lambda_borrowed_region rho beta m r :
+  lay beta r = (scalar_lambda_block,0) -> scalar_lambda_global_rep m ->
+  region_ok (scalar_lambda_mixed_rho rho) beta m r scalar_mul_borrowed_rhs.
+Proof.
+  intros HE (HV & HP & HL).
+  assert (EB : blk beta r = scalar_lambda_block) by (unfold blk; rewrite HE; reflexivity).
+  assert (ES : bas beta r = 0) by (unfold bas; rewrite HE; reflexivity).
+  unfold scalar_mul_borrowed_rhs; apply region_u64.
+  - rewrite ES; lia.
+  - rewrite ES; exists 0; reflexivity.
+  - rewrite ES; change (32 <= 18446744073709551615); lia.
+  - rewrite EB; exact HV.
+  - rewrite EB, ES; change (Mem.range_perm m scalar_lambda_block 0 32 Cur Readable); exact HP.
+  - intros i x Hnth; rewrite EB, ES, Z.add_0_l.
+    destruct i as [|[|[|[|i]]]]; cbn [nth_error] in Hnth;
+      try (destruct i; discriminate Hnth); injection Hnth as E; subst x.
+    all: split; [|reflexivity].
+    all: cbn [den scalar_lambda_mixed_rho Nat.ltb Nat.sub nth scalar_lambda_words];
+      apply HL; reflexivity.
+Qed.
+
+Lemma scalar_lambda_global_allocated m ma b lo hi :
+  Mem.alloc m lo hi = (ma,b) ->
+  scalar_lambda_global_rep m -> scalar_lambda_global_rep ma.
+Proof.
+  intros HA HR; eapply scalar_lambda_global_unchanged; [|exact HR].
+  eapply Mem.unchanged_on_implies; [eapply Mem.alloc_unchanged_on; exact HA|].
+  intros; exact I.
+Qed.
