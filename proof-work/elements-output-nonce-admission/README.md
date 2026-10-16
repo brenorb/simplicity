@@ -133,6 +133,14 @@ The integration checker independently validated its exact command, source,
 driver, review-chain and baseline bindings, plus real actual-main401 success.
 This is successful isolated full acceptance, not yet actual-main407 acceptance.
 
+The once-only actual-main407 driver is now running as **37961**.
+`MAIN-AUDIT-RUN.json` binds the407 source fingerprint, installation SHA-256
+`adeffcd7ab60d565c33d1343b81c8d813eb8c91cab368b2414c58a8cf7a0461e`,
+the exact acceptance command and committed driver. Its log is
+`/private/tmp/jet-output-nonce-admission.vy_b4hzc/main-acceptance.log`.
+No actual-main407 success is claimed yet. Poll this handle; do not restart it,
+change main semantic inputs, or integrate another successor until it passes.
+
 The proposed407 registry retains104 explicit `memcpy_model` conditions and126
 missing public declarations. The full every-jet goal, caller/domain/evaluator,
 library/fidelity and configuration obligations remain unfinished. These
