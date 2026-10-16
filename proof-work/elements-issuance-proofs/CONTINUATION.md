@@ -14,19 +14,19 @@ python3 -B proof-work/elements-issuance-proofs/kernel.py /private/tmp/jet-elemen
 `CHECKED.json` and the exact AST/kernel logs record its terminal success.
 Do not restart that completed phase or change the evidence it binds.
 
-The added `review.py` and `test-review.py` are review tooling, not completed
-evidence. Their syntax and source/report phases passed on real current
-evidence. The actual kernel controller has succeeded; now run:
+The independent review completed with exit zero under handle40627, including
+52 evidence mutations. `EVIDENCE-REVIEW.json` and `evidence-tests.log` bind it.
+The completed command was:
 
 ```sh
 python3 -B proof-work/elements-issuance-proofs/review.py finish /private/tmp/jet-elements-issuance-proofs.OurYz6Pe
 ```
 
-That command must verify the real kernel receipt/log/context, all11 results
+That command verified the real kernel receipt/log/context, all11 results
 and seven definitions, complete commands/source/object reports, the43 source
 mutations, exact inherited outpoints proof and historical main bytes, then
-run independent evidence mutations. Record its actual exit and only then
-claim independent evidence review. It must preserve the original staged patch.
+ran independent evidence mutations. The original staged patch was preserved.
+Do not rerun this completed phase to obtain a different receipt.
 
 The separate `inputs_hash` package is already recursively kernel/source/
 evidence-checked in `../elements-inputs/`, committed as290af8b4. Neither new
