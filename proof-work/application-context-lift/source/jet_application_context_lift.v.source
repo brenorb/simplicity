@@ -1,0 +1,49 @@
+(** Reuse complete local application-jet proofs in arbitrary represented,
+    separated Bit Machine contexts. The positive-output premise belongs to
+    this helper, not to a strengthened replacement for any old jet contract. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Translate Simplicity.BitMachine.
+Require Import Simplicity.Util.Option.
+Require Import C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_encoding.
+Require Import C.jet_application_sep C.jet_application_context_contract C.jet_bitmachine_rep C.jet_context.
+Require Import C.jet_elements_null_data_bitmachine.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Theorem application_jet_local_sep_to_bitmachine f ge (E : Set) (A B : Ty) env_rep spec :
+  (1 <= bitSize B)%nat ->
+  application_jet_local_spec_sep f ge E A B env_rep spec ->
+  application_jet_bitmachine_spec f ge E A B env_rep spec.
+Proof.
+  intros HPositive HLocal environment env m L s a tail fp HEnv HEnvSep HBM HSep [HV HW] HNext HSpace.
+  pose proof HBM as (HBlocks & HIR & HAR & HAW & HIW).
+  destruct (@bm_active_read_encoded_prefix A a tail m L s HBM HNext)
+    as (HSbase & HAlign & HFields & Hrc0 & HrcMax & HCells).
+  assert (HF : write_frame_at m (frames_blk L) (item_ofs (active_write_loc L)) (cells_blk L)
+      (edge_ofs (active_write_loc L)) (Z.of_nat (writeEmpty (activeWriteFrame s))) (Z.of_nat (bitSize B))).
+  { eapply write_frame_at_of_rep; [exact HSpace|exact HBlocks|exact HAW|exact HV|exact HW]. }
+  destruct (HLocal environment env m (frames_blk L) (item_ofs (active_write_loc L))
+    (frames_blk L) (item_ofs (active_read_loc L)) (cells_blk L) (cells_blk L)
+    (edge_ofs (active_read_loc L)) (edge_ofs (active_write_loc L))
+    (Z.of_nat (writeEmpty (activeWriteFrame s))) (bm_active_read_cursor s) a fp
+    HEnv HEnvSep HSbase HAlign HFields Hrc0 HrcMax HCells HF)
+    as (mf & value & HSem & HCall & HOutput & HPrefix & HFieldsF & HLoads).
+  exists mf, value. split; [exact HSem|]. split; [exact HCall|].
+  set (out := @encode B value) in *.
+  assert (Hlen : length out = bitSize B) by (unfold out; apply encode_length).
+  set (n := (writeEmpty (activeWriteFrame s) - length out)%nat).
+  assert (Hcur : Z.of_nat (length out + n) = Z.of_nat (writeEmpty (activeWriteFrame s))) by (unfold n; lia).
+  assert (Hnext : Z.of_nat (writeEmpty (activeWriteFrame s)) - Z.of_nat (bitSize B) = Z.of_nat n)
+    by (unfold n; lia).
+  fold out n.
+  eapply bm_rep_after_write with (out := out) (wd := writeData (activeWriteFrame s)) (e := n);
+    [|lia|exact HBM|exact HSep| | | |].
+  - replace (length out + n)%nat with (writeEmpty (activeWriteFrame s)) by (unfold n; lia).
+    destruct (activeWriteFrame s); reflexivity.
+  - rewrite Hcur. exact HOutput.
+  - rewrite Hcur. exact HPrefix.
+  - rewrite <- Hnext. exact HFieldsF.
+  - rewrite Hcur, <- Hnext. exact HLoads.
+Qed.
