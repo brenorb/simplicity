@@ -35,6 +35,9 @@ Use [Nix](https://nixos.org) for the easiest build. Alternatively, use GNU Autot
 
 ### C project
 
+For individual jet calls, see the [C jet frame contract](C/JETS_API.md), including
+the requirement for non-overlapping input and output buffers.
+
 #### Nix
 
 Change into the root directory of this repository.

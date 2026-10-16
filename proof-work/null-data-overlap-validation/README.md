@@ -54,11 +54,21 @@ read edge does not exceed the active write edge before dispatch. The formal
 `bm_separated` relation states the corresponding separation. Both disjoint
 same-allocation controls pass; block identity alone is not the relevant issue.
 
-The remaining design decision is explicit: document the evaluator's non-overlap
-invariant as part of the stand-alone jet API, or change the implementation to
-support the broader aliasing domain. Neither choice is silently made by these
-tests or by strengthening a proof premise. No C/header fix is authorized or
-performed here.
+The validation originally left the API-domain decision open. The user has
+since explicitly chosen **document non-overlap, matching the evaluator**.
+[The public C jet frame contract](../../C/JETS_API.md) now states that source
+and destination backing `UWORD` slices must be disjoint, including padding
+words; disjoint slices of one allocation remain permitted. The overlapping
+fixture is outside that clarified contract, not a counterexample within it.
+The native results, controls and historical verification receipts are retained
+unchanged; this decision does not turn them into a formal Clight proof.
+
+No C implementation or canonical Simplicity specification is changed. Public
+API documentation and its root README link are added without editing C/header
+inputs while the fresh SHA registration review is running. A future header
+comment/cross-reference must preserve the historical C-source snapshots and
+be handled as a separate reviewed source transition; the current audit's
+frozen inputs must not be changed in place.
 
 This native test is Apple clang/arm64 execution, even when UWORD64 is selected.
 It is not a proof of the pinned CompCert Clight call, not an ABI-equivalence
