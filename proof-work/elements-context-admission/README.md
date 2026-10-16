@@ -30,11 +30,10 @@ new assumed declaration or dependency allowlist change is introduced.
 The initial independent delta review passed: all9023 inherited contract records
 are byte-identical and all5924 dependency sets unchanged. All53 new records
 have complete deep reports; the compact ASCII-tag definition is backed by its
-reviewed full report. The twelve-stage recorded review is running: coverage,
+reviewed full report. The twelve-stage recorded review completed with exit zero: coverage,
 coverage corruptions, normal contract comparison, each of four canonical
-source/negative suites, and independent normal-evidence corruptions. Its
-existing task handle is94277; poll it rather than restarting from an absent
-review receipt or observation timeout.
+source/negative suites, and64 independent normal-evidence corruptions. Handle
+94277 is terminal; `REVIEW.json` and twelve exact logs bind the completed checks.
 
 Coverage requires the entire reviewed C-to-program theorem for each function,
 including its actual C function, global/logical environments, types, cache/frame
@@ -59,8 +58,9 @@ Actual main remains fully accepted420 at
 `c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`.
 The original staged patch remains exactly
 `f2083389e06d3a5aed12c83d0aae554895eab94eef8e107c5d445f9268d86bbe`.
-The private443 full audit remains under handle32105; it passed kernel checking
-on1111 modules and reached assumption checking. Require its actual successful
-terminal, completed normal447 review and a real full447 audit before a later
+The private443 full audit completed successfully under handle32105, including
+kernel checking on1111 modules, assumption/snapshot/negative gates and five
+ASTs. Its real terminal is in `../elements-stream-admission/ACCEPTANCE.json`.
+Require that actual successful terminal, the completed normal447 review and a real full447 audit before a later
 guarded source-only installation. Keep main420 and the443/447 source inputs
 frozen while the corresponding controllers run; do not restart from silence.
