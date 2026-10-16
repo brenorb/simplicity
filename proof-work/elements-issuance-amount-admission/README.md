@@ -57,7 +57,25 @@ Full415 acceptance may run alongside the distinct actual-main407 audit after
 guarded407 installation. Future415 installation must wait for both real full
 results, use only the reviewed source delta, preserve the original index and
 be followed by actual-main415 acceptance. No full415 audit or installation has
-yet been launched. Do not alter this candidate while its eventual audit runs.
+yet been launched at the review checkpoint. Do not alter this candidate while
+its audit runs.
+
+Following real isolated407 success and its guarded source-only installation,
+the committed combined415 driver has now launched once as **63601**.
+`AUDIT-RUN.json` binds the exact415 source, all three completed review hashes,
+real407 acceptance/installation, driver and full acceptance command. Its log is
+`/private/tmp/jet-issuance-amount-admission.0ygmxl9r/acceptance.log`.
+This is a launch, not successful terminal acceptance. Actual-main407 is running
+separately as37961. Keep both semantic input trees frozen and poll their
+existing handles. Installation415 must wait for both successful full results.
+
+Read-only aggregate planning48307 also terminated with exit0.
+`INSTALLATION-PLAN.json` binds the exact407/415 source identities, all three
+review hashes, original staging and20 source-only targets: seven metadata
+files, four scripts, six guards and three new proof modules. The entire415
+semantic input map is exactly407 plus that delta; no inherited proof is
+overwritten and no compiler object would be copied. This is a plan, not an
+installer or positive full acceptance. Main is unchanged by this planning.
 
 This proposed registry has118 missing public declarations and104 entries with
 the explicit `memcpy_model` condition. The every-jet goal and caller/domain,
