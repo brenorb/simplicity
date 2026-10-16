@@ -42,6 +42,19 @@ weakened. All historical preparation/review engines remain unchanged.
 
 ## Remaining phases
 
+Preparation completed under handle37168 with terminal exit zero. Its
+`PREPARATION.json` and thirteen exact logs record all ten fresh compiles and
+all123 checked assumption records, with the actual audited printer header
+bound by hash. A separate real invocation of `audit-jet-contracts.sh` then
+passed under handle75735: `CONTRACT-PREFLIGHT.json` and
+`printer-contract-preflight.log` record a match for the complete normal
+contract snapshot. Thus the original printer mismatch is repaired in this
+fresh candidate, without normalizing away identifiers or changing proofs.
+
+The six-stage independent review remains a distinct next phase. The preflight
+does not claim its coverage fixtures, canonical-source negatives or evidence
+negatives have run, and is not full acceptance.
+
 ```sh
 python3 -B proof-work/sha-startup-admission-v2/admission.py prepare /private/tmp/jet-sha-startup-admission-v2.j1g8pyb0
 python3 -B proof-work/sha-startup-admission-v2/review.py finish /private/tmp/jet-sha-startup-admission-v2.j1g8pyb0
