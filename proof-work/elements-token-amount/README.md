@@ -53,3 +53,9 @@ No normal registry or main source was changed; coverage added is zero.
 Use the pinned normal CLI through `elements-count/support.py:s.ENV`. Do not mix
 the separate interactive MCP backend's OCaml4.14.1 objects with this normal
 OCaml4.14.4 build. The every-jet goal and this token family remain unfinished.
+
+Later progress: the complete helper, both wrappers and literal contracts are
+now compiled/kernel/source/evidence checked in
+`../elements-token-amount-complete/`. This archived initializer receipt remains
+the earlier building block, not itself a whole-jet proof. Normal registration
+and full acceptance of the new token endpoints are still outstanding.
