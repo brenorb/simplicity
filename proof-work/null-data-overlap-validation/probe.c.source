@@ -1,0 +1,102 @@
+#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
+#include <simplicity/elements/env.h>
+#include "elements/elementsJets.h"
+#include "elements/txEnv.h"
+
+/* Native API validation only: link the real builders, parser, frame functions
+ * and jet. No production source is copied, patched or substituted. */
+static int check_case(const txEnv* env, unsigned layout) {
+  UWORD cells[ROUND_UWORD(261) + ROUND_UWORD(64) + 4] = {0};
+  UWORD separate[ROUND_UWORD(64)] = {0};
+  const size_t first_output_word = 260 / UWORD_BIT;
+  const size_t input_edge = first_output_word + 1 + 32 / UWORD_BIT;
+  /* 0: separate allocation; 1: overlapping slices; 2: same array, disjoint. */
+  UWORD* input = layout == 0 ? separate :
+                 layout == 1 ? cells + input_edge - ROUND_UWORD(64) :
+                               cells + ROUND_UWORD(261);
+  frameItem src = initReadFrame(64, input);
+  frameItem dst = initWriteFrame(261, cells + ROUND_UWORD(261));
+  frameItem saved = src;
+  const uint_fast32_t i = simplicity_read32(&saved);
+  const uint_fast32_t j = simplicity_read32(&saved);
+  if (i != 0 || j != 0) return 0;
+  const bool expected_outer = i < env->tx->numOutputs && env->tx->output[i].isNullData;
+  const bool expected_inner = expected_outer && j < env->tx->output[i].pnd.len;
+  if (!expected_inner || env->tx->output[i].pnd.op[j].code != OP_1) return 0;
+  const bool ok = simplicity_output_null_datum(&dst, src, env);
+  frameItem result = initReadFrame(261, cells);
+  const bool outer = readBit(&result);
+  const bool inner = readBit(&result);
+  /* Observe the source again only to explain the overwrite, not as a model
+   * for what the original pure primitive ought to have returned. */
+  saved = src;
+  const uint_fast32_t after_i = simplicity_read32(&saved);
+  const uint_fast32_t after_j = simplicity_read32(&saved);
+  const bool matches = ok && outer == expected_outer && inner == expected_inner && dst.offset == 0;
+  printf("UWORD_BIT=%zu layout=%u before=%" PRIuFAST32 ",%" PRIuFAST32
+         " success=%d expected=%d,%d actual=%d,%d final_offset=%zu source_after=%" PRIuFAST32 ",%" PRIuFAST32 " matches=%d\n",
+         (size_t)UWORD_BIT, layout, i, j, ok, expected_outer, expected_inner,
+         outer, inner, dst.offset, after_i, after_j, matches);
+  return layout == 1 ? !matches && ok && outer && !inner && dst.offset == 0 : matches;
+}
+
+int main(void) {
+  const unsigned char empty[1] = {0};
+  const unsigned char zero32[32] = {0};
+  const unsigned char asset[33] = {1};
+  const unsigned char amount[9] = {1, 0, 0, 0, 0, 0, 0, 0, 1};
+  const unsigned char script[2] = {0x6a, 0x51}; /* OP_RETURN OP_1 */
+  const unsigned char control[33] = {
+    0xbe, 0x79, 0xbe, 0x66, 0x7e, 0xf9, 0xdc, 0xbb, 0xac,
+    0x55, 0xa0, 0x62, 0x95, 0xce, 0x87, 0x0b, 0x07,
+    0x02, 0x9b, 0xfc, 0xdb, 0x2d, 0xce, 0x28, 0xd9,
+    0x59, 0xf2, 0x81, 0x5b, 0x16, 0xf8, 0x17, 0x98
+  };
+  const rawElementsInput in = {
+    .prevTxid = zero32, .prevIx = 0, .sequence = UINT32_MAX,
+    .txo = { .asset = asset, .value = amount, .scriptPubKey = {empty, 0} },
+    .scriptSig = {empty, 0}
+  };
+  const rawElementsOutput out = {
+    .asset = asset, .value = amount, .scriptPubKey = {script, sizeof(script)},
+    .surjectionProof = {empty, 0}, .rangeProof = {empty, 0}
+  };
+  const rawElementsTransaction raw = {
+    .txid = zero32, .input = &in, .output = &out, .numInputs = 1, .numOutputs = 1,
+    .version = 2, .lockTime = 0
+  };
+  const rawElementsTapEnv raw_tap = {
+    .controlBlock = control, .scriptCMR = zero32, .pathLen = 0
+  };
+  elementsTransaction* tx = simplicity_elements_mallocTransaction(&raw);
+  elementsTapEnv* tap = simplicity_elements_mallocTapEnv(&raw_tap);
+  if (!tx || !tap) {
+    simplicity_elements_freeTransaction(tx);
+    simplicity_elements_freeTapEnv(tap);
+    fprintf(stderr, "actual environment allocation failed\n");
+    return 2;
+  }
+  if (tx->numInputs != 1 || tx->numOutputs != 1 || !tx->output ||
+      !tx->output[0].isNullData || tx->output[0].pnd.len != 1 ||
+      !tx->output[0].pnd.op || tx->output[0].pnd.op[0].code != OP_1) {
+    fprintf(stderr, "actual builder did not produce the expected parsed OP_1\n");
+    simplicity_elements_freeTransaction(tx);
+    simplicity_elements_freeTapEnv(tap);
+    return 3;
+  }
+  sha256_midstate genesis = {{0}};
+  const txEnv env = simplicity_elements_build_txEnv(tx, tap, &genesis, 0);
+  printf("actual_builders=mallocTransaction,mallocTapEnv,build_txEnv numInputs=%" PRIuFAST32
+         " numOutputs=%" PRIuFAST32 " parsed_len=%" PRIuFAST32 " parsed_code=%d isNullData=%d\n",
+         tx->numInputs, tx->numOutputs, tx->output[0].pnd.len,
+         tx->output[0].pnd.op[0].code, tx->output[0].isNullData);
+  int good = check_case(&env, 0);
+  good &= check_case(&env, 1);
+  good &= check_case(&env, 2);
+  simplicity_elements_freeTransaction(tx);
+  simplicity_elements_freeTapEnv(tap);
+  printf("discrepancy_reproduced_with_real_builders_and_two_passing_controls=%d\n", good);
+  return good ? 0 : 1;
+}
