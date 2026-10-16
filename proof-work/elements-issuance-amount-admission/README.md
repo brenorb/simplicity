@@ -112,14 +112,22 @@ copied. The postcheck confirms source identity, not actual-main415 acceptance.
 Only the three new proofs, six guards, installation ledger and exact patch are
 committed by this integration; inherited dirty registries are not swept in.
 
-The once-only actual-main415 audit is now running as **47915**.
+The once-only actual-main415 audit **47915 has terminated with exit0** after
+4010.765seconds. All acceptance gates passed: the normal build, recursive
+kernel check on1049 modules, reviewed assumptions/contracts, negative tests and
+all five regenerated ASTs, ending in the complete final acceptance marker.
 `MAIN-AUDIT-RUN.json` binds the exact415 source fingerprint, installation SHA-256
 `731b0063b1523bae06a93d5081c0fc8e8e25968a9450d3cb170c0d5af9ae5477`,
 acceptance command and committed driver. Its private log is
 `/private/tmp/jet-issuance-amount-admission.0ygmxl9r/main-acceptance.log`.
-This launch is not terminal acceptance. Poll the existing handle and keep main
-semantic inputs frozen; do not launch another main audit or install a successor
-until this run and the successor's full audit have both passed.
+The full log is archived here with `MAIN-TERMINAL.json` and
+`MAIN-ACCEPTANCE.json`; `MAIN-CHECKPOINT.json` independently binds the actual
+terminal result, command, log, driver, installation, historical review chain,
+exact accepted/main source identity and preserved staging. The log SHA-256 is
+`d951371651aab02f20421e216cee1af841ea29095cab79717411d3a2b19cb06b`.
+The isolated combined418 audit remains91871 at this checkpoint. Keep its
+semantic inputs frozen and do not install418 until its full result succeeds;
+actual-main415 is no longer an outstanding prerequisite.
 
 This installed registry has118 missing public declarations and104 entries with
 the explicit `memcpy_model` condition. The every-jet goal and caller/domain,
