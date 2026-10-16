@@ -85,3 +85,17 @@ terminal exit/log, checks the full acceptance marker and revalidates the exact
 reviewed source/evidence/index. Keep candidate sources frozen throughout it.
 Guarded main installation and a real main-tree audit remain separate later
 steps. Main coverage must remain reported as 418 until those steps pass.
+
+## Source-only installation planning
+
+`prepare-integration.py` computes a read-only 38-target plan: 11 existing
+metadata/gate files, 24 new proof sources and three new source-checker files.
+It refuses inherited-proof/untracked-file overwrites and compiler objects,
+and requires exact accepted418 main/index inputs plus completed full419
+acceptance, its launch/terminal/log, and the reviewed source identities.
+The actual full acceptance has not yet happened at this preparation checkpoint.
+
+`test-integration-plan.py` passes 12 read-only rejection cases, including the
+current real premature attempt. No successful acceptance receipt is fabricated
+for those tests. No plan is recorded and no installation is performed before
+the required evidence exists.
