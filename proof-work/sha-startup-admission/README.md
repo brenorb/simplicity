@@ -65,10 +65,32 @@ python3 -B proof-work/sha-startup-admission/admission.py prepare /private/tmp/je
 
 `PREPARATION.json` and thirteen exact successful build/module/report logs
 bind the completed phase. All ten fresh compiles succeeded and all123 new
-assumption records match the checked proofs. The six-stage independent
-review is now live under handle27849. Poll that existing handle and keep
-candidate sources/metadata, proof packages, normal drivers and main420 inputs
-immutable through its terminal postchecks. Preparation is not full acceptance.
+assumption records match the checked proofs. The independent review under
+handle27849 subsequently terminated with exit one at the normal contract
+comparison, after its coverage and coverage-fixture stages passed. It is no
+longer running. The candidate and completed preparation evidence have not
+been rewritten. Preparation is not full acceptance.
+
+The failing comparison changes only the printed qualification/line wrapping
+of `mem_forward` in five newly registered theorem types. In the preparation
+header it is imported by `Require Import C.jet_clight_forward.`; the real
+audit deliberately uses `Require C.jet_clight_forward.`. The two read-only
+Coqtop diagnostics in `printer-preparation-context.log` and
+`printer-audit-context.log` load the actual preparation header, differing only
+in that single import command. `Locate mem_forward` resolves to
+`C.jet_clight_forward.mem_forward` in both cases; reprinting all five affected
+types reproduces the qualification difference. This is a diagnosed printer
+context mismatch, not evidence of a changed proof or C/specification bug.
+The exact failed diff remains in the private candidate's
+`normal-contract-comparison.log`.
+
+Next: use a new, explicitly versioned preparation phase/candidate whose
+printing header agrees with the real audit, retaining the failed candidate,
+historical preparation and v2 engine. Check every inherited record remains
+byte-identical and review every newly printed record. Do not normalize away
+the qualification difference, weaken contract comparison, overwrite the
+historical receipt or launch a full audit before a new independent review
+succeeds.
 
 The isolated447 full audit has now actually passed under handle50964,
 including its terminal postchecks. Its real input fingerprint is
