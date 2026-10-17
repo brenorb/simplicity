@@ -47,10 +47,11 @@ lemmas to be closed. It refused the run; the exact driver/reports and terminal
 result are preserved in `first-calls-attempt/`. After inspecting the full
 reports, only that classification was corrected and the full extension compile/
 reports rerun; no Coq proof or target changed. The source-bound recursive check
-is **76211**, covering the extension and all 196 base modules. Poll that handle
-and preserve its terminal result. Only successful `CALLS-CHECKED.json` proves
-that recursive checking passed. Do not edit its sources, base objects or drivers
-while live, or count the helper results as three complete public jets.
+**76211 passed with exit 0**, covering the extension and all 196 base modules.
+`CALLS-CHECKED.json` binds that successful run to the exact sources, objects,
+driver and full kernel log. The kernel's dependency context is unchanged and
+contains no unsafe checks. These helper results are not three complete public
+jets; the enclosing frame-jet composition remains open.
 
 The original enclosing asset/explicit-token/confidential-token jets have four
 locals: src (16 bytes), entropy (32), result (32), and the normalized struct
