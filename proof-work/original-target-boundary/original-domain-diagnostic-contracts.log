@@ -1,0 +1,46 @@
+TAP_TYPE TargetReview.OriginalDomainBoundary.original_bitcoin_outputs_nonempty
+OriginalDomainBoundary.original_bitcoin_outputs_nonempty
+     : forall tx : OriginalBitcoin.sigTx,
+       not (@eq (list OriginalBitcoin.txOutput) (OriginalBitcoin.sigTxOut tx) (@nil OriginalBitcoin.txOutput))
+TAP_TYPE TargetReview.OriginalDomainBoundary.original_bitcoin_excludes_high_bit_input
+OriginalDomainBoundary.original_bitcoin_excludes_high_bit_input
+     : forall x : OriginalBitcoin.sigTxInput,
+       not
+         (@eq Integers.Int64.int (OriginalBitcoin.sigTxiValue x)
+            (Integers.Int64.repr
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+TAP_TYPE TargetReview.OriginalDomainBoundary.original_bitcoin_excludes_ten_in_nine_out
+OriginalDomainBoundary.original_bitcoin_excludes_ten_in_nine_out
+     : forall (tx : OriginalBitcoin.sigTx)
+         (_ : @eq BinNums.Z (OriginalBitcoin.sigTxTotalInValue tx)
+                (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))
+         (_ : @eq BinNums.Z (OriginalBitcoin.sigTxTotalOutValue tx)
+                (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))), False
+TAP_TYPE TargetReview.OriginalDomainBoundary.original_bitcoin_locktime_name
+OriginalDomainBoundary.original_bitcoin_locktime_name
+     : @eq String.string
+         (@OriginalBitcoin.Bitcoin.name Ty.Unit (Word.Word (S (S (S (S (S O)))))) OriginalBitcoin.Bitcoin.LockTime)
+         (String.String (Ascii.Ascii false false true true false true true false)
+            (String.String (Ascii.Ascii true true true true false true true false)
+               (String.String (Ascii.Ascii true true false false false true true false)
+                  (String.String (Ascii.Ascii true true false true false true true false)
+                     (String.String (Ascii.Ascii false false true false true true true false)
+                        (String.String (Ascii.Ascii true false false true false true true false)
+                           (String.String (Ascii.Ascii true false true true false true true false)
+                              (String.String (Ascii.Ascii true false true false false true true false)
+                                 String.EmptyString))))))))
+TAP_TYPE TargetReview.OriginalDomainBoundary.original_bitcoin_locktime_name_not_canonical_case
+OriginalDomainBoundary.original_bitcoin_locktime_name_not_canonical_case
+     : not
+         (@eq String.string
+            (@OriginalBitcoin.Bitcoin.name Ty.Unit (Word.Word (S (S (S (S (S O)))))) OriginalBitcoin.Bitcoin.LockTime)
+            (String.String (Ascii.Ascii false false true true false true true false)
+               (String.String (Ascii.Ascii true true true true false true true false)
+                  (String.String (Ascii.Ascii true true false false false true true false)
+                     (String.String (Ascii.Ascii true true false true false true true false)
+                        (String.String (Ascii.Ascii false false true false true false true false)
+                           (String.String (Ascii.Ascii true false false true false true true false)
+                              (String.String (Ascii.Ascii true false true true false true true false)
+                                 (String.String (Ascii.Ascii true false true false false true true false)
+                                    String.EmptyString)))))))))

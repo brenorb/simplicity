@@ -1,0 +1,41 @@
+(** Diagnostic facts about the unchanged starting specification, compiled
+    from a byte-identical source in a separate namespace. These are not
+    C-jet equivalence or implementation-bug claims. *)
+From Coq Require Import ZArith List Lia String.
+From compcert Require Import Integers.
+Require Import Simplicity.Util.List TargetReview.OriginalBitcoin.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Theorem original_bitcoin_outputs_nonempty (tx : OriginalBitcoin.sigTx) :
+  OriginalBitcoin.sigTxOut tx <> [].
+Proof.
+  intros H. pose proof (OriginalBitcoin.sigTxOutBounds tx) as HB.
+  rewrite H in HB. change (0 < 0 < Int.modulus) in HB. lia.
+Qed.
+
+Theorem original_bitcoin_excludes_high_bit_input (x : OriginalBitcoin.sigTxInput) :
+  OriginalBitcoin.sigTxiValue x <> Int64.repr (2 ^ 63).
+Proof.
+  intros H. pose proof (OriginalBitcoin.sigTxiValue_bound x) as HB. rewrite H in HB.
+  change (-1 < -9223372036854775808 < Z.succ OriginalBitcoin.MAX_MONEY) in HB. lia.
+Qed.
+
+Theorem original_bitcoin_excludes_ten_in_nine_out (tx : OriginalBitcoin.sigTx) :
+  OriginalBitcoin.sigTxTotalInValue tx = 10 ->
+  OriginalBitcoin.sigTxTotalOutValue tx = 9 -> False.
+Proof.
+  intros HI HO. pose proof (OriginalBitcoin.sigTxFee_bound tx) as HB.
+  change (-1 < OriginalBitcoin.sigTxTotalOutValue tx - OriginalBitcoin.sigTxTotalInValue tx
+    < Z.succ OriginalBitcoin.MAX_MONEY) in HB.
+  rewrite HI, HO in HB. lia.
+Qed.
+
+Theorem original_bitcoin_locktime_name :
+  OriginalBitcoin.Bitcoin.name OriginalBitcoin.Bitcoin.LockTime = "locktime"%string.
+Proof. reflexivity. Qed.
+
+Theorem original_bitcoin_locktime_name_not_canonical_case :
+  OriginalBitcoin.Bitcoin.name OriginalBitcoin.Bitcoin.LockTime <> "lockTime"%string.
+Proof. discriminate. Qed.
