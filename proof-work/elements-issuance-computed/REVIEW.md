@@ -52,5 +52,7 @@ three reader-semantics functional-extensionality results, one four-dependency
 expression result and six six-dependency execution results are checked
 individually. There is no new axiom or skipped kernel check. A successful
 forced rebuild and the 211-module loaded-source/object snapshot exist;
-recursive checking has its own terminal receipt and must not be inferred from
-the launch. External pinned libraries remain the inherited trust boundary.
+recursive checking completed with exit 0, with its own terminal receipt and
+all local hashes unchanged before/after. External pinned libraries remain the
+inherited trust boundary. Caller-cache establishment and normal registration
+remain open; this is not full goal completion.
