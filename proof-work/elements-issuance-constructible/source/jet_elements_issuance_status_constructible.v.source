@@ -1,0 +1,81 @@
+(** Construct the complete initial relation and frames for every input and
+    logical Elements environment, then execute the original issuance jet.
+    This is a constructed-memory witness, not a production malloc proof. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Memory Values Events Ctypes Clight ClightBigstep.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.BitMachine Simplicity.Translate Simplicity.Util.Option.
+Require Import C.jet_elements_prim C.jets_elements C.jet_elements_linkage.
+Require Import C.jet_elements_issuance_status_spec C.jet_elements_issuance_status_exec C.jet_elements_issuance_status_local.
+Require Import C.jet_application_sep C.jet_frame_constructible_app C.jet_env_constructible.
+Require Import C.jet_elements_env_constructible C.jet_elements_indexed_ptr C.jet_elements_executable.
+Require Import C.jet_elements_issuance_jets C.jet_output_layout C.jet_encoding.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma issuance_status_enum_local : elem_local issuance_status_enum_rep 544.
+Proof.
+  intros m m' b ofs txi HT HL. unfold issuance_status_enum_rep in *.
+  apply (HL Mint32 (ofs + 528) _); [lia|change (size_chunk Mint32) with 4; lia|exact HT].
+Qed.
+
+Lemma issuance_status_enum_buildable : elem_buildable 8 issuance_status_enum_rep 544.
+Proof.
+  intros txi m b ofs HP HA.
+  destruct (built_store_int32 m b (ofs + 528) (issuance_tag (sigTxiIssuance txi)) ofs (ofs + 544))
+    as (m' & HB & HL).
+  - intros o Ho. apply HP. lia.
+  - apply Z.divide_add_r.
+    + eapply Z.divide_trans; [exists 2; reflexivity|exact HA].
+    + exists 132; reflexivity.
+  - lia.
+  - lia.
+  - exists m'. exact (conj HB HL).
+Qed.
+
+Theorem elements_issuance_status_rep_constructible e (m0 : mem) :
+  exists m env fp,
+    indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e)) issuance_status_enum_rep 544 0 0 696 m env e fp /\
+    Forall (fun '(b, _, _) => Mem.valid_block m b) fp.
+Proof.
+  refine (jet_elements_env_constructible.indexed_ptr_rep_constructible
+    (fun e => sigTxIn (Elements.envTx e)) issuance_status_enum_rep 544 0 544 0 696 8
+    ltac:(lia) ltac:(exists 68; reflexivity) ltac:(lia) ltac:(exists 1; reflexivity)
+    ltac:(apply Z.divide_0_r) ltac:(lia)
+    issuance_status_enum_local issuance_status_enum_buildable
+    ltac:(lia) ltac:(lia) ltac:(apply Z.divide_0_r)
+    ltac:(lia) ltac:(lia) ltac:(exists 87; reflexivity) ltac:(left; lia) e m0 _ _).
+  - exact (proj1 (elements_inputs_fit e 544 ltac:(lia))).
+  - exact (proj2 (elements_inputs_fit e 544 ltac:(lia))).
+Qed.
+
+Lemma issuance_status_enum_stable : elem_stable issuance_status_enum_rep.
+Proof.
+  intros m m' b ofs txi HE HT. unfold issuance_status_enum_rep in *.
+  eapply memory_extension_load; eassumption.
+Qed.
+
+Theorem elements_issuance_status_executable :
+  application_sep_runs_on_fresh_frames f_simplicity_issuance elements_ge Elements.env Word32 issuance_status_type
+    (indexed_ptr_rep (fun e => sigTxIn (Elements.envTx e)) issuance_status_enum_rep 544 0 0 696)
+    (fun a e => @elements_issuance_status_spec (PrimitivePrimSem option_Monad_Zero) a e).
+Proof.
+  eapply application_jet_local_spec_sep_executable.
+  - vm_compute; discriminate.
+  - vm_compute; discriminate.
+  - exact elements_issuance_status_local_spec.
+  - apply indexed_ptr_rep_stable. exact issuance_status_enum_stable.
+Qed.
+
+Theorem elements_issuance_status_runs_everywhere (a : Ty.tySem Word32) (e : Elements.env) :
+  exists m bd bs bw env mf value,
+    @elements_issuance_status_spec (PrimitivePrimSem option_Monad_Zero) a e = Some value /\
+    Clight2.eval_funcall elements_ge m (Internal f_simplicity_issuance)
+      [Vptr bd (Ptrofs.repr 0); Vptr bs (Ptrofs.repr 0); env] E0 mf (Vint Int.one) /\
+    frame_output_cells_at mf bw 0 3 (encode value).
+Proof.
+  destruct (elements_issuance_status_rep_constructible e Mem.empty) as (m0 & env & fp & HR & HV).
+  destruct (elements_issuance_status_executable a e env m0 fp HR HV)
+    as (m & bd & bs & bw & mf & value & HS & HC & HO).
+  exists m, bd, bs, bw, env, mf, value. repeat split; assumption.
+Qed.
