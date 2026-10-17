@@ -41,9 +41,10 @@ No monetary, issuance-kind or nonempty-array restriction was introduced.
 passed with exit 0: it forced every local dependency with `make -B`, freshly
 compiled the four new modules and checked their full type/definition/assumption
 inventory. `SOURCE-CLOSURE.json` matches all **211** loaded local modules to
-that forced build and hashes every source and object. Recursive kernel checking
-is running separately. Do not change the driver, sources or objects during its
-audit. Inspect the original process rather than restarting a quiet run.
+that forced build and hashes every source and object. The source-bound recursive
+kernel check completed with exit 0; `SOURCE-CHECKED.json` binds all 211 local
+sources and objects unchanged before and after checking. The once-only receipts
+must not be overwritten or reused for different inputs.
 
 After a successful compilation, run:
 
