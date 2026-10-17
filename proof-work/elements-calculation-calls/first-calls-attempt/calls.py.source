@@ -1,0 +1,138 @@
+"""Verify canonical word-level helper calls for the exact original program."""
+import importlib.util
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+sp = importlib.util.spec_from_file_location('word_call_basis', HERE / 'basis.py')
+base = importlib.util.module_from_spec(sp)
+sp.loader.exec_module(base)
+s, g = base.s, base.g
+MODULE = 'CalculationCalls.CalculationCalls'
+FOUR = s.SIX - {'Events.external_functions_sem', 'Events.inline_assembly_sem'}
+
+
+def basis_profile(r):
+    four = ['C.jet_elements_calc_field_eval.' + n for n in [
+        'eval_envu_deref_struct', 'eval_envu_field_lvalue', 'eval_envu_field_value',
+        'eval_envu_field_struct', 'eval_envu_field_array', 'envu_loadv_repr', 'calc_eval_local_mid_s']]
+    four += ['C.jet_elements_calculate_asset_exec.calc_ev_block',
+             'C.jet_env_store_words.store_words_load_other', 'C.jet_env_store_words.store_words_loads']
+    execution = ['C.jet_elements_calculate_asset_exec.' + n for n in [
+        'calc_zero_exec', 'calc_zeros_exec', 'calc_prefix_exec', 'calc_tail_exec', 'eval_calculateAsset']]
+    execution += ['C.jet_elements_calculate_token_exec.' + n for n in ['eval_is_confidential', 'eval_calculateToken']]
+    expected = {n: set() for n in r['results']}
+    expected.update({n: FOUR for n in four})
+    expected.update({n: s.SIX for n in execution})
+    if (len(r['results']), len(r['definitions'])) != (55, 20) or {
+        n: set(ds) for n, ds in r['dependencies'].items()} != expected:
+        raise ValueError('basis complete per-result assumption profile differs')
+
+
+def identity(external):
+    bound = json.loads((HERE / 'SOURCE-CLOSURE.json').read_text())
+    r = json.loads((HERE / 'RUN.json').read_text())
+    work = Path(bound['candidate'])
+    base.tree(work)
+    basis_profile(r)
+    force = s.load('word_call_closure', HERE.parent / 'verify-forced-closure.py')
+    force.objects(work, bound['compiled_and_loaded_local_modules'])
+    if (s.sha((HERE / 'RUN.json').read_bytes()) != bound['compile_sha256'] or
+        r['tools_sha256'] != {'basis.py': s.sha((HERE / 'basis.py').read_bytes())}):
+        raise ValueError('basis compile/source closure identity differs')
+    source = external / 'CalculationCalls.v'
+    if (external == work or external == s.REPO or s.REPO in external.parents or
+        source.is_symlink() or source.read_bytes() != (HERE / 'CalculationCalls.v.source').read_bytes() or
+        {p.name for p in external.glob('*.v')} != {'CalculationCalls.v'}):
+        raise ValueError('distinct exact external helper-call source required')
+    s.safe_source(source.read_text(), MODULE)
+    return work, source, bound, ['-Q', str(external), 'CalculationCalls']
+
+
+def compile(external):
+    if (HERE / 'CALLS-RUN.json').exists():
+        raise ValueError('word-call compile already recorded')
+    work, source, bound, extra = identity(external)
+    before, index = s.input_map(), s.index_hash()
+    commands = {'word-calls-fresh': s.run(work, ['bash', 'build-jets.sh', '--coqc', '-q',
+        *extra, str(source)], 'word-calls-fresh', 60)}
+    results, definitions, deps = g.reports(work, [(MODULE, source)], 'word-calls', commands, extra)
+    execution = [MODULE + '.' + n for n in ['elements_calculate_asset_word_call',
+        'elements_calculate_token_word_call', 'elements_calculate_explicit_token_word_call',
+        'elements_calculate_confidential_token_word_call']]
+    expected = {n: set() for n in results}
+    expected.update({n: s.SIX for n in execution})
+    if (len(results), len(definitions)) != (7, 3) or deps != expected:
+        raise ValueError('word-call complete type/definition/assumption profile differs')
+    command = ['bash', 'build-jets.sh', '--coqtop', '-quiet', *extra]
+    query = subprocess.run(command, input='Require ' + MODULE + '.\nPrint Libraries.\n',
+        cwd=work / 'Coq', env=s.ENV, text=True, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT, timeout=60)
+    if query.returncode or re.search(r'(?m)^(?:Error|Anomaly):', query.stdout):
+        raise ValueError('word-call library query failed')
+    local = {m.replace('.', '/') + '.v' for m in
+             re.findall(r'^  ((?:C|Simplicity|Util)\.[A-Za-z0-9_.]+)$', query.stdout, re.M)}
+    if local != set(bound['compiled_and_loaded_local_modules']):
+        raise ValueError('word-call imports differ from the exact forced-source basis closure')
+    if re.findall(r'^  (CalculationCalls\.[A-Za-z0-9_.]+)$', query.stdout, re.M) != [MODULE]:
+        raise ValueError('unexpected word-call extension libraries')
+    identity(external)
+    if s.input_map() != before or s.index_hash() != index:
+        raise ValueError('word-call compilation changed main/index')
+    record = dict(candidate=str(work), external=str(external), module=MODULE,
+        main_inputs=before, staged_patch_sha256=index, commands=commands,
+        results=results, definitions=definitions, dependencies={n: sorted(d) for n, d in deps.items()},
+        basis_source_closure_sha256=s.sha((HERE / 'SOURCE-CLOSURE.json').read_bytes()),
+        loaded_local_source_objects=bound['compiled_and_loaded_local_modules'],
+        source_sha256=s.sha(source.read_bytes()), object_sha256=s.sha(source.with_suffix('.vo').read_bytes()),
+        tools_sha256={'calls.py': s.sha(Path(__file__).read_bytes())},
+        library_query=dict(command=command, exit_code=query.returncode, log_sha256=s.sha(query.stdout.encode())),
+        exact_basis_assumption_profile_review=True, memcpy_model_explicit=True,
+        actual_target_genv='elements_ge', recursive_kernel_check=False,
+        public_frame_jet_lifecycle_proved=False, normal_registration=False, coverage_added=0)
+    s.changed({HERE / 'CALLS-RUN.json': json.dumps(record, indent=2) + '\n',
+               HERE / 'word-loaded-libraries.log': query.stdout,
+               **{HERE / (stem + '.log'): (work / (stem + '.log')).read_text() for stem in commands}})
+    print('Three original C calculation helper calls against canonical word programs compiled and fully reported', flush=True)
+
+
+def kernel(external):
+    if (HERE / 'CALLS-KERNEL-RUN.json').exists():
+        raise ValueError('word-call kernel already launched; inspect the original process')
+    work, source, bound, extra = identity(external)
+    r = json.loads((HERE / 'CALLS-RUN.json').read_text())
+    if (r['external'] != str(external) or r['main_inputs'] != s.input_map() or
+        r['staged_patch_sha256'] != s.index_hash() or
+        r['source_sha256'] != s.sha(source.read_bytes()) or
+        r['object_sha256'] != s.sha(source.with_suffix('.vo').read_bytes()) or
+        r['basis_source_closure_sha256'] != s.sha((HERE / 'SOURCE-CLOSURE.json').read_bytes()) or
+        r['tools_sha256'] != {'calls.py': s.sha(Path(__file__).read_bytes())}):
+        raise ValueError('word-call identity changed')
+    command = ['bash', '-c', 'ulimit -s 65520; exec bash build-jets.sh --coqchk -silent -o '
+               + ' '.join(extra) + ' ' + MODULE]
+    launch = dict(command=command, compile_sha256=s.sha((HERE / 'CALLS-RUN.json').read_bytes()),
+                  recursive_kernel_check=False)
+    s.changed({HERE / 'CALLS-KERNEL-RUN.json': json.dumps(launch, indent=2) + '\n'})
+    row = s.run(work, command, 'word-calls-kernel', 3600)
+    s.kernel.kernel((work / 'word-calls-kernel.log').read_text(),
+                    sorted((work / 'Coq/C/jet_coqchk_axioms.expected').read_text().split()))
+    identity(external)
+    if (r['main_inputs'] != s.input_map() or r['staged_patch_sha256'] != s.index_hash() or
+        r['source_sha256'] != s.sha(source.read_bytes()) or
+        r['object_sha256'] != s.sha(source.with_suffix('.vo').read_bytes())):
+        raise ValueError('word-call kernel changed source/object/base/main/index')
+    r.update(recursive_kernel_check=True, kernel=row,
+        kernel_launch_sha256=s.sha((HERE / 'CALLS-KERNEL-RUN.json').read_bytes()))
+    s.changed({HERE / 'CALLS-CHECKED.json': json.dumps(r, indent=2) + '\n',
+               HERE / 'word-calls-kernel.log': (work / 'word-calls-kernel.log').read_text()})
+    print('Original-program canonical calculation helper calls recursively kernel-checked; frame-jet composition remains open', flush=True)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 3 or sys.argv[1] not in ['compile', 'kernel']:
+        raise ValueError('usage: calls.py compile|kernel EXTERNAL_DIRECTORY')
+    globals()[sys.argv[1]](Path(sys.argv[2]).resolve())

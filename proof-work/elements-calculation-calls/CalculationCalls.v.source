@@ -1,0 +1,118 @@
+(** Original Elements calculation helper calls against the canonical word
+    programs. These are not yet the enclosing frame-jet lifecycles. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Values Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Alg.
+Require Import C.jet_memcpy_model C.jet_uint32_array_init C.jet_sha_linkage C.jet_sha_block_local.
+Require Import C.jet_elements_linkage C.jet_elements_sha_program.
+Require Import C.jet_elements_calculate_asset_exec C.jet_elements_calculate_token_exec.
+Require Import C.jet_elements_issuance_calc_spec C.jet_elements_calc_registers.
+Require C.jets_elements.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition elements_calculation_dispatch_ok (m : mem) : Prop :=
+  Mem.load Mptr m (elements_symbol_block jets_elements._simplicity_sha256_compression) 0 =
+    Some (Vptr (elements_symbol_block jets_elements._sha256_compression_portable) Ptrofs.zero).
+
+Lemma elements_calculation_dispatch_sha m :
+  elements_calculation_dispatch_ok m -> sha_dispatch_ok m.
+Proof.
+  unfold elements_calculation_dispatch_ok, sha_dispatch_ok, sha_symbol_block, elements_symbol_block.
+  rewrite elements_sha_genv. exact (fun h => h).
+Qed.
+
+Lemma calculation_words_nth m b base xs :
+  uint32_array_at m b base xs -> length xs = 8%nat ->
+  forall j, (j < 8)%nat -> Mem.load Mint32 m b (base + 4 * Z.of_nat j) =
+    Some (Vint (nth j xs Int.zero)).
+Proof.
+  intros HA HLen j Hj. apply HA, nth_error_nth'. rewrite HLen. exact Hj.
+Qed.
+
+Lemma calculation_words_array m b base xs :
+  length xs = 8%nat ->
+  (forall j, (j < 8)%nat -> Mem.load Mint32 m b (base + 4 * Z.of_nat j) =
+    Some (Vint (nth j xs Int.zero))) -> uint32_array_at m b base xs.
+Proof.
+  intros HLen HA j x Hx.
+  assert (Hj : (j < 8)%nat).
+  { rewrite <- HLen. apply nth_error_Some. rewrite Hx. discriminate. }
+  rewrite <- (nth_error_nth xs j Int.zero Hx). exact (HA j Hj).
+Qed.
+
+Definition calculation_word_post (spec : Ty.tySem Word256 -> Ty.tySem Word256)
+    (h : Ty.tySem Word256) (m mf : mem) (bres : block) (ores : Z) : Prop :=
+  uint32_array_at mf bres ores (hash256_reg (to_hash256 (spec h))) /\
+  (forall ch b ofs, Mem.valid_block m b ->
+     (b <> bres \/ ofs + size_chunk ch <= ores \/ ores + 32 <= ofs) ->
+     Mem.load ch mf b ofs = Mem.load ch m b ofs) /\
+  (forall b ofs k p, Mem.valid_block m b -> Mem.perm m b ofs k p -> Mem.perm mf b ofs k p) /\
+  (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+
+Definition elements_calculation_word_call (f : function) (suffix : list val)
+    (spec : Ty.tySem Word256 -> Ty.tySem Word256) : Prop :=
+  forall m bres ores bent oent (h : Ty.tySem Word256),
+  0 <= ores -> ores + 32 <= Ptrofs.max_unsigned -> (4 | ores) ->
+  Mem.range_perm m bres ores (ores + 32) Cur Writable ->
+  Ptrofs.unsigned oent + 32 <= Ptrofs.max_unsigned ->
+  uint32_array_at m bent (Ptrofs.unsigned oent) (hash256_reg (to_hash256 h)) ->
+  elements_calculation_dispatch_ok m ->
+  exists mf,
+    Clight2.eval_funcall elements_ge m (Internal f)
+      ([Vptr bres (Ptrofs.repr ores); Vptr bent oent] ++ suffix) E0 mf Vundef /\
+    calculation_word_post spec h m mf bres ores.
+
+Theorem elements_calculate_asset_word_call (Hmodel : memcpy_model) :
+  elements_calculation_word_call jets_elements.f_simplicity_calculateAsset []
+    (@calculate_asset_spec Alg.CoreFunSem).
+Proof.
+  intros m bres ores bent oent h H0 HM HA HP HE HI HD.
+  pose proof (elements_calculation_dispatch_sha m HD) as HDs.
+  pose proof (hash256_len (to_hash256 h)) as HLen.
+  destruct (eval_calculateAsset Hmodel m bres ores bent oent (hash256_reg (to_hash256 h))
+    H0 HM HA HP HLen HE (calculation_words_nth _ _ _ _ HI HLen) HDs)
+    as (mf & HC & HO & HL & HPerm & HV).
+  exists mf. split.
+  - rewrite <- elements_sha_genv. exact HC.
+  - split.
+    + apply calculation_words_array; [exact (hash256_len _)|].
+      intros j Hj. rewrite calculate_asset_registers. exact (HO j Hj).
+    + exact (conj HL (conj HPerm HV)).
+Qed.
+
+Lemma elements_calculate_token_word_call (Hmodel : memcpy_model) pfx spec
+    (HR : forall h, hash256_reg (to_hash256 (spec h)) =
+      calc_token_regs (hash256_reg (to_hash256 h)) pfx) :
+  elements_calculation_word_call jets_elements.f_simplicity_calculateToken [Vint pfx] spec.
+Proof.
+  intros m bres ores bent oent h H0 HM HA HP HE HI HD.
+  pose proof (elements_calculation_dispatch_sha m HD) as HDs.
+  pose proof (hash256_len (to_hash256 h)) as HLen.
+  destruct (eval_calculateToken Hmodel m bres ores bent oent (hash256_reg (to_hash256 h)) pfx
+    H0 HM HA HP HLen HE (calculation_words_nth _ _ _ _ HI HLen) HDs)
+    as (mf & HC & HO & HL & HPerm & HV).
+  exists mf. split.
+  - rewrite <- elements_sha_genv. exact HC.
+  - split.
+    + apply calculation_words_array; [exact (hash256_len _)|].
+      intros j Hj. rewrite HR. exact (HO j Hj).
+    + exact (conj HL (conj HPerm HV)).
+Qed.
+
+Theorem elements_calculate_explicit_token_word_call (Hmodel : memcpy_model) :
+  elements_calculation_word_call jets_elements.f_simplicity_calculateToken [Vint (Int.repr 1)]
+    (@calculate_explicit_token_spec Alg.CoreFunSem).
+Proof.
+  apply (elements_calculate_token_word_call Hmodel).
+  intro h. rewrite calculate_explicit_token_registers. reflexivity.
+Qed.
+
+Theorem elements_calculate_confidential_token_word_call (Hmodel : memcpy_model) :
+  elements_calculation_word_call jets_elements.f_simplicity_calculateToken [Vint (Int.repr 2)]
+    (@calculate_confidential_token_spec Alg.CoreFunSem).
+Proof.
+  apply (elements_calculate_token_word_call Hmodel).
+  intro h. rewrite calculate_confidential_token_registers. reflexivity.
+Qed.
