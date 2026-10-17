@@ -21,9 +21,10 @@ belong to the exact forced-source/object map in
 checked unchanged before and after. The extension is compiled freshly, and full
 reports require exactly nine closed results and no new definitions.
 
-`RUN.json` records successful compilation. Only a successful `CHECKED.json`
-records recursive kernel checking; the once-only launch alone does not. The
-normal registry and accepted coverage are unchanged.
+`RUN.json` records successful compilation. `CHECKED.json` now records successful
+recursive kernel checking with exit 0, with the exact source-bound imports and
+extension source/object unchanged before and after. The normal registry and
+accepted coverage are unchanged.
 
 Next composition obligations remain explicit: transport/link the existing
 derived-unit `eval_calculateAsset`/`eval_calculateToken` results to the original
