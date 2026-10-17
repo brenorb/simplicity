@@ -38,11 +38,12 @@ No monetary, issuance-kind or nonempty-array restriction was introduced.
 ## Verification and continuation
 
 `PREPARATION.json` names the distinct private candidate. `verify.py compile`
-forces every local dependency with `make -B`, freshly compiles the four new
-modules and checks their full type/definition/assumption inventory. Until
-`RUN.json` exists, that run has not passed. Do not change the driver or sources
-during its audit. Inspect the original process rather than restarting a quiet
-build.
+passed with exit 0: it forced every local dependency with `make -B`, freshly
+compiled the four new modules and checked their full type/definition/assumption
+inventory. `SOURCE-CLOSURE.json` matches all **211** loaded local modules to
+that forced build and hashes every source and object. Recursive kernel checking
+is running separately. Do not change the driver, sources or objects during its
+audit. Inspect the original process rather than restarting a quiet run.
 
 After a successful compilation, run:
 
