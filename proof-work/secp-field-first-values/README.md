@@ -31,6 +31,10 @@ parent `Columns` module is not a dependency of this first-slice result.
 only `CHECKED.json` additionally records a completed recursive kernel check.
 Poll a running original handle rather than restarting it.
 
+The recursive kernel check has now passed. `CHECKED.json` binds all fifteen
+results to the fresh parent source/object closure and the archived kernel
+log, with the unchanged inherited library context and no unsafe categories.
+
 ```sh
 python3 -B proof-work/secp-field-first-values/verify.py kernel \
   /private/tmp/jet-field-checkpoint-audit.Zeze9g
