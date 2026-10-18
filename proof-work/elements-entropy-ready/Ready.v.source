@@ -1,0 +1,65 @@
+(** Every logical input has a real fresh-frame call from actual initialization.
+    The existing external memcpy model remains explicit. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Events Globalenvs.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_memcpy_model C.jet_encoding C.jet_bitmachine_rep C.jet_frame_constructible.
+Require Import C.jet_sha_uchars_exec C.jets_elements C.jet_elements_linkage.
+Require Import EntropyFrame.Read EntropyCompose.Local EntropyReady.Init.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Definition entropy_initial_run : Prop :=
+  forall env (h : Ty.tySem Word256) (ix : Ty.tySem Word32) (con : Ty.tySem Word256) mi,
+    Genv.init_mem jets_elements.prog = Some mi ->
+    exists m bd bs bw mf,
+      (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch m b ofs = Mem.load ch mi b ofs) /\
+      Clight2.eval_funcall elements_ge m (Internal f_simplicity_calculate_issuance_entropy)
+        [Vptr bd Ptrofs.zero; Vptr bs Ptrofs.zero; env] E0 mf (Vint Int.one) /\
+      frame_output_cells_at mf bw 0 256 (@encode Word256 (entropy_word_spec h ix con)) /\
+      (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch mf b ofs = Mem.load ch mi b ofs).
+
+Theorem calculate_issuance_entropy_initial_run (Hmodel : memcpy_model) : entropy_initial_run.
+Proof.
+  intros env h ix con mi HInit.
+  destruct (entropy_startup_initialized mi HInit) as [HD HC].
+  assert (Vg : Mem.valid_block mi (elements_symbol_block _simplicity_sha256_compression))
+    by (eapply load_valid_block; exact HD).
+  assert (Vm : Mem.valid_block mi (elements_symbol_block _sha256_max_counter))
+    by (eapply load_valid_block; exact HC).
+  destruct (jet_frames_constructible mi (@encode entropy_input_type ((h, ix), con)) 256)
+    as (m & bd & bs & bi & bw & edge & HB & HA & HF & HI & HO & HNe & HOld).
+  { rewrite encode_length. change (544 <= 18446744073709551615); lia. }
+  { change (0 <= 256 <= 18446744073709551615); lia. }
+  assert (HDm : Mem.load Mptr m (elements_symbol_block _simplicity_sha256_compression) 0 =
+    Some (Vptr (elements_symbol_block _sha256_compression_portable) Ptrofs.zero)).
+  { destruct (HOld _ Vg) as (_ & _ & _ & _ & _ & HL & _). rewrite HL. exact HD. }
+  assert (HCm : Mem.load Mint64 m (elements_symbol_block _sha256_max_counter) 0 = Some (Vlong sha_max_counter)).
+  { destruct (HOld _ Vm) as (_ & _ & _ & _ & _ & HL & _). rewrite HL. exact HC. }
+  destruct (calculate_issuance_entropy_local_spec Hmodel env m bd 0 bs 0 bi bw edge 0 256 0 h ix con
+    HDm HCm HB HA HF ltac:(lia) ltac:(change (0 + 544 <= 18446744073709551615); lia) HI HO)
+    as (mf & HCall & HOut & HPrefix & HFields & HLoads).
+  exists m, bd, bs, bw, mf. split.
+  - intros b ch ofs V. destruct (HOld b V) as (_ & _ & _ & _ & _ & HL & _). exact (HL ch ofs).
+  - split; [exact HCall|]. split; [exact HOut|].
+    intros b ch ofs V. destruct (HOld b V) as (VM & Nd & _ & _ & Nw & HL & _).
+    rewrite HLoads; [exact (HL ch ofs)|exact VM|left; exact Nd|left; exact Nw].
+Qed.
+
+Corollary calculate_issuance_entropy_initial_execution (Hmodel : memcpy_model)
+    env (h : Ty.tySem Word256) (ix : Ty.tySem Word32) (con : Ty.tySem Word256) :
+  exists mi m bd bs bw mf,
+    Genv.init_mem jets_elements.prog = Some mi /\
+    (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch m b ofs = Mem.load ch mi b ofs) /\
+    Clight2.eval_funcall elements_ge m (Internal f_simplicity_calculate_issuance_entropy)
+      [Vptr bd Ptrofs.zero; Vptr bs Ptrofs.zero; env] E0 mf (Vint Int.one) /\
+    frame_output_cells_at mf bw 0 256 (@encode Word256 (entropy_word_spec h ix con)) /\
+    (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch mf b ofs = Mem.load ch mi b ofs).
+Proof.
+  destruct entropy_init_mem_exists as [mi HI].
+  destruct (calculate_issuance_entropy_initial_run Hmodel env h ix con mi HI)
+    as (m & bd & bs & bw & mf & HOld & HCall & HOut & HFinal).
+  exists mi, m, bd, bs, bw, mf. exact (conj HI (conj HOld (conj HCall (conj HOut HFinal)))).
+Qed.
