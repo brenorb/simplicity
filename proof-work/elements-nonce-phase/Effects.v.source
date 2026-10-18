@@ -1,0 +1,106 @@
+(** Composable memory effects for the nonce jet's private working blocks.
+    These internal contracts do not replace the final public frame contract. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Memory Values.
+Require Import C.jet_frame_layout C.jet_input_layout C.jet_encoding C.jet_bitmachine_rep.
+Require Import C.jet_sha_ctx_abs C.jet_sha_block_local C.jet_sha_linkage C.jet_readBit_layout.
+Import Mem Values ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Record nonce_effects (m mf : mem) (changed : list block) : Prop := {
+  nonce_loads : forall ch b ofs, Mem.valid_block m b -> ~ In b changed ->
+    Mem.load ch mf b ofs = Mem.load ch m b ofs;
+  nonce_perms : forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm mf b ofs k p;
+  nonce_valid : forall b, Mem.valid_block m b -> Mem.valid_block mf b
+}.
+
+Lemma nonce_effects_refl m bs : nonce_effects m m bs.
+Proof. constructor; auto. Qed.
+
+Lemma nonce_effects_mono m mf bs cs :
+  nonce_effects m mf bs -> (forall b, In b bs -> In b cs) -> nonce_effects m mf cs.
+Proof.
+  intros [HL HP HV] HS. constructor; [|exact HP|exact HV].
+  intros ch b ofs V HNot. apply HL; [exact V|]. intro H. apply HNot, HS, H.
+Qed.
+
+Lemma nonce_effects_trans m m1 mf bs :
+  nonce_effects m m1 bs -> nonce_effects m1 mf bs -> nonce_effects m mf bs.
+Proof.
+  intros [L1 P1 V1] [L2 P2 V2]. constructor.
+  - intros ch b ofs V N. rewrite L2 by (auto). apply L1; assumption.
+  - intros; apply P2, P1; assumption.
+  - intros; apply V2, V1; assumption.
+Qed.
+
+Lemma nonce_effects_access m mf bs ch b ofs p :
+  nonce_effects m mf bs -> Mem.valid_access m ch b ofs p -> Mem.valid_access mf ch b ofs p.
+Proof.
+  intros [_ HP _] [HRange HAlign]. split; [|exact HAlign]. intros ofs' HO. apply HP, HRange, HO.
+Qed.
+
+Lemma nonce_effects_union m m1 mf bs cs :
+  nonce_effects m m1 bs -> nonce_effects m1 mf cs -> nonce_effects m mf (bs ++ cs).
+Proof.
+  intros E1 E2. eapply nonce_effects_trans.
+  - eapply nonce_effects_mono; [exact E1|]. intros b H. apply in_or_app. left; exact H.
+  - eapply nonce_effects_mono; [exact E2|]. intros b H. apply in_or_app. right; exact H.
+Qed.
+
+Lemma nonce_effects_fields m mf bs bf base bi edge rc :
+  nonce_effects m mf bs -> ~ In bf bs ->
+  frame_fields_at m bf base bi edge rc -> frame_fields_at mf bf base bi edge rc.
+Proof.
+  intros [HL HP HV] N [HE HC].
+  assert (V : Mem.valid_block m bf) by (eapply load_valid_block; exact HE).
+  split; rewrite HL by assumption; assumption.
+Qed.
+
+Lemma nonce_effects_input m mf bs bi edge rc cells :
+  nonce_effects m mf bs -> ~ In bi bs ->
+  frame_input_cells_at m bi edge rc cells -> frame_input_cells_at mf bi edge rc cells.
+Proof.
+  intros [HL HP HV] N HI i cell Hnth.
+  assert (Keep : forall bit, frame_input_bit_at m bi edge (rc + Z.of_nat i) bit ->
+    frame_input_bit_at mf bi edge (rc + Z.of_nat i) bit).
+  { intros bit HB. eapply frame_input_bit_at_preserved; [|exact HB].
+    intros ofs w HW. rewrite HL; [exact HW|eapply load_valid_block; exact HW|exact N]. }
+  specialize (HI i cell Hnth). destruct cell as [bit|].
+  - apply Keep; exact HI.
+  - destruct HI as [bit HB]. exists bit. apply Keep; exact HB.
+Qed.
+
+(** This is the already-used context preservation lemma, independent of any
+    desired execution or hash result. *)
+Lemma nonce_ctx_other m mf bx bm l regs c ovf :
+  ctx_abs m bx bm l regs c ovf ->
+  (forall ch b ofs, b = bx \/ b = bm \/ b = GC \/ b = GM ->
+    Mem.load ch mf b ofs = Mem.load ch m b ofs) ->
+  (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm mf b ofs k p) ->
+  ctx_abs mf bx bm l regs c ovf.
+Proof.
+  intros (HOut & HCnt & HOvf & HBlk & HRegs & HMod & HLen & Hr & PX & PM & Hdisp & HMax) HL HP.
+  split; [rewrite HL by tauto; exact HOut|]. split; [rewrite HL by tauto; exact HCnt|].
+  split; [rewrite HL by tauto; exact HOvf|].
+  split; [intros i Hi; rewrite HL by tauto; apply HBlk; exact Hi|].
+  split; [intros i Hi; rewrite HL by tauto; apply HRegs; exact Hi|].
+  split; [exact HMod|]. split; [exact HLen|]. split; [exact Hr|].
+  split; [intros ofs Hr0; apply HP, PX, Hr0|]. split; [intros ofs Hr0; apply HP, PM, Hr0|].
+  split; [unfold sha_dispatch_ok; rewrite HL by tauto; exact Hdisp|rewrite HL by tauto; exact HMax].
+Qed.
+
+Lemma nonce_effects_ctx m mf bs bx bm l regs c ovf :
+  nonce_effects m mf bs ->
+  ~ In bx bs -> ~ In bm bs -> ~ In GC bs -> ~ In GM bs ->
+  ctx_abs m bx bm l regs c ovf -> ctx_abs mf bx bm l regs c ovf.
+Proof.
+  intros [HL HP HV] Nx Nm Ng Nc HC.
+  pose proof HC as (HOut & _ & _ & _ & HRegs & _ & _ & _ & _ & _ & HD & HM).
+  assert (Vx : Mem.valid_block m bx) by (eapply load_valid_block; exact HOut).
+  assert (Vm : Mem.valid_block m bm) by (eapply load_valid_block; exact (HRegs 0%nat ltac:(lia))).
+  assert (Vg : Mem.valid_block m GC) by (eapply load_valid_block; exact HD).
+  assert (Vc : Mem.valid_block m GM) by (eapply load_valid_block; exact HM).
+  eapply nonce_ctx_other; [exact HC| |exact HP].
+  intros ch b ofs [E|[E|[E|E]]]; subst b; apply HL; assumption.
+Qed.
