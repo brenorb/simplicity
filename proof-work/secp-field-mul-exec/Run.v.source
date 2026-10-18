@@ -1,0 +1,157 @@
+(** Experimental actual field-multiplication execution, not a value theorem. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Globalenvs Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_pure C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_fns C.jet_secp_linkage C.jets_secp.
+Require Import FieldRun.Dispatch.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition field_table :=
+  (jets_secp._secp256k1_u128_rshift, FOra f_secp256k1_u128_rshift field_shift_oracle)
+    :: int_table secp_pure.
+Lemma field_table_correct id ent : flookup field_table id = Some ent ->
+  (exists b, Genv.find_symbol secp_ge id = Some b /\
+    Genv.find_funct_ptr secp_ge b = Some (Internal (fentry_fd ent))) /\
+  match ent with
+  | FInt _ => True
+  | FOra fd o => oracle_ok secp_ge (fun _ _ => True) (fun _ _ _ => True) (fun _ => False) fd o end.
+Proof.
+  unfold field_table; cbn [flookup].
+  destruct (Pos.eqb jets_secp._secp256k1_u128_rshift id) eqn:HE.
+  - apply Pos.eqb_eq in HE; subst id.
+    intro H; inversion H; subst ent; split.
+    + apply secp_pure_ok. unfold secp_pure; do 6 right; left; reflexivity.
+    + apply field_shift_oracle_correct.
+  - intro H; destruct (int_table_lookup secp_pure id ent H) as (fd & -> & HIn).
+    split; [exact (secp_pure_ok id fd HIn)|exact I].
+Qed.
+
+Theorem field_fun_sound fuel fd args regs nv result :
+  xfun (genv_cenv secp_ge) [] field_table fuel fd args regs [] nv = Some result ->
+  forall rho layout m, rep rho layout regs m ->
+  exists mf vres,
+    Clight2.eval_funcall secp_ge m (Internal fd) (map (den rho (lay layout)) args) E0 mf vres /\
+    rep rho layout (sregs (fst (rsel rho (lay layout) result))) mf /\
+    match (stemps (fst (rsel rho (lay layout) result)))!1%positive with
+    | Some x => vres = den rho (lay layout) x | None => vres = Vundef end /\
+    map rshape (sregs (fst (rsel rho (lay layout) result))) = map rshape regs /\
+    lframe (fun b ofs => ~ foot layout (map rshape regs) b ofs) m mf.
+Proof.
+  intros HRun rho layout m HRep.
+  destruct (xfun_top_sound secp_ge [] field_table
+    (fun _ _ => True) (fun _ _ _ => True) (fun _ => False)
+    ltac:(auto) ltac:(intros; contradiction) field_table_correct
+    fuel fd args regs [] nv result HRun rho layout m HRep)
+    as (mf & vres & HCall & HFinal & HReturn & HShape & _ & HFrame).
+  - split; intros; discriminate.
+  - intros r _ [].
+  - exact I.
+  - apply Forall_forall; intros; exact I.
+  - exists mf, vres; split; [exact HCall|]; split; [exact HFinal|];
+      split; [exact HReturn|]; split; [exact HShape|].
+    eapply lframe_implies; [exact HFrame|].
+    intros b ofs HOutside HValid; split; [exact HValid|]; split; [exact HOutside|tauto].
+Qed.
+Definition field_mul_regs : list region :=
+  [mkreg (u64_cells 0 [XLv 0; XLv 1; XLv 2; XLv 3; XLv 4]) true (Some 40);
+   mkreg (u64_cells 0 [XLv 5; XLv 6; XLv 7; XLv 8; XLv 9]) true (Some 40)].
+Definition field_mul_run : option res :=
+  xfun (genv_cenv secp_ge) [] field_table 400 f_secp256k1_fe_mul_inner
+    [XP 0 0; XP 0 0; XP 1 0] field_mul_regs [] 10.
+Lemma field_mul_completes :
+  match field_mul_run with Some (RDone _ ONormal) => true | _ => false end = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+
+Definition field_mul_state : sstate := match field_mul_run with
+  | Some (RDone st _) => st | _ => mkst (PTree.empty sx) [] [] 0 end.
+Lemma field_mul_run_eq : field_mul_run = Some (RDone field_mul_state ONormal).
+Proof.
+  pose proof field_mul_completes as H; unfold field_mul_state.
+  destruct field_mul_run as [r|]; [|discriminate].
+  destruct r; [destruct o; try discriminate; reflexivity|discriminate].
+Qed.
+Lemma field_mul_return : (stemps field_mul_state)!1%positive = None.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Definition field_mul_limbs : list sx :=
+  map (fun c => match cval c with Some x => x | None => XIc Int.zero end)
+    (rcells (hd (mkreg [] false None) (sregs field_mul_state))).
+Lemma field_mul_limbs_length : length field_mul_limbs = 5%nat.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+
+Fixpoint field_u64_shapes (ofs : Z) (n : nat) : list (Z * memory_chunk) :=
+  match n with O => [] | S k => (ofs, Mint64) :: field_u64_shapes (ofs + 8) k end.
+Definition field_cell_value c := match cval c with Some x => x | None => XIc Int.zero end.
+Definition field_cells_defined cs := forallb (fun c => match cval c with Some _ => true | None => false end) cs.
+Lemma field_cells_rebuild cs : forall ofs,
+  map cshape cs = field_u64_shapes ofs (length cs) -> field_cells_defined cs = true ->
+  cs = u64_cells ofs (map field_cell_value cs).
+Proof.
+  induction cs as [|[off ch value] cs IH]; intros ofs HShape HValues; [reflexivity|].
+  destruct value as [x|]; [|discriminate].
+  cbn [map cshape cofs cchunk length field_u64_shapes] in HShape.
+  injection HShape as HO HC HT; subst off ch.
+  cbn [field_cells_defined cval] in HValues.
+  cbn [map field_cell_value cval u64_cells]. f_equal; apply IH; assumption.
+Qed.
+
+Definition field_mul_out := hd (mkreg [] false None) (sregs field_mul_state).
+Lemma field_mul_out_shape : rshape field_mul_out =
+  ([(0, Mint64); (8, Mint64); (16, Mint64); (24, Mint64); (32, Mint64)], true, Some 40).
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Lemma field_mul_out_defined : field_cells_defined (rcells field_mul_out) = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Lemma field_mul_tail : tl (sregs field_mul_state) =
+  [mkreg (u64_cells 0 [XLv 5; XLv 6; XLv 7; XLv 8; XLv 9]) true (Some 40)].
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Lemma field_mul_nonempty : sregs field_mul_state = field_mul_out :: tl (sregs field_mul_state).
+Proof.
+  pose proof field_mul_tail as H.
+  unfold field_mul_out. destruct (sregs field_mul_state); [discriminate|reflexivity].
+Qed.
+Lemma field_mul_out_rebuild : field_mul_out = mkreg (u64_cells 0 field_mul_limbs) true (Some 40).
+Proof.
+  pose proof field_mul_out_shape as HS.
+  pose proof field_mul_out_defined as HD.
+  change (field_mul_out = mkreg (u64_cells 0 (map field_cell_value (rcells field_mul_out))) true (Some 40)).
+  destruct field_mul_out as [cs writable freed].
+  cbn [rshape rcells rw rfree] in HS.
+  injection HS as HC HW HF; subst writable freed.
+  assert (HN : length cs = 5%nat).
+  { apply (f_equal (@length (Z * memory_chunk))) in HC; rewrite map_length in HC; exact HC. }
+  f_equal. change (cs = u64_cells 0 (map field_cell_value cs)).
+  apply field_cells_rebuild; [rewrite HN; exact HC|exact HD].
+Qed.
+Lemma field_mul_output : sregs field_mul_state =
+  [mkreg (u64_cells 0 field_mul_limbs) true (Some 40);
+   mkreg (u64_cells 0 [XLv 5; XLv 6; XLv 7; XLv 8; XLv 9]) true (Some 40)].
+Proof. rewrite field_mul_nonempty, field_mul_tail, field_mul_out_rebuild; reflexivity. Qed.
+
+Local Opaque field_mul_state.
+Theorem eval_field_mul_inner_owned_inplace rho layout m :
+  rep rho layout field_mul_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul_inner)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1))] E0 mf Vundef /\
+    rep rho layout
+      [mkreg (u64_cells 0 field_mul_limbs) true (Some 40);
+       mkreg (u64_cells 0 [XLv 5; XLv 6; XLv 7; XLv 8; XLv 9]) true (Some 40)] mf /\
+    lframe (fun b ofs => ~ foot layout (map rshape field_mul_regs) b ofs) m mf.
+Proof.
+  intro HRep.
+  destruct (field_fun_sound 400 f_secp256k1_fe_mul_inner [XP 0 0; XP 0 0; XP 1 0]
+    field_mul_regs 10 (RDone field_mul_state ONormal) field_mul_run_eq rho layout m HRep)
+    as (mf & vres & HCall & HFinal & HReturn & HShape & HFrame).
+  cbn [rsel fst] in HFinal, HReturn.
+  rewrite field_mul_return in HReturn; subst vres.
+  rewrite field_mul_output in HFinal.
+  change (map (den rho (lay layout)) [XP 0 0; XP 0 0; XP 1 0]) with
+    [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0 + 0));
+     Vptr (blk layout 0) (Ptrofs.repr (bas layout 0 + 0));
+     Vptr (blk layout 1) (Ptrofs.repr (bas layout 1 + 0))] in HCall.
+  rewrite !Z.add_0_r in HCall.
+  exists mf; split; [exact HCall|]; split; [exact HFinal|exact HFrame].
+Qed.
