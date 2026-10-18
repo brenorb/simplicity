@@ -1,0 +1,74 @@
+(** Original outpoint_hash executions for every input from actual initialization.
+    Context rejection is a real false return, not an excluded logical input. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Events Globalenvs Values.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_memcpy_model C.jet_encoding C.jet_bitmachine_rep C.jet_frame_constructible C.jet_partial.
+Require Import C.jet_frame_layout C.jet_output_layout C.jet_write_layout C.jet_sha_ctx8_spec.
+Require Import C.jet_sha256_ctx8_init_spec C.jet_sha_uchars_exec C.jets_elements C.jet_elements_linkage.
+Require Import OutpointLocal.Spec OutpointLocal.Actual OutpointExec.Shape EntropyReady.Init.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Definition op_initial_run : Prop :=
+  forall env (a : Ty.tySem op_input_type) mi,
+    Genv.init_mem jets_elements.prog = Some mi ->
+    exists m bd bs bw mf,
+      (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch m b ofs = Mem.load ch mi b ofs) /\
+      Clight2.eval_funcall elements_ge m (Internal f_simplicity_outpoint_hash)
+        [Vptr bd Ptrofs.zero; Vptr bs Ptrofs.zero; env] E0 mf
+        (jet_partial_return (@elements_outpoint_hash_spec optalg a)) /\
+      (match @elements_outpoint_hash_spec optalg a with
+       | Some result => frame_output_cells_at mf bw 0 830 (@encode sha256_ctx8_type result) /\
+           write_prefix_at m mf bw 0 830 /\ frame_fields_at mf bd 0 bw 0 0
+       | None => True
+       end) /\
+      (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch mf b ofs = Mem.load ch mi b ofs).
+
+Theorem outpoint_hash_initial_run (Hmodel : memcpy_model) : op_initial_run.
+Proof.
+  intros env a mi HI.
+  destruct (entropy_startup_initialized mi HI) as [HD HC].
+  assert (Vg : Mem.valid_block mi (elements_symbol_block _simplicity_sha256_compression))
+    by (eapply load_valid_block; exact HD).
+  assert (Vm : Mem.valid_block mi (elements_symbol_block _sha256_max_counter))
+    by (eapply load_valid_block; exact HC).
+  destruct (jet_frames_constructible mi (@encode op_input_type a) 830)
+    as (m & bd & bs & bi & bw & edge & HB & HA & HF & HIn & HOut & HNew & HOld).
+  { rewrite encode_length, op_input_bits. change (1375 <= 18446744073709551615); lia. }
+  { change (0 <= 830 <= 18446744073709551615); lia. }
+  assert (HG : outpoint_elements_globals_ok m).
+  { split.
+    - destruct (HOld _ Vg) as (_ & _ & _ & _ & _ & HL & _). rewrite HL. exact HD.
+    - destruct (HOld _ Vm) as (_ & _ & _ & _ & _ & HL & _). rewrite HL. exact HC. }
+  destruct (outpoint_hash_local_spec Hmodel env m bd 0 bs 0 bi bw edge 0 830 0 a
+    HG HB HA HF ltac:(lia) ltac:(change (0 + 1375 <= 18446744073709551615); lia) HIn HOut)
+    as (mf & HCall & HResult & HLoads).
+  exists m, bd, bs, bw, mf. split.
+  - intros b ch ofs V. destruct (HOld b V) as (_ & _ & _ & _ & _ & HL & _). exact (HL ch ofs).
+  - split; [exact HCall|]. split; [exact HResult|].
+    intros b ch ofs V. destruct (HOld b V) as (VM & Nd & _ & _ & Nw & HL & _).
+    rewrite HLoads; [exact (HL ch ofs)|exact VM|left; exact Nd|left; exact Nw].
+Qed.
+
+Corollary outpoint_hash_initial_execution (Hmodel : memcpy_model) env (a : Ty.tySem op_input_type) :
+  exists mi m bd bs bw mf,
+    Genv.init_mem jets_elements.prog = Some mi /\
+    (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch m b ofs = Mem.load ch mi b ofs) /\
+    Clight2.eval_funcall elements_ge m (Internal f_simplicity_outpoint_hash)
+      [Vptr bd Ptrofs.zero; Vptr bs Ptrofs.zero; env] E0 mf
+      (jet_partial_return (@elements_outpoint_hash_spec optalg a)) /\
+    (match @elements_outpoint_hash_spec optalg a with
+     | Some result => frame_output_cells_at mf bw 0 830 (@encode sha256_ctx8_type result) /\
+         write_prefix_at m mf bw 0 830 /\ frame_fields_at mf bd 0 bw 0 0
+     | None => True
+     end) /\
+    (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch mf b ofs = Mem.load ch mi b ofs).
+Proof.
+  destruct entropy_init_mem_exists as [mi HI].
+  destruct (outpoint_hash_initial_run Hmodel env a mi HI)
+    as (m & bd & bs & bw & mf & HOld & HCall & HResult & HFinal).
+  exists mi, m, bd, bs, bw, mf. exact (conj HI (conj HOld (conj HCall (conj HResult HFinal)))).
+Qed.
