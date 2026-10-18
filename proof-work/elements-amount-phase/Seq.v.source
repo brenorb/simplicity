@@ -1,0 +1,30 @@
+(** Empty-trace normal-sequence decomposition for original Clight composition. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Cop Clight ClightBigstep Maps Values Memory Events Globalenvs.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_frame_layout C.jet_input_layout C.jet_encoding.
+Require Import C.jet_buffer_input C.jet_readBit_layout C.jet_read8s_layout.
+Require Import C.jet_sha_ctx_abs C.jet_sha_ctx8_model C.jet_sha_uchars_exec C.jet_sha_add_n_init.
+Require Import C.jet_sha_linkage C.jet_sha_transport C.jet_sha_block_local C.jet_elements_sha_program.
+Require Import C.jets_elements C.jet_elements_linkage.
+Require Import NonceContext.Shape NonceExec.Effects NonceExec.Calls.
+Import Mem Values Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge sha_ge ge0.
+Set Default Timeout 10.
+
+Require Import NonceExec.Payload AssetExec.Shape.
+
+Require Import C.jet_forwardBits_layout NonceContext.Spec NonceExec.Prefix.
+
+Lemma amount_seq_normal_inv ge e le m a b le' mf :
+  Clight2.exec_stmt ge e le m (Ssequence a b) E0 le' mf Out_normal ->
+  exists le1 m1,
+    Clight2.exec_stmt ge e le m a E0 le1 m1 Out_normal /\
+    Clight2.exec_stmt ge e le1 m1 b E0 le' mf Out_normal.
+Proof.
+  intro HS. inversion HS; subst; try contradiction.
+  match goal with H : ?t1 ** ?t2 = E0 |- _ =>
+    apply app_eq_nil in H; destruct H; subst end.
+  eauto.
+Qed.
