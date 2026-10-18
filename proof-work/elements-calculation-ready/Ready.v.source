@@ -1,0 +1,158 @@
+(** Actual initialization and fresh-frame calls, without represented-frame or
+    dispatch premises on the final initial-memory endpoints. Libc stays explicit. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Events Globalenvs.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import C.jet_memcpy_model C.jet_encoding C.jet_bitmachine_rep C.jet_frame_constructible.
+Require Import C.jets_elements C.jet_elements_linkage C.jet_elements_issuance_calc_spec.
+Require Import CalculationCalls.CalculationCalls CalculationLocal.Local.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Lemma calc_pointer_initialized {F V} (p : AST.program F V)
+    b info symbol target offset m readonly :
+  Genv.find_var_info (Genv.globalenv p) b = Some
+    {| gvar_info := info; gvar_init := [Init_addrof symbol offset];
+       gvar_readonly := readonly; gvar_volatile := false |} ->
+  Genv.find_symbol (Genv.globalenv p) symbol = Some target ->
+  Genv.init_mem p = Some m -> Mem.load Mptr m b 0 = Some (Vptr target offset).
+Proof.
+  intros HInfo HSymbol HInit.
+  destruct (Genv.init_mem_characterization p b HInfo HInit) as [_ [_ [HLoad _]]].
+  destruct (proj1 (HLoad eq_refl)) as [actual [HSymbol' HLoad']].
+  rewrite HSymbol in HSymbol'; inversion HSymbol'; subst actual. exact HLoad'.
+Qed.
+
+Lemma calc_dispatch_info :
+  Genv.find_var_info (Genv.globalenv jets_elements.prog)
+    (elements_symbol_block _simplicity_sha256_compression) = Some v_simplicity_sha256_compression.
+Proof. vm_compute; reflexivity. Qed.
+Lemma calc_dispatch_target :
+  Genv.find_symbol (Genv.globalenv jets_elements.prog) _sha256_compression_portable =
+    Some (elements_symbol_block _sha256_compression_portable).
+Proof. vm_compute; reflexivity. Qed.
+
+Theorem calc_dispatch_initialized m :
+  Genv.init_mem jets_elements.prog = Some m -> elements_calculation_dispatch_ok m.
+Proof.
+  intro HInit. exact (@calc_pointer_initialized Clight.fundef type jets_elements.prog
+    (elements_symbol_block _simplicity_sha256_compression)
+    (gvar_info v_simplicity_sha256_compression)
+    _sha256_compression_portable (elements_symbol_block _sha256_compression_portable)
+    Ptrofs.zero m false calc_dispatch_info calc_dispatch_target HInit).
+Qed.
+
+Definition calculation_initial_run (f : function) (spec : Ty.tySem Word256 -> Ty.tySem Word256) : Prop :=
+  forall env (h : Ty.tySem Word256) mi,
+    Genv.init_mem jets_elements.prog = Some mi ->
+    exists m bd bs bw mf,
+      (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch m b ofs = Mem.load ch mi b ofs) /\
+      Clight2.eval_funcall elements_ge m (Internal f)
+        [Vptr bd Ptrofs.zero; Vptr bs Ptrofs.zero; env] E0 mf (Vint Int.one) /\
+      frame_output_cells_at mf bw 0 256 (@encode Word256 (spec h)) /\
+      (forall b ch ofs, Mem.valid_block mi b -> Mem.load ch mf b ofs = Mem.load ch mi b ofs).
+
+Theorem calculation_local_initial_run f spec :
+  calculation_jet_local_spec f spec -> calculation_initial_run f spec.
+Proof.
+  intros HSpec env h mi HInit.
+  pose proof (calc_dispatch_initialized mi HInit) as HD.
+  assert (Vg : Mem.valid_block mi (elements_symbol_block _simplicity_sha256_compression))
+    by (eapply load_valid_block; exact HD).
+  destruct (jet_frames_constructible mi (@encode Word256 h) 256)
+    as (m & bd & bs & bi & bw & edge & HB & HA & HF & HI & HO & HNe & HOld).
+  { rewrite encode_length. change (256 <= 18446744073709551615); lia. }
+  { change (0 <= 256 <= 18446744073709551615); lia. }
+  assert (HDm : elements_calculation_dispatch_ok m).
+  { unfold elements_calculation_dispatch_ok in *.
+    destruct (HOld _ Vg) as (_ & _ & _ & _ & _ & HL & _).
+    rewrite HL. exact HD. }
+  destruct (HSpec env m bd 0 bs 0 bi bw edge 0 256 0 h HDm HB HA HF
+    ltac:(lia) ltac:(change (0 + 256 <= 18446744073709551615); lia) HI HO)
+    as (mf & HC & HOut & HPrefix & HFields & HLoads).
+  exists m, bd, bs, bw, mf. split.
+  - intros b ch ofs V. destruct (HOld b V) as (_ & _ & _ & _ & _ & HL & _). exact (HL ch ofs).
+  - split; [exact HC|]. split; [exact HOut|].
+    intros b ch ofs V. destruct (HOld b V) as (VM & Nd & _ & _ & Nw & HL & _).
+    rewrite HLoads; [exact (HL ch ofs)|exact VM|left; exact Nd|left; exact Nw].
+Qed.
+
+Theorem calculate_asset_initial_run (Hmodel : memcpy_model) :
+  calculation_initial_run f_simplicity_calculate_asset (@calculate_asset_spec Alg.CoreFunSem).
+Proof. apply calculation_local_initial_run, calculate_asset_local_spec; exact Hmodel. Qed.
+Theorem calculate_explicit_token_initial_run (Hmodel : memcpy_model) :
+  calculation_initial_run f_simplicity_calculate_explicit_token (@calculate_explicit_token_spec Alg.CoreFunSem).
+Proof. apply calculation_local_initial_run, calculate_explicit_token_local_spec; exact Hmodel. Qed.
+Theorem calculate_confidential_token_initial_run (Hmodel : memcpy_model) :
+  calculation_initial_run f_simplicity_calculate_confidential_token (@calculate_confidential_token_spec Alg.CoreFunSem).
+Proof. apply calculation_local_initial_run, calculate_confidential_token_local_spec; exact Hmodel. Qed.
+
+(** Reuse the generic initializer checker, not the SHA-specific program or invariant. *)
+Fixpoint init_aligned_b (p : Z) (il : list init_data) : bool :=
+  match il with
+  | [] => true
+  | i :: rest =>
+      Z.eqb (p mod Genv.init_data_alignment i) 0 &&
+      init_aligned_b (p + init_data_size i) rest
+  end.
+
+Lemma init_data_alignment_pos i : 0 < Genv.init_data_alignment i.
+Proof. destruct i; cbn; try lia. destruct Archi.ptr64; lia. Qed.
+
+Lemma init_aligned_b_sound : forall il p,
+  init_aligned_b p il = true -> Genv.init_data_list_aligned p il.
+Proof.
+  induction il as [|i rest IH]; intros p H; cbn [Genv.init_data_list_aligned]; [exact I|].
+  cbn [init_aligned_b] in H. apply andb_true_iff in H. destruct H as [H1 H2].
+  split; [|exact (IH _ H2)].
+  apply Z.eqb_eq in H1. apply Z.mod_divide; [|exact H1].
+  pose proof (init_data_alignment_pos i). lia.
+Qed.
+
+Section Symbols.
+Context {F V : Type} (ge : Genv.t F V).
+
+Definition addrof_defined_b (d : init_data) : bool :=
+  match d with
+  | Init_addrof i _ => match Genv.find_symbol ge i with Some _ => true | None => false end
+  | _ => true
+  end.
+
+Lemma addrof_defined_b_sound il :
+  forallb addrof_defined_b il = true ->
+  forall i o, In (Init_addrof i o) il -> exists b, Genv.find_symbol ge i = Some b.
+Proof.
+  intros H i o HIn. rewrite forallb_forall in H. specialize (H _ HIn).
+  cbn [addrof_defined_b] in H. destruct (Genv.find_symbol ge i) as [b|]; [|discriminate].
+  exists b. reflexivity.
+Qed.
+End Symbols.
+
+Definition globvar_init_ok {F V : Type} (ge : Genv.t F V) (g : globdef F V) : bool :=
+  match g with
+  | Gvar v => init_aligned_b 0 (gvar_init v) && forallb (addrof_defined_b ge) (gvar_init v)
+  | Gfun _ => true
+  end.
+
+Theorem init_mem_exists_checked {F V : Type} (p : AST.program F V) :
+  forallb (fun idg => globvar_init_ok (Genv.globalenv p) (snd idg)) (AST.prog_defs p) = true ->
+  exists m, Genv.init_mem p = Some m.
+Proof.
+  intros H. apply Genv.init_mem_exists. intros id v HIn.
+  rewrite forallb_forall in H. specialize (H _ HIn). cbn [snd globvar_init_ok] in H.
+  apply andb_true_iff in H. destruct H as [H1 H2]. split.
+  - exact (init_aligned_b_sound _ _ H1).
+  - exact (addrof_defined_b_sound _ _ H2).
+Qed.
+
+
+Lemma calculation_initializers_ok :
+  forallb (fun idg => globvar_init_ok (Genv.globalenv (program_of_program jets_elements.prog)) (snd idg))
+    (AST.prog_defs (program_of_program jets_elements.prog)) = true.
+Proof. vm_compute; reflexivity. Qed.
+
+Theorem calculation_init_mem_exists : exists m, Genv.init_mem jets_elements.prog = Some m.
+Proof. exact (init_mem_exists_checked _ calculation_initializers_ok). Qed.
