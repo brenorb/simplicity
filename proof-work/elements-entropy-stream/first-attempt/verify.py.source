@@ -1,0 +1,132 @@
+"""Verify the actual entropy helper against its canonical word program."""
+import importlib.util
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+BASE = HERE.parent / 'elements-entropy-calls'
+sp = importlib.util.spec_from_file_location('stream_entropy_base', BASE / 'kernel.py')
+base = importlib.util.module_from_spec(sp)
+sp.loader.exec_module(base)
+s, g = base.s, base.v.g
+EXTRA = 'C/jet_elements_calc_registers.v'
+REG = HERE.parent / 'elements-entropy-registers/Registers.v.source'
+MODULE = 'EntropyStreaming.Calls'
+
+
+def identity(external):
+    parent = json.loads((BASE / 'RUN.json').read_text())
+    work = Path(parent['candidate'])
+    base.identity(work)
+    source_map = [('EntropyRegisters.Registers', external / 'regs/Registers.v', REG)]
+    source_map += [('EntropyStreaming.' + n, external / (n + '.v'), HERE / (n + '.v.source'))
+                   for n in ['ByteBlocks', 'Short', 'Calls']]
+    if external == work or external == s.REPO or s.REPO in external.parents:
+        raise ValueError('distinct external bridge tree required')
+    for module, source, archive in source_map:
+        if source.is_symlink() or source.read_bytes() != archive.read_bytes():
+            raise ValueError('bridge source/archive differs: ' + module)
+        s.safe_source(source.read_text(), module)
+    if {p for p in external.rglob('*.v')} != {p for _, p, _ in source_map}:
+        raise ValueError('unexpected bridge source inventory')
+    extra = ['-Q', str(external), 'EntropyStreaming', '-Q', str(external / 'regs'), 'EntropyRegisters']
+    return parent, work, source_map, extra
+
+
+def compile(external):
+    if (HERE / 'RUN.json').exists():
+        raise ValueError('stream/word compilation already recorded')
+    s.changed({external / 'regs/Registers.v': REG.read_text(),
+        **{external / (n + '.v'): (HERE / (n + '.v.source')).read_text() for n in ['ByteBlocks', 'Short', 'Calls']}})
+    parent, work, sources, extra = identity(external)
+    before, index = s.input_map(), s.index_hash()
+    commands = {'stream-extra-fresh': s.run(work, ['bash', 'build-jets.sh', '--coqc', '-q', EXTRA], 'stream-extra-fresh', 60)}
+    modules = [('C.jet_elements_calc_registers', work / 'Coq' / EXTRA)]
+    for m, source, _ in sources:
+        stem = 'stream-' + m.replace('.', '-') + '-fresh'
+        commands[stem] = s.run(work, ['bash', 'build-jets.sh', '--coqc', '-q', *extra, str(source)], stem, 60)
+        modules.append((m, source))
+    results, definitions, deps = g.reports(work, modules, 'stream', commands, extra)
+    expected = {n: set() for n in results}
+    expected[MODULE + '.elements_entropy_helper_word_call'] = s.SIX
+    if (len(results), len(definitions)) != (33, 6) or deps != expected:
+        raise ValueError('expected 32 closed results, one six-dependency execution result and six definitions')
+    command = ['bash', 'build-jets.sh', '--coqtop', '-quiet', *extra]
+    query = subprocess.run(command, input='Require ' + MODULE + '.\nPrint Libraries.\n',
+        cwd=work / 'Coq', env=s.ENV, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)
+    if query.returncode or re.search(r'(?m)^(?:Error|Anomaly):', query.stdout):
+        raise ValueError('cannot inspect stream/word loaded libraries')
+    local = {m.replace('.', '/') + '.v' for m in
+        re.findall(r'^  ((?:C|Simplicity|Util)\.[A-Za-z0-9_.]+)$', query.stdout, re.M)}
+    bound = json.loads((BASE / 'SOURCE-CLOSURE.json').read_text())
+    objects = dict(bound['compiled_and_loaded_local_modules'])
+    if local != set(objects) | {EXTRA}:
+        raise ValueError('unexpected stream/word local dependency closure')
+    objects[EXTRA] = dict(source_sha256=s.sha((work / 'Coq' / EXTRA).read_bytes()),
+                         object_sha256=s.sha((work / 'Coq' / EXTRA).with_suffix('.vo').read_bytes()))
+    if (work / 'Coq' / EXTRA).read_bytes() != (base.v.b.HERE / 'source/jet_elements_calc_registers.v.source').read_bytes():
+        raise ValueError('extra register dependency differs from original reviewed source')
+    extensions = set(re.findall(r'^  ((?:EntropyStreaming|EntropyRegisters)\.[A-Za-z0-9_.]+)$', query.stdout, re.M))
+    if extensions != {m for m, _, _ in sources}:
+        raise ValueError('unexpected stream/word extension library')
+    ext_objects = {m: dict(source_sha256=s.sha(source.read_bytes()), object_sha256=s.sha(source.with_suffix('.vo').read_bytes()))
+                   for m, source, _ in sources}
+    identity(external)
+    if before != s.input_map() or index != s.index_hash():
+        raise ValueError('stream/word build changed main inputs or staging')
+    record = dict(candidate=str(work), external=str(external), main_inputs=before, staged_patch_sha256=index,
+        commands=commands, results=results, definitions=definitions, dependencies={n: sorted(d) for n, d in deps.items()},
+        parent_compile_sha256=s.sha((BASE / 'RUN.json').read_bytes()),
+        parent_source_closure_sha256=s.sha((BASE / 'SOURCE-CLOSURE.json').read_bytes()),
+        loaded_local_source_objects=objects, extension_sources_objects=ext_objects,
+        tools_sha256={'verify.py': s.sha(Path(__file__).read_bytes())},
+        library_query=dict(command=command, exit_code=query.returncode, log_sha256=s.sha(query.stdout.encode())),
+        actual_target_genv='elements_ge', helper_to_canonical_word_equivalence_proved=True,
+        memcpy_model_explicit=True, dispatch_and_max_counter_explicit=True,
+        public_frame_jet_lifecycle_proved=False, recursive_kernel_check=False,
+        normal_registration=False, coverage_added=0)
+    s.changed({HERE / 'RUN.json': json.dumps(record, indent=2) + '\n', HERE / 'loaded-libraries.log': query.stdout,
+        **{HERE / (stem + '.log'): (work / (stem + '.log')).read_text() for stem in commands}})
+    print('Original entropy C helper to canonical word program compiled; 277 source-bound imports, 32 closed and one six-dependency result', flush=True)
+
+
+def kernel(external):
+    if (HERE / 'KERNEL-RUN.json').exists():
+        raise ValueError('stream/word kernel already launched; inspect original process')
+    parent, work, sources, extra = identity(external)
+    r = json.loads((HERE / 'RUN.json').read_text())
+    force = s.load('stream_word_bound_objects', HERE.parent / 'verify-forced-closure.py')
+    def bound():
+        identity(external)
+        force.objects(work, r['loaded_local_source_objects'])
+        for m, source, _ in sources:
+            if r['extension_sources_objects'][m] != dict(source_sha256=s.sha(source.read_bytes()),
+                object_sha256=s.sha(source.with_suffix('.vo').read_bytes())):
+                raise ValueError('stream/word extension source/object differs: ' + m)
+        if (r['main_inputs'] != s.input_map() or r['staged_patch_sha256'] != s.index_hash() or
+            r['tools_sha256'] != {'verify.py': s.sha(Path(__file__).read_bytes())} or
+            r['parent_compile_sha256'] != s.sha((BASE / 'RUN.json').read_bytes()) or
+            r['parent_source_closure_sha256'] != s.sha((BASE / 'SOURCE-CLOSURE.json').read_bytes())):
+            raise ValueError('stream/word bound input identity differs')
+    bound()
+    command = ['bash', '-c', 'ulimit -s 65520; exec bash build-jets.sh --coqchk -silent -o ' + ' '.join(extra + [MODULE])]
+    s.changed({HERE / 'KERNEL-RUN.json': json.dumps(dict(command=command,
+        compile_sha256=s.sha((HERE / 'RUN.json').read_bytes()), recursive_kernel_check=False), indent=2) + '\n'})
+    row = s.run(work, command, 'stream-kernel', 3600)
+    log = (work / 'stream-kernel.log').read_text()
+    s.kernel.kernel(log, sorted((work / 'Coq/C/jet_coqchk_axioms.expected').read_text().split()))
+    bound()
+    r.update(recursive_kernel_check=True, kernel=row,
+             kernel_launch_sha256=s.sha((HERE / 'KERNEL-RUN.json').read_bytes()))
+    s.changed({HERE / 'CHECKED.json': json.dumps(r, indent=2) + '\n', HERE / 'stream-kernel.log': log})
+    print('Original entropy helper-to-canonical-word proof recursively kernel-checked; enclosing frame jet remains open', flush=True)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 3 or sys.argv[1] not in ['compile', 'kernel']:
+        raise ValueError('usage: verify.py compile|kernel EXTERNAL_DIRECTORY')
+    globals()[sys.argv[1]](Path(sys.argv[2]).resolve())
