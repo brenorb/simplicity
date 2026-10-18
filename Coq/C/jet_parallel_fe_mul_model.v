@@ -6,7 +6,7 @@
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Integers Values.
 Require Import C.jet_sx_expr C.jet_sx_eval C.jet_sx_exec.
-Require Import C.jet_parallel_fe_mul_oracle.
+Require Import C.jet_secp_fe_math C.jet_parallel_fe_mul_math C.jet_parallel_fe_mul_oracle C.jet_parallel_fe_mul_shift.
 Import ListNotations.
 Local Open Scope Z_scope.
 Set Default Timeout 20.
@@ -106,6 +106,62 @@ Definition fe_mul_log : list event := [
   mkev tADD 90 2 [XLv 88; XLv 89; XLb Band (XLv 20) (XLc (Int64.repr 4503599627370495))];
   mkev tSHR52 92 2 [XLv 90; XLv 91]
 ].
+
+Lemma lor_lt_pow2 a b n : 0 < n -> 0 <= a < 2 ^ n -> 0 <= b < 2 ^ n -> 0 <= Z.lor a b < 2 ^ n.
+Proof.
+  intros Hn Ha Hb. split; [apply Z.lor_nonneg; lia|].
+  destruct (Z.eq_dec (Z.lor a b) 0) as [E|E]; [rewrite E; apply Z.pow_pos_nonneg; lia|].
+  apply Z.log2_lt_pow2; [pose proof (Z.lor_nonneg a b); lia|].
+  rewrite Z.log2_lor by lia. apply Z.max_lub_lt.
+  - destruct (Z.eq_dec a 0) as [->|Ea]; [cbn; lia|].
+    apply Z.log2_lt_pow2; lia.
+  - destruct (Z.eq_dec b 0) as [->|Eb]; [cbn; lia|].
+    apply Z.log2_lt_pow2; lia.
+Qed.
+Lemma uns_or x y : Int64.unsigned (Int64.or x y) = Z.lor (Int64.unsigned x) (Int64.unsigned y).
+Proof.
+  unfold Int64.or. pose proof (Int64.unsigned_range x). pose proof (Int64.unsigned_range y).
+  change Int64.modulus with (2 ^ 64) in *.
+  apply Int64.unsigned_repr. change Int64.max_unsigned with (2 ^ 64 - 1).
+  pose proof (lor_lt_pow2 (Int64.unsigned x) (Int64.unsigned y) 64 ltac:(lia) ltac:(lia) ltac:(lia)).
+  lia.
+Qed.
+Lemma uns_and x y : Int64.unsigned (Int64.and x y) = Z.land (Int64.unsigned x) (Int64.unsigned y).
+Proof.
+  unfold Int64.and. pose proof (Int64.unsigned_range x). pose proof (Int64.unsigned_range y).
+  change Int64.modulus with (2 ^ 64) in *.
+  apply Int64.unsigned_repr. change Int64.max_unsigned with (2 ^ 64 - 1).
+  pose proof (Z.land_nonneg (Int64.unsigned x) (Int64.unsigned y)).
+  pose proof (land_le_l (Int64.unsigned x) (Int64.unsigned y) ltac:(lia) ltac:(lia)). lia.
+Qed.
+Lemma uns_shl4 x : Int64.unsigned (Int64.shl x (Int64.repr 4)) = (Int64.unsigned x * 2 ^ 4) mod 2 ^ 64.
+Proof.
+  rewrite Int64.shl_mul_two_p. change (two_p (Int64.unsigned (Int64.repr 4))) with (2 ^ 4).
+  unfold Int64.mul. rewrite Int64.unsigned_repr_eq. reflexivity.
+Qed.
+Lemma uns_add x y : Int64.unsigned (Int64.add x y) = (Int64.unsigned x + Int64.unsigned y) mod 2 ^ 64.
+Proof. rewrite Int64.add_unsigned, Int64.unsigned_repr_eq. reflexivity. Qed.
+Lemma uns_R : Int64.unsigned (Int64.repr 68719492368) = feMulR.
+Proof. reflexivity. Qed.
+Lemma uns_R12 : Int64.unsigned (Int64.shl (Int64.repr 68719492368) (Int64.repr 12)) = feMulR * 2 ^ 12.
+Proof. vm_compute. reflexivity. Qed.
+Lemma uns_R4 : Int64.unsigned (Int64.shru (Int64.repr 68719492368) (Int64.repr 4)) = feR.
+Proof. vm_compute. reflexivity. Qed.
+Lemma uns_M : Int64.unsigned (Int64.repr 4503599627370495) = 4503599627370495.
+Proof. reflexivity. Qed.
+Lemma uns_M4 : Int64.unsigned (Int64.shru (Int64.repr 4503599627370495) (Int64.repr 4)) =
+  4503599627370495 / 2 ^ 4.
+Proof. vm_compute. reflexivity. Qed.
+Lemma uns_and_lo W : Int64.unsigned (Int64.and (fm_lo W) (Int64.repr 4503599627370495)) =
+  Z.land (W mod 2 ^ 64) 4503599627370495.
+Proof. rewrite uns_and, uns_fm_lo, uns_M. reflexivity. Qed.
+Lemma uns_u0 W48 W36 :
+  Int64.unsigned (Int64.or (Int64.shl (Int64.and (fm_lo W48) (Int64.repr 4503599627370495)) (Int64.repr 4))
+    (Int64.shru (Int64.and (fm_lo W36) (Int64.repr 4503599627370495)) (Int64.repr 48))) =
+  Z.lor ((Z.land (W48 mod 2 ^ 64) 4503599627370495 * 2 ^ 4) mod 2 ^ 64)
+    (Z.land (W36 mod 2 ^ 64) 4503599627370495 / 2 ^ 48).
+Proof. rewrite uns_or, uns_shl4, uns_shru, !uns_and_lo by lia. reflexivity. Qed.
+
 
 Section MODEL.
 Variables a0 a1 a2 a3 a4 b0 b1 b2 b3 b4 : int64.
@@ -218,5 +274,66 @@ Proof.
     [eapply evok_intro; [reflexivity|reflexivity|reflexivity|range_tac]|]).
   apply Forall_nil.
 Qed.
+Definition fm_t0 := Int64.and (fm_lo W52) (Int64.repr 4503599627370495).
+Definition fm_t1 := Int64.and (fm_lo W66) (Int64.repr 4503599627370495).
+Definition fm_t2 := Int64.and (fm_lo W82) (Int64.repr 4503599627370495).
+Definition fm_t3 := Int64.and (fm_lo W90) (Int64.repr 4503599627370495).
+Definition fm_t4 := Int64.add (fm_lo W92)
+  (Int64.and (Int64.and (fm_lo W36) (Int64.repr 4503599627370495))
+    (Int64.shru (Int64.repr 4503599627370495) (Int64.repr 4))).
+
+Ltac wstep := rewrite ?fm_join by range_tac;
+  rewrite ?uns_R, ?uns_R12, ?uns_R4, ?uns_and_lo, ?uns_u0, ?uns_fm_lo; try reflexivity.
+
+Theorem fm_mul_values :
+  fe_limbs_ok (Int64.unsigned a0) (Int64.unsigned a1) (Int64.unsigned a2)
+    (Int64.unsigned a3) (Int64.unsigned a4) ->
+  fe_limbs_ok (Int64.unsigned b0) (Int64.unsigned b1) (Int64.unsigned b2)
+    (Int64.unsigned b3) (Int64.unsigned b4) ->
+  Int64.unsigned fm_t0 <= M52 /\ Int64.unsigned fm_t1 <= M52 /\ Int64.unsigned fm_t2 <= M52 /\
+  Int64.unsigned fm_t3 <= M52 /\ Int64.unsigned fm_t4 < 2 ^ 49 /\
+  fe_val (Int64.unsigned fm_t0) (Int64.unsigned fm_t1) (Int64.unsigned fm_t2)
+    (Int64.unsigned fm_t3) (Int64.unsigned fm_t4) mod feP =
+  (fe_val (Int64.unsigned a0) (Int64.unsigned a1) (Int64.unsigned a2)
+     (Int64.unsigned a3) (Int64.unsigned a4) *
+   fe_val (Int64.unsigned b0) (Int64.unsigned b1) (Int64.unsigned b2)
+     (Int64.unsigned b3) (Int64.unsigned b4)) mod feP.
+Proof.
+  intros HA HB.
+  assert (Ht : Int64.unsigned fm_t0 = Z.land (W52 mod 2 ^ 64) M52 /\
+    Int64.unsigned fm_t1 = Z.land (W66 mod 2 ^ 64) M52 /\
+    Int64.unsigned fm_t2 = Z.land (W82 mod 2 ^ 64) M52 /\
+    Int64.unsigned fm_t3 = Z.land (W90 mod 2 ^ 64) M52 /\
+    Int64.unsigned fm_t4 = (W92 mod 2 ^ 64 + Z.land (Z.land (W36 mod 2 ^ 64) M52) (M52 / 2 ^ 4)) mod 2 ^ 64).
+  { unfold fm_t0, fm_t1, fm_t2, fm_t3, fm_t4. rewrite !uns_and_lo.
+    split; [reflexivity|]. split; [reflexivity|]. split; [reflexivity|]. split; [reflexivity|].
+    rewrite uns_add, uns_and, uns_and_lo, uns_M4, uns_fm_lo. reflexivity. }
+  destruct Ht as (-> & -> & -> & -> & ->).
+  unfold fe_limbs_ok in HA, HB.
+  set (za0 := Int64.unsigned a0) in *. set (za1 := Int64.unsigned a1) in *.
+  set (za2 := Int64.unsigned a2) in *. set (za3 := Int64.unsigned a3) in *.
+  set (za4 := Int64.unsigned a4) in *. set (zb0 := Int64.unsigned b0) in *.
+  set (zb1 := Int64.unsigned b1) in *. set (zb2 := Int64.unsigned b2) in *.
+  set (zb3 := Int64.unsigned b3) in *. set (zb4 := Int64.unsigned b4) in *.
+  Ltac pbd x y := apply prod_bound; lia.
+  edestruct (fe_mul_core
+    (za0 * zb0) (za0 * zb1) (za0 * zb2) (za0 * zb3) (za0 * zb4)
+    (za1 * zb0) (za1 * zb1) (za1 * zb2) (za1 * zb3) (za1 * zb4)
+    (za2 * zb0) (za2 * zb1) (za2 * zb2) (za2 * zb3) (za2 * zb4)
+    (za3 * zb0) (za3 * zb1) (za3 * zb2) (za3 * zb3) (za3 * zb4)
+    (za4 * zb0) (za4 * zb1) (za4 * zb2) (za4 * zb3) (za4 * zb4)
+    W10 W12 W14 W16 W18 W20 W22 W24 W26 W28 W30 W32 W34 W36 W38
+    W40 W42 W44 W46 W48 W50 W52 W54 W56 W58 W60 W62 W64 W66 W68 W70 W72 W74 W76
+    W78 W80 W82 W84 W86 W88 W90 W92) as (B0 & B1 & B2 & B3 & B4 & K & HK).
+  all: unfold fe_mul_bound_BB, fe_mul_bound_BT, fe_mul_bound_TT.
+  all: try (apply prod_bound; lia).
+  all: try (rewrite (Z.mul_comm (2 ^ 52 - 1) (2 ^ 48 - 1)); apply prod_bound; lia).
+  all: try (match goal with |- ?w = ?r => let w' := eval red in w in change (w' = r) end;
+    wstep; fail).
+  - split; [lia|]. split; [lia|]. split; [lia|]. split; [lia|]. split; [exact (proj2 B4)|].
+    rewrite <- (Z.mod_add _ K) by (unfold feP, feR; lia). rewrite HK. f_equal.
+    unfold fe_val. ring.
+Qed.
 End MODEL.
 Print Assumptions fm_solves.
+Print Assumptions fm_mul_values.
