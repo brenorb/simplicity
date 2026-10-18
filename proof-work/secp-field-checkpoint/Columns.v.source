@@ -1,0 +1,69 @@
+(** Integer carry/reduction conservation for the original field multiplier's
+    operation order. Machine non-wrapping and C linkage are separate obligations. *)
+From Coq Require Import ZArith Lia.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition radix : Z := 4503599627370496.
+Definition carrier : Z := 18446744073709551616.
+Definition top_radix : Z := 281474976710656.
+Definition field_c : Z := 4294968273.
+Definition reduction : Z := 68719492368.
+Definition field_prime : Z := 2 ^ 256 - field_c.
+Record columns := mkcolumns {
+  p0 : Z; p1 : Z; p2 : Z; p3 : Z; p4 : Z; p5 : Z; p6 : Z; p7 : Z; p8 : Z
+}.
+
+Definition d3 c := p3 c + reduction * (p8 c mod carrier).
+Definition t3 c := d3 c mod radix.
+Definition d4 c := d3 c / radix + p4 c + (reduction * 4096) * (p8 c / carrier).
+Definition tx c := (d4 c mod radix) / top_radix.
+Definition t4 c := (d4 c mod radix) mod top_radix.
+Definition d5 c := d4 c / radix + p5 c.
+Definition u0 c := d5 c mod radix.
+Definition c0 c := p0 c + (u0 c * 16 + tx c) * field_c.
+Definition d6 c := d5 c / radix + p6 c.
+Definition c1 c := c0 c / radix + p1 c + (d6 c mod radix) * reduction.
+Definition d7 c := d6 c / radix + p7 c.
+Definition c2 c := c1 c / radix + p2 c + reduction * (d7 c mod carrier).
+Definition c3 c := c2 c / radix + (reduction * 4096) * (d7 c / carrier) + t3 c.
+
+Definition columns_value c := p0 c + radix * p1 c + radix ^ 2 * p2 c +
+  radix ^ 3 * p3 c + radix ^ 4 * p4 c + radix ^ 5 * p5 c +
+  radix ^ 6 * p6 c + radix ^ 7 * p7 c + radix ^ 8 * p8 c.
+Definition reduced_value c := c0 c mod radix + radix * (c1 c mod radix) +
+  radix ^ 2 * (c2 c mod radix) + radix ^ 3 * (c3 c mod radix) +
+  radix ^ 4 * (c3 c / radix + t4 c).
+Definition reduction_quotient c := 16 * p8 c * radix ^ 3 + tx c + 16 * u0 c +
+  16 * radix * (d6 c mod radix) + 16 * radix ^ 2 * d7 c.
+
+Lemma columns_conservation c :
+  columns_value c - reduced_value c = field_prime * reduction_quotient c.
+Proof.
+  pose proof (Z.div_mod (p8 c) carrier ltac:(unfold carrier; discriminate)) as E8.
+  pose proof (Z.div_mod (d3 c) radix ltac:(unfold radix; discriminate)) as E3.
+  pose proof (Z.div_mod (d4 c) radix ltac:(unfold radix; discriminate)) as E4.
+  pose proof (Z.div_mod (d4 c mod radix) top_radix ltac:(unfold top_radix; discriminate)) as ET.
+  pose proof (Z.div_mod (d5 c) radix ltac:(unfold radix; discriminate)) as E5.
+  pose proof (Z.div_mod (d6 c) radix ltac:(unfold radix; discriminate)) as E6.
+  pose proof (Z.div_mod (d7 c) carrier ltac:(unfold carrier; discriminate)) as E7.
+  pose proof (Z.div_mod (c0 c) radix ltac:(unfold radix; discriminate)) as EC0.
+  pose proof (Z.div_mod (c1 c) radix ltac:(unfold radix; discriminate)) as EC1.
+  pose proof (Z.div_mod (c2 c) radix ltac:(unfold radix; discriminate)) as EC2.
+  pose proof (Z.div_mod (c3 c) radix ltac:(unfold radix; discriminate)) as EC3.
+  unfold columns_value, reduced_value, reduction_quotient, c3, c2, c1, c0,
+    u0, d7, d6, d5, t4, tx, t3, d4, d3 in *.
+  unfold field_prime, reduction, field_c, radix, carrier, top_radix in *.
+  lia.
+(* The tactic prefix completes within ten seconds; kernel checking its
+   large ground-coefficient certificate has a separate bounded budget. *)
+Set Default Timeout 60.
+Time Qed.
+Set Default Timeout 10.
+
+Theorem columns_modulo c : reduced_value c mod field_prime = columns_value c mod field_prime.
+Proof.
+  pose proof (columns_conservation c) as H.
+  replace (columns_value c) with (reduced_value c + reduction_quotient c * field_prime) by nia.
+  rewrite Z.mod_add by (unfold field_prime, field_c; discriminate); reflexivity.
+Qed.
