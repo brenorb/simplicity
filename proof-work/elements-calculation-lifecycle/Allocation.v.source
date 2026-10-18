@@ -1,0 +1,37 @@
+(** Generic allocation prefix reused unchanged from jet_sha_tapdata_prep,
+    under fresh proof-support names. No C body is substituted. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Memory Values.
+Require Import C.jet_sha_compress_call.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Fixpoint calc_alloc_list (m : mem) (zs : list Z) : mem * list block :=
+  match zs with
+  | [] => (m, [])
+  | z :: zs => let (m1, b) := Mem.alloc m 0 z in
+               let (m2, bs) := calc_alloc_list m1 zs in (m2, b :: bs)
+  end.
+
+Lemma calc_alloc_list_props zs : forall m m' bs, calc_alloc_list m zs = (m', bs) ->
+  mext m m' /\ (forall b, Mem.valid_block m b -> ~ In b bs) /\ NoDup bs /\
+  Forall2 (fun b z => Mem.range_perm m' b 0 z Cur Freeable /\ Mem.valid_block m' b) bs zs.
+Proof.
+  induction zs as [|z zs IH]; intros m m' bs H.
+  - cbn in H. injection H as <- <-. split; [apply mext_refl|]. split; [intros b _ []|]. split; constructor.
+  - cbn [calc_alloc_list] in H. destruct (Mem.alloc m 0 z) as [m1 b] eqn:A.
+    destruct (calc_alloc_list m1 zs) as [m2 bs'] eqn:R. injection H as <- <-.
+    destruct (IH _ _ _ R) as (X & F & ND & FA).
+    pose proof (mext_alloc _ _ _ _ _ A) as X1.
+    split; [eapply mext_trans; eassumption|]. split.
+    { intros b0 Hv [Heq|Hin].
+      - subst b0. exact (Mem.fresh_block_alloc _ _ _ _ _ A Hv).
+      - exact (F b0 (proj1 X1 b0 Hv) Hin). }
+    split.
+    { constructor; [|exact ND]. apply F. eapply Mem.valid_new_block; exact A. }
+    constructor; [|exact FA]. split.
+    + intros ofs Ho. apply (proj1 (proj2 (proj2 X))). eapply Mem.perm_alloc_2; eauto.
+    + apply (proj1 X). eapply Mem.valid_new_block; exact A.
+Qed.
+

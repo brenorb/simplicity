@@ -1,0 +1,256 @@
+(** Actual straight-line bodies and their small-step composition interfaces.
+    Call/store/free premises here are internal; Local must derive them from
+    the initial public frame contract before claiming jet equivalence. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Memory Maps Values Events Globalenvs.
+Require Import C.jets_elements C.jet_elements_linkage C.jet_elements_sha_program.
+Require Import C.jet_elements_calc_field_eval C.jet_sha_linkage.
+Require Import C.jet_frame_layout C.jet_frame_copy C.jet_struct_copy_loads.
+Require Import C.jet_exec.
+Require Import CalculationLifecycle.Entry.
+Import Values Mem Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Definition calc_mid : type := Tstruct _sha256_midstate noattr.
+Definition calc_mid_ptr : type := tptr calc_mid.
+Definition calc_fr : type := Tstruct _frameItem noattr.
+Definition calc_cc := {| cc_vararg := None; cc_unproto := false; cc_structret := true |}.
+Definition calc_suffix_types (p : option Z) := match p with None => Tnil | Some _ => Tcons tint Tnil end.
+Definition calc_suffix_exprs (p : option Z) : list expr :=
+  match p with None => [] | Some z => [Econst_int (Int.repr z) tint] end.
+Definition calc_suffix_values (p : option Z) : list val :=
+  match p with None => [] | Some z => [Vint (Int.repr z)] end.
+
+Definition calc_copy_src : statement := Sassign (Evar _src calc_fr) (Etempvar _src calc_fr).
+Definition calc_read : statement :=
+  Scall None (Evar _read32s (Tfunction (Tcons (tptr tuint) (Tcons tulong (Tcons (tptr calc_fr) Tnil))) tvoid cc_default))
+    [Efield (Evar _entropy calc_mid) _s (tarray tuint 8); Econst_int (Int.repr 8) tint;
+     Eaddrof (Evar _src calc_fr) (tptr calc_fr)].
+Definition calc_helper_call (jid : ident) (p : option Z) : statement :=
+  Scall None (Evar jid (Tfunction (Tcons calc_mid_ptr (Tcons calc_mid_ptr (calc_suffix_types p))) tvoid calc_cc))
+    ([Eaddrof (Evar __res calc_mid) calc_mid_ptr; Eaddrof (Evar _entropy calc_mid) calc_mid_ptr] ++ calc_suffix_exprs p).
+Definition calc_copy_result : statement := Sassign (Evar _result calc_mid) (Evar __res calc_mid).
+Definition calc_write : statement :=
+  Scall None (Evar _writeHash (Tfunction (Tcons (tptr calc_fr) (Tcons calc_mid_ptr Tnil)) tvoid cc_default))
+    [Etempvar _dst (tptr calc_fr); Eaddrof (Evar _result calc_mid) calc_mid_ptr].
+Definition calc_body (jid : ident) (p : option Z) : statement :=
+  Ssequence calc_copy_src (Ssequence calc_read
+    (Ssequence (Ssequence (calc_helper_call jid p) calc_copy_result)
+      (Ssequence calc_write (Sreturn (Some (Econst_int (Int.repr 1) tint)))))).
+
+Lemma calc_asset_body : fn_body f_simplicity_calculate_asset = calc_body _simplicity_calculateAsset None.
+Proof. reflexivity. Qed.
+Lemma calc_explicit_body : fn_body f_simplicity_calculate_explicit_token = calc_body _simplicity_calculateToken (Some 1).
+Proof. reflexivity. Qed.
+Lemma calc_confidential_body : fn_body f_simplicity_calculate_confidential_token = calc_body _simplicity_calculateToken (Some 2).
+Proof. reflexivity. Qed.
+
+Lemma calc_mid_align : alignof_blockcopy elements_ge calc_mid = 4.
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma calc_env_blocks bl bh br bt :
+  blocks_of_env elements_ge (calculation_frame_env bl bh br bt) =
+    [(bl, 0, 16); (bh, 0, 32); (bt, 0, 32); (br, 0, 32)].
+Proof.
+  unfold blocks_of_env.
+  change ([(bl, 0, sizeof elements_ge calc_fr); (bh, 0, sizeof elements_ge calc_mid);
+    (bt, 0, sizeof elements_ge calc_mid); (br, 0, sizeof elements_ge calc_mid)] =
+    [(bl, 0, 16); (bh, 0, 32); (bt, 0, 32); (br, 0, 32)]).
+  unfold calc_fr, calc_mid. rewrite calculation_frame_size, calculation_midstate_size. reflexivity.
+Qed.
+
+Lemma calc_local_addr e le m id b :
+  e!id = Some (b, calc_mid) ->
+  eval_expr elements_ge e le m (Eaddrof (Evar id calc_mid) calc_mid_ptr) (Vptr b Ptrofs.zero).
+Proof. intro HE. apply eval_Eaddrof, eval_Evar_local. exact HE. Qed.
+
+Lemma calc_local_array e le m id b :
+  e!id = Some (b, calc_mid) ->
+  eval_expr elements_ge e le m (Efield (Evar id calc_mid) _s (tarray tuint 8)) (Vptr b Ptrofs.zero).
+Proof. intro HE. rewrite <- elements_sha_genv. apply calc_eval_local_mid_s. exact HE. Qed.
+
+Lemma exec_calc_source_copy m mc bl bh br bt bs sbase bytes le :
+  frame_base_valid sbase -> (8 | sbase) -> bl <> bs ->
+  le!_src = Some (Vptr bs (Ptrofs.repr sbase)) ->
+  Mem.loadbytes m bs sbase 16 = Some bytes -> Mem.storebytes m bl 0 bytes = Some mc ->
+  Clight2.exec_stmt elements_ge (calculation_frame_env bl bh br bt) le m calc_copy_src E0 le mc Out_normal.
+Proof.
+  intros HB HS HN HL HBytes HStore.
+  assert (HO : Ptrofs.unsigned (Ptrofs.repr sbase) = sbase) by
+    (apply Ptrofs.unsigned_repr; unfold frame_base_valid in HB; lia).
+  unfold calc_copy_src. eapply exec_Sassign_copy.
+  - apply eval_Evar_local. unfold calculation_frame_env. repeat rewrite PTree.gso by discriminate. apply PTree.gss.
+  - apply eval_Etempvar; exact HL.
+  - reflexivity.
+  - eapply assign_loc_copy with (b' := bs) (ofs' := Ptrofs.repr sbase) (bytes := bytes).
+    + reflexivity.
+    + intros _. change (8 | Ptrofs.unsigned (Ptrofs.repr sbase)). rewrite HO. exact HS.
+    + intros _. change (8 | 0). exists 0; reflexivity.
+    + left; congruence.
+    + change (Mem.loadbytes m bs (Ptrofs.unsigned (Ptrofs.repr sbase)) 16 = Some bytes). rewrite HO. exact HBytes.
+    + exact HStore.
+Qed.
+
+Lemma calc_read_symbol :
+  Genv.find_symbol (Clight.genv_genv elements_ge) _read32s = Some (elements_symbol_block _read32s).
+Proof. vm_compute; reflexivity. Qed.
+Lemma calc_read_funct :
+  Genv.find_funct (Clight.genv_genv elements_ge) (Vptr (elements_symbol_block _read32s) Ptrofs.zero) = Some (Internal f_read32s).
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma exec_calc_read le m mf bl bh br bt :
+  Clight2.eval_funcall elements_ge m (Internal f_read32s)
+    [Vptr bh Ptrofs.zero; Vlong (Int64.repr 8); Vptr bl Ptrofs.zero] E0 mf Vundef ->
+  Clight2.exec_stmt elements_ge (calculation_frame_env bl bh br bt) le m calc_read E0 le mf Out_normal.
+Proof.
+  intro HC. unfold calc_read. change le with (set_opttemp None Vundef le) at 2.
+  eapply exec_Scall with (vf := Vptr (elements_symbol_block _read32s) Ptrofs.zero) (f := Internal f_read32s)
+    (vargs := [Vptr bh Ptrofs.zero; Vlong (Int64.repr 8); Vptr bl Ptrofs.zero]) (vres := Vundef).
+  - reflexivity.
+  - eapply eval_Elvalue; [apply eval_Evar_global; [reflexivity|exact calc_read_symbol]|apply deref_loc_reference; reflexivity].
+  - eapply eval_Econs.
+    + apply calc_local_array. unfold calculation_frame_env. repeat rewrite PTree.gso by discriminate. apply PTree.gss.
+    + reflexivity.
+    + eapply eval_Econs; [apply eval_Econst_int|reflexivity|].
+      eapply eval_Econs.
+      * apply eval_Eaddrof, eval_Evar_local. unfold calculation_frame_env. repeat rewrite PTree.gso by discriminate. apply PTree.gss.
+      * reflexivity.
+      * apply eval_Enil.
+  - exact calc_read_funct.
+  - reflexivity.
+  - exact HC.
+Qed.
+
+Lemma eval_calc_helper_args e le m bh bt p :
+  e!__res = Some (bt, calc_mid) -> e!_entropy = Some (bh, calc_mid) ->
+  eval_exprlist elements_ge e le m
+    ([Eaddrof (Evar __res calc_mid) calc_mid_ptr; Eaddrof (Evar _entropy calc_mid) calc_mid_ptr] ++ calc_suffix_exprs p)
+    (Tcons calc_mid_ptr (Tcons calc_mid_ptr (calc_suffix_types p)))
+    ([Vptr bt Ptrofs.zero; Vptr bh Ptrofs.zero] ++ calc_suffix_values p).
+Proof.
+  intros HT HH. eapply eval_Econs; [apply calc_local_addr; exact HT|reflexivity|].
+  eapply eval_Econs; [apply calc_local_addr; exact HH|reflexivity|].
+  destruct p as [z | ]; [|apply eval_Enil].
+  eapply eval_Econs; [apply eval_Econst_int|reflexivity|apply eval_Enil].
+Qed.
+
+Lemma exec_calc_helper e le m mf bh bt jid cf p :
+  e!jid = None -> e!__res = Some (bt, calc_mid) -> e!_entropy = Some (bh, calc_mid) ->
+  Genv.find_symbol (Clight.genv_genv elements_ge) jid = Some (elements_symbol_block jid) ->
+  Genv.find_funct (Clight.genv_genv elements_ge) (Vptr (elements_symbol_block jid) Ptrofs.zero) = Some (Internal cf) ->
+  type_of_fundef (Internal cf) = Tfunction (Tcons calc_mid_ptr (Tcons calc_mid_ptr (calc_suffix_types p))) tvoid calc_cc ->
+  Clight2.eval_funcall elements_ge m (Internal cf)
+    ([Vptr bt Ptrofs.zero; Vptr bh Ptrofs.zero] ++ calc_suffix_values p) E0 mf Vundef ->
+  Clight2.exec_stmt elements_ge e le m (calc_helper_call jid p) E0 le mf Out_normal.
+Proof.
+  intros HNone HT HH HSym HFun HType HC. unfold calc_helper_call.
+  change le with (set_opttemp None Vundef le) at 2.
+  eapply exec_Scall with (vf := Vptr (elements_symbol_block jid) Ptrofs.zero) (f := Internal cf)
+    (vargs := [Vptr bt Ptrofs.zero; Vptr bh Ptrofs.zero] ++ calc_suffix_values p) (vres := Vundef).
+  - reflexivity.
+  - eapply eval_Elvalue; [apply eval_Evar_global; [exact HNone|exact HSym]|apply deref_loc_reference; reflexivity].
+  - apply eval_calc_helper_args; assumption.
+  - exact HFun.
+  - exact HType.
+  - exact HC.
+Qed.
+
+Lemma exec_calc_result_copy e le m mf br bt bytes :
+  e!_result = Some (br, calc_mid) -> e!__res = Some (bt, calc_mid) -> br <> bt ->
+  Mem.loadbytes m bt 0 32 = Some bytes -> Mem.storebytes m br 0 bytes = Some mf ->
+  Clight2.exec_stmt elements_ge e le m calc_copy_result E0 le mf Out_normal.
+Proof.
+  intros HR HT HN HL HS. unfold calc_copy_result. eapply exec_Sassign_copy.
+  - apply eval_Evar_local. exact HR.
+  - eapply eval_Elvalue; [apply eval_Evar_local; exact HT|apply deref_loc_copy; reflexivity].
+  - reflexivity.
+  - eapply assign_loc_copy with (b' := bt) (ofs' := Ptrofs.zero) (bytes := bytes); cbn [typeof].
+    + reflexivity.
+    + intros _. rewrite calc_mid_align. change (4 | 0). exists 0; reflexivity.
+    + intros _. rewrite calc_mid_align. change (4 | 0). exists 0; reflexivity.
+    + left; congruence.
+    + unfold calc_mid. rewrite calculation_midstate_size. exact HL.
+    + exact HS.
+Qed.
+
+Lemma calc_write_symbol :
+  Genv.find_symbol (Clight.genv_genv elements_ge) _writeHash = Some (elements_symbol_block _writeHash).
+Proof. vm_compute; reflexivity. Qed.
+Lemma calc_write_funct :
+  Genv.find_funct (Clight.genv_genv elements_ge) (Vptr (elements_symbol_block _writeHash) Ptrofs.zero) = Some (Internal f_writeHash).
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma exec_calc_write e le m mf br bd dbase :
+  e!_writeHash = None -> e!_result = Some (br, calc_mid) ->
+  le!_dst = Some (Vptr bd (Ptrofs.repr dbase)) ->
+  Clight2.eval_funcall elements_ge m (Internal f_writeHash)
+    [Vptr bd (Ptrofs.repr dbase); Vptr br Ptrofs.zero] E0 mf Vundef ->
+  Clight2.exec_stmt elements_ge e le m calc_write E0 le mf Out_normal.
+Proof.
+  intros HNone HR HD HC. unfold calc_write. change le with (set_opttemp None Vundef le) at 2.
+  eapply exec_Scall with (vf := Vptr (elements_symbol_block _writeHash) Ptrofs.zero) (f := Internal f_writeHash)
+    (vargs := [Vptr bd (Ptrofs.repr dbase); Vptr br Ptrofs.zero]) (vres := Vundef).
+  - reflexivity.
+  - eapply eval_Elvalue; [apply eval_Evar_global; [exact HNone|exact calc_write_symbol]|apply deref_loc_reference; reflexivity].
+  - eapply eval_Econs; [apply eval_Etempvar; exact HD|reflexivity|].
+    eapply eval_Econs; [apply calc_local_addr; exact HR|reflexivity|apply eval_Enil].
+  - exact calc_write_funct.
+  - reflexivity.
+  - exact HC.
+Qed.
+
+Theorem calc_function_composes f jid p cf env m m1 m2 m3 m4 mcp mr mt mc me mf
+    bl bh br bt bd dbase bs sbase bytes0 bytes1 :
+  calculation_frame_header f -> fn_body f = calc_body jid p ->
+  (calculation_frame_env bl bh br bt)!jid = None ->
+  Genv.find_symbol (Clight.genv_genv elements_ge) jid = Some (elements_symbol_block jid) ->
+  Genv.find_funct (Clight.genv_genv elements_ge) (Vptr (elements_symbol_block jid) Ptrofs.zero) = Some (Internal cf) ->
+  type_of_fundef (Internal cf) = Tfunction (Tcons calc_mid_ptr (Tcons calc_mid_ptr (calc_suffix_types p))) tvoid calc_cc ->
+  frame_base_valid sbase -> (8 | sbase) -> bl <> bs -> br <> bt ->
+  Mem.alloc m 0 16 = (m1, bl) -> Mem.alloc m1 0 32 = (m2, bh) ->
+  Mem.alloc m2 0 32 = (m3, br) -> Mem.alloc m3 0 32 = (m4, bt) ->
+  Mem.loadbytes m4 bs sbase 16 = Some bytes0 -> Mem.storebytes m4 bl 0 bytes0 = Some mcp ->
+  Clight2.eval_funcall elements_ge mcp (Internal f_read32s)
+    [Vptr bh Ptrofs.zero; Vlong (Int64.repr 8); Vptr bl Ptrofs.zero] E0 mr Vundef ->
+  Clight2.eval_funcall elements_ge mr (Internal cf)
+    ([Vptr bt Ptrofs.zero; Vptr bh Ptrofs.zero] ++ calc_suffix_values p) E0 mt Vundef ->
+  Mem.loadbytes mt bt 0 32 = Some bytes1 -> Mem.storebytes mt br 0 bytes1 = Some mc ->
+  Clight2.eval_funcall elements_ge mc (Internal f_writeHash)
+    [Vptr bd (Ptrofs.repr dbase); Vptr br Ptrofs.zero] E0 me Vundef ->
+  Mem.free_list me [(bl, 0, 16); (bh, 0, 32); (bt, 0, 32); (br, 0, 32)] = Some mf ->
+  Clight2.eval_funcall elements_ge m (Internal f)
+    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one).
+Proof.
+  intros HH HB HNone HSym HFun HType HBase HAlign Hls Hrt A1 A2 A3 A4 B0 S0 HCRead HCHelper B1 S1 HCWrite HFree.
+  pose proof HH as [HVars [HParams [HTemps [HRet HCC]]]].
+  set (e := calculation_frame_env bl bh br bt).
+  set (le := calculation_frame_temps env bd dbase bs sbase).
+  eapply eval_funcall_internal with (e := e) (le1 := le) (le2 := le) (m1 := m4) (m2 := me)
+    (out := Out_return (Some (Vint Int.one, tint))).
+  - exact (calculation_frame_entry f env m m1 m2 m3 m4 bl bh br bt bd dbase bs sbase HH A1 A2 A3 A4).
+  - rewrite HB. unfold calc_body.
+    eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mcp) (le1 := le).
+    + eapply exec_calc_source_copy with (bs := bs) (sbase := sbase) (bytes := bytes0); try assumption.
+      unfold le, calculation_frame_temps. rewrite PTree.gso by discriminate. apply PTree.gss.
+    + eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mr) (le1 := le).
+      * apply exec_calc_read. exact HCRead.
+      * eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mc) (le1 := le).
+        -- eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mt) (le1 := le).
+           ++ eapply exec_calc_helper with (cf := cf); try eassumption.
+              ** reflexivity.
+              ** reflexivity.
+           ++ eapply exec_calc_result_copy with (bytes := bytes1); try eassumption.
+              ** reflexivity.
+              ** reflexivity.
+        -- eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := me) (le1 := le).
+           ++ eapply exec_calc_write; try eassumption.
+              ** reflexivity.
+              ** reflexivity.
+              ** reflexivity.
+           ++ apply exec_Sreturn_some, eval_Econst_int.
+  - rewrite HRet. split; [discriminate|reflexivity].
+  - unfold e. rewrite calc_env_blocks. exact HFree.
+Qed.
+
