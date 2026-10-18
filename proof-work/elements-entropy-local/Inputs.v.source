@@ -1,0 +1,113 @@
+(** Actual outer-jet input statements, with the generated temporary update. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Cop Clight ClightBigstep Memory Maps Values Events Globalenvs.
+Require Import C.jets_elements C.jet_elements_linkage C.jet_elements_sha_program.
+Require Import C.jet_elements_calc_field_eval C.jet_sha_linkage.
+Require Import EntropyCompose.Common.
+Import Values Mem Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Definition entropy_op := Tstruct _outpoint noattr.
+Definition entropy_txid_array := Efield (Efield (Evar _op entropy_op) _txid calc_mid) _s (tarray tuint 8).
+Definition entropy_contract_array := Efield (Evar _contract calc_mid) _s (tarray tuint 8).
+Definition entropy_read_array (arg : expr) : statement :=
+  Scall None (Evar _read32s (Tfunction
+    (Tcons (tptr tuint) (Tcons tulong (Tcons (tptr calc_fr) Tnil))) tvoid cc_default))
+    [arg; Econst_int (Int.repr 8) tint; Eaddrof (Evar _src calc_fr) (tptr calc_fr)].
+Definition entropy_read_index : statement :=
+  Scall (Some _t'1) (Evar _simplicity_read32 (Tfunction (Tcons (tptr calc_fr) Tnil) tulong cc_default))
+    [Eaddrof (Evar _src calc_fr) (tptr calc_fr)].
+Definition entropy_store_index := Sassign (Efield (Evar _op entropy_op) _ix tulong) (Etempvar _t'1 tulong).
+
+Lemma entropy_local_txid e le m bo :
+  e!_op = Some (bo, entropy_op) ->
+  eval_expr elements_ge e le m entropy_txid_array (Vptr bo Ptrofs.zero).
+Proof.
+  intro HE. unfold entropy_txid_array, entropy_op, calc_mid. rewrite <- elements_sha_genv.
+  change Ptrofs.zero with (Ptrofs.add (Ptrofs.add Ptrofs.zero (Ptrofs.repr 0)) (Ptrofs.repr 0)).
+  eapply eval_envu_field_array with (sid := _sha256_midstate) (delta := 0).
+  - reflexivity.
+  - exact envu_sha256_midstate_s.
+  - intros ch; discriminate.
+  - reflexivity.
+  - eapply eval_envu_field_struct with (sid := _outpoint) (delta := 0).
+    + reflexivity.
+    + apply envu_field_offset_at. vm_compute; reflexivity.
+    + eapply eval_Elvalue; [apply eval_Evar_local; exact HE|apply deref_loc_copy; reflexivity].
+Qed.
+
+Lemma entropy_read_symbol :
+  Genv.find_symbol (Clight.genv_genv elements_ge) _read32s = Some (elements_symbol_block _read32s).
+Proof. vm_compute; reflexivity. Qed.
+Lemma entropy_read_funct :
+  Genv.find_funct (Clight.genv_genv elements_ge) (Vptr (elements_symbol_block _read32s) Ptrofs.zero) =
+    Some (Internal f_read32s).
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma exec_entropy_read_array e le m mf bl bx arg :
+  e!_read32s = None -> e!_src = Some (bl, calc_fr) ->
+  typeof arg = tarray tuint 8 ->
+  eval_expr elements_ge e le m arg (Vptr bx Ptrofs.zero) ->
+  Clight2.eval_funcall elements_ge m (Internal f_read32s)
+    [Vptr bx Ptrofs.zero; Vlong (Int64.repr 8); Vptr bl Ptrofs.zero] E0 mf Vundef ->
+  Clight2.exec_stmt elements_ge e le m (entropy_read_array arg) E0 le mf Out_normal.
+Proof.
+  intros HNone HL HT HA HC. unfold entropy_read_array. change le with (set_opttemp None Vundef le) at 2.
+  eapply exec_Scall with (vf := Vptr (elements_symbol_block _read32s) Ptrofs.zero)
+    (f := Internal f_read32s)
+    (vargs := [Vptr bx Ptrofs.zero; Vlong (Int64.repr 8); Vptr bl Ptrofs.zero]) (vres := Vundef).
+  - reflexivity.
+  - eapply eval_Elvalue; [apply eval_Evar_global; [exact HNone|exact entropy_read_symbol]|
+      apply deref_loc_reference; reflexivity].
+  - eapply eval_Econs; [exact HA|rewrite HT; reflexivity|].
+    eapply eval_Econs; [apply eval_Econst_int|reflexivity|].
+    eapply eval_Econs; [apply eval_Eaddrof, eval_Evar_local; exact HL|reflexivity|apply eval_Enil].
+  - exact entropy_read_funct.
+  - reflexivity.
+  - exact HC.
+Qed.
+
+Lemma entropy_index_symbol :
+  Genv.find_symbol (Clight.genv_genv elements_ge) _simplicity_read32 = Some (elements_symbol_block _simplicity_read32).
+Proof. vm_compute; reflexivity. Qed.
+Lemma entropy_index_funct :
+  Genv.find_funct (Clight.genv_genv elements_ge) (Vptr (elements_symbol_block _simplicity_read32) Ptrofs.zero) =
+    Some (Internal f_simplicity_read32).
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma exec_entropy_read_index e le m mf bl r :
+  e!_simplicity_read32 = None -> e!_src = Some (bl, calc_fr) ->
+  Clight2.eval_funcall elements_ge m (Internal f_simplicity_read32)
+    [Vptr bl Ptrofs.zero] E0 mf (Vlong r) ->
+  Clight2.exec_stmt elements_ge e le m entropy_read_index E0 (PTree.set _t'1 (Vlong r) le) mf Out_normal.
+Proof.
+  intros HNone HL HC. unfold entropy_read_index.
+  change (PTree.set _t'1 (Vlong r) le) with (set_opttemp (Some _t'1) (Vlong r) le).
+  eapply exec_Scall with (vf := Vptr (elements_symbol_block _simplicity_read32) Ptrofs.zero)
+    (f := Internal f_simplicity_read32) (vargs := [Vptr bl Ptrofs.zero]) (vres := Vlong r).
+  - reflexivity.
+  - eapply eval_Elvalue; [apply eval_Evar_global; [exact HNone|exact entropy_index_symbol]|
+      apply deref_loc_reference; reflexivity].
+  - eapply eval_Econs; [apply eval_Eaddrof, eval_Evar_local; exact HL|reflexivity|apply eval_Enil].
+  - exact entropy_index_funct.
+  - reflexivity.
+  - exact HC.
+Qed.
+
+Lemma exec_entropy_store_index e le m mf bo r :
+  e!_op = Some (bo, entropy_op) -> le!_t'1 = Some (Vlong r) ->
+  Mem.store Mint64 m bo 32 (Vlong r) = Some mf ->
+  Clight2.exec_stmt elements_ge e le m entropy_store_index E0 le mf Out_normal.
+Proof.
+  intros HO HT HS. unfold entropy_store_index. eapply exec_Sassign with (v := Vlong r).
+  - eapply eval_Efield_struct with (delta := 32) (ofs := Ptrofs.zero).
+    + eapply eval_Elvalue; [apply eval_Evar_local; exact HO|apply deref_loc_copy; reflexivity].
+    + reflexivity.
+    + vm_compute; reflexivity.
+    + vm_compute; reflexivity.
+  - apply eval_Etempvar; exact HT.
+  - reflexivity.
+  - apply assign_loc_value with (chunk := Mint64); [reflexivity|]. exact HS.
+Qed.
