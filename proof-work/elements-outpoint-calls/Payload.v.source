@@ -1,0 +1,46 @@
+(** Original 32/36-byte read-and-absorb sequence from initial representations. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Maps Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_frame_layout C.jet_input_layout C.jet_encoding.
+Require Import C.jet_read8s_layout C.jet_sha_ctx_abs C.jet_sha_ctx8_model C.jet_sha_uchars_exec C.jet_sha_linkage.
+Require Import C.jets_elements C.jet_elements_linkage.
+Require Import NonceExec.Effects OutpointExec.Shape OutpointExec.Read OutpointExec.Absorb.
+Import Mem Values Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Theorem op_payload_exec (Hmodel : memcpy_model) le m bl bm bb bx bi edge rc n
+    (xs : list (Ty.tySem Word8)) l regs c ovf :
+  Z.of_nat (length xs) = n -> 0 <= n <= 36 ->
+  bl <> bx -> bl <> bm -> bl <> GC -> bl <> GM ->
+  bb <> bx -> bb <> bm -> bb <> GC -> bb <> GM ->
+  bl <> bb -> bl <> bi -> bb <> bi ->
+  bm <> bx -> GC <> bx -> GC <> bm -> GM <> bx -> GM <> bm ->
+  0 <= rc -> rc + 8 * n <= Int64.max_unsigned ->
+  frame_fields_at m bl 0 bi edge rc -> Mem.valid_access m Mint64 bl 8 Writable ->
+  Mem.range_perm m bb 0 n Cur Writable ->
+  frame_input_cells_at m bi edge rc (concat (map (@encode Word8) xs)) -> ctx_abs m bx bm l regs c ovf ->
+  exists mf,
+    Clight2.exec_stmt elements_ge (op_env bl bm bb bx) le m
+      (Ssequence (op_read n) (op_absorb n)) E0 le mf Out_normal /\
+    frame_fields_at mf bl 0 bi edge (rc + 8 * n) /\
+    ctx_abs mf bx bm (fst (absorb l regs xs)) (snd (absorb l regs xs))
+      (Int64.add c (Int64.repr n)) (uc_overflow ovf c (Int64.repr n)) /\
+    nonce_effects m mf [bl; bb; bx; bm].
+Proof.
+  intros HL HN Hlx Hlm Hlg Hlc Hbx Hbm Hbg Hbc Hlb Hli Hbi Hmx Hgx Hgm Hcx Hcm H0 HM HF PW PB HI HC.
+  destruct (op_read_exec le m bl bm bb bx bi edge rc n xs HL HN Hlb Hli Hbi H0 HM HF PW PB HI)
+    as (mr & HRead & HArray & HFields & E1).
+  assert (HCr : ctx_abs mr bx bm l regs c ovf).
+  { eapply nonce_effects_ctx; [exact E1| | | | |exact HC]; cbn; intuition congruence. }
+  destruct (op_absorb_exec Hmodel le mr bl bm bb bx n l regs xs c ovf
+    HL HN Hbx Hbm Hmx Hgx Hgm Hcx Hcm HArray HCr) as (mf & HAdd & HCtx & E2).
+  exists mf. split.
+  - eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mr) (le1 := le); eassumption.
+  - split.
+    + eapply nonce_effects_fields; [exact E2|cbn; intuition congruence|exact HFields].
+    + split; [exact HCtx|].
+      eapply nonce_effects_union with (m1 := mr) (bs := [bl; bb]) (cs := [bx; bm]); eassumption.
+Qed.
