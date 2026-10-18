@@ -20,7 +20,7 @@ Proof. intros. split; [lia|apply Z.mul_le_mono_nonneg; lia]. Qed.
 Lemma mod_small_eq a n : 0 <= a < n -> a mod n = a.
 Proof. apply Z.mod_small. Qed.
 
-Lemma mod_mod_pow a k n : 0 <= k <= n -> (a mod 2 ^ n) mod 2 ^ k = a mod 2 ^ k.
+Lemma fm_mod_mod_pow a k n : 0 <= k <= n -> (a mod 2 ^ n) mod 2 ^ k = a mod 2 ^ k.
 Proof.
   intros Hk. replace (2 ^ n) with (2 ^ k * 2 ^ (n - k)).
   - rewrite Z.rem_mul_r by lia.
@@ -38,7 +38,7 @@ Definition fe_mul_bound_BT : Z := (2 ^ 52 - 1) * (2 ^ 48 - 1).
 Definition fe_mul_bound_TT : Z := (2 ^ 48 - 1) * (2 ^ 48 - 1).
 
 Lemma land_low52 W : 0 <= W -> Z.land (W mod 2 ^ 64) (2 ^ 52 - 1) = W mod 2 ^ 52.
-Proof. intros. rewrite land_ones_mod by lia. apply mod_mod_pow. lia. Qed.
+Proof. intros. rewrite land_ones_mod by lia. apply fm_mod_mod_pow. lia. Qed.
 
 Lemma lo_split W : 0 <= W ->
   exists q m, W = 2 ^ 64 * q + m /\ 0 <= m < 2 ^ 64 /\ W mod 2 ^ 64 = m /\ W / 2 ^ 64 = q.
