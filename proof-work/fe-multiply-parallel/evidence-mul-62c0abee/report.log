@@ -1,0 +1,3093 @@
+jet_parallel_fe_mul_calls.no_fe_mul_foot :
+forall (ba bb bx : Values.block) (pos : BinNums.Z),
+bx <> ba ->
+bx <> bb ->
+~
+jet_sx_state.foot ((ba, BinNums.Z0) :: (bb, BinNums.Z0) :: nil)%list
+  (List.map jet_sx_state.rshape jet_parallel_fe_mul_run.fe_mul_regs) bx pos
+
+jet_parallel_fe_mul_calls.no_fe_mul_foot is not universe polymorphic
+Arguments jet_parallel_fe_mul_calls.no_fe_mul_foot ba bb bx pos%Z_scope _ _ _
+jet_parallel_fe_mul_calls.no_fe_mul_foot is opaque
+Expands to: Constant C.jet_parallel_fe_mul_calls.no_fe_mul_foot
+Closed under the global context
+jet_parallel_fe_mul_calls.eval_mul_write_calls :
+forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+  (bw : Values.block) (edge cursor N : BinNums.Z) 
+  (bi : Values.block),
+BinNums.Z ->
+forall (m : Memory.Mem.mem) (ba bb : Values.block)
+  (a b : Ty.tySem (Word.Word 8)),
+jet_output_layout.write_frame_at m0 bd dbase bw edge cursor N ->
+BinInt.Z.le
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) N ->
+ba <> bb ->
+jet_secp_fe_nv.fe_at m ba BinNums.Z0
+  (List.map Integers.Int64.repr
+     (jet_secp_fe_math.fe_limbs_of
+        (Word.ToZ.Theory.toZ
+           (jet_secp_canonical_normalize.canonical_fe_normalize a)))) ->
+jet_secp_fe_nv.fe_at m bb BinNums.Z0
+  (List.map Integers.Int64.repr
+     (jet_secp_fe_math.fe_limbs_of
+        (Word.ToZ.Theory.toZ
+           (jet_secp_canonical_normalize.canonical_fe_normalize b)))) ->
+Memory.Mem.range_perm m ba BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+Memory.Mem.range_perm m bb BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+  ((ba, BinNums.Z0) :: (bb, BinNums.Z0) :: nil)%list ->
+jet_frame_inv.finv m0 bd dbase bw edge cursor N bi m false nil ->
+exists mn mf : Memory.Mem.mem,
+  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+    (Ctypes.Internal jets_secp.f_secp256k1_fe_mul)
+    (Values.Vptr ba Integers.Ptrofs.zero
+     :: Values.Vptr ba Integers.Ptrofs.zero
+        :: Values.Vptr bb Integers.Ptrofs.zero :: nil) Events.E0 mn
+    Values.Vundef /\
+  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mn
+    (Ctypes.Internal jets_secp.f_write_fe)
+    (Values.Vptr bd (Integers.Ptrofs.repr dbase)
+     :: Values.Vptr ba Integers.Ptrofs.zero :: nil) Events.E0 mf
+    Values.Vundef /\
+  jet_frame_inv.finv m0 bd dbase bw edge cursor N bi mf true
+    (Translate.encode
+       (jet_secp_negate_literal_contract.literal_fe_multiply (a, b))) /\
+  Memory.Mem.range_perm mf ba BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO
+          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+    Memtype.Cur Memtype.Freeable /\
+  Memory.Mem.range_perm mf bb BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO
+          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+    Memtype.Cur Memtype.Freeable /\
+  jet_sx_mem.lframe
+    (fun (b' : Values.block) (pos : BinNums.Z) =>
+     ~
+     jet_sx_state.foot ((ba, BinNums.Z0) :: (bb, BinNums.Z0) :: nil)%list
+       (List.map jet_sx_state.rshape jet_parallel_fe_mul_run.fe_mul_regs) b'
+       pos) m mn /\
+  jet_sx_mem.lframe
+    (jet_sx_exec.frame (jet_secp_frame.extA m0 bd bw bi)
+       ((ba, BinNums.Z0) :: nil)%list
+       jet_secp_local_regions.local_write_initial_regs mn) mn mf
+
+jet_parallel_fe_mul_calls.eval_mul_write_calls is not universe polymorphic
+Arguments jet_parallel_fe_mul_calls.eval_mul_write_calls 
+  m0 bd dbase%Z_scope bw (edge cursor N)%Z_scope bi 
+  rc%Z_scope m ba bb a b _ _ _ _ _ _ _ _ _
+jet_parallel_fe_mul_calls.eval_mul_write_calls is opaque
+Expands to: Constant C.jet_parallel_fe_mul_calls.eval_mul_write_calls
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_calls.eval_fe_mul_four_calls :
+forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+  (bw : Values.block) (outedge cursor N : BinNums.Z) 
+  (bi : Values.block) (edge rc : BinNums.Z) (a b : Ty.tySem (Word.Word 8))
+  (m : Memory.Mem.mem) (ba bb bl : Values.block),
+jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N ->
+jet_encoding.frame_input_cells_at m0 bi edge rc (Translate.encode (a, b)) ->
+BinInt.Z.le BinNums.Z0 rc ->
+BinInt.Z.le
+  (BinInt.Z.add rc
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+  Integers.Int64.max_unsigned ->
+Memory.Mem.range_perm m ba BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+Memory.Mem.range_perm m bb BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+Memory.Mem.range_perm m bl BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+  Memtype.Cur Memtype.Freeable ->
+jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc ->
+ba <> bb ->
+ba <> bl ->
+bb <> bl ->
+jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+  ((ba, BinNums.Z0) :: (bl, BinNums.Z0) :: nil)%list ->
+jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+  ((bb, BinNums.Z0) :: (bl, BinNums.Z0) :: nil)%list ->
+jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc false nil
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (jet_secp_wrapper_run.read_fe_rho
+     (jet_input_layout.frame_input_word_bits a) rc) nil m ->
+exists ma mb mn mf : Memory.Mem.mem,
+  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+    (Ctypes.Internal jets_secp.f_read_fe)
+    (Values.Vptr ba Integers.Ptrofs.zero
+     :: Values.Vptr bl Integers.Ptrofs.zero :: nil) Events.E0 ma
+    Values.Vundef /\
+  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ma
+    (Ctypes.Internal jets_secp.f_read_fe)
+    (Values.Vptr bb Integers.Ptrofs.zero
+     :: Values.Vptr bl Integers.Ptrofs.zero :: nil) Events.E0 mb
+    Values.Vundef /\
+  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mb
+    (Ctypes.Internal jets_secp.f_secp256k1_fe_mul)
+    (Values.Vptr ba Integers.Ptrofs.zero
+     :: Values.Vptr ba Integers.Ptrofs.zero
+        :: Values.Vptr bb Integers.Ptrofs.zero :: nil) Events.E0 mn
+    Values.Vundef /\
+  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mn
+    (Ctypes.Internal jets_secp.f_write_fe)
+    (Values.Vptr bd (Integers.Ptrofs.repr dbase)
+     :: Values.Vptr ba Integers.Ptrofs.zero :: nil) Events.E0 mf
+    Values.Vundef /\
+  jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi mf true
+    (Translate.encode
+       (jet_secp_negate_literal_contract.literal_fe_multiply (a, b))) /\
+  Memory.Mem.range_perm mf ba BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO
+          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+    Memtype.Cur Memtype.Freeable /\
+  Memory.Mem.range_perm mf bb BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO
+          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+    Memtype.Cur Memtype.Freeable /\
+  Memory.Mem.range_perm mf bl BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+    Memtype.Cur Memtype.Freeable /\
+  jet_sx_mem.lframe
+    (fun (bx : Values.block) (_ : BinNums.Z) =>
+     bx <> ba /\ bx <> bb /\ bx <> bl /\ ~ jet_secp_frame.extA m0 bd bw bi bx)
+    m mf
+
+jet_parallel_fe_mul_calls.eval_fe_mul_four_calls is not universe polymorphic
+Arguments jet_parallel_fe_mul_calls.eval_fe_mul_four_calls 
+  m0 bd dbase%Z_scope bw (outedge cursor N)%Z_scope 
+  bi (edge rc)%Z_scope a b m ba bb bl _ _ _ _ _ _ 
+  _ _ _ _ _ _ _ _
+jet_parallel_fe_mul_calls.eval_fe_mul_four_calls is opaque
+Expands to: Constant C.jet_parallel_fe_mul_calls.eval_fe_mul_four_calls
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_field.literal_fe_multiply_numeric :
+forall a b : Ty.tySem (Word.Word 8),
+Word.ToZ.Theory.toZ
+  (jet_secp_negate_literal_contract.literal_fe_multiply (a, b)) =
+BinInt.Z.modulo
+  (BinInt.Z.mul (Word.ToZ.Theory.toZ a) (Word.ToZ.Theory.toZ b))
+  jet_secp_canonical_normalize.canonical_field_order
+
+jet_parallel_fe_mul_field.literal_fe_multiply_numeric is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.literal_fe_multiply_numeric a b
+jet_parallel_fe_mul_field.literal_fe_multiply_numeric is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.literal_fe_multiply_numeric
+Axioms:
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+jet_parallel_fe_mul_field.fmr_first :
+forall A B : BinNums.Z,
+jet_secp_field_add_initial.field_values (jet_parallel_fe_mul_field.fmr A B) 0 =
+List.map Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of A)
+
+jet_parallel_fe_mul_field.fmr_first is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.fmr_first (A B)%Z_scope
+jet_parallel_fe_mul_field.fmr_first is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.fmr_first
+Closed under the global context
+jet_parallel_fe_mul_field.fmr_second :
+forall A B : BinNums.Z,
+jet_secp_field_add_initial.field_values (jet_parallel_fe_mul_field.fmr A B) 5 =
+List.map Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of B)
+
+jet_parallel_fe_mul_field.fmr_second is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.fmr_second (A B)%Z_scope
+jet_parallel_fe_mul_field.fmr_second is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.fmr_second
+Closed under the global context
+jet_parallel_fe_mul_field.limbs_ok_of :
+forall V : BinNums.Z,
+BinInt.Z.le BinNums.Z0 V /\
+BinInt.Z.lt V
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+jet_secp_fe_math.fe_limbs_ok
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 0))
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 1))
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 2))
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 3))
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 4)) /\
+jet_secp_fe_math.fe_val
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 0))
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 1))
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 2))
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 3))
+  (Integers.Int64.unsigned (jet_secp_b32_exec.limb_rho V 4)) = V
+
+jet_parallel_fe_mul_field.limbs_ok_of is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.limbs_ok_of V%Z_scope _
+jet_parallel_fe_mul_field.limbs_ok_of is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.limbs_ok_of
+Closed under the global context
+jet_parallel_fe_mul_field.fe_mul_initial_rep :
+forall A B : BinNums.Z,
+BinInt.Z.le BinNums.Z0 A /\
+BinInt.Z.lt A
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+BinInt.Z.le BinNums.Z0 B /\
+BinInt.Z.lt B
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+forall (m : Memory.Mem.mem) (ba bb : Values.block),
+ba <> bb ->
+jet_secp_fe_nv.fe_at m ba BinNums.Z0
+  (List.map Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of A)) ->
+jet_secp_fe_nv.fe_at m bb BinNums.Z0
+  (List.map Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of B)) ->
+Memory.Mem.range_perm m ba BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+Memory.Mem.range_perm m bb BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+jet_sx_state.rep (jet_parallel_fe_mul_field.fmr A B)
+  ((ba, BinNums.Z0) :: (bb, BinNums.Z0) :: nil)%list
+  jet_parallel_fe_mul_run.fe_mul_regs m
+
+jet_parallel_fe_mul_field.fe_mul_initial_rep is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.fe_mul_initial_rep 
+  (A B)%Z_scope HA HB m ba bb _ _ _ _ _
+jet_parallel_fe_mul_field.fe_mul_initial_rep is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.fe_mul_initial_rep
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_field.out_cell_in :
+forall A B : BinNums.Z,
+BinInt.Z.le BinNums.Z0 A /\
+BinInt.Z.lt A
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+BinInt.Z.le BinNums.Z0 B /\
+BinInt.Z.lt B
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+forall i : nat,
+i < 5 ->
+List.In
+  {|
+    jet_sx_state.cofs :=
+      BinInt.Z.mul
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+        (BinInt.Z.of_nat i);
+    jet_sx_state.cchunk := AST.Mint64;
+    jet_sx_state.cval :=
+      Some
+        (List.nth i jet_parallel_fe_mul_run.fe_mul_out
+           (jet_sx_expr.XLc Integers.Int64.zero))
+  |}
+  (jet_sx_state.rcells
+     {|
+       jet_sx_state.rcells :=
+         jet_sx_rep.u64_cells BinNums.Z0 jet_parallel_fe_mul_run.fe_mul_out;
+       jet_sx_state.rw := true;
+       jet_sx_state.rfree :=
+         Some
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+     |})
+
+jet_parallel_fe_mul_field.out_cell_in is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.out_cell_in (A B)%Z_scope 
+  HA HB i%nat_scope _
+jet_parallel_fe_mul_field.out_cell_in is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.out_cell_in
+Closed under the global context
+jet_parallel_fe_mul_field.fe_mul_out_field :
+forall A B : BinNums.Z,
+BinInt.Z.le BinNums.Z0 A /\
+BinInt.Z.lt A
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+BinInt.Z.le BinNums.Z0 B /\
+BinInt.Z.lt B
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+forall (m : Memory.Mem.mem) (ba bb : Values.block),
+jet_sx_state.rep (jet_parallel_fe_mul_field.fmr A B)
+  ((ba, BinNums.Z0) :: (bb, BinNums.Z0) :: nil)%list
+  jet_parallel_fe_mul_run.fe_mul_out_regs m ->
+jet_secp_fe_nv.fe_at m ba BinNums.Z0 (jet_parallel_fe_mul_field.fm_out A B) /\
+Memory.Mem.range_perm m ba BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable /\
+Memory.Mem.range_perm m bb BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable
+
+jet_parallel_fe_mul_field.fe_mul_out_field is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.fe_mul_out_field 
+  (A B)%Z_scope HA HB m ba bb _
+jet_parallel_fe_mul_field.fe_mul_out_field is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.fe_mul_out_field
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_field.fm_solves_fmr :
+forall A B : BinNums.Z,
+List.Forall
+  (jet_parallel_fe_mul_oracle.u128_evok (jet_parallel_fe_mul_field.fmr A B))
+  jet_parallel_fe_mul_model.fe_mul_log
+
+jet_parallel_fe_mul_field.fm_solves_fmr is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.fm_solves_fmr (A B)%Z_scope
+jet_parallel_fe_mul_field.fm_solves_fmr is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.fm_solves_fmr
+Closed under the global context
+jet_parallel_fe_mul_field.fe_mul_out_bounds :
+forall A B : BinNums.Z,
+BinInt.Z.le BinNums.Z0 A /\
+BinInt.Z.lt A
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+BinInt.Z.le BinNums.Z0 B /\
+BinInt.Z.lt B
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+forall (n : nat) (x : Integers.Int64.int),
+List.nth_error (jet_parallel_fe_mul_field.fm_out A B) n = Some x ->
+BinInt.Z.le (Integers.Int64.unsigned x)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+
+jet_parallel_fe_mul_field.fe_mul_out_bounds is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.fe_mul_out_bounds 
+  (A B)%Z_scope HA HB n%nat_scope x _ _
+jet_parallel_fe_mul_field.fe_mul_out_bounds is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.fe_mul_out_bounds
+Closed under the global context
+jet_parallel_fe_mul_field.fe_mul_out_value :
+forall A B : BinNums.Z,
+BinInt.Z.le BinNums.Z0 A /\
+BinInt.Z.lt A
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+BinInt.Z.le BinNums.Z0 B /\
+BinInt.Z.lt B
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) ->
+BinInt.Z.modulo
+  (jet_secp_fe_math.fe_val
+     (Integers.Int64.unsigned
+        (List.nth 0 (jet_parallel_fe_mul_field.fm_out A B)
+           Integers.Int64.zero))
+     (Integers.Int64.unsigned
+        (List.nth 1 (jet_parallel_fe_mul_field.fm_out A B)
+           Integers.Int64.zero))
+     (Integers.Int64.unsigned
+        (List.nth 2 (jet_parallel_fe_mul_field.fm_out A B)
+           Integers.Int64.zero))
+     (Integers.Int64.unsigned
+        (List.nth 3 (jet_parallel_fe_mul_field.fm_out A B)
+           Integers.Int64.zero))
+     (Integers.Int64.unsigned
+        (List.nth 4 (jet_parallel_fe_mul_field.fm_out A B)
+           Integers.Int64.zero))) jet_secp_fe_math.feP =
+BinInt.Z.modulo (BinInt.Z.mul A B) jet_secp_fe_math.feP
+
+jet_parallel_fe_mul_field.fe_mul_out_value is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.fe_mul_out_value (A B)%Z_scope HA HB
+jet_parallel_fe_mul_field.fe_mul_out_value is opaque
+Expands to: Constant C.jet_parallel_fe_mul_field.fe_mul_out_value
+Closed under the global context
+jet_parallel_fe_mul_field.eval_fe_mul_from_normalized_fields :
+forall (m : Memory.Mem.mem) (ba bb : Values.block)
+  (a b : Ty.tySem (Word.Word 8)),
+ba <> bb ->
+jet_secp_fe_nv.fe_at m ba BinNums.Z0
+  (List.map Integers.Int64.repr
+     (jet_secp_fe_math.fe_limbs_of
+        (Word.ToZ.Theory.toZ
+           (jet_secp_canonical_normalize.canonical_fe_normalize a)))) ->
+jet_secp_fe_nv.fe_at m bb BinNums.Z0
+  (List.map Integers.Int64.repr
+     (jet_secp_fe_math.fe_limbs_of
+        (Word.ToZ.Theory.toZ
+           (jet_secp_canonical_normalize.canonical_fe_normalize b)))) ->
+Memory.Mem.range_perm m ba BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+Memory.Mem.range_perm m bb BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+exists (mf : Memory.Mem.mem) (t0 t1 t2 t3 t4 : Integers.Int64.int),
+  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+    (Ctypes.Internal jets_secp.f_secp256k1_fe_mul)
+    (Values.Vptr ba Integers.Ptrofs.zero
+     :: Values.Vptr ba Integers.Ptrofs.zero
+        :: Values.Vptr bb Integers.Ptrofs.zero :: nil) Events.E0 mf
+    Values.Vundef /\
+  jet_secp_fe_nv.fe_at mf ba BinNums.Z0 (t0 :: t1 :: t2 :: t3 :: t4 :: nil) /\
+  BinInt.Z.le (Integers.Int64.unsigned t0)
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) /\
+  BinInt.Z.le (Integers.Int64.unsigned t1)
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) /\
+  BinInt.Z.le (Integers.Int64.unsigned t2)
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) /\
+  BinInt.Z.le (Integers.Int64.unsigned t3)
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) /\
+  BinInt.Z.le (Integers.Int64.unsigned t4)
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) /\
+  jet_secp_write_fe_wide_exec.wide_fe_output t0 t1 t2 t3 t4 =
+  jet_secp_negate_literal_contract.literal_fe_multiply (a, b) /\
+  Memory.Mem.range_perm mf ba BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO
+          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+    Memtype.Cur Memtype.Freeable /\
+  Memory.Mem.range_perm mf bb BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO
+          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+    Memtype.Cur Memtype.Freeable /\
+  jet_sx_mem.lframe
+    (fun (b' : Values.block) (pos : BinNums.Z) =>
+     ~
+     jet_sx_state.foot ((ba, BinNums.Z0) :: (bb, BinNums.Z0) :: nil)%list
+       (List.map jet_sx_state.rshape jet_parallel_fe_mul_run.fe_mul_regs) b'
+       pos) m mf
+
+jet_parallel_fe_mul_field.eval_fe_mul_from_normalized_fields is not universe polymorphic
+Arguments jet_parallel_fe_mul_field.eval_fe_mul_from_normalized_fields 
+  m ba bb a b _ _ _ _ _
+jet_parallel_fe_mul_field.eval_fe_mul_from_normalized_fields is opaque
+Expands to: Constant
+C.jet_parallel_fe_mul_field.eval_fe_mul_from_normalized_fields
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_local.secp_fe_mul_body :
+Clight.fn_body jets_secp.f_simplicity_fe_multiply =
+Clight.Ssequence
+  (Clight.Sassign
+     (Clight.Evar jets_secp._src jet_secp_public_body.secp_frame_type)
+     (Clight.Etempvar jets_secp._src jet_secp_public_body.secp_frame_type))
+  jet_parallel_fe_mul_local.secp_fe_mul_rest
+
+jet_parallel_fe_mul_local.secp_fe_mul_body is not universe polymorphic
+jet_parallel_fe_mul_local.secp_fe_mul_body is opaque
+Expands to: Constant C.jet_parallel_fe_mul_local.secp_fe_mul_body
+Closed under the global context
+jet_parallel_fe_mul_local.secp_mul_helper_symbols :
+Globalenvs.Genv.find_symbol (Clight.genv_genv jet_secp_linkage.secp_ge)
+  jets_secp._secp256k1_fe_mul =
+Some (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_fe_mul) /\
+Globalenvs.Genv.find_funct (Clight.genv_genv jet_secp_linkage.secp_ge)
+  (Values.Vptr
+     (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_fe_mul)
+     Integers.Ptrofs.zero) =
+Some (Ctypes.Internal jets_secp.f_secp256k1_fe_mul)
+
+jet_parallel_fe_mul_local.secp_mul_helper_symbols is not universe polymorphic
+jet_parallel_fe_mul_local.secp_mul_helper_symbols is opaque
+Expands to: Constant C.jet_parallel_fe_mul_local.secp_mul_helper_symbols
+Closed under the global context
+jet_parallel_fe_mul_local.exec_secp_mul_fields :
+forall (le : Clight.temp_env) (m mf : Memory.Mem.mem)
+  (bl ba bb : Values.block),
+ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+  (Ctypes.Internal jets_secp.f_secp256k1_fe_mul)
+  (Values.Vptr ba Integers.Ptrofs.zero
+   :: Values.Vptr ba Integers.Ptrofs.zero
+      :: Values.Vptr bb Integers.Ptrofs.zero :: nil) Events.E0 mf
+  Values.Vundef ->
+ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+  (jet_secp_add_body.secp_public_add_env bl ba bb) le m
+  jet_parallel_fe_mul_local.secp_public_mul_stmt Events.E0 le mf
+  ClightBigstep.Out_normal
+
+jet_parallel_fe_mul_local.exec_secp_mul_fields is not universe polymorphic
+Arguments jet_parallel_fe_mul_local.exec_secp_mul_fields le m mf bl ba bb _
+jet_parallel_fe_mul_local.exec_secp_mul_fields is opaque
+Expands to: Constant C.jet_parallel_fe_mul_local.exec_secp_mul_fields
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_local.exec_secp_mul_rest_calls :
+forall (le : Maps.PTree.tree Values.val) (m ma mb mn mf : Memory.Mem.mem)
+  (bl ba bb bd : Values.block) (dbase : BinNums.Z),
+Maps.PTree.get jets_secp._dst le =
+Some (Values.Vptr bd (Integers.Ptrofs.repr dbase)) ->
+ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+  (Ctypes.Internal jets_secp.f_read_fe)
+  (Values.Vptr ba Integers.Ptrofs.zero
+   :: Values.Vptr bl Integers.Ptrofs.zero :: nil) Events.E0 ma Values.Vundef ->
+ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ma
+  (Ctypes.Internal jets_secp.f_read_fe)
+  (Values.Vptr bb Integers.Ptrofs.zero
+   :: Values.Vptr bl Integers.Ptrofs.zero :: nil) Events.E0 mb Values.Vundef ->
+ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mb
+  (Ctypes.Internal jets_secp.f_secp256k1_fe_mul)
+  (Values.Vptr ba Integers.Ptrofs.zero
+   :: Values.Vptr ba Integers.Ptrofs.zero
+      :: Values.Vptr bb Integers.Ptrofs.zero :: nil) Events.E0 mn
+  Values.Vundef ->
+ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mn
+  (Ctypes.Internal jets_secp.f_write_fe)
+  (Values.Vptr bd (Integers.Ptrofs.repr dbase)
+   :: Values.Vptr ba Integers.Ptrofs.zero :: nil) Events.E0 mf Values.Vundef ->
+ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+  (jet_secp_add_body.secp_public_add_env bl ba bb) le m
+  jet_parallel_fe_mul_local.secp_fe_mul_rest Events.E0 le mf
+  (ClightBigstep.Out_return
+     (Some (Values.Vint Integers.Int.one, Ctypesdefs.tint)))
+
+jet_parallel_fe_mul_local.exec_secp_mul_rest_calls is not universe polymorphic
+Arguments jet_parallel_fe_mul_local.exec_secp_mul_rest_calls 
+  le m ma mb mn mf bl ba bb bd dbase%Z_scope _ _ _ 
+  _ _
+jet_parallel_fe_mul_local.exec_secp_mul_rest_calls is opaque
+Expands to: Constant C.jet_parallel_fe_mul_local.exec_secp_mul_rest_calls
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_local.secp_fe_mul_entry :
+forall (v_env : Values.val) (m : Memory.Mem.mem) (ml ma mb : Memory.Mem.mem')
+  (bl ba bb bd : Values.block) (dbase : BinNums.Z) 
+  (bs : Values.block) (sbase : BinNums.Z),
+Memory.Mem.alloc m BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) =
+(ml, bl) ->
+Memory.Mem.alloc ml BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) =
+(ma, ba) ->
+Memory.Mem.alloc ma BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) =
+(mb, bb) ->
+Clight.function_entry2 jet_secp_linkage.secp_ge
+  jets_secp.f_simplicity_fe_multiply
+  (Values.Vptr bd (Integers.Ptrofs.repr dbase)
+   :: Values.Vptr bs (Integers.Ptrofs.repr sbase) :: v_env :: nil) m
+  (jet_secp_add_body.secp_public_add_env bl ba bb)
+  (jet_parallel_fe_mul_local.secp_mul_temps v_env bd dbase bs sbase) mb
+
+jet_parallel_fe_mul_local.secp_fe_mul_entry is not universe polymorphic
+Arguments jet_parallel_fe_mul_local.secp_fe_mul_entry 
+  v_env m ml ma mb bl ba bb bd dbase%Z_scope bs sbase%Z_scope 
+  _ _ _
+jet_parallel_fe_mul_local.secp_fe_mul_entry is opaque
+Expands to: Constant C.jet_parallel_fe_mul_local.secp_fe_mul_entry
+Closed under the global context
+jet_parallel_fe_mul_local.exec_secp_fe_mul_rest_literal :
+forall (le : Maps.PTree.tree Values.val) (m0 : Memory.Mem.mem)
+  (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+  (outedge cursor N : BinNums.Z) (bi : Values.block) 
+  (edge rc : BinNums.Z) (a b : Ty.tySem (Word.Word 8)) 
+  (m : Memory.Mem.mem) (ba bb bl : Values.block),
+Maps.PTree.get jets_secp._dst le =
+Some (Values.Vptr bd (Integers.Ptrofs.repr dbase)) ->
+jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N ->
+jet_encoding.frame_input_cells_at m0 bi edge rc (Translate.encode (a, b)) ->
+BinInt.Z.le BinNums.Z0 rc ->
+BinInt.Z.le
+  (BinInt.Z.add rc
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+  Integers.Int64.max_unsigned ->
+Memory.Mem.range_perm m ba BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+Memory.Mem.range_perm m bb BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+  Memtype.Cur Memtype.Freeable ->
+Memory.Mem.range_perm m bl BinNums.Z0
+  (BinNums.Zpos
+     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+  Memtype.Cur Memtype.Freeable ->
+jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc ->
+ba <> bb ->
+ba <> bl ->
+bb <> bl ->
+jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+  ((ba, BinNums.Z0) :: (bl, BinNums.Z0) :: nil)%list ->
+jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+  ((bb, BinNums.Z0) :: (bl, BinNums.Z0) :: nil)%list ->
+jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc false nil
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (jet_secp_wrapper_run.read_fe_rho
+     (jet_input_layout.frame_input_word_bits a) rc) nil m ->
+exists mf : Memory.Mem.mem,
+  ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+    (jet_secp_add_body.secp_public_add_env bl ba bb) le m
+    jet_parallel_fe_mul_local.secp_fe_mul_rest Events.E0 le mf
+    (ClightBigstep.Out_return
+       (Some (Values.Vint Integers.Int.one, Ctypesdefs.tint))) /\
+  jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi mf true
+    (Translate.encode
+       (jet_secp_negate_literal_contract.literal_fe_multiply (a, b))) /\
+  Memory.Mem.range_perm mf ba BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO
+          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+    Memtype.Cur Memtype.Freeable /\
+  Memory.Mem.range_perm mf bb BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO
+          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+    Memtype.Cur Memtype.Freeable /\
+  Memory.Mem.range_perm mf bl BinNums.Z0
+    (BinNums.Zpos
+       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+    Memtype.Cur Memtype.Freeable /\
+  jet_sx_mem.lframe
+    (fun (bx : Values.block) (_ : BinNums.Z) =>
+     bx <> ba /\ bx <> bb /\ bx <> bl /\ ~ jet_secp_frame.extA m0 bd bw bi bx)
+    m mf
+
+jet_parallel_fe_mul_local.exec_secp_fe_mul_rest_literal is not universe polymorphic
+Arguments jet_parallel_fe_mul_local.exec_secp_fe_mul_rest_literal 
+  le m0 bd dbase%Z_scope bw (outedge cursor N)%Z_scope 
+  bi (edge rc)%Z_scope a b m ba bb bl _ _ _ _ _ _ 
+  _ _ _ _ _ _ _ _ _
+jet_parallel_fe_mul_local.exec_secp_fe_mul_rest_literal is opaque
+Expands to: Constant
+C.jet_parallel_fe_mul_local.exec_secp_fe_mul_rest_literal
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_local.eval_secp_fe_mul_literal :
+forall (v_env : Values.val) (m0 : Memory.Mem.mem) 
+  (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block)
+  (sbase : BinNums.Z) (bw : Values.block) (outedge cursor N : BinNums.Z)
+  (bi : Values.block) (edge rc : BinNums.Z) (a b : Ty.tySem (Word.Word 8)),
+jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N ->
+BinInt.Z.le
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) N ->
+jet_frame_layout.frame_base_valid sbase ->
+BinInt.Z.divide
+  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase ->
+jet_frame_layout.frame_fields_at m0 bs sbase bi edge rc ->
+jet_encoding.frame_input_cells_at m0 bi edge rc (Translate.encode (a, b)) ->
+BinInt.Z.le BinNums.Z0 rc ->
+BinInt.Z.le
+  (BinInt.Z.add rc
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+  Integers.Int64.max_unsigned ->
+exists mf : Memory.Mem.mem,
+  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m0
+    (Ctypes.Internal jets_secp.f_simplicity_fe_multiply)
+    (Values.Vptr bd (Integers.Ptrofs.repr dbase)
+     :: Values.Vptr bs (Integers.Ptrofs.repr sbase) :: v_env :: nil)
+    Events.E0 mf (Values.Vint Integers.Int.one) /\
+  jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi mf true
+    (Translate.encode
+       (jet_secp_negate_literal_contract.literal_fe_multiply (a, b))) /\
+  jet_sx_mem.lframe
+    (fun (bx : Values.block) (_ : BinNums.Z) =>
+     ~ jet_secp_frame.extA m0 bd bw bi bx) m0 mf
+
+jet_parallel_fe_mul_local.eval_secp_fe_mul_literal is not universe polymorphic
+Arguments jet_parallel_fe_mul_local.eval_secp_fe_mul_literal 
+  v_env m0 bd dbase%Z_scope bs sbase%Z_scope bw (outedge cursor N)%Z_scope 
+  bi (edge rc)%Z_scope a b _ _ _ _ _ _ _ _
+jet_parallel_fe_mul_local.eval_secp_fe_mul_literal is opaque
+Expands to: Constant C.jet_parallel_fe_mul_local.eval_secp_fe_mul_literal
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_local.fe_multiply_literal_local_spec :
+jet_secp_normalize_local.secp_jet_local_spec
+  jets_secp.f_simplicity_fe_multiply (Ty.Prod (Word.Word 8) (Word.Word 8))
+  (Word.Word 8) jet_secp_negate_literal_contract.literal_fe_multiply
+
+jet_parallel_fe_mul_local.fe_multiply_literal_local_spec is not universe polymorphic
+Arguments jet_parallel_fe_mul_local.fe_multiply_literal_local_spec 
+  env m bd dbase bs sbase bi bw edge outedge cursor 
+  read_cursor a _ _ _ _ _ _ _
+jet_parallel_fe_mul_local.fe_multiply_literal_local_spec is opaque
+Expands to: Constant
+C.jet_parallel_fe_mul_local.fe_multiply_literal_local_spec
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_local.fe_multiply_local_spec :
+jet_secp_normalize_local.secp_jet_local_spec
+  jets_secp.f_simplicity_fe_multiply (Ty.Prod (Word.Word 8) (Word.Word 8))
+  (Word.Word 8) jet_secp_canonical_negate.canonical_fe_multiply
+
+jet_parallel_fe_mul_local.fe_multiply_local_spec is not universe polymorphic
+Arguments jet_parallel_fe_mul_local.fe_multiply_local_spec 
+  env m bd dbase bs sbase bi bw edge outedge cursor 
+  read_cursor a _ _ _ _ _ _ _
+jet_parallel_fe_mul_local.fe_multiply_local_spec is opaque
+Expands to: Constant C.jet_parallel_fe_mul_local.fe_multiply_local_spec
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_math.feMulR_feR :
+jet_parallel_fe_mul_math.feMulR =
+BinInt.Z.mul
+  (BinNums.Zpos
+     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+  jet_secp_fe_math.feR
+
+jet_parallel_fe_mul_math.feMulR_feR is not universe polymorphic
+jet_parallel_fe_mul_math.feMulR_feR is opaque
+Expands to: Constant C.jet_parallel_fe_mul_math.feMulR_feR
+Closed under the global context
+jet_parallel_fe_mul_math.prod_bound :
+forall x y X Y : BinNums.Z,
+BinInt.Z.le BinNums.Z0 x /\ BinInt.Z.le x X ->
+BinInt.Z.le BinNums.Z0 y /\ BinInt.Z.le y Y ->
+BinInt.Z.le BinNums.Z0 (BinInt.Z.mul x y) /\
+BinInt.Z.le (BinInt.Z.mul x y) (BinInt.Z.mul X Y)
+
+jet_parallel_fe_mul_math.prod_bound is not universe polymorphic
+Arguments jet_parallel_fe_mul_math.prod_bound (x y X Y)%Z_scope _ _
+jet_parallel_fe_mul_math.prod_bound is opaque
+Expands to: Constant C.jet_parallel_fe_mul_math.prod_bound
+Closed under the global context
+jet_parallel_fe_mul_math.mod_small_eq :
+forall a n : BinNums.Z,
+BinInt.Z.le BinNums.Z0 a /\ BinInt.Z.lt a n -> BinInt.Z.modulo a n = a
+
+jet_parallel_fe_mul_math.mod_small_eq is not universe polymorphic
+Arguments jet_parallel_fe_mul_math.mod_small_eq (a n)%Z_scope _
+jet_parallel_fe_mul_math.mod_small_eq is opaque
+Expands to: Constant C.jet_parallel_fe_mul_math.mod_small_eq
+Closed under the global context
+jet_parallel_fe_mul_math.mod_mod_pow :
+forall a k n : BinNums.Z,
+BinInt.Z.le BinNums.Z0 k /\ BinInt.Z.le k n ->
+BinInt.Z.modulo
+  (BinInt.Z.modulo a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) n))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k) =
+BinInt.Z.modulo a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+
+jet_parallel_fe_mul_math.mod_mod_pow is not universe polymorphic
+Arguments jet_parallel_fe_mul_math.mod_mod_pow (a k n)%Z_scope _
+jet_parallel_fe_mul_math.mod_mod_pow is opaque
+Expands to: Constant C.jet_parallel_fe_mul_math.mod_mod_pow
+Closed under the global context
+jet_parallel_fe_mul_math.land_low52 :
+forall W : BinNums.Z,
+BinInt.Z.le BinNums.Z0 W ->
+BinInt.Z.land
+  (BinInt.Z.modulo W
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (BinInt.Z.sub
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+     (BinNums.Zpos BinNums.xH)) =
+BinInt.Z.modulo W
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+
+jet_parallel_fe_mul_math.land_low52 is not universe polymorphic
+Arguments jet_parallel_fe_mul_math.land_low52 W%Z_scope _
+jet_parallel_fe_mul_math.land_low52 is opaque
+Expands to: Constant C.jet_parallel_fe_mul_math.land_low52
+Closed under the global context
+jet_parallel_fe_mul_math.lo_split :
+forall W : BinNums.Z,
+BinInt.Z.le BinNums.Z0 W ->
+exists q m : BinNums.Z,
+  W =
+  BinInt.Z.add
+    (BinInt.Z.mul
+       (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+          (BinNums.Zpos
+             (BinNums.xO
+                (BinNums.xO
+                   (BinNums.xO
+                      (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+       q) m /\
+  (BinInt.Z.le BinNums.Z0 m /\
+   BinInt.Z.lt m
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) /\
+  BinInt.Z.modulo W
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO
+                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) =
+  m /\
+  BinInt.Z.div W
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO
+                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) =
+  q
+
+jet_parallel_fe_mul_math.lo_split is not universe polymorphic
+Arguments jet_parallel_fe_mul_math.lo_split W%Z_scope _
+jet_parallel_fe_mul_math.lo_split is opaque
+Expands to: Constant C.jet_parallel_fe_mul_math.lo_split
+Closed under the global context
+jet_parallel_fe_mul_math.l52_split :
+forall W : BinNums.Z,
+BinInt.Z.le BinNums.Z0 W ->
+exists q m : BinNums.Z,
+  W =
+  BinInt.Z.add
+    (BinInt.Z.mul
+       (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+          (BinNums.Zpos
+             (BinNums.xO
+                (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+       q) m /\
+  (BinInt.Z.le BinNums.Z0 m /\
+   BinInt.Z.lt m
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))) /\
+  BinInt.Z.modulo W
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))) =
+  m /\
+  BinInt.Z.div W
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))) =
+  q
+
+jet_parallel_fe_mul_math.l52_split is not universe polymorphic
+Arguments jet_parallel_fe_mul_math.l52_split W%Z_scope _
+jet_parallel_fe_mul_math.l52_split is opaque
+Expands to: Constant C.jet_parallel_fe_mul_math.l52_split
+Closed under the global context
+jet_parallel_fe_mul_math.fe_mul_core :
+forall
+  p00 p01 p02 p03 p04 p10 p11 p12 p13 p14 p20 p21 p22 p23 p24 p30 p31 p32 p33
+   p34 p40 p41 p42 p43 p44 W10 W12 W14 W16 W18 W20 W22 W24 W26 W28 W30 W32
+   W34 W36 W38 W40 W42 W44 W46 W48 W50 W52 W54 W56 W58 W60 W62 W64 W66 W68
+   W70 W72 W74 W76 W78 W80 W82 W84 W86 W88 W90 W92 : BinNums.Z,
+BinInt.Z.le BinNums.Z0 p00 /\
+BinInt.Z.le p00 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p01 /\
+BinInt.Z.le p01 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p02 /\
+BinInt.Z.le p02 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p03 /\
+BinInt.Z.le p03 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p04 /\
+BinInt.Z.le p04 jet_parallel_fe_mul_math.fe_mul_bound_BT ->
+BinInt.Z.le BinNums.Z0 p10 /\
+BinInt.Z.le p10 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p11 /\
+BinInt.Z.le p11 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p12 /\
+BinInt.Z.le p12 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p13 /\
+BinInt.Z.le p13 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p14 /\
+BinInt.Z.le p14 jet_parallel_fe_mul_math.fe_mul_bound_BT ->
+BinInt.Z.le BinNums.Z0 p20 /\
+BinInt.Z.le p20 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p21 /\
+BinInt.Z.le p21 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p22 /\
+BinInt.Z.le p22 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p23 /\
+BinInt.Z.le p23 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p24 /\
+BinInt.Z.le p24 jet_parallel_fe_mul_math.fe_mul_bound_BT ->
+BinInt.Z.le BinNums.Z0 p30 /\
+BinInt.Z.le p30 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p31 /\
+BinInt.Z.le p31 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p32 /\
+BinInt.Z.le p32 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p33 /\
+BinInt.Z.le p33 jet_parallel_fe_mul_math.fe_mul_bound_BB ->
+BinInt.Z.le BinNums.Z0 p34 /\
+BinInt.Z.le p34 jet_parallel_fe_mul_math.fe_mul_bound_BT ->
+BinInt.Z.le BinNums.Z0 p40 /\
+BinInt.Z.le p40 jet_parallel_fe_mul_math.fe_mul_bound_BT ->
+BinInt.Z.le BinNums.Z0 p41 /\
+BinInt.Z.le p41 jet_parallel_fe_mul_math.fe_mul_bound_BT ->
+BinInt.Z.le BinNums.Z0 p42 /\
+BinInt.Z.le p42 jet_parallel_fe_mul_math.fe_mul_bound_BT ->
+BinInt.Z.le BinNums.Z0 p43 /\
+BinInt.Z.le p43 jet_parallel_fe_mul_math.fe_mul_bound_BT ->
+BinInt.Z.le BinNums.Z0 p44 /\
+BinInt.Z.le p44 jet_parallel_fe_mul_math.fe_mul_bound_TT ->
+W10 = p03 ->
+W12 =
+BinInt.Z.modulo (BinInt.Z.add W10 p12)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))) ->
+W14 =
+BinInt.Z.modulo (BinInt.Z.add W12 p21)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))) ->
+W16 =
+BinInt.Z.modulo (BinInt.Z.add W14 p30)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...))))))) ->
+W18 = p44 ->
+W20 =
+BinInt.Z.modulo
+  (BinInt.Z.add W16
+     (BinInt.Z.mul jet_parallel_fe_mul_math.feMulR
+        (BinInt.Z.modulo W18
+           (BinInt.Z.pow (BinNums.Zpos (...)) (BinNums.Zpos (...))))))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (...)))))) ->
+W22 =
+BinInt.Z.div W18
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...))))) ->
+W24 =
+BinInt.Z.div W20
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (...))))) ->
+W26 =
+BinInt.Z.modulo (BinInt.Z.add W24 p04)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO ...)))) ->
+W28 =
+BinInt.Z.modulo (BinInt.Z.add W26 p13)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (...)))) ->
+W30 =
+BinInt.Z.modulo (BinInt.Z.add W28 p22)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO ...))) ->
+W32 =
+BinInt.Z.modulo (BinInt.Z.add W30 p31)
+  (BinInt.Z.pow (BinNums.Zpos (...)) (BinNums.Zpos (...))) ->
+W34 =
+BinInt.Z.modulo (BinInt.Z.add W32 p40)
+  (BinInt.Z.pow (BinNums.Zpos ...) (BinNums.Zpos ...)) ->
+W36 = BinInt.Z.modulo (BinInt.Z.add W34 (...)) (BinInt.Z.pow (...) (...)) ->
+W38 = BinInt.Z.div W36 (BinInt.Z.pow ... ...) ->
+W40 = p00 -> W42 = BinInt.Z.modulo ... ... -> W44 = ... -> ... -> ...
+
+jet_parallel_fe_mul_math.fe_mul_core is not universe polymorphic
+Arguments jet_parallel_fe_mul_math.fe_mul_core
+  (p00 p01 p02 p03 p04 p10 p11 p12 p13 p14 p20 p21 p22 p23 p24 p30 p31 p32
+   p33 p34 p40 p41 p42 p43 p44 W10 W12 W14 W16 W18 W20 W22 W24 W26 W28 W30
+   W32 W34 W36 W38 W40 W42 W44 W46 W48 W50 W52 W54 W56 W58 W60 W62 W64 W66
+   W68 W70 W72 W74 W76 W78 W80 W82 W84 W86 W88 W90 W92)%Z_scope 
+  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+jet_parallel_fe_mul_math.fe_mul_core is opaque
+Expands to: Constant C.jet_parallel_fe_mul_math.fe_mul_core
+Closed under the global context
+jet_parallel_fe_mul_model.uns_fm_lo :
+forall W : BinNums.Z,
+Integers.Int64.unsigned (jet_parallel_fe_mul_model.fm_lo W) =
+BinInt.Z.modulo W
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+
+jet_parallel_fe_mul_model.uns_fm_lo is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.uns_fm_lo W%Z_scope
+jet_parallel_fe_mul_model.uns_fm_lo is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_fm_lo
+Closed under the global context
+jet_parallel_fe_mul_model.uns_fm_hi :
+forall W : BinNums.Z,
+BinInt.Z.le BinNums.Z0 W /\
+BinInt.Z.lt W
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) ->
+Integers.Int64.unsigned (jet_parallel_fe_mul_model.fm_hi W) =
+BinInt.Z.div W
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+
+jet_parallel_fe_mul_model.uns_fm_hi is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.uns_fm_hi W%Z_scope _
+jet_parallel_fe_mul_model.uns_fm_hi is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_fm_hi
+Closed under the global context
+jet_parallel_fe_mul_model.fm_join :
+forall W : BinNums.Z,
+BinInt.Z.le BinNums.Z0 W /\
+BinInt.Z.lt W
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) ->
+BinInt.Z.add
+  (BinInt.Z.mul (Integers.Int64.unsigned (jet_parallel_fe_mul_model.fm_hi W))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (Integers.Int64.unsigned (jet_parallel_fe_mul_model.fm_lo W)) = W
+
+jet_parallel_fe_mul_model.fm_join is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.fm_join W%Z_scope _
+jet_parallel_fe_mul_model.fm_join is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.fm_join
+Closed under the global context
+jet_parallel_fe_mul_model.evok_intro :
+forall (rho : nat -> Integers.Int64.int) (tag base : nat)
+  (args : list jet_sx_expr.sx) (W : BinNums.Z),
+rho base = jet_parallel_fe_mul_model.fm_lo W ->
+rho (S base) = jet_parallel_fe_mul_model.fm_hi W ->
+jet_parallel_fe_mul_oracle.u128_sem tag
+  (List.map (jet_parallel_fe_mul_oracle.uv rho) args) = 
+Some W ->
+BinInt.Z.le BinNums.Z0 W /\
+BinInt.Z.lt W
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) ->
+jet_parallel_fe_mul_oracle.u128_evok rho
+  {|
+    jet_sx_eval.etag := tag;
+    jet_sx_eval.ebase := base;
+    jet_sx_eval.ecnt := 2;
+    jet_sx_eval.eargs := args
+  |}
+
+jet_parallel_fe_mul_model.evok_intro is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.evok_intro rho%function_scope
+  (tag base)%nat_scope args%list_scope W%Z_scope _ 
+  _ _ _
+jet_parallel_fe_mul_model.evok_intro is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.evok_intro
+Closed under the global context
+jet_parallel_fe_mul_model.range_mul :
+forall x y : Integers.Int64.int,
+BinInt.Z.le BinNums.Z0
+  (BinInt.Z.mul (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)) /\
+BinInt.Z.lt
+  (BinInt.Z.mul (Integers.Int64.unsigned x) (Integers.Int64.unsigned y))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+
+jet_parallel_fe_mul_model.range_mul is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.range_mul x y
+jet_parallel_fe_mul_model.range_mul is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.range_mul
+Closed under the global context
+jet_parallel_fe_mul_model.range_mod :
+forall z : BinNums.Z,
+BinInt.Z.le BinNums.Z0
+  (BinInt.Z.modulo z
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))) /\
+BinInt.Z.lt
+  (BinInt.Z.modulo z
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+
+jet_parallel_fe_mul_model.range_mod is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.range_mod z%Z_scope
+jet_parallel_fe_mul_model.range_mod is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.range_mod
+Closed under the global context
+jet_parallel_fe_mul_model.range_shr :
+forall (l h : Integers.Int64.int) (k : BinNums.Z),
+BinInt.Z.le BinNums.Z0 k ->
+BinInt.Z.le BinNums.Z0
+  (BinInt.Z.div
+     (BinInt.Z.add
+        (BinInt.Z.mul (Integers.Int64.unsigned h)
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (Integers.Int64.unsigned l))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)) /\
+BinInt.Z.lt
+  (BinInt.Z.div
+     (BinInt.Z.add
+        (BinInt.Z.mul (Integers.Int64.unsigned h)
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (Integers.Int64.unsigned l))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+
+jet_parallel_fe_mul_model.range_shr is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.range_shr l h k%Z_scope _
+jet_parallel_fe_mul_model.range_shr is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.range_shr
+Closed under the global context
+jet_parallel_fe_mul_model.lor_lt_pow2 :
+forall a b n : BinNums.Z,
+BinInt.Z.lt BinNums.Z0 n ->
+BinInt.Z.le BinNums.Z0 a /\
+BinInt.Z.lt a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) n) ->
+BinInt.Z.le BinNums.Z0 b /\
+BinInt.Z.lt b (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) n) ->
+BinInt.Z.le BinNums.Z0 (BinInt.Z.lor a b) /\
+BinInt.Z.lt (BinInt.Z.lor a b)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) n)
+
+jet_parallel_fe_mul_model.lor_lt_pow2 is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.lor_lt_pow2 (a b n)%Z_scope _ _ _
+jet_parallel_fe_mul_model.lor_lt_pow2 is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.lor_lt_pow2
+Closed under the global context
+jet_parallel_fe_mul_model.uns_or :
+forall x y : Integers.Int64.int,
+Integers.Int64.unsigned (Integers.Int64.or x y) =
+BinInt.Z.lor (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)
+
+jet_parallel_fe_mul_model.uns_or is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.uns_or x y
+jet_parallel_fe_mul_model.uns_or is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_or
+Closed under the global context
+jet_parallel_fe_mul_model.uns_and :
+forall x y : Integers.Int64.int,
+Integers.Int64.unsigned (Integers.Int64.and x y) =
+BinInt.Z.land (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)
+
+jet_parallel_fe_mul_model.uns_and is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.uns_and x y
+jet_parallel_fe_mul_model.uns_and is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_and
+Closed under the global context
+jet_parallel_fe_mul_model.uns_shl4 :
+forall x : Integers.Int64.int,
+Integers.Int64.unsigned
+  (Integers.Int64.shl x
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))) =
+BinInt.Z.modulo
+  (BinInt.Z.mul (Integers.Int64.unsigned x)
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+
+jet_parallel_fe_mul_model.uns_shl4 is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.uns_shl4 x
+jet_parallel_fe_mul_model.uns_shl4 is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_shl4
+Closed under the global context
+jet_parallel_fe_mul_model.uns_add :
+forall x y : Integers.Int64.int,
+Integers.Int64.unsigned (Integers.Int64.add x y) =
+BinInt.Z.modulo
+  (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+
+jet_parallel_fe_mul_model.uns_add is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.uns_add x y
+jet_parallel_fe_mul_model.uns_add is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_add
+Closed under the global context
+jet_parallel_fe_mul_model.uns_R :
+Integers.Int64.unsigned
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xO
+                                                 (BinNums.xO
+                                                 (BinNums.xO
+                                                 (BinNums.xO
+                                                 (BinNums.xO (...)))))))))))))))))))))) =
+jet_parallel_fe_mul_math.feMulR
+
+jet_parallel_fe_mul_model.uns_R is not universe polymorphic
+jet_parallel_fe_mul_model.uns_R is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_R
+Closed under the global context
+jet_parallel_fe_mul_model.uns_R12 :
+Integers.Int64.unsigned
+  (Integers.Int64.shl
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xO
+                                                 (BinNums.xO
+                                                 (BinNums.xO
+                                                 (BinNums.xO (...)))))))))))))))))))))
+     (Integers.Int64.repr
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))) =
+BinInt.Z.mul jet_parallel_fe_mul_math.feMulR
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+
+jet_parallel_fe_mul_model.uns_R12 is not universe polymorphic
+jet_parallel_fe_mul_model.uns_R12 is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_R12
+Closed under the global context
+jet_parallel_fe_mul_model.uns_R4 :
+Integers.Int64.unsigned
+  (Integers.Int64.shru
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xO
+                                                 (BinNums.xO
+                                                 (BinNums.xO
+                                                 (BinNums.xO (...)))))))))))))))))))))
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))) =
+jet_secp_fe_math.feR
+
+jet_parallel_fe_mul_model.uns_R4 is not universe polymorphic
+jet_parallel_fe_mul_model.uns_R4 is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_R4
+Closed under the global context
+jet_parallel_fe_mul_model.uns_M :
+Integers.Int64.unsigned
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (...)))))))))))))))))))))) =
+BinNums.Zpos
+  (BinNums.xI
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (...))))))))))))))))))))))
+
+jet_parallel_fe_mul_model.uns_M is not universe polymorphic
+jet_parallel_fe_mul_model.uns_M is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_M
+Closed under the global context
+jet_parallel_fe_mul_model.uns_M4 :
+Integers.Int64.unsigned
+  (Integers.Int64.shru
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (...)))))))))))))))))))))
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))) =
+BinInt.Z.div
+  (BinNums.Zpos
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (...))))))))))))))))))))))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+
+jet_parallel_fe_mul_model.uns_M4 is not universe polymorphic
+jet_parallel_fe_mul_model.uns_M4 is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_M4
+Closed under the global context
+jet_parallel_fe_mul_model.uns_and_lo :
+forall W : BinNums.Z,
+Integers.Int64.unsigned
+  (Integers.Int64.and (jet_parallel_fe_mul_model.fm_lo W)
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI ...))))))))))))))))))))) =
+BinInt.Z.land
+  (BinInt.Z.modulo W
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (BinNums.Zpos
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI ...)))))))))))))))))))))
+
+jet_parallel_fe_mul_model.uns_and_lo is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.uns_and_lo W%Z_scope
+jet_parallel_fe_mul_model.uns_and_lo is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_and_lo
+Closed under the global context
+jet_parallel_fe_mul_model.uns_u0 :
+forall W48 W36 : BinNums.Z,
+Integers.Int64.unsigned
+  (Integers.Int64.or
+     (Integers.Int64.shl
+        (Integers.Int64.and (jet_parallel_fe_mul_model.fm_lo W48)
+           (Integers.Int64.repr
+              (BinNums.Zpos
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI ...)))))))))))))))))))
+        (Integers.Int64.repr
+           (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))))
+     (Integers.Int64.shru
+        (Integers.Int64.and (jet_parallel_fe_mul_model.fm_lo W36)
+           (Integers.Int64.repr
+              (BinNums.Zpos
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI ...)))))))))))))))))))
+        (Integers.Int64.repr
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))) =
+BinInt.Z.lor
+  (BinInt.Z.modulo
+     (BinInt.Z.mul
+        (BinInt.Z.land
+           (BinInt.Z.modulo W48
+              (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                 (BinNums.Zpos
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+           (BinNums.Zpos
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI ...)))))))))))))))))))
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (BinInt.Z.div
+     (BinInt.Z.land
+        (BinInt.Z.modulo W36
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI ...))))))))))))))))))))
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))
+
+jet_parallel_fe_mul_model.uns_u0 is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.uns_u0 (W48 W36)%Z_scope
+jet_parallel_fe_mul_model.uns_u0 is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.uns_u0
+Closed under the global context
+jet_parallel_fe_mul_model.fm_ranges :
+forall a0 a1 a2 a3 a4 b0 b1 b2 b3 b4 : Integers.Int64.int,
+List.Forall
+  (fun w : BinNums.Z =>
+   BinInt.Z.le BinNums.Z0 w /\
+   BinInt.Z.lt w
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+  (jet_parallel_fe_mul_model.fm_ws a0 a1 a2 a3 a4 b0 b1 b2 b3 b4)
+
+jet_parallel_fe_mul_model.fm_ranges is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.fm_ranges a0 a1 a2 a3 a4 b0 b1 b2 b3 b4
+jet_parallel_fe_mul_model.fm_ranges is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.fm_ranges
+Closed under the global context
+jet_parallel_fe_mul_model.fm_solves :
+forall a0 a1 a2 a3 a4 b0 b1 b2 b3 b4 : Integers.Int64.int,
+List.Forall
+  (jet_parallel_fe_mul_oracle.u128_evok
+     (jet_parallel_fe_mul_model.fm_rho a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+  jet_parallel_fe_mul_model.fe_mul_log
+
+jet_parallel_fe_mul_model.fm_solves is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.fm_solves a0 a1 a2 a3 a4 b0 b1 b2 b3 b4
+jet_parallel_fe_mul_model.fm_solves is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.fm_solves
+Closed under the global context
+jet_parallel_fe_mul_model.fm_mul_values :
+forall a0 a1 a2 a3 a4 b0 b1 b2 b3 b4 : Integers.Int64.int,
+jet_secp_fe_math.fe_limbs_ok (Integers.Int64.unsigned a0)
+  (Integers.Int64.unsigned a1) (Integers.Int64.unsigned a2)
+  (Integers.Int64.unsigned a3) (Integers.Int64.unsigned a4) ->
+jet_secp_fe_math.fe_limbs_ok (Integers.Int64.unsigned b0)
+  (Integers.Int64.unsigned b1) (Integers.Int64.unsigned b2)
+  (Integers.Int64.unsigned b3) (Integers.Int64.unsigned b4) ->
+BinInt.Z.le
+  (Integers.Int64.unsigned
+     (jet_parallel_fe_mul_model.fm_t0 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+  (BinNums.Zpos
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI ...)))))))))))))))))))) /\
+BinInt.Z.le
+  (Integers.Int64.unsigned
+     (jet_parallel_fe_mul_model.fm_t1 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+  (BinNums.Zpos
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (...)))))))))))))))))))) /\
+BinInt.Z.le
+  (Integers.Int64.unsigned
+     (jet_parallel_fe_mul_model.fm_t2 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+  (BinNums.Zpos
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI ...))))))))))))))))))) /\
+BinInt.Z.le
+  (Integers.Int64.unsigned
+     (jet_parallel_fe_mul_model.fm_t3 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+  (BinNums.Zpos
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                 (BinNums.xI
+                                                 (BinNums.xI (...))))))))))))))))))) /\
+BinInt.Z.lt
+  (Integers.Int64.unsigned
+     (jet_parallel_fe_mul_model.fm_t4 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))) /\
+BinInt.Z.modulo
+  (jet_secp_fe_math.fe_val
+     (Integers.Int64.unsigned
+        (jet_parallel_fe_mul_model.fm_t0 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+     (Integers.Int64.unsigned
+        (jet_parallel_fe_mul_model.fm_t1 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+     (Integers.Int64.unsigned
+        (jet_parallel_fe_mul_model.fm_t2 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+     (Integers.Int64.unsigned
+        (jet_parallel_fe_mul_model.fm_t3 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4))
+     (Integers.Int64.unsigned
+        (jet_parallel_fe_mul_model.fm_t4 a0 a1 a2 a3 a4 b0 b1 b2 b3 b4)))
+  jet_secp_fe_math.feP =
+BinInt.Z.modulo
+  (BinInt.Z.mul
+     (jet_secp_fe_math.fe_val (Integers.Int64.unsigned a0)
+        (Integers.Int64.unsigned a1) (Integers.Int64.unsigned a2)
+        (Integers.Int64.unsigned a3) (Integers.Int64.unsigned a4))
+     (jet_secp_fe_math.fe_val (Integers.Int64.unsigned b0)
+        (Integers.Int64.unsigned b1) (Integers.Int64.unsigned b2)
+        (Integers.Int64.unsigned b3) (Integers.Int64.unsigned b4)))
+  jet_secp_fe_math.feP
+
+jet_parallel_fe_mul_model.fm_mul_values is not universe polymorphic
+Arguments jet_parallel_fe_mul_model.fm_mul_values 
+  a0 a1 a2 a3 a4 b0 b1 b2 b3 b4 _ _
+jet_parallel_fe_mul_model.fm_mul_values is opaque
+Expands to: Constant C.jet_parallel_fe_mul_model.fm_mul_values
+Closed under the global context
+jet_parallel_fe_mul_oracle.find_set_cell_other :
+forall (cs : list jet_sx_state.cell) (d d' : BinNums.Z)
+  (ch ch' : AST.memory_chunk) (v : option jet_sx_expr.sx),
+d <> d' ->
+jet_sx_state.find_cell (jet_sx_state.set_cell cs d ch v) d' ch' =
+jet_sx_state.find_cell cs d' ch'
+
+jet_parallel_fe_mul_oracle.find_set_cell_other is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.find_set_cell_other 
+  cs%list_scope (d d')%Z_scope ch ch' v _
+jet_parallel_fe_mul_oracle.find_set_cell_other is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.find_set_cell_other
+Closed under the global context
+jet_parallel_fe_mul_oracle.xload_xreplace_other :
+forall (regs : list jet_sx_state.region) (r : nat) 
+  (d d' : BinNums.Z) (x : jet_sx_expr.sx) (regs' : list jet_sx_state.region),
+jet_parallel_fe_mul_sx.xreplace regs r d AST.Mint64 x = Some regs' ->
+d <> d' ->
+jet_sx_state.xload regs' r d' Ctypesdefs.tulong =
+jet_sx_state.xload regs r d' Ctypesdefs.tulong
+
+jet_parallel_fe_mul_oracle.xload_xreplace_other is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.xload_xreplace_other 
+  regs%list_scope r%nat_scope (d d')%Z_scope x regs'%list_scope 
+  _ _
+jet_parallel_fe_mul_oracle.xload_xreplace_other is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.xload_xreplace_other
+Closed under the global context
+jet_parallel_fe_mul_oracle.int64_eq_unsigned :
+forall a b : Integers.Int64.int,
+Integers.Int64.unsigned a = Integers.Int64.unsigned b -> a = b
+
+jet_parallel_fe_mul_oracle.int64_eq_unsigned is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.int64_eq_unsigned a b _
+jet_parallel_fe_mul_oracle.int64_eq_unsigned is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.int64_eq_unsigned
+Closed under the global context
+jet_parallel_fe_mul_oracle.den_fresh_long :
+forall (rho : nat -> Integers.Int64.int)
+  (beta : nat -> Values.block * BinNums.Z) (n : nat) 
+  (x : jet_sx_expr.sx),
+jet_sx_expr.isk jet_sx_expr.KL x = true ->
+rho n = jet_sx_exec.lv rho x ->
+jet_sx_expr.den rho beta (jet_sx_expr.XLv n) = jet_sx_expr.den rho beta x
+
+jet_parallel_fe_mul_oracle.den_fresh_long is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.den_fresh_long 
+  (rho beta)%function_scope n%nat_scope x _ _
+jet_parallel_fe_mul_oracle.den_fresh_long is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.den_fresh_long
+Closed under the global context
+jet_parallel_fe_mul_oracle.u128_inner_pure :
+forall (fd : Clight.function) (xs : list jet_sx_expr.sx)
+  (regs : list jet_sx_state.region) (st : jet_sx_eval.sstate)
+  (rho : nat -> Integers.Int64.int) (beta : jet_sx_state.layout)
+  (m : Memory.Mem.mem),
+jet_parallel_fe_mul_oracle.u128_inner fd xs regs =
+Some (jet_sx_exec.RDone st jet_sx_exec.ONormal) ->
+jet_sx_eval.slog st = nil ->
+jet_sx_state.rep rho beta regs m ->
+exists (m' : Memory.Mem.mem) (vres : Values.val),
+  ClightBigstep.eval_funcall Clight.function_entry2 jet_secp_linkage.secp_ge
+    m (Ctypes.Internal fd)
+    (List.map (jet_sx_expr.den rho (jet_sx_state.lay beta)) xs) Events.E0 m'
+    vres /\
+  jet_sx_state.rep rho beta (jet_sx_eval.sregs st) m' /\
+  match Maps.PTree.get BinNums.xH (jet_sx_eval.stemps st) with
+  | Some x => vres = jet_sx_expr.den rho (jet_sx_state.lay beta) x
+  | None => vres = Values.Vundef
+  end /\
+  List.map jet_sx_state.rshape (jet_sx_eval.sregs st) =
+  List.map jet_sx_state.rshape regs /\
+  jet_sx_mem.lframe
+    (fun (b : Values.block) (o : BinNums.Z) =>
+     ~ jet_sx_state.foot beta (List.map jet_sx_state.rshape regs) b o) m m'
+
+jet_parallel_fe_mul_oracle.u128_inner_pure is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.u128_inner_pure 
+  fd (xs regs)%list_scope st rho%function_scope beta 
+  m _ _ _
+jet_parallel_fe_mul_oracle.u128_inner_pure is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.u128_inner_pure
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_oracle.orc_inner_ok :
+forall (tag : nat) (fd : Clight.function) (lo_c hi_c : jet_sx_expr.sx)
+  (mk : list jet_sx_expr.sx ->
+        list jet_sx_state.region ->
+        option (nat * (nat -> jet_sx_expr.sx) * list jet_sx_expr.sx)),
+jet_parallel_fe_mul_oracle.inner_sem_ok tag lo_c hi_c mk ->
+jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge
+  jet_parallel_fe_mul_oracle.u128_evok jet_parallel_fe_mul_oracle.u128_inv
+  jet_parallel_fe_mul_oracle.u128_ext fd
+  (jet_parallel_fe_mul_oracle.orc_inner tag fd lo_c hi_c mk)
+
+jet_parallel_fe_mul_oracle.orc_inner_ok is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.orc_inner_ok 
+  tag%nat_scope fd lo_c hi_c mk%function_scope _ base 
+  xs regs regs' v tag cnt eargs log ρ β m _ _ _ _ 
+  _ _
+jet_parallel_fe_mul_oracle.orc_inner_ok is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.orc_inner_ok
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_oracle.sigma4_long :
+forall X Y L H : jet_sx_expr.sx,
+jet_sx_expr.isk jet_sx_expr.KL X = true ->
+jet_sx_expr.isk jet_sx_expr.KL Y = true ->
+jet_sx_expr.isk jet_sx_expr.KL L = true ->
+jet_sx_expr.isk jet_sx_expr.KL H = true ->
+jet_parallel_fe_mul_sx.long_subst (jet_parallel_fe_mul_oracle.sigma4 X Y L H)
+
+jet_parallel_fe_mul_oracle.sigma4_long is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.sigma4_long X Y L H _ _ _ _ n
+jet_parallel_fe_mul_oracle.sigma4_long is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.sigma4_long
+Closed under the global context
+jet_parallel_fe_mul_oracle.uns_range :
+forall x : Integers.Int64.int,
+BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned x) /\
+BinInt.Z.lt (Integers.Int64.unsigned x)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+
+jet_parallel_fe_mul_oracle.uns_range is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.uns_range x
+jet_parallel_fe_mul_oracle.uns_range is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.uns_range
+Closed under the global context
+jet_parallel_fe_mul_oracle.two_word_split :
+forall v : BinNums.Z,
+BinInt.Z.le BinNums.Z0 v /\
+BinInt.Z.lt v
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) ->
+(BinInt.Z.le BinNums.Z0
+   (BinInt.Z.modulo v
+      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) /\
+ BinInt.Z.lt
+   (BinInt.Z.modulo v
+      (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+      (BinNums.Zpos
+         (BinNums.xO
+            (BinNums.xO
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) /\
+BinInt.Z.le BinNums.Z0
+  (BinInt.Z.div v
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) /\
+BinInt.Z.lt
+  (BinInt.Z.div v
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+
+jet_parallel_fe_mul_oracle.two_word_split is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.two_word_split v%Z_scope _
+jet_parallel_fe_mul_oracle.two_word_split is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.two_word_split
+Closed under the global context
+jet_parallel_fe_mul_oracle.mk_mul_inv :
+forall (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) 
+  (r : nat) (sigma : nat -> jet_sx_expr.sx) (eargs : list jet_sx_expr.sx),
+jet_parallel_fe_mul_oracle.mk_mul xs regs = Some (r, sigma, eargs) ->
+exists X Y : jet_sx_expr.sx,
+  eargs = (X :: Y :: nil)%list /\
+  sigma =
+  jet_parallel_fe_mul_oracle.sigma4 X Y (jet_sx_expr.XLc Integers.Int64.zero)
+    (jet_sx_expr.XLc Integers.Int64.zero) /\
+  jet_sx_expr.isk jet_sx_expr.KL X = true /\
+  jet_sx_expr.isk jet_sx_expr.KL Y = true
+
+jet_parallel_fe_mul_oracle.mk_mul_inv is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.mk_mul_inv (xs regs)%list_scope
+  r%nat_scope sigma%function_scope eargs%list_scope 
+  _
+jet_parallel_fe_mul_oracle.mk_mul_inv is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.mk_mul_inv
+Closed under the global context
+jet_parallel_fe_mul_oracle.mk_acc_inv :
+forall (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) 
+  (r : nat) (sigma : nat -> jet_sx_expr.sx) (eargs : list jet_sx_expr.sx),
+jet_parallel_fe_mul_oracle.mk_acc xs regs = Some (r, sigma, eargs) ->
+exists X Y L H : jet_sx_expr.sx,
+  eargs = (L :: H :: X :: Y :: nil)%list /\
+  sigma = jet_parallel_fe_mul_oracle.sigma4 X Y L H /\
+  jet_sx_expr.isk jet_sx_expr.KL X = true /\
+  jet_sx_expr.isk jet_sx_expr.KL Y = true /\
+  jet_sx_expr.isk jet_sx_expr.KL L = true /\
+  jet_sx_expr.isk jet_sx_expr.KL H = true
+
+jet_parallel_fe_mul_oracle.mk_acc_inv is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.mk_acc_inv (xs regs)%list_scope
+  r%nat_scope sigma%function_scope eargs%list_scope 
+  _
+jet_parallel_fe_mul_oracle.mk_acc_inv is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.mk_acc_inv
+Closed under the global context
+jet_parallel_fe_mul_oracle.mk_add64_inv :
+forall (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) 
+  (r : nat) (sigma : nat -> jet_sx_expr.sx) (eargs : list jet_sx_expr.sx),
+jet_parallel_fe_mul_oracle.mk_add64 xs regs = Some (r, sigma, eargs) ->
+exists X L H : jet_sx_expr.sx,
+  eargs = (L :: H :: X :: nil)%list /\
+  sigma =
+  jet_parallel_fe_mul_oracle.sigma4 X (jet_sx_expr.XLc Integers.Int64.zero) L
+    H /\
+  jet_sx_expr.isk jet_sx_expr.KL X = true /\
+  jet_sx_expr.isk jet_sx_expr.KL L = true /\
+  jet_sx_expr.isk jet_sx_expr.KL H = true
+
+jet_parallel_fe_mul_oracle.mk_add64_inv is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.mk_add64_inv 
+  (xs regs)%list_scope r%nat_scope sigma%function_scope 
+  eargs%list_scope _
+jet_parallel_fe_mul_oracle.mk_add64_inv is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.mk_add64_inv
+Closed under the global context
+jet_parallel_fe_mul_oracle.lv_umul_lo :
+forall rho : nat -> Integers.Int64.int,
+jet_sx_exec.lv rho jet_secp_umul128_exec.umul128_lo =
+jet_secp_umul128_numeric.umul128_lo_machine (rho 0) (rho 1)
+
+jet_parallel_fe_mul_oracle.lv_umul_lo is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.lv_umul_lo rho%function_scope
+jet_parallel_fe_mul_oracle.lv_umul_lo is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.lv_umul_lo
+Closed under the global context
+jet_parallel_fe_mul_oracle.lv_umul_hi :
+forall rho : nat -> Integers.Int64.int,
+jet_sx_exec.lv rho jet_secp_umul128_exec.umul128_hi =
+jet_secp_umul128_numeric.umul128_hi_machine (rho 0) (rho 1)
+
+jet_parallel_fe_mul_oracle.lv_umul_hi is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.lv_umul_hi rho%function_scope
+jet_parallel_fe_mul_oracle.lv_umul_hi is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.lv_umul_hi
+Closed under the global context
+jet_parallel_fe_mul_oracle.lv_acc_lo :
+forall rho : nat -> Integers.Int64.int,
+jet_sx_exec.lv rho jet_secp_u128_accum_mul_exec.accum_mul_lo =
+jet_secp_u128_accum_mul_numeric.accum_mul_lo_machine rho
+
+jet_parallel_fe_mul_oracle.lv_acc_lo is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.lv_acc_lo rho%function_scope
+jet_parallel_fe_mul_oracle.lv_acc_lo is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.lv_acc_lo
+Closed under the global context
+jet_parallel_fe_mul_oracle.lv_acc_hi :
+forall rho : nat -> Integers.Int64.int,
+jet_sx_exec.lv rho jet_secp_u128_accum_mul_exec.accum_mul_hi =
+jet_secp_u128_accum_mul_numeric.accum_mul_hi_machine rho
+
+jet_parallel_fe_mul_oracle.lv_acc_hi is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.lv_acc_hi rho%function_scope
+jet_parallel_fe_mul_oracle.lv_acc_hi is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.lv_acc_hi
+Closed under the global context
+jet_parallel_fe_mul_oracle.mul_sem_ok :
+jet_parallel_fe_mul_oracle.inner_sem_ok jet_parallel_fe_mul_oracle.tMUL
+  jet_secp_umul128_exec.umul128_lo jet_secp_umul128_exec.umul128_hi
+  jet_parallel_fe_mul_oracle.mk_mul
+
+jet_parallel_fe_mul_oracle.mul_sem_ok is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.mul_sem_ok xs regs r sigma eargs _
+jet_parallel_fe_mul_oracle.mul_sem_ok is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.mul_sem_ok
+Closed under the global context
+jet_parallel_fe_mul_oracle.acc_sem_ok :
+jet_parallel_fe_mul_oracle.inner_sem_ok jet_parallel_fe_mul_oracle.tACC
+  jet_secp_u128_accum_mul_exec.accum_mul_lo
+  jet_secp_u128_accum_mul_exec.accum_mul_hi jet_parallel_fe_mul_oracle.mk_acc
+
+jet_parallel_fe_mul_oracle.acc_sem_ok is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.acc_sem_ok xs regs r sigma eargs _
+jet_parallel_fe_mul_oracle.acc_sem_ok is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.acc_sem_ok
+Closed under the global context
+jet_parallel_fe_mul_oracle.add64_carry_value :
+forall L H X : Integers.Int64.int,
+let lo := Integers.Int64.add L X in
+let hi :=
+  Integers.Int64.add H
+    (Integers.Int64.repr
+       (Integers.Int.signed
+          (if Integers.Int64.ltu lo X
+           then Integers.Int.one
+           else Integers.Int.zero))) in
+BinInt.Z.add
+  (BinInt.Z.mul (Integers.Int64.unsigned hi)
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (Integers.Int64.unsigned lo) =
+BinInt.Z.modulo
+  (BinInt.Z.add
+     (BinInt.Z.add
+        (BinInt.Z.mul (Integers.Int64.unsigned H)
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (Integers.Int64.unsigned L)) (Integers.Int64.unsigned X))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+
+jet_parallel_fe_mul_oracle.add64_carry_value is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.add64_carry_value L H X
+jet_parallel_fe_mul_oracle.add64_carry_value is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.add64_carry_value
+Closed under the global context
+jet_parallel_fe_mul_oracle.lv_add64_lo :
+forall rho : nat -> Integers.Int64.int,
+jet_sx_exec.lv rho jet_parallel_fe_mul_oracle.add64_lo =
+Integers.Int64.add (rho 2) (rho 0)
+
+jet_parallel_fe_mul_oracle.lv_add64_lo is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.lv_add64_lo rho%function_scope
+jet_parallel_fe_mul_oracle.lv_add64_lo is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.lv_add64_lo
+Closed under the global context
+jet_parallel_fe_mul_oracle.lv_add64_hi :
+forall rho : nat -> Integers.Int64.int,
+jet_sx_exec.lv rho jet_parallel_fe_mul_oracle.add64_hi =
+Integers.Int64.add (rho 3)
+  (Integers.Int64.repr
+     (Integers.Int.signed
+        (if Integers.Int64.ltu (Integers.Int64.add (rho 2) (rho 0)) (rho 0)
+         then Integers.Int.one
+         else Integers.Int.zero)))
+
+jet_parallel_fe_mul_oracle.lv_add64_hi is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.lv_add64_hi rho%function_scope
+jet_parallel_fe_mul_oracle.lv_add64_hi is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.lv_add64_hi
+Closed under the global context
+jet_parallel_fe_mul_oracle.add64_sem_ok :
+jet_parallel_fe_mul_oracle.inner_sem_ok jet_parallel_fe_mul_oracle.tADD
+  jet_parallel_fe_mul_oracle.add64_lo jet_parallel_fe_mul_oracle.add64_hi
+  jet_parallel_fe_mul_oracle.mk_add64
+
+jet_parallel_fe_mul_oracle.add64_sem_ok is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.add64_sem_ok xs regs r sigma eargs _
+jet_parallel_fe_mul_oracle.add64_sem_ok is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.add64_sem_ok
+Closed under the global context
+jet_parallel_fe_mul_oracle.orc_mul_ok :
+jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge
+  jet_parallel_fe_mul_oracle.u128_evok jet_parallel_fe_mul_oracle.u128_inv
+  jet_parallel_fe_mul_oracle.u128_ext jets_secp.f_secp256k1_u128_mul
+  jet_parallel_fe_mul_oracle.orc_mul
+
+jet_parallel_fe_mul_oracle.orc_mul_ok is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.orc_mul_ok base 
+  xs regs regs' v tag cnt eargs log ρ β m _ _ _ _ 
+  _ _
+jet_parallel_fe_mul_oracle.orc_mul_ok is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.orc_mul_ok
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_oracle.orc_acc_ok :
+jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge
+  jet_parallel_fe_mul_oracle.u128_evok jet_parallel_fe_mul_oracle.u128_inv
+  jet_parallel_fe_mul_oracle.u128_ext jets_secp.f_secp256k1_u128_accum_mul
+  jet_parallel_fe_mul_oracle.orc_acc
+
+jet_parallel_fe_mul_oracle.orc_acc_ok is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.orc_acc_ok base 
+  xs regs regs' v tag cnt eargs log ρ β m _ _ _ _ 
+  _ _
+jet_parallel_fe_mul_oracle.orc_acc_ok is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.orc_acc_ok
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_oracle.orc_add64_ok :
+jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge
+  jet_parallel_fe_mul_oracle.u128_evok jet_parallel_fe_mul_oracle.u128_inv
+  jet_parallel_fe_mul_oracle.u128_ext jets_secp.f_secp256k1_u128_accum_u64
+  jet_parallel_fe_mul_oracle.orc_add64
+
+jet_parallel_fe_mul_oracle.orc_add64_ok is not universe polymorphic
+Arguments jet_parallel_fe_mul_oracle.orc_add64_ok 
+  base xs regs regs' v tag cnt eargs log ρ β m _ _ 
+  _ _ _ _
+jet_parallel_fe_mul_oracle.orc_add64_ok is opaque
+Expands to: Constant C.jet_parallel_fe_mul_oracle.orc_add64_ok
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_run.fe_mul_table_ok :
+forall (id : AST.ident) (ent : jet_sx_exec.fentry),
+jet_sx_exec.flookup jet_parallel_fe_mul_run.fe_mul_table id = Some ent ->
+(exists b : Values.block,
+   Globalenvs.Genv.find_symbol (Clight.genv_genv jet_secp_linkage.secp_ge) id =
+   Some b /\
+   Globalenvs.Genv.find_funct_ptr (Clight.genv_genv jet_secp_linkage.secp_ge)
+     b = Some (Ctypes.Internal (jet_sx_exec.fentry_fd ent))) /\
+match ent with
+| jet_sx_exec.FInt _ => True
+| jet_sx_exec.FOra fd o =>
+    jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge
+      jet_parallel_fe_mul_oracle.u128_evok
+      jet_parallel_fe_mul_oracle.u128_inv jet_parallel_fe_mul_oracle.u128_ext
+      fd o
+end
+
+jet_parallel_fe_mul_run.fe_mul_table_ok is not universe polymorphic
+Arguments jet_parallel_fe_mul_run.fe_mul_table_ok id ent _
+jet_parallel_fe_mul_run.fe_mul_table_ok is opaque
+Expands to: Constant C.jet_parallel_fe_mul_run.fe_mul_table_ok
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_run.fe_mul_run_eq :
+jet_parallel_fe_mul_run.fe_mul_run =
+Some
+  (jet_sx_exec.RDone jet_parallel_fe_mul_run.fe_mul_state jet_sx_exec.ONormal)
+
+jet_parallel_fe_mul_run.fe_mul_run_eq is not universe polymorphic
+jet_parallel_fe_mul_run.fe_mul_run_eq is opaque
+Expands to: Constant C.jet_parallel_fe_mul_run.fe_mul_run_eq
+Closed under the global context
+jet_parallel_fe_mul_run.fe_mul_log_eq :
+jet_sx_eval.slog jet_parallel_fe_mul_run.fe_mul_state =
+jet_parallel_fe_mul_model.fe_mul_log
+
+jet_parallel_fe_mul_run.fe_mul_log_eq is not universe polymorphic
+jet_parallel_fe_mul_run.fe_mul_log_eq is opaque
+Expands to: Constant C.jet_parallel_fe_mul_run.fe_mul_log_eq
+Closed under the global context
+jet_parallel_fe_mul_run.fe_mul_out_eq :
+jet_sx_eval.sregs jet_parallel_fe_mul_run.fe_mul_state =
+jet_parallel_fe_mul_run.fe_mul_out_regs
+
+jet_parallel_fe_mul_run.fe_mul_out_eq is not universe polymorphic
+jet_parallel_fe_mul_run.fe_mul_out_eq is opaque
+Expands to: Constant C.jet_parallel_fe_mul_run.fe_mul_out_eq
+Closed under the global context
+jet_parallel_fe_mul_run.fe_mul_return :
+Maps.PTree.get BinNums.xH
+  (jet_sx_eval.stemps jet_parallel_fe_mul_run.fe_mul_state) = None
+
+jet_parallel_fe_mul_run.fe_mul_return is not universe polymorphic
+jet_parallel_fe_mul_run.fe_mul_return is opaque
+Expands to: Constant C.jet_parallel_fe_mul_run.fe_mul_return
+Closed under the global context
+jet_parallel_fe_mul_run.eval_fe_mul_owned :
+forall (rho : nat -> Integers.Int64.int) (beta : jet_sx_state.layout)
+  (m : Memory.Mem.mem),
+jet_sx_state.rep rho beta jet_parallel_fe_mul_run.fe_mul_regs m ->
+List.Forall (jet_parallel_fe_mul_oracle.u128_evok rho)
+  jet_parallel_fe_mul_model.fe_mul_log ->
+exists mf : Memory.Mem.mem,
+  ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+    (Ctypes.Internal jets_secp.f_secp256k1_fe_mul)
+    (Values.Vptr (jet_sx_state.blk beta 0)
+       (Integers.Ptrofs.repr (jet_sx_state.bas beta 0))
+     :: Values.Vptr (jet_sx_state.blk beta 0)
+          (Integers.Ptrofs.repr (jet_sx_state.bas beta 0))
+        :: Values.Vptr (jet_sx_state.blk beta 1)
+             (Integers.Ptrofs.repr (jet_sx_state.bas beta 1)) :: nil)
+    Events.E0 mf Values.Vundef /\
+  jet_sx_state.rep rho beta jet_parallel_fe_mul_run.fe_mul_out_regs mf /\
+  jet_sx_mem.lframe
+    (fun (b : Values.block) (o : BinNums.Z) =>
+     ~
+     jet_sx_state.foot beta
+       (List.map jet_sx_state.rshape jet_parallel_fe_mul_run.fe_mul_regs) b o)
+    m mf
+
+jet_parallel_fe_mul_run.eval_fe_mul_owned is not universe polymorphic
+Arguments jet_parallel_fe_mul_run.eval_fe_mul_owned 
+  rho%function_scope beta m _ _
+jet_parallel_fe_mul_run.eval_fe_mul_owned is opaque
+Expands to: Constant C.jet_parallel_fe_mul_run.eval_fe_mul_owned
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_shift.u128_shift_entry :
+forall (m : Memory.Mem.mem) (b : Values.block) (n : Integers.Int.int),
+Clight.function_entry2 jet_secp_linkage.secp_ge
+  jets_secp.f_secp256k1_u128_rshift
+  (Values.Vptr b Integers.Ptrofs.zero :: Values.Vint n :: nil) m
+  Clight.empty_env (jet_parallel_fe_mul_shift.u128_shift_temps b n) m
+
+jet_parallel_fe_mul_shift.u128_shift_entry is not universe polymorphic
+Arguments jet_parallel_fe_mul_shift.u128_shift_entry m b n
+jet_parallel_fe_mul_shift.u128_shift_entry is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.u128_shift_entry
+Closed under the global context
+jet_parallel_fe_mul_shift.u128_shift52_actual_body :
+Clight.fn_body jets_secp.f_secp256k1_u128_rshift =
+Clight.Ssequence (Clight.Sloop Clight.Sskip Clight.Sbreak)
+  (Clight.Sifthenelse jet_secp_u128_shift64_expr.u128_shift_test
+     jet_secp_u128_shift64_body.u128_shift64_then
+     (Clight.Sifthenelse jet_parallel_fe_mul_shift.u128_shift_test0
+        jet_parallel_fe_mul_shift.u128_shift52_branch Clight.Sskip))
+
+jet_parallel_fe_mul_shift.u128_shift52_actual_body is not universe polymorphic
+jet_parallel_fe_mul_shift.u128_shift52_actual_body is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.u128_shift52_actual_body
+Closed under the global context
+jet_parallel_fe_mul_shift.u128_shift52_branch_eq :
+jet_parallel_fe_mul_shift.u128_shift52_branch =
+Clight.Ssequence
+  (Clight.Ssequence
+     (Clight.Sset jets_secp._t'2
+        (jet_secp_u128_shift64_expr.u128_field jets_secp._hi))
+     (Clight.Ssequence
+        (Clight.Sset jets_secp._t'3
+           (jet_secp_u128_shift64_expr.u128_field jets_secp._lo))
+        (Clight.Sassign (jet_secp_u128_shift64_expr.u128_field jets_secp._lo)
+           (Clight.Ebinop Cop.Oor
+              (Clight.Ebinop Cop.Oshl
+                 (Clight.Ebinop Cop.Omul
+                    (Clight.Econst_int
+                       (Integers.Int.repr (BinNums.Zpos BinNums.xH))
+                       Ctypesdefs.tuint)
+                    (Clight.Etempvar jets_secp._t'2 Ctypesdefs.tulong)
+                    Ctypesdefs.tulong)
+                 (Clight.Ebinop Cop.Osub
+                    (Clight.Econst_int
+                       (Integers.Int.repr
+                          (BinNums.Zpos
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                       Ctypesdefs.tint)
+                    (Clight.Etempvar jets_secp._n Ctypesdefs.tuint)
+                    Ctypesdefs.tuint) Ctypesdefs.tulong)
+              (Clight.Ebinop Cop.Oshr
+                 (Clight.Etempvar jets_secp._t'3 Ctypesdefs.tulong)
+                 (Clight.Etempvar jets_secp._n Ctypesdefs.tuint)
+                 Ctypesdefs.tulong) Ctypesdefs.tulong))))
+  (Clight.Ssequence
+     (Clight.Sset jets_secp._t'1
+        (jet_secp_u128_shift64_expr.u128_field jets_secp._hi))
+     (Clight.Sassign (jet_secp_u128_shift64_expr.u128_field jets_secp._hi)
+        (Clight.Ebinop Cop.Oshr
+           (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tulong)
+           (Clight.Etempvar jets_secp._n Ctypesdefs.tuint) Ctypesdefs.tulong)))
+
+jet_parallel_fe_mul_shift.u128_shift52_branch_eq is not universe polymorphic
+jet_parallel_fe_mul_shift.u128_shift52_branch_eq is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.u128_shift52_branch_eq
+Closed under the global context
+jet_parallel_fe_mul_shift.eval_u128_lo :
+forall (m : Memory.Mem.mem) (le : Maps.PTree.tree Values.val)
+  (b : Values.block) (value : Integers.Int64.int),
+Maps.PTree.get jets_secp._r le = Some (Values.Vptr b Integers.Ptrofs.zero) ->
+Memory.Mem.load AST.Mint64 m b BinNums.Z0 = Some (Values.Vlong value) ->
+Clight.eval_expr jet_secp_linkage.secp_ge Clight.empty_env le m
+  (jet_secp_u128_shift64_expr.u128_field jets_secp._lo) 
+  (Values.Vlong value)
+
+jet_parallel_fe_mul_shift.eval_u128_lo is not universe polymorphic
+Arguments jet_parallel_fe_mul_shift.eval_u128_lo m le b value _ _
+jet_parallel_fe_mul_shift.eval_u128_lo is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.eval_u128_lo
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_shift.exec_u128_shift52_body :
+forall (m m1 mf : Memory.Mem.mem) (le : Maps.PTree.tree Values.val)
+  (b : Values.block) (l h : Integers.Int64.int),
+Maps.PTree.get jets_secp._r le = Some (Values.Vptr b Integers.Ptrofs.zero) ->
+Maps.PTree.get jets_secp._n le =
+Some
+  (Values.Vint
+     (Integers.Int.repr
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))) ->
+Memory.Mem.load AST.Mint64 m b BinNums.Z0 = Some (Values.Vlong l) ->
+Memory.Mem.load AST.Mint64 m b
+  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) =
+Some (Values.Vlong h) ->
+Memory.Mem.store AST.Mint64 m b BinNums.Z0
+  (Values.Vlong (jet_parallel_fe_mul_shift.shift52_lo l h)) = 
+Some m1 ->
+Memory.Mem.store AST.Mint64 m1 b
+  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+  (Values.Vlong (jet_parallel_fe_mul_shift.shift52_hi h)) = 
+Some mf ->
+exists le' : Clight.temp_env,
+  ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env
+    le m (Clight.fn_body jets_secp.f_secp256k1_u128_rshift) Events.E0 le' mf
+    ClightBigstep.Out_normal
+
+jet_parallel_fe_mul_shift.exec_u128_shift52_body is not universe polymorphic
+Arguments jet_parallel_fe_mul_shift.exec_u128_shift52_body 
+  m m1 mf le b l h _ _ _ _ _ _
+jet_parallel_fe_mul_shift.exec_u128_shift52_body is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.exec_u128_shift52_body
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_shift.uns_shl12 :
+forall h : Integers.Int64.int,
+Integers.Int64.unsigned
+  (Integers.Int64.shl h
+     (Integers.Int64.repr
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))) =
+BinInt.Z.mul
+  (BinInt.Z.modulo (Integers.Int64.unsigned h)
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+
+jet_parallel_fe_mul_shift.uns_shl12 is not universe polymorphic
+Arguments jet_parallel_fe_mul_shift.uns_shl12 h
+jet_parallel_fe_mul_shift.uns_shl12 is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.uns_shl12
+Closed under the global context
+jet_parallel_fe_mul_shift.uns_shru :
+forall (l : Integers.Int64.int) (k : BinNums.Z),
+BinInt.Z.le BinNums.Z0 k /\
+BinInt.Z.lt k
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) ->
+Integers.Int64.unsigned (Integers.Int64.shru l (Integers.Int64.repr k)) =
+BinInt.Z.div (Integers.Int64.unsigned l)
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+
+jet_parallel_fe_mul_shift.uns_shru is not universe polymorphic
+Arguments jet_parallel_fe_mul_shift.uns_shru l k%Z_scope _
+jet_parallel_fe_mul_shift.uns_shru is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.uns_shru
+Closed under the global context
+jet_parallel_fe_mul_shift.shift52_values :
+forall l h : Integers.Int64.int,
+let v :=
+  BinInt.Z.div
+    (BinInt.Z.add
+       (BinInt.Z.mul (Integers.Int64.unsigned h)
+          (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+             (BinNums.Zpos
+                (BinNums.xO
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+       (Integers.Int64.unsigned l))
+    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+       (BinNums.Zpos
+          (BinNums.xO
+             (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+  in
+Integers.Int64.unsigned (jet_parallel_fe_mul_shift.shift52_lo l h) =
+BinInt.Z.modulo v
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) /\
+Integers.Int64.unsigned (jet_parallel_fe_mul_shift.shift52_hi h) =
+BinInt.Z.div v
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+
+jet_parallel_fe_mul_shift.shift52_values is not universe polymorphic
+Arguments jet_parallel_fe_mul_shift.shift52_values l h
+jet_parallel_fe_mul_shift.shift52_values is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.shift52_values
+Closed under the global context
+jet_parallel_fe_mul_shift.orc_shr_inv :
+forall (base : nat) (log : list jet_sx_eval.event) 
+  (xs : list jet_sx_expr.sx) (regs regs' : list jet_sx_state.region)
+  (v : option jet_sx_expr.sx) (tag cnt : nat) (eargs : list jet_sx_expr.sx),
+jet_parallel_fe_mul_shift.orc_shr base log xs regs =
+Some (regs', v, tag, cnt, eargs) ->
+exists
+  (r : nat) (n : Integers.Int.int) (reg : jet_sx_state.region) 
+(L H : jet_sx_expr.sx) (r1 : list jet_sx_state.region),
+  xs = (jet_sx_expr.XP r BinNums.Z0 :: jet_sx_expr.XIc n :: nil)%list /\
+  jet_parallel_fe_mul_shift.shr_tag n = Some tag /\
+  List.nth_error regs r = Some reg /\
+  jet_sx_state.rfree reg =
+  Some
+    (BinNums.Zpos
+       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) /\
+  jet_sx_state.xload regs r BinNums.Z0 Ctypesdefs.tulong = Some L /\
+  jet_sx_state.xload regs r
+    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+    Ctypesdefs.tulong = Some H /\
+  jet_sx_expr.isk jet_sx_expr.KL L = true /\
+  jet_sx_expr.isk jet_sx_expr.KL H = true /\
+  jet_sx_state.xstore regs r BinNums.Z0 AST.Mint64 (jet_sx_expr.XLv base) =
+  Some r1 /\
+  jet_sx_state.xstore r1 r
+    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+    AST.Mint64 (jet_sx_expr.XLv (S base)) = Some regs' /\
+  v = None /\ cnt = 2 /\ eargs = (L :: H :: nil)%list
+
+jet_parallel_fe_mul_shift.orc_shr_inv is not universe polymorphic
+Arguments jet_parallel_fe_mul_shift.orc_shr_inv base%nat_scope
+  (log xs regs regs')%list_scope v (tag cnt)%nat_scope 
+  eargs%list_scope _
+jet_parallel_fe_mul_shift.orc_shr_inv is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.orc_shr_inv
+Closed under the global context
+jet_parallel_fe_mul_shift.shr_tag_cases :
+forall (n : Integers.Int.int) (t : nat),
+jet_parallel_fe_mul_shift.shr_tag n = Some t ->
+n =
+Integers.Int.repr
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))) /\
+t = jet_parallel_fe_mul_oracle.tSHR52 \/
+n =
+Integers.Int.repr
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) /\
+t = jet_parallel_fe_mul_oracle.tSHR64
+
+jet_parallel_fe_mul_shift.shr_tag_cases is not universe polymorphic
+Arguments jet_parallel_fe_mul_shift.shr_tag_cases n t%nat_scope _
+jet_parallel_fe_mul_shift.shr_tag_cases is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.shr_tag_cases
+Closed under the global context
+jet_parallel_fe_mul_shift.orc_shr_ok :
+jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge
+  jet_parallel_fe_mul_oracle.u128_evok jet_parallel_fe_mul_oracle.u128_inv
+  jet_parallel_fe_mul_oracle.u128_ext jets_secp.f_secp256k1_u128_rshift
+  jet_parallel_fe_mul_shift.orc_shr
+
+jet_parallel_fe_mul_shift.orc_shr_ok is not universe polymorphic
+Arguments jet_parallel_fe_mul_shift.orc_shr_ok base 
+  xs regs regs' v tag cnt eargs log ρ β m _ _ _ _ 
+  _ _
+jet_parallel_fe_mul_shift.orc_shr_ok is opaque
+Expands to: Constant C.jet_parallel_fe_mul_shift.orc_shr_ok
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+Events.inline_assembly_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Events.external_functions_sem
+  : String.string -> AST.signature -> Events.extcall_sem
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
+jet_parallel_fe_mul_sx.bop_beq_true :
+forall a b : jet_sx_expr.bop,
+jet_parallel_fe_mul_sx.bop_beq a b = true -> a = b
+
+jet_parallel_fe_mul_sx.bop_beq_true is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.bop_beq_true a b _
+jet_parallel_fe_mul_sx.bop_beq_true is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.bop_beq_true
+Closed under the global context
+jet_parallel_fe_mul_sx.shop_beq_true :
+forall a b : jet_sx_expr.shop,
+jet_parallel_fe_mul_sx.shop_beq a b = true -> a = b
+
+jet_parallel_fe_mul_sx.shop_beq_true is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.shop_beq_true a b _
+jet_parallel_fe_mul_sx.shop_beq_true is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.shop_beq_true
+Closed under the global context
+jet_parallel_fe_mul_sx.cmp_beq_true :
+forall a b : Integers.comparison,
+jet_parallel_fe_mul_sx.cmp_beq a b = true -> a = b
+
+jet_parallel_fe_mul_sx.cmp_beq_true is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.cmp_beq_true a b _
+jet_parallel_fe_mul_sx.cmp_beq_true is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.cmp_beq_true
+Closed under the global context
+jet_parallel_fe_mul_sx.sg_beq_true :
+forall a b : Ctypes.signedness,
+jet_parallel_fe_mul_sx.sg_beq a b = true -> a = b
+
+jet_parallel_fe_mul_sx.sg_beq_true is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.sg_beq_true a b _
+jet_parallel_fe_mul_sx.sg_beq_true is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.sg_beq_true
+Closed under the global context
+jet_parallel_fe_mul_sx.isz_beq_true :
+forall a b : Ctypes.intsize,
+jet_parallel_fe_mul_sx.isz_beq a b = true -> a = b
+
+jet_parallel_fe_mul_sx.isz_beq_true is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.isz_beq_true a b _
+jet_parallel_fe_mul_sx.isz_beq_true is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.isz_beq_true
+Closed under the global context
+jet_parallel_fe_mul_sx.sx_beq_true :
+forall x y : jet_sx_expr.sx,
+jet_parallel_fe_mul_sx.sx_beq x y = true -> x = y
+
+jet_parallel_fe_mul_sx.sx_beq_true is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.sx_beq_true x y _
+jet_parallel_fe_mul_sx.sx_beq_true is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.sx_beq_true
+Closed under the global context
+jet_parallel_fe_mul_sx.den_sx_subst :
+forall (rho : nat -> Integers.Int64.int)
+  (beta : nat -> Values.block * BinNums.Z) (sigma : nat -> jet_sx_expr.sx)
+  (x : jet_sx_expr.sx),
+jet_parallel_fe_mul_sx.long_subst sigma ->
+jet_sx_expr.den rho beta (jet_secp_symbolic_substitution.sx_subst sigma x) =
+jet_sx_expr.den (fun n : nat => jet_sx_exec.lv rho (sigma n)) beta x
+
+jet_parallel_fe_mul_sx.den_sx_subst is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.den_sx_subst (rho beta sigma)%function_scope
+  x _
+jet_parallel_fe_mul_sx.den_sx_subst is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.den_sx_subst
+Closed under the global context
+jet_parallel_fe_mul_sx.lv_sx_subst :
+forall (rho : nat -> Integers.Int64.int) (sigma : nat -> jet_sx_expr.sx)
+  (x : jet_sx_expr.sx),
+jet_parallel_fe_mul_sx.long_subst sigma ->
+jet_sx_exec.lv rho (jet_secp_symbolic_substitution.sx_subst sigma x) =
+jet_sx_exec.lv (fun n : nat => jet_sx_exec.lv rho (sigma n)) x
+
+jet_parallel_fe_mul_sx.lv_sx_subst is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.lv_sx_subst (rho sigma)%function_scope x _
+jet_parallel_fe_mul_sx.lv_sx_subst is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.lv_sx_subst
+Closed under the global context
+jet_parallel_fe_mul_sx.xreplace_shape :
+forall (regs : list jet_sx_state.region) (r : nat) 
+  (d : BinNums.Z) (ch : AST.memory_chunk) (x : jet_sx_expr.sx)
+  (regs' : list jet_sx_state.region),
+jet_parallel_fe_mul_sx.xreplace regs r d ch x = Some regs' ->
+List.map jet_sx_state.rshape regs' = List.map jet_sx_state.rshape regs
+
+jet_parallel_fe_mul_sx.xreplace_shape is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.xreplace_shape regs%list_scope 
+  r%nat_scope d%Z_scope ch x regs'%list_scope _
+jet_parallel_fe_mul_sx.xreplace_shape is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.xreplace_shape
+Closed under the global context
+jet_parallel_fe_mul_sx.rep_replace :
+forall (rho : nat -> Integers.Int64.int) (beta : jet_sx_state.layout)
+  (regs : list jet_sx_state.region) (m : Memory.Mem.mem) 
+  (r : nat) (d : BinNums.Z) (x y : jet_sx_expr.sx)
+  (regs' : list jet_sx_state.region),
+jet_sx_state.rep rho beta regs m ->
+jet_sx_state.xload regs r d Ctypesdefs.tulong = Some x ->
+jet_sx_expr.den rho (jet_sx_state.lay beta) y =
+jet_sx_expr.den rho (jet_sx_state.lay beta) x ->
+jet_sx_state.xp_le r y = true ->
+jet_parallel_fe_mul_sx.xreplace regs r d AST.Mint64 y = Some regs' ->
+jet_sx_state.rep rho beta regs' m
+
+jet_parallel_fe_mul_sx.rep_replace is not universe polymorphic
+Arguments jet_parallel_fe_mul_sx.rep_replace rho%function_scope 
+  beta regs%list_scope m r%nat_scope d%Z_scope x y 
+  regs'%list_scope _ _ _ _ _
+jet_parallel_fe_mul_sx.rep_replace is opaque
+Expands to: Constant C.jet_parallel_fe_mul_sx.rep_replace
+Axioms:
+ClassicalDedekindReals.sig_not_dec : forall P : Prop, {~ ~ P} + {~ P}
+ClassicalDedekindReals.sig_forall_dec
+  : forall P : nat -> Prop,
+    (forall n : nat, {P n} + {~ P n}) ->
+    {n : nat | ~ P n} + {forall n : nat, P n}
+FunctionalExtensionality.functional_extensionality_dep
+  : forall (A : Type) (B : A -> Type) (f g : forall x : A, B x),
+    (forall x : A, f x = g x) -> f = g
+Classical_Prop.classic : forall P : Prop, P \/ ~ P
