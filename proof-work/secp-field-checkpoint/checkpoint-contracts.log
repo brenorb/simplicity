@@ -1,0 +1,1925 @@
+TAP_TYPE FieldCheckpoint.Machine.sx_product_machine
+Machine.sx_product_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (a b : jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta (Ops.sx_product a b))
+         (Machine.machine_product (Machine.word_den rho beta a) (Machine.word_den rho beta b))
+TAP_TYPE FieldCheckpoint.Machine.sx_accum_machine
+Machine.sx_accum_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx) (a b : jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta (Ops.sx_accum s a b))
+         (Machine.machine_accum (Machine.pair_den rho beta s) (Machine.word_den rho beta a)
+            (Machine.word_den rho beta b))
+TAP_TYPE FieldCheckpoint.Machine.sx_accum_word_machine
+Machine.sx_accum_word_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx) (a : jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta (Ops.sx_accum_word s a))
+         (Machine.machine_accum_word (Machine.pair_den rho beta s) (Machine.word_den rho beta a))
+TAP_TYPE FieldCheckpoint.Machine.sx_shift52_machine
+Machine.sx_shift52_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta (Ops.sx_shift52 s))
+         (Machine.machine_shift52 (Machine.pair_den rho beta s))
+TAP_TYPE FieldCheckpoint.Machine.sx_shift64_machine
+Machine.sx_shift64_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta (Ops.sx_shift64 s))
+         (Machine.machine_shift64 (Machine.pair_den rho beta s))
+TAP_TYPE FieldCheckpoint.Machine.pair_low_den
+Machine.pair_low_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx) (ma : prod Integers.Int64.int Integers.Int64.int)
+         (_ : @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta s) ma)
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL (@fst jet_sx_expr.sx jet_sx_expr.sx s)) true),
+       @eq Values.val (jet_sx_expr.den rho beta (@fst jet_sx_expr.sx jet_sx_expr.sx s))
+         (Values.Vlong (@fst Integers.Int64.int Integers.Int64.int ma))
+TAP_TYPE FieldCheckpoint.Machine.pair_high_den
+Machine.pair_high_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx) (ma : prod Integers.Int64.int Integers.Int64.int)
+         (_ : @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta s) ma)
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL (@snd jet_sx_expr.sx jet_sx_expr.sx s)) true),
+       @eq Values.val (jet_sx_expr.den rho beta (@snd jet_sx_expr.sx jet_sx_expr.sx s))
+         (Values.Vlong (@snd Integers.Int64.int Integers.Int64.int ma))
+TAP_TYPE FieldCheckpoint.Machine.pair_value_range
+Machine.pair_value_range
+     : forall s : prod Integers.Int64.int Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (Machine.pair_value s))
+         (BinInt.Z.lt (Machine.pair_value s) (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+TAP_TYPE FieldCheckpoint.Machine.machine_product_value
+Machine.machine_product_value
+     : forall a b : Integers.Int64.int,
+       @eq BinNums.Z (Machine.pair_value (Machine.machine_product a b))
+         (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+TAP_TYPE FieldCheckpoint.Machine.machine_accum_value
+Machine.machine_accum_value
+     : forall (s : prod Integers.Int64.int Integers.Int64.int) (a b : Integers.Int64.int),
+       @eq BinNums.Z (Machine.pair_value (Machine.machine_accum s a b))
+         (BinInt.Z.modulo
+            (BinInt.Z.add (Machine.pair_value s) (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+            (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+TAP_TYPE FieldCheckpoint.Machine.machine_accum_exact
+Machine.machine_accum_exact
+     : forall (s : prod Integers.Int64.int Integers.Int64.int) (a b : Integers.Int64.int)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add (Machine.pair_value s)
+                   (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z (Machine.pair_value (Machine.machine_accum s a b))
+         (BinInt.Z.add (Machine.pair_value s) (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+TAP_TYPE FieldCheckpoint.Machine.machine_shift52_value
+Machine.machine_shift52_value
+     : forall s : prod Integers.Int64.int Integers.Int64.int,
+       @eq BinNums.Z (Machine.pair_value (Machine.machine_shift52 s))
+         (BinInt.Z.div (Machine.pair_value s)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO
+                                                                        (BinNums.xO
+                                                                           (BinNums.xO
+                                                                              (BinNums.xO
+                                                                                 (BinNums.xO
+                                                                                    (BinNums.xO
+                                                                                       (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))))))))))))))))))))))))
+TAP_TYPE FieldCheckpoint.Machine.machine_shift64_value
+Machine.machine_shift64_value
+     : forall s : prod Integers.Int64.int Integers.Int64.int,
+       @eq BinNums.Z (Machine.pair_value (Machine.machine_shift64 s))
+         (BinInt.Z.div (Machine.pair_value s) Integers.Int64.modulus)
+TAP_TYPE FieldCheckpoint.Machine.machine_mask52_value
+Machine.machine_mask52_value
+     : forall x : Integers.Int64.int,
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.and x
+               (Integers.Int64.repr
+                  (BinNums.Zpos
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI
+                                                            (BinNums.xI
+                                                               (BinNums.xI
+                                                                  (BinNums.xI
+                                                                     (BinNums.xI
+                                                                        (BinNums.xI
+                                                                           (BinNums.xI
+                                                                              (BinNums.xI
+                                                                                 (BinNums.xI
+                                                                                    (BinNums.xI
+                                                                                       (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI BinNums.xH)))))))))))))))))))))))))))))))))))))))))))))))))))))))
+         (BinInt.Z.modulo (Integers.Int64.unsigned x)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO
+                                                                        (BinNums.xO
+                                                                           (BinNums.xO
+                                                                              (BinNums.xO
+                                                                                 (BinNums.xO
+                                                                                    (BinNums.xO
+                                                                                       (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))))))))))))))))))))))))
+TAP_TYPE FieldCheckpoint.Atomic.atomic_sx_den
+Atomic.atomic_sx_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (x : jet_sx_expr.sx),
+       @eq Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) (Atomic.atomic_sx rho beta x))
+         (jet_sx_expr.den rho (jet_sx_state.lay beta) x)
+TAP_TYPE FieldCheckpoint.Atomic.atomic_sx_xp
+Atomic.atomic_sx_xp
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (r : nat) 
+         (x : jet_sx_expr.sx) (_ : @eq bool (jet_sx_state.xp_le r x) true),
+       @eq bool (jet_sx_state.xp_le r (Atomic.atomic_sx rho beta x)) true
+TAP_TYPE FieldCheckpoint.Atomic.atomic_region
+Atomic.atomic_region
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem) 
+         (r : nat) (reg : jet_sx_state.region) (_ : jet_sx_state.region_ok rho beta m r reg),
+       jet_sx_state.region_ok rho beta m r (jet_sx_revalue_cells.revalue_region (Atomic.atomic_sx rho beta) reg)
+TAP_TYPE FieldCheckpoint.Atomic.atomic_regs_shape
+Atomic.atomic_regs_shape
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (regs : list jet_sx_state.region),
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (Atomic.atomic_regs rho beta regs))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape regs)
+TAP_TYPE FieldCheckpoint.Atomic.atomic_rep
+Atomic.atomic_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (regs : list jet_sx_state.region)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta regs m),
+       jet_sx_state.rep rho beta (Atomic.atomic_regs rho beta regs) m
+TAP_TYPE FieldCheckpoint.Atomic.atomic_tmatch
+Atomic.atomic_tmatch
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (ts : Maps.PTree.t jet_sx_expr.sx) (le : Clight.temp_env) (_ : jet_sx_eval.tmatch rho beta ts le),
+       jet_sx_eval.tmatch rho beta (Atomic.atomic_temps rho beta ts) le
+TAP_TYPE FieldCheckpoint.Atomic.atomic_checkpoint
+Atomic.atomic_checkpoint
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (st : jet_sx_eval.sstate)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs st) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st) le),
+       and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (Atomic.atomic_state rho beta st)) m)
+         (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (Atomic.atomic_state rho beta st)) le)
+            (and
+               (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                  (@List.map jet_sx_state.region
+                     (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                     (jet_sx_eval.sregs (Atomic.atomic_state rho beta st)))
+                  (@List.map jet_sx_state.region
+                     (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                     (jet_sx_eval.sregs st)))
+               (and
+                  (@eq (list jet_sx_eval.event) (jet_sx_eval.slog (Atomic.atomic_state rho beta st))
+                     (jet_sx_eval.slog st))
+                  (@eq nat (jet_sx_eval.snv (Atomic.atomic_state rho beta st)) (jet_sx_eval.snv st)))))
+TAP_TYPE FieldCheckpoint.Prefix.prefix_suffix_source
+Prefix.prefix_suffix_source
+     : @eq Clight.statement (jet_secp_statement_prefix.statement_sequence Prefix.prefix_spine Prefix.suffix_statement)
+         (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner)
+TAP_TYPE FieldCheckpoint.Prefix.prefix_completes
+Prefix.prefix_completes
+     : @eq bool
+         match Prefix.prefix_run return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+TAP_TYPE FieldCheckpoint.Prefix.prefix_run_eq
+Prefix.prefix_run_eq
+     : @eq (option jet_sx_exec.res) Prefix.prefix_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone Prefix.prefix_state jet_sx_exec.ONormal))
+TAP_TYPE FieldCheckpoint.Prefix.prefix_c_low
+Prefix.prefix_c_low
+     : @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs Prefix.prefix_state) (S (S O)) BinNums.Z0 Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (@fst jet_sx_expr.sx jet_sx_expr.sx Prefix.first_final_c))
+TAP_TYPE FieldCheckpoint.Prefix.prefix_c_high
+Prefix.prefix_c_high
+     : @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs Prefix.prefix_state) (S (S O))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (@snd jet_sx_expr.sx jet_sx_expr.sx Prefix.first_final_c))
+TAP_TYPE FieldCheckpoint.Prefix.prefix_d_low
+Prefix.prefix_d_low
+     : @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs Prefix.prefix_state) (S (S (S O))) BinNums.Z0 Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (@fst jet_sx_expr.sx jet_sx_expr.sx Prefix.first_final_d))
+TAP_TYPE FieldCheckpoint.Prefix.prefix_d_high
+Prefix.prefix_d_high
+     : @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs Prefix.prefix_state) (S (S (S O)))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (@snd jet_sx_expr.sx jet_sx_expr.sx Prefix.first_final_d))
+TAP_TYPE FieldCheckpoint.Prefix.prefix_t3
+Prefix.prefix_t3
+     : @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._t3 (jet_sx_eval.stemps Prefix.prefix_state))
+         (@Some jet_sx_expr.sx Prefix.first_t3)
+TAP_TYPE FieldCheckpoint.Prefix.field_stmt_normal
+Prefix.field_stmt_normal
+     : forall (fuel : nat) (ve : jet_sx_eval.venv) (st : jet_sx_eval.sstate) (stmt : Clight.statement)
+         (st' : jet_sx_eval.sstate)
+         (_ : @eq (option jet_sx_exec.res)
+                (jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+                   (@nil (prod AST.ident (prod nat Ctypes.type))) Run.field_table fuel ve st stmt)
+                (@Some jet_sx_exec.res (jet_sx_exec.RDone st' jet_sx_exec.ONormal)))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs st) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st) le) (_ : jet_sx_eval.ematch beta ve e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m stmt Events.E0 le' mf
+                  ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs st') mf)
+                  (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st') le')
+                     (and
+                        (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_sx_eval.sregs st'))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_sx_eval.sregs st)))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape (jet_sx_eval.sregs st)) b ofs)) m mf))))))
+TAP_TYPE FieldCheckpoint.Prefix.prefix_typed_run
+Prefix.prefix_typed_run
+     : @eq (option jet_sx_exec.res)
+         (jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+            Run.field_table
+            (S
+               (S
+                  (S
+                     (S
+                        (S
+                           (S
+                              (S
+                                 (S
+                                    (S
+                                       (S
+                                          (S
+                                             (S
+                                                (S
+                                                   (S
+                                                      (S
+                                                         (S
+                                                            (S
+                                                               (S
+                                                                  (S
+                                                                     (S
+                                                                        (S
+                                                                           (S
+                                                                              (S
+                                                                                 (S
+                                                                                    (S
+                                                                                       (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S (S (S (S (S (S (S O))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated) Prefix.prefix_initial
+            Prefix.prefix_statement)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone Prefix.prefix_state jet_sx_exec.ONormal))
+TAP_TYPE FieldCheckpoint.Prefix.exec_field_first_checkpoint
+Prefix.exec_field_first_checkpoint
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs Prefix.prefix_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps Prefix.prefix_initial) le)
+         (_ : jet_sx_eval.ematch beta (@snd (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m Prefix.prefix_statement Events.E0 le'
+                  mf ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs Prefix.prefix_state) mf)
+                  (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps Prefix.prefix_state) le')
+                     (and
+                        (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_sx_eval.sregs Prefix.prefix_state))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_sx_eval.sregs Prefix.prefix_initial)))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape (jet_sx_eval.sregs Prefix.prefix_initial)) b ofs)) m mf))))))
+TAP_TYPE FieldCheckpoint.Bridge.first_c_den
+Bridge.first_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta Prefix.first_c)
+         (Bridge.first_c_machine rho)
+TAP_TYPE FieldCheckpoint.Bridge.first_d_den
+Bridge.first_d_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta Prefix.first_d)
+         (Bridge.first_d_machine rho)
+TAP_TYPE FieldCheckpoint.Bridge.first_fold_den
+Bridge.first_fold_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta Prefix.first_fold_d)
+         (Bridge.first_fold_machine rho)
+TAP_TYPE FieldCheckpoint.Bridge.first_final_c_den
+Bridge.first_final_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta Prefix.first_final_c)
+         (Bridge.first_final_c_machine rho)
+TAP_TYPE FieldCheckpoint.Bridge.first_final_d_den
+Bridge.first_final_d_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (Machine.pair_den rho beta Prefix.first_final_d)
+         (Bridge.first_final_d_machine rho)
+TAP_TYPE FieldCheckpoint.Bridge.first_t3_den
+Bridge.first_t3_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho beta Prefix.first_t3) (Values.Vlong (Bridge.first_t3_machine rho))
+TAP_TYPE FieldCheckpoint.Bridge.exec_first_machine_atomic
+Bridge.exec_first_machine_atomic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs Prefix.prefix_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps Prefix.prefix_initial) le)
+         (_ : jet_sx_eval.ematch beta (@snd (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m Prefix.prefix_statement Events.E0 le'
+                  mf ClightBigstep.Out_normal)
+               (and (Bridge.first_machine_observations rho beta le' mf)
+                  (and
+                     (jet_sx_state.rep rho beta (jet_sx_eval.sregs (Atomic.atomic_state rho beta Prefix.prefix_state))
+                        mf)
+                     (and
+                        (jet_sx_eval.tmatch rho beta
+                           (jet_sx_eval.stemps (Atomic.atomic_state rho beta Prefix.prefix_state)) le')
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape (jet_sx_eval.sregs Prefix.prefix_initial)) b ofs)) m mf))))))
+TAP_TYPE FieldCheckpoint.Columns.columns_conservation
+Columns.columns_conservation
+     : forall c : Columns.columns,
+       @eq BinNums.Z (BinInt.Z.sub (Columns.columns_value c) (Columns.reduced_value c))
+         (BinInt.Z.mul Columns.field_prime (Columns.reduction_quotient c))
+TAP_TYPE FieldCheckpoint.Columns.columns_modulo
+Columns.columns_modulo
+     : forall c : Columns.columns,
+       @eq BinNums.Z (BinInt.Z.modulo (Columns.reduced_value c) Columns.field_prime)
+         (BinInt.Z.modulo (Columns.columns_value c) Columns.field_prime)
+TAP_DEF FieldCheckpoint.Ops.sx_low32
+Ops.sx_low32 =
+fun a : jet_sx_expr.sx => jet_sx_expr.XI2L Ctypes.Unsigned (jet_sx_expr.XL2I a)
+     : forall _ : jet_sx_expr.sx, jet_sx_expr.sx
+
+Arguments Ops.sx_low32 a
+TAP_DEF FieldCheckpoint.Ops.sx_product
+Ops.sx_product =
+fun a b : jet_sx_expr.sx =>
+let ll : jet_sx_expr.sx := jet_sx_expr.XLb jet_sx_expr.Bmul (Ops.sx_low32 a) (Ops.sx_low32 b) in
+let lh : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Bmul (Ops.sx_low32 a)
+    (jet_sx_expr.XLsh jet_sx_expr.Hshru b
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) in
+let hl : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Bmul
+    (jet_sx_expr.XLsh jet_sx_expr.Hshru a
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) 
+    (Ops.sx_low32 b) in
+let hh : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Bmul
+    (jet_sx_expr.XLsh jet_sx_expr.Hshru a
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+    (jet_sx_expr.XLsh jet_sx_expr.Hshru b
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) in
+let mid : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Badd
+    (jet_sx_expr.XLb jet_sx_expr.Badd
+       (jet_sx_expr.XLsh jet_sx_expr.Hshru ll
+          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) 
+       (Ops.sx_low32 lh)) (Ops.sx_low32 hl) in
+@pair jet_sx_expr.sx jet_sx_expr.sx
+  (jet_sx_expr.XLb jet_sx_expr.Badd
+     (jet_sx_expr.XLsh jet_sx_expr.Hshl mid
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) 
+     (Ops.sx_low32 ll))
+  (jet_sx_expr.XLb jet_sx_expr.Badd
+     (jet_sx_expr.XLb jet_sx_expr.Badd
+        (jet_sx_expr.XLb jet_sx_expr.Badd hh
+           (jet_sx_expr.XLsh jet_sx_expr.Hshru lh
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (jet_sx_expr.XLsh jet_sx_expr.Hshru hl
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+     (jet_sx_expr.XLsh jet_sx_expr.Hshru mid
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments Ops.sx_product a b
+TAP_DEF FieldCheckpoint.Ops.sx_carry
+Ops.sx_carry =
+fun lo a : jet_sx_expr.sx => jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned lo a)
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments Ops.sx_carry lo a
+TAP_DEF FieldCheckpoint.Ops.sx_accum
+Ops.sx_accum =
+fun (s : prod jet_sx_expr.sx jet_sx_expr.sx) (a b : jet_sx_expr.sx) =>
+let p : prod jet_sx_expr.sx jet_sx_expr.sx := Ops.sx_product a b in
+let lo : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Badd (@fst jet_sx_expr.sx jet_sx_expr.sx s) (@fst jet_sx_expr.sx jet_sx_expr.sx p) in
+@pair jet_sx_expr.sx jet_sx_expr.sx lo
+  (jet_sx_expr.XLb jet_sx_expr.Badd (@snd jet_sx_expr.sx jet_sx_expr.sx s)
+     (jet_sx_expr.XLb jet_sx_expr.Badd (@snd jet_sx_expr.sx jet_sx_expr.sx p)
+        (Ops.sx_carry lo (@fst jet_sx_expr.sx jet_sx_expr.sx p))))
+     : forall (_ : prod jet_sx_expr.sx jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx),
+       prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments Ops.sx_accum s a b
+TAP_DEF FieldCheckpoint.Ops.sx_accum_word
+Ops.sx_accum_word =
+fun (s : prod jet_sx_expr.sx jet_sx_expr.sx) (a : jet_sx_expr.sx) =>
+let lo : jet_sx_expr.sx := jet_sx_expr.XLb jet_sx_expr.Badd (@fst jet_sx_expr.sx jet_sx_expr.sx s) a in
+@pair jet_sx_expr.sx jet_sx_expr.sx lo
+  (jet_sx_expr.XLb jet_sx_expr.Badd (@snd jet_sx_expr.sx jet_sx_expr.sx s) (Ops.sx_carry lo a))
+     : forall (_ : prod jet_sx_expr.sx jet_sx_expr.sx) (_ : jet_sx_expr.sx), prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments Ops.sx_accum_word s a
+TAP_DEF FieldCheckpoint.Ops.sx_shift52
+Ops.sx_shift52 =
+fun s : prod jet_sx_expr.sx jet_sx_expr.sx =>
+@pair jet_sx_expr.sx jet_sx_expr.sx
+  (Rep.shift52_lo_sx (@fst jet_sx_expr.sx jet_sx_expr.sx s) (@snd jet_sx_expr.sx jet_sx_expr.sx s))
+  (Rep.shift52_hi_sx (@snd jet_sx_expr.sx jet_sx_expr.sx s))
+     : forall _ : prod jet_sx_expr.sx jet_sx_expr.sx, prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments Ops.sx_shift52 s
+TAP_DEF FieldCheckpoint.Ops.sx_shift64
+Ops.sx_shift64 =
+fun s : prod jet_sx_expr.sx jet_sx_expr.sx =>
+@pair jet_sx_expr.sx jet_sx_expr.sx (@snd jet_sx_expr.sx jet_sx_expr.sx s) (jet_sx_expr.XLc Integers.Int64.zero)
+     : forall _ : prod jet_sx_expr.sx jet_sx_expr.sx, prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments Ops.sx_shift64 s
+TAP_DEF FieldCheckpoint.Machine.word_den
+Machine.word_den =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+  (x : jet_sx_expr.sx) => jet_sx_expr.il (jet_sx_expr.den rho beta x)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : jet_sx_expr.sx), Integers.Int64.int
+
+Arguments Machine.word_den (rho beta)%function_scope x
+TAP_DEF FieldCheckpoint.Machine.pair_den
+Machine.pair_den =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+  (s : prod jet_sx_expr.sx jet_sx_expr.sx) =>
+@pair Integers.Int64.int Integers.Int64.int (Machine.word_den rho beta (@fst jet_sx_expr.sx jet_sx_expr.sx s))
+  (Machine.word_den rho beta (@snd jet_sx_expr.sx jet_sx_expr.sx s))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : prod jet_sx_expr.sx jet_sx_expr.sx), prod Integers.Int64.int Integers.Int64.int
+
+Arguments Machine.pair_den (rho beta)%function_scope s
+TAP_DEF FieldCheckpoint.Machine.pair_value
+Machine.pair_value =
+fun s : prod Integers.Int64.int Integers.Int64.int =>
+BinInt.Z.add (Integers.Int64.unsigned (@fst Integers.Int64.int Integers.Int64.int s))
+  (BinInt.Z.mul Integers.Int64.modulus (Integers.Int64.unsigned (@snd Integers.Int64.int Integers.Int64.int s)))
+     : forall _ : prod Integers.Int64.int Integers.Int64.int, BinNums.Z
+
+Arguments Machine.pair_value s
+TAP_DEF FieldCheckpoint.Machine.machine_product
+Machine.machine_product =
+fun a b : Integers.Int64.int =>
+@pair Integers.Int64.int Integers.Int64.int (jet_secp_umul128_numeric.umul128_lo_machine a b)
+  (jet_secp_umul128_numeric.umul128_hi_machine a b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), prod Integers.Int64.int Integers.Int64.int
+
+Arguments Machine.machine_product a b
+TAP_DEF FieldCheckpoint.Machine.machine_carry
+Machine.machine_carry =
+fun lo a : Integers.Int64.int =>
+Integers.Int64.repr
+  (Integers.Int.signed
+     match Integers.Int64.ltu lo a return Integers.Int.int with
+     | true => Integers.Int.one
+     | false => Integers.Int.zero
+     end)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments Machine.machine_carry lo a
+TAP_DEF FieldCheckpoint.Machine.machine_accum
+Machine.machine_accum =
+fun (s : prod Integers.Int64.int Integers.Int64.int) (a b : Integers.Int64.int) =>
+let p : prod Integers.Int64.int Integers.Int64.int := Machine.machine_product a b in
+let lo : Integers.Int64.int :=
+  Integers.Int64.add (@fst Integers.Int64.int Integers.Int64.int s) (@fst Integers.Int64.int Integers.Int64.int p) in
+@pair Integers.Int64.int Integers.Int64.int lo
+  (Integers.Int64.add (@snd Integers.Int64.int Integers.Int64.int s)
+     (Integers.Int64.add (@snd Integers.Int64.int Integers.Int64.int p)
+        (Machine.machine_carry lo (@fst Integers.Int64.int Integers.Int64.int p))))
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments Machine.machine_accum s a b
+TAP_DEF FieldCheckpoint.Machine.machine_accum_word
+Machine.machine_accum_word =
+fun (s : prod Integers.Int64.int Integers.Int64.int) (a : Integers.Int64.int) =>
+let lo : Integers.Int64.int := Integers.Int64.add (@fst Integers.Int64.int Integers.Int64.int s) a in
+@pair Integers.Int64.int Integers.Int64.int lo
+  (Integers.Int64.add (@snd Integers.Int64.int Integers.Int64.int s) (Machine.machine_carry lo a))
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments Machine.machine_accum_word s a
+TAP_DEF FieldCheckpoint.Machine.machine_shift52
+Machine.machine_shift52 =
+fun s : prod Integers.Int64.int Integers.Int64.int =>
+@pair Integers.Int64.int Integers.Int64.int
+  (Shift.shift52_low (@fst Integers.Int64.int Integers.Int64.int s) (@snd Integers.Int64.int Integers.Int64.int s))
+  (Shift.shift52_high (@snd Integers.Int64.int Integers.Int64.int s))
+     : forall _ : prod Integers.Int64.int Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments Machine.machine_shift52 s
+TAP_DEF FieldCheckpoint.Machine.machine_shift64
+Machine.machine_shift64 =
+fun s : prod Integers.Int64.int Integers.Int64.int =>
+@pair Integers.Int64.int Integers.Int64.int (@snd Integers.Int64.int Integers.Int64.int s) Integers.Int64.zero
+     : forall _ : prod Integers.Int64.int Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments Machine.machine_shift64 s
+TAP_DEF FieldCheckpoint.Atomic.atomic_sx
+Atomic.atomic_sx =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (x : jet_sx_expr.sx) =>
+match jet_sx_expr.isk jet_sx_expr.KL x return jet_sx_expr.sx with
+| true => jet_sx_revalue_cells.revalue_u64 rho beta x
+| false => x
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments Atomic.atomic_sx rho%function_scope beta x
+TAP_DEF FieldCheckpoint.Atomic.atomic_regs
+Atomic.atomic_regs =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (regs : list jet_sx_state.region) =>
+@List.map jet_sx_state.region jet_sx_state.region (jet_sx_revalue_cells.revalue_region (Atomic.atomic_sx rho beta))
+  regs
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : list jet_sx_state.region),
+       list jet_sx_state.region
+
+Arguments Atomic.atomic_regs rho%function_scope beta regs%list_scope
+TAP_DEF FieldCheckpoint.Atomic.atomic_temps
+Atomic.atomic_temps =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (ts : Maps.PTree.tree jet_sx_expr.sx) =>
+@Maps.PTree.map jet_sx_expr.sx jet_sx_expr.sx
+  (fun (_ : BinNums.positive) (x : jet_sx_expr.sx) => Atomic.atomic_sx rho beta x) ts
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : Maps.PTree.tree jet_sx_expr.sx),
+       Maps.PTree.tree jet_sx_expr.sx
+
+Arguments Atomic.atomic_temps rho%function_scope beta ts
+TAP_DEF FieldCheckpoint.Atomic.atomic_state
+Atomic.atomic_state =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (st : jet_sx_eval.sstate) =>
+jet_sx_eval.mkst (Atomic.atomic_temps rho beta (jet_sx_eval.stemps st))
+  (Atomic.atomic_regs rho beta (jet_sx_eval.sregs st)) (jet_sx_eval.slog st) (jet_sx_eval.snv st)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : jet_sx_eval.sstate),
+       jet_sx_eval.sstate
+
+Arguments Atomic.atomic_state rho%function_scope beta st
+TAP_DEF FieldCheckpoint.Prefix.mul_spine
+Prefix.mul_spine =
+@fst (list Clight.statement) Clight.statement
+  (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner))
+     : list Clight.statement
+TAP_DEF FieldCheckpoint.Prefix.mul_last
+Prefix.mul_last =
+@snd (list Clight.statement) Clight.statement
+  (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner))
+     : Clight.statement
+TAP_DEF FieldCheckpoint.Prefix.prefix_spine
+Prefix.prefix_spine =
+@List.firstn Clight.statement
+  (S
+     (S
+        (S
+           (S
+              (S
+                 (S
+                    (S
+                       (S
+                          (S
+                             (S
+                                (S
+                                   (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))))))))))))))))))
+  Prefix.mul_spine
+     : list Clight.statement
+TAP_DEF FieldCheckpoint.Prefix.prefix_statement
+Prefix.prefix_statement =
+jet_secp_statement_prefix.statement_sequence Prefix.prefix_spine Clight.Sskip
+     : Clight.statement
+TAP_DEF FieldCheckpoint.Prefix.suffix_statement
+Prefix.suffix_statement =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement
+     (S
+        (S
+           (S
+              (S
+                 (S
+                    (S
+                       (S
+                          (S
+                             (S
+                                (S
+                                   (S
+                                      (S
+                                         (S
+                                            (S
+                                               (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))))))))))))))))))
+     Prefix.mul_spine) Prefix.mul_last
+     : Clight.statement
+TAP_DEF FieldCheckpoint.Prefix.mul_allocated
+Prefix.mul_allocated =
+match
+  jet_sx_mem.xalloc (jet_sx_mem.std_cells (Clight.genv_cenv jet_secp_linkage.secp_ge))
+    (Clight.genv_cenv jet_secp_linkage.secp_ge) (Clight.fn_vars jets_secp.f_secp256k1_fe_mul_inner) 
+    (S (S O)) return (prod (list jet_sx_state.region) jet_sx_eval.venv)
+with
+| Some p => p
+| None =>
+    @pair (list jet_sx_state.region) (list (prod AST.ident (prod nat Ctypes.type))) (@nil jet_sx_state.region)
+      (@nil (prod AST.ident (prod nat Ctypes.type)))
+end
+     : prod (list jet_sx_state.region) jet_sx_eval.venv
+TAP_DEF FieldCheckpoint.Prefix.prefix_temps
+Prefix.prefix_temps =
+@Maps.PTree.set jet_sx_expr.sx jets_secp._b (jet_sx_expr.XP (S O) BinNums.Z0)
+  (@Maps.PTree.set jet_sx_expr.sx jets_secp._a (jet_sx_expr.XP O BinNums.Z0)
+     (@Maps.PTree.set jet_sx_expr.sx jets_secp._r (jet_sx_expr.XP O BinNums.Z0) (Maps.PTree.empty jet_sx_expr.sx)))
+     : Maps.PTree.tree jet_sx_expr.sx
+TAP_DEF FieldCheckpoint.Prefix.prefix_initial
+Prefix.prefix_initial =
+jet_sx_eval.mkst Prefix.prefix_temps
+  (@app jet_sx_state.region Run.field_mul_regs (@fst (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated))
+  (@nil jet_sx_eval.event) (S (S (S (S (S (S (S (S (S (S O))))))))))
+     : jet_sx_eval.sstate
+TAP_DEF FieldCheckpoint.Prefix.prefix_run
+Prefix.prefix_run =
+jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  Run.field_table
+  (S
+     (S
+        (S
+           (S
+              (S
+                 (S
+                    (S
+                       (S
+                          (S
+                             (S
+                                (S
+                                   (S
+                                      (S
+                                         (S
+                                            (S
+                                               (S
+                                                  (S
+                                                     (S
+                                                        (S
+                                                           (S
+                                                              (S
+                                                                 (S
+                                                                    (S
+                                                                       (S
+                                                                          (S
+                                                                             (S
+                                                                                (S
+                                                                                   (S
+                                                                                      (S
+                                                                                         (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S
+                                                                                          (S (S (S (S (S (S (S O))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated) Prefix.prefix_initial Prefix.prefix_statement
+     : option jet_sx_exec.res
+TAP_DEF FieldCheckpoint.Prefix.prefix_state
+Prefix.prefix_state =
+match Prefix.prefix_run return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ => Prefix.prefix_initial
+    end
+| None => Prefix.prefix_initial
+end
+     : jet_sx_eval.sstate
+TAP_DEF FieldCheckpoint.Prefix.first_c
+Prefix.first_c =
+Ops.sx_product (jet_sx_expr.XLv (S (S (S (S O))))) (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S O))))))))))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+TAP_DEF FieldCheckpoint.Prefix.first_d
+Prefix.first_d =
+Ops.sx_accum
+  (Ops.sx_accum
+     (Ops.sx_accum (Ops.sx_product (jet_sx_expr.XLv O) (jet_sx_expr.XLv (S (S (S (S (S (S (S (S O))))))))))
+        (jet_sx_expr.XLv (S O)) (jet_sx_expr.XLv (S (S (S (S (S (S (S O))))))))) (jet_sx_expr.XLv (S (S O)))
+     (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))) (jet_sx_expr.XLv (S (S (S O))))
+  (jet_sx_expr.XLv (S (S (S (S (S O))))))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+TAP_DEF FieldCheckpoint.Prefix.first_fold_d
+Prefix.first_fold_d =
+Ops.sx_accum Prefix.first_d
+  (jet_sx_expr.XLc
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xO
+                                                                    (BinNums.xO
+                                                                       (BinNums.xO
+                                                                          (BinNums.xO
+                                                                             (BinNums.xO
+                                                                                (BinNums.xO
+                                                                                   (BinNums.xO
+                                                                                      (BinNums.xO
+                                                                                         (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH)))))))))))))))))))))))))))))))))))))))
+  (@fst jet_sx_expr.sx jet_sx_expr.sx Prefix.first_c)
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+TAP_DEF FieldCheckpoint.Prefix.first_t3
+Prefix.first_t3 =
+jet_sx_expr.XLb jet_sx_expr.Band (@fst jet_sx_expr.sx jet_sx_expr.sx Prefix.first_fold_d)
+  (jet_sx_expr.XLc
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI
+                                                           (BinNums.xI
+                                                              (BinNums.xI
+                                                                 (BinNums.xI
+                                                                    (BinNums.xI
+                                                                       (BinNums.xI
+                                                                          (BinNums.xI
+                                                                             (BinNums.xI
+                                                                                (BinNums.xI
+                                                                                   (BinNums.xI
+                                                                                      (BinNums.xI
+                                                                                         (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI BinNums.xH))))))))))))))))))))))))))))))))))))))))))))))))))))))
+     : jet_sx_expr.sx
+TAP_DEF FieldCheckpoint.Prefix.first_final_c
+Prefix.first_final_c = Ops.sx_shift64 Prefix.first_c
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+TAP_DEF FieldCheckpoint.Prefix.first_final_d
+Prefix.first_final_d = Ops.sx_shift52 Prefix.first_fold_d
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+TAP_DEF FieldCheckpoint.Bridge.first_c_machine
+Bridge.first_c_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+Machine.machine_product (rho (S (S (S (S O))))) (rho (S (S (S (S (S (S (S (S (S O))))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments Bridge.first_c_machine rho%function_scope
+TAP_DEF FieldCheckpoint.Bridge.first_d_machine
+Bridge.first_d_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+Machine.machine_accum
+  (Machine.machine_accum
+     (Machine.machine_accum (Machine.machine_product (rho O) (rho (S (S (S (S (S (S (S (S O)))))))))) 
+        (rho (S O)) (rho (S (S (S (S (S (S (S O))))))))) (rho (S (S O))) (rho (S (S (S (S (S (S O))))))))
+  (rho (S (S (S O)))) (rho (S (S (S (S (S O))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments Bridge.first_d_machine rho%function_scope
+TAP_DEF FieldCheckpoint.Bridge.first_fold_machine
+Bridge.first_fold_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+Machine.machine_accum (Bridge.first_d_machine rho)
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xO
+                                                                    (BinNums.xO
+                                                                       (BinNums.xO
+                                                                          (BinNums.xO
+                                                                             (BinNums.xO
+                                                                                (BinNums.xO
+                                                                                   (BinNums.xO
+                                                                                      (BinNums.xO
+                                                                                         (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))))))))
+  (@fst Integers.Int64.int Integers.Int64.int (Bridge.first_c_machine rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments Bridge.first_fold_machine rho%function_scope
+TAP_DEF FieldCheckpoint.Bridge.first_final_c_machine
+Bridge.first_final_c_machine =
+fun rho : forall _ : nat, Integers.Int64.int => Machine.machine_shift64 (Bridge.first_c_machine rho)
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments Bridge.first_final_c_machine rho%function_scope
+TAP_DEF FieldCheckpoint.Bridge.first_final_d_machine
+Bridge.first_final_d_machine =
+fun rho : forall _ : nat, Integers.Int64.int => Machine.machine_shift52 (Bridge.first_fold_machine rho)
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments Bridge.first_final_d_machine rho%function_scope
+TAP_DEF FieldCheckpoint.Bridge.first_t3_machine
+Bridge.first_t3_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+Integers.Int64.and (@fst Integers.Int64.int Integers.Int64.int (Bridge.first_fold_machine rho))
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI
+                                                           (BinNums.xI
+                                                              (BinNums.xI
+                                                                 (BinNums.xI
+                                                                    (BinNums.xI
+                                                                       (BinNums.xI
+                                                                          (BinNums.xI
+                                                                             (BinNums.xI
+                                                                                (BinNums.xI
+                                                                                   (BinNums.xI
+                                                                                      (BinNums.xI
+                                                                                         (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI
+                                                                                          (BinNums.xI BinNums.xH)))))))))))))))))))))))))))))))))))))))))))))))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, Integers.Int64.int
+
+Arguments Bridge.first_t3_machine rho%function_scope
+TAP_DEF FieldCheckpoint.Bridge.first_machine_observations
+Bridge.first_machine_observations =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val)
+  (m : Memory.Mem.mem) =>
+and
+  (@eq (option Values.val)
+     (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S O)))
+        (BinInt.Z.add (jet_sx_state.bas beta (S (S O))) BinNums.Z0))
+     (@Some Values.val (Values.Vlong (@fst Integers.Int64.int Integers.Int64.int (Bridge.first_final_c_machine rho)))))
+  (and
+     (@eq (option Values.val)
+        (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S O)))
+           (BinInt.Z.add (jet_sx_state.bas beta (S (S O)))
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+        (@Some Values.val
+           (Values.Vlong (@snd Integers.Int64.int Integers.Int64.int (Bridge.first_final_c_machine rho)))))
+     (and
+        (@eq (option Values.val)
+           (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S (S O))))
+              (BinInt.Z.add (jet_sx_state.bas beta (S (S (S O)))) BinNums.Z0))
+           (@Some Values.val
+              (Values.Vlong (@fst Integers.Int64.int Integers.Int64.int (Bridge.first_final_d_machine rho)))))
+        (and
+           (@eq (option Values.val)
+              (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S (S O))))
+                 (BinInt.Z.add (jet_sx_state.bas beta (S (S (S O))))
+                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+              (@Some Values.val
+                 (Values.Vlong (@snd Integers.Int64.int Integers.Int64.int (Bridge.first_final_d_machine rho)))))
+           (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t3 le)
+              (@Some Values.val (Values.Vlong (Bridge.first_t3_machine rho)))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : Maps.PTree.tree Values.val)
+         (_ : Memory.Mem.mem), Prop
+
+Arguments Bridge.first_machine_observations rho%function_scope beta le m
+TAP_DEF FieldCheckpoint.Columns.radix
+Columns.radix =
+BinNums.Zpos
+  (BinNums.xO
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xO
+                                                                    (BinNums.xO
+                                                                       (BinNums.xO
+                                                                          (BinNums.xO
+                                                                             (BinNums.xO
+                                                                                (BinNums.xO
+                                                                                   (BinNums.xO
+                                                                                      (BinNums.xO
+                                                                                         (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))))))))))))))))))))))
+     : BinNums.Z
+TAP_DEF FieldCheckpoint.Columns.carrier
+Columns.carrier =
+BinNums.Zpos
+  (BinNums.xO
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xO
+                                                                    (BinNums.xO
+                                                                       (BinNums.xO
+                                                                          (BinNums.xO
+                                                                             (BinNums.xO
+                                                                                (BinNums.xO
+                                                                                   (BinNums.xO
+                                                                                      (BinNums.xO
+                                                                                         (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+     : BinNums.Z
+TAP_DEF FieldCheckpoint.Columns.top_radix
+Columns.top_radix =
+BinNums.Zpos
+  (BinNums.xO
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xO
+                                                                    (BinNums.xO
+                                                                       (BinNums.xO
+                                                                          (BinNums.xO
+                                                                             (BinNums.xO
+                                                                                (BinNums.xO
+                                                                                   (BinNums.xO
+                                                                                      (BinNums.xO
+                                                                                         (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))))))))))))))))))
+     : BinNums.Z
+TAP_DEF FieldCheckpoint.Columns.field_c
+Columns.field_c =
+BinNums.Zpos
+  (BinNums.xI
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xI
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xO
+                                                                    (BinNums.xO
+                                                                       (BinNums.xO
+                                                                          (BinNums.xO
+                                                                             (BinNums.xO
+                                                                                (BinNums.xO
+                                                                                   (BinNums.xO
+                                                                                      (BinNums.xO
+                                                                                         (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))
+     : BinNums.Z
+TAP_DEF FieldCheckpoint.Columns.reduction
+Columns.reduction =
+BinNums.Zpos
+  (BinNums.xO
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xI
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO
+                                                           (BinNums.xO
+                                                              (BinNums.xO
+                                                                 (BinNums.xO
+                                                                    (BinNums.xO
+                                                                       (BinNums.xO
+                                                                          (BinNums.xO
+                                                                             (BinNums.xO
+                                                                                (BinNums.xO
+                                                                                   (BinNums.xO
+                                                                                      (BinNums.xO
+                                                                                         (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))))))
+     : BinNums.Z
+TAP_DEF FieldCheckpoint.Columns.field_prime
+Columns.field_prime =
+BinInt.Z.sub
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+  Columns.field_c
+     : BinNums.Z
+TAP_DEF FieldCheckpoint.Columns.columns
+Variant columns : Set :=
+    mkcolumns : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) 
+                  (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), Columns.columns.
+
+Arguments Columns.mkcolumns (p0 p1 p2 p3 p4 p5 p6 p7 p8)%Z_scope
+TAP_DEF FieldCheckpoint.Columns.d3
+Columns.d3 =
+fun c : Columns.columns =>
+BinInt.Z.add (Columns.p3 c) (BinInt.Z.mul Columns.reduction (BinInt.Z.modulo (Columns.p8 c) Columns.carrier))
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.d3 c
+TAP_DEF FieldCheckpoint.Columns.t3
+Columns.t3 =
+fun c : Columns.columns => BinInt.Z.modulo (Columns.d3 c) Columns.radix
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.t3 c
+TAP_DEF FieldCheckpoint.Columns.d4
+Columns.d4 =
+fun c : Columns.columns =>
+BinInt.Z.add (BinInt.Z.add (BinInt.Z.div (Columns.d3 c) Columns.radix) (Columns.p4 c))
+  (BinInt.Z.mul
+     (BinInt.Z.mul Columns.reduction
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+     (BinInt.Z.div (Columns.p8 c) Columns.carrier))
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.d4 c
+TAP_DEF FieldCheckpoint.Columns.tx
+Columns.tx =
+fun c : Columns.columns => BinInt.Z.div (BinInt.Z.modulo (Columns.d4 c) Columns.radix) Columns.top_radix
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.tx c
+TAP_DEF FieldCheckpoint.Columns.t4
+Columns.t4 =
+fun c : Columns.columns => BinInt.Z.modulo (BinInt.Z.modulo (Columns.d4 c) Columns.radix) Columns.top_radix
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.t4 c
+TAP_DEF FieldCheckpoint.Columns.d5
+Columns.d5 =
+fun c : Columns.columns => BinInt.Z.add (BinInt.Z.div (Columns.d4 c) Columns.radix) (Columns.p5 c)
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.d5 c
+TAP_DEF FieldCheckpoint.Columns.u0
+Columns.u0 =
+fun c : Columns.columns => BinInt.Z.modulo (Columns.d5 c) Columns.radix
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.u0 c
+TAP_DEF FieldCheckpoint.Columns.c0
+Columns.c0 =
+fun c : Columns.columns =>
+BinInt.Z.add (Columns.p0 c)
+  (BinInt.Z.mul
+     (BinInt.Z.add
+        (BinInt.Z.mul (Columns.u0 c) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+        (Columns.tx c)) Columns.field_c)
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.c0 c
+TAP_DEF FieldCheckpoint.Columns.d6
+Columns.d6 =
+fun c : Columns.columns => BinInt.Z.add (BinInt.Z.div (Columns.d5 c) Columns.radix) (Columns.p6 c)
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.d6 c
+TAP_DEF FieldCheckpoint.Columns.c1
+Columns.c1 =
+fun c : Columns.columns =>
+BinInt.Z.add (BinInt.Z.add (BinInt.Z.div (Columns.c0 c) Columns.radix) (Columns.p1 c))
+  (BinInt.Z.mul (BinInt.Z.modulo (Columns.d6 c) Columns.radix) Columns.reduction)
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.c1 c
+TAP_DEF FieldCheckpoint.Columns.d7
+Columns.d7 =
+fun c : Columns.columns => BinInt.Z.add (BinInt.Z.div (Columns.d6 c) Columns.radix) (Columns.p7 c)
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.d7 c
+TAP_DEF FieldCheckpoint.Columns.c2
+Columns.c2 =
+fun c : Columns.columns =>
+BinInt.Z.add (BinInt.Z.add (BinInt.Z.div (Columns.c1 c) Columns.radix) (Columns.p2 c))
+  (BinInt.Z.mul Columns.reduction (BinInt.Z.modulo (Columns.d7 c) Columns.carrier))
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.c2 c
+TAP_DEF FieldCheckpoint.Columns.c3
+Columns.c3 =
+fun c : Columns.columns =>
+BinInt.Z.add
+  (BinInt.Z.add (BinInt.Z.div (Columns.c2 c) Columns.radix)
+     (BinInt.Z.mul
+        (BinInt.Z.mul Columns.reduction
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+        (BinInt.Z.div (Columns.d7 c) Columns.carrier))) (Columns.t3 c)
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.c3 c
+TAP_DEF FieldCheckpoint.Columns.columns_value
+Columns.columns_value =
+fun c : Columns.columns =>
+BinInt.Z.add
+  (BinInt.Z.add
+     (BinInt.Z.add
+        (BinInt.Z.add
+           (BinInt.Z.add
+              (BinInt.Z.add
+                 (BinInt.Z.add (BinInt.Z.add (Columns.p0 c) (BinInt.Z.mul Columns.radix (Columns.p1 c)))
+                    (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xO BinNums.xH))) (Columns.p2 c)))
+                 (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xI BinNums.xH))) (Columns.p3 c)))
+              (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+                 (Columns.p4 c)))
+           (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))))
+              (Columns.p5 c)))
+        (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))) (Columns.p6 c)))
+     (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))) (Columns.p7 c)))
+  (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     (Columns.p8 c))
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.columns_value c
+TAP_DEF FieldCheckpoint.Columns.reduced_value
+Columns.reduced_value =
+fun c : Columns.columns =>
+BinInt.Z.add
+  (BinInt.Z.add
+     (BinInt.Z.add
+        (BinInt.Z.add (BinInt.Z.modulo (Columns.c0 c) Columns.radix)
+           (BinInt.Z.mul Columns.radix (BinInt.Z.modulo (Columns.c1 c) Columns.radix)))
+        (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xO BinNums.xH)))
+           (BinInt.Z.modulo (Columns.c2 c) Columns.radix)))
+     (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xI BinNums.xH)))
+        (BinInt.Z.modulo (Columns.c3 c) Columns.radix)))
+  (BinInt.Z.mul (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+     (BinInt.Z.add (BinInt.Z.div (Columns.c3 c) Columns.radix) (Columns.t4 c)))
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.reduced_value c
+TAP_DEF FieldCheckpoint.Columns.reduction_quotient
+Columns.reduction_quotient =
+fun c : Columns.columns =>
+BinInt.Z.add
+  (BinInt.Z.add
+     (BinInt.Z.add
+        (BinInt.Z.add
+           (BinInt.Z.mul
+              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                 (Columns.p8 c)) (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xI BinNums.xH)))) 
+           (Columns.tx c))
+        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) (Columns.u0 c)))
+     (BinInt.Z.mul
+        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Columns.radix)
+        (BinInt.Z.modulo (Columns.d6 c) Columns.radix)))
+  (BinInt.Z.mul
+     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+        (BinInt.Z.pow Columns.radix (BinNums.Zpos (BinNums.xO BinNums.xH)))) (Columns.d7 c))
+     : forall _ : Columns.columns, BinNums.Z
+
+Arguments Columns.reduction_quotient c
