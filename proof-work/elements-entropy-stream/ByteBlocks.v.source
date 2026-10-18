@@ -1,0 +1,97 @@
+(** Generic byte-block proof prefix, extracted unchanged from the existing
+    bytestring proof. No environment-only function execution is imported. *)
+From Coq Require Import ZArith List Lia PeanoNat.
+From compcert Require Import Coqlib Integers.
+Require sha.SHA256 sha.general_lemmas sha.functional_prog sha.common_lemmas.
+Require Import Simplicity.Digest.
+Require Import C.jet_sha256_iv_init C.jet_sha_ctx8_model C.jet_sha_be32_write C.jet_sha_be32_exec C.jet_sha_be64_exec.
+Require Import C.jet_sha_uchars_prep C.jet_sha_finalize_exec.
+Require Import C.jet_elements_entropy_hash_model.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition byte_int (b : byte) : int := Int.repr (Byte.unsigned b).
+
+Lemma be32_bytes_to_Int (a b c d : byte) :
+  be32 (byte_int a) (byte_int b) (byte_int c) (byte_int d) = general_lemmas.bytes_to_Int a b c d.
+Proof.
+  assert (H : general_lemmas.intlist_to_bytelist [be32 (byte_int a) (byte_int b) (byte_int c) (byte_int d)] =
+              general_lemmas.intlist_to_bytelist [general_lemmas.bytes_to_Int a b c d]).
+  { rewrite general_lemmas.intlist_to_bytelist_bytes_to_int_cons.
+    cbn [general_lemmas.intlist_to_bytelist]. unfold general_lemmas.Shr, be32, byte_int.
+    pose proof (Byte.unsigned_range a) as Ha. pose proof (Byte.unsigned_range b) as Hb.
+    pose proof (Byte.unsigned_range c) as Hc. pose proof (Byte.unsigned_range d) as Hd.
+    change Byte.modulus with 256 in *.
+    set (ua := Byte.unsigned a) in *. set (ub := Byte.unsigned b) in *.
+    set (uc := Byte.unsigned c) in *. set (ud := Byte.unsigned d) in *.
+    rewrite !(Int.unsigned_repr ua), !(Int.unsigned_repr ub), !(Int.unsigned_repr uc), !(Int.unsigned_repr ud)
+      by (change Int.max_unsigned with 4294967295; lia).
+    set (T := ua * 16777216 + ub * 65536 + uc * 256 + ud).
+    assert (HT : 0 <= T <= Int.max_unsigned) by (change Int.max_unsigned with 4294967295; unfold T; lia).
+    rewrite !Int.shru_div_two_p, !(Int.unsigned_repr T) by exact HT.
+    change (two_p (Int.unsigned (Int.repr 24))) with 16777216.
+    change (two_p (Int.unsigned (Int.repr 16))) with 65536.
+    change (two_p (Int.unsigned (Int.repr 8))) with 256.
+    assert (E24 : T / 16777216 = ua) by (symmetry; apply (Z.div_unique T 16777216 ua (ub * 65536 + uc * 256 + ud)); unfold T; lia).
+    assert (E16 : T / 65536 = ua * 256 + ub) by (symmetry; apply (Z.div_unique T 65536 (ua * 256 + ub) (uc * 256 + ud)); unfold T; lia).
+    assert (E8 : T / 256 = ua * 65536 + ub * 256 + uc) by (symmetry; apply (Z.div_unique T 256 (ua * 65536 + ub * 256 + uc) ud); unfold T; lia).
+    rewrite E24, E16, E8.
+    rewrite !Int.unsigned_repr by (change Int.max_unsigned with 4294967295; lia).
+    f_equal; [unfold ua; apply Byte.repr_unsigned|].
+    f_equal; [rewrite <- (Byte.repr_unsigned b); apply Byte.eqm_samerepr; exists ua; change Byte.modulus with 256; fold ub; lia|].
+    f_equal; [rewrite <- (Byte.repr_unsigned c); apply Byte.eqm_samerepr; exists (ua * 256 + ub); change Byte.modulus with 256; fold uc; lia|].
+    f_equal. rewrite <- (Byte.repr_unsigned d). apply Byte.eqm_samerepr.
+    exists (ua * 65536 + ub * 256 + uc). change Byte.modulus with 256. fold ud. unfold T. lia. }
+  apply general_lemmas.intlist_to_bytelist_inj in H. exact (f_equal (fun l => hd Int.zero l) H).
+Qed.
+
+Lemma be_words_bytes : forall l : list byte, be_words (map byte_int l) = general_lemmas.bytelist_to_intlist l.
+Proof.
+  fix IH 1. intros [|a [|b [|c [|d t]]]]; try reflexivity.
+  cbn [map be_words general_lemmas.bytelist_to_intlist]. rewrite be32_bytes_to_Int, IH. reflexivity.
+Qed.
+
+Lemma be_words_app4 (n : nat) : forall b1 b2 : list int, length b1 = (4 * n)%nat ->
+  be_words (b1 ++ b2) = be_words b1 ++ be_words b2.
+Proof.
+  induction n as [|n IH]; intros b1 b2 HL.
+  - destruct b1; [reflexivity|discriminate].
+  - destruct b1 as [|a [|b [|c [|d t]]]]; cbn [length] in HL; try lia.
+    cbn [app be_words]. f_equal. apply IH. lia.
+Qed.
+
+Lemma hash_blocks_app (r W1 W2 : list int) : length W1 = 16%nat ->
+  SHA256.hash_blocks r (W1 ++ W2) = SHA256.hash_blocks (SHA256.hash_block r W1) W2.
+Proof.
+  intros H.
+  assert (F : firstn 16 (W1 ++ W2) = W1).
+  { rewrite firstn_app, H, Nat.sub_diag, firstn_O, app_nil_r. apply firstn_all2. lia. }
+  assert (K : skipn 16 (W1 ++ W2) = W2).
+  { rewrite skipn_app, H, Nat.sub_diag. rewrite skipn_all2 by lia. reflexivity. }
+  rewrite (SHA256.hash_blocks_equation r (W1 ++ W2)).
+  destruct W1 as [|w t]; [discriminate|].
+  change ((w :: t) ++ W2) with (w :: t ++ W2) at 1. cbv iota.
+  change (w :: t ++ W2) with ((w :: t) ++ W2). rewrite F, K. reflexivity.
+Qed.
+
+(** Whole blocks absorbed from an empty buffer are [hash_blocks]. *)
+Lemma absorb_blocks (k : nat) : forall (B r : list int), length r = 8%nat -> length B = (64 * k)%nat ->
+  absorb_i [] r B = ([], SHA256.hash_blocks r (be_words B)).
+Proof.
+  induction k as [|k IH]; intros B r Hr HB.
+  - destruct B; [|discriminate]. rewrite SHA256.hash_blocks_equation. reflexivity.
+  - rewrite <- (firstn_skipn 64 B).
+    assert (H1 : length (firstn 64 B) = 64%nat) by (rewrite firstn_length; lia).
+    assert (H2 : length (skipn 64 B) = (64 * k)%nat) by (rewrite skipn_length; lia).
+    set (B1 := firstn 64 B) in *. set (B2 := skipn 64 B) in *.
+    assert (HW1 : length (be_words B1) = 16%nat) by (apply be_words_length; rewrite H1; reflexivity).
+    assert (N1 : B1 <> []) by (intros E; rewrite E in H1; discriminate).
+    assert (HL1 : (length (@nil int) + length B1 = 64)%nat) by (cbn [length]; lia).
+    rewrite absorb_i_app, (absorb_i_fill [] r B1 HL1 N1).
+    cbn [fst snd app].
+    rewrite (IH B2 _ (common_lemmas.length_hash_block _ _ Hr HW1) H2).
+    f_equal. rewrite (be_words_app4 16 B1 B2) by (rewrite H1; reflexivity).
+    symmetry. apply hash_blocks_app. exact HW1.
+Qed.
+
