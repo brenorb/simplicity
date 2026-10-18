@@ -1,0 +1,67 @@
+{
+  "source_review": "Literal program/type/selector/C-body comparison; not a formal Haskell translation",
+  "canonical_regions": [
+    {
+      "path": "Haskell/Core/Simplicity/Programs/Elements.hs",
+      "text": "  , nonceHash = ih &&& oh\n            >>> match (ih &&& take (zero word8) >>> ctx8Add1)\n                (ih &&& take (copair (take (copair (scribe (toWord8 0x02)) (scribe (toWord8 0x03))) &&& ih) ((unit >>> scribe (toWord8 0x01)) &&& iden))\n                 >>> (oh &&& ioh >>> ctx8Add1) &&& iih >>> ctx8Add32)\n",
+      "sha256": "8ee720e57bfffcc39421cafd38f9fec103cc4ced7752fc3e38b56affb4692cde"
+    },
+    {
+      "path": "Haskell/Core/Simplicity/Programs/Elements.hs",
+      "text": "  , nonceHash :: term (Ctx8, S (Conf Word256)) Ctx8\n",
+      "sha256": "355b48f13187a2ce603c4bf054e9d8cf4d56252cbf096b5146d33ca21aabc942"
+    },
+    {
+      "path": "Haskell/Core/Simplicity/Programs/Elements.hs",
+      "text": "type Conf a = Either Point a\n",
+      "sha256": "7abc9c4c7c49d3e0f6549a711ef187119aa25f6d1a378c733b1d26b2b9ce13d7"
+    },
+    {
+      "path": "Haskell/Simplicity/Elements/Jets.hs",
+      "text": "  NonceHash :: SigHashJet (Ctx8, S (Conf Word256)) Ctx8\n",
+      "sha256": "730bde87977e495cdaae8c2235cf4a646c308d032a4c425746f7326b56f4c2e9"
+    },
+    {
+      "path": "Haskell/Simplicity/Elements/Jets.hs",
+      "text": "specificationSigHash NonceHash = Prog.nonceHash\n",
+      "sha256": "dc53238761d7b7d7f920fa176babbf1ba73824ffecb79289638929ca9500defd"
+    },
+    {
+      "path": "Haskell/Core/Simplicity/Ty/LibSecp256k1.hs",
+      "text": "type FE = Word256\n",
+      "sha256": "9654d8bfc09773bd30c0f65ddef688153028c8a22e4a06e60d5f87dd5057ad0c"
+    },
+    {
+      "path": "Haskell/Core/Simplicity/Ty/LibSecp256k1.hs",
+      "text": "type Point = (Bit, FE)\n",
+      "sha256": "599fbec6d73c6c7cc854db9b11b43072920443a0c8240eacb648e5ac3578edee"
+    },
+    {
+      "path": "Haskell/Core/Simplicity/Ty.hs",
+      "text": "type S a = Either () a\n",
+      "sha256": "377b99245df1006aab80334bc827c2bcbe845a3948f73718a4543e695a13bc8a"
+    },
+    {
+      "path": "Haskell/Core/Simplicity/Term/Core.hs",
+      "text": "\noh :: (Core term, TyC x, TyC b) => term (x, b) x\noh = take iden\n\nih :: (Core term, TyC a, TyC x) => term (a, x) x\nih = drop iden\n\nooh :: (Core term, TyC x, TyC b, TyC c) => term ((x, b), c) x\nooh = take oh\n\noih :: (Core term, TyC a, TyC x, TyC c) => term ((a, x), c) x\noih = take ih\n\nioh :: (Core term, TyC a, TyC x, TyC c) => term (a, (x, c)) x\nioh = drop oh\n\niih :: (Core term, TyC a, TyC b, TyC x) => term (a, (b, x)) x\niih = drop ih\n",
+      "sha256": "eb031526a43cc9b5d6239482bef1e73d4e8ae6f4693724dd87b08ba0111a5894"
+    },
+    {
+      "path": "C/elements/elementsJets.c",
+      "text": "bool simplicity_nonce_hash(frameItem* dst, frameItem src, const txEnv* env) {\n  (void) env; // env is unused.\n  sha256_midstate midstate;\n  unsigned char buf[32];\n  sha256_context ctx = {.output = midstate.s};\n\n  /* Read a SHA-256 context. */\n  if (!simplicity_read_sha256_context(&ctx, &src)) return false;\n\n  /* Read an optional nonce. (259 bits) */\n  if (readBit(&src)) {\n    /* Read a nonce prefix. (2 bits) */\n    if (readBit(&src)) {\n      /* Read an explicit none prefix. (1 bit) */\n      forwardBits(&src, 1);\n      sha256_uchar(&ctx, 0x01);\n    } else {\n      /* Read a confidential none prefix. (1 bit) */\n      if (readBit(&src)) {\n        sha256_uchar(&ctx, 0x03);\n      } else {\n        sha256_uchar(&ctx, 0x02);\n      }\n    }\n    /* Read a nonce id body (both confidential and explicit nonce bodies are the same size). (256 bits) */\n    read8s(buf, 32, &src);\n    sha256_uchars(&ctx, buf, 32);\n  } else {\n    sha256_uchar(&ctx, 0x00);\n  }\n\n  return simplicity_write_sha256_context(dst, &ctx);\n}\n",
+      "sha256": "055041052bc52b1a6e813b35d0a2181cd9afdfd221e6383c1553ee7be7647967"
+    }
+  ],
+  "coq_sources_sha256": {
+    "Spec.v": "e679767a9725f99cf88a524dc3bb1855901cf599203c04b4fd17a9013df9238a",
+    "Shape.v": "af84886c755ad4c020fc0a7f171e459a6d9e6c36e489e7d9f8eb10371cf03820"
+  },
+  "observations": [
+    "None adds one zero byte.",
+    "Explicit adds 0x01 then all 32 payload bytes; C skips its one sum-padding bit.",
+    "Confidential adds 0x02 or 0x03 according to parity, then all 32 payload bytes.",
+    "Payload is an arbitrary Word256; no field or on-curve restriction is added.",
+    "Literal sequence retained: ctx8Add1 for the prefix, ctx8Addn vector32 for the payload.",
+    "Body equality and function entry are preparation, not complete C-jet execution."
+  ]
+}
