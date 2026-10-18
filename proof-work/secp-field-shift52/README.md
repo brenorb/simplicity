@@ -48,9 +48,18 @@ successful verification. Poll the original live handle; do not restart a
 running build or kernel check.
 
 ```sh
-python3 -B proof-work/secp-field-shift52/verify.py kernel \
+python3 -B proof-work/secp-field-shift52/kernel-reviewed.py \
   /private/tmp/jet-secp-shifts.SfCvHG
 ```
+
+The first recursive `coqchk` itself returned zero with all unsafe categories
+empty. Its post-check gate expected the whole-library 15-axiom context, but
+this smaller closure uses 12: the three omitted entries are VST/set/proposition
+extensionality dependencies. `FIRST-KERNEL-GATE-FAILURE.json` and the first
+kernel log preserve that distinction. The original compile driver stays
+byte-identical to its receipt; `kernel-reviewed.py` reruns `coqchk` under the
+explicit, exact 12-entry `kernel-axioms.expected`, still rejecting additions,
+unsafe categories, source/object changes or per-theorem assumption drift.
 
 Next: compose the proven 52/64-bit shift summaries and execute the actual
 `fe_mul_inner`, including the intended output/input alias. Then prove its
