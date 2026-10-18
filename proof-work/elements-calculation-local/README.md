@@ -31,6 +31,12 @@ recursive kernel checking bound to the new basis and extension hashes.
 `CHECKED.json` is written only after success. Neither a launch nor compilation
 alone proves that recursive checking passed.
 
+The recovered run has now passed recursive kernel checking with exit 0.
+`CHECKED.json` binds all 196 forced-source project dependencies and seven
+extension modules unchanged before and after that check. All three concrete
+jet theorems retain exactly the six inherited execution dependencies; the full
+15-entry library context is unchanged and unsafe-kernel flags are absent.
+
 This is an isolated, unregistered proof-support package. It changes no C,
 canonical specification, API, generation settings, registry or normal gate and
 adds zero accepted coverage. Full repository-wide jet equivalence remains open.
