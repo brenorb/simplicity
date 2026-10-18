@@ -1,0 +1,120 @@
+(** Actual optional-pegin branches in their original read/prefix/absorb order. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Maps Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate Simplicity.BitMachine.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_frame_layout C.jet_input_layout C.jet_encoding.
+Require Import C.jet_readBit_layout C.jet_read8s_layout C.jet_sha_ctx_abs C.jet_sha_ctx8_model.
+Require Import C.jet_sha_uchars_exec C.jet_sha_add_n_init C.jet_sha_linkage C.jet_sha_block_local.
+Require Import C.jets_elements C.jet_elements_linkage.
+Require Import NonceContext.Spec NonceContext.Shape NonceExec.Effects NonceExec.Calls.
+Import Mem Values Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Require Import C.jet_forwardBits_layout C.jet_sha_transport C.jet_elements_sha_program NonceExec.Prefix OutpointExec.Shape.
+
+Require Import C.jet_buffer_input OutpointExec.Read OutpointExec.Absorb OutpointExec.Payload OutpointExec.FrameOps.
+
+Require Import OutpointMiddle.Common.
+
+Section Pegin.
+Variable Hmodel : memcpy_model.
+Variables bl bm bb bx bi : block.
+Hypotheses (Hlx : bl <> bx) (Hlm : bl <> bm) (Hlg : bl <> GC) (Hlc : bl <> GM).
+Hypotheses (Hbx : bb <> bx) (Hbm : bb <> bm) (Hbg : bb <> GC) (Hbc : bb <> GM) (Hlb : bl <> bb).
+Hypotheses (Hil : bi <> bl) (Hib : bi <> bb) (Hix : bi <> bx) (Him : bi <> bm).
+Hypotheses (Hmx : bm <> bx) (Hgx : GC <> bx) (Hgm : GC <> bm) (Hcx : GM <> bx) (Hcm : GM <> bm).
+Let e := op_env bl bm bb bx.
+
+Theorem op_pegin_exec le m edge rc (a : Ty.tySem op_pegin_type) l regs c ovf :
+  0 <= rc -> rc + 257 <= Int64.max_unsigned ->
+  frame_fields_at m bl 0 bi edge rc -> Mem.valid_access m Mint64 bl 8 Writable ->
+  Mem.range_perm m bb 0 36 Cur Writable ->
+  frame_input_cells_at m bi edge rc (@encode op_pegin_type a) -> ctx_abs m bx bm l regs c ovf ->
+  exists mf,
+    Clight2.exec_stmt elements_ge e le m op_pegin E0 (PTree.set _t'2 (Vint (bit_int (op_bit a))) le) mf Out_normal /\
+    frame_fields_at mf bl 0 bi edge (rc + 257) /\
+    ctx_abs mf bx bm (fst (absorb l regs (op_bytes a))) (snd (absorb l regs (op_bytes a)))
+      (Int64.add c (Int64.repr (op_count a))) (op_overflow ovf c a) /\
+    nonce_effects m mf [bl; bb; bx; bm].
+Proof.
+  intros H0 HM HF PW PB HI HC. destruct a as [[]|h].
+  - change (frame_input_cells_at m bi edge rc (Some false :: repeat None 256)) in HI.
+    destruct (op_read_cell bl bm bb bx bi Hlx Hlm Hlg Hlc Hil le m edge rc false (repeat None 256)
+      l regs c ovf _t'2 ltac:(lia) HF PW HI HC) as (m1 & HRead & HF1 & HI1 & HC1 & E1).
+    set (le1 := PTree.set _t'2 (Vint Int.zero) le).
+    destruct (nonce_add_byte Hmodel e le1 m1 bx bm l regs c ovf (nonce_byte 0) 0
+      eq_refl eq_refl Hmx Hgx Hgm Hcx Hcm (proj1 nonce_prefix_ints) HC1)
+      as (m2 & HAdd & HC2 & E2).
+    assert (HF2 : frame_fields_at m2 bl 0 bi edge (rc + 1)).
+    { eapply nonce_effects_fields; [exact E2|cbn; intuition congruence|exact HF1]. }
+    assert (PW2 : Mem.valid_access m2 Mint64 bl 8 Writable).
+    { eapply nonce_effects_access; [exact E2|]. eapply nonce_effects_access; eassumption. }
+    destruct (op_skip_exec e le1 m2 bl bi edge (rc + 1) eq_refl eq_refl ltac:(lia) ltac:(lia) HF2 PW2)
+      as (mf & HSkip & HFields & E3).
+    replace (rc + 1 + 256) with (rc + 257) in HFields by lia.
+    exists mf. split.
+    + unfold op_pegin. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m1) (le1 := le1).
+      * exact HRead.
+      * eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := false).
+        -- apply eval_Etempvar. unfold le1. apply PTree.gss.
+        -- reflexivity.
+        -- eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m2) (le1 := le1); eassumption.
+    + split; [exact HFields|]. split.
+      * eapply nonce_effects_ctx; [exact E3| | | | |exact HC2]; cbn; intuition congruence.
+      * eapply nonce_effects_trans with (m1 := m2).
+        -- eapply nonce_effects_trans with (m1 := m1).
+           ++ eapply nonce_effects_mono; [exact E1|]. intros b H. clear -H. cbn in H |- *. tauto.
+           ++ eapply nonce_effects_mono; [exact E2|]. intros b H. clear -H. cbn in H |- *. tauto.
+        -- eapply nonce_effects_mono; [exact E3|]. intros b H. clear -H. cbn in H |- *. tauto.
+  - change (frame_input_cells_at m bi edge rc (Some true :: @encode Word256 h)) in HI.
+    destruct (op_read_cell bl bm bb bx bi Hlx Hlm Hlg Hlc Hil le m edge rc true (encode h)
+      l regs c ovf _t'2 ltac:(lia) HF PW HI HC) as (m1 & HTag & HF1 & HI1 & HC1 & E1).
+    set (le1 := PTree.set _t'2 (Vint Int.one) le).
+    set (xs := vector_values Word8 5 h).
+    assert (HL : Z.of_nat (length xs) = 32) by (unfold xs; rewrite vector_values_length; reflexivity).
+    assert (HI1' : frame_input_cells_at m1 bi edge (rc + 1) (concat (map (@encode Word8) xs))).
+    { unfold xs. rewrite <- (encode_vector_values Word8 5 h). exact HI1. }
+    assert (PW1 : Mem.valid_access m1 Mint64 bl 8 Writable) by (eapply nonce_effects_access; eassumption).
+    assert (PB1 : Mem.range_perm m1 bb 0 32 Cur Writable).
+    { intros ofs HO. apply (nonce_perms _ _ _ E1), PB. lia. }
+    destruct (op_read_exec le1 m1 bl bm bb bx bi edge (rc + 1) 32 xs HL ltac:(lia)
+      Hlb ltac:(congruence) ltac:(congruence) ltac:(lia) ltac:(lia) HF1 PW1 PB1 HI1')
+      as (mr & HRead & HArray & HFr & ER).
+    replace (rc + 1 + 8 * 32) with (rc + 257) in HFr by lia.
+    assert (HCr : ctx_abs mr bx bm l regs c ovf).
+    { eapply nonce_effects_ctx; [exact ER| | | | |exact HC1]; cbn; intuition congruence. }
+    destruct (nonce_add_byte Hmodel e le1 mr bx bm l regs c ovf (nonce_byte 1) 1
+      eq_refl eq_refl Hmx Hgx Hgm Hcx Hcm (proj1 (proj2 nonce_prefix_ints)) HCr)
+      as (m2 & HAdd & HC2 & E2).
+    assert (HA2 : uint8_array_at m2 bb 0 (map word8_array_value xs)).
+    { eapply op_array_preserved; [exact E2|cbn; intuition congruence|exact HArray]. }
+    destruct (op_absorb_exec Hmodel le1 m2 bl bm bb bx 32
+      (fst (absorb l regs [nonce_byte 1])) (snd (absorb l regs [nonce_byte 1])) xs
+      (Int64.add c (Int64.repr 1)) (uc_overflow ovf c (Int64.repr 1))
+      HL ltac:(lia) Hbx Hbm Hmx Hgx Hgm Hcx Hcm HA2 HC2)
+      as (mf & HAbsorb & HCtx & E3).
+    rewrite absorb_app, op_counter_one_then_32 in HCtx.
+    assert (HF2 : frame_fields_at m2 bl 0 bi edge (rc + 257)).
+    { eapply nonce_effects_fields; [exact E2|cbn; intuition congruence|exact HFr]. }
+    exists mf. split.
+    + unfold op_pegin. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m1) (le1 := le1).
+      * exact HTag.
+      * eapply exec_Sifthenelse with (v1 := Vint Int.one) (b := true).
+        -- apply eval_Etempvar. unfold le1. apply PTree.gss.
+        -- reflexivity.
+        -- eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mr) (le1 := le1); [exact HRead|].
+           eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m2) (le1 := le1); eassumption.
+    + split.
+      * eapply nonce_effects_fields; [exact E3|cbn; intuition congruence|exact HF2].
+      * split; [exact HCtx|].
+        eapply nonce_effects_trans with (m1 := m2).
+        -- eapply nonce_effects_trans with (m1 := mr).
+           ++ eapply nonce_effects_trans with (m1 := m1).
+              ** eapply nonce_effects_mono; [exact E1|]. intros b H. clear -H. cbn in H |- *. tauto.
+              ** eapply nonce_effects_mono; [exact ER|]. intros b H. clear -H. cbn in H |- *. tauto.
+           ++ eapply nonce_effects_mono; [exact E2|]. intros b H. clear -H. cbn in H |- *. tauto.
+        -- eapply nonce_effects_mono; [exact E3|]. intros b H. clear -H. cbn in H |- *. tauto.
+Qed.
+End Pegin.
