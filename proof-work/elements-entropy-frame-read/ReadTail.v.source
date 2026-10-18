@@ -1,0 +1,104 @@
+(** The index and contract reads, including the real eight-byte index store. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Translate.
+Require Import C.jet_frame_layout C.jet_input_layout C.jet_encoding C.jet_bitmachine_rep.
+Require Import C.jet_read32_input_word_total C.jet_read32s_layout C.jet_word32_chunks.
+Require Import C.jet_uint32_array_init C.jet_sha_block_local.
+Require Import C.jet_exec C.jet_sha_linkage C.jet_sha_transport.
+Require Import C.jets_elements C.jet_elements_linkage C.jet_elements_sha_program.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Local Opaque elements_ge sha_ge ge0.
+Set Default Timeout 10.
+
+Theorem entropy_read_tail m bl bo bc bi edge rc
+    (h : Ty.tySem Word256) (ix : Ty.tySem Word32) (con : Ty.tySem Word256) :
+  0 <= rc -> rc + 288 <= Int64.max_unsigned ->
+  frame_fields_at m bl 0 bi edge rc ->
+  bl <> bi -> bo <> bi -> bc <> bi -> bl <> bo -> bl <> bc -> bo <> bc ->
+  Mem.range_perm m bl 0 16 Cur Freeable ->
+  Mem.range_perm m bo 0 40 Cur Freeable ->
+  Mem.range_perm m bc 0 32 Cur Freeable ->
+  uint32_array_at m bo 0 (hash256_reg (to_hash256 h)) ->
+  frame_input_word_at m bi edge rc ix ->
+  frame_input_cells_at m bi edge (rc + 32) (@encode Word256 con) ->
+  exists mr ms mf,
+    Clight2.eval_funcall elements_ge m (Internal f_simplicity_read32)
+      [Vptr bl Ptrofs.zero] E0 mr (Vlong (Int64.repr (@toZ (WordToZ 5) ix))) /\
+    Mem.store Mint64 mr bo 32 (Vlong (Int64.repr (@toZ (WordToZ 5) ix))) = Some ms /\
+    Clight2.eval_funcall elements_ge ms (Internal f_read32s)
+      [Vptr bc Ptrofs.zero; Vlong (Int64.repr 8); Vptr bl Ptrofs.zero] E0 mf Vundef /\
+    uint32_array_at mf bo 0 (hash256_reg (to_hash256 h)) /\
+    Mem.load Mint64 mf bo 32 = Some (Vlong (Int64.repr (@toZ (WordToZ 5) ix))) /\
+    uint32_array_at mf bc 0 (hash256_reg (to_hash256 con)) /\
+    frame_fields_at mf bl 0 bi edge (rc + 288) /\
+    (forall ch b ofs, b <> bl -> b <> bo -> b <> bc ->
+      Mem.load ch mf b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm mf b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  intros H0 HM HF Hli Hoi Hci Hlo Hlc Hoc PL PO PC HTX HI HC.
+  assert (HB : frame_base_valid 0).
+  { split; [lia|change (16 <= 18446744073709551615 + 1); lia]. }
+  assert (PW : Mem.valid_access m Mint64 bl (0 + 8) Writable).
+  { split; [|exists 1; reflexivity]. intros ofs Ho.
+    eapply Mem.perm_implies; [apply PL; cbn in Ho; lia|constructor]. }
+  destruct (eval_read32_word_at m bl 0 bi edge rc ix HB ltac:(lia) HF HI PW Hli)
+    as (mr & r & HR & Hr & HFr & HMemr & HPermr & HValidr).
+  assert (Hrepr : r = Int64.repr (@toZ (WordToZ 5) ix)).
+  { rewrite <- Hr. symmetry. apply Int64.repr_unsigned. }
+  subst r.
+  assert (HSW : Mem.valid_access mr Mint64 bo 32 Writable).
+  { split; [|exists 4; reflexivity]. intros ofs Ho. apply HPermr.
+    eapply Mem.perm_implies; [apply PO; cbn in Ho; lia|constructor]. }
+  destruct (Mem.valid_access_store mr Mint64 bo 32
+    (Vlong (Int64.repr (@toZ (WordToZ 5) ix))) HSW) as [ms HS].
+  assert (Ps : forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm ms b ofs k p).
+  { intros b ofs k p HP. eapply Mem.perm_store_1; [exact HS|apply HPermr; exact HP]. }
+  assert (Vs : forall b, Mem.valid_block m b -> Mem.valid_block ms b).
+  { intros b HV. eapply Mem.store_valid_block_1; [exact HS|apply HValidr; exact HV]. }
+  assert (HFs : frame_fields_at ms bl 0 bi edge (rc + 32)).
+  { destruct HFr as [HE HCur]. split;
+      erewrite Mem.load_store_other; [exact HE|exact HS|left; exact Hlo|
+        exact HCur|exact HS|left; exact Hlo]. }
+  assert (PWs : Mem.valid_access ms Mint64 bl (0 + 8) Writable).
+  { split; [|exists 1; reflexivity]. intros ofs Ho. apply Ps.
+    eapply Mem.perm_implies; [apply PL; cbn in Ho; lia|constructor]. }
+  set (cs := word32_chunks 3 con).
+  assert (Lcs : length cs = 8%nat) by apply (word32_chunks_length 3).
+  assert (Hcs : forall j v, nth_error cs j = Some v ->
+    frame_input_word_at ms bi edge (rc + 32 + 32 * Z.of_nat j) v).
+  { intros j v HJ. eapply frame_input_bits_at_preserved.
+    - intros ofs w HL. erewrite Mem.load_store_other; [|exact HS|left; congruence].
+      rewrite HMemr by (left; congruence). exact HL.
+    - exact (frame_input_word32_chunks m bi edge (rc + 32) 3 con HC j v HJ). }
+  destruct (eval_read32s_layout ms bc 0 bl 0 bi edge (rc + 32) cs
+    ltac:(lia) ltac:(rewrite Lcs; change Ptrofs.max_unsigned with 18446744073709551615; lia)
+    ltac:(exists 0; reflexivity)
+    ltac:(rewrite Lcs; intros ofs Ho; apply Ps; eapply Mem.perm_implies; [apply PC; lia|constructor])
+    Hlc Hli Hci HB ltac:(lia) ltac:(rewrite Lcs; lia) HFs PWs Hcs)
+    as (mf & HCall & HCon & HFields & HMem & HPerm & HValid).
+  rewrite Lcs in HCall, HFields.
+  replace (rc + 32 + 32 * Z.of_nat 8) with (rc + 288) in HFields by lia.
+  exists mr, ms, mf. split.
+  - rewrite <- elements_sha_genv. eapply sha_transport_call; [|exact HR].
+    unfold sha_core_helpers. simpl. tauto.
+  - split; [exact HS|]. split.
+    + rewrite <- elements_sha_genv. eapply sha_transport_call; [|exact HCall].
+      unfold sha_core_helpers. simpl. tauto.
+    + split.
+      * intros j x HJ.
+        assert (HJ8 : (j < 8)%nat).
+        { rewrite <- (hash256_len (to_hash256 h)). apply nth_error_Some. rewrite HJ. discriminate. }
+        rewrite HMem by (left; congruence).
+        erewrite Mem.load_store_other; [|exact HS|right; left; change (size_chunk Mint32) with 4; lia].
+        rewrite HMemr by (left; congruence). exact (HTX j x HJ).
+      * split.
+        -- rewrite HMem by (left; congruence). exact (Mem.load_store_same _ _ _ _ _ _ HS).
+        -- split; [rewrite hash256_reg_chunks; exact HCon|]. split; [exact HFields|]. split.
+           ++ intros ch b ofs Hl Ho Hc. rewrite HMem by (left; assumption).
+              erewrite Mem.load_store_other; [|exact HS|left; exact Ho].
+              rewrite HMemr by (left; exact Hl). reflexivity.
+           ++ split; [intros; apply HPerm, Ps; assumption|intros; apply HValid, Vs; assumption].
+Qed.
