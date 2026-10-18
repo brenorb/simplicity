@@ -68,6 +68,8 @@ python3 check-secp-normalize-specification.py
 python3 test-secp-normalize-specification.py
 python3 check-secp-predicates-specification.py
 python3 test-secp-predicates-specification.py
+python3 mul-review/check-mul-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+python3 mul-review/test-mul-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
 python3 check-bitcoin-primitive-identity.py
 python3 test-bitcoin-primitive-identity.py
 python3 test-jet-audit-inputs.py

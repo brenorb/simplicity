@@ -143,6 +143,29 @@ def main():
                 rejects(coverage.inventory, "not a direct canonical jet theorem")
             predicate.write_text(predicate_original)
         assert coverage.inventory() == rows
+        # Field multiplication and squaring keep their own original functions
+        # and the whole contract (wrong function, helper, other contract,
+        # vacuous premise are each rejected).
+        for fmod, fdecl, fcontract, fother in (
+            ("C/jet_parallel_fe_mul_local.v", "Theorem fe_multiply_literal_local_spec :",
+             "secp_jet_local_spec f_simplicity_fe_multiply", "f_simplicity_fe_square"),
+            ("C/jet_parallel_fe_sqr_local.v", "Theorem fe_square_literal_local_spec :",
+             "secp_jet_local_spec f_simplicity_fe_square", "f_simplicity_fe_multiply"),
+        ):
+            fpath = project / fmod
+            foriginal = fpath.read_text()
+            for old, new in (
+                (fcontract, "secp_jet_local_spec f_read_fe"),
+                (fcontract, "secp_jet_local_spec " + fother),
+                (fcontract, fcontract.replace("secp_jet_local_spec", "jet_local_spec")),
+                (fdecl, fdecl + " False ->"),
+            ):
+                start = foriginal.index(fdecl)
+                assert old in foriginal[start:]
+                fpath.write_text(foriginal[:start] + foriginal[start:].replace(old, new, 1))
+                rejects(coverage.inventory, "not a direct canonical jet theorem")
+            fpath.write_text(foriginal)
+        assert coverage.inventory() == rows
         # Assertion jets must retain the exact linked program/environment and
         # be the whole proposition, including both success and failure.
         assertion = project / "C/jet_bitcoin_check_lock.v"
