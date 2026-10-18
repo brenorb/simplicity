@@ -75,6 +75,11 @@ status build $rc; [ $rc -eq 0 ] || exit $rc
 mods=$(cd C && ls jet_parallel_fe_*.v | sed 's/\.v$//' | sort)
 {
   for t in $mods; do echo "Require C.$t."; done
+  echo "Require C.jet_secp_normalize_local C.jet_secp_negate_literal_contract C.jet_parallel_fe_sqr_field."
+  echo "Print C.jet_secp_normalize_local.secp_jet_local_spec."
+  echo "Print C.jet_secp_negate_literal_contract.literal_fe_multiply."
+  echo "Print C.jet_secp_negate_literal_contract.literal_fe_normalize512."
+  echo "Print C.jet_parallel_fe_sqr_field.literal_fe_square."
   for t in $mods; do
     for thm in $(grep -oE '^(Theorem|Lemma) [A-Za-z0-9_]+' "C/$t.v" | awk '{print $2}'); do
       echo "About C.$t.$thm."; echo "Print Assumptions C.$t.$thm."
