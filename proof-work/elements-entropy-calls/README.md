@@ -23,6 +23,14 @@ forced/loaded source-object closure. Compilation or a launch is not kernel
 checking. The new per-result profile needs review before a separate recursive
 check. No accepted coverage is added.
 
+The forced build passed with all **276** loaded local modules freshly compiled.
+Full reports cover **51** results and **21** definitions. The separately reviewed
+exact profile is 25 closed results, six with the four inherited expression
+dependencies, and twenty with the six inherited execution dependencies.
+`kernel.py review|kernel PRIVATE_TREE` binds that profile to the compile/source
+closure before separately checking the recursive kernel; only `CHECKED.json`
+records its success. The 51-result compile receipt alone does not.
+
 Remaining: connect the C byte-stream/padding result `entropy_regs` to the
 literal canonical calculation program, then derive the actual frame jet's
 outpoint/contract reader prefix, helper call, returned struct copy, writer,
