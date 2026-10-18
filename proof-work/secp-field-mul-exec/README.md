@@ -56,3 +56,11 @@ show their base-`2^52` reconstruction equals the input product modulo
 and compose the original `fe_multiply`/`fe_multiply_beta` callers and their
 literal specifications. `fe_square` has a separate original squaring routine;
 do not silently replace it by this multiplication execution.
+
+Reuse the existing `C.jet_secp_fe_math` definitions `feP`, `fe_val` and
+`fe_limbs_ok`, its normalization/carry lemmas, and the existing uint128
+multiply/accumulate numeric observations. The literal multiplication program
+already exists as `canonical_fe_multiply` in `C.jet_secp_canonical_negate`,
+with the 512-bit normalization bridge nearby. Verify those sources and their
+dependency closure freshly when incorporating them; old objects or the
+presence of an unregistered/untracked module are not admission evidence.
