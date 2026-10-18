@@ -1,0 +1,218 @@
+(** Literal assetHash, amountHash and assetAmountHash serializers, sharing
+    the checked prefix-byte/word absorber with nonceHash. *)
+From Coq Require Import ZArith List Lia.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Bit Simplicity.Alg.
+Require Import C.jet_buffer_empty_spec C.jet_buffer_input C.jet_sha256_ctx8_init_spec.
+Require Import C.jet_sha_ctx8_spec AssetLocal.Buffer AssetLocal.ContextHashes.
+Require Import AssetLocal.TaggedWord.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition elements_hash_conf_type (X : Ty) : Ty := Ty.Sum (Ty.Prod Bit Word256) X.
+Definition elements_asset_hash_type : Ty := elements_hash_conf_type Word256.
+Definition elements_amount_hash_type : Ty := elements_hash_conf_type Word64.
+Definition elements_asset_amount_type : Ty := Ty.Prod elements_asset_hash_type elements_amount_hash_type.
+Definition asset_byte_even : Ty.tySem Word8 := @fromZ (WordToZ 3) 10.
+Definition asset_byte_odd : Ty.tySem Word8 := @fromZ (WordToZ 3) 11.
+Definition amount_byte_even : Ty.tySem Word8 := @fromZ (WordToZ 3) 8.
+Definition amount_byte_odd : Ty.tySem Word8 := @fromZ (WordToZ 3) 9.
+
+Definition conf_tag_byte_spec (prefix_even prefix_odd : Ty.tySem Word8)
+    {term : Alg.Core.Algebra} : term Bit Word8 :=
+  AC.copair (Alg.scribe prefix_even) (Alg.scribe prefix_odd).
+
+Lemma conf_tag_byte_spec_parametric prefix_even prefix_odd :
+  Alg.Core.Parametric (@conf_tag_byte_spec prefix_even prefix_odd).
+Proof.
+  intros alg1 alg2 R. unfold conf_tag_byte_spec.
+  apply Alg.copair_Parametric; apply Alg.scribe_Parametric.
+Qed.
+
+Lemma conf_tag_byte_value prefix_even prefix_odd b :
+  @conf_tag_byte_spec prefix_even prefix_odd Alg.CoreFunSem b =
+    match b with inl _ => prefix_even | inr _ => prefix_odd end.
+Proof.
+  destruct b as [u | u].
+  - change (@Alg.scribe Ty.Unit Word8 prefix_even Alg.CoreFunSem u = prefix_even).
+    apply Alg.scribe_correct.
+  - change (@Alg.scribe Ty.Unit Word8 prefix_odd Alg.CoreFunSem u = prefix_odd).
+    apply Alg.scribe_correct.
+Qed.
+
+Lemma conf_tag_byte_option prefix_even prefix_odd b :
+  @conf_tag_byte_spec prefix_even prefix_odd (Alg.Assertion.toCore optalg) b =
+    Some (match b with inl _ => prefix_even | inr _ => prefix_odd end).
+Proof.
+  rewrite (opt_core (fun alg => @conf_tag_byte_spec prefix_even prefix_odd alg)
+    (conf_tag_byte_spec_parametric prefix_even prefix_odd) b), conf_tag_byte_value.
+  reflexivity.
+Qed.
+
+Definition asset_tag_payload_spec {term : Alg.Core.Algebra} :
+    term elements_asset_hash_type (Ty.Prod Word8 Word256) :=
+  AC.copair
+    (AC.pair (AC.take (@conf_tag_byte_spec asset_byte_even asset_byte_odd term)) (AC.drop AC.iden))
+    (AC.pair (AC.comp AC.unit (Alg.scribe byte_one)) AC.iden).
+
+Lemma asset_tag_payload_spec_parametric : Alg.Core.Parametric (@asset_tag_payload_spec).
+Proof.
+  intros alg1 alg2 R.
+  pose proof (conf_tag_byte_spec_parametric asset_byte_even asset_byte_odd _ _ R) as HT.
+  unfold asset_tag_payload_spec.
+  solve [repeat first [exact HT | apply Alg.scribe_Parametric | apply Alg.copair_Parametric |
+    apply Alg.pair_Parametric | apply Alg.comp_Parametric | apply Alg.take_Parametric |
+    apply Alg.drop_Parametric | apply Alg.unit_Parametric | apply Alg.iden_Parametric]].
+Qed.
+
+Lemma asset_tag_payload_value (v : Ty.tySem elements_asset_hash_type) :
+  @asset_tag_payload_spec Alg.CoreFunSem v =
+  match v with
+  | inl (b, h) => (match b with inl _ => asset_byte_even | inr _ => asset_byte_odd end, h)
+  | inr h => (byte_one, h)
+  end.
+Proof.
+  destruct v as [[b h] | h]; [destruct b as [u | u] | ]; reflexivity.
+Qed.
+
+Definition elements_asset_hash_spec {term : Alg.Assertion.Algebra} :
+    term (Ty.Prod sha256_ctx8_type elements_asset_hash_type) sha256_ctx8_type :=
+  let core := Alg.Assertion.toCore term in
+  @AC.comp _ _ _ core (AC.pair (AC.take AC.iden) (AC.drop (@asset_tag_payload_spec core)))
+    (@ctx8_tagged_word_spec 5 term).
+
+Lemma elements_asset_hash_spec_parametric : Alg.Assertion.Parametric (@elements_asset_hash_spec).
+Proof.
+  intros alg1 alg2 R. pose proof (ctx8_tagged_word_spec_parametric 5 _ _ R) as HT.
+  destruct R as [R [HC HA]]. set (RC := Alg.Core.Parametric.Pack HC).
+  pose proof (asset_tag_payload_spec_parametric _ _ RC) as HP.
+  unfold elements_asset_hash_spec. cbv zeta.
+  solve [repeat first [exact HT | exact HP | apply (Alg.comp_Parametric RC) |
+    apply (Alg.pair_Parametric RC) | apply (Alg.take_Parametric RC) |
+    apply (Alg.drop_Parametric RC) | apply Alg.iden_Parametric]].
+Qed.
+
+Definition elements_asset_bytes (v : Ty.tySem elements_asset_hash_type) : list (Ty.tySem Word8) :=
+  match v with
+  | inl (b, h) => (match b with inl _ => asset_byte_even | inr _ => asset_byte_odd end) :: vector_values Word8 5 h
+  | inr h => byte_one :: vector_values Word8 5 h
+  end.
+
+Lemma elements_asset_hash_option c v :
+  @elements_asset_hash_spec optalg (c, v) = ctx8_add_list c (elements_asset_bytes v).
+Proof.
+  assert (HP : forall x, @asset_tag_payload_spec (Alg.Assertion.toCore optalg) x =
+    Some (@asset_tag_payload_spec Alg.CoreFunSem x)).
+  { intro x. exact (opt_core (@asset_tag_payload_spec) asset_tag_payload_spec_parametric x). }
+  unfold elements_asset_hash_spec. cbv zeta. opt_steps.
+  rewrite HP, asset_tag_payload_value.
+  destruct v as [[b h] | h]; [destruct b as [u | u] | ]; cbv beta iota;
+    apply (ctx8_tagged_word_option 5).
+Qed.
+
+Definition elements_amount_hash_spec {term : Alg.Assertion.Algebra} :
+    term (Ty.Prod sha256_ctx8_type elements_amount_hash_type) sha256_ctx8_type :=
+  let core := Alg.Assertion.toCore term in
+  @AC.comp _ _ _ core (AC.pair (AC.drop AC.iden) (AC.take AC.iden))
+    (@AC.case _ _ _ _ core
+      (@AC.comp _ _ _ core
+        (AC.pair
+          (@AC.comp _ _ _ core
+            (AC.pair (AC.drop AC.iden)
+              (AC.take (AC.take (@conf_tag_byte_spec amount_byte_even amount_byte_odd core))))
+            (@ctx8_add1_spec term))
+          (AC.take (AC.drop AC.iden)))
+        (@ctx8_addn_spec 5 term))
+      (@AC.comp _ _ _ core
+        (AC.pair
+          (@AC.comp _ _ _ core
+            (AC.pair (AC.drop AC.iden) (AC.comp AC.unit (Alg.scribe byte_one)))
+            (@ctx8_add1_spec term))
+          (AC.take AC.iden))
+        (@ctx8_addn_spec 3 term))).
+
+Lemma elements_amount_hash_spec_parametric : Alg.Assertion.Parametric (@elements_amount_hash_spec).
+Proof.
+  intros alg1 alg2 R.
+  pose proof (ctx8_add1_spec_parametric _ _ R) as H1.
+  pose proof (ctx8_addn_spec_parametric 5 _ _ R) as H5.
+  pose proof (ctx8_addn_spec_parametric 3 _ _ R) as H3.
+  destruct R as [R [HC HA]]. set (RC := Alg.Core.Parametric.Pack HC).
+  pose proof (conf_tag_byte_spec_parametric amount_byte_even amount_byte_odd _ _ RC) as HT.
+  unfold elements_amount_hash_spec. cbv zeta.
+  solve [repeat first [exact H1 | exact H5 | exact H3 | exact HT | apply (Alg.scribe_Parametric RC) |
+    apply (Alg.comp_Parametric RC) | apply (Alg.pair_Parametric RC) | apply (Alg.case_Parametric RC) |
+    apply (Alg.take_Parametric RC) | apply (Alg.drop_Parametric RC) |
+    apply Alg.unit_Parametric | apply Alg.iden_Parametric]].
+Qed.
+
+Definition elements_amount_bytes (v : Ty.tySem elements_amount_hash_type) : list (Ty.tySem Word8) :=
+  match v with
+  | inl (b, h) => (match b with inl _ => amount_byte_even | inr _ => amount_byte_odd end) :: vector_values Word8 5 h
+  | inr v => byte_one :: vector_values Word8 3 v
+  end.
+
+Lemma elements_amount_hash_option c v :
+  @elements_amount_hash_spec optalg (c, v) = ctx8_add_list c (elements_amount_bytes v).
+Proof.
+  assert (HS : forall u, @Alg.scribe Ty.Unit Word8 byte_one (Alg.Assertion.toCore optalg) u = Some byte_one).
+  { intro u. rewrite (opt_core (fun alg => @Alg.scribe Ty.Unit Word8 byte_one alg)
+      (fun a1 a2 R => @Alg.scribe_Parametric a1 a2 R Ty.Unit Word8 byte_one) u).
+    rewrite Alg.scribe_correct. reflexivity. }
+  unfold elements_amount_hash_spec. cbv zeta. destruct v as [[b h] | v]; opt_steps.
+  - rewrite conf_tag_byte_option. cbv beta iota. rewrite ctx8_add1_option.
+    cbn [elements_amount_bytes ctx8_add_list].
+    destruct (ctx8_add1_model c (match b with inl _ => amount_byte_even | inr _ => amount_byte_odd end)) as [c' | ];
+      [ | reflexivity].
+    opt_steps. apply (ctx8_addn_option 5).
+  - rewrite opt_unit. cbv beta iota. rewrite HS. cbv beta iota. rewrite ctx8_add1_option.
+    cbn [elements_amount_bytes ctx8_add_list].
+    destruct (ctx8_add1_model c byte_one) as [c' | ]; [ | reflexivity].
+    opt_steps. apply (ctx8_addn_option 3).
+Qed.
+
+Definition elements_asset_amount_hash_spec {term : Alg.Assertion.Algebra} :
+    term (Ty.Prod sha256_ctx8_type elements_asset_amount_type) sha256_ctx8_type :=
+  let core := Alg.Assertion.toCore term in
+  @AC.comp _ _ _ core
+    (AC.pair
+      (@AC.comp _ _ _ core (AC.pair (AC.take AC.iden) (AC.drop (AC.take AC.iden)))
+        (@elements_asset_hash_spec term))
+      (AC.drop (AC.drop AC.iden)))
+    (@elements_amount_hash_spec term).
+
+Lemma elements_asset_amount_hash_spec_parametric : Alg.Assertion.Parametric (@elements_asset_amount_hash_spec).
+Proof.
+  intros alg1 alg2 R.
+  pose proof (elements_asset_hash_spec_parametric _ _ R) as HA.
+  pose proof (elements_amount_hash_spec_parametric _ _ R) as HM.
+  destruct R as [R [HC HAm]]. set (RC := Alg.Core.Parametric.Pack HC).
+  unfold elements_asset_amount_hash_spec. cbv zeta.
+  solve [repeat first [exact HA | exact HM | apply (Alg.comp_Parametric RC) |
+    apply (Alg.pair_Parametric RC) | apply (Alg.take_Parametric RC) |
+    apply (Alg.drop_Parametric RC) | apply Alg.iden_Parametric]].
+Qed.
+
+Definition elements_asset_amount_bytes (v : Ty.tySem elements_asset_amount_type) : list (Ty.tySem Word8) :=
+  elements_asset_bytes (fst v) ++ elements_amount_bytes (snd v).
+
+Lemma elements_asset_amount_hash_option c v :
+  @elements_asset_amount_hash_spec optalg (c, v) = ctx8_add_list c (elements_asset_amount_bytes v).
+Proof.
+  destruct v as [a m]. unfold elements_asset_amount_hash_spec, elements_asset_amount_bytes. cbv zeta.
+  opt_steps. rewrite ctx8_add_list_app, elements_asset_hash_option.
+  destruct (ctx8_add_list c (elements_asset_bytes a)) as [c' | ]; [ | reflexivity].
+  opt_steps. apply elements_amount_hash_option.
+Qed.
+
+Lemma elements_asset_bytes_length v : length (elements_asset_bytes v) = 33%nat.
+Proof. destruct v as [[b h] | h]; cbn [elements_asset_bytes length]; rewrite vector_values_length; reflexivity. Qed.
+
+Lemma elements_amount_bytes_bound v : (length (elements_amount_bytes v) <= 33)%nat.
+Proof. destruct v as [[b h] | v]; cbn [elements_amount_bytes length]; rewrite vector_values_length; cbn; lia. Qed.
+
+Lemma elements_asset_amount_bytes_bound v : Z.of_nat (length (elements_asset_amount_bytes v)) <= 66.
+Proof.
+  unfold elements_asset_amount_bytes. rewrite app_length, elements_asset_bytes_length.
+  pose proof (elements_amount_bytes_bound (snd v)). lia.
+Qed.

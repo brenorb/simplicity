@@ -1,0 +1,61 @@
+(** Canonical byte bridges and original asset/amount function-entry adapters. *)
+From Coq Require Import ZArith List Lia PeanoNat.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require sha.SHA256.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate Simplicity.BitMachine.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_readBit_layout C.jet_partial.
+Require Import C.jet_frame_copy C.jet_frame_copy_layout C.jet_frame_layout.
+Require Import C.jet_input_layout C.jet_output_layout C.jet_write_layout C.jet_encoding.
+Require Import C.jet_constant_layout C.jet_bitmachine_rep.
+Require Import C.jet_buffer_empty_spec C.jet_buffer_input C.jet_buffer_chunks C.jet_sha256_ctx8_init_spec.
+Require Import C.jet_read8s_layout C.jet_read32s_layout C.jet_word32_chunks C.jet_uint32_array_init.
+Require Import C.jet_wide C.jet_wide_spec.
+Require Import C.jet_write_sha256_context_layout.
+Require Import C.jet_read_sha256_counter C.jet_read_sha256_overflow C.jet_sha256_counter_representation.
+Require C.jets.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_transport C.jet_sha_compress_call C.jet_sha_block_local.
+Require Import C.jet_sha_ctx8_spec C.jet_sha_ctx8_model C.jet_sha_uchars_prep C.jet_sha_uchars_loop C.jet_sha_uchars_exec.
+Require Import C.jet_sha_read_context_layout C.jet_sha_ctx8_bridge.
+Require Import C.jet_sha_add_n_init C.jet_sha_add_n_calls C.jet_sha_add_n_exec.
+Require Import C.jet_sha_finalize_exec.
+Require Import C.jet_sha_tapdata_prep.
+Require Import C.jet_sha_uchar_exec C.jet_sha_ctx_abs.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 10.
+
+
+Require Import C.jets_elements C.jet_elements_linkage C.jet_elements_sha_program.
+Require Import NonceContext.Spec NonceContext.Shape NonceExec.Effects NonceExec.Phase.
+Local Opaque elements_ge.
+
+Require Import NonceLocal.Common AssetLocal.Spec AssetLocal.Counter.
+Require Import AssetExec.Shape AssetExec.Asset AmountExec.Common AmountExec.Compose.
+
+Lemma asset_bytes_canonical p : asset_bytes p = elements_asset_bytes p.
+Proof. destruct p as [[[[]|[]] h]|h]; reflexivity. Qed.
+Lemma amount_bytes_canonical a : amount_bytes a = elements_amount_bytes a.
+Proof. destruct a as [[[[]|[]] h]|v]; reflexivity. Qed.
+Lemma asset_amount_bytes_canonical p a :
+  asset_bytes p ++ amount_bytes a = elements_asset_amount_bytes (p, a).
+Proof. unfold elements_asset_amount_bytes. cbn [fst snd]. rewrite asset_bytes_canonical, amount_bytes_canonical. reflexivity. Qed.
+Lemma asset_amount_option c p a :
+  @elements_asset_amount_hash_spec optalg (c, (p, a)) = ctx8_add_list c (asset_bytes p ++ amount_bytes a).
+Proof. rewrite elements_asset_amount_hash_option, asset_amount_bytes_canonical. reflexivity. Qed.
+Lemma asset_amount_stream_count p a :
+  Z.of_nat (length (asset_bytes p ++ amount_bytes a)) = 33 + amount_count a.
+Proof.
+  rewrite app_length, Nat2Z.inj_add, asset_bytes_length, amount_bytes_length. reflexivity.
+Qed.
+Lemma asset_entry_sha env m m1 m2 m3 m4 bl bm bb bx bd dbase bs sbase :
+  Mem.alloc m 0 16 = (m1, bl) -> Mem.alloc m1 0 32 = (m2, bm) ->
+  Mem.alloc m2 0 32 = (m3, bb) -> Mem.alloc m3 0 88 = (m4, bx) ->
+  function_entry2 sha_ge f_simplicity_asset_amount_hash
+    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] m
+    (nc_env bl bm bb bx) (asset_amount_temps env bd dbase bs sbase) m4.
+Proof. rewrite elements_sha_genv. apply asset_amount_entry. Qed.
+Lemma amount_temps_other a le id : id <> _t'4 -> id <> _t'5 -> (amount_temps a le)!id = le!id.
+Proof. intros H4 H5. destruct a as [[odd h]|v]; cbn [amount_temps]; rewrite !PTree.gso by congruence; reflexivity. Qed.
+Lemma asset_temps_other p le id : id <> _t'2 -> id <> _t'3 -> (nonce_present_temps p le)!id = le!id.
+Proof. intros H2 H3. destruct p as [[odd h]|h]; cbn [nonce_present_temps]; rewrite !PTree.gso by congruence; reflexivity. Qed.
