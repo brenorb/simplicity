@@ -12,9 +12,8 @@
 #   1. static checks: no Axiom/Parameter/Admitted in the jet sources; every jet
 #      module of _CoqProject.jets is also listed in the normal _CoqProject;
 #   2. build every module of _CoqProject.jets (build-jets.sh);
-#   3. coqchk on every module that contains a public theorem
-#      (C/jet_public_theorems.txt), compared with the recorded library-level
-#      axiom list C/jet_coqchk_axioms.expected;
+#   3. coqchk on every module of _CoqProject.jets, compared with the recorded
+#      library-level axiom list C/jet_coqchk_axioms.expected;
 #   4. the per-theorem assumption gate (audit-jet-assumptions.sh);
 #   5. with --ast (or JET_SYSROOT set): regenerate the C AST with the pinned
 #      inputs and compare core, Bitcoin, SHA, secp256k1 and Elements artifacts.
@@ -209,7 +208,8 @@ if $build; then
 fi
 
 echo "== coqchk"
-mods=$(awk '!/^#/ && NF==2 {print $1}' C/jet_public_theorems.txt | sort -u)
+# Every built jet module is kernel-checked, not only those with public theorems.
+mods=$(grep -E '^C/.*\.v$' _CoqProject.jets | sed 's/\.v$//; s|/|.|g' | sort -u)
 if [[ -n "$jets" ]]; then mods=$(comm -12 <(echo "$mods") <(sort "$work/scope.txt")); fi
 mods=$(echo "$mods" | tr '\n' ' ')
 # shellcheck disable=SC2086
