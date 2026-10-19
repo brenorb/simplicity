@@ -68,6 +68,12 @@ python3 check-secp-normalize-specification.py
 python3 test-secp-normalize-specification.py
 python3 check-secp-predicates-specification.py
 python3 test-secp-predicates-specification.py
+for gate in negate-wiring recursive-ports literal-ports foundations; do
+  candidate_ports=C
+  if [[ "$gate" == recursive-ports ]]; then candidate_ports=negate-review; fi
+  python3 "negate-review/check-$gate.py" --repo "${JET_C_REPO:-..}" --candidates "$candidate_ports"
+  python3 "negate-review/test-$gate.py" --repo "${JET_C_REPO:-..}" --candidates "$candidate_ports"
+done
 python3 check-bitcoin-primitive-identity.py
 python3 test-bitcoin-primitive-identity.py
 python3 test-jet-audit-inputs.py

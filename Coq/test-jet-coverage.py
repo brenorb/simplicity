@@ -144,6 +144,24 @@ def main():
             predicate.write_text(predicate_original)
         assert coverage.inventory() == rows
         # Assertion jets must retain the exact linked program/environment and
+        negate = project / "C/jet_secp_negate_literal_contract.v"
+        negate_original = negate.read_text()
+        declaration = "Theorem fe_negate_literal_local_spec :"
+        contract = "secp_jet_local_spec f_simplicity_fe_negate"
+        for old, new in (
+            (contract, "secp_jet_local_spec f_read_fe"),
+            (contract, "secp_jet_local_spec f_simplicity_fe_normalize"),
+            (contract, "jet_local_spec f_simplicity_fe_negate"),
+            (declaration, declaration + " False ->"),
+        ):
+            start = negate_original.index(declaration)
+            assert old in negate_original[start:]
+            negate.write_text(negate_original[:start] +
+                              negate_original[start:].replace(old, new, 1))
+            rejects(coverage.inventory, "not a direct canonical jet theorem")
+        negate.write_text(negate_original)
+        assert coverage.inventory() == rows
+        # Assertion jets must retain the exact linked program/environment and
         # be the whole proposition, including both success and failure.
         assertion = project / "C/jet_bitcoin_check_lock.v"
         assertion_original = assertion.read_text()

@@ -1,0 +1,107 @@
+(** Derive preservation of original SHA globals from ordinary frame contracts.
+    No caller-supplied dispatch/output separation premise is introduced. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers Memory AST.
+Require Import C.jet_frame_layout C.jet_output_layout C.jet_write_layout.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_block_local.
+Require Import C.jet_sha_uchars_exec C.jet_sha_add_n_exec.
+Require Import JetStartupReview.jet_sha_initial_globals.
+Import Values Mem ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma sha_counter_writable_cell_other m b ofs :
+  sha_original_global_state m ->
+  Mem.valid_access m Mint64 b ofs Writable ->
+  b <> sha_symbol_block _sha256_max_counter.
+Proof.
+  intros [_ [HNoWrite _]] HAccess HSame; subst b.
+  apply (HNoWrite ofs).
+  exact (Mem.valid_access_perm m Mint64 _ ofs Cur Writable HAccess).
+Qed.
+
+Theorem sha_write_frame_global_separation m bf base bw edge cursor count :
+  sha_original_global_state m -> 0 < count ->
+  write_frame_at m bf base bw edge cursor count ->
+  bf <> sha_symbol_block _simplicity_sha256_compression /\
+  bw <> sha_symbol_block _simplicity_sha256_compression /\
+  bf <> sha_symbol_block _sha256_max_counter /\
+  bw <> sha_symbol_block _sha256_max_counter.
+Proof.
+  intros HState HCount HFrame.
+  pose proof HFrame as [HBase [_ [_ [_ [_ [_ [HCursor _]]]]]]].
+  destruct (write_frame_at_head m bf base bw edge cursor count HCount HFrame)
+    as [_ [_ [HWordAccess [old HWordLoad]]]].
+  split.
+  - eapply sha_dispatch_frame_cursor_other; [exact HState|exact (proj1 HBase)|exact HCursor].
+  - split.
+    + eapply sha_dispatch_long_cell_other; eassumption.
+    + split; eapply sha_counter_writable_cell_other; eassumption.
+Qed.
+
+Theorem sha_globals_from_public_frame_observations m mf bf base bw edge cursor count :
+  sha_original_global_state m -> 0 < count ->
+  write_frame_at m bf base bw edge cursor count ->
+  (forall chunk b ofs, Mem.valid_block m b ->
+    (b <> bf \/ ofs + size_chunk chunk <= base + 8 \/ base + 16 <= ofs) ->
+    (b <> bw \/ ofs + size_chunk chunk <= edge + 8 * ((cursor - count) / 64) \/
+      write_word_address edge cursor + 8 <= ofs) ->
+    Mem.load chunk mf b ofs = Mem.load chunk m b ofs) ->
+  sha_globals_ok mf.
+Proof.
+  intros HState HCount HFrame HLoads.
+  destruct (sha_write_frame_global_separation m bf base bw edge cursor count
+    HState HCount HFrame) as [HFD [HWD [HFC HWC]]].
+  destruct HState as [[HDispatch HCounter] _].
+  split.
+  - unfold sha_dispatch_ok in *.
+    rewrite HLoads; [exact HDispatch| |left; congruence|left; congruence].
+    eapply Mem.perm_valid_block with (ofs := 0) (k := Cur) (p := Readable).
+    eapply (Mem.valid_access_perm m Mptr _ 0 Cur Readable).
+    eapply Mem.load_valid_access; exact HDispatch.
+  - rewrite HLoads; [exact HCounter| |left; congruence|left; congruence].
+    eapply Mem.perm_valid_block with (ofs := 0) (k := Cur) (p := Readable).
+    eapply (Mem.valid_access_perm m Mint64 _ 0 Cur Readable).
+    eapply Mem.load_valid_access; exact HCounter.
+Qed.
+
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_input_layout C.jet_encoding.
+From compcert Require Import Ctypes Clight ClightBigstep Events.
+
+(** Complete canonical block call, now also deriving globals for its successor.
+    Startup provenance is separate: the initializer theorem establishes HState;
+    constructing frames and preserving that state during setup remain explicit. *)
+Theorem sha_256_block_local_spec_preserves_globals :
+  forall env m bd dbase bs sbase bi bw edge outedge cursor read_cursor
+    (a : Ty.tySem (Ty.Prod Word256 Word512)),
+    sha_original_global_state m ->
+    frame_base_valid sbase -> (8 | sbase) ->
+    frame_fields_at m bs sbase bi edge read_cursor ->
+    0 <= read_cursor -> read_cursor + Z.of_nat (bitSize (Ty.Prod Word256 Word512)) <= Int64.max_unsigned ->
+    frame_input_cells_at m bi edge read_cursor (encode a) ->
+    write_frame_at m bd dbase bw outedge cursor (Z.of_nat (bitSize Word256)) ->
+    exists mf,
+      Clight2.eval_funcall sha_ge m (Internal f_simplicity_sha_256_block)
+        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
+        E0 mf (Vint Int.one) /\
+      frame_output_cells_at mf bw outedge cursor (encode (sha_256_block_spec a)) /\
+      write_prefix_at m mf bw outedge cursor /\
+      frame_fields_at mf bd dbase bw outedge (cursor - Z.of_nat (bitSize Word256)) /\
+      (forall chunk b ofs, Mem.valid_block m b ->
+        (b <> bd \/ ofs + size_chunk chunk <= dbase + 8 \/ dbase + 16 <= ofs) ->
+        (b <> bw \/ ofs + size_chunk chunk <= outedge + 8 * ((cursor - Z.of_nat (bitSize Word256)) / 64) \/
+          write_word_address outedge cursor + 8 <= ofs) ->
+        Mem.load chunk mf b ofs = Mem.load chunk m b ofs) /\
+      sha_globals_ok mf.
+Proof.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc a
+    HState HBase HAlign HFields HCursor HMax HInput HOutput.
+  destruct (sha_256_block_local_spec env m bd dbase bs sbase bi bw edge outedge cursor rc a
+    (proj1 (proj1 HState)) HBase HAlign HFields HCursor HMax HInput HOutput)
+    as [mf [HCall [HCells [HPrefix [HFinal HLoads]]]]].
+  exists mf; split; [exact HCall|]; split; [exact HCells|]; split; [exact HPrefix|];
+    split; [exact HFinal|]; split; [exact HLoads|].
+  eapply sha_globals_from_public_frame_observations; [exact HState| |exact HOutput|exact HLoads].
+  change (0 < 256); lia.
+Qed.
