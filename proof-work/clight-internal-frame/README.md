@@ -1,5 +1,10 @@
 # Precise readonly framing for original internal C calls
 
+Follow-up: `../secp-beta-public/README.md` records the stronger readonly
+preservation theorem and complete public beta proof. Its separate exact-input
+receipts determine completed verification; this packet's checked proofs and
+historical evidence remain unchanged.
+
 This packet closes the multiplier-helper framing gap recorded in
 `../secp-beta-global/README.md`. It does not yet prove or register the whole
 public `FeMultiplyBeta` jet. All original targets stay fixed; coverage added: zero.

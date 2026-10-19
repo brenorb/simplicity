@@ -1,5 +1,9 @@
 # Original beta global and multiplication-helper bridge
 
+Complete-public follow-up: see `../secp-beta-public/README.md` and its own
+verification receipts. The helper-only scope below describes this historical
+packet, not the status of that later public-jet proof.
+
 Follow-up: `../clight-internal-frame/README.md` records a checked-source
 extension addressing the conservative multiplier framing described below.
 Its own receipts determine its completed verification status; this packet's
