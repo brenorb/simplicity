@@ -10,7 +10,12 @@ snapshots (`C/jet_assumptions.expected`, `C/jet_contracts.expected`,
 Repository-wide `check-jets.sh --update-expected` / `--accept` cannot pass on
 any tree derived from `d4677f3d`:
 
-* `C/jet_bitcoin_value_domain.v` and `C/jet_bitcoin_count_bridge.v` do not
+* Update 2026-10-19: after merging `feat/jet-equivalence` `2472cb0c`,
+  `jet_bitcoin_count_bridge.v` is repaired upstream (`7f2d7382`) and compiles;
+  `jet_bitcoin_value_domain.v` still fails. See `BITCOIN-BLOCKER-PROPOSAL.md`
+  and `HANDOFF.md` (the user chose the main agent's fe_multiply/fe_square
+  proofs for registration).
+* `C/jet_bitcoin_value_domain.v` and `C/jet_bitcoin_count_bridge.v` did not
   compile against the pinned original `Coq/Simplicity/Primitive/Bitcoin.v`
   (`sigTxiValue_bound` cannot be inferred; `Not convertible`). Reproduced in a
   clean export of `d4677f3d` (see `$S/base-bitcoin.log` in the run notes) and
