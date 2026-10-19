@@ -1,0 +1,24 @@
+(** Closed diagnostic facts about the unchanged base primitive identity.
+    These are not C jet execution proofs and do not correct either target. *)
+From Coq Require Import String List.
+From compcert Require Import Integers.
+Require Import Simplicity.Primitive Simplicity.Primitive.Bitcoin Simplicity.MerkleRoot.
+Import ListNotations.
+Local Open Scope string_scope.
+Set Default Timeout 10.
+
+Theorem frozen_locktime_name : Bitcoin.name Bitcoin.LockTime = "locktime".
+Proof. reflexivity. Qed.
+
+Theorem frozen_locktime_name_differs : Bitcoin.name Bitcoin.LockTime <> "lockTime".
+Proof. discriminate. Qed.
+
+Theorem frozen_locktime_tag_differs :
+  Bitcoin.tag Bitcoin.LockTime <>
+  MerkleRoot.tag (primitivePrefix "Bitcoin" ++ ["lockTime"])%list.
+Proof.
+  intro H.
+  apply (f_equal (fun h => Int.unsigned (List.hd Int.zero (hash256_reg h)))) in H.
+  vm_compute in H.
+  discriminate.
+Qed.
