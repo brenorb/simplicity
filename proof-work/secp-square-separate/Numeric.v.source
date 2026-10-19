@@ -1,0 +1,80 @@
+(** Reuse the checked optimized-square arithmetic for the separate-output call. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Memory Values Events.
+Require Import Simplicity.Ty Simplicity.Word.
+Require Simplicity.Alg.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_u128_shift64_rep C.jet_secp_multiply_finish_execute
+  C.jet_secp_multiply_finish_product C.jet_secp_multiply_checkpoint_columns.
+Require Import C.jet_secp_write_fe_wide_values C.jet_secp_write_fe_wide_exec C.jet_secp_square_execution C.jet_secp_square_columns
+  C.jet_secp_square_numeric C.jet_secp_square_source_list C.jet_secp_square_spec_bridge.
+Require Import SquareSeparate.Layout SquareSeparate.Run.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque square_limbs square_words separate_regs secp_ge.
+
+Lemma separate_result_loads rho layout m writable freed : square_input_bounds rho ->
+  rep rho layout [mkreg (u64_cells 0 square_limbs) true (Some 40); separate_input writable freed] m ->
+  output_words layout (square_words rho) m.
+Proof.
+  intros HB HR i HI.
+  assert (HL : xload [mkreg (u64_cells 0 square_limbs) true (Some 40); separate_input writable freed]
+    0 (8 * Z.of_nat i) tulong = Some (nth i square_limbs (XLv 0))).
+  { rewrite original_square_symbolic_output.
+    destruct i as [|[|[|[|[|i]]]]]; try lia; reflexivity. }
+  pose proof (xload_u64_defined_sound rho layout _ m 0 (8 * Z.of_nat i)
+    (nth i square_limbs (XLv 0)) HR HL) as HV.
+  rewrite square_output_den in HV by assumption; exact HV.
+Qed.
+
+Theorem eval_original_square_separate_numeric rho layout m writable freed :
+  square_input_bounds rho -> rep rho layout (separate_regs writable freed) m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_sqr)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1))] E0 mf Vundef /\
+    rep rho layout [mkreg (u64_cells 0 square_limbs) true (Some 40); separate_input writable freed] mf /\
+    output_words layout (square_words rho) mf /\
+    radix_value (square_words rho) mod field_prime = (radix_value rho * radix_value rho) mod field_prime /\
+    (forall i, (i < 5)%nat -> 0 <= Int64.unsigned (square_words rho i) <
+      if Nat.eqb i 4 then 562949953421312 else 4503599627370496) /\
+    lframe (fun b ofs => ~ foot layout (map rshape (separate_regs writable freed)) b ofs) m mf.
+Proof.
+  intros HB HR.
+  destruct (eval_original_square_separate rho layout m writable freed HR) as (mf & HC & HP & HF).
+  exists mf; split; [exact HC|]; split; [exact HP|].
+  split; [eapply separate_result_loads; eassumption|].
+  split; [apply square_output_numeric; exact HB|].
+  split; [apply square_output_bounds; exact HB|exact HF].
+Qed.
+
+Lemma square_result_reusable rho : square_input_bounds rho -> square_input_bounds (square_words rho).
+Proof.
+  intros HB i HI; pose proof (square_output_bounds rho HB i HI).
+  destruct (Nat.eqb i 4); lia.
+Qed.
+
+Theorem eval_original_square_separate_literal (x : tySem (Word 8)) layout m writable freed :
+  rep (square_reader_rho x) layout (separate_regs writable freed) m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_sqr)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 1) (Ptrofs.repr (bas layout 1))] E0 mf Vundef /\
+    rep (square_reader_rho x) layout
+      [mkreg (u64_cells 0 square_limbs) true (Some 40); separate_input writable freed] mf /\
+    output_words layout (square_words (square_reader_rho x)) mf /\
+    wide_fe_output (square_words (square_reader_rho x) 0%nat)
+      (square_words (square_reader_rho x) 1%nat) (square_words (square_reader_rho x) 2%nat)
+      (square_words (square_reader_rho x) 3%nat) (square_words (square_reader_rho x) 4%nat) =
+        @literal_fe_square Alg.CoreFunSem x /\
+    square_input_bounds (square_words (square_reader_rho x)) /\
+    lframe (fun b ofs => ~ foot layout (map rshape (separate_regs writable freed)) b ofs) m mf.
+Proof.
+  intro HR.
+  destruct (eval_original_square_separate_numeric (square_reader_rho x) layout m writable freed
+    (square_reader_bounds x) HR) as (mf & HC & HP & HL & HV & HB & HF).
+  exists mf; split; [exact HC|]; split; [exact HP|]; split; [exact HL|].
+  split; [apply square_writer_output_matches_literal|].
+  split; [apply square_result_reusable; apply square_reader_bounds|exact HF].
+Qed.
