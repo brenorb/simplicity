@@ -1,5 +1,10 @@
 # Original beta global and multiplication-helper bridge
 
+Follow-up: `../clight-internal-frame/README.md` records a checked-source
+extension addressing the conservative multiplier framing described below.
+Its own receipts determine its completed verification status; this packet's
+historical checked sources and receipts are unchanged.
+
 This is incremental proof support for `FeMultiplyBeta`, not a registered public
 jet equivalence. Production C, specifications, primitive identities, API and
 generation settings remain the original `91d89bac` targets. Coverage added: zero.
