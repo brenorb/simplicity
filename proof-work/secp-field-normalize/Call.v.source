@@ -1,0 +1,53 @@
+(** Real original C calls: in-place multiplication followed by normalization.
+    This is the arithmetic/normalization boundary, not the public jet yet. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers Values Memory AST Ctypes Clight ClightBigstep Events.
+Require Import C.jet_sx_state C.jet_sx_eval C.jet_sx_mem.
+Require Import C.jet_secp_fe_math C.jet_secp_fe_nv C.jet_secp_linkage C.jets_secp.
+Require Import FieldRun.Run FieldCheckpoint.Columns FieldFirst.Arithmetic.
+Require Import FieldFinish.Execute FieldFinish.Product FieldCall.Call FieldWrapper.Call.
+Require Import FieldNormalize.Bridge.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge original_finish_words.
+
+Theorem eval_original_field_mul_then_normalize rho beta m :
+  field_input_bounds rho -> rep rho beta field_mul_regs m ->
+  exists mm mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mm Vundef /\
+    Clight2.eval_funcall secp_ge mm (Internal f_secp256k1_fe_normalize_var)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0))] E0 mf Vundef /\
+    fe_at mf (blk beta 0) (bas beta 0)
+      (map Int64.repr (fe_limbs_of
+        ((radix_value rho * radix_value (second_input rho)) mod field_prime))) /\
+    fe_at mf (blk beta 1) (bas beta 1) (words5 (second_input rho)) /\
+    lframe (fun b o => ~ foot beta (map rshape field_mul_regs) b o) m mf.
+Proof.
+  intros HB HR.
+  destruct (eval_original_field_mul_wrapper rho beta m HR) as (mm & HM & HRep & HO & HF).
+  pose proof (multiplier_output_fe_at rho beta mm HRep) as HFirst.
+  pose proof (multiplier_second_fe_at rho beta mm HRep) as HSecond.
+  pose proof (multiplier_output_blocks_distinct rho beta mm HRep) as HD.
+  pose proof (multiplier_normalizer_bounds rho HB) as HBounds.
+  destruct (eval_fe_normalize_var mm (blk beta 0) (bas beta 0)
+    (original_finish_words rho 0%nat) (original_finish_words rho 1%nat)
+    (original_finish_words rho 2%nat) (original_finish_words rho 3%nat)
+    (original_finish_words rho 4%nat) HFirst
+    (HBounds 0%nat ltac:(lia)) (HBounds 1%nat ltac:(lia))
+    (HBounds 2%nat ltac:(lia)) (HBounds 3%nat ltac:(lia))
+    (HBounds 4%nat ltac:(lia))) as (mf & HN & HOut & HFrame).
+  change (fe_at mf (blk beta 0) (bas beta 0)
+    (map Int64.repr (normalized_words (original_finish_words rho)))) in HOut.
+  rewrite multiplier_normalized_product in HOut by exact HB.
+  exists mm, mf; split; [exact HM|]; split; [exact HN|]; split; [exact HOut|]; split.
+  - eapply fe_at_other_block with (changed := blk beta 0) (base := bas beta 0);
+      [congruence|exact HSecond|exact HFrame].
+  - eapply lframe_trans; [exact HF|].
+    eapply lframe_implies; [exact HFrame|].
+    intros b o HOutside HV [HE HO']. apply HOutside.
+    apply field_first_range_in_foot; assumption.
+Qed.
