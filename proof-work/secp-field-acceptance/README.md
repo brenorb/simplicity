@@ -58,8 +58,39 @@ demonstrate a wrong C lock-time value, a normal-evaluator execution bug, or any
 failure of field multiplication. No hash collision claim or unequal digest
 proof is inferred from spelling alone.
 
+The subsequent independent packet `../bitcoin-frozen-identity` now supplies
+an actual closed Coq proof that the two concrete Coq tag constructions differ,
+with fresh recursive kernel verification. That exact computation is stronger
+than the original spelling-based gate, but is still not a C execution
+counterexample or a proof of an exploitable consensus discrepancy.
+
 Identity-dependent Bitcoin correspondence remains unresolved under this gate.
 Any target correction requires separate user approval. Continue independent
 proof work; the checked field-multiplication loaded closure contains no Bitcoin
 primitive module. Preserve this failed attempt rather than rewriting it as a
 successful or narrowed acceptance run.
+
+`build.py` separately invokes the **complete** normal project build with
+`make -k`: independent modules are attempted even after a compile failure,
+and the final nonzero status is retained. This does not remove any target,
+bypass the identity check in `check-jets.sh`, or claim acceptance. Poll its
+recorded live tool handle; its process/launch records are not a successful
+build receipt. The outcome belongs to a separate `BUILT.json` only if the
+entire build exits zero.
+
+That independent full build has now terminated with **exit 2**. The two direct
+failures are `jet_bitcoin_count_bridge.v` (non-convertible non-strict output
+bound) and `jet_bitcoin_value_domain.v` (an arbitrary input amount constructor
+omits the frozen model's required `sigTxiValue_bound`). The downstream count
+endpoint object consequently was not built. `PARTIAL-BUILD.json` records 883
+existing source-bound objects out of 886 listed modules, the three missing
+objects and the full terminal failed-build log. This is not a complete build
+or a full-registry kernel/assumption/contract audit.
+
+The count failure has subsequently been repaired and the **complete two C
+count-jet contracts** recompiled and kernel-checked in a different tree by
+`../bitcoin-count-frozen`, without altering the domain or conclusions. The
+value-domain module's claims about arbitrary amounts and empty outputs are
+not established under the original record constraints; they remain unresolved,
+not silently deleted or repaired by changing the target. The normal identity
+gate still fails. No `GENERATED.json`, `REVIEWED.json` or `ACCEPTED.json` exists.
