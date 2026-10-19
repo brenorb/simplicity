@@ -27,3 +27,7 @@ possible upstream bugs for the Simplicity developers to evaluate. Report them,
 with closed evidence, in a `C/JET_*_MISMATCHES.md` report. Never correct the
 frozen sources, and never relax a gate to hide a mismatch. A gate may only list
 a reported mismatch exactly and print it on every run.
+
+Do not commit build, compile, kernel or audit logs (`*.log` is ignored under
+`Coq/` and `proof-work/`). Keep them outside the repository. A packet's README
+records the command, exit statuses and axiom result needed to reproduce a run.
