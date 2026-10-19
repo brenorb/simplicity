@@ -8,10 +8,11 @@ the inherited fidelity review.
 
 | Work | Preserved form | Status |
 | --- | --- | --- |
-| Frame range correction | Repaired sources integrated on `codex/range-integration`; original 20 patches retained as history | Exact accepted candidate fingerprint matches; full build, 603 kernel modules and all acceptance gates pass; inherited endpoint/evaluator/domain/fidelity review remains open |
-| Field odd/zero predicates | 18 modules, checkers and registration integrated in `cafb9b31`; original patch retained as history | Full acceptance passed; inherited domain/fidelity review remains open |
+| Frame range correction | 20 original commit patches; twenty-six continuation repair patches, separate from the original archive | Whole candidate build and all 44 repaired-module kernel checks pass; exact replay passes; all 18 current odd/zero modules compile unchanged and public chains pass kernel checking; formal old-domain inclusion and concrete writer/one_8 witnesses checked; full reconciled assumption audit passes with all 3,577 prior records unchanged and six inherited-only additions; assembly and final acceptance remain open |
+| Field odd/zero predicates | Exact candidate patch retained for provenance; 18 modules integrated as cafb9b31 | Independent full acceptance passed; inherited frame/domain and exhaustive review remain open |
 | Scalar/uint128 | 22 complete helper sources and one historical literal-source checker | Public canonical and lifecycle chains incomplete; four sources need fresh verification |
-| SHA initialization/preservation | One complete source with 16 results | Kernel/contract review and consuming public chains remain open |
+| Field negation | Original in-place magnitude-one Clight helper and hash/receipt manifest | Compiles and whole-chain kernel check passes; exact limb/canonical 512-bit reduction bridge and full public lifecycle remain open; no coverage added |
+| SHA initialization/preservation | Original startup source plus 75 new results, including 12 ready and 12 composable invariant-based adapters and block execution with all storage/metadata constructed; six checking scripts and a reviewed-port reference | Ten sources compile freshly and their whole dependency chains are kernel-checked; gates reject 87 mutations; underlying dependency/domain review, snapshots, acceptance and evaluator/remaining-consumer links remain open |
 | Review witnesses | 19 exact sources | Scoped diagnostic/review evidence; some require earlier contract revisions |
 
 Each group has a manifest with source hashes, revision dependencies and remaining

@@ -1,5 +1,9 @@
 # Integrated frame range correction
 
+Local integration: signed commit `805cb19e` is now merged into
+`feat/jet-equivalence`; integration-branch references below are historical.
+Newer proof work is preserved separately in the checkout.
+
 The repaired range correction is integrated on `codex/range-integration`.
 All 149 changed Coq files match the reviewed reconciliation hashes and the
 complete proof-input fingerprint matches the independently accepted candidate.

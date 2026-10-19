@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+"""Check the composable adapters against the reviewed ready boundaries.
+
+This checks syntactic invariants/bindings, not all evaluator histories or formal
+translation of canonical Haskell. Complete kernel and dependency review remain
+separate acceptance requirements.
+"""
+import argparse
+import importlib.machinery
+import importlib.util
+from pathlib import Path
+import re
+
+
+def source(candidates, name):
+    archived = candidates / (name + ".source")
+    return (archived if archived.exists() else candidates / name).read_text()
+
+
+def ready_gate(candidates):
+    path = candidates / "check-ready-boundary.py.source"
+    if not path.exists():
+        path = candidates / "check-ready-boundary.py"
+    loader = importlib.machinery.SourceFileLoader("ready_boundary", str(path))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+INVARIANT = r"""
+Definition sha_persistent_global_state (m : mem) : Prop :=
+  sha_globals_ok m /\
+  (forall ofs, ~ Mem.perm m (sha_symbol_block _sha256_max_counter) ofs Max Writable) /\
+  (forall ofs p, Mem.perm m (sha_symbol_block _simplicity_sha256_compression) ofs Max p ->
+    0 <= ofs < 8).
+"""
+
+
+def check(repo, candidates):
+    gate = ready_gate(candidates)
+    assert gate.check(repo, candidates) == 12
+    invariant = gate.uncomment(source(candidates, "jet_sha_persistent_globals.v"))
+    if gate.declaration(invariant, "Definition", "sha_persistent_global_state") != gate.norm(INVARIANT):
+        raise ValueError("persistent value/maximum-permission invariant changed")
+    ready = gate.uncomment(source(candidates, "jet_sha_partial_ready.v"))
+    running = gate.uncomment(source(candidates, "jet_sha_partial_running.v"))
+    names = re.findall(r"\bTheorem (sha_ctx8_\w+_ready_spec)\b", ready)
+    if len(names) != 12:
+        raise ValueError("wrong ready adapter inventory")
+    for name in names:
+        expected = gate.declaration(ready, "Theorem", name).replace(
+            name, name.replace("_ready_spec", "_running_spec"), 1).replace(
+            "sha_partial_state_spec sha_ready_memory", "sha_partial_state_spec sha_persistent_global_state", 1)
+        actual = gate.declaration(running, "Theorem", name.replace("_ready_spec", "_running_spec"))
+        if actual != expected:
+            raise ValueError(f"running adapter C/type/spec/libc/invariant boundary changed: {name}")
+    return len(names)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, required=True)
+    parser.add_argument("--candidates", type=Path, required=True)
+    args = parser.parse_args()
+    try:
+        count = check(args.repo, args.candidates)
+    except (ValueError, OSError) as error:
+        parser.exit(1, f"SHA running boundary gate: {error}\n")
+    print(f"SHA running boundary: {count} composable adapters retain reviewed contracts and invariant")

@@ -143,6 +143,71 @@ def main():
                 rejects(coverage.inventory, "not a direct canonical jet theorem")
             predicate.write_text(predicate_original)
         assert coverage.inventory() == rows
+        # All point jets retain their own original function and whole contract.
+        for filename, theorem, function in (
+            ("jet_secp_gej_infinity_local.v", "gej_infinity_literal_local_spec", "simplicity_gej_infinity"),
+            ("jet_secp_gej_predicate_local.v", "gej_is_infinity_literal_local_spec", "simplicity_gej_is_infinity"),
+            ("jet_secp_gej_negate_local.v", "gej_negate_literal_local_spec", "simplicity_gej_negate"),
+            ("jet_secp_ge_negate_local.v", "ge_negate_literal_local_spec", "simplicity_ge_negate"),
+            ("jet_secp_scalar_zero_local.v", "scalar_zero_local_spec", "simplicity_scalar_is_zero"),
+            ("jet_secp_scalar_normalize_local.v", "scalar_normalize_local_spec", "simplicity_scalar_normalize"),
+            ("jet_secp_scalar_negate_local.v", "scalar_negate_local_spec", "simplicity_scalar_negate"),
+            ("jet_secp_scalar_add_local.v", "scalar_add_literal_local_spec", "simplicity_scalar_add"),
+            ("jet_secp_scalar_multiply_local.v", "scalar_multiply_literal_local_spec", "simplicity_scalar_multiply"),
+            ("jet_secp_scalar_square_local.v", "scalar_square_literal_local_spec", "simplicity_scalar_square"),
+        ):
+            point = project / ("C/" + filename)
+            point_original = point.read_text()
+            declaration = "Theorem " + theorem + " :"
+            contract = "secp_jet_local_spec f_" + function
+            for old, new in (
+                (contract, "secp_jet_local_spec f_read_gej"),
+                (contract, "secp_jet_local_spec f_simplicity_fe_add"),
+                (contract, "jet_local_spec f_" + function),
+                (declaration, declaration + " False ->"),
+            ):
+                start = point_original.index(declaration)
+                assert old in point_original[start:]
+                point.write_text(point_original[:start] + point_original[start:].replace(old, new, 1))
+                rejects(coverage.inventory, "not a direct canonical jet theorem")
+            point.write_text(point_original)
+            assert coverage.inventory() == rows
+        # Assertion jets must retain the exact linked program/environment and
+        negate = project / "C/jet_secp_negate_literal_contract.v"
+        negate_original = negate.read_text()
+        declaration = "Theorem fe_negate_literal_local_spec :"
+        contract = "secp_jet_local_spec f_simplicity_fe_negate"
+        for old, new in (
+            (contract, "secp_jet_local_spec f_read_fe"),
+            (contract, "secp_jet_local_spec f_simplicity_fe_normalize"),
+            (contract, "jet_local_spec f_simplicity_fe_negate"),
+            (declaration, declaration + " False ->"),
+        ):
+            start = negate_original.index(declaration)
+            assert old in negate_original[start:]
+            negate.write_text(negate_original[:start] +
+                              negate_original[start:].replace(old, new, 1))
+            rejects(coverage.inventory, "not a direct canonical jet theorem")
+        negate.write_text(negate_original)
+        assert coverage.inventory() == rows
+        # Field addition must retain its own original function and whole contract.
+        add = project / "C/jet_secp_add_local.v"
+        add_original = add.read_text()
+        declaration = "Theorem fe_add_literal_local_spec :"
+        contract = "secp_jet_local_spec f_simplicity_fe_add"
+        for old, new in (
+            (contract, "secp_jet_local_spec f_read_fe"),
+            (contract, "secp_jet_local_spec f_simplicity_fe_negate"),
+            (contract, "jet_local_spec f_simplicity_fe_add"),
+            (declaration, declaration + " False ->"),
+        ):
+            start = add_original.index(declaration)
+            assert old in add_original[start:]
+            add.write_text(add_original[:start] +
+                           add_original[start:].replace(old, new, 1))
+            rejects(coverage.inventory, "not a direct canonical jet theorem")
+        add.write_text(add_original)
+        assert coverage.inventory() == rows
         # Assertion jets must retain the exact linked program/environment and
         # be the whole proposition, including both success and failure.
         assertion = project / "C/jet_bitcoin_check_lock.v"
@@ -190,6 +255,629 @@ def main():
             rejects(coverage.inventory, "not a direct canonical jet theorem")
         application.write_text(application_original)
         assert coverage.inventory() == application_inventory
+        # Elements currently admits only the reviewed Version boundary. This
+        # fixture checks metadata, not proof validity; the source-identity gate
+        # separately checks the literal target and the exact representation.
+        elements = project / "C/jet_elements_version_local.v"
+        shutil.copy2(SOURCE / "C/jet_elements_version_local.v", elements)
+        elements_original = elements.read_text()
+        elements_row = "simplicity_version C.jet_elements_version_local elements_version_local_spec\n"
+        if not any(row["function"] == "simplicity_version" and row["proof"] for row in application_inventory):
+            manifest.write_text(application_rows + elements_row)
+        if ["C.jet_elements_version_local", "elements_version_local_spec"] not in coverage.records(audited, 2):
+            audited.write_text(audited.read_text() + "C.jet_elements_version_local elements_version_local_spec\n")
+        elements_inventory = coverage.inventory()
+        for old, new in (
+            ("f_simplicity_version elements_ge", "f_simplicity_lock_time elements_ge"),
+            ("elements_ge Elements.env", "ge0 Elements.env"),
+            ("elements_ge Elements.env", "elements_ge Bitcoin.env"),
+            ("Elements.env Ty.Unit Word32", "Elements.env Ty.Unit Word64"),
+            ("Theorem elements_version_local_spec :", "Theorem elements_version_local_spec : False ->"),
+        ):
+            assert old in elements_original
+            elements.write_text(elements_original.replace(old, new, 1))
+            rejects(coverage.inventory, "not a direct canonical jet theorem")
+        elements.write_text(elements_original)
+        assert coverage.inventory() == elements_inventory
+        for suffix, function in [('locktime', 'lock_time'), ('current_index', 'current_index')]:
+            module = 'C.jet_elements_' + suffix + '_local'
+            theorem = 'elements_' + suffix + '_local_spec'
+            file = project / ('C/jet_elements_' + suffix + '_local.v')
+            shutil.copy2(SOURCE / file.relative_to(project), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + function and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + function + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            for old, new in [('f_simplicity_' + function + ' elements_ge', 'f_simplicity_version elements_ge'),
+                             ('elements_ge Elements.env', 'ge0 Elements.env'),
+                             ('Elements.env Ty.Unit Word32', 'Elements.env Ty.Unit Word64'),
+                             ('Theorem ' + theorem + ' :', 'Theorem ' + theorem + ' : False ->')]:
+                file.write_text(text.replace(old, new, 1))
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+        # Count contracts retain the exact function, linked environment, width
+        # and entire proposition. The separate source gate pins their literal
+        # firstFail specification and initial environment relation.
+        for suffix in ['num_inputs', 'num_outputs']:
+            module = 'C.jet_elements_count_local'
+            theorem = 'elements_' + suffix + '_local_spec'
+            file = project / 'C/jet_elements_count_local.v'
+            shutil.copy2(SOURCE / 'C/jet_elements_count_local.v', file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                ('Elements.env Ty.Unit Word32', 'Elements.env Ty.Unit Word64'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec f_simplicity_' + suffix, 'jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                assert old in text[start:]
+                file.write_text(text[:start] + text[start:].replace(old, new, 1))
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Sequence contracts have different frame/input/output shapes. Test
+        # each whole proposition, never compiled fake proofs.
+        for suffix, module, contract in [
+            ('input_sequence', 'C.jet_elements_indexed_scalar_jets', 'application_jet_local_spec_sep'),
+            ('current_sequence', 'C.jet_elements_current_jets', 'application_jet_local_spec'),
+        ]:
+            theorem = 'elements_' + suffix + '_local_spec'
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                ('Elements.env ' + ('Word32' if suffix == 'input_sequence' else 'Ty.Unit Word32'),
+                 'Elements.env ' + ('Word64' if suffix == 'input_sequence' else 'Ty.Unit Word64')),
+                (declaration, declaration + ' False ->'),
+                (contract + ' f_simplicity_' + suffix, 'jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                assert old in text[start:]
+                file.write_text(text[:start] + text[start:].replace(old, new, 1))
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Direct getters retain exact separated contracts, widths, linked
+        # and logical environments. Never compile these corrupted fixtures.
+        for suffix, filename, width in [
+            ('tapleaf_version', 'tapleaf_version', 'Word8'),
+            ('script_cmr', 'script_cmr', 'Word256'),
+            ('genesis_block_hash', 'genesis_hash', 'Word256'),
+        ]:
+            module = 'C.jet_elements_' + filename + '_local'
+            theorem = 'elements_' + suffix + '_local_spec'
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (width, 'Word16'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                assert old in text[start:]
+                file.write_text(text[:start] + text[start:].replace(old, new, 1))
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Seven whole-C contracts, including both failure-return contracts
+        # and both pegin tags. These corrupted fixtures are never compiled.
+        for suffix, filename, theorem, domain, output, contract in [
+            ('tx_is_final', 'is_final_local', 'elements_tx_is_final_local_spec', 'Ty.Unit', 'Bit', 'application_jet_local_spec_sep'),
+            ('tx_lock_height', 'lock_local', 'elements_tx_lock_height_local_spec', 'Ty.Unit', 'Word32', 'application_jet_local_spec_sep'),
+            ('tx_lock_time', 'lock_local', 'elements_tx_lock_time_local_spec', 'Ty.Unit', 'Word32', 'application_jet_local_spec_sep'),
+            ('check_lock_height', 'check_lock', 'elements_check_lock_height_local_spec', '(Word 5)', 'Ty.Unit', 'application_jet_partial_spec'),
+            ('check_lock_time', 'check_lock', 'elements_check_lock_time_local_spec', '(Word 5)', 'Ty.Unit', 'application_jet_partial_spec'),
+            ('input_pegin', 'pegin_local', 'elements_input_pegin_hash_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Word256))', 'application_jet_local_spec_sep'),
+            ('current_pegin', 'current_gen_jets', 'elements_current_pegin_local_spec', 'Ty.Unit', '(Ty.Sum Ty.Unit Word256)', 'application_jet_local_spec_sep'),
+        ]:
+            module = 'C.jet_elements_' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word16'),
+                (declaration, declaration + ' False ->'),
+                (contract + ' f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                # Normalize whitespace only to locate the exact type fragment.
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Eight exact indexed/current digest contracts; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('input_script_hash', 'jet_elements_input_hash_jets', 'elements_input_script_hash_local_spec', 'Word32', '(Ty.Sum Ty.Unit Word256)'), ('input_script_sig_hash', 'jet_elements_input_hash_jets', 'elements_input_script_sig_hash_local_spec', 'Word32', '(Ty.Sum Ty.Unit Word256)'), ('current_script_hash', 'jet_elements_current_input_jets', 'elements_current_script_hash_local_spec', 'Ty.Unit', 'Word256'), ('current_script_sig_hash', 'jet_elements_current_input_jets', 'elements_current_script_sig_hash_local_spec', 'Ty.Unit', 'Word256'), ('issuance_asset_proof', 'jet_elements_input_hash_jets', 'elements_issuance_asset_proof_local_spec', 'Word32', '(Ty.Sum Ty.Unit Word256)'), ('issuance_token_proof', 'jet_elements_input_hash_jets', 'elements_issuance_token_proof_local_spec', 'Word32', '(Ty.Sum Ty.Unit Word256)'), ('current_issuance_asset_proof', 'jet_elements_current_input_jets', 'elements_current_issuance_asset_proof_local_spec', 'Ty.Unit', 'Word256'), ('current_issuance_token_proof', 'jet_elements_current_input_jets', 'elements_current_issuance_token_proof_local_spec', 'Ty.Unit', 'Word256')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word16'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Thirteen optional/outpoint/output contracts; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('input_annex_hash', 'jet_elements_annex_local', 'elements_input_annex_hash_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Word256))'), ('current_annex_hash', 'jet_elements_current_gen_jets', 'elements_current_annex_hash_local_spec', 'Ty.Unit', '(Ty.Sum Ty.Unit Word256)'), ('reissuance_blinding', 'jet_elements_issuance_jets', 'elements_reissuance_blinding_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Word256))'), ('current_reissuance_blinding', 'jet_elements_current_input_jets', 'elements_current_reissuance_blinding_local_spec', 'Ty.Unit', '(Ty.Sum Ty.Unit Word256)'), ('new_issuance_contract', 'jet_elements_issuance_jets', 'elements_new_issuance_contract_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Word256))'), ('current_new_issuance_contract', 'jet_elements_current_input_jets', 'elements_current_new_issuance_contract_local_spec', 'Ty.Unit', '(Ty.Sum Ty.Unit Word256)'), ('reissuance_entropy', 'jet_elements_issuance_jets', 'elements_reissuance_entropy_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit Word256))'), ('current_reissuance_entropy', 'jet_elements_current_input_jets', 'elements_current_reissuance_entropy_local_spec', 'Ty.Unit', '(Ty.Sum Ty.Unit Word256)'), ('input_prev_outpoint', 'jet_elements_indexed_ptr_jets', 'elements_input_prev_outpoint_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Prod Word256 Word32))'), ('current_prev_outpoint', 'jet_elements_current_input_jets', 'elements_current_prev_outpoint_local_spec', 'Ty.Unit', '(Ty.Prod Word256 Word32)'), ('output_script_hash', 'jet_elements_indexed_ptr_jets', 'elements_output_script_hash_local_spec', 'Word32', '(Ty.Sum Ty.Unit Word256)'), ('output_surjection_proof', 'jet_elements_output_proof_jets', 'elements_output_surjection_proof_local_spec', 'Word32', '(Ty.Sum Ty.Unit Word256)'), ('output_range_proof', 'jet_elements_output_proof_jets', 'elements_output_range_proof_local_spec', 'Word32', '(Ty.Sum Ty.Unit Word256)')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word16'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Two raw-key/byte-index contracts; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('internal_key', 'jet_elements_hash_field_jets', 'elements_internal_key_local_spec', 'Ty.Unit', 'Word256'), ('tappath', 'jet_elements_tappath_nullable', 'elements_tappath_u8_local_spec', 'Word8', '(Ty.Sum Ty.Unit Word256)')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word16'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Exact original C lbtc asset contract; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('lbtc_asset', 'jet_elements_lbtc_asset_local', 'elements_lbtc_asset_local_spec', 'Ty.Unit', 'Word256')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word16'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Historical relative-lock whole-C contracts; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('broken_do_not_use_tx_lock_distance', 'jet_elements_legacy_lock_local', 'elements_broken_tx_lock_distance_local_spec', 'Ty.Unit', 'Word16'), ('broken_do_not_use_tx_lock_duration', 'jet_elements_legacy_lock_local', 'elements_broken_tx_lock_duration_local_spec', 'Ty.Unit', 'Word16')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word64'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Historical relative-lock assertions; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('broken_do_not_use_check_lock_distance', 'jet_elements_legacy_check', 'elements_broken_check_lock_distance_local_spec', 'Word16', 'Ty.Unit'), ('broken_do_not_use_check_lock_duration', 'jet_elements_legacy_check', 'elements_broken_check_lock_duration_local_spec', 'Word16', 'Ty.Unit')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word64'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_partial_spec f_simplicity_' + suffix, 'application_jet_local_spec_sep f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Literal optional nonce whole-C contract; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('output_nonce', 'jet_elements_output_nonce_literal', 'elements_output_nonce_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit ConfNonce))')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word64'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Literal asset getter whole-C contracts; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('input_asset', 'jet_elements_asset_literal', 'elements_input_asset_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit AssetConf)'), ('output_asset', 'jet_elements_asset_literal', 'elements_output_asset_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit AssetConf)'), ('current_asset', 'jet_elements_asset_literal', 'elements_current_asset_literal_local_spec', 'Ty.Unit', 'AssetConf')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word64'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Literal amount getter whole-C contracts; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('input_amount', 'jet_elements_amount_literal', 'elements_input_amount_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit AmountPair)'), ('output_amount', 'jet_elements_amount_literal', 'elements_output_amount_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit AmountPair)'), ('current_amount', 'jet_elements_amount_literal', 'elements_current_amount_literal_local_spec', 'Ty.Unit', 'AmountPair')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word64'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Literal issuance asset-amount whole-C contracts; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('issuance_asset_amount', 'jet_elements_issuance_amount_literal', 'elements_issuance_asset_amount_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit ConfAmount))'), ('current_issuance_asset_amount', 'jet_elements_issuance_amount_literal', 'elements_current_issuance_asset_amount_literal_local_spec', 'Ty.Unit', '(Ty.Sum Ty.Unit ConfAmount)')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word64'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Literal issuance token-amount whole-C contracts; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('issuance_token_amount', 'jet_elements_token_amount_literal', 'elements_issuance_token_amount_literal_local_spec', 'Word32', '(Ty.Sum Ty.Unit (Ty.Sum Ty.Unit ConfAmount))'), ('current_issuance_token_amount', 'jet_elements_token_amount_literal', 'elements_current_issuance_token_amount_literal_local_spec', 'Ty.Unit', '(Ty.Sum Ty.Unit ConfAmount)')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word64'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Literal transaction_id whole-C contract; never compile bad fixtures.
+        for suffix, filename, theorem, domain, output in [('transaction_id', 'jet_elements_transaction_id_literal', 'elements_transaction_id_literal_local_spec', 'Ty.Unit', 'Word256')]:
+            module = 'C.' + filename
+            file = project / (module.replace('.', '/') + '.v')
+            shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+            text = file.read_text()
+            if not any(r['function'] == 'simplicity_' + suffix and r['proof'] for r in coverage.inventory()):
+                manifest.write_text(manifest.read_text() + 'simplicity_' + suffix + ' ' + module + ' ' + theorem + '\n')
+            if [module, theorem] not in coverage.records(audited, 2):
+                audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+            declaration = 'Theorem ' + theorem + ' :'
+            for old, new in [
+                ('f_simplicity_' + suffix + ' elements_ge', 'f_simplicity_version elements_ge'),
+                ('elements_ge Elements.env', 'ge0 Elements.env'),
+                ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+                (domain + ' ' + output, 'Word64 ' + output),
+                (domain + ' ' + output, domain + ' Word64'),
+                (declaration, declaration + ' False ->'),
+                ('application_jet_local_spec_sep f_simplicity_' + suffix, 'application_jet_local_spec f_simplicity_' + suffix),
+            ]:
+                start = text.index(declaration)
+                stop = text.index('Proof.', start)
+                tail = text[start:stop]
+                if old not in tail:
+                    import re
+                    match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                    assert match, (suffix, old)
+                    old = match[0]
+                file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+                rejects(coverage.inventory, 'not a direct canonical jet theorem')
+            file.write_text(text)
+            assert coverage.inventory()
+        # Explicit contextual family; do not accept a hidden precondition,
+        # wrong spec/relation/width, or substitute the broader local API.
+        module = 'C.jet_elements_null_data_literal'
+        theorem = 'elements_output_null_datum_literal_bitmachine_spec'
+        file = project / (module.replace('.', '/') + '.v')
+        shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+        text = file.read_text()
+        if not any(r['function'] == 'simplicity_output_null_datum' and r['proof'] for r in coverage.inventory()):
+            manifest.write_text(manifest.read_text() + 'simplicity_output_null_datum ' + module + ' ' + theorem + '\n')
+        if [module, theorem] not in coverage.records(audited, 2):
+            audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+        declaration = 'Theorem ' + theorem + ' :'
+        for old, new in [
+            ('f_simplicity_output_null_datum', 'f_simplicity_output_script_hash'),
+            ('elements_ge Elements.env', 'ge0 Elements.env'),
+            ('elements_ge Elements.env', 'elements_ge Bitcoin.env'),
+            ('(Ty.Prod Word32 Word32)', '(Ty.Prod Word64 Word32)'),
+            ('ResultTy', 'Word256'),
+            ('elements_null_data_environment_rep', '(fun _ _ _ _ => True)'),
+            ('elements_output_null_datum_literal_spec', '(fun _ _ => Some (inl tt))'),
+            (declaration, declaration + ' False ->'),
+            ('application_jet_bitmachine_spec', 'application_jet_local_spec_sep'),
+            ('elements_output_null_datum_literal_spec.', 'elements_output_null_datum_literal_spec -> True.'),
+        ]:
+            start = text.index(declaration)
+            stop = text.index('Proof.', start)
+            tail = text[start:stop]
+            if old not in tail:
+                import re
+                match = re.search(r'\s+'.join(map(re.escape, old.split())), tail)
+                assert match, old
+                old = match[0]
+            file.write_text(text[:start] + tail.replace(old, new, 1) + text[stop:])
+            rejects(coverage.inventory, 'not a direct canonical jet theorem')
+        file.write_text(text)
+        assert coverage.inventory()
+        # The initialized lambda theorem has an exact constant/function/term
+        # boundary, not an arbitrary Ready alias or the unrestricted old API.
+        module = 'C.jet_secp_scalar_lambda_local'
+        theorem = 'scalar_lambda_initialized_local_spec'
+        file = project / (module.replace('.', '/') + '.v')
+        shutil.copy2(SOURCE / (module.replace('.', '/') + '.v'), file)
+        text = file.read_text()
+        if not any(r['function'] == 'simplicity_scalar_multiply_lambda' and r['proof'] for r in coverage.inventory()):
+            manifest.write_text(manifest.read_text() + 'simplicity_scalar_multiply_lambda ' + module + ' ' + theorem + '\n')
+        if [module, theorem] not in coverage.records(audited, 2):
+            audited.write_text(audited.read_text() + module + ' ' + theorem + '\n')
+        declaration = 'Theorem ' + theorem + ' :'
+        for old, new in [
+            ('secp_jet_initialized_local_spec scalar_lambda_initialized', 'secp_jet_initialized_local_spec True'),
+            ('secp_jet_initialized_local_spec scalar_lambda_initialized', 'secp_jet_local_spec'),
+            ('f_simplicity_scalar_multiply_lambda', 'f_simplicity_scalar_square'),
+            ('(Word 8) (Word 8)', '(Word 9) (Word 8)'),
+            ('(Word 8) (Word 8)', '(Word 8) (Word 9)'),
+            ('@canonical_scalar_multiply_lambda', '@canonical_scalar_square'),
+            ('Alg.CoreFunSem', 'wrong_algebra'),
+            (declaration, declaration + ' False ->'),
+            ('Alg.CoreFunSem).', 'Alg.CoreFunSem) -> True.'),
+        ]:
+            start = text.index(declaration)
+            stop = text.index('Proof.', start)
+            body = text[start:stop]
+            assert old in body, old
+            file.write_text(text[:start] + body.replace(old, new, 1) + text[stop:])
+            rejects(coverage.inventory, 'not a direct canonical jet theorem')
+        file.write_text(text)
+        assert coverage.inventory()
     print("coverage tests passed: exact core/partial/application contracts; wrong function/global/logical environment and unknown/duplicate/helper/unaudited entries rejected")
 
 

@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""Mutation tests for the candidate-only SHA ready boundary gate."""
+import argparse
+import importlib.machinery
+import importlib.util
+from pathlib import Path
+import tempfile
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, required=True)
+    parser.add_argument("--candidates", type=Path, required=True)
+    args = parser.parse_args()
+    checker = args.candidates / "check-ready-boundary.py.source"
+    if not checker.exists():
+        checker = args.candidates / "check-ready-boundary.py"
+    loader = importlib.machinery.SourceFileLoader("ready_boundary", str(checker))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    gate = importlib.util.module_from_spec(spec)
+    loader.exec_module(gate)
+    assert gate.check(args.repo, args.candidates) == 12
+    ready_name = "jet_sha_partial_ready.v.source"
+    setup_name = "jet_sha_private_setup.v.source"
+    catalog_name = "Haskell/Core/Simplicity/CoreJets.hs"
+    sources = {}
+    for name in (ready_name, setup_name):
+        path = args.candidates / name
+        if not path.exists():
+            path = args.candidates / name.removesuffix(".source")
+        sources[name] = path.read_text()
+    sources[catalog_name] = (args.repo / catalog_name).read_text()
+    mutations = [
+        (ready_name, "pre m ->", "False -> pre m ->"),
+        (ready_name, "Clight2.eval_funcall sha_ge", "Clight2.eval_funcall core_ge"),
+        (ready_name, "E0 mf (jet_partial_return (spec a))", "E0 mf Vundef"),
+        (ready_name, "frame_output_cells_at mf", "frame_output_cells_at m"),
+        (ready_name, "write_prefix_at m mf", "write_prefix_at mf mf"),
+        (ready_name, "cursor - Z.of_nat (bitSize B)", "cursor"),
+        (ready_name, "| None => True", "| None => False"),
+        (ready_name, "Mem.load chunk mf b ofs = Mem.load chunk m b ofs", "True"),
+        (ready_name, "sha_persistent_global_state mf.", "True."),
+        (ready_name, "exists owned, sha_private_setup m owned", "sha_persistent_global_state m"),
+        (ready_name, "Theorem sha_ctx8_add_1_ready_spec : memcpy_model ->", "Theorem sha_ctx8_add_1_ready_spec :"),
+        (ready_name, "f_simplicity_sha_256_ctx_8_add_1\n", "f_simplicity_sha_256_ctx_8_add_2\n"),
+        (ready_name, "@ctx8_addn_spec 9 optalg", "@ctx8_addn_spec 8 optalg"),
+        (ready_name, "buffer_type (Word 3) 8", "buffer_type (Word 3) 7"),
+        (ready_name, "sha256_ctx8_type (Word 8) (fun a => @ctx8_finalize_spec", "sha256_ctx8_type (Word 7) (fun a => @ctx8_finalize_spec"),
+        (setup_name, "Genv.init_mem jets_sha.prog", "Genv.init_mem jets_core.prog"),
+        (setup_name, "sha_private_setup m owned -> In b owned ->", "sha_private_setup m owned -> True ->"),
+        (setup_name, "Mem.storebytes m b ofs bytes = Some mf -> sha_private_setup mf owned.", "True -> sha_private_setup mf owned."),
+        (catalog_name, "specificationHash Sha256Ctx8Add512 = Sha256.ctx8Addn vector512", "specificationHash Sha256Ctx8Add512 = Sha256.ctx8Addn vector256"),
+        (catalog_name, "specificationHash Sha256Ctx8Finalize = Sha256.ctx8Finalize", "specificationHash Sha256Ctx8Finalize = Sha256.ctx8Init"),
+        (catalog_name, "specificationHash Sha256Ctx8Add1 = Sha256.ctx8Add1", "{-\nspecificationHash Sha256Ctx8Add1 = Sha256.ctx8Add1\n-}"),
+    ]
+    with tempfile.TemporaryDirectory(prefix="sha-ready-boundary-") as temporary:
+        root = Path(temporary)
+        (root / catalog_name).parent.mkdir(parents=True)
+        for name, content in sources.items():
+            (root / name).write_text(content)
+        for name, old, new in mutations:
+            assert old in sources[name], old
+            (root / name).write_text(sources[name].replace(old, new, 1))
+            try:
+                gate.check(root, root)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"accepted mutation: {old}")
+            (root / name).write_text(sources[name])
+        # Nested Coq comments must not spoof a removed declaration.
+        contract = gate.declaration(gate.uncomment(sources[ready_name]),
+                                    "Definition", "sha_ready_memory")
+        replaced = sources[ready_name].replace(contract, "(* (* nested *) " + contract + " *)")
+        assert replaced != sources[ready_name]
+        (root / ready_name).write_text(replaced)
+        try:
+            gate.check(root, root)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("accepted Coq comment spoof")
+    print(f"SHA ready boundary gate rejected {len(mutations) + 1} mutations")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,216 @@
+(** Real frame-pair setup, preserving prior fields and writable accesses.
+    Backing data representations remain separate obligations. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Memory.
+Require Import C.jet_frame_layout.
+Require Import JetStartupReview.jet_sha_private_setup.
+Import Values Mem ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma sha_private_setup_owned_valid m owned :
+  sha_private_setup m owned -> forall b, In b owned -> Mem.valid_block m b.
+Proof.
+  intro HSetup; induction HSetup as
+    [m HI|m owned lo hi mf fresh HSetup IH HA|
+     m owned chunk b ofs value mf HSetup IH HO HS|
+     m owned b ofs bytes mf HSetup IH HO HS]; intros old HOld.
+  - contradiction.
+  - destruct HOld as [HE|HO']; [subst old; eapply Mem.valid_new_block; exact HA|].
+    eapply Mem.valid_block_alloc; [exact HA|apply IH; exact HO'].
+  - eapply Mem.store_valid_block_1; [exact HS|apply IH; exact HOld].
+  - eapply Mem.storebytes_valid_block_1; [exact HS|apply IH; exact HOld].
+Qed.
+
+
+Lemma sha_private_setup_fresh_frame m owned bw edge cursor :
+  sha_private_setup m owned ->
+  exists mf bf,
+    sha_private_setup mf (bf :: owned) /\
+    ~ Mem.valid_block m bf /\
+    frame_fields_at mf bf 0 bw edge cursor /\
+    Mem.valid_access mf Mint64 bf 8 Writable /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b) /\
+    (forall chunk b ofs p, Mem.valid_access m chunk b ofs p ->
+      Mem.valid_access mf chunk b ofs p) /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+Proof.
+  intro HSetup.
+  destruct (Mem.alloc m 0 16) as [ma bf] eqn:HA.
+  assert (Fresh : ~ Mem.valid_block m bf) by (eapply Mem.fresh_block_alloc; exact HA).
+  assert (VA0 : Mem.valid_access ma Mptr bf 0 Writable).
+  { eapply Mem.valid_access_implies.
+    - eapply Mem.valid_access_alloc_same; [exact HA|lia|change (8 <= 16); lia|].
+      change (8 | 0); exists 0; reflexivity.
+    - constructor. }
+  assert (VA8 : Mem.valid_access ma Mint64 bf 8 Writable).
+  { eapply Mem.valid_access_implies.
+    - eapply Mem.valid_access_alloc_same; [exact HA|lia|change (16 <= 16); lia|].
+      change (8 | 8); exists 1; reflexivity.
+    - constructor. }
+  destruct (Mem.valid_access_store _ _ _ _ (Vptr bw (Ptrofs.repr edge)) VA0) as [mp HP].
+  assert (VP8 : Mem.valid_access mp Mint64 bf 8 Writable).
+  { eapply Mem.store_valid_access_1; [exact HP|exact VA8]. }
+  destruct (Mem.valid_access_store _ _ _ _ (Vlong (Int64.repr cursor)) VP8) as [mf HC].
+  exists mf, bf; split.
+  - eapply sha_setup_store; [|left; reflexivity|exact HC].
+    eapply sha_setup_store; [|left; reflexivity|exact HP].
+    eapply sha_setup_alloc; [exact HSetup|exact HA].
+  - split; [exact Fresh|]; split.
+    + split.
+      * erewrite Mem.load_store_other; [|exact HC|right; left; change (8 <= 8); lia].
+        exact (Mem.load_store_same _ _ _ _ _ _ HP).
+      * exact (Mem.load_store_same _ _ _ _ _ _ HC).
+    + split.
+      * eapply Mem.store_valid_access_1; [exact HC|exact VP8].
+      * split.
+        -- intros b HV.
+           eapply Mem.store_valid_block_1; [exact HC|].
+           eapply Mem.store_valid_block_1; [exact HP|].
+           eapply Mem.valid_block_alloc; [exact HA|exact HV].
+        -- split.
+           ++ intros chunk b ofs p HV.
+           eapply Mem.store_valid_access_1; [exact HC|].
+           eapply Mem.store_valid_access_1; [exact HP|].
+           eapply Mem.valid_access_alloc_other; [exact HA|exact HV].
+           ++ intros chunk b ofs HV.
+           assert (HN : b <> bf) by (intro HE; subst b; contradiction).
+           erewrite Mem.load_store_other; [|exact HC|left; exact HN].
+           erewrite Mem.load_store_other; [|exact HP|left; exact HN].
+           eapply Mem.load_alloc_unchanged; [exact HA|exact HV].
+Qed.
+
+Theorem sha_private_setup_frame_pair m owned bi input_edge input_cursor
+    bw output_edge output_cursor :
+  sha_private_setup m owned ->
+  exists mf bs bd,
+    sha_private_setup mf (bd :: bs :: owned) /\
+    bs <> bd /\
+    (~ Mem.valid_block m bs /\ ~ Mem.valid_block m bd) /\
+    frame_fields_at mf bs 0 bi input_edge input_cursor /\
+    frame_fields_at mf bd 0 bw output_edge output_cursor /\
+    Mem.valid_access mf Mint64 bs 8 Writable /\
+    Mem.valid_access mf Mint64 bd 8 Writable /\
+    (forall chunk b ofs p, Mem.valid_access m chunk b ofs p ->
+      Mem.valid_access mf chunk b ofs p) /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+Proof.
+  intro HS.
+  destruct (sha_private_setup_fresh_frame m owned bi input_edge input_cursor HS)
+    as [ms [bs [HSS [HFS [HIS [HVS [HBS [HPS HLS]]]]]]]].
+  destruct (sha_private_setup_fresh_frame ms (bs :: owned) bw output_edge output_cursor HSS)
+    as [mf [bd [HSF [HFD [HOD [HVD [HBD [HPD HLD]]]]]]]].
+  assert (VBS : Mem.valid_block ms bs).
+  { eapply sha_private_setup_owned_valid; [exact HSS|left; reflexivity]. }
+  assert (HNE : bs <> bd) by (intro HE; subst bs; contradiction).
+  exists mf, bs, bd; split; [exact HSF|]; split; [exact HNE|]; split.
+  - split; [exact HFS|]. intro HV; apply HFD, HBS; exact HV.
+  - split.
+    + destruct HIS as [HI0 HI8]; split;
+      rewrite HLD by exact VBS; assumption.
+    + split; [exact HOD|]; split; [apply HPD; exact HVS|]; split; [exact HVD|]; split.
+      * intros chunk b ofs p HV; apply HPD, HPS; exact HV.
+      * intros chunk b ofs HV.
+      rewrite HLD by (apply HBS; exact HV).
+      apply HLS; exact HV.
+Qed.
+
+Require Import Simplicity.Ty Simplicity.Translate.
+Require Import C.jet_frame_spec C.jet_encoding C.jet_output_layout C.jet_write_layout C.jet_buffer_input.
+
+(** Construct frame metadata over existing represented data buffers. The data
+    loads/permissions and cursor bounds are initial representation conditions,
+    not assumed execution/output facts. No zero-initialized output is required. *)
+Theorem sha_private_setup_represented_frames m owned bi input_edge input_cursor
+    bw output_edge output_cursor count cells :
+  sha_private_setup m owned ->
+  Mem.valid_block m bi -> Mem.valid_block m bw ->
+  frame_input_cells_at m bi input_edge input_cursor cells ->
+  0 <= output_edge -> 0 <= count <= output_cursor -> output_cursor <= Int64.max_unsigned ->
+  (forall i, 0 <= i < count ->
+    let addr := write_cell_address output_edge output_cursor i in
+    0 <= addr /\ addr + 8 <= Ptrofs.max_unsigned /\
+    Mem.valid_access m Mint64 bw addr Writable /\
+    exists w, Mem.load Mint64 m bw addr = Some (Vlong w)) ->
+  exists mf bs bd,
+    sha_private_setup mf (bd :: bs :: owned) /\
+    bs <> bd /\
+    frame_fields_at mf bs 0 bi input_edge input_cursor /\
+    frame_input_cells_at mf bi input_edge input_cursor cells /\
+    write_frame_at mf bd 0 bw output_edge output_cursor count /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+Proof.
+  intros HS HBI HBW HInput HEdge HCount HCursor HWords.
+  destruct (sha_private_setup_frame_pair m owned bi input_edge input_cursor bw
+    output_edge output_cursor HS)
+    as [mf [bs [bd [HF [HNE [[HFS HFD] [HI [HO [VS [VD [HP HL]]]]]]]]]]].
+  exists mf, bs, bd; split; [exact HF|]; split; [exact HNE|]; split; [exact HI|]; split.
+  - eapply buffer_input_cells_preserved; [|exact HInput].
+    intros ofs w HW; rewrite HL by exact HBI; exact HW.
+  - split; [|exact HL].
+    unfold write_frame_at; split.
+    + unfold frame_base_valid; split; [lia|]. change (16 <= 18446744073709551615 + 1); lia.
+    + split; [exact HO|]; split; [exact HEdge|]; split; [exact HCount|]; split; [exact HCursor|]; split.
+      * intro HE; subst bd; contradiction.
+      * split; [exact VD|]. intros i HR.
+        destruct (HWords i HR) as [HA [HE [HV [w HW]]]].
+        split; [exact HA|]; split; [exact HE|]; split; [apply HP; exact HV|].
+        exists w; rewrite HL by exact HBW; exact HW.
+Qed.
+
+Require Import Simplicity.Word.
+Require Import JetStartupReview.jet_sha_persistent_globals.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_block_local.
+From compcert Require Import Ctypes Clight ClightBigstep Events.
+
+(** Full block execution from represented backing buffers: metadata is
+    constructed, not supplied as an assumed initial frame/execution result. *)
+Theorem sha_256_block_from_represented_buffers m owned bi edge rc bw outedge cursor
+    (a : Ty.tySem (Ty.Prod Word256 Word512)) :
+  sha_private_setup m owned ->
+  Mem.valid_block m bi -> Mem.valid_block m bw ->
+  0 <= rc -> rc + Z.of_nat (Translate.bitSize (Ty.Prod Word256 Word512)) <= Int64.max_unsigned ->
+  frame_input_cells_at m bi edge rc (encode a) ->
+  0 <= outedge -> 0 <= 256 <= cursor -> cursor <= Int64.max_unsigned ->
+  (forall i, 0 <= i < 256 ->
+    let addr := write_cell_address outedge cursor i in
+    0 <= addr /\ addr + 8 <= Ptrofs.max_unsigned /\
+    Mem.valid_access m Mint64 bw addr Writable /\
+    exists w, Mem.load Mint64 m bw addr = Some (Vlong w)) ->
+  exists ms bs bd,
+    sha_private_setup ms (bd :: bs :: owned) /\
+    frame_fields_at ms bs 0 bi edge rc /\
+    write_frame_at ms bd 0 bw outedge cursor 256 /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk ms b ofs = Mem.load chunk m b ofs) /\
+    forall env, exists mf,
+      Clight2.eval_funcall sha_ge ms (Internal f_simplicity_sha_256_block)
+        [Vptr bd (Ptrofs.repr 0); Vptr bs (Ptrofs.repr 0); env]
+        E0 mf (Vint Int.one) /\
+      frame_output_cells_at mf bw outedge cursor (encode (sha_256_block_spec a)) /\
+      write_prefix_at ms mf bw outedge cursor /\
+      frame_fields_at mf bd 0 bw outedge (cursor - Z.of_nat (Translate.bitSize Word256)) /\
+      (forall chunk b ofs, Mem.valid_block ms b ->
+        (b <> bd \/ ofs + size_chunk chunk <= 8 \/ 16 <= ofs) ->
+        (b <> bw \/ ofs + size_chunk chunk <= outedge + 8 * ((cursor - Z.of_nat (Translate.bitSize Word256)) / 64) \/
+          write_word_address outedge cursor + 8 <= ofs) ->
+        Mem.load chunk mf b ofs = Mem.load chunk ms b ofs) /\
+      sha_persistent_global_state mf.
+Proof.
+  intros HS HBI HBW HRC HMax HI HE HC HCM HW.
+  destruct (sha_private_setup_represented_frames m owned bi edge rc bw outedge cursor
+    256 (encode a) HS HBI HBW HI HE HC HCM HW)
+    as [ms [bs [bd [HSetup [HNE [HFields [HInput [HOutput HLoads]]]]]]]].
+  exists ms, bs, bd; split; [exact HSetup|]; split; [exact HFields|];
+    split; [exact HOutput|]; split; [exact HLoads|].
+  intro env.
+  assert (HBase : frame_base_valid 0).
+  { unfold frame_base_valid; split; [lia|].
+    change (16 <= 18446744073709551615 + 1); lia. }
+  assert (HAlign : (8 | 0)) by (exists 0; reflexivity).
+  exact (sha_256_block_from_private_setup (bd :: bs :: owned) env ms bd 0 bs 0
+    bi bw edge outedge cursor rc a HSetup HBase HAlign HFields HRC HMax HInput HOutput).
+Qed.
