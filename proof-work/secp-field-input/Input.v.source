@@ -1,0 +1,122 @@
+(** Reader-derived multiplication inputs; the Word256 inputs are unrestricted. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers Values Memory AST.
+Require Import Simplicity.Word.
+Require Simplicity.Alg.
+Require Import C.jet_toZ C.jet_word_repr C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_rep.
+Require Import C.jet_secp_fe_math C.jet_secp_fe_nv C.jet_secp_b32_exec.
+Require Import C.jet_secp_local_regions C.jet_secp_canonical_normalize.
+Require Import FieldRun.Run FieldCheckpoint.Columns FieldFirst.Arithmetic FieldFinish.Product.
+Require Import FieldNormalize.Bridge FieldWriter.Bridge.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque canonical_fe_normalize.
+
+Definition normalized_value (x : Ty.tySem (Word 8)) :=
+  @toZ (WordToZ 8) (@canonical_fe_normalize Alg.CoreFunSem x).
+Definition pair_rho (x y : Ty.tySem (Word 8)) n :=
+  if (n <? 5)%nat then limb_rho (normalized_value x) n
+  else limb_rho (normalized_value y) (n - 5)%nat.
+Definition input_product_word (x y : Ty.tySem (Word 8)) :=
+  @fromZ (WordToZ 8) ((@toZ (WordToZ 8) x * @toZ (WordToZ 8) y) mod feP).
+
+Lemma normalized_value_range x : 0 <= normalized_value x < 2 ^ 256.
+Proof. apply word_toZ_range. Qed.
+Lemma pair_rho_left x y i : (i < 5)%nat -> pair_rho x y i = limb_rho (normalized_value x) i.
+Proof.
+  intro HI; unfold pair_rho; destruct (i <? 5)%nat eqn:E; [reflexivity|].
+  apply Nat.ltb_ge in E; lia.
+Qed.
+Lemma pair_rho_right x y i :
+  pair_rho x y (i + 5)%nat = limb_rho (normalized_value y) i.
+Proof.
+  unfold pair_rho; assert (E : ((i + 5) <? 5)%nat = false) by (apply Nat.ltb_ge; lia).
+  rewrite E, Nat.add_sub; reflexivity.
+Qed.
+Lemma pair_rho_limb_bound x y i : 0 <= Int64.unsigned (pair_rho x y i) <= 4503599627370495.
+Proof.
+  unfold pair_rho; destruct (i <? 5)%nat.
+  - exact (limb_rho_bound (normalized_value x) (normalized_value_range x) i).
+  - exact (limb_rho_bound (normalized_value y) (normalized_value_range y) (i - 5)%nat).
+Qed.
+Lemma pair_input_bounds x y : field_input_bounds (pair_rho x y).
+Proof.
+  intros i HI; pose proof (pair_rho_limb_bound x y i).
+  destruct ((Nat.eqb i 4 || Nat.eqb i 9)%bool); lia.
+Qed.
+
+Lemma radix_limb_rho value : 0 <= value < 2 ^ 256 -> radix_value (limb_rho value) = value.
+Proof.
+  intro HV; rewrite radix_value_matches_normalizer.
+  rewrite !limb_rho_unsigned by exact HV.
+  exact (proj2 (fe_limbs_of_ok value HV)).
+Qed.
+Lemma pair_radix_left x y : radix_value (pair_rho x y) = normalized_value x.
+Proof.
+  unfold radix_value; rewrite !pair_rho_left by lia.
+  apply (radix_limb_rho _ (normalized_value_range x)).
+Qed.
+Lemma pair_radix_right x y : radix_value (second_input (pair_rho x y)) = normalized_value y.
+Proof.
+  unfold radix_value, second_input; rewrite !pair_rho_right.
+  apply (radix_limb_rho _ (normalized_value_range y)).
+Qed.
+Lemma pair_product_word x y : product_word (pair_rho x y) = input_product_word x y.
+Proof.
+  unfold product_word, input_product_word.
+  rewrite pair_radix_left, pair_radix_right, field_prime_matches_normalizer.
+  unfold normalized_value; rewrite !canonical_fe_normalize_numeric,
+    canonical_field_order_matches_limb_model.
+  rewrite <- Z.mul_mod by (unfold feP, feR; discriminate).
+  reflexivity.
+Qed.
+
+Lemma vars5_offset_nth offset i x : nth_error (vars5 offset) i = Some x ->
+  (i < 5)%nat /\ x = XLv (offset + i)%nat.
+Proof.
+  destruct i as [|[|[|[|[|i]]]]]; cbn [vars5 nth_error]; intro H;
+    try solve [inversion H; subst x; split; [lia|f_equal; lia]].
+  destruct i; discriminate.
+Qed.
+
+Lemma owned_field_region rho layout m r offset value : bas layout r = 0 ->
+  fe_at m (blk layout r) (bas layout r) (map Int64.repr (fe_limbs_of value)) ->
+  Mem.range_perm m (blk layout r) 0 40 Cur Freeable ->
+  (forall i, (i < 5)%nat -> rho (offset + i)%nat = limb_rho value i) ->
+  region_ok rho layout m r (mkreg (u64_cells 0 (vars5 offset)) true (Some 40)).
+Proof.
+  intros HBase (H0 & HA & HM & HP & HL) HF HValues.
+  apply (region_with_freeable rho layout m r (mkreg (u64_cells 0 (vars5 offset)) true None) 40).
+  - apply region_u64; try exact H0; try exact HA.
+    + change (bas layout r + 40 <= Ptrofs.max_unsigned); exact HM.
+    + eapply Mem.perm_valid_block; apply (HP (bas layout r)); lia.
+    + change (Mem.range_perm m (blk layout r) (bas layout r) (bas layout r + 40) Cur Writable); exact HP.
+    + intros i x HN; destruct (vars5_offset_nth offset i x HN) as [HI ->]; split; [|reflexivity].
+      change (Mem.load Mint64 m (blk layout r) (bas layout r + 8 * Z.of_nat i) =
+        Some (Vlong (rho (offset + i)%nat))).
+      rewrite HValues by exact HI; unfold limb_rho; apply HL.
+      rewrite nth_error_map, (nth_error_nth' _ 0); [reflexivity|change (i < 5)%nat; exact HI].
+  - exact HBase.
+  - reflexivity.
+  - exact HF.
+  - apply Forall_forall; intros c HC.
+    destruct (u64_cells_In _ _ _ HC) as (i & x & HN & ->).
+    pose proof (proj1 (vars5_offset_nth offset i x HN)) as HI.
+    cbn [cofs cchunk]; change (size_chunk Mint64) with 8; lia.
+Qed.
+
+Lemma pair_initial_rep x y m ba bb :
+  fe_at m ba 0 (map Int64.repr (fe_limbs_of (normalized_value x))) ->
+  fe_at m bb 0 (map Int64.repr (fe_limbs_of (normalized_value y))) ->
+  Mem.range_perm m ba 0 40 Cur Freeable -> Mem.range_perm m bb 0 40 Cur Freeable ->
+  ba <> bb -> rep (pair_rho x y) [(ba, 0); (bb, 0)] field_mul_regs m.
+Proof.
+  intros HA HB HFA HFB HD; apply two_region_rep_separate; [reflexivity|exact HD| |].
+  - apply (owned_field_region _ _ _ _ 0 (normalized_value x));
+      [reflexivity|exact HA|exact HFA|].
+    intros i HI; rewrite Nat.add_0_l; apply pair_rho_left; exact HI.
+  - apply (owned_field_region _ _ _ _ 5 (normalized_value y));
+      [reflexivity|exact HB|exact HFB|].
+    intros i HI; replace (5 + i)%nat with (i + 5)%nat by lia; apply pair_rho_right.
+Qed.
