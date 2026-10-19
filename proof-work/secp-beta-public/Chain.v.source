@@ -1,0 +1,99 @@
+(** Actual read / original multiplication / bounded-limb normalization writer. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import Simplicity.Word Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_frame C.jet_secp_fe_nv C.jet_secp_fe_math.
+Require Import C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_encoding C.jet_frame_inv.
+Require Import C.jet_secp_canonical_normalize C.jet_secp_wrapper_run C.jet_secp_local_regions
+  C.jet_secp_local_call C.jet_secp_public_body C.jet_secp_write_fe_numeric
+  C.jet_secp_write_fe_wide_values C.jet_secp_write_fe_wide_exec.
+Require Import C.jet_secp_multiply_input_input C.jet_secp_multiply_finish_execute
+  C.jet_secp_multiply_normalize_bridge C.jet_secp_multiply_writer_bridge.
+Require Import BetaGlobal.Global BetaGlobal.Inputs BetaGlobal.Spec
+  InternalFrame.Observed BetaPublic.Graph BetaPublic.State.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge original_finish_words literal_fe_multiply_beta Simplicity.Translate.encode.
+
+Theorem eval_beta_read_mul_write m0 bd dbase bw outedge cursor N bi edge rc
+    (value : Ty.tySem (Word 8)) m ba bl :
+  write_frame_at m0 bd dbase bw outedge cursor N ->
+  frame_input_cells_at m0 bi edge rc (map Some (frame_input_word_bits value)) ->
+  0 <= rc -> rc + 256 <= Int64.max_unsigned ->
+  Mem.range_perm m ba 0 40 Cur Freeable -> Mem.range_perm m bl 0 16 Cur Freeable ->
+  frame_fields_at m bl 0 bi edge rc -> ba <> bl ->
+  xsep (extA m0 bd bw bi) [(ba,0);(bl,0)] ->
+  invA m0 bd dbase bw outedge cursor N bi rc false [] 256
+    (read_fe_rho (frame_input_word_bits value) rc) [] m -> beta_initialized m ->
+  exists mr mn mf,
+    Clight2.eval_funcall secp_ge m (Internal f_read_fe)
+      [Vptr ba Ptrofs.zero;Vptr bl Ptrofs.zero] E0 mr Vundef /\
+    Clight2.eval_funcall secp_ge mr (Internal f_secp256k1_fe_mul)
+      [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr beta_block Ptrofs.zero] E0 mn Vundef /\
+    Clight2.eval_funcall secp_ge mn (Internal f_write_fe)
+      [Vptr bd (Ptrofs.repr dbase);Vptr ba Ptrofs.zero] E0 mf Vundef /\
+    finv m0 bd dbase bw outedge cursor N bi mf true
+      (Simplicity.Translate.encode (@literal_fe_multiply_beta Alg.CoreFunSem value)) /\
+    Mem.range_perm mf ba 0 40 Cur Freeable /\ Mem.range_perm mf bl 0 16 Cur Freeable /\
+    beta_initialized mf /\ lframe (secp_locals_outside m0 bd bw bi ba bl) m mf.
+Proof.
+  intros HO HI Hrc HM HA HL HS HSeparate HSep HInv HG.
+  destruct (eval_local_read_fe_canonical m0 bd dbase bw outedge cursor N bi edge rc value m ba bl
+    HO HI Hrc HM HA HL HS HSeparate HSep HInv)
+    as (mr & HRead & HField & HFreeAR & HFreeLR & HInvR & HReadFrame).
+  pose proof (beta_graph_keeps_state _ _ _ _ _ _ beta_reader_allowed HG HRead) as HGR.
+  destruct (eval_beta_with_precise_frame value mr ba rc HField HFreeAR HGR)
+    as (mn & HMul & HWriterRep & HFreeAN & HGN & HMulFrame).
+  assert (HMulExt : lframe (fun b _ => extA m0 bd bw bi b) mr mn).
+  { eapply lframe_implies; [exact HMulFrame|].
+    intros b pos HE HV HEqual; subst b; exact ((HSep 0%nat ltac:(cbn; lia)) HE). }
+  pose proof (invA_stable m0 bd dbase bw outedge cursor N bi rc false [] 256 HO
+    _ _ mr mn HInvR HMulExt) as HInvN.
+  pose proof (read_fe_final_inv_to_write_initial m0 bd dbase bw outedge cursor N bi edge rc value mn HInvN) as HPlainInv.
+  set (rho := beta_input_rho value).
+  assert (HWriteInv : invA m0 bd dbase bw outedge cursor N bi rc false [] 256
+    (product_writer_rho rho rc) [] mn).
+  { destruct HPlainInv as [_ HRest]; split; [reflexivity|exact HRest]. }
+  assert (HWriteSep : xsep (extA m0 bd bw bi) [(ba,0)]).
+  { intros [|r] HR; [apply (HSep 0%nat); cbn; lia|cbn in HR; lia]. }
+  pose proof (multiplier_normalizer_bounds rho (beta_input_bounds value)) as HB.
+  destruct (eval_local_wide_write_fe m0 bd dbase bw outedge cursor N bi rc
+    (original_finish_words rho 0%nat) (original_finish_words rho 1%nat)
+    (original_finish_words rho 2%nat) (original_finish_words rho 3%nat)
+    (original_finish_words rho 4%nat) false [] mn [(ba,0)] HO
+    (HB 0%nat ltac:(lia)) (HB 1%nat ltac:(lia)) (HB 2%nat ltac:(lia))
+    (HB 3%nat ltac:(lia)) (HB 4%nat ltac:(lia)) HWriterRep HWriteSep HWriteInv)
+    as (mf & HWrite & HFinal & HWrittenRep & HWriteFrame).
+  rewrite product_writer_output in HFinal by apply beta_input_bounds.
+  unfold rho in HFinal.
+  rewrite beta_product_matches_literal in HFinal.
+  change (rep (product_writer_rho rho rc) [(ba,0)]
+    (sregs (fst (rsel (product_writer_rho rho rc) (lay [(ba,0)])
+      (local_write_result bd (Ptrofs.repr dbase))))) mf) in HWrittenRep.
+  destruct (local_write_selected_storage (product_writer_rho rho rc) (lay [(ba,0)]) bd (Ptrofs.repr dbase))
+    as [HCount HStorage].
+  destruct (rep_free_region _ _ _ mf 0 40 HWrittenRep ltac:(rewrite HCount; lia) HStorage) as [_ HFreeAF].
+  assert (HValidLR : Mem.valid_block mr bl) by (eapply Mem.perm_valid_block; apply (HFreeLR 0); lia).
+  assert (HValidLN : Mem.valid_block mn bl) by exact (proj2 (proj2 HMulFrame) bl HValidLR).
+  assert (HFreeLN : Mem.range_perm mn bl 0 16 Cur Freeable).
+  { intros pos HPos; eapply (proj1 (proj2 HMulFrame));
+    [exact HValidLR|congruence|apply HFreeLR; exact HPos]. }
+  assert (HFreeLF : Mem.range_perm mf bl 0 16 Cur Freeable).
+  { intros pos HPos; eapply (proj1 (proj2 HWriteFrame)); [exact HValidLN| |apply HFreeLN; exact HPos].
+    split; [exact HValidLN|]; split; [apply no_local_write_foot; congruence|exact (HSep 1%nat ltac:(cbn; lia))]. }
+  pose proof (beta_graph_keeps_state _ _ _ _ _ _ beta_writer_allowed HGN HWrite) as HGF.
+  exists mr,mn,mf; split; [exact HRead|]; split; [exact HMul|]; split; [exact HWrite|];
+    split; [exact HFinal|]; split; [exact HFreeAF|]; split; [exact HFreeLF|]; split; [exact HGF|].
+  eapply lframe_trans.
+  - eapply lframe_implies; [exact HReadFrame|].
+    intros b pos [HNotA [HNotL HNotExt]] HV; split; [exact HV|]; split;
+      [apply no_local_read_foot; assumption|exact HNotExt].
+  - eapply lframe_trans.
+    + eapply lframe_implies; [exact HMulFrame|]; intros b pos [HNotA _] HV; exact HNotA.
+    + eapply lframe_implies; [exact HWriteFrame|].
+      intros b pos [HNotA [HNotL HNotExt]] HV; split; [exact HV|]; split;
+        [apply no_local_write_foot; exact HNotA|exact HNotExt].
+Qed.
