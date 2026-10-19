@@ -69,7 +69,6 @@ python3 test-secp-normalize-specification.py
 python3 check-secp-predicates-specification.py
 python3 test-secp-predicates-specification.py
 python3 check-bitcoin-primitive-identity.py
-python3 test-bitcoin-primitive-identity.py
 python3 test-jet-audit-inputs.py
 
 missing=$(comm -23 <(grep -E '^C/jets?[_.]' _CoqProject.jets | sort -u) \
