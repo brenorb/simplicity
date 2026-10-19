@@ -14,11 +14,14 @@ Only qualified module-name tokens change. The new candidate is
 all 323 local modules, starting from source with **no copied local `.vo`
 objects**. The original terminal build logs are archived here.
 
-At this checkpoint the ordinary type/definition/dependency reports and separate
-recursive kernel check are still in progress. Do not infer their success from
-a launch record or the completed source build. A matching `CHECKED.json` and
-successful `verify.py check` are required before calling this ordinary
-integration kernel-checked.
+The ordinary report audit and separate recursive kernel check both passed.
+`RUN.json` records exact equality of all 19 complete theorem types, the one
+definition and every dependency profile. `CHECKED.json` binds the successful
+recursive kernel command and log; `verify.py check` revalidates those exact
+inputs. The loaded local closure is exactly the 323 freshly built modules, with
+no private namespaces. The existing 15-axiom global library context is
+unchanged, with no unsafe kernel flags; each new endpoint depends on the six
+inherited assumptions recorded by its own profile.
 
 The intended endpoints are:
 
