@@ -1,0 +1,65 @@
+(** The same real C multiplication, now with the stronger frame needed by the
+    public beta jet even when its input buffer aliases the readonly global. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import Simplicity.Word.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_clight_readonly_frame C.jet_secp_linkage C.jets_secp C.jet_secp_fe_nv C.jet_secp_fe_math.
+Require Import C.jet_secp_multiply_run_run C.jet_secp_multiply_finish_execute
+  C.jet_secp_multiply_finish_product C.jet_secp_multiply_normalize_bridge C.jet_secp_multiply_writer_bridge.
+Require Import C.jet_secp_multiply_input_input C.jet_secp_local_regions.
+Require Import FieldBorrowed.Call BetaGlobal.Global BetaGlobal.Inputs BetaGlobal.Call
+  InternalFrame.Internal InternalFrame.Multiply.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge beta_block original_finish_words.
+
+Lemma borrowed_output_owned rho layout m :
+  rep rho layout (borrowed_output_regs rho) m ->
+  bas layout 0 = 0 /\ Mem.range_perm m (blk layout 0) 0 40 Cur Freeable /\
+  fe_at m (blk layout 0) (bas layout 0) (words5 (original_finish_words rho)).
+Proof.
+  intro HR; pose proof (rep_region _ _ _ m 0 _ HR eq_refl) as H0.
+  pose proof H0 as (_ & _ & _ & _ & HB & HW & HF & _).
+  split; [exact HB|]; split; [exact HF|].
+  apply (u64_region_fe_at rho layout m 0 _ (Some 40)); exact H0.
+Qed.
+
+Lemma borrowed_output_writer_rep rho layout m rc :
+  rep rho layout (borrowed_output_regs rho) m ->
+  rep (product_writer_rho rho rc) [(blk layout 0,0)] local_write_initial_regs m.
+Proof.
+  intro HR; destruct (borrowed_output_owned rho layout m HR) as (HB & HF & HA).
+  rewrite HB in HA.
+  exact (wide_initial_from_owned_words _ _ _ _ _ rc m (blk layout 0) HA HF).
+Qed.
+
+Lemma beta_foot_owners ba b ofs :
+  foot [(ba,0);(beta_block,0)] (map rshape borrowed_mul_regs) b ofs -> b = ba \/ b = beta_block.
+Proof.
+  intros (r & sh & d & ch & HN & HI & HB & HO).
+  destruct r as [|[|r]]; [left; exact HB|right; exact HB|].
+  destruct r; discriminate HN.
+Qed.
+
+Theorem eval_beta_with_precise_frame x m ba rc :
+  fe_at m ba 0 (map Int64.repr (fe_limbs_of (normalized_value x))) ->
+  Mem.range_perm m ba 0 40 Cur Freeable -> beta_initialized m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul)
+      [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr beta_block Ptrofs.zero] E0 mf Vundef /\
+    rep (product_writer_rho (beta_input_rho x) rc) [(ba,0)] local_write_initial_regs mf /\
+    Mem.range_perm mf ba 0 40 Cur Freeable /\ beta_initialized mf /\
+    lframe (fun b _ => b <> ba) m mf.
+Proof.
+  intros HA HF HG.
+  destruct (eval_beta_from_reader_storage x m ba HA HF HG) as (mf & HC & HR & HL & HValue & HBounds & HCoarse).
+  destruct (beta_multiply_full_readonly_frame x ba m mf HG HC HR) as [HGFinal HGlobalFrame].
+  pose proof (borrowed_output_writer_rep _ _ _ rc HR) as HW.
+  destruct (borrowed_output_owned _ _ _ HR) as (_ & HFree & _).
+  exists mf; split; [exact HC|]; split; [exact HW|]; split; [exact HFree|]; split; [exact HGFinal|].
+  eapply lframe_add_block; [exact HCoarse|exact HGlobalFrame|].
+  intros b ofs HNotBeta HNotA HFoot.
+  destruct (beta_foot_owners ba b ofs HFoot); contradiction.
+Qed.
