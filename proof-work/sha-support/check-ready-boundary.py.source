@@ -1,0 +1,195 @@
+#!/usr/bin/env python3
+"""Check reviewed SHA adapter bindings and their complete public boundary.
+
+This supplements kernel checks. It does not check the transitive canonical
+program ports, certify setup-domain admissibility, or accept/register a jet.
+No reference-update mode is provided.
+"""
+import argparse
+from pathlib import Path
+import re
+
+
+def uncomment(text):
+    """Remove nested Coq comments, retaining whitespace between tokens."""
+    result = []
+    depth = 0
+    i = 0
+    while i < len(text):
+        pair = text[i:i + 2]
+        if pair == "(*":
+            depth += 1
+            result.append(" ")
+            i += 2
+        elif pair == "*)":
+            if not depth:
+                raise ValueError("unmatched comment end")
+            depth -= 1
+            result.append(" ")
+            i += 2
+        else:
+            result.append(" " if depth else text[i])
+            i += 1
+    if depth:
+        raise ValueError("unterminated comment")
+    return "".join(result)
+
+
+def norm(text):
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def haskell_code(text):
+    # Ignore strings, nested block comments and line comments before matching
+    # top-level equations. Preserve newlines to retain the equation anchors.
+    result = []
+    depth = 0
+    quoted = False
+    i = 0
+    while i < len(text):
+        pair = text[i:i + 2]
+        ch = text[i]
+        if quoted:
+            if ch == "\\":
+                result.extend("  ")
+                i += 2
+                continue
+            if ch == '"':
+                quoted = False
+            result.append("\n" if ch == "\n" else " ")
+        elif pair == "{-":
+            depth += 1
+            result.extend("  ")
+            i += 2
+            continue
+        elif depth and pair == "-}":
+            depth -= 1
+            result.extend("  ")
+            i += 2
+            continue
+        elif depth:
+            result.append("\n" if ch == "\n" else " ")
+        elif pair == "--":
+            end = text.find("\n", i)
+            if end < 0:
+                break
+            result.extend(" " * (end - i))
+            i = end
+            continue
+        elif ch == '"':
+            quoted = True
+            result.append(" ")
+        else:
+            result.append(ch)
+        i += 1
+    if depth or quoted:
+        raise ValueError("unterminated Haskell comment/string")
+    return "".join(result)
+
+
+def declaration(text, kind, name):
+    matches = list(re.finditer(r"\b" + kind + r"\s+" + re.escape(name)
+                              + r"\b.*?\.\s*(?:\n|$)", text, re.S))
+    if len(matches) != 1:
+        raise ValueError(f"expected exactly one {kind} {name}")
+    return norm(matches[0].group())
+
+
+BOUNDARY = r"""
+Definition sha_partial_state_spec (pre : mem -> Prop) (f : function) (A B : Ty) (spec : A -> option B) : Prop :=
+  forall env m bd dbase bs sbase bi bw edge outedge cursor read_cursor (a : A),
+    pre m ->
+    frame_base_valid sbase -> (8 | sbase) ->
+    frame_fields_at m bs sbase bi edge read_cursor ->
+    0 <= read_cursor -> read_cursor + Z.of_nat (bitSize A) <= Int64.max_unsigned ->
+    frame_input_cells_at m bi edge read_cursor (encode a) ->
+    write_frame_at m bd dbase bw outedge cursor (Z.of_nat (bitSize B)) ->
+    exists mf,
+      Clight2.eval_funcall sha_ge m (Internal f)
+        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
+        E0 mf (jet_partial_return (spec a)) /\
+      (match spec a with
+       | Some b => frame_output_cells_at mf bw outedge cursor (encode b) /\
+           write_prefix_at m mf bw outedge cursor /\
+           frame_fields_at mf bd dbase bw outedge (cursor - Z.of_nat (bitSize B))
+       | None => True
+       end) /\
+      (forall chunk b ofs, Mem.valid_block m b ->
+        (b <> bd \/ ofs + size_chunk chunk <= dbase + 8 \/ dbase + 16 <= ofs) ->
+        (b <> bw \/
+          ofs + size_chunk chunk <= outedge + 8 * ((cursor - Z.of_nat (bitSize B)) / 64) \/
+          write_word_address outedge cursor + 8 <= ofs) ->
+        Mem.load chunk mf b ofs = Mem.load chunk m b ofs) /\
+      sha_persistent_global_state mf.
+"""
+
+SETUP = """
+Inductive sha_private_setup : mem -> list block -> Prop :=
+| sha_setup_initial : forall m,
+    Genv.init_mem jets_sha.prog = Some m -> sha_private_setup m []
+| sha_setup_alloc : forall m owned lo hi mf fresh,
+    sha_private_setup m owned -> Mem.alloc m lo hi = (mf, fresh) ->
+    sha_private_setup mf (fresh :: owned)
+| sha_setup_store : forall m owned chunk b ofs value mf,
+    sha_private_setup m owned -> In b owned ->
+    Mem.store chunk m b ofs value = Some mf -> sha_private_setup mf owned
+| sha_setup_storebytes : forall m owned b ofs bytes mf,
+    sha_private_setup m owned -> In b owned ->
+    Mem.storebytes m b ofs bytes = Some mf -> sha_private_setup mf owned.
+"""
+
+
+def check(repo, candidates):
+    def source(name):
+        archived = candidates / (name + ".source")
+        return (archived if archived.exists() else candidates / name).read_text()
+    ready = uncomment(source("jet_sha_partial_ready.v"))
+    setup = uncomment(source("jet_sha_private_setup.v"))
+    catalog = haskell_code((repo / "Haskell/Core/Simplicity/CoreJets.hs").read_text())
+    if declaration(ready, "Definition", "sha_partial_state_spec") != norm(BOUNDARY):
+        raise ValueError("public execution/output/failure/framing/state contract changed")
+    if declaration(setup, "Inductive", "sha_private_setup") != norm(SETUP):
+        raise ValueError("operational initialization/private-write provenance changed")
+    expected_ready = "Definition sha_ready_memory m : Prop := exists owned, sha_private_setup m owned."
+    if declaration(ready, "Definition", "sha_ready_memory") != expected_ready:
+        raise ValueError("ready provenance changed")
+    adapters = []
+    for depth in range(10):
+        n = 2 ** depth
+        adapters.append((f"sha_ctx8_add_{n}_ready_spec", f"Sha256Ctx8Add{n}",
+                         "Sha256.ctx8Add1" if depth == 0 else f"Sha256.ctx8Addn vector{n}",
+                         f"f_simplicity_sha_256_ctx_8_add_{n}",
+                         f"(Ty.Prod sha256_ctx8_type (Vector (Word 3) {depth})) sha256_ctx8_type",
+                         f"(fun a => @ctx8_addn_spec {depth} optalg a)"))
+    adapters.extend([
+        ("sha_ctx8_add_buffer_ready_spec", "Sha256Ctx8AddBuffer511",
+         "Sha256.ctx8AddBuffer buffer511", "f_simplicity_sha_256_ctx_8_add_buffer_511",
+         "(Ty.Prod sha256_ctx8_type (buffer_type (Word 3) 8)) sha256_ctx8_type",
+         "(fun a => @ctx8_add_buffer_spec 8 optalg a)"),
+        ("sha_ctx8_finalize_ready_spec", "Sha256Ctx8Finalize", "Sha256.ctx8Finalize",
+         "f_simplicity_sha_256_ctx_8_finalize", "sha256_ctx8_type (Word 8)",
+         "(fun a => @ctx8_finalize_spec optalg a)"),
+    ])
+    for theorem, jet, binding, function, types, spec in adapters:
+        # Only a real top-level equation counts, not text in a comment/string.
+        bindings = re.findall(r"^specificationHash " + jet + r" = ([^\n]+)$", catalog, re.M)
+        if bindings != [binding]:
+            raise ValueError(f"canonical catalog binding changed: {jet}")
+        expected = norm(f"Theorem {theorem} : memcpy_model -> "
+                        f"sha_partial_state_spec sha_ready_memory {function} {types} {spec}.")
+        if declaration(ready, "Theorem", theorem) != expected:
+            raise ValueError(f"concrete C/type/spec/premise binding changed: {theorem}")
+    return len(adapters)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, required=True)
+    parser.add_argument("--candidates", type=Path, required=True)
+    args = parser.parse_args()
+    try:
+        count = check(args.repo, args.candidates)
+    except (ValueError, OSError) as error:
+        parser.exit(1, f"SHA ready boundary gate: {error}\n")
+    print(f"SHA ready boundary: {count} concrete adapters and full operational/public contracts match")
+    print("Transitive canonical ports, setup-domain review and integration acceptance remain separate.")

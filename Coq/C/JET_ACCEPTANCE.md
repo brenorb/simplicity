@@ -1,29 +1,64 @@
-# Range integration acceptance (2026-10-09)
+# Current integration status
 
-`codex/range-integration` integrates 149 reviewed files from the repaired
-range candidate, based on `cafb9b31`. All old/base and new/candidate file
-hashes match `../../proof-work/range/RECONCILIATION.json`. The complete
-proof-input fingerprint is identical to the candidate that passed full
-`check-jets.sh --accept` with exit 0 (54683):
-`dccfcbcd42e6b7c419992597362ebf4a2c2df407769183a217a27599718e8f07`.
+The literal field-negation candidate passed separate full acceptance with
+exit 0 (57174), `/tmp/jet-negate-accept.ftWsqQ/accept.log`, SHA-256
+`367e6e59bd7d9d1805894a647c22c4c6214c89c81bb1cbcde02cbe6137b33427`.
+Its 626-module kernel check, reviewed assumptions/contracts, negative tests,
+four original-source AST comparisons and final fingerprint check all pass.
+The 42 guarded files are now integrated byte-for-byte: 23 proof modules,
+nine gated review/checker files, eight infrastructure/inventory files and two
+reviewed generated snapshots. All 3583 prior assumption records and the entire
+prior printed contract snapshot remain unchanged. The recursive checker has
+only its reviewed reference-hash pin adaptation relative to its archive.
 
-That acceptance includes a build, 603 kernel modules, 3,583 assumption
-records (1,860 closed), reviewed contract/definition snapshots, negative
-tests and all four original-source AST comparisons. The durable run log is
-`../../proof-work/range/reconciled-accept.log`. This integration reuses the
-receipt for byte-identical proof inputs; it does not claim a new compiler run.
+The checkout registry is provisionally **350/533** (246 without an extra libc
+premise, 104 conditional, 183 missing). Its separate full checkout acceptance
+still needs to pass; the last successful checkout receipt remains 349/533.
+Pre-run integrated input SHA-256:
+`f87884d8fcd444670dcd1824e0cd616b2c78fac29bae7da90d2ebfe158724c85`.
+Unrelated user changes and the unregistered math experiment are preserved.
+No commit or push is claimed. This does not close the inherited fidelity or
+shared-domain/evaluator obligations.
 
-The range correction permits disjoint metadata and output words within one
-CompCert block. Public execution/output/framing conclusions and canonical
-specifications are retained. Six support results are added, with the same
-inherited axiom names and unchanged kernel allowlist. Coverage stays 349/533
-(245 without an extra libc premise, 104 conditional on `memcpy_model`).
-The field odd/zero proofs are already integrated by `cafb9b31`.
-Inherited endpoint/evaluator/domain and exhaustive fidelity review remain open.
+The shared-frame range correction is now integrated as 149 exact guarded
+files, after the reconciled candidate independently passed full acceptance
+(54683, exit 0). Candidate SHA-256:
+`dccfcbcd42e6b7c419992597362ebf4a2c2df407769183a217a27599718e8f07`;
+603 kernel modules, 3583 assumption records (1860 closed), reviewed snapshots,
+negative gates and all four AST comparisons pass. This widens the existing
+frame domain and adds six support results, not jet coverage.
 
-The records below describe earlier integration stages and are historical.
+The actual checkout's separate acceptance **passes with exit 0**:
+24458, `/tmp/jet-range-integrated-accept.log`, input SHA-256
+`a4a8c23458e98da8a41e9fb3c8ae644400ed081652b238147387150d7e02fb37`.
+Unrelated user files, including the unregistered math experiment, are preserved.
+This actual-checkout run passes kernel checking on all 603 modules, the
+3583-record assumption gate (1860 closed), reviewed contracts, negative gates,
+all four AST comparisons and the final input-fingerprint check. The current
+checkout fingerprint was independently rechecked and still matches this receipt.
+This is the actual checkout's receipt, separate from the candidate receipt.
+The registry remains 349/533. No new commit or push is claimed.
 
-# Historical repository consolidation acceptance
+Commit `cafb9b31` integrates the canonical `fe_is_odd` and `fe_is_zero` public
+contracts. The current registry is **349/533**: 245 entries without an extra
+libc premise, 104 conditional on `memcpy_model`, and 184 missing. This is not
+completion of the every-jet goal or of the inherited fidelity review.
+
+Fresh kernel checks of both public modules pass. The source correspondence gate
+rejects 34 meaningful mutations. Review confirms all 3,534 previous assumption
+records and all previous printed types/definitions are unchanged; the extension
+adds 43 results and three frozen definitions, with no new axiom names or kernel
+allowlist changes. Independent full acceptance now passes with exit 0, observed
+2026-10-09. The exact run is `/tmp/jet-secp-predicate-accept.OU8h0c/audit.log`:
+601 kernel modules, 3,577 assumption records (1,860 closed), reviewed public
+contracts, negative fixtures and all four original-source AST regenerations
+pass without snapshot-update flags. Audited input SHA-256:
+`6868621c6ba1d84ad9995f163cf83d3a863dff18004ba608cb3070607469a093`.
+This supersedes the historical 347-entry receipt below, not the unresolved
+shared-frame/domain and exhaustive fidelity review. See
+`JET_PROOF_BACKLOG.md` for the integrated sources and remaining obligations.
+
+# Latest repository consolidation acceptance (before the predicate extension)
 
 The scoped endpoint correction is accepted with exit 0, observed
 2026-10-06 18:58:55 UTC.

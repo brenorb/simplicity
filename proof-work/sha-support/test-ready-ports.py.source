@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""Semantic-drift and comment-spoof fixtures for reviewed SHA context ports."""
+import argparse
+import importlib.machinery
+import importlib.util
+import json
+from pathlib import Path
+import tempfile
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, required=True)
+    parser.add_argument("--candidates", type=Path, required=True)
+    args = parser.parse_args()
+    path = args.candidates / "check-ready-ports.py.source"
+    if not path.exists():
+        path = args.candidates / "check-ready-ports.py"
+    loader = importlib.machinery.SourceFileLoader("ready_ports", str(path))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    gate = importlib.util.module_from_spec(spec)
+    loader.exec_module(gate)
+    boundary = gate.boundary_module(args.candidates)
+    reference = json.loads((args.candidates / "ready-ports-review.json").read_text())
+    assert gate.check(args.repo, args.candidates) == (26, 4)
+    # Each typed port receives a targeted change inside the reviewed declaration.
+    edits = {
+        "buffer_type": ("Ty.Sum Ty.Unit X", "Ty.Prod Ty.Unit X"),
+        "buffer_empty_spec": ("AC.injl AC.unit", "AC.injr AC.unit"),
+        "sha256_ctx8_type": ("(Word 3) 5", "(Word 3) 4"),
+        "buffer_snoc_spec": ("(buffer_snoc_spec X d)", "(buffer_snoc_spec X (S d))"),
+        "ctx8_add1_snoc": ("(buffer_snoc_spec (Word 3) 5)", "(buffer_snoc_spec (Word 3) 4)"),
+        "ctx8_add1_full": ("increment_word_spec (Alg.Assertion.toCore term) 6", "increment_word_spec (Alg.Assertion.toCore term) 5"),
+        "ctx8_add1_spec": ("(@sha256_count_assertion_spec term)", "AC.unit"),
+        "ctx8_addn_spec": ("(AC.drop (AC.take AC.iden))", "(AC.drop (AC.drop AC.iden))"),
+        "sha256_count_limit": ("36028797018963968", "72057594037927936"),
+        "sha256_count_check_spec": ("(@lt_word_spec term 6)", "(@le_word_spec term 6)"),
+        "sha256_count_assertion_spec": ("Combinators.assertr", "Combinators.assertl"),
+        "ctx8_add_buffer_spec": ("(@ctx8_addn_spec (S d') term)", "(@ctx8_addn_spec d' term)"),
+        "buffer_pad_spec": ("(@Word.zero 3 term)", "(@Word.one 3 term)"),
+        "flag_spec": ("AC.copair Bit.false Bit.true", "AC.copair Bit.true Bit.false"),
+        "buffer63_size_spec": ("AC.pair Bit.false Bit.false", "AC.pair Bit.true Bit.false"),
+        "ctx8_bitlen_spec": ("@Word.shift_const 6 term 6", "@Word.shift_const 6 term 5"),
+        "pad_word64": ("9223372036854775808", "4611686018427387904"),
+        "ctx8_clear_count_spec": ("(@sha256_count_assertion_spec term)", "AC.unit"),
+        "ctx8_finalize_pad_spec": ("(@ctx8_addn_spec 3 term)", "(@ctx8_addn_spec 2 term)"),
+        "ctx8_finalize_block_spec": ("(AC.drop AC.iden)", "(AC.take AC.iden)"),
+        "ctx8_finalize_spec": ("Simplicity.SHA256.hashBlock", "AC.take AC.iden"),
+        "left_pad_pad": ("(fill (n := k) t) (left_pad_pad t k)", "(left_pad_pad t k) (fill (n := k) t)"),
+        "low_word": ("@Bit.false", "@Bit.true"),
+        "left_pad_low_spec": ("low_word w", "high_word w"),
+        "ctx8_buf": ("(Word 3) 5", "(Word 3) 4"),
+        "ctx8_tail": ("(Word 6) (Word 8)", "(Word 8) (Word 6)"),
+    }
+    mutations = []
+    sources = {}
+    for record in reference["coq"]:
+        name = "Coq/" + record["path"]
+        if name not in sources:
+            sources[name] = boundary.uncomment((args.repo / name).read_text())
+        declaration = record["declaration"]
+        assert declaration in sources[name], record["name"]
+        old, new = edits[record["name"]]
+        assert old in declaration, (record["name"], old)
+        mutations.append((name, declaration, declaration.replace(old, new, 1)))
+    sha = "Haskell/Core/Simplicity/Programs/Sha256.hs"
+    word = "Haskell/Core/Simplicity/Programs/Word.hs"
+    catalog = "Haskell/Core/Simplicity/CoreJets.hs"
+    for name in (sha, word, catalog):
+        sources[name] = (args.repo / name).read_text()
+    mutations.extend([
+        (sha, "(2^55)", "(2^56)"),
+        (sha, "(2^63)", "(2^62)"),
+        (sha, "ctx8Add8 = ctx8Addn vector8", "ctx8Add8 = ctx8Addn vector4"),
+        (sha, "shift_const_by false word64 6", "shift_const_by false word64 5"),
+        (sha, "shift_const_by false word64 3", "shift_const_by false word64 2"),
+        (sha, "SingleV -> ctx8Add1", "SingleV -> iden"),
+        (sha, "(oh &&& ioh >>> rec) &&& iih >>> rec", "(oh &&& iih >>> rec) &&& ioh >>> rec"),
+        (sha, "(drop (iden &&& verifyNumCompression >>> oh))", "(drop iden)"),
+        (sha, "pad063 = oh &&& drop pad031", "pad063 = oh &&& drop pad015"),
+        (sha, "pad01 = copair (zero word16)", "pad01 = copair (one word16)"),
+        (sha, "libAssert = mkLibAssert lib", "libAssert = mkLibAssert undefined"),
+        (word, "bufferEmpty SingleB = injl unit", "bufferEmpty SingleB = injr unit"),
+        (word, "bufferSnoc SingleB = match (injr (injr ih)) (injl iden)", "bufferSnoc SingleB = match (injl ih) (injl iden)"),
+        (word, "fill t v &&& left_pad_pad t v", "left_pad_pad t v &&& fill t v"),
+        (catalog, "Sha256Ctx8Add512 :: HashJet (Sha256.Ctx8, Word4096)", "Sha256Ctx8Add512 :: HashJet (Sha256.Ctx8, Word2048)"),
+        (catalog, "Sha256Ctx8AddBuffer511 :: HashJet (Sha256.Ctx8, Buffer511 Word8)", "Sha256Ctx8AddBuffer511 :: HashJet (Sha256.Ctx8, Buffer63 Word8)"),
+    ])
+    # A commented-out matching implementation must not satisfy the review.
+    body = reference["haskell"][0]["text"]
+    mutations.append((sha, body, "{-\n" + body + "\n-}"))
+    body = reference["coq"][0]["declaration"]
+    mutations.append(("Coq/" + reference["coq"][0]["path"], body, "(* (* nested *) " + body + " *)"))
+    with tempfile.TemporaryDirectory(prefix="sha-ready-ports-") as directory:
+        root = Path(directory)
+        for name, text in sources.items():
+            file = root / name
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_text(text)
+        for name, old, new in mutations:
+            assert old in sources[name], old
+            (root / name).write_text(sources[name].replace(old, new, 1))
+            try:
+                gate.check(root, args.candidates)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"accepted mutation: {old}")
+            (root / name).write_text(sources[name])
+        assert gate.check(root, args.candidates) == (26, 4)
+    print(f"SHA reviewed port gate rejected {len(mutations)} mutations")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,238 @@
+(** Aligned word-buffer setup by actual private Mem.store operations.
+    Initialized words may have arbitrary values; no zero-output restriction. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Memory.
+Require Import C.jet_layout_witness.
+Require Import JetStartupReview.jet_sha_private_setup.
+Import Values Mem ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Theorem sha_private_store_words m owned (ws : list (block * Z * val)) :
+  sha_private_setup m owned ->
+  ForallOrdPairs word_sep ws ->
+  (forall b o v, In (b, o, v) ws -> In b owned) ->
+  (forall b o v, In (b, o, v) ws -> Mem.valid_access m Mint64 b o Writable) ->
+  exists mf,
+    sha_private_setup mf owned /\
+    (forall b o v, In (b, o, v) ws -> Mem.load Mint64 mf b o = Some (Val.load_result Mint64 v)) /\
+    (forall b ofs k p, Mem.perm mf b ofs k p <-> Mem.perm m b ofs k p) /\
+    Mem.nextblock mf = Mem.nextblock m /\
+    (forall chunk b ofs,
+      (forall wb wo wv, In (wb, wo, wv) ws ->
+        b <> wb \/ ofs + size_chunk chunk <= wo \/ wo + 8 <= ofs) ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+Proof.
+  revert m. induction ws as [|[[b o] v] rest IH]; intros m HSetup HSep HOwned HAccess.
+  - exists m; split; [exact HSetup|]; split; [intros b o v H; contradiction|].
+    split; [intros; tauto|]; split; [reflexivity|intros; reflexivity].
+  - inversion HSep as [|x l HHead HTail]; subst.
+    destruct (IH m HSetup HTail
+      (fun b' o' v' H => HOwned b' o' v' (or_intror H))
+      (fun b' o' v' H => HAccess b' o' v' (or_intror H)))
+      as [mi [HSI [HLI [HPI [HNI HOutside]]]]].
+    assert (VA : Mem.valid_access mi Mint64 b o Writable).
+    { destruct (HAccess b o v (or_introl eq_refl)) as [HP HA]. split; [|exact HA].
+      intros addr HR; apply HPI, HP; exact HR. }
+    destruct (Mem.valid_access_store mi Mint64 b o v VA) as [mf HStore].
+    exists mf; split.
+    + eapply sha_setup_store; [exact HSI|apply HOwned with (o := o) (v := v); left; reflexivity|exact HStore].
+    + split.
+      * intros b' o' v' [HE|HI].
+        -- inversion HE; subst; exact (Mem.load_store_same _ _ _ _ _ _ HStore).
+        -- erewrite Mem.load_store_other; [apply HLI; exact HI|exact HStore|].
+           rewrite Forall_forall in HHead; specialize (HHead _ HI).
+           cbn [word_sep] in HHead. change (size_chunk Mint64) with 8.
+           destruct HHead as [HB|[HL|HR]];
+             [left; congruence|right; right; lia|right; left; lia].
+      * split.
+        -- intros b' ofs k p; split; intro HP.
+           ++ apply HPI; eapply Mem.perm_store_2; [exact HStore|exact HP].
+           ++ eapply Mem.perm_store_1; [exact HStore|apply HPI; exact HP].
+        -- split.
+           ++ rewrite (Mem.nextblock_store _ _ _ _ _ _ HStore); exact HNI.
+           ++ intros chunk bb ofs HRange.
+              erewrite Mem.load_store_other; [|exact HStore|exact (HRange b o v (or_introl eq_refl))].
+              apply HOutside; intros wb wo wv HI; exact (HRange wb wo wv (or_intror HI)).
+Qed.
+
+
+Definition sha_word_slots (b : block) (start n : nat) (seed : int64) :=
+  map (fun i => (b, 8 * Z.of_nat i, Vlong seed)) (seq start n).
+
+Lemma sha_word_slots_separated b start n seed :
+  ForallOrdPairs word_sep (sha_word_slots b start n seed).
+Proof.
+  revert start; induction n as [|n IH]; intro start.
+  - constructor.
+  - unfold sha_word_slots; cbn [seq map]; constructor.
+    + rewrite Forall_forall; intros x HX.
+      apply in_map_iff in HX; destruct HX as [i [HE HI]]; subst x.
+      apply in_seq in HI. cbn [word_sep]. right; left; lia.
+    + apply IH.
+Qed.
+
+Theorem sha_private_setup_word_buffer m owned n seed :
+  sha_private_setup m owned ->
+  exists mf b,
+    sha_private_setup mf (b :: owned) /\
+    ~ Mem.valid_block m b /\
+    Mem.valid_block mf b /\
+    (forall i, (i < n)%nat ->
+      Mem.valid_access mf Mint64 b (8 * Z.of_nat i) Writable /\
+      Mem.load Mint64 mf b (8 * Z.of_nat i) = Some (Vlong seed)) /\
+    (forall chunk bb ofs, Mem.valid_block m bb ->
+      Mem.load chunk mf bb ofs = Mem.load chunk m bb ofs) /\
+    (forall bb, Mem.valid_block m bb -> Mem.valid_block mf bb) /\
+    (forall chunk bb ofs p, Mem.valid_access m chunk bb ofs p ->
+      Mem.valid_access mf chunk bb ofs p).
+Proof.
+  intro HSetup.
+  destruct (Mem.alloc m 0 (8 * Z.of_nat n)) as [ma b] eqn:HA.
+  assert (Fresh : ~ Mem.valid_block m b) by (eapply Mem.fresh_block_alloc; exact HA).
+  assert (HSetupA : sha_private_setup ma (b :: owned)) by (eapply sha_setup_alloc; eassumption).
+  assert (VA : forall i, (i < n)%nat -> Mem.valid_access ma Mint64 b (8 * Z.of_nat i) Writable).
+  { intros i HI; eapply Mem.valid_access_implies.
+    - eapply Mem.valid_access_alloc_same; [exact HA|lia|change (8 * Z.of_nat i + 8 <= 8 * Z.of_nat n); lia|].
+      change (8 | 8 * Z.of_nat i); exists (Z.of_nat i); lia.
+    - constructor. }
+  assert (HO : forall bb ofs v, In (bb, ofs, v) (sha_word_slots b 0 n seed) -> In bb (b :: owned)).
+  { intros bb ofs v HI; unfold sha_word_slots in HI; apply in_map_iff in HI.
+    destruct HI as [i [HE HI]]; inversion HE; subst; left; reflexivity. }
+  assert (HW : forall bb ofs v, In (bb, ofs, v) (sha_word_slots b 0 n seed) ->
+    Mem.valid_access ma Mint64 bb ofs Writable).
+  { intros bb ofs v HI; unfold sha_word_slots in HI; apply in_map_iff in HI.
+    destruct HI as [i [HE HI]]; inversion HE; subst; apply VA; apply in_seq in HI; lia. }
+  destruct (sha_private_store_words ma (b :: owned) (sha_word_slots b 0 n seed)
+    HSetupA (sha_word_slots_separated b 0 n seed) HO HW)
+    as [mf [HS [HL [HP [HN HOutside]]]]].
+  assert (PresAccess : forall chunk bb ofs p, Mem.valid_access ma chunk bb ofs p -> Mem.valid_access mf chunk bb ofs p).
+  { intros chunk bb ofs p [HR HH]; split; [|exact HH]. intros addr HA'; apply HP, HR; exact HA'. }
+  exists mf, b; split; [exact HS|]; split; [exact Fresh|]; split.
+  - unfold Mem.valid_block; rewrite HN; eapply Mem.valid_new_block; exact HA.
+  - split.
+    + intros i HI; split; [apply PresAccess, VA; exact HI|].
+      apply (HL b (8 * Z.of_nat i) (Vlong seed)).
+      unfold sha_word_slots; apply in_map_iff; exists i; split; [reflexivity|apply in_seq; lia].
+    + split.
+      * intros chunk bb ofs HV; rewrite HOutside.
+        -- eapply Mem.load_alloc_unchanged; [exact HA|exact HV].
+        -- intros wb wo wv HI; unfold sha_word_slots in HI; apply in_map_iff in HI.
+           destruct HI as [i [HE HI]]; inversion HE; subst.
+           left; intro HEqual; subst bb; contradiction.
+      * split.
+        -- intros bb HV; unfold Mem.valid_block; rewrite HN.
+           eapply Mem.valid_block_alloc; [exact HA|exact HV].
+        -- intros chunk bb ofs p HV; apply PresAccess.
+           eapply Mem.valid_access_alloc_other; [exact HA|exact HV].
+Qed.
+
+Require Import C.jet_frame_spec.
+
+(** A concrete output-storage witness for the 256-bit block result. Its seed
+    is arbitrary; this theorem does not narrow the general public contract. *)
+Theorem sha_private_setup_output256 m owned (seed : int64) :
+  sha_private_setup m owned ->
+  exists mf bw,
+    sha_private_setup mf (bw :: owned) /\
+    Mem.valid_block mf bw /\
+    (forall i, 0 <= i < 256 ->
+      let addr := write_cell_address 0 256 i in
+      0 <= addr /\ addr + 8 <= Ptrofs.max_unsigned /\
+      Mem.valid_access mf Mint64 bw addr Writable /\
+      exists w, Mem.load Mint64 mf bw addr = Some (Vlong w)) /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b) /\
+    (forall chunk b ofs p, Mem.valid_access m chunk b ofs p ->
+      Mem.valid_access mf chunk b ofs p).
+Proof.
+  intro HS.
+  destruct (sha_private_setup_word_buffer m owned 4 seed HS)
+    as [mf [bw [HF [HFresh [HB [HW [HL [HV HP]]]]]]]].
+  exists mf, bw; split; [exact HF|]; split; [exact HB|]; split.
+  - intros i HI; unfold write_cell_address.
+    assert (HR : 0 <= (255 - i) / 64 < 4).
+    { split; [apply Z.div_pos; lia|apply Z.div_lt_upper_bound; lia]. }
+    specialize (HW (Z.to_nat ((255 - i) / 64)) ltac:(lia)).
+    rewrite Z2Nat.id in HW by lia.
+    replace (256 - 1 - i) with (255 - i) by lia.
+    rewrite Z.add_0_l.
+    split; [lia|]; split.
+    + change (8 * ((255 - i) / 64) + 8 <= 18446744073709551615); lia.
+    + split; [exact (proj1 HW)|exists seed; exact (proj2 HW)].
+  - split; [exact HL|]; split; assumption.
+Qed.
+
+Require Import Simplicity.Translate C.jet_frame_layout C.jet_encoding C.jet_buffer_input C.jet_output_layout.
+Require Import JetStartupReview.jet_sha_setup_frames.
+
+Theorem sha_private_setup_block_frames m owned bi edge rc cells (seed : int64) :
+  sha_private_setup m owned -> Mem.valid_block m bi ->
+  frame_input_cells_at m bi edge rc cells ->
+  exists mf bs bd bw,
+    sha_private_setup mf (bd :: bs :: bw :: owned) /\
+    frame_fields_at mf bs 0 bi edge rc /\
+    frame_input_cells_at mf bi edge rc cells /\
+    write_frame_at mf bd 0 bw 0 256 256 /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+Proof.
+  intros HS HBI HI.
+  destruct (sha_private_setup_output256 m owned seed HS)
+    as [mo [bw [HO [HBW [HW [HL [HV HP]]]]]]].
+  assert (HIM : frame_input_cells_at mo bi edge rc cells).
+  { eapply buffer_input_cells_preserved; [|exact HI].
+    intros ofs w HLoad; rewrite HL by exact HBI; exact HLoad. }
+  assert (HBound : 256 <= Int64.max_unsigned).
+  { change (256 <= 18446744073709551615); lia. }
+  destruct (sha_private_setup_represented_frames mo (bw :: owned) bi edge rc
+    bw 0 256 256 cells HO (HV bi HBI) HBW HIM ltac:(lia) ltac:(lia) HBound HW)
+    as [mf [bs [bd [HF [HNE [HFields [HInput [HOutput HLoads]]]]]]]].
+  exists mf, bs, bd, bw; split; [exact HF|]; split; [exact HFields|];
+    split; [exact HInput|]; split; [exact HOutput|].
+  intros chunk b ofs VB; rewrite HLoads by (apply HV; exact VB).
+  apply HL; exact VB.
+Qed.
+
+Require Import Simplicity.Ty Simplicity.Word.
+Require Import C.jet_write_layout C.jets_sha C.jet_sha_linkage C.jet_sha_block_local.
+Require Import JetStartupReview.jet_sha_persistent_globals.
+From compcert Require Import Ctypes Clight ClightBigstep Events.
+
+(** Fresh output storage and both metadata records are constructed. The only
+    backing representation still supplied by the caller is the input. *)
+Theorem sha_256_block_with_fresh_output m owned bi edge rc (seed : int64)
+    (a : Ty.tySem (Ty.Prod Word256 Word512)) :
+  sha_private_setup m owned -> Mem.valid_block m bi ->
+  0 <= rc -> rc + Z.of_nat (Translate.bitSize (Ty.Prod Word256 Word512)) <= Int64.max_unsigned ->
+  frame_input_cells_at m bi edge rc (encode a) ->
+  exists ms bs bd bw,
+    sha_private_setup ms (bd :: bs :: bw :: owned) /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk ms b ofs = Mem.load chunk m b ofs) /\
+    forall env, exists mf,
+      Clight2.eval_funcall sha_ge ms (Internal f_simplicity_sha_256_block)
+        [Vptr bd (Ptrofs.repr 0); Vptr bs (Ptrofs.repr 0); env]
+        E0 mf (Vint Int.one) /\
+      frame_output_cells_at mf bw 0 256 (encode (sha_256_block_spec a)) /\
+      write_prefix_at ms mf bw 0 256 /\
+      frame_fields_at mf bd 0 bw 0 0 /\
+      (forall chunk b ofs, Mem.valid_block ms b ->
+        (b <> bd \/ ofs + size_chunk chunk <= 8 \/ 16 <= ofs) ->
+        (b <> bw \/ ofs + size_chunk chunk <= 0 \/
+          write_word_address 0 256 + 8 <= ofs) ->
+        Mem.load chunk mf b ofs = Mem.load chunk ms b ofs) /\
+      sha_persistent_global_state mf.
+Proof.
+  intros HS HBI HRC HMax HI.
+  destruct (sha_private_setup_block_frames m owned bi edge rc (encode a) seed HS HBI HI)
+    as [ms [bs [bd [bw [HF [HFields [HInput [HOutput HLoads]]]]]]]].
+  exists ms, bs, bd, bw; split; [exact HF|]; split; [exact HLoads|].
+  intro env.
+  assert (HBase : frame_base_valid 0).
+  { unfold frame_base_valid; split; [lia|]. change (16 <= 18446744073709551615 + 1); lia. }
+  assert (HAlign : (8 | 0)) by (exists 0; reflexivity).
+  exact (sha_256_block_from_private_setup (bd :: bs :: bw :: owned) env ms bd 0 bs 0
+    bi bw edge 0 256 rc a HF HBase HAlign HFields HRC HMax HInput HOutput).
+Qed.

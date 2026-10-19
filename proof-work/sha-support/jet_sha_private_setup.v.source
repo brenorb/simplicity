@@ -1,0 +1,150 @@
+(** Concrete startup/setup provenance, separate from canonical jet execution.
+    Every step performs an actual CompCert allocation/store/storebytes operation;
+    only blocks freshly allocated by this setup may be written. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Globalenvs Events.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_block_local.
+Require Import C.jet_sha_add_n_exec C.jet_sha_uchars_exec.
+Require Import JetStartupReview.jet_clight_forward JetStartupReview.jet_sha_persistent_globals.
+Import Values Mem ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma sha_persistent_storebytes_private m mf b ofs bytes :
+  sha_persistent_global_state m ->
+  b <> sha_symbol_block _simplicity_sha256_compression ->
+  b <> sha_symbol_block _sha256_max_counter ->
+  Mem.storebytes m b ofs bytes = Some mf -> sha_persistent_global_state mf.
+Proof.
+  intros HState HD HC HS.
+  eapply sha_persistent_globals_forward; [exact HState| |].
+  - eapply storebytes_forward; exact HS.
+  - destruct HState as [[HDispatch HCounter] _]; split.
+    + unfold sha_dispatch_ok in *.
+      erewrite Mem.load_storebytes_other; [exact HDispatch|exact HS|left; congruence].
+    + erewrite Mem.load_storebytes_other; [exact HCounter|exact HS|left; congruence].
+Qed.
+
+Inductive sha_private_setup : mem -> list block -> Prop :=
+| sha_setup_initial : forall m,
+    Genv.init_mem jets_sha.prog = Some m -> sha_private_setup m []
+| sha_setup_alloc : forall m owned lo hi mf fresh,
+    sha_private_setup m owned -> Mem.alloc m lo hi = (mf, fresh) ->
+    sha_private_setup mf (fresh :: owned)
+| sha_setup_store : forall m owned chunk b ofs value mf,
+    sha_private_setup m owned -> In b owned ->
+    Mem.store chunk m b ofs value = Some mf -> sha_private_setup mf owned
+| sha_setup_storebytes : forall m owned b ofs bytes mf,
+    sha_private_setup m owned -> In b owned ->
+    Mem.storebytes m b ofs bytes = Some mf -> sha_private_setup mf owned.
+
+Theorem sha_private_setup_globals m owned :
+  sha_private_setup m owned ->
+  sha_persistent_global_state m /\
+  (forall b, In b owned ->
+    b <> sha_symbol_block _simplicity_sha256_compression /\
+    b <> sha_symbol_block _sha256_max_counter).
+Proof.
+  intro HSetup; induction HSetup as
+    [m HInit|m owned lo hi mf fresh HSetup IH HA|
+     m owned chunk b ofs value mf HSetup IH HOwned HS|
+     m owned b ofs bytes mf HSetup IH HOwned HS].
+  - split; [apply sha_persistent_globals_initialized; exact HInit|].
+    intros b HB; contradiction.
+  - destruct IH as [HState HOwners].
+    destruct (sha_persistent_globals_alloc m mf lo hi fresh HState HA)
+      as [HFinal HFresh].
+    split; [exact HFinal|].
+    intros b [HE|HB]; [subst b; exact HFresh|apply HOwners; exact HB].
+  - destruct IH as [HState HOwners].
+    split; [|exact HOwners].
+    eapply sha_persistent_globals_store; [exact HState|exact (proj1 (HOwners b HOwned))|exact HS].
+  - destruct IH as [HState HOwners].
+    destruct (HOwners b HOwned) as [HD HC]; split; [|exact HOwners].
+    eapply sha_persistent_storebytes_private; eassumption.
+Qed.
+
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_input_layout C.jet_encoding C.jet_frame_layout C.jet_write_layout C.jet_output_layout.
+From compcert Require Import Ctypes Clight ClightBigstep Events.
+
+(** A real fresh frame constructor: both stores exist by allocated permissions,
+    and unrelated memory is preserved. Input/data initialization is separate. *)
+Theorem sha_private_setup_frame_exists m owned bw edge cursor :
+  sha_private_setup m owned ->
+  exists mf bf,
+    sha_private_setup mf (bf :: owned) /\
+    frame_fields_at mf bf 0 bw edge cursor /\
+    Mem.valid_access mf Mint64 bf 8 Writable /\
+    (forall chunk b ofs, Mem.valid_block m b -> b <> bf ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+Proof.
+  intro HSetup.
+  destruct (Mem.alloc m 0 16) as [ma bf] eqn:HA.
+  assert (VA0 : Mem.valid_access ma Mptr bf 0 Writable).
+  { eapply Mem.valid_access_implies.
+    - eapply Mem.valid_access_alloc_same; [exact HA|lia|change (8 <= 16); lia|].
+      change (8 | 0); exists 0; reflexivity.
+    - constructor. }
+  assert (VA8 : Mem.valid_access ma Mint64 bf 8 Writable).
+  { eapply Mem.valid_access_implies.
+    - eapply Mem.valid_access_alloc_same; [exact HA|lia|change (16 <= 16); lia|].
+      change (8 | 8); exists 1; reflexivity.
+    - constructor. }
+  destruct (Mem.valid_access_store _ _ _ _ (Vptr bw (Ptrofs.repr edge)) VA0)
+    as [mp HP].
+  assert (VP8 : Mem.valid_access mp Mint64 bf 8 Writable).
+  { eapply Mem.store_valid_access_1; [exact HP|exact VA8]. }
+  destruct (Mem.valid_access_store _ _ _ _ (Vlong (Int64.repr cursor)) VP8)
+    as [mf HC].
+  exists mf, bf; split.
+  - eapply sha_setup_store; [|left; reflexivity|exact HC].
+    eapply sha_setup_store; [|left; reflexivity|exact HP].
+    eapply sha_setup_alloc; [exact HSetup|exact HA].
+  - split.
+    + split.
+      * erewrite Mem.load_store_other; [|exact HC|right; left; change (8 <= 8); lia].
+        exact (Mem.load_store_same _ _ _ _ _ _ HP).
+      * change (Mem.load Mint64 mf bf 8 = Some (Vlong (Int64.repr cursor))).
+        exact (Mem.load_store_same _ _ _ _ _ _ HC).
+    + split.
+      * eapply Mem.store_valid_access_1; [exact HC|exact VP8].
+      * intros chunk b ofs HValid HOther.
+        erewrite Mem.load_store_other; [|exact HC|left; exact HOther].
+        erewrite Mem.load_store_other; [|exact HP|left; exact HOther].
+        eapply Mem.load_alloc_unchanged; [exact HA|exact HValid].
+Qed.
+
+(** Complete canonical block call, now also deriving globals for its successor.
+    The globals are derived from real initializer/setup operations; the caller
+    supplies only setup provenance and the ordinary initial frame representation.
+    This is scoped to fresh-private setup, not all possible process histories. *)
+Theorem sha_256_block_from_private_setup :
+  forall owned env m bd dbase bs sbase bi bw edge outedge cursor read_cursor
+    (a : Ty.tySem (Ty.Prod Word256 Word512)),
+    sha_private_setup m owned ->
+    frame_base_valid sbase -> (8 | sbase) ->
+    frame_fields_at m bs sbase bi edge read_cursor ->
+    0 <= read_cursor -> read_cursor + Z.of_nat (bitSize (Ty.Prod Word256 Word512)) <= Int64.max_unsigned ->
+    frame_input_cells_at m bi edge read_cursor (encode a) ->
+    write_frame_at m bd dbase bw outedge cursor (Z.of_nat (bitSize Word256)) ->
+    exists mf,
+      Clight2.eval_funcall sha_ge m (Internal f_simplicity_sha_256_block)
+        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
+        E0 mf (Vint Int.one) /\
+      frame_output_cells_at mf bw outedge cursor (encode (sha_256_block_spec a)) /\
+      write_prefix_at m mf bw outedge cursor /\
+      frame_fields_at mf bd dbase bw outedge (cursor - Z.of_nat (bitSize Word256)) /\
+      (forall chunk b ofs, Mem.valid_block m b ->
+        (b <> bd \/ ofs + size_chunk chunk <= dbase + 8 \/ dbase + 16 <= ofs) ->
+        (b <> bw \/ ofs + size_chunk chunk <= outedge + 8 * ((cursor - Z.of_nat (bitSize Word256)) / 64) \/
+          write_word_address outedge cursor + 8 <= ofs) ->
+        Mem.load chunk mf b ofs = Mem.load chunk m b ofs) /\
+      sha_persistent_global_state mf.
+Proof.
+  intros owned env m bd dbase bs sbase bi bw edge outedge cursor rc a
+    HSetup HBase HAlign HFields HCursor HMax HInput HOutput.
+  exact (sha_256_block_local_spec_persistent env m bd dbase bs sbase bi bw edge outedge cursor rc a
+    (proj1 (sha_private_setup_globals m owned HSetup))
+    HBase HAlign HFields HCursor HMax HInput HOutput).
+Qed.

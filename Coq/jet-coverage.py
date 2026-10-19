@@ -119,19 +119,126 @@ def inventory():
             # record these separately from direct execution proofs.
             contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b|"
                         rf"\bmemcpy_model\s*->\s*jet_separated_local_spec\s+f_{re.escape(name)}\b")
-            if name in {"simplicity_fe_normalize", "simplicity_fe_is_odd", "simplicity_fe_is_zero"}:
+            if name in {"simplicity_fe_normalize", "simplicity_fe_is_odd", "simplicity_fe_is_zero", "simplicity_fe_negate", "simplicity_fe_add", "simplicity_gej_infinity", "simplicity_gej_is_infinity", "simplicity_gej_negate", "simplicity_ge_negate", "simplicity_scalar_is_zero", "simplicity_scalar_normalize", "simplicity_scalar_negate", "simplicity_scalar_add", "simplicity_scalar_multiply", "simplicity_scalar_square"}:
                 # This reviewed whole-function contract executes in the
                 # original secp translation unit. Its full frame contract and
                 # literal canonical specialization have their own source gate.
                 contract = rf"\bsecp_jet_local_spec\s+f_{re.escape(name)}\b"
+            elif name == "simplicity_scalar_multiply_lambda":
+                # Named initialized-global contract; never arbitrary Ready.
+                contract = (r"\bsecp_jet_initialized_local_spec\s+scalar_lambda_initialized\s+"
+                            r"f_simplicity_scalar_multiply_lambda\s+\(Word\s+8\)\s+\(Word\s+8\)\s+"
+                            r"\(@canonical_scalar_multiply_lambda\s+Alg\.CoreFunSem\)\s*\.$")
         elif family == "bitcoin":
             contract = (rf"\b(?:application_jet_local_spec|application_jet_partial_spec)\s+f_{re.escape(name)}\s+"
                         r"bitcoin_ge\s+Bitcoin\.env\b|"
                         rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
                         r"bitcoin_ge\s+(?:Bitcoin\.env|raw_bitcoin_environment)\b")
         else:
-            # Elements has no checked application contract yet.
-            contract = r"(?!)"
+            # Only these fifty-eight selected correspondences have a reviewed
+            # literal target, environment relation and whole-C-contract gate.
+            if name in {"simplicity_input_script_hash", "simplicity_input_script_sig_hash", "simplicity_issuance_asset_proof", "simplicity_issuance_token_proof"}:
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+Word256\)")
+            elif name in {"simplicity_current_script_hash", "simplicity_current_script_sig_hash", "simplicity_current_issuance_asset_proof", "simplicity_current_issuance_token_proof"}:
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word256\b")
+            elif name in {"simplicity_input_annex_hash", "simplicity_reissuance_blinding", "simplicity_new_issuance_contract", "simplicity_reissuance_entropy"}:
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+Word256\)\)")
+            elif name in {"simplicity_current_annex_hash", "simplicity_current_reissuance_blinding", "simplicity_current_new_issuance_contract", "simplicity_current_reissuance_entropy"}:
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+Word256\)")
+            elif name == "simplicity_input_prev_outpoint":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+\(Ty\.Prod\s+Word256\s+Word32\)\)")
+            elif name == "simplicity_current_prev_outpoint":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+\(Ty\.Prod\s+Word256\s+Word32\)")
+            elif name in {"simplicity_output_script_hash", "simplicity_output_surjection_proof", "simplicity_output_range_proof"}:
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+Word256\)")
+            elif name == "simplicity_internal_key":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word256\b")
+            elif name == "simplicity_tappath":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word8\s+\(Ty\.Sum\s+Ty\.Unit\s+Word256\)")
+            elif name == "simplicity_lbtc_asset":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word256\b")
+            elif name in {"simplicity_broken_do_not_use_tx_lock_distance", "simplicity_broken_do_not_use_tx_lock_duration"}:
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word16\b")
+            elif name in {"simplicity_broken_do_not_use_check_lock_distance", "simplicity_broken_do_not_use_check_lock_duration"}:
+                contract = (rf"\bapplication_jet_partial_spec\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word16\s+Ty\.Unit\b")
+            elif name == "simplicity_output_nonce":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+"
+                            r"\(Ty\.Sum\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+ConfNonce\)\)")
+            elif name in {"simplicity_input_asset", "simplicity_output_asset"}:
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+AssetConf\)")
+            elif name == "simplicity_current_asset":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+AssetConf\b")
+            elif name in {"simplicity_input_amount", "simplicity_output_amount"}:
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+AmountPair\)")
+            elif name == "simplicity_current_amount":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+AmountPair\b")
+            elif name == "simplicity_issuance_asset_amount":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+ConfAmount\)\)")
+            elif name == "simplicity_current_issuance_asset_amount":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+ConfAmount\)")
+            elif name == "simplicity_issuance_token_amount":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+\(Ty\.Sum\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+ConfAmount\)\)")
+            elif name == "simplicity_current_issuance_token_amount":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+ConfAmount\)")
+            elif name == "simplicity_output_null_datum":
+                # Explicit contextual family: separated represented BM frames,
+                # not the unrestricted application_jet_local_spec_sep API.
+                contract = (rf"\bapplication_jet_bitmachine_spec\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+\(Ty\.Prod\s+Word32\s+Word32\)\s+"
+                            r"ResultTy\s+elements_null_data_environment_rep\s+"
+                            r"elements_output_null_datum_literal_spec\s*\.$")
+            elif name == "simplicity_transaction_id":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word256\b")
+            elif name == "simplicity_tx_is_final":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Bit\b")
+            elif name in {"simplicity_tx_lock_height", "simplicity_tx_lock_time"}:
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word32\b")
+            elif name in {"simplicity_check_lock_height", "simplicity_check_lock_time"}:
+                contract = (rf"\bapplication_jet_partial_spec\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+\(Word\s+5\)\s+Ty\.Unit\b")
+            elif name == "simplicity_input_pegin":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+"
+                            r"\(Ty\.Sum\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+Word256\)\)")
+            elif name == "simplicity_current_pegin":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+\(Ty\.Sum\s+Ty\.Unit\s+Word256\)")
+            elif name in {"simplicity_tapleaf_version", "simplicity_script_cmr", "simplicity_genesis_block_hash"}:
+                output = "Word8" if name == "simplicity_tapleaf_version" else "Word256"
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            rf"elements_ge\s+Elements\.env\s+Ty\.Unit\s+{output}\b")
+            elif name == "simplicity_input_sequence":
+                contract = (rf"\bapplication_jet_local_spec_sep\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Word32\s+"
+                            r"\(Ty\.Sum\s+Ty\.Unit\s+Word32\)")
+            else:
+                contract = (rf"\bapplication_jet_local_spec\s+f_{re.escape(name)}\s+"
+                            r"elements_ge\s+Elements\.env\s+Ty\.Unit\s+Word32\b"
+                            if name in {"simplicity_version", "simplicity_lock_time", "simplicity_current_index", "simplicity_num_inputs", "simplicity_num_outputs", "simplicity_current_sequence"} else r"(?!)")
         body = statement[1].strip() if statement else ""
         conditional = body.startswith("memcpy_model")
         arrows = top_level_connectives(body)
