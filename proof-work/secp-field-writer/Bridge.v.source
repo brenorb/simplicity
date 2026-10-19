@@ -1,0 +1,114 @@
+(** Reusable ownership/encoding adapters for the original bounded-limb writer. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers Values Memory AST.
+Require Import Simplicity.Word.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_sx_exec C.jet_sx_rep.
+Require Import C.jet_secp_fe_math C.jet_secp_fe_nv C.jet_secp_local_regions.
+Require Import C.jet_secp_write_fe_numeric C.jet_secp_write_fe_wide_values C.jet_secp_write_fe_wide_exec.
+Require Import FieldRun.Run FieldCheckpoint.Columns FieldFirst.Arithmetic.
+Require Import FieldFinish.Execute FieldFinish.Product FieldCall.Call FieldNormalize.Bridge.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition product_word rho : Ty.tySem (Word 8) :=
+  @fromZ (WordToZ 8) ((radix_value rho * radix_value (second_input rho)) mod field_prime).
+Definition product_writer_rho rho rc := wide_fe_rho
+  (original_finish_words rho 0%nat) (original_finish_words rho 1%nat)
+  (original_finish_words rho 2%nat) (original_finish_words rho 3%nat)
+  (original_finish_words rho 4%nat) rc.
+Definition cursor_rho rc (_ : nat) := Int64.repr rc.
+
+Local Opaque original_finish_words.
+Lemma product_writer_output rho : field_input_bounds rho ->
+  wide_fe_output (original_finish_words rho 0%nat) (original_finish_words rho 1%nat)
+    (original_finish_words rho 2%nat) (original_finish_words rho 3%nat)
+    (original_finish_words rho 4%nat) = product_word rho.
+Proof.
+  intro HB; unfold wide_fe_output, product_word.
+  rewrite <- radix_value_matches_normalizer, <- field_prime_matches_normalizer,
+    original_outputs_product by exact HB.
+  reflexivity.
+Qed.
+
+Lemma wide_initial_from_owned_words t0 t1 t2 t3 t4 rc m b :
+  fe_at m b 0 [t0; t1; t2; t3; t4] -> Mem.range_perm m b 0 40 Cur Freeable ->
+  rep (wide_fe_rho t0 t1 t2 t3 t4 rc) [(b, 0)] local_write_initial_regs m.
+Proof.
+  intros (HB & HA & HM & HP & HL) HF.
+  apply (rep_add _ [] [] m b 0); [apply rep_nil|cbn; tauto|].
+  apply region_with_freeable.
+  - apply region_u64; cbn [blk bas lay nth fst snd]; try assumption.
+    + eapply Mem.perm_valid_block; apply (HP 0); lia.
+    + intros i x HN; destruct (vars5_one_nth i x HN) as [HI ->].
+      split; [|reflexivity].
+      change (Mem.load Mint64 m b (0 + 8 * Z.of_nat i) =
+        Some (Vlong (nth i [t0; t1; t2; t3; t4] Int64.zero))).
+      apply HL; apply nth_error_nth'; exact HI.
+  - reflexivity.
+  - reflexivity.
+  - exact HF.
+  - apply field_cells_storage_size.
+Qed.
+
+Lemma multiplier_output_storage rho beta m : rep rho beta (field_output_regs rho) m ->
+  bas beta 0 = 0 /\ Mem.range_perm m (blk beta 0) 0 40 Cur Freeable.
+Proof.
+  intro HR; pose proof (rep_region rho beta _ m 0 _ HR eq_refl) as H.
+  destruct H as (_ & _ & _ & _ & HB & HW & HF & HC); split; assumption.
+Qed.
+Lemma multiplier_second_storage rho beta m : rep rho beta (field_output_regs rho) m ->
+  bas beta 1 = 0 /\ Mem.range_perm m (blk beta 1) 0 40 Cur Freeable.
+Proof.
+  intro HR; pose proof (rep_region rho beta _ m 1 _ HR eq_refl) as H.
+  destruct H as (_ & _ & _ & _ & HB & HW & HF & HC); split; assumption.
+Qed.
+
+Lemma multiplier_writer_rep rho beta m rc : rep rho beta (field_output_regs rho) m ->
+  rep (product_writer_rho rho rc) [(blk beta 0, 0)] local_write_initial_regs m.
+Proof.
+  intro HR; destruct (multiplier_output_storage rho beta m HR) as [HB HF].
+  pose proof (multiplier_output_fe_at rho beta m HR) as HField; rewrite HB in HField.
+  exact (wide_initial_from_owned_words _ _ _ _ _ rc m (blk beta 0) HField HF).
+Qed.
+
+Lemma foot_disjoint_external ext beta regs : length beta = length regs -> xsep ext beta ->
+  forall b o, ext b -> ~ foot beta (map rshape regs) b o.
+Proof.
+  intros HL HS b o HE (r & sh & d & ch & HN & HC & HB & HO).
+  assert (HI : (r < length (map rshape regs))%nat) by (apply nth_error_Some; congruence).
+  rewrite map_length in HI; apply (HS r); [lia|rewrite <- HB; exact HE].
+Qed.
+
+Lemma local_writer_foot_owner b b' o :
+  foot [(b, 0)] (map rshape local_write_initial_regs) b' o -> b' = b.
+Proof.
+  intros (r & sh & d & ch & HN & HC & HB & HO).
+  destruct r as [|r]; [exact HB|destruct r; discriminate].
+Qed.
+
+Lemma local_writer_foot_in_multiplier beta b o : bas beta 0 = 0 ->
+  foot [(blk beta 0, 0)] (map rshape local_write_initial_regs) b o ->
+  foot beta (map rshape field_mul_regs) b o.
+Proof.
+  intros HBase (r & sh & d & ch & HN & HC & HB & HO).
+  destruct r as [|r]; [|destruct r; discriminate].
+  change (Some (rshape (free_region (fe_reg (vars5 1)) 40)) = Some sh) in HN.
+  inversion HN; subst sh; clear HN.
+  change (In (d, ch) [(0, Mint64); (8, Mint64); (16, Mint64); (24, Mint64); (32, Mint64)]) in HC.
+  change (b = blk beta 0) in HB.
+  change (0 + d <= o < 0 + d + size_chunk ch) in HO.
+  apply field_first_range_in_foot; [exact HB|rewrite HBase].
+  cbn [In] in HC; repeat destruct HC as [HC|HC]; try contradiction;
+    inversion HC; subst d ch; change (size_chunk Mint64) with 8 in HO; lia.
+Qed.
+
+Lemma fe_at_on_unchanged_block m mf b ofs words : fe_at m b ofs words ->
+  lframe (fun other _ => other = b) m mf -> fe_at mf b ofs words.
+Proof.
+  intros (H0 & HA & HM & HP & HL) (HLoad & HPerm & HValid).
+  assert (HV : Mem.valid_block m b) by (eapply Mem.perm_valid_block; apply (HP ofs); lia).
+  unfold fe_at; split; [exact H0|]; split; [exact HA|]; split; [exact HM|]; split.
+  - intros o HO; eapply HPerm; [exact HV|reflexivity|apply HP; exact HO].
+  - intros i x HN; rewrite HLoad; [apply HL; exact HN|exact HV|intros; reflexivity].
+Qed.
