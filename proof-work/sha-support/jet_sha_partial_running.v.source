@@ -1,0 +1,158 @@
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_partial C.jet_memcpy_model C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_write_layout C.jet_encoding.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha256_ctx8_init_spec C.jet_sha_ctx8_spec.
+Require Import C.jet_buffer_empty_spec.
+Require Import C.jet_sha_add_buffer_spec C.jet_sha_finalize_spec.
+Require Import C.jet_sha_ctx8_add_jets C.jet_sha_ctx8_add_buffer_jet C.jet_sha_ctx8_finalize_jet.
+Require Import JetStartupReview.jet_clight_forward JetStartupReview.jet_sha_initial_globals.
+Require Import JetStartupReview.jet_sha_global_frame JetStartupReview.jet_sha_persistent_globals JetStartupReview.jet_sha_private_setup.
+Import Values Mem ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Require Import JetStartupReview.jet_sha_partial_ready.
+
+(** Invariant-based contracts apply after earlier verified calls as well as
+    startup. They do not require re-establishing fresh-private provenance. *)
+Lemma sha_partial_running_from_local f A B spec :
+  0 < Z.of_nat (bitSize B) ->
+  sha_jet_partial_local_spec f A B spec ->
+  sha_partial_state_spec sha_persistent_global_state f A B spec.
+Proof.
+  intros HPositive HLocal; eapply sha_partial_state_from_local.
+  - exact HPositive.
+  - intros m HState; exact HState.
+  - exact HLocal.
+Qed.
+
+Lemma sha_partial_state_spec_weaken (pre1 pre2 : mem -> Prop) f A B spec :
+  (forall m, pre1 m -> pre2 m) ->
+  sha_partial_state_spec pre2 f A B spec ->
+  sha_partial_state_spec pre1 f A B spec.
+Proof.
+  intros HImp HSpec env m bd dbase bs sbase bi bw edge outedge cursor rc a
+    HPre HBase HAlign HFields HCursor HMax HInput HOutput.
+  exact (HSpec env m bd dbase bs sbase bi bw edge outedge cursor rc a
+    (HImp m HPre) HBase HAlign HFields HCursor HMax HInput HOutput).
+Qed.
+
+Theorem sha_ctx8_add_1_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_1
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 0)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 0 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_1_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_2_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_2
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 1)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 1 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_2_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_4_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_4
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 2)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 2 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_4_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_8_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_8
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 3)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 3 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_8_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_16_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_16
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 4)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 4 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_16_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_32_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_32
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 5)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 5 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_32_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_64_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_64
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 6)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 6 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_64_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_128_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_128
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 7)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 7 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_128_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_256_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_256
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 8)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 8 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_256_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_512_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_512
+    (Ty.Prod sha256_ctx8_type (Vector (Word 3) 9)) sha256_ctx8_type
+    (fun a => @ctx8_addn_spec 9 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_512_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_add_buffer_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_buffer_511
+    (Ty.Prod sha256_ctx8_type (buffer_type (Word 3) 8)) sha256_ctx8_type
+    (fun a => @ctx8_add_buffer_spec 8 optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - exact sha_context_output_positive.
+  - exact (sha_256_ctx_8_add_buffer_511_local_spec HModel).
+Qed.
+
+Theorem sha_ctx8_finalize_running_spec : memcpy_model ->
+  sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_finalize
+    sha256_ctx8_type (Word 8) (fun a => @ctx8_finalize_spec optalg a).
+Proof.
+  intro HModel; eapply sha_partial_running_from_local.
+  - change (0 < 256); lia.
+  - exact (sha_256_ctx_8_finalize_local_spec HModel).
+Qed.

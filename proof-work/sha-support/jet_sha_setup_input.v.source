@@ -1,0 +1,212 @@
+(** Canonical input encodings from concrete aligned 64-bit buffer stores. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Memory.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_encoding C.jet_input_layout C.jet_layout_witness C.jet_buffer_input.
+Require Import JetStartupReview.jet_sha_private_setup JetStartupReview.jet_sha_setup_words.
+Import Values Mem ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma frame_input_word64_aligned_load m bi edge k (x : Ty.tySem (Word 6)) :
+  0 <= k -> 64 * k + 64 <= Int64.max_unsigned ->
+  8 * (k + 1) <= edge <= Ptrofs.max_unsigned ->
+  Mem.load Mint64 m bi (edge - 8 * (1 + k)) = Some (wv x) ->
+  frame_input_cells_at m bi edge (64 * k) (encode x).
+Proof.
+  intros HK HMax HE HL.
+  rewrite <- frame_input_word_at_encode, frame_input_word_at_iff.
+  change (Z.of_nat (Nat.pow 2 6)) with 64.
+  intros j HJ; unfold frame_input_bit_at.
+  assert (HQ : (64 * k + j) / 64 = k).
+  { symmetry; apply Z.div_unique with (r := j); lia. }
+  assert (HR : (64 * k + j) mod 64 = j).
+  { pose proof (Z.div_mod (64 * k + j) 64 ltac:(lia)) as HD; rewrite HQ in HD; lia. }
+  rewrite HQ, HR; split; [lia|]; split; [lia|].
+  exists (Int64.repr (@toZ (WordToZ 6) x)); split; [exact HL|].
+  pose proof (wv_testbit x (63 - j) ltac:(lia)) as HT.
+  unfold Int64.testbit in HT; rewrite HT; reflexivity.
+Qed.
+
+(** Shared list/encoding decomposition, independent of SHA and C execution. *)
+Lemma frame_input_word_list {n} m bi edge cursor (xs : list (Ty.tySem (Word n))) :
+  frame_input_cells_at m bi edge cursor (concat (map (@encode (Word n)) xs)) <->
+  forall i x, nth_error xs i = Some x ->
+    frame_input_word_at m bi edge (cursor + Z.of_nat (Nat.pow 2 n) * Z.of_nat i) x.
+Proof.
+  revert cursor; induction xs as [|x xs IH]; intro cursor.
+  - split; [intros _ i y HY; destruct i; discriminate|intros _ i c HC; destruct i; discriminate].
+  - change (frame_input_cells_at m bi edge cursor (encode x ++ concat (map (@encode (Word n)) xs)) <->
+      forall i y, nth_error (x :: xs) i = Some y ->
+        frame_input_word_at m bi edge (cursor + Z.of_nat (Nat.pow 2 n) * Z.of_nat i) y).
+    rewrite frame_input_cells_at_app, encode_word_length, <- frame_input_word_at_encode, IH.
+    split.
+    + intros [HH HT] [|i] y HY.
+      * cbn in HY; injection HY as <-.
+        replace (cursor + Z.of_nat (Nat.pow 2 n) * Z.of_nat 0) with cursor by lia; exact HH.
+      * cbn in HY.
+        replace (cursor + Z.of_nat (Nat.pow 2 n) * Z.of_nat (S i)) with
+          (cursor + Z.of_nat (Nat.pow 2 n) + Z.of_nat (Nat.pow 2 n) * Z.of_nat i) by lia.
+        exact (HT i y HY).
+    + intro H; split.
+      * pose proof (H O x eq_refl) as HH.
+        replace (cursor + Z.of_nat (Nat.pow 2 n) * Z.of_nat 0) with cursor in HH by lia; exact HH.
+      * intros i y HY; pose proof (H (S i) y HY) as HT.
+        replace (cursor + Z.of_nat (Nat.pow 2 n) * Z.of_nat (S i)) with
+          (cursor + Z.of_nat (Nat.pow 2 n) + Z.of_nat (Nat.pow 2 n) * Z.of_nat i) in HT by lia; exact HT.
+Qed.
+
+Definition sha_input_slots (b : block) (xs : list (Ty.tySem (Word 6))) (start n : nat) :=
+  map (fun i => (b, 8 * (Z.of_nat (length xs) - 1 - Z.of_nat i),
+    wv (nth i xs (@fromZ (WordToZ 6) 0)))) (seq start n).
+
+Lemma sha_input_slots_separated b xs start n :
+  ForallOrdPairs word_sep (sha_input_slots b xs start n).
+Proof.
+  revert start; induction n as [|n IH]; intro start.
+  - constructor.
+  - unfold sha_input_slots; cbn [seq map]; constructor.
+    + rewrite Forall_forall; intros x HX; apply in_map_iff in HX.
+      destruct HX as [i [HE HI]]; subst x; apply in_seq in HI.
+      cbn [word_sep]; right; right; lia.
+    + apply IH.
+Qed.
+
+Theorem sha_private_setup_input_words m owned (xs : list (Ty.tySem (Word 6))) :
+  sha_private_setup m owned -> 64 * Z.of_nat (length xs) <= Int64.max_unsigned ->
+  8 * Z.of_nat (length xs) <= Ptrofs.max_unsigned ->
+  exists mf bi,
+    sha_private_setup mf (bi :: owned) /\
+    Mem.valid_block mf bi /\
+    frame_input_cells_at mf bi (8 * Z.of_nat (length xs)) 0 (concat (map (@encode (Word 6)) xs)) /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk mf b ofs = Mem.load chunk m b ofs) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  intros HS HM HP.
+  destruct (Mem.alloc m 0 (8 * Z.of_nat (length xs))) as [ma bi] eqn:HA.
+  assert (HFresh : ~ Mem.valid_block m bi) by (eapply Mem.fresh_block_alloc; exact HA).
+  assert (HSA : sha_private_setup ma (bi :: owned)) by (eapply sha_setup_alloc; eassumption).
+  assert (VA : forall i, (i < length xs)%nat ->
+    Mem.valid_access ma Mint64 bi (8 * (Z.of_nat (length xs) - 1 - Z.of_nat i)) Writable).
+  { intros i HI; eapply Mem.valid_access_implies.
+    - eapply Mem.valid_access_alloc_same; [exact HA|lia|change (8 * (Z.of_nat (length xs) - 1 - Z.of_nat i) + 8 <= 8 * Z.of_nat (length xs)); lia|].
+      change (8 | 8 * (Z.of_nat (length xs) - 1 - Z.of_nat i)); exists (Z.of_nat (length xs) - 1 - Z.of_nat i); lia.
+    - constructor. }
+  assert (HO : forall b ofs v, In (b, ofs, v) (sha_input_slots bi xs 0 (length xs)) -> In b (bi :: owned)).
+  { intros b ofs v HI; unfold sha_input_slots in HI; apply in_map_iff in HI.
+    destruct HI as [i [HE HI]]; inversion HE; subst; left; reflexivity. }
+  assert (HW : forall b ofs v, In (b, ofs, v) (sha_input_slots bi xs 0 (length xs)) ->
+    Mem.valid_access ma Mint64 b ofs Writable).
+  { intros b ofs v HI; unfold sha_input_slots in HI; apply in_map_iff in HI.
+    destruct HI as [i [HE HI]]; inversion HE; subst; apply VA; apply in_seq in HI; lia. }
+  destruct (sha_private_store_words ma (bi :: owned) (sha_input_slots bi xs 0 (length xs))
+    HSA (sha_input_slots_separated bi xs 0 (length xs)) HO HW)
+    as [mf [HSF [HL [HPS [HN HOutside]]]]].
+  exists mf, bi; split; [exact HSF|]; split.
+  - unfold Mem.valid_block; rewrite HN; eapply Mem.valid_new_block; exact HA.
+  - split.
+    + rewrite frame_input_word_list; intros i x HI.
+      assert (HIL : (i < length xs)%nat) by (apply nth_error_Some; rewrite HI; discriminate).
+      apply frame_input_word_at_encode.
+      replace (0 + Z.of_nat (Nat.pow 2 6) * Z.of_nat i) with (64 * Z.of_nat i) by reflexivity.
+      apply frame_input_word64_aligned_load; [lia|lia|lia|].
+      pose proof (HL bi (8 * (Z.of_nat (length xs) - 1 - Z.of_nat i))
+        (wv (nth i xs (@fromZ (WordToZ 6) 0)))) as HLoad.
+      assert (HIW : In (bi, 8 * (Z.of_nat (length xs) - 1 - Z.of_nat i),
+        wv (nth i xs (@fromZ (WordToZ 6) 0))) (sha_input_slots bi xs 0 (length xs))).
+      { unfold sha_input_slots; apply in_map_iff; exists i; split; [reflexivity|apply in_seq; lia]. }
+      specialize (HLoad HIW).
+      assert (HNth : nth i xs (@fromZ (WordToZ 6) 0) = x) by
+        (eapply nth_error_nth; exact HI).
+      rewrite HNth in HLoad.
+      replace (8 * Z.of_nat (length xs) - 8 * (1 + Z.of_nat i)) with
+        (8 * (Z.of_nat (length xs) - 1 - Z.of_nat i)) by lia.
+      exact HLoad.
+    + split.
+      * intros chunk b ofs HV; rewrite HOutside.
+        -- eapply Mem.load_alloc_unchanged; [exact HA|exact HV].
+        -- intros wb wo wv HI; unfold sha_input_slots in HI; apply in_map_iff in HI.
+           destruct HI as [i [HE HI]]; inversion HE; subst; left.
+           intro HB; subst b; contradiction.
+      * intros b HV; unfold Mem.valid_block; rewrite HN; eapply Mem.valid_block_alloc; [exact HA|exact HV].
+Qed.
+
+Definition sha_block_input_words (a : Ty.tySem (Ty.Prod Word256 Word512)) :=
+  vector_values (Word 6) 2 (fst a) ++ vector_values (Word 6) 3 (snd a).
+
+Lemma sha_block_input_words_length a : length (sha_block_input_words a) = 12%nat.
+Proof. unfold sha_block_input_words; rewrite app_length, !vector_values_length; reflexivity. Qed.
+
+Lemma sha_block_input_words_encoding a :
+  encode a = concat (map (@encode (Word 6)) (sha_block_input_words a)).
+Proof.
+  destruct a as [h b]; unfold sha_block_input_words; cbn [fst snd].
+  rewrite map_app, concat_app.
+  rewrite <- (encode_vector_values (Word 6) 2 h), <- (encode_vector_values (Word 6) 3 b).
+  reflexivity.
+Qed.
+
+Theorem sha_private_setup_block_input m owned (a : Ty.tySem (Ty.Prod Word256 Word512)) :
+  sha_private_setup m owned ->
+  exists mi bi,
+    sha_private_setup mi (bi :: owned) /\
+    Mem.valid_block mi bi /\
+    frame_input_cells_at mi bi 96 0 (encode a) /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk mi b ofs = Mem.load chunk m b ofs) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mi b).
+Proof.
+  intro HS.
+  assert (HM : 64 * Z.of_nat (length (sha_block_input_words a)) <= Int64.max_unsigned).
+  { rewrite sha_block_input_words_length; change (768 <= 18446744073709551615); lia. }
+  assert (HP : 8 * Z.of_nat (length (sha_block_input_words a)) <= Ptrofs.max_unsigned).
+  { rewrite sha_block_input_words_length; change (96 <= 18446744073709551615); lia. }
+  destruct (sha_private_setup_input_words m owned (sha_block_input_words a) HS HM HP)
+    as [mi [bi [HF [HB [HI [HL HV]]]]]].
+  exists mi, bi; split; [exact HF|]; split; [exact HB|]; split.
+  - rewrite sha_block_input_words_encoding.
+    rewrite sha_block_input_words_length in HI; exact HI.
+  - split; assumption.
+Qed.
+
+Require Import C.jet_frame_layout C.jet_output_layout C.jet_write_layout.
+Require Import C.jets_sha C.jet_sha_linkage C.jet_sha_block_local.
+Require Import JetStartupReview.jet_sha_persistent_globals.
+From compcert Require Import Ctypes Clight ClightBigstep Events.
+
+(** Complete canonical block call from operational startup provenance and a
+    pure Simplicity input. Input/output backing stores and both frame records
+    are constructed. This is a fresh-setup existence theorem, not an assertion
+    that all evaluator process histories have that provenance. *)
+Theorem sha_256_block_from_constructed_storage m owned
+    (a : Ty.tySem (Ty.Prod Word256 Word512)) (seed : int64) :
+  sha_private_setup m owned ->
+  exists ms bi bs bd bw,
+    sha_private_setup ms (bd :: bs :: bw :: bi :: owned) /\
+    (forall chunk b ofs, Mem.valid_block m b ->
+      Mem.load chunk ms b ofs = Mem.load chunk m b ofs) /\
+    forall env, exists mf,
+      Clight2.eval_funcall sha_ge ms (Internal f_simplicity_sha_256_block)
+        [Vptr bd (Ptrofs.repr 0); Vptr bs (Ptrofs.repr 0); env]
+        E0 mf (Vint Int.one) /\
+      frame_output_cells_at mf bw 0 256 (encode (sha_256_block_spec a)) /\
+      write_prefix_at ms mf bw 0 256 /\
+      frame_fields_at mf bd 0 bw 0 0 /\
+      (forall chunk b ofs, Mem.valid_block ms b ->
+        (b <> bd \/ ofs + size_chunk chunk <= 8 \/ 16 <= ofs) ->
+        (b <> bw \/ ofs + size_chunk chunk <= 0 \/ write_word_address 0 256 + 8 <= ofs) ->
+        Mem.load chunk mf b ofs = Mem.load chunk ms b ofs) /\
+      sha_persistent_global_state mf.
+Proof.
+  intro HS.
+  destruct (sha_private_setup_block_input m owned a HS)
+    as [mi [bi [HISetup [HBI [HI [HL HV]]]]]].
+  assert (HCursor : 0 + Z.of_nat (Translate.bitSize (Ty.Prod Word256 Word512)) <= Int64.max_unsigned).
+  { change (768 <= 18446744073709551615); lia. }
+  destruct (sha_256_block_with_fresh_output mi (bi :: owned) bi 96 0 seed a
+    HISetup HBI ltac:(lia) HCursor HI)
+    as [ms [bs [bd [bw [HF [HP HCall]]]]]].
+  exists ms, bi, bs, bd, bw; split; [exact HF|]; split; [|exact HCall].
+  intros chunk b ofs HB; rewrite HP by (apply HV; exact HB); apply HL; exact HB.
+Qed.

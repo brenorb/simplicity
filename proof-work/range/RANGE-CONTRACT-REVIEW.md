@@ -1,5 +1,9 @@
 # Range correction: scoped contract review
 
+Local integration: signed commit `805cb19e` is now merged into
+`feat/jet-equivalence`; integration-branch references below are historical.
+Newer proof work is preserved separately in the checkout.
+
 Status: reconciled candidate fully accepted (54683, exit 0); all 149 guarded
 changes integrated exactly on `codex/range-integration`, with a matching full
 proof-input fingerprint. The subsequent original checkout acceptance (24458)
