@@ -43,12 +43,13 @@ lemmas using exact unsigned-word semantics and modular arithmetic. The canonical
 Haskell programs remain pinned and unchanged; the final output/failure/memory
 conclusions are preserved.
 
-The monetary proof fields have now been removed, empty output lists admitted,
-and the fee direction corrected. The amount-reading proofs use an unconditional
+(Superseded: this edit to the frozen `Bitcoin.v` was reverted to keep the
+target pinned. The frozen model keeps its monetary fields and reversed fee
+direction; see `JET_BITCOIN_MODEL_MISMATCHES.md`.) The amount-reading proofs use an unconditional
 signed/unsigned Word64 equality. Total and fee cache representations compare
 modulo 2^64, including aggregate overflow, rather than imposing equality with an
-unbounded integer. `jet_bitcoin_value_domain.v` proves the unsigned-sum bridge
-and constructibility of positive-fee, zero-output and high-bit inputs. Targeted
+unbounded integer. `jet_bitcoin_value_domain.v` proves the unsigned-sum bridge.
+The constructibility witnesses were removed because they are false for the frozen model. Targeted
 compilation passes in `/tmp/jet-bitcoin-domain-callers.log`,
 `/tmp/jet-bitcoin-modular-totals.log` and `/tmp/jet-bitcoin-value-domain.log`.
 
