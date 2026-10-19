@@ -1,6 +1,7 @@
 (** Exact Word64 compatibility with canonical unsigned Bitcoin amounts.
-    These checks exercise domains that the former monetary proof fields
-    excluded: positive fees, empty outputs, high-bit values and overflow. *)
+    The frozen Coq model excludes positive fees, empty outputs and high-bit
+    values (see JET_BITCOIN_MODEL_MISMATCHES.md), so no representability
+    witnesses for them are stated here. *)
 From Coq Require Import ZArith List Lia.
 From compcert Require Import Integers.
 Require Import Simplicity.Ty Simplicity.Word Simplicity.Util.List.
@@ -39,43 +40,3 @@ Lemma bitcoin_total_output_unsigned tx :
   @fromZ (WordToZ 6) (sigTxTotalOutValue tx) =
   @fromZ (WordToZ 6) (Z_sum (map (fun o => Int64.unsigned (txoValue o)) (sigTxOut tx))).
 Proof. apply word64_eqm. apply signed_unsigned_sum_eqm. Qed.
-
-Definition domain_input (op : outpoint) (value : int64) : sigTxInput :=
-  {| sigTxiPreviousOutpoint := op; sigTxiValue := value; sigTxiSequence := Int.zero |}.
-
-Definition domain_output (value : int64) : txOutput.
-Proof.
-  refine {| txoValue := value; txoScript := [] |}.
-  change (0 < 4294967296). lia.
-Defined.
-
-Definition domain_transaction (op : outpoint) (value : int64) (outputs : list txOutput)
-    (Hout : 0 <= Zlength outputs < Int.modulus) : sigTx.
-Proof.
-  refine {| sigTxVersion := Int.zero; sigTxIn := [domain_input op value];
-    sigTxOut := outputs; sigTxLock := Int.zero; sigTxOutBounds := Hout |}.
-  change (0 < 1 < 4294967296). lia.
-Defined.
-
-Definition domain_positive_fee (op : outpoint) : sigTx.
-Proof.
-  refine (domain_transaction op (Int64.repr 10) [domain_output (Int64.repr 9)] _).
-  change (0 <= 1 < 4294967296). lia.
-Defined.
-
-Lemma bitcoin_positive_fee_representable op : sigTxFee (domain_positive_fee op) = 1.
-Proof. reflexivity. Qed.
-
-Definition domain_empty_outputs (op : outpoint) (value : int64) : sigTx.
-Proof.
-  refine (domain_transaction op value [] _).
-  change (0 <= 0 < 4294967296). lia.
-Defined.
-
-Lemma bitcoin_empty_outputs_representable op value :
-  sigTxOut (domain_empty_outputs op value) = [].
-Proof. reflexivity. Qed.
-
-Lemma bitcoin_high_bit_value_representable op :
-  sigTxiValue (domain_input op (Int64.repr (2 ^ 63))) = Int64.repr (2 ^ 63).
-Proof. reflexivity. Qed.

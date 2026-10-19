@@ -20,3 +20,10 @@ The canonical Bitcoin primitive namespace is `Bitcoin`; an extended Coq module
 does not create a new primitive namespace. Run the identity gate when changing
 the primitive interface. It checks identity, not the cryptographic correctness
 of cached hash values or their environment projection.
+
+Mismatches between upstream sources (production C, canonical Haskell, the
+frozen `Coq/Simplicity` model, or between any two of them) are evidence of
+possible upstream bugs for the Simplicity developers to evaluate. Report them,
+with closed evidence, in a `C/JET_*_MISMATCHES.md` report. Never correct the
+frozen sources, and never relax a gate to hide a mismatch. A gate may only list
+a reported mismatch exactly and print it on every run.

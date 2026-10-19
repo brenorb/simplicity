@@ -17,6 +17,11 @@ REPO = Path(os.environ.get("JET_C_REPO", COQ.parent))
 MODEL = COQ / "C/jet_bitcoin_ext_prim.v"
 BASE_MODEL = COQ / "Simplicity/Primitive/Bitcoin.v"
 CANONICAL = REPO / "Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs"
+# Reported upstream mismatch in the frozen base model, left uncorrected for the
+# Simplicity developers to evaluate (C/JET_BITCOIN_MODEL_MISMATCHES.md, M1):
+# constructor -> (frozen Coq name, canonical Haskell name). Only this exact pair
+# is tolerated, it must still be present, and it is printed on every run.
+KNOWN_BASE_NAME_MISMATCHES = {"LockTime": ("locktime", "lockTime")}
 scanner_spec = importlib.util.spec_from_file_location("jet_scanner", COQ / "scan-jet-proofs.py")
 scanner = importlib.util.module_from_spec(scanner_spec)
 scanner_spec.loader.exec_module(scanner)
@@ -77,8 +82,13 @@ def check(model=MODEL, canonical=CANONICAL, base_model=BASE_MODEL):
             continue
         if constructor not in canonical_types or normalize(signature) != normalize(canonical_types[constructor]):
             raise ValueError(f"Bitcoin base primitive type mismatch: {constructor}")
-        if base_names.get(constructor) != names.get(constructor):
+        pair = (base_names.get(constructor), names.get(constructor))
+        if pair[0] != pair[1] and KNOWN_BASE_NAME_MISMATCHES.get(constructor) != pair:
             raise ValueError(f"Bitcoin base primitive name mismatch: {constructor}")
+    for constructor, pair in KNOWN_BASE_NAME_MISMATCHES.items():
+        if (base_names.get(constructor), names.get(constructor)) != pair:
+            raise ValueError(f"recorded base primitive name mismatch no longer present: {constructor}; "
+                             "update C/JET_BITCOIN_MODEL_MISMATCHES.md and this list")
     covered = {c for c, _ in constructors} | {c for c, _ in base_constructors if c not in legacy}
     if covered != set(canonical_types):
         raise ValueError("Bitcoin canonical primitive constructor coverage differs")
@@ -90,4 +100,8 @@ if __name__ == "__main__":
         count = check()
     except (OSError, ValueError) as error:
         sys.exit(str(error))
-    print(f"Bitcoin primitive identities match canonical Haskell: {count} constructors")
+    for constructor, (coq, haskell) in KNOWN_BASE_NAME_MISMATCHES.items():
+        print(f"REPORTED upstream mismatch (not corrected): base {constructor} is "
+              f"{coq!r} in Coq, {haskell!r} in Haskell; see C/JET_BITCOIN_MODEL_MISMATCHES.md")
+    print(f"Bitcoin primitive identities match canonical Haskell apart from reported mismatches: "
+          f"{count} constructors")

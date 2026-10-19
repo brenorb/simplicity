@@ -63,7 +63,9 @@ derives the actual C precheck and avoids the helper's assertion-fail branch.
 
 `sigTxInBounds`/`sigTxOutBounds` retain the uint32 count range, matching the
 original raw transaction API (`C/include/simplicity/bitcoin/env.h:53–54`).
-Nonempty inputs follow from a valid current index. Zero outputs remain legal.
+Nonempty inputs follow from a valid current index. Zero outputs remain legal in
+the C representation, but the frozen Coq model requires at least one output and
+excludes positive-fee transactions (`JET_BITCOIN_MODEL_MISMATCHES.md`).
 These count bounds describe representable inputs to this C target, not the
 entire set of arbitrarily constructed Haskell vectors. No monetary range,
 positive fee or no-overflow assumption is used. Signed Coq amount representatives
