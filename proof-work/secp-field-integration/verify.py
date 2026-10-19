@@ -1,0 +1,163 @@
+"""Fresh reports and recursive kernel check of the regular-name candidate.
+
+This does not accept shared coverage. The exact 413 inherited theorem profiles
+are compared after the reversible module rename, not replaced by a broad union
+allowlist. Launch records are never treated as completed verification.
+"""
+import importlib.util
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+sp = importlib.util.spec_from_file_location('field_integration_assembly', HERE / 'assemble.py')
+a = importlib.util.module_from_spec(sp)
+sp.loader.exec_module(a)
+s = a.s
+g = s.load('field_integration_reports', HERE.parent / 'elements-tap-getters/check.py')
+
+
+def built():
+    work, r = a.identity()
+    b = json.loads((HERE / 'BUILT.json').read_text())
+    if not b['complete'] or b['preparation_sha256'] != s.sha((HERE / 'PREPARATION.json').read_bytes()):
+        raise ValueError('regular build not completed for these inputs')
+    for name, row in b['commands'].items():
+        if row['exit_code'] or row['log_sha256'] != s.sha((work / (name + '.log')).read_bytes()):
+            raise ValueError('regular build command/log changed')
+    for name, digest in b['source_objects'].items():
+        if s.sha((work / name).with_suffix('.vo').read_bytes()) != digest:
+            raise ValueError('regular built object changed: ' + name)
+    return work, r, b
+
+
+def inherited_profiles(mapping):
+    names = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', a.SOURCE_REV,
+        'proof-work'], cwd=a.REPO, text=True).splitlines()
+    profiles, inputs = {}, {}
+    for name in names:
+        if not name.endswith(('/CHECKED.json', '/RUN.json')):
+            continue
+        raw = a.blob(name)
+        record = json.loads(raw)
+        used = False
+        for theorem, axioms in record.get('dependencies', {}).items():
+            module, short = theorem.rsplit('.', 1)
+            if module not in mapping:
+                continue
+            new = mapping[module] + '.' + short
+            if new in profiles and profiles[new] != set(axioms):
+                raise ValueError('inconsistent recorded profile: ' + theorem)
+            profiles[new] = set(axioms)
+            used = True
+        if used:
+            inputs[name] = s.sha(raw)
+    return profiles, inputs
+
+
+def reports():
+    work, r, b = built()
+    if (HERE / 'REPORT-LAUNCH.json').exists():
+        raise ValueError('report phase already launched; poll original handle')
+    expected, inherited = inherited_profiles(r['module_renaming'])
+    modules = [(new, work / 'Coq' / (new.replace('.', '/') + '.v'))
+        for new in r['module_renaming'].values()]
+    declarations = {n for module, path in modules for n in g.declarations(path.read_text(), module)[0]}
+    if set(expected) != declarations or len(declarations) != 413:
+        raise ValueError('missing inherited exact assumption profiles')
+    s.changed({HERE / 'REPORT-LAUNCH.json': json.dumps(dict(candidate=str(work), complete=False,
+        built_sha256=s.sha((HERE / 'BUILT.json').read_bytes())), indent=2) + '\n'})
+    commands = {}
+    results, definitions, dependencies = g.reports(work, modules, 'integration', commands)
+    if dependencies != expected:
+        raise ValueError('regular-name theorem assumptions differ from checked originals')
+    root = r['root'] + '.fe_multiply_literal_local_spec'
+    if dependencies[root] != s.SIX:
+        raise ValueError('public endpoint does not retain exactly the six inherited assumptions')
+    command = ['bash', 'build-jets.sh', '--coqtop', '-quiet']
+    query = subprocess.run(command, input='Require ' + r['root'] + '.\nPrint Libraries.\n',
+        cwd=work / 'Coq', env=s.ENV, text=True, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT, timeout=60)
+    # Print Libraries includes nested module names; only explicit loaded-library
+    # lines beginning with C. or Simplicity. belong to the local closure.
+    loaded = set(re.findall(r'^\s+((?:C|Simplicity|Util)\.[\w.]+)\s*$', query.stdout, re.M))
+    wanted = {n.removeprefix('Coq/').removesuffix('.v').replace('/', '.') for n in r['sources']}
+    if query.returncode or re.search(r'(?m)^(?:Error|Anomaly):', query.stdout) or loaded != wanted:
+        raise ValueError('fresh loaded local closure differs: missing ' + str(sorted(wanted - loaded)) +
+            ', added ' + str(sorted(loaded - wanted)))
+    if any(old in query.stdout for old in r['module_renaming']):
+        raise ValueError('private namespace leaked into the ordinary build')
+    commands['original-targets'] = s.run(work, [sys.executable, '-B', 'check-jet-source-target.py'],
+        'integration-original-targets', 60)
+    built()
+    out = dict(candidate=str(work), built_sha256=s.sha((HERE / 'BUILT.json').read_bytes()),
+        verifier_sha256=s.sha(Path(__file__).read_bytes()), inherited_profile_inputs=inherited,
+        results=results, definitions=definitions, dependencies={n: sorted(ds) for n, ds in dependencies.items()},
+        commands=commands, loaded_source_modules=sorted(loaded), public_contract=root,
+        normal_registration=False, coverage_added=0, recursive_kernel_check=False)
+    s.changed({HERE / 'REPORTED.json': json.dumps(out, indent=2) + '\n',
+        HERE / 'loaded-libraries.log': query.stdout,
+        HERE / 'integration-assumptions.log': (work / 'integration-assumptions.log').read_text(),
+        HERE / 'integration-contracts.log': (work / 'integration-contracts.log').read_text(),
+        HERE / 'original-targets.log': (work / 'integration-original-targets.log').read_text()})
+    print('Fresh ordinary-module reports: 413 exact inherited profiles; 235 loaded source-built modules', flush=True)
+
+
+def reported():
+    work, r, b = built()
+    out = json.loads((HERE / 'REPORTED.json').read_text())
+    expected, inherited = inherited_profiles(r['module_renaming'])
+    if (out['built_sha256'] != s.sha((HERE / 'BUILT.json').read_bytes()) or
+            out['verifier_sha256'] != s.sha(Path(__file__).read_bytes()) or
+            out['inherited_profile_inputs'] != inherited or
+            {n: set(ds) for n, ds in out['dependencies'].items()} != expected):
+        raise ValueError('reported exact inputs/profiles changed')
+    for name, row in out['commands'].items():
+        stem = 'integration-original-targets' if name == 'original-targets' else name
+        if row['exit_code'] or row['log_sha256'] != s.sha((work / (stem + '.log')).read_bytes()):
+            raise ValueError('report command/log changed: ' + name)
+    for name in ['integration-assumptions.log', 'integration-contracts.log']:
+        if (HERE / name).read_bytes() != (work / name).read_bytes():
+            raise ValueError('archived report changed: ' + name)
+    return work, r, out
+
+
+def kernel():
+    work, r, out = reported()
+    if (HERE / 'KERNEL-LAUNCH.json').exists():
+        raise ValueError('kernel phase already launched; poll original handle')
+    command = ['bash', '-c', 'ulimit -s 65520; exec bash build-jets.sh --coqchk -silent -o ' + r['root']]
+    s.changed({HERE / 'KERNEL-LAUNCH.json': json.dumps(dict(candidate=str(work), command=command,
+        reported_sha256=s.sha((HERE / 'REPORTED.json').read_bytes()), complete=False), indent=2) + '\n'})
+    row = s.run(work, command, 'integration-kernel', 900)
+    text = (work / 'integration-kernel.log').read_text()
+    allowlist = (work / 'Coq/C/jet_coqchk_axioms.expected').read_text().split()
+    s.kernel.kernel(text, sorted(allowlist))
+    reported()
+    s.changed({HERE / 'CHECKED.json': json.dumps(dict(candidate=str(work),
+        reported_sha256=s.sha((HERE / 'REPORTED.json').read_bytes()), kernel=row,
+        recursive_kernel_check=True, normal_registration=False, coverage_added=0), indent=2) + '\n',
+        HERE / 'integration-kernel.log': text})
+    print('Recursive kernel check passed for the ordinary C.* field-multiply root', flush=True)
+
+
+def check():
+    work, r, out = reported()
+    checked = json.loads((HERE / 'CHECKED.json').read_text())
+    if (not checked['recursive_kernel_check'] or checked['kernel']['exit_code'] or
+            checked['reported_sha256'] != s.sha((HERE / 'REPORTED.json').read_bytes()) or
+            checked['kernel']['log_sha256'] != s.sha((work / 'integration-kernel.log').read_bytes()) or
+            (HERE / 'integration-kernel.log').read_bytes() != (work / 'integration-kernel.log').read_bytes()):
+        raise ValueError('completed kernel evidence changed')
+    s.kernel.kernel((work / 'integration-kernel.log').read_text(),
+        sorted((work / 'Coq/C/jet_coqchk_axioms.expected').read_text().split()))
+    print('Exact regular build, 413 theorem profiles, sources/objects and recursive kernel evidence verified')
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2 or sys.argv[1] not in {'reports', 'kernel', 'check'}:
+        raise SystemExit('usage: verify.py reports|kernel|check')
+    {'reports': reports, 'kernel': kernel, 'check': check}[sys.argv[1]]()
