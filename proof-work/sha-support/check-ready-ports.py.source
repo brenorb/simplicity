@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Compare reviewed context program ports with their frozen primary sources.
+
+This freezes a source-level review, not a machine-checked Haskell translation.
+The review's explicit dependency exclusions remain open. No update mode exists.
+"""
+import argparse
+import importlib.machinery
+import importlib.util
+import json
+from pathlib import Path
+import re
+
+
+def boundary_module(candidates):
+    file = candidates / "check-ready-boundary.py.source"
+    if not file.exists():
+        file = candidates / "check-ready-boundary.py"
+    loader = importlib.machinery.SourceFileLoader("ready_boundary", str(file))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def region(code, start, end):
+    if code.count(start) != 1:
+        raise ValueError(f"missing/duplicate implementation anchor: {start}")
+    begin = code.index(start)
+    if end is None:
+        return code[begin:]
+    if code.count(end) != 1:
+        raise ValueError(f"missing/duplicate implementation end: {end}")
+    finish = code.index(end)
+    if finish <= begin:
+        raise ValueError("reversed implementation region")
+    return code[begin:finish]
+
+
+def check(repo, candidates):
+    gate = boundary_module(candidates)
+    reference = json.loads((candidates / "ready-ports-review.json").read_text())
+    for record in reference["coq"]:
+        code = gate.uncomment((repo / "Coq" / record["path"]).read_text())
+        expected = record["declaration"]
+        kind = re.match(r"(Definition|Fixpoint)\b", expected).group(1)
+        if gate.declaration(code, kind, record["name"]) != gate.norm(expected):
+            raise ValueError(f"reviewed typed Coq port changed: {record['name']}")
+    for record in reference["haskell"]:
+        code = gate.haskell_code((repo / record["path"]).read_text())
+        actual = region(code, record["start"], record["end"])
+        if gate.norm(actual) != gate.norm(gate.haskell_code(record["text"])):
+            raise ValueError(f"reviewed Haskell implementation/type region changed: {record['start']}")
+    return len(reference["coq"]), len(reference["haskell"])
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, required=True)
+    parser.add_argument("--candidates", type=Path, required=True)
+    args = parser.parse_args()
+    try:
+        coq, haskell = check(args.repo, args.candidates)
+    except (ValueError, OSError) as error:
+        parser.exit(1, f"SHA ready port gate: {error}\n")
+    print(f"Reviewed SHA ports match: {coq} typed Coq declarations, {haskell} Haskell implementation/type regions")
+    print("Underlying hash/word/assertion definitions and domain/acceptance review remain separate.")

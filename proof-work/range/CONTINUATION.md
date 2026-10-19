@@ -1,5 +1,9 @@
 # Consumer repair continuation (2026-10-09)
 
+Local integration: signed commit `805cb19e` is now merged into
+`feat/jet-equivalence`; integration-branch references below are historical.
+Newer proof work is preserved separately in the checkout.
+
 ## Current status (authoritative)
 
 The exact repaired candidate is now assembled on `codex/range-integration`.

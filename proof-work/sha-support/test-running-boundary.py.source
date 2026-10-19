@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+"""Negative fixtures for composable SHA adapter and invariant boundaries."""
+import argparse
+import importlib.machinery
+import importlib.util
+from pathlib import Path
+import re
+import tempfile
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo", type=Path, required=True)
+    parser.add_argument("--candidates", type=Path, required=True)
+    args = parser.parse_args()
+    path = args.candidates / "check-running-boundary.py.source"
+    if not path.exists():
+        path = args.candidates / "check-running-boundary.py"
+    loader = importlib.machinery.SourceFileLoader("running_boundary", str(path))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    gate = importlib.util.module_from_spec(spec)
+    loader.exec_module(gate)
+    assert gate.check(args.repo, args.candidates) == 12
+    files = ["jet_sha_partial_running.v", "jet_sha_partial_ready.v",
+             "jet_sha_private_setup.v", "jet_sha_persistent_globals.v"]
+    sources = {file + ".source": gate.source(args.candidates, file) for file in files}
+    running = "jet_sha_partial_running.v.source"
+    invariant = "jet_sha_persistent_globals.v.source"
+    catalog = "Haskell/Core/Simplicity/CoreJets.hs"
+    sources[catalog] = (args.repo / catalog).read_text()
+    mutations = []
+    names = re.findall(r"\bTheorem (sha_ctx8_\w+_running_spec)\b", sources[running])
+    for name in names:
+        old = f"Theorem {name} : memcpy_model ->"
+        mutations.append((running, old, f"Theorem {name} : False -> memcpy_model ->"))
+    mutations.extend([
+        (running, "sha_partial_state_spec sha_persistent_global_state f_simplicity_sha_256_ctx_8_add_1", "sha_partial_state_spec sha_ready_memory f_simplicity_sha_256_ctx_8_add_1"),
+        (running, "f_simplicity_sha_256_ctx_8_finalize\n", "f_simplicity_sha_256_ctx_8_init\n"),
+        (running, "@ctx8_addn_spec 9 optalg", "@ctx8_addn_spec 8 optalg"),
+        (running, "Theorem sha_ctx8_finalize_running_spec : memcpy_model ->", "Theorem sha_ctx8_finalize_running_spec :"),
+        (invariant, "sha_globals_ok m /\\", "True /\\"),
+        (invariant, "ofs Max Writable", "ofs Cur Writable"),
+        (invariant, "0 <= ofs < 8", "0 <= ofs < 16"),
+        (invariant, "sha_symbol_block _sha256_max_counter", "sha_symbol_block _simplicity_sha256_compression"),
+    ])
+    old = "Theorem sha_ctx8_finalize_running_spec : memcpy_model ->"
+    mutations.append((running, old, "(* (* nested *) " + old + " *)"))
+    with tempfile.TemporaryDirectory(prefix="sha-running-boundary-") as temporary:
+        root = Path(temporary)
+        (root / catalog).parent.mkdir(parents=True)
+        # Reuse the checker code, not its source-data references.
+        checker = args.candidates / "check-ready-boundary.py.source"
+        if not checker.exists():
+            checker = args.candidates / "check-ready-boundary.py"
+        (root / "check-ready-boundary.py.source").write_text(checker.read_text())
+        for file, text in sources.items():
+            (root / file).write_text(text)
+        assert gate.check(root, root) == 12
+        for file, old, new in mutations:
+            assert old in sources[file], old
+            (root / file).write_text(sources[file].replace(old, new, 1))
+            try:
+                gate.check(root, root)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"accepted mutation: {old}")
+            (root / file).write_text(sources[file])
+        assert gate.check(root, root) == 12
+    print(f"SHA running boundary gate rejected {len(mutations)} mutations")
+
+
+if __name__ == "__main__":
+    main()
