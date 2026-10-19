@@ -1,0 +1,56 @@
+(** Static closure of the actual original scalar-lambda C call graph. *)
+From Coq Require Import ZArith List.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events Globalenvs.
+Require Import C.jets_secp C.jet_secp_linkage C.jet_clight_internal_frame C.jet_clight_internal_preserve.
+Import ListNotations.
+Set Default Timeout 10.
+Definition lambda_internal_table : list (ident * function) :=
+  [(_LSBclear, f_LSBclear);
+   (_LSBkeep, f_LSBkeep);
+   (_read8s, f_read8s);
+   (_read_scalar, f_read_scalar);
+   (_secp256k1_scalar_check_overflow, f_secp256k1_scalar_check_overflow);
+   (_secp256k1_scalar_get_b32, f_secp256k1_scalar_get_b32);
+   (_secp256k1_scalar_mul, f_secp256k1_scalar_mul);
+   (_secp256k1_scalar_mul_512, f_secp256k1_scalar_mul_512);
+   (_secp256k1_scalar_reduce, f_secp256k1_scalar_reduce);
+   (_secp256k1_scalar_reduce_512, f_secp256k1_scalar_reduce_512);
+   (_secp256k1_scalar_set_b32, f_secp256k1_scalar_set_b32);
+   (_secp256k1_u128_accum_mul, f_secp256k1_u128_accum_mul);
+   (_secp256k1_u128_accum_u64, f_secp256k1_u128_accum_u64);
+   (_secp256k1_u128_from_u64, f_secp256k1_u128_from_u64);
+   (_secp256k1_u128_hi_u64, f_secp256k1_u128_hi_u64);
+   (_secp256k1_u128_mul, f_secp256k1_u128_mul);
+   (_secp256k1_u128_rshift, f_secp256k1_u128_rshift);
+   (_secp256k1_u128_to_u64, f_secp256k1_u128_to_u64);
+   (_secp256k1_umul128, f_secp256k1_umul128);
+   (_simplicity_read8, f_simplicity_read8);
+   (_simplicity_scalar_multiply_lambda, f_simplicity_scalar_multiply_lambda);
+   (_simplicity_write8, f_simplicity_write8);
+   (_write8s, f_write8s);
+   (_write_scalar, f_write_scalar)].
+Lemma lambda_internal_table_correct : internal_table_ok secp_ge lambda_internal_table.
+Proof.
+  intros id fd HL; apply internal_lookup_in in HL.
+  cbn [lambda_internal_table In] in HL.
+  repeat destruct HL as [HE|HL]; try contradiction; inversion HE; subst id fd; clear HE.
+  all: split.
+  all: try solve [match goal with |- exists b, Genv.find_symbol _ ?id = Some b /\ _ =>
+    exists (secp_symbol_block id) end; split; vm_compute; reflexivity].
+  all: split; vm_compute; reflexivity.
+Qed.
+Lemma lambda_public_allowed : allowed_call lambda_internal_table (Internal f_simplicity_scalar_multiply_lambda).
+Proof. exists _simplicity_scalar_multiply_lambda, f_simplicity_scalar_multiply_lambda; split; reflexivity. Qed.
+Lemma lambda_reader_allowed : allowed_call lambda_internal_table (Internal f_read_scalar).
+Proof. exists _read_scalar, f_read_scalar; split; reflexivity. Qed.
+Lemma lambda_writer_allowed : allowed_call lambda_internal_table (Internal f_write_scalar).
+Proof. exists _write_scalar, f_write_scalar; split; reflexivity. Qed.
+Lemma lambda_mul_allowed : allowed_call lambda_internal_table (Internal f_secp256k1_scalar_mul).
+Proof. exists _secp256k1_scalar_mul, f_secp256k1_scalar_mul; split; reflexivity. Qed.
+Theorem lambda_graph_call_preserves m f args t mf result :
+  allowed_call lambda_internal_table f ->
+  Clight2.eval_funcall secp_ge m f args t mf result -> readonly_preserved m mf.
+Proof.
+  intros HA HC; exact (proj2 (internal_exec_preserved secp_ge lambda_internal_table lambda_internal_table_correct)
+    m f args t mf result HC HA).
+Qed.
