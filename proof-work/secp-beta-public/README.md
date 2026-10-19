@@ -1,5 +1,9 @@
 # Complete original C beta jet against the literal specification
 
+Ordinary-module follow-up: `../secp-beta-integration/README.md` records the
+exact reversible promotion and fresh normal build. Its separate receipts
+determine completed integration verification; this proof packet is unchanged.
+
 The endpoint is
 `BetaPublic.Local.fe_multiply_beta_initialized_local_spec`:
 
