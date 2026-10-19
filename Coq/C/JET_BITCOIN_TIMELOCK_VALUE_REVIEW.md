@@ -67,10 +67,11 @@ Nonempty inputs follow from a valid current index. Zero outputs remain legal in
 the C representation, but the frozen Coq model requires at least one output and
 excludes positive-fee transactions (`JET_BITCOIN_MODEL_MISMATCHES.md`).
 These count bounds describe representable inputs to this C target, not the
-entire set of arbitrarily constructed Haskell vectors. No monetary range,
-positive fee or no-overflow assumption is used. Signed Coq amount representatives
-encode all Word64 values; `jet_bitcoin_value_domain.v` proves unsigned-sum
-correspondence. Totals and fee wrap modulo 2^64, including underflow.
+entire set of arbitrarily constructed Haskell vectors. The monetary-range and
+fee bounds are those of the frozen model's record fields, so they are part of
+every Bitcoin-environment theorem's domain (`JET_BITCOIN_MODEL_MISMATCHES.md`,
+M2/M3). The modular-total variant written for the edited model was rewound on
+2026-10-19.
 
 The common initial frame predicates require valid addresses, source encoding,
 representable cursor movement and writable output capacity. The footprint
