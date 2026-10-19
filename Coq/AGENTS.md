@@ -25,9 +25,12 @@ Mismatches between upstream sources (production C, canonical Haskell, the
 frozen `Coq/Simplicity` model, or between any two of them) are evidence of
 possible upstream bugs for the Simplicity developers to evaluate. Report them,
 with closed evidence, in a `C/JET_*_MISMATCHES.md` report. Never correct the
-frozen sources, and never relax a gate to hide a mismatch. A gate may only list
-a reported mismatch exactly and print it on every run.
+frozen sources, and never relax a gate to hide a mismatch. Gates fail on any
+mismatch that is not documented in a report. A documented mismatch is listed
+exactly and printed on every run, and it does not block unrelated work.
 
-Do not commit build, compile, kernel or audit logs (`*.log` is ignored under
-`Coq/` and `proof-work/`). Keep them outside the repository. A packet's README
-records the command, exit statuses and axiom result needed to reproduce a run.
+Evidence is the commit plus one reproducible command (`bash Coq/check-jets.sh
+--accept`, or a scoped equivalent). Do not commit logs, receipts or run records
+(`*.log`, `RUN.json`, `CHECKED.json` and similar). Write run output to a
+temporary directory outside the repository. Anyone can regenerate it by
+rerunning the command on the commit.
