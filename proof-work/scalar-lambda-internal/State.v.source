@@ -1,0 +1,54 @@
+(** Preserve the actual lambda global through the checked internal call graph.
+    No external-call-properties or final-readability premise is used. *)
+From Coq Require Import ZArith List.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import C.jet_sx_mem C.jet_secp_linkage C.jets_secp C.jet_clight_readonly_frame.
+Require Import C.jet_clight_internal_frame C.jet_clight_internal_preserve.
+Require Import C.jet_secp_scalar_lambda_global C.jet_secp_scalar_lambda_initialized.
+Require Import LambdaInternal.Graph.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque scalar_lambda_block secp_ge.
+
+Lemma lambda_global_unchanged m mf : scalar_lambda_initialized m -> readonly_preserved m mf ->
+  Mem.unchanged_on (fun b _ => b = scalar_lambda_block) m mf.
+Proof.
+  intros [[HV [HP HL]] HB] [HForward HU].
+  eapply Mem.unchanged_on_implies; [exact HU|].
+  intros b ofs -> HValid; split; [exact HV|].
+  intro HW; destruct (proj1 (HB ofs Max Writable) HW) as [_ HO]; inversion HO.
+Qed.
+
+Theorem lambda_initialized_preserved m mf :
+  scalar_lambda_initialized m -> readonly_preserved m mf -> scalar_lambda_initialized mf.
+Proof.
+  intros HReady HFrame; pose proof (lambda_global_unchanged m mf HReady HFrame) as HG.
+  destruct HReady as [[HV [HP HL]] HB].
+  pose proof (lframe_unchanged _ _ _ HG) as [HLoads [HPerms HValid]].
+  split.
+  - split; [exact (HValid scalar_lambda_block HV)|]; split.
+    + intros ofs HOfs; eapply HPerms; [exact HV|reflexivity|apply HP; exact HOfs].
+    + intros i w HNth; rewrite HLoads; [exact (HL i w HNth)|exact HV|intros; reflexivity].
+  - intros ofs k p; split.
+    + intro HF; apply (proj1 (HB ofs k p)).
+      eapply Mem.perm_unchanged_on_2; [exact HG|reflexivity|exact HV|exact HF].
+    + intro HI; eapply Mem.perm_unchanged_on; [exact HG|reflexivity|apply (proj2 (HB ofs k p)); exact HI].
+Qed.
+
+Theorem lambda_graph_keeps_state m f args t mf result :
+  allowed_call lambda_internal_table f -> scalar_lambda_initialized m ->
+  Clight2.eval_funcall secp_ge m f args t mf result -> scalar_lambda_initialized mf.
+Proof.
+  intros HA HG HC; eapply lambda_initialized_preserved; [exact HG|].
+  exact (lambda_graph_call_preserves _ _ _ _ _ _ HA HC).
+Qed.
+
+Theorem lambda_graph_global_frame m f args t mf result :
+  allowed_call lambda_internal_table f -> scalar_lambda_initialized m ->
+  Clight2.eval_funcall secp_ge m f args t mf result ->
+  lframe (fun b _ => b = scalar_lambda_block) m mf.
+Proof.
+  intros HA HG HC; apply lframe_unchanged.
+  apply (lambda_global_unchanged m mf HG).
+  exact (lambda_graph_call_preserves _ _ _ _ _ _ HA HC).
+Qed.

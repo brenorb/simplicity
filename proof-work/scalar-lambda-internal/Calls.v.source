@@ -1,0 +1,42 @@
+(** The real lambda multiplication with precise framing from internal closure. *)
+From Coq Require Import ZArith List.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Word.
+Require Simplicity.Alg.
+Require Import C.jet_sx_state C.jet_sx_mem C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_canonical_scalar C.jet_secp_scalar_get_b32_numeric
+  C.jet_secp_scalar_get_b32_storage C.jet_secp_scalar_writer_run.
+Require Import C.jet_secp_scalar_mul_borrowed_alloc C.jet_secp_scalar_lambda_global
+  C.jet_secp_canonical_scalar_lambda C.jet_secp_scalar_lambda_from_reader
+  C.jet_secp_scalar_lambda_initialized C.jet_secp_scalar_lambda_readonly.
+Require Import C.jet_clight_readonly_frame LambdaInternal.Graph LambdaInternal.State.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque scalar_lambda_block secp_ge.
+
+Theorem eval_lambda_tight_frame_internal m ba (value : tySem (Word 8)) :
+  scalar_at m ba 0 (map Int64.repr (scalar_limbs_of
+    (@toZ (WordToZ 8) (@canonical_scalar_normalize Alg.CoreFunSem value)))) ->
+  Mem.range_perm m ba 0 32 Cur Freeable -> ba <> scalar_lambda_block ->
+  scalar_lambda_global_rep m -> readonly_region_bounds m scalar_lambda_block 0 32 ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_scalar_mul)
+      [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr scalar_lambda_block Ptrofs.zero] E0 mf Vundef /\
+    rep (scalar_limb_rho (@toZ (WordToZ 8)
+      (@canonical_scalar_multiply_lambda Alg.CoreFunSem value))) [(ba,0)] scalar_writer_initial_regs mf /\
+    Mem.range_perm mf ba 0 32 Cur Freeable /\ scalar_lambda_global_rep mf /\
+    readonly_region_bounds mf scalar_lambda_block 0 32 /\
+    lframe (fun block ofs => ~ foot [(ba,0)] (map rshape scalar_writer_initial_regs) block ofs) m mf.
+Proof.
+  intros SA PA Hneq HG HB.
+  destruct (eval_scalar_lambda_from_normalized_scalar m ba value SA PA Hneq HG)
+    as (mf & HC & HW & HFree & HGF & HF).
+  pose proof (lambda_graph_keeps_state _ _ _ _ _ _ lambda_mul_allowed (conj HG HB) HC) as [HGN HBN].
+  pose proof (lambda_graph_global_frame _ _ _ _ _ _ lambda_mul_allowed (conj HG HB) HC) as HGlobalFrame.
+  exists mf; split; [exact HC|]; split; [exact HW|]; split; [exact HFree|];
+    split; [exact HGN|]; split; [exact HBN|].
+  eapply lframe_add_block; [exact HF|exact HGlobalFrame|].
+  intros block ofs HNotGlobal HNotOutput HFoot.
+  destruct (scalar_lambda_borrowed_foot ba block ofs HFoot); contradiction.
+Qed.
