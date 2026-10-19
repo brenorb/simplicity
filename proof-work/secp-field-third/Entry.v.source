@@ -1,0 +1,63 @@
+(** No fresh frames at a checkpoint: derive entry from the existing state. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs Maps Values Memory.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_sx_rep C.jet_sx_revalue_cells.
+Require Import C.jets_secp FieldRun.Run.
+Require Import FieldCheckpoint.Prefix FieldCheckpoint.Atomic FieldCheckpoint.Bridge FieldCheckpoint.Machine.
+Require Import FieldSecond.State FieldSecond.Temps FieldSecond.Entry FieldSecond.Machine.
+Require Import FieldThird.State.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma second_regions_exact digits c d t3 : sregs (second_state digits c d t3) =
+  [mkreg (u64_cells 0 [XL (digits 0%nat); XL (digits 1%nat); XL (digits 2%nat); XL (digits 3%nat); XL (digits 4%nat)]) true (Some 40);
+   mkreg (u64_cells 0 [XL (digits 5%nat); XL (digits 6%nat); XL (digits 7%nat); XL (digits 8%nat); XL (digits 9%nat)]) true (Some 40);
+   mkreg (u64_cells 0 [XL (fst c); XL (snd c)]) true (Some 16);
+   mkreg (u64_cells 0 [fst (second_final_sy digits c d); snd (second_final_sy digits c d)]) true (Some 16)].
+Proof. reflexivity. Qed.
+
+Definition second_live_bindings digits c d t3 := second_bindings digits t3 ++
+  [(_t4, second_t4_sy digits c d); (_tx, second_tx_sy digits c d)].
+Lemma second_live_lookup digits c d t3 id x :
+  In (id,x) (second_live_bindings digits c d t3) -> (stemps (second_state digits c d t3))!id = Some x.
+Proof.
+  intro H; cbn [second_live_bindings second_bindings app In] in H.
+  repeat destruct H as [H|H]; try contradiction; inversion H; subst; timeout 10 reflexivity.
+Qed.
+Lemma second_live_values rho beta digits c d t3 :
+  binding_values rho beta (second_live_bindings digits c d t3) =
+  binding_values rho beta (third_bindings digits t3 (second_t4_machine digits c d) (second_tx_machine digits c d)).
+Proof.
+  unfold binding_values, second_live_bindings, third_bindings, second_bindings; cbn [app map fst snd].
+  rewrite second_t4_den, second_tx_den; reflexivity.
+Qed.
+
+Local Opaque second_state.
+Lemma second_to_third_tmatch rho beta digits c d t3 le :
+  tmatch rho beta (stemps (atomic_state rho beta (second_state digits c d t3))) le ->
+  tmatch rho beta (third_temps digits t3 (second_t4_machine digits c d) (second_tx_machine digits c d)) le.
+Proof.
+  intro HT; change (tmatch rho beta (atomic_temps rho beta (stemps (second_state digits c d t3))) le) in HT.
+  pose proof (atomic_tmatch_inverse rho beta _ le HT) as HR.
+  unfold third_temps; apply tmatch_bindings.
+  eapply bindings_transfer; [|apply second_live_values].
+  apply Forall_forall; intros [id x] HI; exact (HR id x (second_live_lookup digits c d t3 id x HI)).
+Qed.
+
+Lemma second_atomic_regs_exact rho beta digits c d t3 :
+  sregs (atomic_state rho beta (second_state digits c d t3)) = second_regs digits c (second_final_machine digits c d).
+Proof.
+  cbn [atomic_state sregs]; unfold atomic_regs; rewrite second_regions_exact.
+  cbn [map revalue_region rcells rw rfree].
+  change ([mkreg (u64_cells 0 [XL (digits 0%nat); XL (digits 1%nat); XL (digits 2%nat); XL (digits 3%nat); XL (digits 4%nat)]) true (Some 40);
+    mkreg (u64_cells 0 [XL (digits 5%nat); XL (digits 6%nat); XL (digits 7%nat); XL (digits 8%nat); XL (digits 9%nat)]) true (Some 40);
+    mkreg (u64_cells 0 [XL (fst c); XL (snd c)]) true (Some 16);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst (second_final_sy digits c d); snd (second_final_sy digits c d)])) true (Some 16)] =
+    second_regs digits c (second_final_machine digits c d)).
+  rewrite (atomic_values rho beta [fst (second_final_sy digits c d); snd (second_final_sy digits c d)]
+    [fst (second_final_machine digits c d); snd (second_final_machine digits c d)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (second_final_den rho (lay beta) digits c d) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (second_final_den rho (lay beta) digits c d) eq_refl); reflexivity. }
+  reflexivity.
+Qed.
