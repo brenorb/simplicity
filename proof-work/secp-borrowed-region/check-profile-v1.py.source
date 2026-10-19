@@ -1,0 +1,72 @@
+"""Fresh closed borrowed-region helpers against the unchanged checked basis."""
+import importlib.util
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+sp = importlib.util.spec_from_file_location('borrowed_checked_basis', HERE.parent / 'secp-field-integration/verify.py')
+v = importlib.util.module_from_spec(sp)
+sp.loader.exec_module(v)
+s, g = v.s, v.g
+ROOT = 'FieldBorrow.Borrow'
+
+
+def main():
+    if (HERE / 'LAUNCH.json').exists():
+        raise ValueError('borrowed helper check already launched; poll its existing handle')
+    v.check()
+    work, _, _ = v.reported()
+    source = work / 'borrowed-probe/Borrow.v'
+    if source.is_symlink() or source.read_bytes() != (HERE / 'Borrow.v.source').read_bytes():
+        raise ValueError('borrowed helper archive/source mismatch')
+    s.safe_source(source.read_text(), ROOT)
+    extra = ['-Q', str(source.parent), 'FieldBorrow']
+    before, staged = s.input_map(), s.index_hash()
+    s.changed({HERE / 'LAUNCH.json': json.dumps(dict(candidate=str(work), complete=False,
+        source_sha256=s.sha(source.read_bytes()), checker_sha256=s.sha(Path(__file__).read_bytes())), indent=2) + '\n'})
+    commands = {'compile': s.run(work, ['bash', 'build-jets.sh', '--coqc', '-q', *extra, str(source)],
+        'borrowed-compile', 60)}
+    results, definitions, deps = g.reports(work, [(ROOT, source)], 'borrowed', commands, extra)
+    if len(results) != 7 or len(definitions) != 2 or any(deps.values()):
+        raise ValueError('expected seven closed results and two transparent metadata definitions')
+    query = subprocess.run(['bash', 'build-jets.sh', '--coqtop', '-quiet', *extra],
+        input='Require ' + ROOT + '.\nPrint Libraries.\n', cwd=work / 'Coq', env=s.ENV,
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=60)
+    if query.returncode or re.search(r'(?m)^(?:Error|Anomaly):', query.stdout):
+        raise ValueError('borrowed loaded closure unavailable')
+    local = {}
+    for module in re.findall(r'^\s+((?:C|Simplicity|Util)\.[\w.]+)\s*$', query.stdout, re.M):
+        name = module.replace('.', '/') + '.v'
+        p = work / 'Coq' / name
+        local[name] = dict(source_sha256=s.sha(p.read_bytes()), object_sha256=s.sha(p.with_suffix('.vo').read_bytes()))
+    command = ['bash', '-c', 'ulimit -s 65520; exec bash build-jets.sh --coqchk -silent -o ' + ' '.join(extra + [ROOT])]
+    kernel = s.run(work, command, 'borrowed-kernel', 600)
+    text = (work / 'borrowed-kernel.log').read_text()
+    context = sorted(text.split('* Axioms:\n', 1)[1].split('* Constants/Inductives', 1)[0].split())
+    if not set(context) <= set((work / 'Coq/C/jet_coqchk_axioms.expected').read_text().split()):
+        raise ValueError('borrowed helper adds an unreviewed library axiom')
+    s.kernel.kernel(text, context)
+    v.check()
+    if before != s.input_map() or staged != s.index_hash():
+        raise ValueError('main inputs/staging changed during helper check')
+    result = dict(candidate=str(work), source_sha256=s.sha(source.read_bytes()),
+        object_sha256=s.sha(source.with_suffix('.vo').read_bytes()),
+        checker_sha256=s.sha(Path(__file__).read_bytes()),
+        parent_checked_sha256=s.sha((HERE.parent / 'secp-field-integration/CHECKED.json').read_bytes()),
+        results=results, definitions=definitions, dependencies={n: sorted(ds) for n, ds in deps.items()},
+        commands=commands, kernel=kernel, inherited_library_axiom_subset=context,
+        loaded_local_source_objects=local, main_inputs=before, staged_patch_sha256=staged,
+        recursive_kernel_check=True, whole_beta_jet_proved=False, coverage_added=0)
+    s.changed({HERE / 'CHECKED.json': json.dumps(result, indent=2) + '\n',
+        HERE / 'borrowed-assumptions.log': (work / 'borrowed-assumptions.log').read_text(),
+        HERE / 'borrowed-contracts.log': (work / 'borrowed-contracts.log').read_text(),
+        HERE / 'borrowed-kernel.log': text, HERE / 'loaded-libraries.log': query.stdout})
+    print('Seven closed borrowed-region helper proofs freshly compiled and recursively kernel-checked', flush=True)
+
+
+if __name__ == '__main__':
+    main()
