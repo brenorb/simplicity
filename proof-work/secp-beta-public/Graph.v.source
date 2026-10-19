@@ -1,0 +1,50 @@
+(** Static closure of the actual original public beta jet, reader and writer. *)
+From Coq Require Import ZArith List.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events Globalenvs.
+Require Import C.jets_secp C.jet_secp_linkage InternalFrame.Internal BetaPublic.Preserve.
+Import ListNotations.
+Set Default Timeout 10.
+Definition beta_internal_table : list (ident * function) :=
+  [(_LSBclear, f_LSBclear);
+   (_LSBkeep, f_LSBkeep);
+   (_read8s, f_read8s);
+   (_read_fe, f_read_fe);
+   (_secp256k1_fe_get_b32, f_secp256k1_fe_get_b32);
+   (_secp256k1_fe_mul, f_secp256k1_fe_mul);
+   (_secp256k1_fe_mul_inner, f_secp256k1_fe_mul_inner);
+   (_secp256k1_fe_normalize_var, f_secp256k1_fe_normalize_var);
+   (_secp256k1_fe_set_b32, f_secp256k1_fe_set_b32);
+   (_secp256k1_u128_accum_mul, f_secp256k1_u128_accum_mul);
+   (_secp256k1_u128_accum_u64, f_secp256k1_u128_accum_u64);
+   (_secp256k1_u128_mul, f_secp256k1_u128_mul);
+   (_secp256k1_u128_rshift, f_secp256k1_u128_rshift);
+   (_secp256k1_u128_to_u64, f_secp256k1_u128_to_u64);
+   (_secp256k1_umul128, f_secp256k1_umul128);
+   (_simplicity_fe_multiply_beta, f_simplicity_fe_multiply_beta);
+   (_simplicity_read8, f_simplicity_read8);
+   (_simplicity_write8, f_simplicity_write8);
+   (_write8s, f_write8s);
+   (_write_fe, f_write_fe)].
+Lemma beta_internal_table_correct : internal_table_ok secp_ge beta_internal_table.
+Proof.
+  intros id fd HL; apply internal_lookup_in in HL.
+  cbn [beta_internal_table In] in HL.
+  repeat destruct HL as [HE|HL]; try contradiction; inversion HE; subst id fd; clear HE.
+  all: split.
+  all: try solve [match goal with |- exists b, Genv.find_symbol _ ?id = Some b /\ _ =>
+    exists (secp_symbol_block id) end; split; vm_compute; reflexivity].
+  all: split; vm_compute; reflexivity.
+Qed.
+Lemma beta_public_allowed : allowed_call beta_internal_table (Internal f_simplicity_fe_multiply_beta).
+Proof. exists _simplicity_fe_multiply_beta, f_simplicity_fe_multiply_beta; split; reflexivity. Qed.
+Lemma beta_reader_allowed : allowed_call beta_internal_table (Internal f_read_fe).
+Proof. exists _read_fe, f_read_fe; split; reflexivity. Qed.
+Lemma beta_writer_allowed : allowed_call beta_internal_table (Internal f_write_fe).
+Proof. exists _write_fe, f_write_fe; split; reflexivity. Qed.
+Theorem beta_graph_call_preserves m f args t mf result :
+  allowed_call beta_internal_table f ->
+  Clight2.eval_funcall secp_ge m f args t mf result -> readonly_preserved m mf.
+Proof.
+  intros HA HC; exact (proj2 (internal_exec_preserved secp_ge beta_internal_table beta_internal_table_correct)
+    m f args t mf result HC HA).
+Qed.
