@@ -1,0 +1,37 @@
+(** The full original lambda call preserves its established startup state,
+    using only the statically verified internal call graph. *)
+From Coq Require Import ZArith List.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import C.jet_sx_mem C.jet_secp_linkage C.jets_secp C.jet_secp_frame
+  C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_encoding C.jet_frame_inv.
+Require Import C.jet_secp_scalar_lambda_global C.jet_secp_canonical_scalar_lambda
+  C.jet_secp_scalar_lambda_initialized.
+Require Import LambdaInternal.Graph LambdaInternal.State LambdaInternal.Public.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge canonical_scalar_multiply_lambda encode.
+
+Theorem eval_lambda_initialized_internal env m0 bd dbase bs sbase bw outedge cursor N bi edge rc
+    (value : tySem (Word 8)) :
+  scalar_lambda_initialized m0 ->
+  write_frame_at m0 bd dbase bw outedge cursor N -> 256 <= N ->
+  frame_base_valid sbase -> (8 | sbase) -> frame_fields_at m0 bs sbase bi edge rc ->
+  frame_input_cells_at m0 bi edge rc (map Some (frame_input_word_bits value)) ->
+  0 <= rc -> rc + 256 <= Int64.max_unsigned ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m0 (Internal f_simplicity_scalar_multiply_lambda)
+      [Vptr bd (Ptrofs.repr dbase);Vptr bs (Ptrofs.repr sbase);env] E0 mf (Vint Int.one) /\
+    finv m0 bd dbase bw outedge cursor N bi mf true
+      (encode (@canonical_scalar_multiply_lambda Alg.CoreFunSem value)) /\
+    lframe (fun b _ => ~ extA m0 bd bw bi b) m0 mf /\ scalar_lambda_initialized mf.
+Proof.
+  intros HReady HO HCap HBase HAlign HFields HI Hrc HM.
+  destruct HReady as [HG HB].
+  destruct (eval_scalar_lambda_canonical_internal env m0 bd dbase bs sbase bw outedge cursor N bi edge rc value
+    HO HCap HBase HAlign HFields HI Hrc HM HG HB) as (mf & HC & HFinal & HF).
+  exists mf; split; [exact HC|]; split; [exact HFinal|]; split; [exact HF|].
+  exact (lambda_graph_keeps_state _ _ _ _ _ _ lambda_public_allowed (conj HG HB) HC).
+Qed.
