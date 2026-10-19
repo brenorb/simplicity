@@ -1,0 +1,129 @@
+"""Scoped beta catalog, literal term, readiness and full-contract review.
+
+Source-review checks and in-memory negative fixtures are not formal C proofs.
+The separately checked whole-function theorem remains required.
+"""
+import importlib.util
+import os
+from pathlib import Path
+import re
+import sys
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+COQ = HERE.parent
+REPO = Path(os.environ.get('JET_C_REPO', COQ.parent))
+sp = importlib.util.spec_from_file_location('beta_source_parser', COQ / 'check-secp-predicates-specification.py')
+p = importlib.util.module_from_spec(sp)
+sp.loader.exec_module(p)
+sp = importlib.util.spec_from_file_location('beta_source_scanner', COQ / 'scan-jet-proofs.py')
+scanner = importlib.util.module_from_spec(sp)
+sp.loader.exec_module(scanner)
+
+
+def sources():
+    return {
+        'catalog': p.read_code(REPO / 'Haskell/Core/Simplicity/CoreJets.hs'),
+        'program': p.read_code(REPO / 'Haskell/Core/Simplicity/Programs/LibSecp256k1.hs'),
+        'constants': p.read_code(REPO / 'Haskell/Core/Simplicity/LibSecp256k1/Spec.hs'),
+        'global': scanner.code_only((COQ / 'C/jet_secp_beta_global.v').read_text()),
+        'port': scanner.code_only((COQ / 'C/jet_secp_beta_spec.v').read_text()),
+        'jet': scanner.code_only((COQ / 'C/jet_secp_beta_local.v').read_text()),
+    }
+
+
+def compact(text):
+    return re.sub(r'\s+', '', text)
+
+
+def body(source, name):
+    matches = re.findall(r'\bDefinition\s+' + re.escape(name) + r'\b.*?:=(.*?)\.\s*(?:\n|$)', source, re.S)
+    if len(matches) != 1:
+        raise ValueError('missing/duplicate beta definition: ' + name)
+    return matches[0]
+
+
+def require(source, fragment):
+    if compact(source).count(compact(fragment)) != 1:
+        raise ValueError('missing/ambiguous active beta binding: ' + fragment)
+
+
+def check(s):
+    require(s['catalog'], 'FeMultiplyBeta :: Secp256k1Jet Secp256k1.FE Secp256k1.FE')
+    require(s['catalog'], 'specificationSecp256k1 FeMultiplyBeta = Secp256k1.fe_multiply_beta')
+    require(s['catalog'], 'implementationSecp256k1 FeMultiplyBeta = FFI.fe_multiply_beta')
+    require(s['program'], 'fe_beta = scribe256 LibSecp256k1.beta')
+    implementation = s['program'].split('lib@Lib{..} = Lib {', 1)
+    hs = re.search(r'\bfe_multiply_beta\s*=(.*?)\n\s*,\s*fe_square\b', implementation[1], re.S) if len(implementation) == 2 else None
+    if not hs or compact(hs[1]) != compact('(unit >>> fe_beta) &&& iden >>> fe_multiply'):
+        raise ValueError('original beta implementation-record wiring differs')
+    beta = re.findall(r'^beta\s*=\s*(0x[0-9a-f]+)\s*$', s['constants'], re.M)
+    if beta != ['0x7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee']:
+        raise ValueError('frozen canonical beta constant differs')
+    expected_global = {
+        'beta_value': str(int(beta[0], 16)),
+        'beta_words': '[Int64.repr 2652195750478318; Int64.repr 2059588628732947; Int64.repr 3435101582848073; Int64.repr 124274446989802; Int64.repr 135142927197564]',
+        'beta_global_rep': 'Mem.valid_block m beta_block /\\ Mem.range_perm m beta_block 0 40 Cur Readable /\\ forall i w, nth_error beta_words i = Some w -> Mem.load Mint64 m beta_block (8 * Z.of_nat i) = Some (Vlong w)',
+        'beta_readonly_bounds': 'forall ofs k p, Mem.perm m beta_block ofs k p <-> 0 <= ofs < 40 /\\ perm_order Readable p',
+        'beta_initialized': 'beta_global_rep m /\\ beta_readonly_bounds m',
+    }
+    for name, wanted in expected_global.items():
+        if compact(body(s['global'], name)) != compact(wanted):
+            raise ValueError('actual global representation/readiness differs: ' + name)
+    expected_port = {
+        'beta_word': '@fromZ (WordToZ 8) beta_value',
+        'literal_fe_beta': 'Alg.scribe beta_word',
+        'literal_fe_multiply_beta': '(unit >>> @literal_fe_beta term) &&& iden >>> @literal_fe_multiply term',
+    }
+    for name, wanted in expected_port.items():
+        if compact(body(s['port'], name)) != compact(wanted):
+            raise ValueError('literal beta program differs: ' + name)
+    statements = re.findall(r'(?m)^Theorem fe_multiply_beta_initialized_local_spec\s*:(.*?)\bProof\.', s['jet'], re.S)
+    wanted = 'secp_jet_initialized_local_spec beta_initialized f_simplicity_fe_multiply_beta (Word 8) (Word 8) (@literal_fe_multiply_beta Alg.CoreFunSem).'
+    if len(statements) != 1 or compact(statements[0]) != compact(wanted):
+        raise ValueError('complete original beta C-to-literal contract differs')
+
+
+def test():
+    s = sources()
+    check(s)
+    mutations = [
+        ('catalog', 'FeMultiplyBeta :: Secp256k1Jet Secp256k1.FE Secp256k1.FE', 'FeMultiplyBeta :: Secp256k1Jet (Secp256k1.FE, Secp256k1.FE) Secp256k1.FE'),
+        ('catalog', 'specificationSecp256k1 FeMultiplyBeta = Secp256k1.fe_multiply_beta', 'specificationSecp256k1 FeMultiplyBeta = Secp256k1.fe_square'),
+        ('catalog', 'implementationSecp256k1 FeMultiplyBeta = FFI.fe_multiply_beta', 'implementationSecp256k1 FeMultiplyBeta = FFI.fe_square'),
+        ('program', 'fe_beta = scribe256 LibSecp256k1.beta', 'fe_beta = scribe256 LibSecp256k1.lambda'),
+        ('program', '(unit >>> fe_beta) &&& iden >>> fe_multiply', 'iden &&& (unit >>> fe_beta) >>> fe_multiply'),
+        ('constants', '7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee', '7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ef'),
+        ('global', 'Int64.repr 2652195750478318', 'Int64.repr 2652195750478319'),
+        ('global', '55594575648329892869085402983802832744385952214688224221778511981742606582254.', '55594575648329892869085402983802832744385952214688224221778511981742606582255.'),
+        ('global', 'Mem.valid_block m beta_block /\\', 'True /\\'),
+        ('global', 'perm_order Readable p.', 'perm_order Writable p.'),
+        ('global', 'beta_global_rep m /\\ beta_readonly_bounds m.', 'beta_global_rep m.'),
+        ('port', '@fromZ (WordToZ 8) beta_value', '@fromZ (WordToZ 7) beta_value'),
+        ('port', '@fromZ (WordToZ 8) beta_value', '@fromZ (WordToZ 8) (beta_value + 1)'),
+        ('port', 'Alg.scribe beta_word.', 'Alg.scribe canonical_field_word.'),
+        ('port', '(unit >>> @literal_fe_beta term) &&& iden', 'iden &&& (unit >>> @literal_fe_beta term)'),
+        ('jet', 'f_simplicity_fe_multiply_beta (Word', 'f_simplicity_fe_square (Word'),
+        ('jet', 'local_spec beta_initialized', 'local_spec (fun _ => True)'),
+        ('jet', '(Word 8) (Word 8)', '(Word 7) (Word 8)'),
+        ('jet', '(Word 8) (Word 8)', '(Word 8) (Word 7)'),
+        ('jet', '  secp_jet_initialized_local_spec beta_initialized', '  False -> secp_jet_initialized_local_spec beta_initialized'),
+        ('jet', '(@literal_fe_multiply_beta Alg.CoreFunSem).', '(fun a => a).'),
+        ('jet', '(@literal_fe_multiply_beta Alg.CoreFunSem).', '(@literal_fe_multiply_beta Alg.CoreFunSem) -> True.'),
+    ]
+    for key, old, new in mutations:
+        if old not in s[key]:
+            raise ValueError('inactive beta mutation fixture: ' + old)
+        changed = dict(s)
+        changed[key] = changed[key].replace(old, new)
+        try:
+            check(changed)
+        except ValueError:
+            continue
+        raise ValueError('accepted beta mutation: ' + old)
+    print('Beta catalog/literal/readiness/full-contract review passed; 22 targeted mutations rejected')
+
+
+if __name__ == '__main__':
+    check(sources())
+    print('Original beta catalog, literal term, named readiness and complete C contract match')
