@@ -1,0 +1,47 @@
+(** Actual original C square call with numeric output, bounds and framing. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_u128_shift64_rep.
+Require Import C.jet_secp_multiply_finish_execute C.jet_secp_multiply_finish_product.
+Require Import C.jet_secp_multiply_checkpoint_columns.
+Require Import SquareRun.Run SquareValue.Columns SquareValue.Schedule SquareValue.Lists SquareValue.Numeric.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque square_limbs sq_r0 sq_r1 sq_r2 sq_r3 sq_r4.
+
+Lemma square_result_loads rho layout m : square_input_bounds rho ->
+  rep rho layout [mkreg (u64_cells 0 square_limbs) true (Some 40)] m ->
+  output_words layout (square_words rho) m.
+Proof.
+  intros HB HR i HI.
+  assert (HL : xload [mkreg (u64_cells 0 square_limbs) true (Some 40)]
+    0 (8 * Z.of_nat i) tulong = Some (nth i square_limbs (XLv 0))).
+  { rewrite original_square_symbolic_output.
+    destruct i as [|[|[|[|[|i]]]]]; try lia; reflexivity. }
+  pose proof (xload_u64_defined_sound rho layout _ m 0 (8 * Z.of_nat i)
+    (nth i square_limbs (XLv 0)) HR HL) as HV.
+  rewrite square_output_den in HV by assumption; exact HV.
+Qed.
+
+Theorem eval_original_square_owned_numeric rho layout m :
+  square_input_bounds rho -> rep rho layout square_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_sqr)
+      [Vptr (blk layout 0) (Ptrofs.repr (bas layout 0));
+       Vptr (blk layout 0) (Ptrofs.repr (bas layout 0))] E0 mf Vundef /\
+    rep rho layout [mkreg (u64_cells 0 square_limbs) true (Some 40)] mf /\
+    output_words layout (square_words rho) mf /\
+    radix_value (square_words rho) mod field_prime = (radix_value rho * radix_value rho) mod field_prime /\
+    (forall i, (i < 5)%nat -> 0 <= Int64.unsigned (square_words rho i) <
+      if Nat.eqb i 4 then 562949953421312 else 4503599627370496) /\
+    lframe (fun b ofs => ~ foot layout (map rshape square_regs) b ofs) m mf.
+Proof.
+  intros HB HR.
+  destruct (eval_original_square_owned_inplace rho layout m HR) as (mf & HC & HP & HF).
+  exists mf; split; [exact HC|]; split; [exact HP|];
+    split; [apply square_result_loads; assumption|];
+    split; [apply square_output_numeric; exact HB|];
+    split; [apply square_output_bounds; exact HB|exact HF].
+Qed.
