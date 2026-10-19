@@ -1,0 +1,674 @@
+From dd4579a706dc5a51992e82d46e5043f839463a6c Mon Sep 17 00:00:00 2001
+From: Breno Brito <brenorb@gmail.com>
+Date: Sun, 18 Oct 2026 16:55:07 -0300
+Subject: [PATCH] feat(coq): register original fe_multiply and fe_square
+ coverage
+
+Adds simplicity_fe_multiply -> C.jet_parallel_fe_mul_local
+fe_multiply_literal_local_spec and simplicity_fe_square ->
+C.jet_parallel_fe_sqr_local fe_square_literal_local_spec, lists all 135 public
+results and 158 contract definitions of the 13 modules, admits both names to
+the secp whole-contract coverage set with mutation tests, and wires the
+mul-review source gate (13 reviewed definitions/propositions, 41 rejected
+mutations) into check-jets.sh. Snapshots are not updated here.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ Coq/C/jet_contract_definitions.txt | 159 +++++++++++++++++++++++++++
+ Coq/C/jet_coverage.tsv             |   2 +
+ Coq/C/jet_public_theorems.txt      | 136 +++++++++++++++++++++++
+ Coq/check-jets.sh                  |   2 +
+ Coq/jet-coverage.py                |   3 +-
+ Coq/mul-review/check-mul-wiring.py | 171 +++++++++++++++++++++++++++++
+ Coq/mul-review/test-mul-wiring.py  |  78 +++++++++++++
+ Coq/test-jet-coverage.py           |  23 ++++
+ 8 files changed, 573 insertions(+), 1 deletion(-)
+ create mode 100644 Coq/mul-review/check-mul-wiring.py
+ create mode 100644 Coq/mul-review/test-mul-wiring.py
+
+diff --git a/Coq/C/jet_contract_definitions.txt b/Coq/C/jet_contract_definitions.txt
+index d52e2d9a..d51a2d37 100644
+--- a/Coq/C/jet_contract_definitions.txt
++++ b/Coq/C/jet_contract_definitions.txt
+@@ -1835,3 +1835,162 @@ C.jet_secp_public_copy secp_public_temps
+ C.jet_secp_canonical_odd canonical_fe_is_odd
+ C.jet_secp_canonical_zero canonical_fe_is_zero
+ C.jet_secp_predicate_entry secp_odd_temps
++# Original field multiplication and squaring.
++C.jet_parallel_fe_mul_sx bop_beq
++C.jet_parallel_fe_mul_sx shop_beq
++C.jet_parallel_fe_mul_sx cmp_beq
++C.jet_parallel_fe_mul_sx sg_beq
++C.jet_parallel_fe_mul_sx isz_beq
++C.jet_parallel_fe_mul_sx sx_beq
++C.jet_parallel_fe_mul_sx long_subst
++C.jet_parallel_fe_mul_sx xreplace
++C.jet_parallel_fe_mul_math feMulR
++C.jet_parallel_fe_mul_math fe_mul_bound_BB
++C.jet_parallel_fe_mul_math fe_mul_bound_BT
++C.jet_parallel_fe_mul_math fe_mul_bound_TT
++C.jet_parallel_fe_mul_oracle tMUL
++C.jet_parallel_fe_mul_oracle tACC
++C.jet_parallel_fe_mul_oracle tADD
++C.jet_parallel_fe_mul_oracle tSHR52
++C.jet_parallel_fe_mul_oracle tSHR64
++C.jet_parallel_fe_mul_oracle u128_sem
++C.jet_parallel_fe_mul_oracle uv
++C.jet_parallel_fe_mul_oracle u128_evok
++C.jet_parallel_fe_mul_oracle u128_inv
++C.jet_parallel_fe_mul_oracle u128_ext
++C.jet_parallel_fe_mul_oracle u128_inner
++C.jet_parallel_fe_mul_oracle sigma4
++C.jet_parallel_fe_mul_oracle orc_inner
++C.jet_parallel_fe_mul_oracle inner_sem_ok
++C.jet_parallel_fe_mul_oracle add64_lo
++C.jet_parallel_fe_mul_oracle add64_hi
++C.jet_parallel_fe_mul_oracle mk_mul
++C.jet_parallel_fe_mul_oracle mk_acc
++C.jet_parallel_fe_mul_oracle mk_add64
++C.jet_parallel_fe_mul_oracle orc_mul
++C.jet_parallel_fe_mul_oracle orc_acc
++C.jet_parallel_fe_mul_oracle orc_add64
++C.jet_parallel_fe_mul_shift u128_shift_temps
++C.jet_parallel_fe_mul_shift shift52_lo
++C.jet_parallel_fe_mul_shift shift52_hi
++C.jet_parallel_fe_mul_shift u128_shift52_branch
++C.jet_parallel_fe_mul_shift u128_shift_test0
++C.jet_parallel_fe_mul_shift shr_tag
++C.jet_parallel_fe_mul_shift orc_shr
++C.jet_parallel_fe_mul_model fm_lo
++C.jet_parallel_fe_mul_model fm_hi
++C.jet_parallel_fe_mul_model fe_mul_log
++C.jet_parallel_fe_mul_model W10
++C.jet_parallel_fe_mul_model W12
++C.jet_parallel_fe_mul_model W14
++C.jet_parallel_fe_mul_model W16
++C.jet_parallel_fe_mul_model W18
++C.jet_parallel_fe_mul_model W20
++C.jet_parallel_fe_mul_model W22
++C.jet_parallel_fe_mul_model W24
++C.jet_parallel_fe_mul_model W26
++C.jet_parallel_fe_mul_model W28
++C.jet_parallel_fe_mul_model W30
++C.jet_parallel_fe_mul_model W32
++C.jet_parallel_fe_mul_model W34
++C.jet_parallel_fe_mul_model W36
++C.jet_parallel_fe_mul_model W38
++C.jet_parallel_fe_mul_model W40
++C.jet_parallel_fe_mul_model W42
++C.jet_parallel_fe_mul_model W44
++C.jet_parallel_fe_mul_model W46
++C.jet_parallel_fe_mul_model W48
++C.jet_parallel_fe_mul_model W50
++C.jet_parallel_fe_mul_model W52
++C.jet_parallel_fe_mul_model W54
++C.jet_parallel_fe_mul_model W56
++C.jet_parallel_fe_mul_model W58
++C.jet_parallel_fe_mul_model W60
++C.jet_parallel_fe_mul_model W62
++C.jet_parallel_fe_mul_model W64
++C.jet_parallel_fe_mul_model W66
++C.jet_parallel_fe_mul_model W68
++C.jet_parallel_fe_mul_model W70
++C.jet_parallel_fe_mul_model W72
++C.jet_parallel_fe_mul_model W74
++C.jet_parallel_fe_mul_model W76
++C.jet_parallel_fe_mul_model W78
++C.jet_parallel_fe_mul_model W80
++C.jet_parallel_fe_mul_model W82
++C.jet_parallel_fe_mul_model W84
++C.jet_parallel_fe_mul_model W86
++C.jet_parallel_fe_mul_model W88
++C.jet_parallel_fe_mul_model W90
++C.jet_parallel_fe_mul_model W92
++C.jet_parallel_fe_mul_model fm_rho
++C.jet_parallel_fe_mul_model fm_ws
++C.jet_parallel_fe_mul_model fm_t0
++C.jet_parallel_fe_mul_model fm_t1
++C.jet_parallel_fe_mul_model fm_t2
++C.jet_parallel_fe_mul_model fm_t3
++C.jet_parallel_fe_mul_model fm_t4
++C.jet_parallel_fe_mul_run fe_mul_table
++C.jet_parallel_fe_mul_run fe_mul_regs
++C.jet_parallel_fe_mul_run fe_mul_run
++C.jet_parallel_fe_mul_run fe_mul_tree
++C.jet_parallel_fe_mul_run fe_mul_state
++C.jet_parallel_fe_mul_run fm_M
++C.jet_parallel_fe_mul_run fe_mul_out
++C.jet_parallel_fe_mul_run fe_mul_out_regs
++C.jet_parallel_fe_mul_field fmr
++C.jet_parallel_fe_mul_field fm_out
++C.jet_parallel_fe_mul_local secp_public_mul_stmt
++C.jet_parallel_fe_mul_local secp_fe_mul_rest
++C.jet_parallel_fe_mul_local secp_mul_temps
++C.jet_parallel_fe_sqr_model fe_sqr_log
++C.jet_parallel_fe_sqr_model S5
++C.jet_parallel_fe_sqr_model S7
++C.jet_parallel_fe_sqr_model S9
++C.jet_parallel_fe_sqr_model S11
++C.jet_parallel_fe_sqr_model S13
++C.jet_parallel_fe_sqr_model S15
++C.jet_parallel_fe_sqr_model S17
++C.jet_parallel_fe_sqr_model S19
++C.jet_parallel_fe_sqr_model S21
++C.jet_parallel_fe_sqr_model S23
++C.jet_parallel_fe_sqr_model S25
++C.jet_parallel_fe_sqr_model S27
++C.jet_parallel_fe_sqr_model S29
++C.jet_parallel_fe_sqr_model S31
++C.jet_parallel_fe_sqr_model S33
++C.jet_parallel_fe_sqr_model S35
++C.jet_parallel_fe_sqr_model S37
++C.jet_parallel_fe_sqr_model S39
++C.jet_parallel_fe_sqr_model S41
++C.jet_parallel_fe_sqr_model S43
++C.jet_parallel_fe_sqr_model S45
++C.jet_parallel_fe_sqr_model S47
++C.jet_parallel_fe_sqr_model S49
++C.jet_parallel_fe_sqr_model S51
++C.jet_parallel_fe_sqr_model S53
++C.jet_parallel_fe_sqr_model S55
++C.jet_parallel_fe_sqr_model S57
++C.jet_parallel_fe_sqr_model S59
++C.jet_parallel_fe_sqr_model S61
++C.jet_parallel_fe_sqr_model S63
++C.jet_parallel_fe_sqr_model S65
++C.jet_parallel_fe_sqr_model S67
++C.jet_parallel_fe_sqr_model fs_rho
++C.jet_parallel_fe_sqr_model fs_ws
++C.jet_parallel_fe_sqr_model fs_t0
++C.jet_parallel_fe_sqr_model fs_t1
++C.jet_parallel_fe_sqr_model fs_t2
++C.jet_parallel_fe_sqr_model fs_t3
++C.jet_parallel_fe_sqr_model fs_t4
++C.jet_parallel_fe_sqr_run fe_sqr_table
++C.jet_parallel_fe_sqr_run fe_sqr_regs
++C.jet_parallel_fe_sqr_run fe_sqr_run
++C.jet_parallel_fe_sqr_run fe_sqr_tree
++C.jet_parallel_fe_sqr_run fe_sqr_state
++C.jet_parallel_fe_sqr_run fe_sqr_out
++C.jet_parallel_fe_sqr_run fe_sqr_out_regs
++C.jet_parallel_fe_sqr_field literal_fe_square
++C.jet_parallel_fe_sqr_field fsr
++C.jet_parallel_fe_sqr_field fs_out
++C.jet_parallel_fe_sqr_local secp_public_sqr_stmt
++C.jet_parallel_fe_sqr_local secp_fe_sqr_rest
+diff --git a/Coq/C/jet_coverage.tsv b/Coq/C/jet_coverage.tsv
+index f7cf92ee..6c37348d 100644
+--- a/Coq/C/jet_coverage.tsv
++++ b/Coq/C/jet_coverage.tsv
+@@ -351,3 +351,5 @@ simplicity_bitcoin_check_lock_duration C.jet_bitcoin_check_distance bitcoin_chec
+ simplicity_fe_normalize C.jet_secp_normalize_local fe_normalize_local_spec
+ simplicity_fe_is_odd C.jet_secp_odd_local fe_odd_local_spec
+ simplicity_fe_is_zero C.jet_secp_zero_local fe_zero_local_spec
++simplicity_fe_multiply C.jet_parallel_fe_mul_local fe_multiply_literal_local_spec
++simplicity_fe_square C.jet_parallel_fe_sqr_local fe_square_literal_local_spec
+diff --git a/Coq/C/jet_public_theorems.txt b/Coq/C/jet_public_theorems.txt
+index 88243c4c..0521d05b 100644
+--- a/Coq/C/jet_public_theorems.txt
++++ b/Coq/C/jet_public_theorems.txt
+@@ -3633,3 +3633,139 @@ C.jet_output_layout word_store_preserves_frame_load
+ C.jet_output_layout frame_store_preserves_word_load
+ C.jet_output_slice write_frame_at_slice_crossing_separate
+ C.jet_skipBits_layout noop_long_store_preserves_long_load
++# Original field multiplication and squaring.
++C.jet_parallel_fe_mul_sx bop_beq_true
++C.jet_parallel_fe_mul_sx shop_beq_true
++C.jet_parallel_fe_mul_sx cmp_beq_true
++C.jet_parallel_fe_mul_sx sg_beq_true
++C.jet_parallel_fe_mul_sx isz_beq_true
++C.jet_parallel_fe_mul_sx sx_beq_true
++C.jet_parallel_fe_mul_sx den_sx_subst
++C.jet_parallel_fe_mul_sx lv_sx_subst
++C.jet_parallel_fe_mul_sx xreplace_shape
++C.jet_parallel_fe_mul_sx rep_replace
++C.jet_parallel_fe_mul_math feMulR_feR
++C.jet_parallel_fe_mul_math prod_bound
++C.jet_parallel_fe_mul_math mod_small_eq
++C.jet_parallel_fe_mul_math fm_mod_mod_pow
++C.jet_parallel_fe_mul_math land_low52
++C.jet_parallel_fe_mul_math lo_split
++C.jet_parallel_fe_mul_math l52_split
++C.jet_parallel_fe_mul_math fe_mul_core
++C.jet_parallel_fe_mul_oracle find_set_cell_other
++C.jet_parallel_fe_mul_oracle xload_xreplace_other
++C.jet_parallel_fe_mul_oracle int64_eq_unsigned
++C.jet_parallel_fe_mul_oracle den_fresh_long
++C.jet_parallel_fe_mul_oracle u128_inner_pure
++C.jet_parallel_fe_mul_oracle orc_inner_ok
++C.jet_parallel_fe_mul_oracle sigma4_long
++C.jet_parallel_fe_mul_oracle uns_range
++C.jet_parallel_fe_mul_oracle two_word_split
++C.jet_parallel_fe_mul_oracle mk_mul_inv
++C.jet_parallel_fe_mul_oracle mk_acc_inv
++C.jet_parallel_fe_mul_oracle mk_add64_inv
++C.jet_parallel_fe_mul_oracle lv_umul_lo
++C.jet_parallel_fe_mul_oracle lv_umul_hi
++C.jet_parallel_fe_mul_oracle lv_acc_lo
++C.jet_parallel_fe_mul_oracle lv_acc_hi
++C.jet_parallel_fe_mul_oracle mul_sem_ok
++C.jet_parallel_fe_mul_oracle acc_sem_ok
++C.jet_parallel_fe_mul_oracle add64_carry_value
++C.jet_parallel_fe_mul_oracle lv_add64_lo
++C.jet_parallel_fe_mul_oracle lv_add64_hi
++C.jet_parallel_fe_mul_oracle add64_sem_ok
++C.jet_parallel_fe_mul_oracle orc_mul_ok
++C.jet_parallel_fe_mul_oracle orc_acc_ok
++C.jet_parallel_fe_mul_oracle orc_add64_ok
++C.jet_parallel_fe_mul_shift u128_shift_entry
++C.jet_parallel_fe_mul_shift u128_shift52_actual_body
++C.jet_parallel_fe_mul_shift u128_shift52_branch_eq
++C.jet_parallel_fe_mul_shift eval_u128_lo
++C.jet_parallel_fe_mul_shift exec_u128_shift52_body
++C.jet_parallel_fe_mul_shift uns_shl12
++C.jet_parallel_fe_mul_shift uns_shru
++C.jet_parallel_fe_mul_shift shift52_values
++C.jet_parallel_fe_mul_shift orc_shr_inv
++C.jet_parallel_fe_mul_shift shr_tag_cases
++C.jet_parallel_fe_mul_shift orc_shr_ok
++C.jet_parallel_fe_mul_model uns_fm_lo
++C.jet_parallel_fe_mul_model uns_fm_hi
++C.jet_parallel_fe_mul_model fm_join
++C.jet_parallel_fe_mul_model evok_intro
++C.jet_parallel_fe_mul_model range_mul
++C.jet_parallel_fe_mul_model range_mod
++C.jet_parallel_fe_mul_model range_shr
++C.jet_parallel_fe_mul_model lor_lt_pow2
++C.jet_parallel_fe_mul_model uns_or
++C.jet_parallel_fe_mul_model uns_and
++C.jet_parallel_fe_mul_model uns_shl4
++C.jet_parallel_fe_mul_model uns_add
++C.jet_parallel_fe_mul_model uns_R
++C.jet_parallel_fe_mul_model uns_R12
++C.jet_parallel_fe_mul_model uns_R4
++C.jet_parallel_fe_mul_model uns_M
++C.jet_parallel_fe_mul_model uns_M4
++C.jet_parallel_fe_mul_model uns_and_lo
++C.jet_parallel_fe_mul_model uns_u0
++C.jet_parallel_fe_mul_model fm_ranges
++C.jet_parallel_fe_mul_model fm_solves
++C.jet_parallel_fe_mul_model fm_mul_values
++C.jet_parallel_fe_mul_run fe_mul_table_ok
++C.jet_parallel_fe_mul_run fe_mul_run_eq
++C.jet_parallel_fe_mul_run fe_mul_log_eq
++C.jet_parallel_fe_mul_run fe_mul_out_eq
++C.jet_parallel_fe_mul_run fe_mul_return
++C.jet_parallel_fe_mul_run eval_fe_mul_owned
++C.jet_parallel_fe_mul_field literal_fe_multiply_numeric
++C.jet_parallel_fe_mul_field fmr_first
++C.jet_parallel_fe_mul_field fmr_second
++C.jet_parallel_fe_mul_field limbs_ok_of
++C.jet_parallel_fe_mul_field fe_mul_initial_rep
++C.jet_parallel_fe_mul_field out_cell_in
++C.jet_parallel_fe_mul_field fe_mul_out_field
++C.jet_parallel_fe_mul_field fm_solves_fmr
++C.jet_parallel_fe_mul_field fe_mul_out_bounds
++C.jet_parallel_fe_mul_field fe_mul_out_value
++C.jet_parallel_fe_mul_field eval_fe_mul_from_normalized_fields
++C.jet_parallel_fe_mul_calls no_fe_mul_foot
++C.jet_parallel_fe_mul_calls eval_mul_write_calls
++C.jet_parallel_fe_mul_calls eval_fe_mul_four_calls
++C.jet_parallel_fe_mul_local secp_fe_mul_body
++C.jet_parallel_fe_mul_local secp_mul_helper_symbols
++C.jet_parallel_fe_mul_local exec_secp_mul_fields
++C.jet_parallel_fe_mul_local exec_secp_mul_rest_calls
++C.jet_parallel_fe_mul_local secp_fe_mul_entry
++C.jet_parallel_fe_mul_local exec_secp_fe_mul_rest_literal
++C.jet_parallel_fe_mul_local eval_secp_fe_mul_literal
++C.jet_parallel_fe_mul_local fe_multiply_literal_local_spec
++C.jet_parallel_fe_mul_local fe_multiply_local_spec
++C.jet_parallel_fe_sqr_model uns_mul2
++C.jet_parallel_fe_sqr_model uns_shr48
++C.jet_parallel_fe_sqr_model uns_u0s
++C.jet_parallel_fe_sqr_model fs_ranges
++C.jet_parallel_fe_sqr_model fs_solves
++C.jet_parallel_fe_sqr_model fs_sqr_values
++C.jet_parallel_fe_sqr_run fe_sqr_table_ok
++C.jet_parallel_fe_sqr_run fe_sqr_run_eq
++C.jet_parallel_fe_sqr_run fe_sqr_log_eq
++C.jet_parallel_fe_sqr_run fe_sqr_out_eq
++C.jet_parallel_fe_sqr_run fe_sqr_return
++C.jet_parallel_fe_sqr_run eval_fe_sqr_owned
++C.jet_parallel_fe_sqr_field literal_fe_square_parametric
++C.jet_parallel_fe_sqr_field literal_fe_square_numeric
++C.jet_parallel_fe_sqr_field fsr_field
++C.jet_parallel_fe_sqr_field fe_sqr_initial_rep
++C.jet_parallel_fe_sqr_field sqr_cell_in
++C.jet_parallel_fe_sqr_field fe_sqr_out_field
++C.jet_parallel_fe_sqr_field fs_solves_fsr
++C.jet_parallel_fe_sqr_field fe_sqr_out_bounds
++C.jet_parallel_fe_sqr_field fe_sqr_out_value
++C.jet_parallel_fe_sqr_field eval_fe_sqr_from_normalized_field
++C.jet_parallel_fe_sqr_local eval_sqr_write_after_read_field
++C.jet_parallel_fe_sqr_local secp_fe_sqr_body
++C.jet_parallel_fe_sqr_local secp_sqr_helper_symbols
++C.jet_parallel_fe_sqr_local exec_secp_public_sqr
++C.jet_parallel_fe_sqr_local exec_secp_fe_sqr_rest_literal
++C.jet_parallel_fe_sqr_local secp_fe_square_entry
++C.jet_parallel_fe_sqr_local eval_secp_fe_square_literal
++C.jet_parallel_fe_sqr_local fe_square_literal_local_spec
+diff --git a/Coq/check-jets.sh b/Coq/check-jets.sh
+index 9ebc5e46..28fef6b8 100755
+--- a/Coq/check-jets.sh
++++ b/Coq/check-jets.sh
+@@ -68,6 +68,8 @@ python3 check-secp-normalize-specification.py
+ python3 test-secp-normalize-specification.py
+ python3 check-secp-predicates-specification.py
+ python3 test-secp-predicates-specification.py
++python3 mul-review/check-mul-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
++python3 mul-review/test-mul-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+ python3 check-bitcoin-primitive-identity.py
+ python3 test-bitcoin-primitive-identity.py
+ python3 test-jet-audit-inputs.py
+diff --git a/Coq/jet-coverage.py b/Coq/jet-coverage.py
+index 0c17df5f..abd62fe3 100644
+--- a/Coq/jet-coverage.py
++++ b/Coq/jet-coverage.py
+@@ -119,7 +119,8 @@ def inventory():
+             # record these separately from direct execution proofs.
+             contract = (rf"\b(?:jet_local_spec|jet_partial_local_spec)\s+f_{re.escape(name)}\b|"
+                         rf"\bmemcpy_model\s*->\s*jet_separated_local_spec\s+f_{re.escape(name)}\b")
+-            if name in {"simplicity_fe_normalize", "simplicity_fe_is_odd", "simplicity_fe_is_zero"}:
++            if name in {"simplicity_fe_normalize", "simplicity_fe_is_odd", "simplicity_fe_is_zero",
++                        "simplicity_fe_multiply", "simplicity_fe_square"}:
+                 # This reviewed whole-function contract executes in the
+                 # original secp translation unit. Its full frame contract and
+                 # literal canonical specialization have their own source gate.
+diff --git a/Coq/mul-review/check-mul-wiring.py b/Coq/mul-review/check-mul-wiring.py
+new file mode 100644
+index 00000000..b2c86d28
+--- /dev/null
++++ b/Coq/mul-review/check-mul-wiring.py
+@@ -0,0 +1,171 @@
++"""Scoped canonical field multiply/square and original-C lifecycle source correspondence.
++
++Supplement to kernel checking, not a formal Haskell compiler or a complete
++transitive/domain audit. Pure source checks; no update/generation mode.
++"""
++import argparse
++import importlib.util
++import re
++import sys
++from pathlib import Path
++
++sys.dont_write_bytecode = True
++
++
++def compact(s):
++    return re.sub(r'\s+', '', s)
++
++
++def load(repo, candidates, dependencies):
++    repo, candidates, dependencies = map(Path, (repo, candidates, dependencies))
++    spec = importlib.util.spec_from_file_location(
++        'predicate_parser', repo/'Coq/check-secp-predicates-specification.py')
++    parser = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(parser)
++    paths = {
++        'catalog': repo/'Haskell/Core/Simplicity/CoreJets.hs',
++        'program': repo/'Haskell/Core/Simplicity/Programs/LibSecp256k1.hs',
++        'arith': repo/'Haskell/Core/Simplicity/Programs/Arith.hs',
++        'multiply': dependencies/'jet_multiply_spec.v',
++        'normalize512': dependencies/'jet_secp_negate_literal_contract.v',
++        'square': candidates/'jet_parallel_fe_sqr_field.v',
++        'mul_local': candidates/'jet_parallel_fe_mul_local.v',
++        'sqr_local': candidates/'jet_parallel_fe_sqr_local.v',
++    }
++    s = {key: parser.read_code(path) for key, path in paths.items()}
++    c = (repo/'C/jets-secp256k1.c').read_text()
++    s['c'] = re.sub(r'/\*.*?\*/|//[^\n]*', ' ', c, flags=re.S)
++    return s
++
++
++def require(source, expected):
++    if compact(expected) not in compact(source):
++        raise ValueError('missing source binding: '+expected)
++
++
++def body(source, name):
++    m = re.search(r'\b(?:Definition|Fixpoint)\s+'+name+r'\b.*?:=(.*?)\.\s*(?:\n|$)', source, re.S)
++    if not m:
++        raise ValueError('missing definition '+name)
++    return m[1]
++
++
++def statement(source, name):
++    m = re.search(r'\b(?:Theorem|Lemma)\s+'+name+r'\b[^:\n]*:(.*?)\bProof\.', source, re.S)
++    if not m:
++        raise ValueError('missing proposition '+name)
++    return m[1]
++
++
++def c_body(source, name):
++    m = re.search(r'bool\s+'+name+r'\s*\((.*?)\)\s*\{(.*?)\}', source, re.S)
++    if not m:
++        raise ValueError('missing C jet '+name)
++    return m[1], m[2]
++
++
++def check(s):
++    for expected in [
++        'FeMultiply :: Secp256k1Jet (Secp256k1.FE, Secp256k1.FE) Secp256k1.FE',
++        'FeSquare :: Secp256k1Jet Secp256k1.FE Secp256k1.FE',
++        'specificationSecp256k1 FeMultiply = Secp256k1.fe_multiply',
++        'specificationSecp256k1 FeSquare = Secp256k1.fe_square']:
++        require(s['catalog'], expected)
++    implementation = s['program'].split('lib@Lib{..} = Lib {', 1)[1]
++    records = {
++        'fe_multiply': (r'\bfe_multiply\s*=(.*?)\n\s*,\s*fe_multiply_beta\b', 'mul256 >>> fe_normalize512'),
++        'fe_square': (r'\bfe_square\s*=(.*?)\n\s*,\s*fe_halve\b', 'iden &&& iden >>> fe_multiply'),
++    }
++    for name, (pattern, expected) in records.items():
++        m = re.search(pattern, implementation, re.S)
++        if not m or compact(m[1]) != compact(expected):
++            raise ValueError('canonical record differs: '+name)
++    for expected in [
++        'mul256 = Arith.multiply word256', 'zero256 = Arith.zero word256',
++        'mod512 = Arith.modulo word512',
++        'scribeFeOrder = scribe256 LibSecp256k1.fieldOrder',
++        'fe_normalize512 = iden &&& (unit >>> zero256 &&& scribeFeOrder) >>> mod512 >>> ih']:
++        require(s['program'], expected)
++    require(s['arith'], 'multiply w = iden &&& (unit >>> zero (DoubleV w)) >>> full_multiply w')
++    definitions = {
++        ('multiply', 'multiply_word_spec'): '''Alg.Core.Combinators.comp
++          (Alg.Core.Combinators.pair Alg.Core.Combinators.iden
++            (Alg.Core.Combinators.comp Alg.Core.Combinators.unit (@zero (S n) term)))
++          (@fullMultiplier n term)''',
++        ('normalize512', 'literal_fe_normalize512'): 'iden &&& (unit >>> (@Word.zero 8 term &&& Alg.scribe canonical_field_word)) >>> @literal_modulo_word_spec 9 term >>> I H',
++        ('normalize512', 'literal_fe_multiply'): '@multiply_word_spec 8 term >>> @literal_fe_normalize512 term',
++        ('square', 'literal_fe_square'): 'iden &&& iden >>> @literal_fe_multiply term',
++        ('mul_local', 'secp_public_mul_stmt'): '''Scall None
++          (Evar jets_secp._secp256k1_fe_mul (Tfunction
++            (Tcons (tptr secp_field_type) (Tcons (tptr secp_field_type)
++              (Tcons (tptr secp_field_type) Tnil))) tvoid cc_default))
++          [Eaddrof (Evar jets_secp._a secp_field_type) (tptr secp_field_type);
++           Eaddrof (Evar jets_secp._a secp_field_type) (tptr secp_field_type);
++           Eaddrof (Evar jets_secp._b secp_field_type) (tptr secp_field_type)]''',
++        ('mul_local', 'secp_fe_mul_rest'): '''Ssequence (secp_read_field_stmt jets_secp._a)
++          (Ssequence (secp_read_field_stmt jets_secp._b)
++            (Ssequence secp_public_mul_stmt (Ssequence secp_public_write_stmt
++              (Sreturn (Some (Econst_int (Int.repr 1) tint))))))''',
++        ('sqr_local', 'secp_public_sqr_stmt'): '''Scall None
++          (Evar jets_secp._secp256k1_fe_sqr (Tfunction
++            (Tcons (tptr secp_field_type) (Tcons (tptr secp_field_type) Tnil)) tvoid cc_default))
++          [Eaddrof (Evar jets_secp._a secp_field_type) (tptr secp_field_type);
++           Eaddrof (Evar jets_secp._a secp_field_type) (tptr secp_field_type)]''',
++        ('sqr_local', 'secp_fe_sqr_rest'): '''Ssequence secp_public_read_stmt
++          (Ssequence secp_public_sqr_stmt (Ssequence secp_public_write_stmt
++            (Sreturn (Some (Econst_int (Int.repr 1) tint)))))''',
++    }
++    for (key, name), expected in definitions.items():
++        if compact(body(s[key], name)) != compact(expected):
++            raise ValueError('reviewed definition differs: '+name)
++    require(s['multiply'], '@Alg.Core.domain term (Ty.Prod (Word n) (Word n)) (Word (S n))')
++    require(s['normalize512'], 'term (Word 9) (Word 8)')
++    require(s['normalize512'], 'term (Ty.Prod (Word 8) (Word 8)) (Word 8)')
++    require(s['square'], 'Definition literal_fe_square {term : Alg.Core.Algebra} : term (Word 8) (Word 8)')
++    contracts = {
++        ('mul_local', 'fe_multiply_literal_local_spec'): '''secp_jet_local_spec f_simplicity_fe_multiply
++          (Ty.Prod (Word 8) (Word 8)) (Word 8) (@literal_fe_multiply Alg.CoreFunSem).''',
++        ('mul_local', 'fe_multiply_local_spec'): '''secp_jet_local_spec f_simplicity_fe_multiply
++          (Ty.Prod (Word 8) (Word 8)) (Word 8) (@canonical_fe_multiply Alg.CoreFunSem).''',
++        ('sqr_local', 'fe_square_literal_local_spec'): '''secp_jet_local_spec f_simplicity_fe_square
++          (Word 8) (Word 8) (@literal_fe_square Alg.CoreFunSem).''',
++        ('mul_local', 'secp_fe_mul_body'): '''fn_body f_simplicity_fe_multiply =
++          Ssequence (Sassign (Evar jets_secp._src secp_frame_type)
++            (Etempvar jets_secp._src secp_frame_type)) secp_fe_mul_rest.''',
++        ('sqr_local', 'secp_fe_sqr_body'): '''fn_body f_simplicity_fe_square =
++          Ssequence (Sassign (Evar jets_secp._src secp_frame_type)
++            (Etempvar jets_secp._src secp_frame_type)) secp_fe_sqr_rest.''',
++    }
++    for (key, name), expected in contracts.items():
++        if compact(statement(s[key], name)) != compact(expected):
++            raise ValueError('reviewed proposition differs: '+name)
++    for key, expected in [
++            ('mul_local', 'eapply secp_fe_mul_entry'), ('mul_local', 'rewrite secp_fe_mul_body'),
++            ('mul_local', 'secp_prepare_add_locals'), ('mul_local', 'secp_free_add_locals'),
++            ('sqr_local', 'eapply secp_fe_square_entry'), ('sqr_local', 'rewrite secp_fe_sqr_body'),
++            ('sqr_local', 'secp_prepare_public_locals'), ('sqr_local', 'secp_free_public_locals')]:
++        require(s[key], expected)
++    signature = 'frameItem* dst, frameItem src, const txEnv* env'
++    implementations = {
++        'simplicity_fe_multiply': '''(void) env; secp256k1_fe a, b;
++          read_fe(&a, &src); read_fe(&b, &src); secp256k1_fe_mul(&a, &a, &b);
++          write_fe(dst, &a); return true;''',
++        'simplicity_fe_square': '''(void) env; secp256k1_fe a;
++          read_fe(&a, &src); secp256k1_fe_sqr(&a, &a);
++          write_fe(dst, &a); return true;''',
++    }
++    for name, expected in implementations.items():
++        args, code = c_body(s['c'], name)
++        if compact(args) != compact(signature) or compact(code) != compact(expected):
++            raise ValueError('original public C jet differs: '+name)
++    return len(definitions) + len(contracts)
++
++
++if __name__ == '__main__':
++    p = argparse.ArgumentParser()
++    p.add_argument('--repo', required=True)
++    p.add_argument('--candidates', required=True)
++    p.add_argument('--dependencies', required=True)
++    a = p.parse_args()
++    print('Canonical field multiply/square and original public C lifecycle match:',
++          check(load(a.repo, a.candidates, a.dependencies)), 'reviewed definitions/propositions')
+diff --git a/Coq/mul-review/test-mul-wiring.py b/Coq/mul-review/test-mul-wiring.py
+new file mode 100644
+index 00000000..f8a9cc8e
+--- /dev/null
++++ b/Coq/mul-review/test-mul-wiring.py
+@@ -0,0 +1,78 @@
++"""In-memory negative fixtures; never edit proof/audit inputs."""
++import argparse
++import importlib.machinery
++import importlib.util
++import sys
++from pathlib import Path
++
++sys.dont_write_bytecode = True
++p = argparse.ArgumentParser()
++p.add_argument('--repo', required=True)
++p.add_argument('--candidates', required=True)
++p.add_argument('--dependencies', required=True)
++a = p.parse_args()
++path = Path(__file__).with_name('check-mul-wiring.py')
++loader = importlib.machinery.SourceFileLoader('field_mul_gate', str(path))
++spec = importlib.util.spec_from_loader(loader.name, loader)
++gate = importlib.util.module_from_spec(spec)
++loader.exec_module(gate)
++s = gate.load(a.repo, a.candidates, a.dependencies)
++assert gate.check(s) == 13
++mutations = [
++    ('catalog', 'specificationSecp256k1 FeMultiply = Secp256k1.fe_multiply', 'specificationSecp256k1 FeMultiply = Secp256k1.scalar_multiply'),
++    ('catalog', 'specificationSecp256k1 FeSquare = Secp256k1.fe_square', 'specificationSecp256k1 FeSquare = Secp256k1.fe_multiply'),
++    ('catalog', 'FeMultiply :: Secp256k1Jet (Secp256k1.FE, Secp256k1.FE) Secp256k1.FE', 'FeMultiply :: Secp256k1Jet Secp256k1.FE Secp256k1.FE'),
++    ('catalog', 'FeSquare :: Secp256k1Jet Secp256k1.FE Secp256k1.FE', 'FeSquare :: Secp256k1Jet (Secp256k1.FE, Secp256k1.FE) Secp256k1.FE'),
++    ('program', 'fe_multiply = mul256 >>> fe_normalize512', 'fe_multiply = mul256 >>> scalar_normalize512'),
++    ('program', 'fe_multiply = mul256 >>>', 'fe_multiply = add256 >>>'),
++    ('program', 'fe_square = iden &&& iden >>> fe_multiply', 'fe_square = iden &&& iden >>> fe_add'),
++    ('program', 'fe_square = iden &&& iden', 'fe_square = iden &&& unit'),
++    ('program', 'mul256 = Arith.multiply word256', 'mul256 = Arith.multiply word128'),
++    ('program', 'mod512 = Arith.modulo word512', 'mod512 = Arith.modulo word256'),
++    ('program', '>>> mod512 >>> ih', '>>> mod512 >>> oh'),
++    ('program', 'scribeFeOrder = scribe256 LibSecp256k1.fieldOrder', 'scribeFeOrder = scribe256 LibSecp256k1.groupOrder'),
++    ('arith', 'multiply w = iden &&& (unit >>> zero (DoubleV w)) >>> full_multiply w', 'multiply w = iden &&& (unit >>> zero (DoubleV w)) >>> full_add w'),
++    ('multiply', '(@zero (S n) term)', '(@zero n term)'),
++    ('multiply', '(@fullMultiplier n term)', '(@fullAdder n term)'),
++    ('normalize512', '@literal_modulo_word_spec 9 term', '@literal_modulo_word_spec 8 term'),
++    ('normalize512', '>>> I H.', '>>> O H.'),
++    ('normalize512', 'Alg.scribe canonical_field_word', 'Alg.scribe canonical_group_word'),
++    ('normalize512', '@multiply_word_spec 8 term >>> @literal_fe_normalize512 term', '@multiply_word_spec 8 term >>> @canonical_fe_normalize512 term'),
++    ('normalize512', '@multiply_word_spec 8 term', '@multiply_word_spec 7 term'),
++    ('square', 'iden &&& iden >>> @literal_fe_multiply term', 'iden &&& iden >>> @literal_fe_add term'),
++    ('square', 'iden &&& iden >>> @literal_fe_multiply term', 'iden >>> @literal_fe_negate term'),
++    ('square', 'term (Word 8) (Word 8) :=', 'term (Word 8) (Word 9) :='),
++    ('mul_local', 'Evar jets_secp._secp256k1_fe_mul (Tfunction', 'Evar jets_secp._secp256k1_fe_sqr (Tfunction'),
++    ('mul_local', '''[Eaddrof (Evar jets_secp._a secp_field_type) (tptr secp_field_type);
++     Eaddrof (Evar jets_secp._a secp_field_type) (tptr secp_field_type);
++     Eaddrof (Evar jets_secp._b secp_field_type) (tptr secp_field_type)]''', '''[Eaddrof (Evar jets_secp._a secp_field_type) (tptr secp_field_type);
++     Eaddrof (Evar jets_secp._b secp_field_type) (tptr secp_field_type);
++     Eaddrof (Evar jets_secp._b secp_field_type) (tptr secp_field_type)]'''),
++    ('mul_local', 'Ssequence (secp_read_field_stmt jets_secp._b)', 'Ssequence (secp_read_field_stmt jets_secp._a)'),
++    ('mul_local', 'Ssequence secp_public_mul_stmt', 'Ssequence Sskip'),
++    ('mul_local', 'secp_jet_local_spec f_simplicity_fe_multiply (Ty.Prod (Word 8) (Word 8)) (Word 8)\n    (@literal_fe_multiply Alg.CoreFunSem).', 'False -> secp_jet_local_spec f_simplicity_fe_multiply (Ty.Prod (Word 8) (Word 8)) (Word 8)\n    (@literal_fe_multiply Alg.CoreFunSem).'),
++    ('mul_local', '(@literal_fe_multiply Alg.CoreFunSem).\nProof.', '(@literal_fe_add Alg.CoreFunSem).\nProof.'),
++    ('mul_local', 'fn_body f_simplicity_fe_multiply =', 'fn_body f_simplicity_fe_add ='),
++    ('mul_local', 'eapply secp_fe_mul_entry', 'eapply secp_fe_add_entry'),
++    ('sqr_local', 'Evar jets_secp._secp256k1_fe_sqr (Tfunction', 'Evar jets_secp._secp256k1_fe_negate (Tfunction'),
++    ('sqr_local', 'Ssequence secp_public_sqr_stmt', 'Ssequence Sskip'),
++    ('sqr_local', 'secp_jet_local_spec f_simplicity_fe_square (Word 8) (Word 8)', 'secp_jet_local_spec f_simplicity_fe_negate (Word 8) (Word 8)'),
++    ('sqr_local', '(@literal_fe_square Alg.CoreFunSem).\nProof.', '(@literal_fe_negate Alg.CoreFunSem).\nProof.'),
++    ('sqr_local', 'fn_body f_simplicity_fe_square =', 'fn_body f_simplicity_fe_negate ='),
++    ('sqr_local', 'secp_free_public_locals', 'secp_free_add_locals'),
++    ('c', 'secp256k1_fe_mul(&a, &a, &b);', 'secp256k1_fe_mul(&a, &b, &a);'),
++    ('c', 'read_fe(&b, &src);\n  secp256k1_fe_mul', 'read_fe(&b, &src);\n  read_fe(&b, &src);\n  secp256k1_fe_mul'),
++    ('c', 'secp256k1_fe_sqr(&a, &a);', 'secp256k1_fe_mul(&a, &a, &a);'),
++    ('c', 'bool simplicity_fe_square(frameItem* dst, frameItem src, const txEnv* env)', 'bool simplicity_fe_square(frameItem* dst, frameItem* src, const txEnv* env)'),
++]
++for key, old, new in mutations:
++    assert old in s[key], (key, old)
++    changed = dict(s)
++    changed[key] = changed[key].replace(old, new, 1)
++    try:
++        gate.check(changed)
++    except (ValueError, IndexError):
++        pass
++    else:
++        raise AssertionError('mutation accepted: '+key+' '+old)
++print(str(len(mutations))+' field multiply/square specification/lifecycle mutations rejected')
+diff --git a/Coq/test-jet-coverage.py b/Coq/test-jet-coverage.py
+index b2802580..009f666e 100644
+--- a/Coq/test-jet-coverage.py
++++ b/Coq/test-jet-coverage.py
+@@ -143,6 +143,29 @@ def main():
+                 rejects(coverage.inventory, "not a direct canonical jet theorem")
+             predicate.write_text(predicate_original)
+         assert coverage.inventory() == rows
++        # Field multiplication and squaring keep their own original functions
++        # and the whole contract (wrong function, helper, other contract,
++        # vacuous premise are each rejected).
++        for fmod, fdecl, fcontract, fother in (
++            ("C/jet_parallel_fe_mul_local.v", "Theorem fe_multiply_literal_local_spec :",
++             "secp_jet_local_spec f_simplicity_fe_multiply", "f_simplicity_fe_square"),
++            ("C/jet_parallel_fe_sqr_local.v", "Theorem fe_square_literal_local_spec :",
++             "secp_jet_local_spec f_simplicity_fe_square", "f_simplicity_fe_multiply"),
++        ):
++            fpath = project / fmod
++            foriginal = fpath.read_text()
++            for old, new in (
++                (fcontract, "secp_jet_local_spec f_read_fe"),
++                (fcontract, "secp_jet_local_spec " + fother),
++                (fcontract, fcontract.replace("secp_jet_local_spec", "jet_local_spec")),
++                (fdecl, fdecl + " False ->"),
++            ):
++                start = foriginal.index(fdecl)
++                assert old in foriginal[start:]
++                fpath.write_text(foriginal[:start] + foriginal[start:].replace(old, new, 1))
++                rejects(coverage.inventory, "not a direct canonical jet theorem")
++            fpath.write_text(foriginal)
++        assert coverage.inventory() == rows
+         # Assertion jets must retain the exact linked program/environment and
+         # be the whole proposition, including both success and failure.
+         assertion = project / "C/jet_bitcoin_check_lock.v"
+-- 
+2.54.0 (Apple Git-157)
+
