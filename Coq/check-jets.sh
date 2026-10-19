@@ -160,6 +160,7 @@ python3 scalar-square-review/test-square-public.py "${JET_C_REPO:-..}" .
 python3 scalar-lambda-integration/check-lambda-public.py --repo "${JET_C_REPO:-..}" --coq .
 python3 scalar-lambda-integration/test-lambda-public.py "${JET_C_REPO:-..}" .
 python3 check-bitcoin-primitive-identity.py
+python3 test-bitcoin-primitive-identity.py
 python3 test-jet-audit-inputs.py
 
 missing=$(comm -23 <(grep -E '^C/jets?[_.]' _CoqProject.jets | sort -u) \
