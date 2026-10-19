@@ -34,3 +34,7 @@ Evidence is the commit plus one reproducible command (`bash Coq/check-jets.sh
 (`*.log`, `RUN.json`, `CHECKED.json` and similar). Write run output to a
 temporary directory outside the repository. Anyone can regenerate it by
 rerunning the command on the commit.
+
+Before starting a jet proof, check `C/JET_CLAIMS.md` and add a claim line. If
+the jet is already claimed, coordinate instead of starting a parallel proof.
+Remove your line when the jet is registered or the work is abandoned.
