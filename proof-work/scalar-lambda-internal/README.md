@@ -53,8 +53,11 @@ literal-source correspondence gate and byte-for-byte AST regeneration. Both
 the private candidate and main checkout pass the 240-file frozen-target guard.
 The report query loads 314 local modules, all in the tracked dependency basis.
 
-At this checkpoint the separate recursive kernel check remains pending.
-Only a matching `CHECKED.json` and a successful `verify.py check` certify it.
+The separate recursive kernel check completed with exit 0. `CHECKED.json`
+binds its command, log and exact report inputs; `verify.py check` revalidates
+the receipt. The global library context retains its existing 15 axioms and no
+unsafe kernel flags; the new endpoints have the six-result-specific profiles
+above, not all axioms in the imported library context.
 Scope remains the pinned LP64, assertion-disabled (`RECKLESS`) generated Clight
 program and existing initialized local-frame contract, not all configurations
 or the evaluator's complete setup/lifecycle.
