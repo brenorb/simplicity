@@ -68481,55 +68481,6 @@ copy_word_storebytes_effect
                (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind) (p : Memtype.permission)
                   (_ : Memory.Mem.perm m b ofs kind p), Memory.Mem.perm m' b ofs kind p)
                (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block m' b)))
-word64_signed_unsigned
-     : forall v : Integers.Int64.int,
-       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
-         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.signed v))
-         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.unsigned v))
-decode_wide64_value
-     : forall v : Integers.Int64.int,
-       @eq (Ty.tySem (Word.Word (wide_log W64)))
-         (decode_wide W64
-            (Integers.Int64.zero_ext
-               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
-               v)) (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.signed v))
-fw6_mod64
-     : forall z : BinNums.Z,
-       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (fw6 (BinInt.Z.modulo z Integers.Int64.modulus)) (fw6 z)
-fw6_sub_mod64
-     : forall x y : BinNums.Z,
-       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
-         (fw6 (BinInt.Z.sub (BinInt.Z.modulo x Integers.Int64.modulus) (BinInt.Z.modulo y Integers.Int64.modulus)))
-         (fw6 (BinInt.Z.sub x y))
-word64_eqm
-     : forall (x y : BinNums.Z) (_ : Integers.Int64.eqm x y),
-       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
-         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) x)
-         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) y)
-@signed_unsigned_sum_eqm ?X
-     : forall (xs : list ?X) (amount : forall _ : ?X, Integers.Int64.int),
-       Integers.Int64.eqm (List.Z_sum (@List.map ?X BinNums.Z (fun x : ?X => Integers.Int64.signed (amount x)) xs))
-         (List.Z_sum (@List.map ?X BinNums.Z (fun x : ?X => Integers.Int64.unsigned (amount x)) xs))
-where
-?X : [ |- Type]
-bitcoin_total_input_unsigned
-     : forall tx : Bitcoin.sigTx,
-       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
-         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Bitcoin.sigTxTotalInValue tx))
-         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
-            (List.Z_sum
-               (@List.map Bitcoin.sigTxInput BinNums.Z
-                  (fun i : Bitcoin.sigTxInput => Integers.Int64.unsigned (Bitcoin.sigTxiValue i))
-                  (Bitcoin.sigTxIn tx))))
-bitcoin_total_output_unsigned
-     : forall tx : Bitcoin.sigTx,
-       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
-         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Bitcoin.sigTxTotalOutValue tx))
-         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
-            (List.Z_sum
-               (@List.map Bitcoin.txOutput BinNums.Z
-                  (fun o : Bitcoin.txOutput => Integers.Int64.unsigned (Bitcoin.txoValue o))
-                  (Bitcoin.sigTxOut tx))))
 @bitcoin_ext_raw_projection ?A ?B
      : forall (p : BitcoinExt.t ?A ?B) (a : Ty.tySem ?A) (environment : raw_bitcoin_environment)
          (Hpath : le (@length Digest.hash256 (raw_tap_path environment))
@@ -140421,14 +140372,10 @@ fun (m : Memory.Mem.mem) (env : Values.val) (environment : Bitcoin.Bitcoin.env)
                                             (@Some Values.val (Values.Vlong vo)))
                                          (and
                                             (@eq BinNums.Z (Integers.Int64.unsigned vi)
-                                               (BinInt.Z.modulo
-                                                  (Bitcoin.sigTxTotalInValue (Bitcoin.Bitcoin.envTx environment))
-                                                  Integers.Int64.modulus))
+                                               (Bitcoin.sigTxTotalInValue (Bitcoin.Bitcoin.envTx environment)))
                                             (and
                                                (@eq BinNums.Z (Integers.Int64.unsigned vo)
-                                                  (BinInt.Z.modulo
-                                                     (Bitcoin.sigTxTotalOutValue (Bitcoin.Bitcoin.envTx environment))
-                                                     Integers.Int64.modulus))
+                                                  (Bitcoin.sigTxTotalOutValue (Bitcoin.Bitcoin.envTx environment)))
                                                (@eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) fp
                                                   (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
                                                      (@pair (prod Values.block BinNums.Z) BinNums.Z
@@ -142724,9 +142671,7 @@ fun (delta : BinNums.Z) (total : forall _ : Bitcoin.Bitcoin.env, BinNums.Z) (m :
                                    (@eq (option Values.val)
                                       (Memory.Mem.load AST.Mint64 m bt (BinInt.Z.add tbase delta))
                                       (@Some Values.val (Values.Vlong value)))
-                                   (and
-                                      (@eq BinNums.Z (Integers.Int64.unsigned value)
-                                         (BinInt.Z.modulo (total environment) Integers.Int64.modulus))
+                                   (and (@eq BinNums.Z (Integers.Int64.unsigned value) (total environment))
                                       (@eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) fp
                                          (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
                                             (@pair (prod Values.block BinNums.Z) BinNums.Z
@@ -157981,17 +157926,23 @@ Record outpoint : Set := Build_outpoint { opHash : Digest.hash256;  opIndex : In
 outpoint has primitive projections with eta conversion.
 Arguments Bitcoin.Build_outpoint opHash opIndex
 Record sigTxInput : Set := Build_sigTxInput
-  { sigTxiPreviousOutpoint : Bitcoin.outpoint;  sigTxiValue : Integers.Int64.int;  sigTxiSequence : Integers.Int.int }.
+  { sigTxiPreviousOutpoint : Bitcoin.outpoint;
+    sigTxiValue : Integers.Int64.int;
+    sigTxiSequence : Integers.Int.int;
+    sigTxiValue_bound : and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) (Integers.Int64.signed sigTxiValue))
+                          (BinInt.Z.lt (Integers.Int64.signed sigTxiValue) (BinInt.Z.succ Bitcoin.MAX_MONEY)) }.
 
 sigTxInput has primitive projections with eta conversion.
-Arguments Bitcoin.Build_sigTxInput sigTxiPreviousOutpoint sigTxiValue sigTxiSequence
+Arguments Bitcoin.Build_sigTxInput sigTxiPreviousOutpoint sigTxiValue sigTxiSequence sigTxiValue_bound
 Record txOutput : Set := Build_txOutput
   { txoValue : Integers.Int64.int;
     txoScript : Bitcoin.script;
+    txoValue_bound : and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) (Integers.Int64.signed txoValue))
+                       (BinInt.Z.lt (Integers.Int64.signed txoValue) (BinInt.Z.succ Bitcoin.MAX_MONEY));
     txoScript_bound : BinInt.Z.lt (@Zcomplements.Zlength Integers.Byte.int txoScript) Integers.Int.modulus }.
 
 txOutput has primitive projections with eta conversion.
-Arguments Bitcoin.Build_txOutput txoValue txoScript txoScript_bound
+Arguments Bitcoin.Build_txOutput txoValue txoScript txoValue_bound txoScript_bound
 Record sigTx : Set := Build_sigTx
   { sigTxVersion : Integers.Int.int;
     sigTxIn : list Bitcoin.sigTxInput;
@@ -157999,7 +157950,7 @@ Record sigTx : Set := Build_sigTx
     sigTxLock : Bitcoin.lock;
     sigTxInBounds : and (BinInt.Z.lt BinNums.Z0 (@Zcomplements.Zlength Bitcoin.sigTxInput sigTxIn))
                       (BinInt.Z.lt (@Zcomplements.Zlength Bitcoin.sigTxInput sigTxIn) Integers.Int.modulus);
-    sigTxOutBounds : and (BinInt.Z.le BinNums.Z0 (@Zcomplements.Zlength Bitcoin.txOutput sigTxOut))
+    sigTxOutBounds : and (BinInt.Z.lt BinNums.Z0 (@Zcomplements.Zlength Bitcoin.txOutput sigTxOut))
                        (BinInt.Z.lt (@Zcomplements.Zlength Bitcoin.txOutput sigTxOut) Integers.Int.modulus);
     sigTxTotalInValue := List.Z_sum
                            (@List.map Bitcoin.sigTxInput BinNums.Z
@@ -158007,10 +157958,17 @@ Record sigTx : Set := Build_sigTx
     sigTxTotalOutValue := List.Z_sum
                             (@List.map Bitcoin.txOutput BinNums.Z
                                (fun i : Bitcoin.txOutput => Integers.Int64.signed (Bitcoin.txoValue i)) sigTxOut);
-    sigTxFee := BinInt.Z.sub sigTxTotalInValue sigTxTotalOutValue }.
+    sigTxFee := BinInt.Z.sub sigTxTotalOutValue sigTxTotalInValue;
+    sigTxTotalInValue_bound : and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) sigTxTotalInValue)
+                                (BinInt.Z.lt sigTxTotalInValue (BinInt.Z.succ Bitcoin.MAX_MONEY));
+    sigTxTotalOutValue_bound : and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) sigTxTotalOutValue)
+                                 (BinInt.Z.lt sigTxTotalOutValue (BinInt.Z.succ Bitcoin.MAX_MONEY));
+    sigTxFee_bound : and (BinInt.Z.lt (BinNums.Zneg BinNums.xH) sigTxFee)
+                       (BinInt.Z.lt sigTxFee (BinInt.Z.succ Bitcoin.MAX_MONEY)) }.
 
 sigTx has primitive projections with eta conversion.
-Arguments Bitcoin.Build_sigTx sigTxVersion (sigTxIn sigTxOut)%list_scope sigTxLock sigTxInBounds sigTxOutBounds
+Arguments Bitcoin.Build_sigTx sigTxVersion (sigTxIn sigTxOut)%list_scope sigTxLock sigTxInBounds
+  sigTxOutBounds sigTxTotalInValue_bound sigTxTotalOutValue_bound sigTxFee_bound
 Bitcoin.sigTxTotalInValue =
 fun s : Bitcoin.sigTx =>
 List.Z_sum
@@ -158031,11 +157989,11 @@ Bitcoin.sigTxFee =
 fun s : Bitcoin.sigTx =>
 BinInt.Z.sub
   (List.Z_sum
-     (@List.map Bitcoin.sigTxInput BinNums.Z
-        (fun i : Bitcoin.sigTxInput => Integers.Int64.signed (Bitcoin.sigTxiValue i)) (Bitcoin.sigTxIn s)))
-  (List.Z_sum
      (@List.map Bitcoin.txOutput BinNums.Z (fun i : Bitcoin.txOutput => Integers.Int64.signed (Bitcoin.txoValue i))
         (Bitcoin.sigTxOut s)))
+  (List.Z_sum
+     (@List.map Bitcoin.sigTxInput BinNums.Z
+        (fun i : Bitcoin.sigTxInput => Integers.Int64.signed (Bitcoin.sigTxiValue i)) (Bitcoin.sigTxIn s)))
      : forall _ : Bitcoin.sigTx, BinNums.Z
 
 Arguments Bitcoin.sigTxFee s
@@ -158429,7 +158387,7 @@ match p in (Bitcoin.Bitcoin.prim t t0) return String.string with
       (String.String (Ascii.Ascii true true true true false true true false)
          (String.String (Ascii.Ascii true true false false false true true false)
             (String.String (Ascii.Ascii true true false true false true true false)
-               (String.String (Ascii.Ascii false false true false true false true false)
+               (String.String (Ascii.Ascii false false true false true true true false)
                   (String.String (Ascii.Ascii true false false true false true true false)
                      (String.String (Ascii.Ascii true false true true false true true false)
                         (String.String (Ascii.Ascii true false true false false true true false) String.EmptyString)))))))
@@ -159626,9 +159584,56 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
       (@cons Integers.Int.int
          (Integers.Int.mkint
             (BinNums.Zpos
-               (BinNums.xI
-                  (BinNums.xI
+               (BinNums.xO
+                  (BinNums.xO
                      (BinNums.xI
+                        (BinNums.xO
+                           (BinNums.xI
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))))))))
+            (@conj
+               (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xI
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))))))))
+               (BinInt.Z.lt
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xI
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...)))))))))))))))))
+                  Integers.Int.modulus)
+               (@eq_refl comparison
+                  (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
+                     (BinNums.Zpos
                         (BinNums.xO
                            (BinNums.xO
                               (BinNums.xI
@@ -159637,72 +159642,25 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                                        (BinNums.xO
                                           (BinNums.xI
                                              (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))))))))
-            (@conj
-               (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
-                  (BinNums.Zpos
-                     (BinNums.xI
-                        (BinNums.xI
-                           (BinNums.xI
-                              (BinNums.xO
-                                 (BinNums.xO
-                                    (BinNums.xI
-                                       (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO ...))))))))))))))))))
-               (BinInt.Z.lt
-                  (BinNums.Zpos
-                     (BinNums.xI
-                        (BinNums.xI
-                           (BinNums.xI
-                              (BinNums.xO
-                                 (BinNums.xO
-                                    (BinNums.xI
-                                       (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))))))))
-                  Integers.Int.modulus)
-               (@eq_refl comparison
-                  (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
-                     (BinNums.Zpos
-                        (BinNums.xI
-                           (BinNums.xI
-                              (BinNums.xI
-                                 (BinNums.xO
-                                    (BinNums.xO
-                                       (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xI
                                                 (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))))))))
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))
                (@eq_refl comparison
                   (BinInt.Z.compare
                      (BinNums.Zpos
-                        (BinNums.xI
-                           (BinNums.xI
+                        (BinNums.xO
+                           (BinNums.xO
                               (BinNums.xI
                                  (BinNums.xO
-                                    (BinNums.xO
-                                       (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xO
                                                 (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))))))
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))
                      Integers.Int.modulus))))
          (@cons Integers.Int.int
             (Integers.Int.mkint
@@ -159710,46 +159668,46 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                   (BinNums.xI
                      (BinNums.xI
                         (BinNums.xO
-                           (BinNums.xI
+                           (BinNums.xO
                               (BinNums.xO
-                                 (BinNums.xO
+                                 (BinNums.xI
                                     (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xO
                                              (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO ...))))))))))))))))))
+                                                (BinNums.xO
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))
                (@conj
                   (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
                      (BinNums.Zpos
                         (BinNums.xI
                            (BinNums.xI
                               (BinNums.xO
-                                 (BinNums.xI
+                                 (BinNums.xO
                                     (BinNums.xO
-                                       (BinNums.xO
+                                       (BinNums.xI
                                           (BinNums.xI
-                                             (BinNums.xI
-                                                (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xO
                                                    (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))))))
                   (BinInt.Z.lt
                      (BinNums.Zpos
                         (BinNums.xI
                            (BinNums.xI
                               (BinNums.xO
-                                 (BinNums.xI
+                                 (BinNums.xO
                                     (BinNums.xO
-                                       (BinNums.xO
+                                       (BinNums.xI
                                           (BinNums.xI
-                                             (BinNums.xI
-                                                (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xO
                                                    (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))))))))
                      Integers.Int.modulus)
                   (@eq_refl comparison
                      (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
@@ -159757,492 +159715,139 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                            (BinNums.xI
                               (BinNums.xI
                                  (BinNums.xO
-                                    (BinNums.xI
+                                    (BinNums.xO
                                        (BinNums.xO
-                                          (BinNums.xO
+                                          (BinNums.xI
                                              (BinNums.xI
-                                                (BinNums.xI
-                                                   (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xO
                                                       (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))))))))))))
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...)))))))))))))))))
                   (@eq_refl comparison
                      (BinInt.Z.compare
                         (BinNums.Zpos
                            (BinNums.xI
                               (BinNums.xI
                                  (BinNums.xO
-                                    (BinNums.xI
+                                    (BinNums.xO
                                        (BinNums.xO
-                                          (BinNums.xO
+                                          (BinNums.xI
                                              (BinNums.xI
-                                                (BinNums.xI
-                                                   (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xO
                                                       (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))))))))))
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...)))))))))))))))
                         Integers.Int.modulus))))
             (@cons Integers.Int.int
                (Integers.Int.mkint
                   (BinNums.Zpos
                      (BinNums.xI
                         (BinNums.xO
-                           (BinNums.xI
-                              (BinNums.xI
+                           (BinNums.xO
+                              (BinNums.xO
                                  (BinNums.xO
-                                    (BinNums.xI
-                                       (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xI
                                           (BinNums.xI
-                                             (BinNums.xI
-                                                (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xO
                                                    (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))))))
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...)))))))))))))))))
                   (@conj
                      (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
                         (BinNums.Zpos
                            (BinNums.xI
                               (BinNums.xO
-                                 (BinNums.xI
-                                    (BinNums.xI
-                                       (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))
-                     (BinInt.Z.lt
-                        (BinNums.Zpos
-                           (BinNums.xI
-                              (BinNums.xO
-                                 (BinNums.xI
-                                    (BinNums.xI
-                                       (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))
-                        Integers.Int.modulus)
-                     (@eq_refl comparison
-                        (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
-                           (BinNums.Zpos
-                              (BinNums.xI
-                                 (BinNums.xO
-                                    (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xI
-                                                (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))
-                     (@eq_refl comparison
-                        (BinInt.Z.compare
-                           (BinNums.Zpos
-                              (BinNums.xI
-                                 (BinNums.xO
-                                    (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xI
-                                                (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))
-                           Integers.Int.modulus))))
-               (@cons Integers.Int.int
-                  (Integers.Int.mkint
-                     (BinNums.Zpos
-                        (BinNums.xI
-                           (BinNums.xI
-                              (BinNums.xI
-                                 (BinNums.xI
-                                    (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...))))))))))))))))
-                     (@conj
-                        (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
-                           (BinNums.Zpos
-                              (BinNums.xI
-                                 (BinNums.xI
-                                    (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xI
-                                             (BinNums.xI
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))))
-                        (BinInt.Z.lt
-                           (BinNums.Zpos
-                              (BinNums.xI
-                                 (BinNums.xI
-                                    (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xI
-                                             (BinNums.xI
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))))))
-                           Integers.Int.modulus)
-                        (@eq_refl comparison
-                           (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
-                              (BinNums.Zpos
-                                 (BinNums.xI
-                                    (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xI
-                                             (BinNums.xI
-                                                (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))))
-                        (@eq_refl comparison
-                           (BinInt.Z.compare
-                              (BinNums.Zpos
-                                 (BinNums.xI
-                                    (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xI
-                                             (BinNums.xI
-                                                (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))
-                              Integers.Int.modulus))))
-                  (@cons Integers.Int.int
-                     (Integers.Int.mkint
-                        (BinNums.Zpos
-                           (BinNums.xI
-                              (BinNums.xI
-                                 (BinNums.xO
-                                    (BinNums.xO
-                                       (BinNums.xI
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...)))))))))))))))
-                        (@conj
-                           (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
-                              (BinNums.Zpos
-                                 (BinNums.xI
-                                    (BinNums.xI
-                                       (BinNums.xO
-                                          (BinNums.xO
-                                             (BinNums.xI
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...))))))))))))))
-                           (BinInt.Z.lt
-                              (BinNums.Zpos
-                                 (BinNums.xI
-                                    (BinNums.xI
-                                       (BinNums.xO
-                                          (BinNums.xO
-                                             (BinNums.xI
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))))))))
-                              Integers.Int.modulus)
-                           (@eq_refl comparison
-                              (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
-                                 (BinNums.Zpos
-                                    (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))))
-                           (@eq_refl comparison
-                              (BinInt.Z.compare
-                                 (BinNums.Zpos
-                                    (BinNums.xI
-                                       (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))
-                                 Integers.Int.modulus))))
-                     (@cons Integers.Int.int
-                        (Integers.Int.mkint
-                           (BinNums.Zpos
-                              (BinNums.xO
-                                 (BinNums.xI
-                                    (BinNums.xO
-                                       (BinNums.xO
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))))
-                           (@conj
-                              (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
-                                 (BinNums.Zpos
-                                    (BinNums.xO
-                                       (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))
-                              (BinInt.Z.lt
-                                 (BinNums.Zpos
-                                    (BinNums.xO
-                                       (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))))
-                                 Integers.Int.modulus)
-                              (@eq_refl comparison
-                                 (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
-                                    (BinNums.Zpos
-                                       (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))))
-                              (@eq_refl comparison
-                                 (BinInt.Z.compare
-                                    (BinNums.Zpos
-                                       (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))
-                                    Integers.Int.modulus))))
-                        (@cons Integers.Int.int
-                           (Integers.Int.mkint
-                              (BinNums.Zpos
                                  (BinNums.xO
                                     (BinNums.xO
                                        (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO ...)))))))))))))
-                              (@conj
-                                 (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
-                                    (BinNums.Zpos
-                                       (BinNums.xO
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))))
-                                 (BinInt.Z.lt
-                                    (BinNums.Zpos
-                                       (BinNums.xO
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))
-                                    Integers.Int.modulus)
-                                 (@eq_refl comparison
-                                    (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
-                                       (BinNums.Zpos
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))
-                                 (@eq_refl comparison
-                                    (BinInt.Z.compare
-                                       (BinNums.Zpos
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))
-                                       Integers.Int.modulus))))
-                           (@cons Integers.Int.int
-                              (Integers.Int.mkint
-                                 (BinNums.Zpos
-                                    (BinNums.xO
-                                       (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))
-                                 (@conj
-                                    (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
-                                       (BinNums.Zpos
                                           (BinNums.xO
                                              (BinNums.xI
-                                                (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))
-                                    (BinInt.Z.lt
-                                       (BinNums.Zpos
-                                          (BinNums.xO
-                                             (BinNums.xI
-                                                (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))
-                                       Integers.Int.modulus)
-                                    (@eq_refl comparison
-                                       (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
-                                          (BinNums.Zpos
-                                             (BinNums.xO
                                                 (BinNums.xI
                                                    (BinNums.xO
                                                       (BinNums.xO
-                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))
-                                    (@eq_refl comparison
-                                       (BinInt.Z.compare
-                                          (BinNums.Zpos
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))
-                                          Integers.Int.modulus)))) (@nil Integers.Int.int)))))))))
-      (@eq_refl nat
-         (@length Integers.Int.int
-            (@cons Integers.Int.int
-               (Integers.Int.mkint
-                  (BinNums.Zpos
-                     (BinNums.xI
-                        (BinNums.xI
-                           (BinNums.xI
-                              (BinNums.xO
-                                 (BinNums.xO
-                                    (BinNums.xI
-                                       (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))))))))
-                  (@conj
-                     (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
-                        (BinNums.Zpos
-                           (BinNums.xI
-                              (BinNums.xI
-                                 (BinNums.xI
-                                    (BinNums.xO
-                                       (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
-                                                      (BinNums.xI
                                                          (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))
                      (BinInt.Z.lt
                         (BinNums.Zpos
                            (BinNums.xI
-                              (BinNums.xI
-                                 (BinNums.xI
+                              (BinNums.xO
+                                 (BinNums.xO
                                     (BinNums.xO
                                        (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xI
                                                 (BinNums.xI
                                                    (BinNums.xO
-                                                      (BinNums.xI
+                                                      (BinNums.xO
                                                          (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))
                         Integers.Int.modulus)
                      (@eq_refl comparison
                         (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
                            (BinNums.Zpos
                               (BinNums.xI
-                                 (BinNums.xI
-                                    (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xO
                                        (BinNums.xO
                                           (BinNums.xO
-                                             (BinNums.xI
-                                                (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xI
                                                    (BinNums.xI
                                                       (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...))))))))))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI ...))))))))))))))))
                      (@eq_refl comparison
                         (BinInt.Z.compare
                            (BinNums.Zpos
                               (BinNums.xI
-                                 (BinNums.xI
-                                    (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xO
                                        (BinNums.xO
                                           (BinNums.xO
-                                             (BinNums.xI
-                                                (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xI
                                                    (BinNums.xI
                                                       (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...))))))))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI ...))))))))))))))
                            Integers.Int.modulus))))
                (@cons Integers.Int.int
                   (Integers.Int.mkint
                      (BinNums.Zpos
                         (BinNums.xI
                            (BinNums.xI
-                              (BinNums.xO
+                              (BinNums.xI
                                  (BinNums.xI
-                                    (BinNums.xO
-                                       (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xI
                                           (BinNums.xI
-                                             (BinNums.xI
-                                                (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xO
                                                    (BinNums.xO
                                                       (BinNums.xI
-                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))))))
                      (@conj
                         (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
                            (BinNums.Zpos
                               (BinNums.xI
                                  (BinNums.xI
-                                    (BinNums.xO
+                                    (BinNums.xI
                                        (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xI
                                                 (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
                                                          (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...)))))))))))))))
                         (BinInt.Z.lt
                            (BinNums.Zpos
                               (BinNums.xI
                                  (BinNums.xI
-                                    (BinNums.xO
+                                    (BinNums.xI
                                        (BinNums.xI
-                                          (BinNums.xO
-                                             (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xI
                                                 (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
                                                          (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))))
                            Integers.Int.modulus)
                         (@eq_refl comparison
@@ -160250,86 +159855,439 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                               (BinNums.Zpos
                                  (BinNums.xI
                                     (BinNums.xI
-                                       (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))))
+                        (@eq_refl comparison
+                           (BinInt.Z.compare
+                              (BinNums.Zpos
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))
+                              Integers.Int.modulus))))
+                  (@cons Integers.Int.int
+                     (Integers.Int.mkint
+                        (BinNums.Zpos
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))))
+                        (@conj
+                           (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+                              (BinNums.Zpos
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))))))
+                           (BinInt.Z.lt
+                              (BinNums.Zpos
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))
+                              Integers.Int.modulus)
+                           (@eq_refl comparison
+                              (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
+                                 (BinNums.Zpos
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))))
+                           (@eq_refl comparison
+                              (BinInt.Z.compare
+                                 (BinNums.Zpos
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))
+                                 Integers.Int.modulus))))
+                     (@cons Integers.Int.int
+                        (Integers.Int.mkint
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))
+                           (@conj
+                              (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+                                 (BinNums.Zpos
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...)))))))))))))
+                              (BinInt.Z.lt
+                                 (BinNums.Zpos
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))
+                                 Integers.Int.modulus)
+                              (@eq_refl comparison
+                                 (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
+                                    (BinNums.Zpos
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))
+                              (@eq_refl comparison
+                                 (BinInt.Z.compare
+                                    (BinNums.Zpos
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))
+                                    Integers.Int.modulus))))
+                        (@cons Integers.Int.int
+                           (Integers.Int.mkint
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xI
                                           (BinNums.xI
                                              (BinNums.xO
                                                 (BinNums.xO
                                                    (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))))
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))
+                              (@conj
+                                 (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))
+                                 (BinInt.Z.lt
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI ...)))))))))))
+                                    Integers.Int.modulus)
+                                 (@eq_refl comparison
+                                    (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))
+                                 (@eq_refl comparison
+                                    (BinInt.Z.compare
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))
+                                       Integers.Int.modulus))))
+                           (@cons Integers.Int.int
+                              (Integers.Int.mkint
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))))
+                                 (@conj
+                                    (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))
+                                    (BinInt.Z.lt
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...))))))))))
+                                       Integers.Int.modulus)
+                                    (@eq_refl comparison
+                                       (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
+                                          (BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))
+                                    (@eq_refl comparison
+                                       (BinInt.Z.compare
+                                          (BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))
+                                          Integers.Int.modulus)))) (@nil Integers.Int.int)))))))))
+      (@eq_refl nat
+         (@length Integers.Int.int
+            (@cons Integers.Int.int
+               (Integers.Int.mkint
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xI
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...)))))))))))))))))
+                  (@conj
+                     (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))
+                     (BinInt.Z.lt
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))
+                        Integers.Int.modulus)
+                     (@eq_refl comparison
+                        (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))
+                     (@eq_refl comparison
+                        (BinInt.Z.compare
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))
+                           Integers.Int.modulus))))
+               (@cons Integers.Int.int
+                  (Integers.Int.mkint
+                     (BinNums.Zpos
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))))))))
+                     (@conj
+                        (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))))
+                        (BinInt.Z.lt
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))))))
+                           Integers.Int.modulus)
+                        (@eq_refl comparison
+                           (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
+                              (BinNums.Zpos
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))))
                         (@eq_refl comparison
                            (BinInt.Z.compare
                               (BinNums.Zpos
                                  (BinNums.xI
                                     (BinNums.xI
                                        (BinNums.xO
-                                          (BinNums.xI
+                                          (BinNums.xO
                                              (BinNums.xO
-                                                (BinNums.xO
+                                                (BinNums.xI
                                                    (BinNums.xI
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))
                               Integers.Int.modulus))))
                   (@cons Integers.Int.int
                      (Integers.Int.mkint
                         (BinNums.Zpos
                            (BinNums.xI
                               (BinNums.xO
-                                 (BinNums.xI
-                                    (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xO
                                        (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xI
                                                 (BinNums.xI
-                                                   (BinNums.xI
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))
                         (@conj
                            (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
                               (BinNums.Zpos
                                  (BinNums.xI
                                     (BinNums.xO
-                                       (BinNums.xI
-                                          (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xO
                                              (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO ...))))))))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))))))
                            (BinInt.Z.lt
                               (BinNums.Zpos
                                  (BinNums.xI
                                     (BinNums.xO
-                                       (BinNums.xI
-                                          (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xO
                                              (BinNums.xO
-                                                (BinNums.xI
-                                                   (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))
                               Integers.Int.modulus)
                            (@eq_refl comparison
                               (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
                                  (BinNums.Zpos
                                     (BinNums.xI
                                        (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
                                                 (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))))
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))
                            (@eq_refl comparison
                               (BinInt.Z.compare
                                  (BinNums.Zpos
                                     (BinNums.xI
                                        (BinNums.xO
-                                          (BinNums.xI
-                                             (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
                                                 (BinNums.xO
-                                                   (BinNums.xI
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))
+                                                   (BinNums.xO
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))
                                  Integers.Int.modulus))))
                      (@cons Integers.Int.int
                         (Integers.Int.mkint
@@ -160342,8 +160300,8 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                                              (BinNums.xI
                                                 (BinNums.xI
                                                    (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))))))
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))))
                            (@conj
                               (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
                                  (BinNums.Zpos
@@ -160354,7 +160312,7 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                                                 (BinNums.xI
                                                    (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))
                               (BinInt.Z.lt
                                  (BinNums.Zpos
                                     (BinNums.xI
@@ -160364,7 +160322,7 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                                                 (BinNums.xI
                                                    (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...))))))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))))
                                  Integers.Int.modulus)
                               (@eq_refl comparison
                                  (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
@@ -160375,7 +160333,7 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                                                 (BinNums.xI
                                                    (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))
                               (@eq_refl comparison
                                  (BinInt.Z.compare
                                     (BinNums.Zpos
@@ -160385,145 +160343,145 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                                                 (BinNums.xI
                                                    (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))
                                     Integers.Int.modulus))))
                         (@cons Integers.Int.int
                            (Integers.Int.mkint
                               (BinNums.Zpos
                                  (BinNums.xI
                                     (BinNums.xI
-                                       (BinNums.xO
-                                          (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xI
                                              (BinNums.xI
                                                 (BinNums.xI
                                                    (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))))))))
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))
                               (@conj
                                  (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
                                     (BinNums.Zpos
                                        (BinNums.xI
                                           (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
                                                    (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))))
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))
                                  (BinInt.Z.lt
                                     (BinNums.Zpos
                                        (BinNums.xI
                                           (BinNums.xI
-                                             (BinNums.xO
-                                                (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
                                                    (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))
+                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO ...)))))))))))
                                     Integers.Int.modulus)
                                  (@eq_refl comparison
                                     (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
                                        (BinNums.Zpos
                                           (BinNums.xI
                                              (BinNums.xI
-                                                (BinNums.xO
-                                                   (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))))
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...))))))))))))
                                  (@eq_refl comparison
                                     (BinInt.Z.compare
                                        (BinNums.Zpos
                                           (BinNums.xI
                                              (BinNums.xI
-                                                (BinNums.xO
-                                                   (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))
+                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI ...))))))))))
                                        Integers.Int.modulus))))
                            (@cons Integers.Int.int
                               (Integers.Int.mkint
                                  (BinNums.Zpos
-                                    (BinNums.xO
+                                    (BinNums.xI
                                        (BinNums.xI
                                           (BinNums.xO
-                                             (BinNums.xO
-                                                (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
                                                    (BinNums.xO
                                                       (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))))
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))
                                  (@conj
                                     (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
                                        (BinNums.Zpos
-                                          (BinNums.xO
+                                          (BinNums.xI
                                              (BinNums.xI
                                                 (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))
                                     (BinInt.Z.lt
                                        (BinNums.Zpos
-                                          (BinNums.xO
+                                          (BinNums.xI
                                              (BinNums.xI
                                                 (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))
                                        Integers.Int.modulus)
                                     (@eq_refl comparison
                                        (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
                                           (BinNums.Zpos
-                                             (BinNums.xO
+                                             (BinNums.xI
                                                 (BinNums.xI
                                                    (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))
                                     (@eq_refl comparison
                                        (BinInt.Z.compare
                                           (BinNums.Zpos
-                                             (BinNums.xO
+                                             (BinNums.xI
                                                 (BinNums.xI
                                                    (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))
                                           Integers.Int.modulus))))
                               (@cons Integers.Int.int
                                  (Integers.Int.mkint
                                     (BinNums.Zpos
                                        (BinNums.xO
-                                          (BinNums.xO
-                                             (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xI
                                                 (BinNums.xI
                                                    (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))
+                                                      (BinNums.xO
+                                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI ...)))))))))))
                                     (@conj
                                        (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
                                           (BinNums.Zpos
                                              (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...))))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI ...))))))))))
                                        (BinInt.Z.lt
                                           (BinNums.Zpos
                                              (BinNums.xO
-                                                (BinNums.xO
-                                                   (BinNums.xO
+                                                (BinNums.xI
+                                                   (BinNums.xI
                                                       (BinNums.xI
-                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...)))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))))
                                           Integers.Int.modulus)
                                        (@eq_refl comparison
                                           (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
                                              (BinNums.Zpos
                                                 (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))))
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))
                                        (@eq_refl comparison
                                           (BinInt.Z.compare
                                              (BinNums.Zpos
                                                 (BinNums.xO
-                                                   (BinNums.xO
-                                                      (BinNums.xO
-                                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...))))))))
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))
                                              Integers.Int.modulus))))
                                  (@cons Integers.Int.int
                                     (Integers.Int.mkint
@@ -160532,34 +160490,34 @@ match p in (Bitcoin.Bitcoin.prim H H0) return Digest.hash256 with
                                              (BinNums.xI
                                                 (BinNums.xO
                                                    (BinNums.xO
-                                                      (BinNums.xI
-                                                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))
+                                                      (BinNums.xO
+                                                         (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO ...))))))))))
                                        (@conj
                                           (BinInt.Z.lt (BinNums.Zneg BinNums.xH)
                                              (BinNums.Zpos
                                                 (BinNums.xO
                                                    (BinNums.xI
                                                       (BinNums.xO
-                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO ...)))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))
                                           (BinInt.Z.lt
                                              (BinNums.Zpos
                                                 (BinNums.xO
                                                    (BinNums.xI
                                                       (BinNums.xO
-                                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))
                                              Integers.Int.modulus)
                                           (@eq_refl comparison
                                              (BinInt.Z.compare (BinNums.Zneg BinNums.xH)
                                                 (BinNums.Zpos
                                                    (BinNums.xO
                                                       (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))
                                           (@eq_refl comparison
                                              (BinInt.Z.compare
                                                 (BinNums.Zpos
                                                    (BinNums.xO
                                                       (BinNums.xI
-                                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))
+                                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))
                                                 Integers.Int.modulus)))) (@nil Integers.Int.int)))))))))))
 | Bitcoin.Bitcoin.InputsHash =>
     Digest.Hash256
