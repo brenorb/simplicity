@@ -58,6 +58,41 @@ def inherited_profiles(mapping):
     return profiles, inputs
 
 
+def source_reviews(work):
+    archive_path = 'proof-work/secp-field-literal/ARCHIVED-INPUTS.json'
+    archives = json.loads(a.blob(archive_path))['inputs']
+    gates, view, changes, inputs = work / 'review-gates', work / 'review-candidates', {}, {}
+    for original, row in archives.items():
+        if not original.startswith('Coq/negate-review/'):
+            continue
+        name = 'proof-work/secp-field-literal/' + row['archive']
+        raw = a.blob(name)
+        if s.sha(raw) != row['sha256']:
+            raise ValueError('archived gate hash differs: ' + name)
+        changes[gates / Path(original).name] = raw.decode()
+        inputs[name] = s.sha(raw)
+        if original.endswith('.json'):
+            changes[view / Path(original).name] = raw.decode()
+    for name in ['jet_secp_canonical_negate', 'jet_secp_negate_local', 'jet_literal_division_add',
+                 'jet_canonical_add_adapter', 'jet_secp_negate_literal_contract', 'jet_haskell_word_conversion']:
+        changes[view / (name + '.v')] = (work / 'Coq/C' / (name + '.v')).read_text()
+    s.changed(changes)
+    commands = {'multiply-source': [sys.executable, '-B', str(HERE / 'review.py')]}
+    for family in ['negate-wiring', 'recursive-ports', 'literal-ports', 'foundations']:
+        for action in ['check', 'test']:
+            name = action + '-' + family
+            commands[name] = [sys.executable, '-B', str(gates / (name + '.py')),
+                '--repo', str(work), '--candidates', str(view)]
+    for action in ['check', 'test']:
+        name = action + '-normalize'
+        commands[name] = [sys.executable, '-B', str(work / 'Coq' / (action + '-secp-normalize-specification.py'))]
+    rows = {}
+    for name, command in commands.items():
+        rows[name] = s.run(work, command, 'integration-review-' + name, 180)
+        print('Passed integration source review: ' + name, flush=True)
+    return rows, inputs
+
+
 def reports():
     work, r, b = built()
     if (HERE / 'REPORT-LAUNCH.json').exists():
@@ -92,11 +127,15 @@ def reports():
         raise ValueError('private namespace leaked into the ordinary build')
     commands['original-targets'] = s.run(work, [sys.executable, '-B', 'check-jet-source-target.py'],
         'integration-original-targets', 60)
+    reviews, review_inputs = source_reviews(work)
     built()
     out = dict(candidate=str(work), built_sha256=s.sha((HERE / 'BUILT.json').read_bytes()),
         verifier_sha256=s.sha(Path(__file__).read_bytes()), inherited_profile_inputs=inherited,
         results=results, definitions=definitions, dependencies={n: sorted(ds) for n, ds in dependencies.items()},
         commands=commands, loaded_source_modules=sorted(loaded), public_contract=root,
+        source_review_commands=reviews, source_review_inputs=review_inputs,
+        reviewer_sha256=s.sha((HERE / 'review.py').read_bytes()),
+        multiply_gate_sha256=s.sha((HERE.parent / 'secp-field-literal/check-source.py').read_bytes()),
         normal_registration=False, coverage_added=0, recursive_kernel_check=False)
     s.changed({HERE / 'REPORTED.json': json.dumps(out, indent=2) + '\n',
         HERE / 'loaded-libraries.log': query.stdout,
@@ -112,9 +151,17 @@ def reported():
     expected, inherited = inherited_profiles(r['module_renaming'])
     if (out['built_sha256'] != s.sha((HERE / 'BUILT.json').read_bytes()) or
             out['verifier_sha256'] != s.sha(Path(__file__).read_bytes()) or
+            out['reviewer_sha256'] != s.sha((HERE / 'review.py').read_bytes()) or
+            out['multiply_gate_sha256'] != s.sha((HERE.parent / 'secp-field-literal/check-source.py').read_bytes()) or
             out['inherited_profile_inputs'] != inherited or
             {n: set(ds) for n, ds in out['dependencies'].items()} != expected):
         raise ValueError('reported exact inputs/profiles changed')
+    for name, digest in out['source_review_inputs'].items():
+        if s.sha(a.blob(name)) != digest:
+            raise ValueError('source-review input changed: ' + name)
+    for name, row in out['source_review_commands'].items():
+        if row['exit_code'] or row['log_sha256'] != s.sha((work / ('integration-review-' + name + '.log')).read_bytes()):
+            raise ValueError('source-review command/log changed: ' + name)
     for name, row in out['commands'].items():
         stem = 'integration-original-targets' if name == 'original-targets' else name
         if row['exit_code'] or row['log_sha256'] != s.sha((work / (stem + '.log')).read_bytes()):
