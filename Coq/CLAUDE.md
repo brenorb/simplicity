@@ -12,3 +12,6 @@ Review generated snapshot diffs, then validate the final sources with
 `bash Coq/check-jets.sh --accept` from the repository root. Snapshot update mode
 is not acceptance. Do not edit audit inputs during verification, and check the
 actual exit status rather than a pipeline's last command or a stale `.vo`.
+
+Upstream mismatches are reported, never corrected: see `AGENTS.md` and
+`C/JET_BITCOIN_MODEL_MISMATCHES.md`.

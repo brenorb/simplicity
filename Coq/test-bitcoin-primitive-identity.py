@@ -30,8 +30,13 @@ def main():
         rejects(base, original.replace('primName : string := "Bitcoin"',
                                        'primName : string := "BitcoinExt"'),
                 "base primitive tag namespace differs")
-        rejects(base, original.replace('| LockTime => "lockTime"', '| LockTime => "locktime"'),
+        assert '| LockTime => "locktime"' in original
+        rejects(base, original.replace('| LockTime => "locktime"', '| LockTime => "lock_time"'),
                 "base primitive name mismatch: LockTime")
+        rejects(base, original.replace('| LockTime => "locktime"', '| LockTime => "lockTime"'),
+                "recorded base primitive name mismatch no longer present: LockTime")
+        rejects(base, original.replace('| Version => "version"', '| Version => "Version"'),
+                "base primitive name mismatch: Version")
         rejects(base, original.replace('| InputValue : prim Word32 (Sum Unit Word64)',
                                        '| InputValue : prim Word32 (Sum Unit Word32)'),
                 "base primitive type mismatch: InputValue")
