@@ -44,4 +44,6 @@ if [[ "${1:-}" == --regression ]]; then
   shift
 fi
 coq_makefile -f "$project" "${jet_flags[@]}" -o "$makefile"
-make -f "$makefile" all "$@"
+# JET_TARGETS (space-separated .vo files) builds only those and their dependencies.
+# shellcheck disable=SC2086
+make -f "$makefile" ${JET_TARGETS:-all} "$@"

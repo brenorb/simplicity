@@ -7,7 +7,7 @@ stdenv.mkDerivation {
   name = "Simplicity-coq-jets-0.0.0";
   src = lib.sourceFilesBySuffices
       (lib.sourceByRegex ./Coq ["_CoqProject.*" ".*\\.sh" ".*\\.py" "C" "C/.*" "Simplicity" "Simplicity/.*" "Util" "Util/.*"])
-    ["_CoqProject" "_CoqProject.jets" ".v" ".sh" ".py" ".txt" ".tsv" ".expected"];
+    ["_CoqProject" "_CoqProject.jets" ".v" ".sh" ".py" ".txt" ".tsv" ".expected" ".contracts" ".assumptions"];
 
   buildInputs = [ coq ];
   nativeBuildInputs = [ python3 ];

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Negative tests for the review's gate bypasses, in an isolated built copy."""
+import os
 import shutil
 import subprocess
 import sys
@@ -9,8 +10,12 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 
 
+# The fixtures replace the public theorem list; a scoped run's selection must not leak in.
+ENV = {k: v for k, v in os.environ.items() if k not in ("JET_ONLY_MODULES", "JET_TARGETS")}
+
+
 def run(args, cwd, succeeds=True):
-    result = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
+    result = subprocess.run(args, cwd=cwd, capture_output=True, text=True, env=ENV)
     if (result.returncode == 0) != succeeds:
         raise RuntimeError(f"unexpected result from {args}:\n{result.stdout}\n{result.stderr}")
     return result

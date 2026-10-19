@@ -67,8 +67,12 @@ def main():
         model.write_text(original + "\n(* edited during audit *)\n")
         assert inputs.fingerprint(coq, root) != baseline
         candidate = inputs.fingerprint(coq, root, updating=True)
-        (coq / "jet_contracts.expected").write_text("candidate snapshot")
+        (coq / "jet_coqchk_axioms.expected").write_text("candidate snapshot")
         assert inputs.fingerprint(coq, root, updating=True) == candidate
+        (coq / "snapshots").mkdir()
+        (coq / "snapshots/C.m.contracts").write_text("candidate snapshot")
+        assert inputs.fingerprint(coq, root, updating=True) == candidate
+        assert inputs.fingerprint(coq, root) != inputs.fingerprint(coq, root, updating=True)
         assert inputs.fingerprint(coq, root) != baseline
     for flags in (("--accept", "--no-build"), ("--accept", "--update-expected")):
         result = subprocess.run(["bash", str(SOURCE / "check-jets.sh"), *flags], capture_output=True, text=True)

@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Integrated verification of the jet proofs.
 #
-#   check-jets.sh [--update-expected] [--ast] [--accept]
+#   check-jets.sh [--update-expected] [--ast] [--accept] [--jets=NAME,...]
+#
+# --jets scopes the build, kernel check and snapshot gates to the listed jets
+# (C/jet_coverage.tsv names) and their dependency closure, so an unrelated
+# broken module does not block them. Static checks and AST regeneration stay
+# global. Without --jets every module is checked.
 #
 # Steps (each fails the script):
 #   1. static checks: no Axiom/Parameter/Admitted in the jet sources; every jet
@@ -18,13 +23,14 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-update=false; ast=false; build=true; accept=false
+update=false; ast=false; build=true; accept=false; jets=""
 for a in "$@"; do
   case "$a" in
     --update-expected) update=true ;;
     --ast) ast=true ;;
     --no-build) build=false ;;
     --accept) accept=true ;;
+    --jets=*) jets=${a#--jets=} ;;
     *) echo "unknown option $a" >&2; exit 2 ;;
   esac
 done
@@ -168,6 +174,30 @@ missing=$(comm -23 <(grep -E '^C/jets?[_.]' _CoqProject.jets | sort -u) \
 if [[ -n "$missing" ]]; then
   echo "jet modules missing from _CoqProject:" >&2; echo "$missing" >&2; exit 1
 fi
+work=$(mktemp -d "${TMPDIR:-/tmp}/jet-check.XXXXXX")
+trap 'rm -rf "$work"' EXIT
+if [[ -n "$jets" ]]; then
+  roots=$(python3 - "$jets" <<'PY'
+import sys
+want = [j for j in sys.argv[1].split(",") if j]
+rows = {}
+for line in open("C/jet_coverage.tsv"):
+    parts = line.split()
+    if len(parts) == 3 and not line.startswith("#"):
+        rows[parts[0]] = parts[1]
+missing = [j for j in want if j not in rows]
+if missing:
+    sys.exit("jets not in C/jet_coverage.tsv: " + ", ".join(missing))
+print(" ".join(sorted({rows[j] for j in want})))
+PY
+)
+  # shellcheck disable=SC2086
+  python3 jet-closure.py $roots > "$work/scope.txt"
+  export JET_ONLY_MODULES="$work/scope.txt"
+  JET_TARGETS=$(for r in $roots; do printf '%s.vo ' "${r//.//}"; done)
+  export JET_TARGETS
+  echo "== scope: $(echo "$jets" | tr ',' ' ' | wc -w | tr -d ' ') jet(s), $(wc -l < "$work/scope.txt" | tr -d ' ') module(s)"
+fi
 for m in $(awk '!/^#/ && NF==2 {print $1}' C/jet_public_theorems.txt | sort -u); do
   f=${m//./\/}.v
   grep -qx "$f" _CoqProject.jets || { echo "$f not in _CoqProject.jets" >&2; exit 1; }
@@ -178,10 +208,10 @@ if $build; then
   bash build-jets.sh -j"$jobs"
 fi
 
-work=$(mktemp -d "${TMPDIR:-/tmp}/jet-check.XXXXXX")
-trap 'rm -rf "$work"' EXIT
 echo "== coqchk"
-mods=$(awk '!/^#/ && NF==2 {print $1}' C/jet_public_theorems.txt | sort -u | tr '\n' ' ')
+mods=$(awk '!/^#/ && NF==2 {print $1}' C/jet_public_theorems.txt | sort -u)
+if [[ -n "$jets" ]]; then mods=$(comm -12 <(echo "$mods") <(sort "$work/scope.txt")); fi
+mods=$(echo "$mods" | tr '\n' ' ')
 # shellcheck disable=SC2086
 if ! bash build-jets.sh --coqchk -silent -o $mods > "$work/coqchk.out" 2>&1; then
   cat "$work/coqchk.out" >&2
@@ -191,7 +221,13 @@ axioms=$(awk '/^\* Axioms:/{f=1;next} f&&NF==0{exit} f{print $1}' "$work/coqchk.
 grep -q 'Constants/Inductives relying on type-in-type: <none>' "$work/coqchk.out"
 grep -q 'unsafe (co)fixpoints: <none>' "$work/coqchk.out"
 grep -q 'positivity is assumed: <none>' "$work/coqchk.out"
-if $update; then printf '%s\n' "$axioms" > C/jet_coqchk_axioms.expected
+if [[ -n "$jets" ]]; then
+  # A scoped run sees a subset of the library axioms; it never rewrites the list.
+  extra=$(comm -23 <(printf '%s\n' "$axioms") C/jet_coqchk_axioms.expected)
+  if [[ -n "$extra" ]]; then
+    echo "coqchk axioms outside C/jet_coqchk_axioms.expected: $extra" >&2; exit 1
+  fi
+elif $update; then printf '%s\n' "$axioms" > C/jet_coqchk_axioms.expected
 elif ! diff <(printf '%s\n' "$axioms") C/jet_coqchk_axioms.expected; then
   echo "coqchk library-level axioms differ from C/jet_coqchk_axioms.expected" >&2; exit 1
 fi
@@ -230,8 +266,11 @@ if [[ "$inputs_before" != "$inputs_after" ]]; then
   exit 1
 fi
 echo "audit input SHA-256: $inputs_after"
+if [[ -n "$jets" ]]; then scoped=" for jets: $jets"; else scoped=""; fi
 if $update; then
-  echo 'candidate snapshots generated; review their diffs, then rerun --accept without update flags'
+  echo "candidate snapshots generated$scoped; review their diffs, then rerun --accept without update flags"
+elif $accept && [[ -n "$jets" ]]; then
+  echo "scoped jet acceptance passed$scoped (build, kernel, reviewed snapshots, negative tests, five ASTs)"
 elif $accept; then
   echo 'all jet acceptance checks passed (build, kernel, reviewed snapshots, negative tests, five ASTs)'
 elif ! $build; then
