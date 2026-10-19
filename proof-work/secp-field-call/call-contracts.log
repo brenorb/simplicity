@@ -1,0 +1,322 @@
+TAP_TYPE FieldCall.Lifecycle.owned_void_call
+Lifecycle.owned_void_call
+     : forall (ge : Clight.genv) (fd : Clight.function) (xs : list jet_sx_expr.sx)
+         (regs regsN : list jet_sx_state.region) (veN : jet_sx_eval.venv) (ts0 : Maps.PTree.t jet_sx_expr.sx)
+         (final_regs : forall _ : forall _ : nat, Integers.Int64.int, list jet_sx_state.region)
+         (_ : @eq bool (jet_sx_exec.fn_okb fd) true) (_ : @eq Ctypes.type (Clight.fn_return fd) Ctypes.Tvoid)
+         (_ : @eq bool (@List.forallb jet_sx_expr.sx (jet_sx_mem.xp_lt (@length jet_sx_state.region regs)) xs) true)
+         (_ : @eq (option (prod (list jet_sx_state.region) jet_sx_eval.venv))
+                (jet_sx_mem.xalloc (jet_sx_mem.std_cells (Clight.genv_cenv ge)) (Clight.genv_cenv ge)
+                   (Clight.fn_vars fd) (@length jet_sx_state.region regs))
+                (@Some (prod (list jet_sx_state.region) jet_sx_eval.venv)
+                   (@pair (list jet_sx_state.region) jet_sx_eval.venv regsN veN)))
+         (_ : @eq (option (Maps.PTree.t jet_sx_expr.sx))
+                (jet_sx_mem.xbind (Clight.fn_params fd) xs (Maps.PTree.empty jet_sx_expr.sx))
+                (@Some (Maps.PTree.t jet_sx_expr.sx) ts0))
+         (_ : forall rho : forall _ : nat, Integers.Int64.int,
+              @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   (final_regs rho))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   (@app jet_sx_state.region regs regsN)))
+         (_ : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) 
+                (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+                (_ : jet_sx_state.rep rho beta (@app jet_sx_state.region regs regsN) m)
+                (_ : jet_sx_eval.tmatch rho beta ts0 le) (_ : jet_sx_eval.ematch beta veN e),
+              @ex Clight.temp_env
+                (fun le' : Clight.temp_env =>
+                 @ex Memory.Mem.mem
+                   (fun mf : Memory.Mem.mem =>
+                    and
+                      (ClightBigstep.Clight2.exec_stmt ge e le m (Clight.fn_body fd) Events.E0 le' mf
+                         ClightBigstep.Out_normal)
+                      (and (jet_sx_state.rep rho beta (final_regs rho) mf)
+                         (jet_sx_mem.lframe
+                            (fun (b : Values.block) (ofs : BinNums.Z) =>
+                             not
+                               (jet_sx_state.foot beta
+                                  (@List.map jet_sx_state.region
+                                     (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                     jet_sx_state.rshape (@app jet_sx_state.region regs regsN)) b ofs)) m mf)))))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function fd)
+               (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) xs) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_sx_state.rep rho beta
+                  (@List.firstn jet_sx_state.region (@length jet_sx_state.region regs) (final_regs rho)) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape regs) b ofs)) m mf)))
+TAP_TYPE FieldCall.Call.field_function_ok
+Call.field_function_ok
+     : @eq bool (jet_sx_exec.fn_okb jets_secp.f_secp256k1_fe_mul_inner) true
+TAP_TYPE FieldCall.Call.field_allocation_model
+Call.field_allocation_model
+     : @eq (option (prod (list jet_sx_state.region) jet_sx_eval.venv))
+         (jet_sx_mem.xalloc (jet_sx_mem.std_cells (Clight.genv_cenv jet_secp_linkage.secp_ge))
+            (Clight.genv_cenv jet_secp_linkage.secp_ge) (Clight.fn_vars jets_secp.f_secp256k1_fe_mul_inner) 
+            (S (S O)))
+         (@Some (prod (list jet_sx_state.region) jet_sx_eval.venv)
+            (@pair (list jet_sx_state.region) jet_sx_eval.venv
+               (@fst (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated)
+               (@snd (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated)))
+TAP_TYPE FieldCall.Call.field_binding_model
+Call.field_binding_model
+     : @eq (option (Maps.PTree.t jet_sx_expr.sx))
+         (jet_sx_mem.xbind (Clight.fn_params jets_secp.f_secp256k1_fe_mul_inner)
+            (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+               (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+                  (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0) (@nil jet_sx_expr.sx))))
+            (Maps.PTree.empty jet_sx_expr.sx)) (@Some (Maps.PTree.tree jet_sx_expr.sx) Prefix.prefix_temps)
+TAP_TYPE FieldCall.Call.field_final_shape
+Call.field_final_shape
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs (Execute.original_finish_checkpoint rho)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape
+            (@app jet_sx_state.region Run.field_mul_regs
+               (@fst (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated)))
+TAP_TYPE FieldCall.Call.field_final_prefix
+Call.field_final_prefix
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq (list jet_sx_state.region)
+         (@List.firstn jet_sx_state.region (S (S O)) (jet_sx_eval.sregs (Execute.original_finish_checkpoint rho)))
+         (Call.field_output_regs rho)
+TAP_TYPE FieldCall.Call.field_body_for_call
+Call.field_body_for_call
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta
+                (@app jet_sx_state.region Run.field_mul_regs
+                   (@fst (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated)) m)
+         (_ : jet_sx_eval.tmatch rho beta Prefix.prefix_temps le)
+         (_ : jet_sx_eval.ematch beta (@snd (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner) Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (Execute.original_finish_checkpoint rho)) mf)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot beta
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape
+                              (@app jet_sx_state.region Run.field_mul_regs
+                                 (@fst (list jet_sx_state.region) jet_sx_eval.venv Prefix.mul_allocated))) b ofs)) m mf))))
+TAP_TYPE FieldCall.Call.field_output_loads
+Call.field_output_loads
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (Call.field_output_regs rho) m),
+       Execute.output_words beta (Execute.original_finish_words rho) m
+TAP_TYPE FieldCall.Call.eval_original_field_mul_inner
+Call.eval_original_field_mul_inner
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta Run.field_mul_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul_inner)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho beta (Call.field_output_regs rho) mf)
+               (and (Execute.output_words beta (Execute.original_finish_words rho) mf)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot beta
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape Run.field_mul_regs) b ofs)) m mf))))
+TAP_TYPE FieldCall.Product.eval_original_field_mul_inner_product
+Product.eval_original_field_mul_inner_product
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : Arithmetic.field_input_bounds rho) (_ : jet_sx_state.rep rho beta Run.field_mul_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul_inner)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho beta (Call.field_output_regs rho) mf)
+               (and (Execute.output_words beta (Execute.original_finish_words rho) mf)
+                  (and
+                     (@eq BinNums.Z
+                        (BinInt.Z.modulo (Product.radix_value (Execute.original_finish_words rho)) Columns.field_prime)
+                        (BinInt.Z.modulo
+                           (BinInt.Z.mul (Product.radix_value rho) (Product.radix_value (Product.second_input rho)))
+                           Columns.field_prime))
+                     (and
+                        (forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+                         and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned (Execute.original_finish_words rho i)))
+                           (BinInt.Z.lt (Integers.Int64.unsigned (Execute.original_finish_words rho i))
+                              match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+                              | true =>
+                                  BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO
+                                                                        (BinNums.xO
+                                                                           (BinNums.xO
+                                                                              (BinNums.xO
+                                                                                 (BinNums.xO
+                                                                                    (BinNums.xO
+                                                                                       (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH)))))))))))))))))))))))))))))))))))))))))))))))))
+                              | false =>
+                                  BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO
+                                                                        (BinNums.xO
+                                                                           (BinNums.xO
+                                                                              (BinNums.xO
+                                                                                 (BinNums.xO
+                                                                                    (BinNums.xO
+                                                                                       (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO
+                                                                                          (BinNums.xO BinNums.xH))))))))))))))))))))))))))))))))))))))))))))))))))))
+                              end))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape Run.field_mul_regs) b ofs)) m mf))))))
+TAP_DEF FieldCall.Call.field_output_regs
+Call.field_output_regs =
+fun rho : forall _ : nat, Integers.Int64.int =>
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells BinNums.Z0
+        (@cons jet_sx_expr.sx (jet_sx_expr.XL (Execute.original_finish_words rho O))
+           (@cons jet_sx_expr.sx (jet_sx_expr.XL (Execute.original_finish_words rho (S O)))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XL (Execute.original_finish_words rho (S (S O))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (Execute.original_finish_words rho (S (S (S O)))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XL (Execute.original_finish_words rho (S (S (S (S O))))))
+                       (@nil jet_sx_expr.sx))))))) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg
+        (jet_sx_rep.u64_cells BinNums.Z0
+           (@cons jet_sx_expr.sx (jet_sx_expr.XL (rho (S (S (S (S (S O)))))))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XL (rho (S (S (S (S (S (S O))))))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (rho (S (S (S (S (S (S (S O)))))))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XL (rho (S (S (S (S (S (S (S (S O))))))))))
+                       (@cons jet_sx_expr.sx (jet_sx_expr.XL (rho (S (S (S (S (S (S (S (S (S O)))))))))))
+                          (@nil jet_sx_expr.sx))))))) true
+        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     (@nil jet_sx_state.region))
+     : forall _ : forall _ : nat, Integers.Int64.int, list jet_sx_state.region
+
+Arguments Call.field_output_regs rho%function_scope

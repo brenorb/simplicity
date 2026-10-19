@@ -1,0 +1,147 @@
+TAP_TYPE FieldNormalize.Bridge.field_prime_matches_normalizer
+Bridge.field_prime_matches_normalizer
+     : @eq BinNums.Z Columns.field_prime jet_secp_fe_math.feP
+TAP_TYPE FieldNormalize.Bridge.radix_value_matches_normalizer
+Bridge.radix_value_matches_normalizer
+     : forall words : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z (Product.radix_value words)
+         (jet_secp_fe_math.fe_val (Integers.Int64.unsigned (words O)) (Integers.Int64.unsigned (words (S O)))
+            (Integers.Int64.unsigned (words (S (S O)))) (Integers.Int64.unsigned (words (S (S (S O)))))
+            (Integers.Int64.unsigned (words (S (S (S (S O)))))))
+TAP_TYPE FieldNormalize.Bridge.multiplier_normalizer_bounds
+Bridge.multiplier_normalizer_bounds
+     : forall (rho : forall _ : nat, Integers.Int64.int) (_ : Arithmetic.field_input_bounds rho) 
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       BinInt.Z.le (Integers.Int64.unsigned (Execute.original_finish_words rho i))
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+TAP_TYPE FieldNormalize.Bridge.bounded_normalized_words
+Bridge.bounded_normalized_words
+     : forall (words : forall _ : nat, Integers.Int64.int)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              BinInt.Z.le (Integers.Int64.unsigned (words i))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @eq (list BinNums.Z) (Bridge.normalized_words words)
+         (jet_secp_fe_math.fe_limbs_of (BinInt.Z.modulo (Product.radix_value words) jet_secp_fe_math.feP))
+TAP_TYPE FieldNormalize.Bridge.multiplier_normalized_product
+Bridge.multiplier_normalized_product
+     : forall (rho : forall _ : nat, Integers.Int64.int) (_ : Arithmetic.field_input_bounds rho),
+       @eq (list BinNums.Z) (Bridge.normalized_words (Execute.original_finish_words rho))
+         (jet_secp_fe_math.fe_limbs_of
+            (BinInt.Z.modulo (BinInt.Z.mul (Product.radix_value rho) (Product.radix_value (Product.second_input rho)))
+               Columns.field_prime))
+TAP_TYPE FieldNormalize.Bridge.u64_region_fe_at
+Bridge.u64_region_fe_at
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem) 
+         (r : nat) (words : forall _ : nat, Integers.Int64.int) (free : option BinNums.Z)
+         (_ : jet_sx_state.region_ok rho beta m r
+                (jet_sx_state.mkreg
+                   (jet_sx_rep.u64_cells BinNums.Z0
+                      (@List.map Integers.Int64.int jet_sx_expr.sx jet_sx_expr.XL (Bridge.words5 words))) true free)),
+       jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta r) (jet_sx_state.bas beta r) (Bridge.words5 words)
+TAP_TYPE FieldNormalize.Bridge.multiplier_output_fe_at
+Bridge.multiplier_output_fe_at
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (Call.field_output_regs rho) m),
+       jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta O) (jet_sx_state.bas beta O)
+         (Bridge.words5 (Execute.original_finish_words rho))
+TAP_TYPE FieldNormalize.Bridge.multiplier_second_fe_at
+Bridge.multiplier_second_fe_at
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (Call.field_output_regs rho) m),
+       jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta (S O)) (jet_sx_state.bas beta (S O))
+         (Bridge.words5 (Product.second_input rho))
+TAP_TYPE FieldNormalize.Bridge.multiplier_output_blocks_distinct
+Bridge.multiplier_output_blocks_distinct
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (Call.field_output_regs rho) m),
+       not (@eq Values.block (jet_sx_state.blk beta O) (jet_sx_state.blk beta (S O)))
+TAP_TYPE FieldNormalize.Bridge.fe_at_other_block
+Bridge.fe_at_other_block
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (words : list Integers.Int64.int)
+         (changed : Values.block) (base : BinNums.Z) (_ : not (@eq Values.block b changed))
+         (_ : jet_secp_fe_nv.fe_at m b ofs words)
+         (_ : jet_sx_mem.lframe
+                (fun (b' : Values.block) (o : BinNums.Z) =>
+                 not
+                   (and (@eq Values.block b' changed)
+                      (and (BinInt.Z.le base o)
+                         (BinInt.Z.lt o
+                            (BinInt.Z.add base
+                               (BinNums.Zpos
+                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))) m
+                mf), jet_secp_fe_nv.fe_at mf b ofs words
+TAP_TYPE FieldNormalize.Bridge.field_first_range_in_foot
+Bridge.field_first_range_in_foot
+     : forall (beta : jet_sx_state.layout) (b : Values.block) (o : BinNums.Z)
+         (_ : @eq Values.block b (jet_sx_state.blk beta O))
+         (_ : and (BinInt.Z.le (jet_sx_state.bas beta O) o)
+                (BinInt.Z.lt o
+                   (BinInt.Z.add (jet_sx_state.bas beta O)
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))),
+       jet_sx_state.foot beta
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape Run.field_mul_regs) b o
+TAP_TYPE FieldNormalize.Call.eval_original_field_mul_then_normalize
+Call.eval_original_field_mul_then_normalize
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : Arithmetic.field_input_bounds rho) (_ : jet_sx_state.rep rho beta Run.field_mul_regs m),
+       @ex Memory.Mem.mem
+         (fun mm : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                  (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                        (@cons Values.val
+                           (Values.Vptr (jet_sx_state.blk beta (S O))
+                              (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O)))) (@nil Values.val)))) Events.E0 mm
+                  Values.Vundef)
+               (and
+                  (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mm
+                     (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_normalize_var)
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                        (@nil Values.val)) Events.E0 mf Values.Vundef)
+                  (and
+                     (jet_secp_fe_nv.fe_at mf (jet_sx_state.blk beta O) (jet_sx_state.bas beta O)
+                        (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                           (jet_secp_fe_math.fe_limbs_of
+                              (BinInt.Z.modulo
+                                 (BinInt.Z.mul (Product.radix_value rho)
+                                    (Product.radix_value (Product.second_input rho))) Columns.field_prime))))
+                     (and
+                        (jet_secp_fe_nv.fe_at mf (jet_sx_state.blk beta (S O)) (jet_sx_state.bas beta (S O))
+                           (Bridge.words5 (Product.second_input rho)))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (o : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape Run.field_mul_regs) b o)) m mf))))))
+TAP_DEF FieldNormalize.Bridge.words5
+Bridge.words5 =
+fun words : forall _ : nat, Integers.Int64.int =>
+@cons Integers.Int64.int (words O)
+  (@cons Integers.Int64.int (words (S O))
+     (@cons Integers.Int64.int (words (S (S O)))
+        (@cons Integers.Int64.int (words (S (S (S O))))
+           (@cons Integers.Int64.int (words (S (S (S (S O))))) (@nil Integers.Int64.int)))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list Integers.Int64.int
+
+Arguments Bridge.words5 words%function_scope
+TAP_DEF FieldNormalize.Bridge.normalized_words
+Bridge.normalized_words =
+fun words : forall _ : nat, Integers.Int64.int =>
+jet_secp_fe_nv.nvz_list (Integers.Int64.unsigned (words O)) (Integers.Int64.unsigned (words (S O)))
+  (Integers.Int64.unsigned (words (S (S O)))) (Integers.Int64.unsigned (words (S (S (S O)))))
+  (Integers.Int64.unsigned (words (S (S (S (S O))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list BinNums.Z
+
+Arguments Bridge.normalized_words words%function_scope

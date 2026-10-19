@@ -1,0 +1,39 @@
+(** Reuse exact 128-bit multiplication/accumulation for single-word additions. *)
+From Coq Require Import ZArith Lia.
+From compcert Require Import Integers.
+Require Import C.jet_secp_umul128_numeric FieldCheckpoint.Machine.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma word_unsigned_injective a b : Int64.unsigned a = Int64.unsigned b -> a = b.
+Proof. intro H; pose proof (f_equal Int64.repr H) as HE; rewrite !Int64.repr_unsigned in HE; exact HE. Qed.
+
+Lemma machine_product_one a : machine_product a Int64.one = (a, Int64.zero).
+Proof.
+  destruct (umul128_unsigned_outputs a Int64.one) as [HH HL].
+  rewrite Int64.unsigned_one, Z.mul_1_r in HH, HL.
+  rewrite Z.mod_small in HL by apply Int64.unsigned_range.
+  rewrite Z.div_small in HH by apply Int64.unsigned_range.
+  unfold machine_product; f_equal; apply word_unsigned_injective.
+  - exact HL.
+  - rewrite Int64.unsigned_zero; exact HH.
+Qed.
+Lemma machine_accum_word_is_mul_one s a : machine_accum_word s a = machine_accum s a Int64.one.
+Proof.
+  unfold machine_accum_word, machine_accum; rewrite machine_product_one; cbn [fst snd].
+  rewrite Int64.add_zero_l; reflexivity.
+Qed.
+Lemma machine_accum_word_exact s a : pair_value s + Int64.unsigned a < Int64.modulus * Int64.modulus ->
+  pair_value (machine_accum_word s a) = pair_value s + Int64.unsigned a.
+Proof.
+  intro HB; rewrite machine_accum_word_is_mul_one, machine_accum_exact.
+  - rewrite Int64.unsigned_one; ring.
+  - rewrite Int64.unsigned_one; lia.
+Qed.
+Lemma add_u64_exact a b : Int64.unsigned a + Int64.unsigned b < 18446744073709551616 ->
+  Int64.unsigned (Int64.add a b) = Int64.unsigned a + Int64.unsigned b.
+Proof.
+  intro HB; unfold Int64.add; apply Int64.unsigned_repr.
+  change Int64.max_unsigned with 18446744073709551615.
+  pose proof (Int64.unsigned_range a); pose proof (Int64.unsigned_range b); lia.
+Qed.

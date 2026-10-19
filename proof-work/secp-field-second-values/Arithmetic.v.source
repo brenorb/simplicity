@@ -1,0 +1,180 @@
+(** Integer values of the second original C checkpoint from original limb bounds. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events.
+Require Import C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_secp_linkage.
+Require Import FieldCheckpoint.Machine FieldCheckpoint.Bridge.
+Require Import FieldFirst.Arithmetic FieldSecond.Machine FieldSecond.Compose FieldSecond.State.
+Require Import FieldCheckpoint.Prefix FieldCheckpoint.Atomic.
+Require Import FieldSecondValues.Accum.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition second_pairs (rho : nat -> int64) :=
+  [(rho 0%nat, rho 9%nat); (rho 1%nat, rho 8%nat); (rho 2%nat, rho 7%nat);
+   (rho 3%nat, rho 6%nat); (rho 4%nat, rho 5%nat)].
+Definition column4 rho := products (second_pairs rho).
+Definition second_integer_fold rho :=
+  (column3 rho + 68719492368 * (column8 rho mod Int64.modulus)) / 4503599627370496 +
+  column4 rho + (68719492368 * 4096) * (column8 rho / Int64.modulus).
+Definition original_second_fold rho := second_fold_machine rho (first_final_c_machine rho) (first_final_d_machine rho).
+Definition original_second_final rho := second_final_machine rho (first_final_c_machine rho) (first_final_d_machine rho).
+Definition original_second_tx rho := second_tx_machine rho (first_final_c_machine rho) (first_final_d_machine rho).
+Definition original_second_t4 rho := second_t4_machine rho (first_final_c_machine rho) (first_final_d_machine rho).
+
+Lemma every_input56 rho : field_input_bounds rho -> forall i, (i < 10)%nat -> Int64.unsigned (rho i) < 72057594037927936.
+Proof.
+  intros HB i HI; specialize (HB i HI); destruct (Nat.eqb i 4 || Nat.eqb i 9)%bool; lia.
+Qed.
+Lemma second_pairs56 rho : field_input_bounds rho -> Forall pair56 (second_pairs rho).
+Proof.
+  intro HB; unfold second_pairs; repeat constructor.
+  all: cbn [fst snd]; apply (every_input56 rho HB); lia.
+Qed.
+Lemma column4_bound rho : field_input_bounds rho -> 0 <= column4 rho <= 25961484292674138142652481646100480.
+Proof.
+  intro HB; exact (products56_bound (second_pairs rho) (second_pairs56 rho HB)).
+Qed.
+Lemma shifted_reduction_unsigned :
+  Int64.unsigned (Int64.shl (Int64.repr 68719492368) (Int64.repr 12)) = 68719492368 * 4096.
+Proof. vm_compute; reflexivity. Qed.
+Lemma first_c_word_value rho : Int64.unsigned (fst (first_final_c_machine rho)) = pair_value (first_final_c_machine rho).
+Proof.
+  unfold first_final_c_machine, machine_shift64, pair_value; cbn [fst snd].
+  rewrite Int64.unsigned_zero; ring.
+Qed.
+
+Local Opaque machine_accum.
+Lemma second_as_accumulate rho c d : second_fold_machine rho c d =
+  machine_accum (accumulate d (second_pairs rho)) (Int64.shl (Int64.repr 68719492368) (Int64.repr 12)) (fst c).
+Proof. reflexivity. Qed.
+Lemma second_accumulate_value rho : field_input_bounds rho ->
+  pair_value (accumulate (first_final_d_machine rho) (second_pairs rho)) =
+    pair_value (first_final_d_machine rho) + column4 rho.
+Proof.
+  intro HB; apply accumulate_exact.
+  pose proof (first_final_d_bound rho HB); pose proof (column4_bound rho HB).
+  change (Int64.modulus * Int64.modulus) with 340282366920938463463374607431768211456.
+  change (pair_value (first_final_d_machine rho) + column4 rho < 340282366920938463463374607431768211456); lia.
+Qed.
+
+Lemma second_fold_value rho : field_input_bounds rho -> pair_value (original_second_fold rho) = second_integer_fold rho.
+Proof.
+  intro HB; unfold original_second_fold; rewrite second_as_accumulate, machine_accum_exact.
+  - rewrite second_accumulate_value by exact HB.
+    rewrite shifted_reduction_unsigned, first_c_word_value.
+    rewrite first_final_d_value, first_final_c_value by exact HB; reflexivity.
+  - rewrite second_accumulate_value by exact HB; rewrite shifted_reduction_unsigned, first_c_word_value.
+    pose proof (first_final_d_bound rho HB); pose proof (first_final_c_bound rho HB); pose proof (column4_bound rho HB).
+    change (Int64.modulus * Int64.modulus) with 340282366920938463463374607431768211456; lia.
+Qed.
+Lemma second_fold_bound rho : field_input_bounds rho -> 0 <= pair_value (original_second_fold rho) < 83076749736557242056487941267521536.
+Proof.
+  intro HB; rewrite second_fold_value by exact HB.
+  unfold second_integer_fold.
+  rewrite <- first_final_d_value, <- first_final_c_value by exact HB.
+  pose proof (first_final_d_bound rho HB); pose proof (first_final_c_bound rho HB); pose proof (column4_bound rho HB); lia.
+Qed.
+Lemma second_final_value rho : field_input_bounds rho -> pair_value (original_second_final rho) = second_integer_fold rho / 4503599627370496.
+Proof.
+  intro HB; unfold original_second_final, second_final_machine.
+  rewrite machine_shift52_value; change (pair_value (original_second_fold rho) / 4503599627370496 = second_integer_fold rho / 4503599627370496).
+  rewrite second_fold_value by exact HB; reflexivity.
+Qed.
+Lemma second_final_bound rho : field_input_bounds rho -> 0 <= pair_value (original_second_final rho) < 18446744073709551616.
+Proof.
+  intro HB; pose proof (second_fold_bound rho HB).
+  unfold original_second_final, second_final_machine; rewrite machine_shift52_value.
+  change (0 <= pair_value (original_second_fold rho) / 4503599627370496 < 18446744073709551616).
+  split; [apply Z.div_pos; lia|apply Z.div_lt_upper_bound; lia].
+Qed.
+
+Lemma shru48_unsigned x : Int64.unsigned (Int64.shru x (Int64.repr 48)) = Int64.unsigned x / 281474976710656.
+Proof.
+  rewrite Int64.shru_div_two_p.
+  change (Int64.unsigned (Int64.repr (Int64.unsigned x / 281474976710656)) = Int64.unsigned x / 281474976710656).
+  apply Int64.unsigned_repr.
+  pose proof (Int64.unsigned_range x) as HX.
+  change (0 <= Int64.unsigned x < 18446744073709551616) in HX.
+  change (0 <= Int64.unsigned x / 281474976710656 <= 18446744073709551615).
+  split; [apply Z.div_pos; lia|].
+  assert (Int64.unsigned x / 281474976710656 < 65536) by (apply Z.div_lt_upper_bound; lia); lia.
+Qed.
+Lemma mask_pow2_unsigned x n logn : 0 < Int64.unsigned n -> Int64.is_power2 n = Some logn ->
+  Int64.unsigned (Int64.and x (Int64.sub n Int64.one)) = Int64.unsigned x mod Int64.unsigned n.
+Proof.
+  intros HN HP; rewrite <- (Int64.modu_and x n logn HP); unfold Int64.modu.
+  apply Int64.unsigned_repr.
+  pose proof (Z.mod_pos_bound (Int64.unsigned x) (Int64.unsigned n) HN).
+  pose proof (Int64.unsigned_range n); unfold Int64.max_unsigned; lia.
+Qed.
+Lemma mask48_unsigned x : Int64.unsigned (Int64.and x (Int64.repr 281474976710655)) = Int64.unsigned x mod 281474976710656.
+Proof.
+  assert (HP : Int64.is_power2 (Int64.repr 281474976710656) = Some (Int64.repr 48)) by (vm_compute; reflexivity).
+  exact (mask_pow2_unsigned x (Int64.repr 281474976710656) (Int64.repr 48) ltac:(change (0 < 281474976710656); lia) HP).
+Qed.
+Lemma mask52_shift4 : Int64.shru (Int64.repr 4503599627370495) (Int64.repr 4) = Int64.repr 281474976710655.
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma second_before_value rho : field_input_bounds rho ->
+  Int64.unsigned (second_before_machine rho (first_final_c_machine rho) (first_final_d_machine rho)) = second_integer_fold rho mod 4503599627370496.
+Proof.
+  intro HB; unfold second_before_machine; rewrite machine_mask52_value.
+  change (Int64.unsigned (fst (original_second_fold rho)) mod 4503599627370496 = second_integer_fold rho mod 4503599627370496).
+  rewrite pair_low_mod52, second_fold_value by exact HB; reflexivity.
+Qed.
+Lemma second_tx_value rho : field_input_bounds rho ->
+  Int64.unsigned (original_second_tx rho) = (second_integer_fold rho mod 4503599627370496) / 281474976710656.
+Proof.
+  intro HB; unfold original_second_tx, second_tx_machine.
+  rewrite shru48_unsigned, second_before_value by exact HB; reflexivity.
+Qed.
+Lemma second_t4_value rho : field_input_bounds rho ->
+  Int64.unsigned (original_second_t4 rho) = (second_integer_fold rho mod 4503599627370496) mod 281474976710656.
+Proof.
+  intro HB; unfold original_second_t4, second_t4_machine.
+  rewrite mask52_shift4, mask48_unsigned, second_before_value by exact HB; reflexivity.
+Qed.
+Lemma second_tx_bound rho : field_input_bounds rho -> 0 <= Int64.unsigned (original_second_tx rho) < 16.
+Proof.
+  intro HB; rewrite second_tx_value by exact HB.
+  pose proof (Z.mod_pos_bound (second_integer_fold rho) 4503599627370496 ltac:(lia)).
+  split; [apply Z.div_pos; lia|apply Z.div_lt_upper_bound; lia].
+Qed.
+Lemma second_t4_bound rho : field_input_bounds rho -> 0 <= Int64.unsigned (original_second_t4 rho) < 281474976710656.
+Proof.
+  intro HB; rewrite second_t4_value by exact HB; apply Z.mod_pos_bound; lia.
+Qed.
+Lemma second_t4_split rho : field_input_bounds rho ->
+  second_integer_fold rho mod 4503599627370496 =
+    Int64.unsigned (original_second_tx rho) * 281474976710656 + Int64.unsigned (original_second_t4 rho).
+Proof.
+  intro HB; rewrite second_tx_value, second_t4_value by exact HB.
+  pose proof (Z.div_mod (second_integer_fold rho mod 4503599627370496) 281474976710656 ltac:(lia)); lia.
+Qed.
+
+Local Opaque xstmt prefix_initial composed_second_state through_second.
+Theorem exec_original_second_integer_atomic rho beta e le m :
+  field_input_bounds rho ->
+  rep rho beta (sregs prefix_initial) m -> tmatch rho beta (stemps prefix_initial) le ->
+  ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m through_second E0 le' mf Out_normal /\
+    composed_second_observations rho beta le' mf /\
+    pair_value (original_second_final rho) = second_integer_fold rho / 4503599627370496 /\
+    Int64.unsigned (original_second_tx rho) = (second_integer_fold rho mod 4503599627370496) / 281474976710656 /\
+    Int64.unsigned (original_second_t4 rho) = (second_integer_fold rho mod 4503599627370496) mod 281474976710656 /\
+    0 <= pair_value (original_second_final rho) < 18446744073709551616 /\
+    0 <= Int64.unsigned (original_second_tx rho) < 16 /\
+    0 <= Int64.unsigned (original_second_t4 rho) < 281474976710656 /\
+    rep rho beta (sregs (atomic_state rho beta (composed_second_state rho))) mf /\
+    tmatch rho beta (stemps (atomic_state rho beta (composed_second_state rho))) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs prefix_initial)) b ofs) m mf.
+Proof.
+  intros HB HR HT HE.
+  destruct (exec_original_through_second rho beta e le m HR HT HE) as (le' & mf & HX & HM & HRep & HTm & HF).
+  exists le', mf; split; [exact HX|]; split; [exact HM|]; split; [apply second_final_value; exact HB|];
+    split; [apply second_tx_value; exact HB|]; split; [apply second_t4_value; exact HB|];
+    split; [apply second_final_bound; exact HB|]; split; [apply second_tx_bound; exact HB|];
+    split; [apply second_t4_bound; exact HB|]; split; [exact HRep|]; split; assumption.
+Qed.

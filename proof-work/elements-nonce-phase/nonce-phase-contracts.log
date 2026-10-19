@@ -1,0 +1,826 @@
+TAP_TYPE NonceExec.Effects.nonce_effects_refl
+Effects.nonce_effects_refl
+     : forall (m : Memory.Mem.mem) (bs : list Values.block), Effects.nonce_effects m m bs
+TAP_TYPE NonceExec.Effects.nonce_effects_mono
+Effects.nonce_effects_mono
+     : forall (m mf : Memory.Mem.mem) (bs cs : list Values.block) (_ : Effects.nonce_effects m mf bs)
+         (_ : forall (b : Values.block) (_ : @List.In Values.block b bs), @List.In Values.block b cs),
+       Effects.nonce_effects m mf cs
+TAP_TYPE NonceExec.Effects.nonce_effects_trans
+Effects.nonce_effects_trans
+     : forall (m m1 mf : Memory.Mem.mem) (bs : list Values.block) (_ : Effects.nonce_effects m m1 bs)
+         (_ : Effects.nonce_effects m1 mf bs), Effects.nonce_effects m mf bs
+TAP_TYPE NonceExec.Effects.nonce_effects_access
+Effects.nonce_effects_access
+     : forall (m mf : Memory.Mem.mem) (bs : list Values.block) (ch : AST.memory_chunk) (b : Values.block)
+         (ofs : BinNums.Z) (p : Memtype.permission) (_ : Effects.nonce_effects m mf bs)
+         (_ : Memory.Mem.valid_access m ch b ofs p), Memory.Mem.valid_access mf ch b ofs p
+TAP_TYPE NonceExec.Effects.nonce_effects_union
+Effects.nonce_effects_union
+     : forall (m m1 mf : Memory.Mem.mem) (bs cs : list Values.block) (_ : Effects.nonce_effects m m1 bs)
+         (_ : Effects.nonce_effects m1 mf cs), Effects.nonce_effects m mf (@app Values.block bs cs)
+TAP_TYPE NonceExec.Effects.nonce_effects_fields
+Effects.nonce_effects_fields
+     : forall (m mf : Memory.Mem.mem) (bs : list Values.block) (bf : Values.block) (base : BinNums.Z)
+         (bi : Values.block) (edge rc : BinNums.Z) (_ : Effects.nonce_effects m mf bs)
+         (_ : not (@List.In Values.block bf bs)) (_ : jet_frame_layout.frame_fields_at m bf base bi edge rc),
+       jet_frame_layout.frame_fields_at mf bf base bi edge rc
+TAP_TYPE NonceExec.Effects.nonce_effects_input
+Effects.nonce_effects_input
+     : forall (m mf : Memory.Mem.mem) (bs : list Values.block) (bi : Values.block) (edge rc : BinNums.Z)
+         (cells : list BitMachine.Cell) (_ : Effects.nonce_effects m mf bs) (_ : not (@List.In Values.block bi bs))
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc cells),
+       jet_encoding.frame_input_cells_at mf bi edge rc cells
+TAP_TYPE NonceExec.Effects.nonce_ctx_other
+Effects.nonce_ctx_other
+     : forall (m mf : Memory.Mem.mem) (bx bm : Values.block) (l : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (regs : list Integers.Int.int) (c : Integers.Int64.int) (ovf : bool)
+         (_ : jet_sha_ctx_abs.ctx_abs m bx bm l regs c ovf)
+         (_ : forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                (_ : or (@eq Values.block b bx)
+                       (or (@eq Values.block b bm)
+                          (or
+                             (@eq Values.block b
+                                (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression))
+                             (@eq Values.block b (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter))))),
+              @eq (option Values.val) (Memory.Mem.load ch mf b ofs) (Memory.Mem.load ch m b ofs))
+         (_ : forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm mf b ofs k p),
+       jet_sha_ctx_abs.ctx_abs mf bx bm l regs c ovf
+TAP_TYPE NonceExec.Effects.nonce_effects_ctx
+Effects.nonce_effects_ctx
+     : forall (m mf : Memory.Mem.mem) (bs : list Values.block) (bx bm : Values.block)
+         (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int) (c : Integers.Int64.int)
+         (ovf : bool) (_ : Effects.nonce_effects m mf bs) (_ : not (@List.In Values.block bx bs))
+         (_ : not (@List.In Values.block bm bs))
+         (_ : not (@List.In Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bs))
+         (_ : not (@List.In Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bs))
+         (_ : jet_sha_ctx_abs.ctx_abs m bx bm l regs c ovf), jet_sha_ctx_abs.ctx_abs mf bx bm l regs c ovf
+TAP_TYPE NonceExec.Calls.nonce_local_frame_base
+Calls.nonce_local_frame_base
+     : jet_frame_layout.frame_base_valid BinNums.Z0
+TAP_TYPE NonceExec.Calls.nonce_readbit_link
+Calls.nonce_readbit_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               jets_elements._readBit)
+            (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._readBit)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._readBit) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_readBit)))
+TAP_TYPE NonceExec.Calls.nonce_forward_link
+Calls.nonce_forward_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               jets_elements._forwardBits)
+            (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._forwardBits)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._forwardBits)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_forwardBits)))
+TAP_TYPE NonceExec.Calls.nonce_uchar_link
+Calls.nonce_uchar_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               jets_elements._sha256_uchar)
+            (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._sha256_uchar)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._sha256_uchar)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_sha256_uchar)))
+TAP_TYPE NonceExec.Calls.nonce_bit_bool
+Calls.nonce_bit_bool
+     : forall (m : Memory.Mem.mem) (bit : bool),
+       @eq (option bool) (Cop.bool_val (Values.Vint (jet_readBit_layout.bit_int bit)) Ctypesdefs.tbool m)
+         (@Some bool bit)
+TAP_TYPE NonceExec.Calls.nonce_read_bit
+Calls.nonce_read_bit
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env) 
+         (m : Memory.Mem.mem) (bl bi : Values.block) (edge rc : BinNums.Z) (bit : bool) (id : AST.ident)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._src e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bl Shape.nc_fr)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._readBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc (BinInt.Z.sub Integers.Int64.max_unsigned (BinNums.Zpos BinNums.xH))))
+         (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : jet_input_layout.frame_input_bit_at m bi edge rc bit)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m (Shape.nc_readbit id) Events.E0
+               (@Maps.PTree.set Values.val id (Values.Vint (jet_readBit_layout.bit_int bit)) le) mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)))
+               (Effects.nonce_effects m mf (@cons Values.block bl (@nil Values.block)))))
+TAP_TYPE NonceExec.Calls.nonce_forward_one
+Calls.nonce_forward_one
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env) 
+         (m : Memory.Mem.mem) (bl bi : Values.block) (edge rc : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._src e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bl Shape.nc_fr)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._forwardBits e)
+                (@None (prod Values.block Ctypes.type))) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)) Integers.Int64.max_unsigned)
+         (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m Shape.nc_forward Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)))
+               (Effects.nonce_effects m mf (@cons Values.block bl (@nil Values.block)))))
+TAP_TYPE NonceExec.Calls.nonce_add_byte
+Calls.nonce_add_byte
+     : forall (_ : jet_memcpy_model.memcpy_model) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (bx bm : Values.block)
+         (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int) (c : Integers.Int64.int)
+         (ovf : bool) (x : Ty.tySem (Word.Word (S (S (S O))))) (z : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._ctx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_sha._sha256_context Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._sha256_uchar e)
+                (@None (prod Values.block Ctypes.type))) (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (_ : @eq Integers.Int.int (jet_read8s_layout.word8_array_value x) (Integers.Int.repr z))
+         (_ : jet_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m (Shape.nc_uchar z) Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_sha_ctx_abs.ctx_abs mf bx bm
+                  (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs
+                        (@cons (Ty.tySem (Word.Word (S (S (S O))))) x (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                  (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs
+                        (@cons (Ty.tySem (Word.Word (S (S (S O))))) x (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                  (Integers.Int64.add c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+                  (jet_sha_uchars_exec.uc_overflow ovf c (Integers.Int64.repr (BinNums.Zpos BinNums.xH))))
+               (Effects.nonce_effects m mf (@cons Values.block bx (@cons Values.block bm (@nil Values.block))))))
+TAP_TYPE NonceExec.Prefix.nonce_cells_head
+Prefix.nonce_cells_head
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (edge rc : BinNums.Z) (bit : bool) (cells : list (option bool))
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc (@cons (option bool) (@Some bool bit) cells)),
+       jet_input_layout.frame_input_bit_at m bi edge rc bit
+TAP_TYPE NonceExec.Prefix.nonce_cells_tail
+Prefix.nonce_cells_tail
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (edge rc : BinNums.Z) (cell : BitMachine.Cell)
+         (cells : list BitMachine.Cell)
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc (@cons BitMachine.Cell cell cells)),
+       jet_encoding.frame_input_cells_at m bi edge (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)) cells
+TAP_TYPE NonceExec.Prefix.nonce_read_cell
+Prefix.nonce_read_cell
+     : forall (bl bm bb bx bi : Values.block) (_ : not (@eq Values.block bl bx)) (_ : not (@eq Values.block bl bm))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression)))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter)))
+         (_ : not (@eq Values.block bi bl)) (le : Clight.temp_env) (m : Memory.Mem.mem) (edge rc : BinNums.Z)
+         (bit : bool) (cells : list (option bool)) (l : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (regs : list Integers.Int.int) (c : Integers.Int64.int) (ovf : bool) (id : AST.ident)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc (BinInt.Z.sub Integers.Int64.max_unsigned (BinNums.Zpos BinNums.xH))))
+         (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable)
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc (@cons (option bool) (@Some bool bit) cells))
+         (_ : jet_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge (Shape.nc_env bl bm bb bx) le m
+               (Shape.nc_readbit id) Events.E0
+               (@Maps.PTree.set Values.val id (Values.Vint (jet_readBit_layout.bit_int bit)) le) mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)))
+               (and (jet_encoding.frame_input_cells_at mf bi edge (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)) cells)
+                  (and (jet_sha_ctx_abs.ctx_abs mf bx bm l regs c ovf)
+                     (Effects.nonce_effects m mf (@cons Values.block bl (@nil Values.block)))))))
+TAP_TYPE NonceExec.Prefix.nonce_explicit_prefix
+Prefix.nonce_explicit_prefix
+     : forall (_ : jet_memcpy_model.memcpy_model) (bl bm bb bx bi : Values.block) (_ : not (@eq Values.block bl bx))
+         (_ : not (@eq Values.block bl bm))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression)))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter)))
+         (_ : not (@eq Values.block bi bl)) (_ : not (@eq Values.block bi bx)) (_ : not (@eq Values.block bi bm))
+         (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (edge rc : BinNums.Z)
+         (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (l : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (regs : list Integers.Int.int) (c : Integers.Int64.int) (ovf : bool) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned) (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable)
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc
+                (@Translate.encode Spec.nonce_conf_type
+                   (@inr
+                      (prod (sum unit unit)
+                         ((fix tySem (X : Ty.Ty) : Set :=
+                             match X return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A B => sum (tySem A) (tySem B)
+                             | Ty.Prod A B => prod (tySem A) (tySem B)
+                             end) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) h)))
+         (_ : jet_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge (Shape.nc_env bl bm bb bx) le m
+               Shape.nc_prefix Events.E0
+               (@Maps.PTree.set Values.val jets_elements._t'3 (Values.Vint Integers.Int.one) le) mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge
+                  (BinInt.Z.add rc (BinNums.Zpos (BinNums.xO BinNums.xH))))
+               (and
+                  (jet_encoding.frame_input_cells_at mf bi edge
+                     (BinInt.Z.add rc (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                     (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) h))
+                  (and
+                     (jet_sha_ctx_abs.ctx_abs mf bx bm
+                        (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                           (jet_sha_ctx8_model.absorb l regs
+                              (@cons (Ty.tySem (Word.Word (S (S (S O))))) (Spec.nonce_byte (BinNums.Zpos BinNums.xH))
+                                 (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                        (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                           (jet_sha_ctx8_model.absorb l regs
+                              (@cons (Ty.tySem (Word.Word (S (S (S O))))) (Spec.nonce_byte (BinNums.Zpos BinNums.xH))
+                                 (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                        (Integers.Int64.add c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+                        (jet_sha_uchars_exec.uc_overflow ovf c (Integers.Int64.repr (BinNums.Zpos BinNums.xH))))
+                     (Effects.nonce_effects m mf
+                        (@cons Values.block bl (@cons Values.block bx (@cons Values.block bm (@nil Values.block)))))))))
+TAP_TYPE NonceExec.Prefix.nonce_confidential_prefix
+Prefix.nonce_confidential_prefix
+     : forall (_ : jet_memcpy_model.memcpy_model) (bl bm bb bx bi : Values.block) (_ : not (@eq Values.block bl bx))
+         (_ : not (@eq Values.block bl bm))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression)))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter)))
+         (_ : not (@eq Values.block bi bl)) (_ : not (@eq Values.block bi bx)) (_ : not (@eq Values.block bi bm))
+         (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (edge rc : BinNums.Z) (odd : bool)
+         (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (l : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (regs : list Integers.Int.int) (c : Integers.Int64.int) (ovf : bool) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned) (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable)
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc
+                (@Translate.encode Spec.nonce_conf_type
+                   (@inl (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                      (prod
+                         (prod
+                            (prod
+                               (prod
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))))
+                               (prod
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))))
+                            (prod
+                               (prod
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))))
+                               (prod
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))))))
+                         (prod
+                            (prod
+                               (prod
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))))
+                               (prod
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))))
+                            (prod
+                               (prod
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))))
+                               (prod
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))
+                                  (prod
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit))))
+                                     (prod
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))
+                                        (prod (prod (sum unit unit) (sum unit unit))
+                                           (prod (sum unit unit) (sum unit unit)))))))))
+                      (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                         match odd return (sum unit unit) with
+                         | true => @inr unit unit tt
+                         | false => @inl unit unit tt
+                         end h)))) (_ : jet_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       let x : Ty.tySem (Word.Word (S (S (S O)))) :=
+         Spec.nonce_byte
+           match odd return BinNums.Z with
+           | true => BinNums.Zpos (BinNums.xI BinNums.xH)
+           | false => BinNums.Zpos (BinNums.xO BinNums.xH)
+           end in
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge (Shape.nc_env bl bm bb bx) le m
+               Shape.nc_prefix Events.E0
+               (@Maps.PTree.set Values.val jets_elements._t'2 (Values.Vint (jet_readBit_layout.bit_int odd))
+                  (@Maps.PTree.set Values.val jets_elements._t'3 (Values.Vint Integers.Int.zero) le)) mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge
+                  (BinInt.Z.add rc (BinNums.Zpos (BinNums.xO BinNums.xH))))
+               (and
+                  (jet_encoding.frame_input_cells_at mf bi edge
+                     (BinInt.Z.add rc (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                     (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) h))
+                  (and
+                     (jet_sha_ctx_abs.ctx_abs mf bx bm
+                        (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                           (jet_sha_ctx8_model.absorb l regs
+                              (@cons (Ty.tySem (Word.Word (S (S (S O))))) x (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                        (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                           (jet_sha_ctx8_model.absorb l regs
+                              (@cons (Ty.tySem (Word.Word (S (S (S O))))) x (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                        (Integers.Int64.add c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+                        (jet_sha_uchars_exec.uc_overflow ovf c (Integers.Int64.repr (BinNums.Zpos BinNums.xH))))
+                     (Effects.nonce_effects m mf
+                        (@cons Values.block bl (@cons Values.block bx (@cons Values.block bm (@nil Values.block)))))))))
+TAP_TYPE NonceExec.Payload.nonce_readbytes_link
+Payload.nonce_readbytes_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               jets_elements._read8s)
+            (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._read8s)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._read8s) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_read8s)))
+TAP_TYPE NonceExec.Payload.nonce_uchars_link
+Payload.nonce_uchars_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               jets_elements._sha256_uchars)
+            (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._sha256_uchars)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._sha256_uchars)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_sha256_uchars)))
+TAP_TYPE NonceExec.Payload.nonce_payload_exec
+Payload.nonce_payload_exec
+     : forall (_ : jet_memcpy_model.memcpy_model) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (bl bm bb bx bi : Values.block) (edge rc : BinNums.Z)
+         (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (l : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (regs : list Integers.Int.int) (c : Integers.Int64.int) (ovf : bool) (_ : not (@eq Values.block bl bx))
+         (_ : not (@eq Values.block bl bm))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression)))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter)))
+         (_ : not (@eq Values.block bb bx)) (_ : not (@eq Values.block bb bm))
+         (_ : not (@eq Values.block bb (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression)))
+         (_ : not (@eq Values.block bb (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter)))
+         (_ : not (@eq Values.block bl bb)) (_ : not (@eq Values.block bl bi)) (_ : not (@eq Values.block bb bi))
+         (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned) (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable)
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable)
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) h))
+         (_ : jet_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge (Shape.nc_env bl bm bb bx) le m
+               (Clight.Ssequence Shape.nc_readbytes Shape.nc_uchars) Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge
+                  (BinInt.Z.add rc
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+               (and
+                  (jet_sha_ctx_abs.ctx_abs mf bx bm
+                     (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                        (jet_sha_ctx8_model.absorb l regs
+                           (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) h)))
+                     (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                        (jet_sha_ctx8_model.absorb l regs
+                           (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) h)))
+                     (Integers.Int64.add c
+                        (Integers.Int64.repr
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     (jet_sha_uchars_exec.uc_overflow ovf c
+                        (Integers.Int64.repr
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (Effects.nonce_effects m mf
+                     (@cons Values.block bl
+                        (@cons Values.block bb (@cons Values.block bx (@cons Values.block bm (@nil Values.block)))))))))
+TAP_TYPE NonceExec.Phase.nonce_counter_one_then_32
+Phase.nonce_counter_one_then_32
+     : forall c : Integers.Int64.int,
+       @eq Integers.Int64.int
+         (Integers.Int64.add (Integers.Int64.add c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+            (Integers.Int64.repr
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (Integers.Int64.add c
+            (Integers.Int64.repr
+               (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+TAP_TYPE NonceExec.Phase.nonce_present_prefix
+Phase.nonce_present_prefix
+     : forall (_ : jet_memcpy_model.memcpy_model) (bl bm bb bx bi : Values.block) (_ : not (@eq Values.block bl bx))
+         (_ : not (@eq Values.block bl bm))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression)))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter)))
+         (_ : not (@eq Values.block bi bl)) (_ : not (@eq Values.block bi bx)) (_ : not (@eq Values.block bi bm))
+         (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (edge rc : BinNums.Z) (p : Ty.tySem Spec.nonce_conf_type)
+         (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int) (c : Integers.Int64.int)
+         (ovf : bool) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned) (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable)
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc (@Translate.encode Spec.nonce_conf_type p))
+         (_ : jet_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge (Shape.nc_env bl bm bb bx) le m
+               Shape.nc_prefix Events.E0 (Phase.nonce_present_temps p le) mf ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge
+                  (BinInt.Z.add rc (BinNums.Zpos (BinNums.xO BinNums.xH))))
+               (and
+                  (jet_encoding.frame_input_cells_at mf bi edge
+                     (BinInt.Z.add rc (BinNums.Zpos (BinNums.xO BinNums.xH)))
+                     (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                        (@snd (Ty.tySem (Word.Word (S (S (S O)))))
+                           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Spec.nonce_prefix_value p))))
+                  (and
+                     (jet_sha_ctx_abs.ctx_abs mf bx bm
+                        (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                           (jet_sha_ctx8_model.absorb l regs
+                              (@cons (Ty.tySem (Word.Word (S (S (S O)))))
+                                 (@fst (Ty.tySem (Word.Word (S (S (S O)))))
+                                    (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                    (Spec.nonce_prefix_value p)) (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                        (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                           (jet_sha_ctx8_model.absorb l regs
+                              (@cons (Ty.tySem (Word.Word (S (S (S O)))))
+                                 (@fst (Ty.tySem (Word.Word (S (S (S O)))))
+                                    (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                    (Spec.nonce_prefix_value p)) (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                        (Integers.Int64.add c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+                        (jet_sha_uchars_exec.uc_overflow ovf c (Integers.Int64.repr (BinNums.Zpos BinNums.xH))))
+                     (Effects.nonce_effects m mf
+                        (@cons Values.block bl (@cons Values.block bx (@cons Values.block bm (@nil Values.block)))))))))
+TAP_TYPE NonceExec.Phase.nonce_phase_exec
+Phase.nonce_phase_exec
+     : forall (_ : jet_memcpy_model.memcpy_model) (bl bm bb bx bi : Values.block) (_ : not (@eq Values.block bl bx))
+         (_ : not (@eq Values.block bl bm))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression)))
+         (_ : not (@eq Values.block bl (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter)))
+         (_ : not (@eq Values.block bb bx)) (_ : not (@eq Values.block bb bm))
+         (_ : not (@eq Values.block bb (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression)))
+         (_ : not (@eq Values.block bb (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter)))
+         (_ : not (@eq Values.block bl bb)) (_ : not (@eq Values.block bi bl)) (_ : not (@eq Values.block bi bb))
+         (_ : not (@eq Values.block bi bx)) (_ : not (@eq Values.block bi bm)) (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (edge rc : BinNums.Z) (a : Ty.tySem Spec.nonce_value_type)
+         (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int) (c : Integers.Int64.int)
+         (ovf : bool) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned) (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable)
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable)
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc (@Translate.encode Spec.nonce_value_type a))
+         (_ : jet_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge (Shape.nc_env bl bm bb bx) le m
+               Shape.nc_nonce Events.E0 (Phase.nonce_phase_temps a le) mf ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge
+                  (BinInt.Z.add rc (Phase.nonce_phase_read_bits a)))
+               (and
+                  (jet_sha_ctx_abs.ctx_abs mf bx bm
+                     (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                        (jet_sha_ctx8_model.absorb l regs (Spec.nonce_hash_bytes a)))
+                     (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                        (jet_sha_ctx8_model.absorb l regs (Spec.nonce_hash_bytes a)))
+                     (Integers.Int64.add c (Integers.Int64.repr (Phase.nonce_phase_count a)))
+                     (Phase.nonce_phase_overflow ovf c a))
+                  (Effects.nonce_effects m mf
+                     (@cons Values.block bl
+                        (@cons Values.block bb (@cons Values.block bx (@cons Values.block bm (@nil Values.block)))))))))
+TAP_DEF NonceExec.Effects.nonce_effects
+Variant nonce_effects (m mf : Memory.Mem.mem) (changed : list Values.block) : Prop :=
+    Build_nonce_effects : forall
+                            (_ : forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                                   (_ : Memory.Mem.valid_block m b) (_ : not (@List.In Values.block b changed)),
+                                 @eq (option Values.val) (Memory.Mem.load ch mf b ofs) (Memory.Mem.load ch m b ofs))
+                            (_ : forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind)
+                                   (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs k p),
+                                 Memory.Mem.perm mf b ofs k p)
+                            (_ : forall (b : Values.block) (_ : Memory.Mem.valid_block m b),
+                                 Memory.Mem.valid_block mf b), Effects.nonce_effects m mf changed.
+
+Arguments Effects.nonce_effects m mf changed%list_scope
+Arguments Effects.Build_nonce_effects m mf changed%list_scope (nonce_loads nonce_perms nonce_valid)%function_scope
+TAP_DEF NonceExec.Phase.nonce_present_temps
+Phase.nonce_present_temps =
+fun (p : Ty.tySem Spec.nonce_conf_type) (le : Clight.temp_env) =>
+match p return (Maps.PTree.tree Values.val) with
+| inl t =>
+    match t return (Maps.PTree.tree Values.val) with
+    | pair odd _ =>
+        @Maps.PTree.set Values.val jets_elements._t'2
+          (Values.Vint (jet_readBit_layout.bit_int match odd return bool with
+                                                   | inl _ => false
+                                                   | inr _ => true
+                                                   end))
+          (@Maps.PTree.set Values.val jets_elements._t'3 (Values.Vint Integers.Int.zero) le)
+    end
+| inr _ => @Maps.PTree.set Values.val jets_elements._t'3 (Values.Vint Integers.Int.one) le
+end
+     : forall (_ : Ty.tySem Spec.nonce_conf_type) (_ : Clight.temp_env), Maps.PTree.tree Values.val
+
+Arguments Phase.nonce_present_temps p le
+TAP_DEF NonceExec.Phase.nonce_phase_temps
+Phase.nonce_phase_temps =
+fun (a : Ty.tySem Spec.nonce_value_type) (le : Clight.temp_env) =>
+match a return (Maps.PTree.tree Values.val) with
+| inl _ => @Maps.PTree.set Values.val jets_elements._t'4 (Values.Vint Integers.Int.zero) le
+| inr p =>
+    Phase.nonce_present_temps p (@Maps.PTree.set Values.val jets_elements._t'4 (Values.Vint Integers.Int.one) le)
+end
+     : forall (_ : Ty.tySem Spec.nonce_value_type) (_ : Clight.temp_env), Maps.PTree.tree Values.val
+
+Arguments Phase.nonce_phase_temps a le
+TAP_DEF NonceExec.Phase.nonce_phase_count
+Phase.nonce_phase_count =
+fun a : Ty.tySem Spec.nonce_value_type =>
+match a return BinNums.Z with
+| inl _ => BinNums.Zpos BinNums.xH
+| inr _ => BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+end
+     : forall _ : Ty.tySem Spec.nonce_value_type, BinNums.Z
+
+Arguments Phase.nonce_phase_count a
+TAP_DEF NonceExec.Phase.nonce_phase_read_bits
+Phase.nonce_phase_read_bits =
+fun a : Ty.tySem Spec.nonce_value_type =>
+match a return BinNums.Z with
+| inl _ => BinNums.Zpos BinNums.xH
+| inr _ =>
+    BinNums.Zpos
+      (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+end
+     : forall _ : Ty.tySem Spec.nonce_value_type, BinNums.Z
+
+Arguments Phase.nonce_phase_read_bits a
+TAP_DEF NonceExec.Phase.nonce_phase_overflow
+Phase.nonce_phase_overflow =
+fun (ovf : bool) (c : Integers.Int64.int) (a : Ty.tySem Spec.nonce_value_type) =>
+match a return bool with
+| inl _ => jet_sha_uchars_exec.uc_overflow ovf c (Integers.Int64.repr (BinNums.Zpos BinNums.xH))
+| inr _ =>
+    jet_sha_uchars_exec.uc_overflow
+      (jet_sha_uchars_exec.uc_overflow ovf c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+      (Integers.Int64.add c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+      (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+end
+     : forall (_ : bool) (_ : Integers.Int64.int) (_ : Ty.tySem Spec.nonce_value_type), bool
+
+Arguments Phase.nonce_phase_overflow ovf%bool_scope c a

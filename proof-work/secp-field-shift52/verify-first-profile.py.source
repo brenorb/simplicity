@@ -1,0 +1,164 @@
+"""Source-bound original-C shift support; no registry or target changes."""
+import importlib.util
+import json
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+HERE = Path(__file__).resolve().parent
+sp = importlib.util.spec_from_file_location('shift_support', HERE.parent / 'elements-count/support.py')
+s = importlib.util.module_from_spec(sp)
+sp.loader.exec_module(s)
+g = s.load('shift_reports', HERE.parent / 'elements-tap-getters/check.py')
+NAMES = ['Shift', 'Numeric', 'Rep', 'Oracle']
+ROOTS = ['SecpShift.Numeric', 'SecpShift.Oracle']
+
+
+def sources(work):
+    if work == s.REPO or s.REPO in work.parents or (work / 'Coq').is_symlink():
+        raise ValueError('distinct external proof tree required')
+    ext = work / 'ext'
+    if {p.name for p in ext.glob('*.v')} != {n + '.v' for n in NAMES}:
+        raise ValueError('unexpected extension source inventory')
+    result = []
+    for n in NAMES:
+        p = ext / (n + '.v')
+        if p.is_symlink() or p.read_bytes() != (HERE / (n + '.v.source')).read_bytes():
+            raise ValueError('archive/source mismatch: ' + n)
+        s.safe_source(p.read_text(), n)
+        result.append(('SecpShift.' + n, p))
+    if (work / 'Coq/build-jets.sh').read_bytes() != (s.REPO / 'Coq/build-jets.sh').read_bytes():
+        raise ValueError('build wrapper changed')
+    return result, ['-Q', str(ext), 'SecpShift']
+
+
+def libraries(work, extra):
+    cmd = ['bash', 'build-jets.sh', '--coqtop', '-quiet', *extra]
+    r = subprocess.run(cmd, input='Require ' + ' '.join(ROOTS) + '.\nPrint Libraries.\n',
+        cwd=work / 'Coq', env=s.ENV, text=True, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT, timeout=60)
+    if r.returncode or re.search(r'(?m)^(?:Error|Anomaly):', r.stdout):
+        raise ValueError('loaded-library inspection failed')
+    local = {m.replace('.', '/') + '.v' for m in
+        re.findall(r'^  ((?:C|Simplicity|Util)\.[A-Za-z0-9_.]+)$', r.stdout, re.M)}
+    ext = set(re.findall(r'^  (SecpShift\.[A-Za-z0-9_.]+)$', r.stdout, re.M))
+    if not local or ext != {'SecpShift.' + n for n in NAMES}:
+        raise ValueError('unexpected loaded module inventory')
+    for name in local:
+        if (work / 'Coq' / name).is_symlink() or (work / 'Coq' / name).read_bytes() != (s.REPO / 'Coq' / name).read_bytes():
+            raise ValueError('import not identical to current original proof source: ' + name)
+    return sorted(local), dict(command=cmd, exit_code=0, log_sha256=s.sha(r.stdout.encode())), r.stdout
+
+
+def profile(results, definitions, deps):
+    closed = {'Shift.shift52_actual_body', 'Rep.shift52_lo_den', 'Rep.shift52_hi_den',
+              'Numeric.two_limb_division', 'Numeric.shru52_unsigned',
+              'Numeric.shift52_low_unsigned', 'Numeric.shift52_numeric'}
+    expected = {'SecpShift.' + n: set() for n in closed}
+    for n in ['Shift.shift52_entry', 'Shift.eval_shift52_lhs', 'Shift.eval_shift52_right',
+              'Shift.eval_shift52_low', 'Shift.eval_shift52_lo_field', 'Shift.exec_shift52_body',
+              'Shift.shift52_storage', 'Shift.eval_u128_shift52', 'Numeric.eval_u128_shift52_exact',
+              'Rep.eval_shift52_symbolic_stores', 'Oracle.shift52_oracle_correct']:
+        expected['SecpShift.' + n] = s.SIX
+    if set(results) != set(expected) or deps != expected or len(definitions) != 11:
+        raise ValueError('expected exact 18-result/11-definition assumption profile differs')
+
+
+def compile(work):
+    if (HERE / 'LAUNCH.json').exists():
+        raise ValueError('build already launched: inspect original handle')
+    modules, extra = sources(work)
+    before, index = s.input_map(), s.index_hash()
+    # Initial inspection discovers dependencies only. No copied .vo is accepted:
+    # every local source loaded below must occur in the successful make -B log.
+    local, _, _ = libraries(work, extra)
+    s.changed({HERE / 'LAUNCH.json': json.dumps(dict(candidate=str(work),
+        main_inputs_sha256=s.sha(json.dumps(before, sort_keys=True).encode()),
+        staged_patch_sha256=index, force_rebuild_pending=True), indent=2) + '\n'})
+    flags = []
+    cc = Path(s.ENV['COMPCERT'])
+    for n in ['lib', 'common', 'x86_64', 'x86', 'cfrontend', 'export']:
+        flags += ['-R', str(cc / n), 'compcert.' + n]
+    flags += ['-R', str(cc / 'flocq'), 'Flocq']
+    commands = {}
+    commands['makefile'] = s.run(work, ['coq_makefile', '-R', 'C', 'C',
+        '-Q', 'Simplicity', 'Simplicity', *flags, *local, '-o', 'ShiftMakefile'], 'shift-makefile', 60)
+    print('Force-rebuilding ' + str(len(local)) + ' unchanged local dependencies', flush=True)
+    commands['build'] = s.run(work, ['make', '-f', 'ShiftMakefile', '-B', '-j2',
+        *(n.removesuffix('.v') + '.vo' for n in local)], 'shift-build', 1200)
+    compiled = re.findall(r'^COQC (\S+\.v)$', (work / 'shift-build.log').read_text(), re.M)
+    if sorted(compiled) != local or len(compiled) != len(set(compiled)):
+        raise ValueError('forced compile trace does not cover exact local closure')
+    for m, p in modules:
+        commands[m] = s.run(work, ['bash', 'build-jets.sh', '--coqc', '-q', *extra, str(p)],
+            'shift-' + p.stem.lower(), 60)
+    results, definitions, deps = g.reports(work, modules, 'shift', commands, extra)
+    profile(results, definitions, deps)
+    loaded, query, log = libraries(work, extra)
+    if loaded != local:
+        raise ValueError('fresh loaded closure differs from forced build')
+    sources(work)
+    if s.input_map() != before or s.index_hash() != index:
+        raise ValueError('main inputs or staged work changed')
+    record = dict(candidate=str(work), starting_revision='91d89bac',
+        main_inputs=before, staged_patch_sha256=index, commands=commands,
+        tools_sha256={'verify.py': s.sha(Path(__file__).read_bytes())}, roots=ROOTS,
+        results=results, definitions=definitions, dependencies={n: sorted(v) for n, v in deps.items()},
+        loaded_local_source_objects={n: dict(source_sha256=s.sha((work / 'Coq' / n).read_bytes()),
+            object_sha256=s.sha((work / 'Coq' / n).with_suffix('.vo').read_bytes())) for n in local},
+        extension_sources_objects={m: dict(source_sha256=s.sha(p.read_bytes()),
+            object_sha256=s.sha(p.with_suffix('.vo').read_bytes())) for m, p in modules},
+        library_query=query, force_rebuilt_entire_local_closure=True,
+        exact_per_result_assumption_profile=True, arbitrary_int64_limbs=True,
+        shift_count=52, storage_base=0, writable_storage_bytes=16,
+        whole_jet_execution_proved=False, normal_registration=False, coverage_added=0,
+        recursive_kernel_check=False)
+    s.changed({HERE / 'RUN.json': json.dumps(record, indent=2) + '\n',
+        HERE / 'loaded-libraries.log': log,
+        **{HERE / (p + '.log'): (work / (p + '.log')).read_text()
+           for p in ['shift-build', 'shift-makefile', 'shift-assumptions', 'shift-contracts']}})
+    print('18 checked results: exact C shift call, integer value, symbolic-store and proved-oracle summaries', flush=True)
+
+
+def kernel(work):
+    if (HERE / 'KERNEL-RUN.json').exists():
+        raise ValueError('kernel already launched: inspect original handle')
+    modules, extra = sources(work)
+    r = json.loads((HERE / 'RUN.json').read_text())
+
+    def bound():
+        sources(work)
+        if (r['candidate'] != str(work) or r['main_inputs'] != s.input_map() or
+                r['staged_patch_sha256'] != s.index_hash() or
+                r['tools_sha256'] != {'verify.py': s.sha(Path(__file__).read_bytes())}):
+            raise ValueError('checked inputs changed')
+        profile(r['results'], r['definitions'], {n: set(v) for n, v in r['dependencies'].items()})
+        for name, row in r['loaded_local_source_objects'].items():
+            p = work / 'Coq' / name
+            if row != dict(source_sha256=s.sha(p.read_bytes()), object_sha256=s.sha(p.with_suffix('.vo').read_bytes())):
+                raise ValueError('local source/object changed: ' + name)
+        for m, p in modules:
+            if r['extension_sources_objects'][m] != dict(source_sha256=s.sha(p.read_bytes()),
+                    object_sha256=s.sha(p.with_suffix('.vo').read_bytes())):
+                raise ValueError('extension source/object changed: ' + m)
+    bound()
+    cmd = ['bash', '-c', 'ulimit -s 65520; exec bash build-jets.sh --coqchk -silent -o '
+        + ' '.join(extra + ROOTS)]
+    s.changed({HERE / 'KERNEL-RUN.json': json.dumps(dict(command=cmd,
+        compile_sha256=s.sha((HERE / 'RUN.json').read_bytes()), recursive_kernel_check=False), indent=2) + '\n'})
+    row = s.run(work, cmd, 'shift-kernel', 3600)
+    log = (work / 'shift-kernel.log').read_text()
+    s.kernel.kernel(log, sorted((work / 'Coq/C/jet_coqchk_axioms.expected').read_text().split()))
+    bound()
+    r.update(recursive_kernel_check=True, kernel=row,
+        kernel_launch_sha256=s.sha((HERE / 'KERNEL-RUN.json').read_bytes()))
+    s.changed({HERE / 'CHECKED.json': json.dumps(r, indent=2) + '\n', HERE / 'shift-kernel.log': log})
+    print('Original C shift(52) and exact integer bridge recursively kernel-checked', flush=True)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 3 or sys.argv[1] not in {'compile', 'kernel'}:
+        raise ValueError('usage: verify.py compile|kernel PRIVATE_TREE')
+    globals()[sys.argv[1]](Path(sys.argv[2]).resolve())

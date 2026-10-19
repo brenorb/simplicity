@@ -1,0 +1,136 @@
+(** Actual inner/wrapper calls, preserving a non-owning read-only rhs.
+    Function entry, allocation and freeing are discharged, not assumed. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Values Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_multiply_run_run C.jet_secp_multiply_checkpoint_prefix.
+Require Import C.jet_secp_multiply_checkpoint_columns C.jet_secp_multiply_first_arithmetic.
+Require Import C.jet_secp_multiply_finish_execute C.jet_secp_multiply_finish_product.
+Require Import C.jet_secp_multiply_call_lifecycle C.jet_secp_multiply_call_call C.jet_secp_multiply_wrapper_call.
+Require Import FieldBorrow.Borrow FieldBorrowed.Transport FieldBorrowed.Body.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition borrowed_mul_regs := borrow_at 1 field_mul_regs.
+Definition borrowed_final_regs rho := borrow_at 1 (sregs (original_finish_checkpoint rho)).
+Definition borrowed_output_regs rho := borrow_at 1 (field_output_regs rho).
+
+Lemma borrowed_final_shape rho : map rshape (borrowed_final_regs rho) =
+  map rshape (borrowed_mul_regs ++ fst mul_allocated).
+Proof. reflexivity. Qed.
+
+Lemma firstn2_borrow regs : firstn 2 (borrow_at 1 regs) = borrow_at 1 (firstn 2 regs).
+Proof. destruct regs as [|a [|b rest]]; reflexivity. Qed.
+
+Lemma borrowed_final_prefix rho : firstn 2 (borrowed_final_regs rho) = borrowed_output_regs rho.
+Proof. unfold borrowed_final_regs, borrowed_output_regs; rewrite firstn2_borrow, field_final_prefix; reflexivity. Qed.
+
+Lemma borrowed_body_for_call rho beta e le m :
+  rep rho beta (borrowed_mul_regs ++ fst mul_allocated) m ->
+  tmatch rho beta prefix_temps le -> ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m (fn_body f_secp256k1_fe_mul_inner) E0 le' mf Out_normal /\
+    rep rho beta (borrowed_final_regs rho) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape (borrowed_mul_regs ++ fst mul_allocated)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  change (rep rho beta (borrow_at 1 (sregs prefix_initial)) m) in HR.
+  destruct (borrowed_original_body rho beta e le m HR HT HE) as (le' & mf & HX & HP & HT' & HF).
+  exists le', mf; split; [exact HX|]; split; [exact HP|].
+  change (lframe (fun b ofs => ~ foot beta (map rshape (borrow_at 1 (sregs prefix_initial))) b ofs) m mf).
+  eapply lframe_implies; [exact HF|]; intros b ofs HN HV HP'.
+  apply HN; apply (proj2 (foot_borrow beta 1 (sregs prefix_initial) b ofs)); exact HP'.
+Qed.
+
+Lemma borrowed_output_loads rho beta m :
+  rep rho beta (borrowed_output_regs rho) m -> output_words beta (original_finish_words rho) m.
+Proof.
+  intro HR; pose proof (rep_region rho beta _ m 0 _ HR eq_refl) as H0.
+  intros i HI.
+  assert (HM : In (mkcell (8 * Z.of_nat i) Mint64 (Some (XL (original_finish_words rho i))))
+    (u64_cells 0 [XL (original_finish_words rho 0%nat); XL (original_finish_words rho 1%nat);
+      XL (original_finish_words rho 2%nat); XL (original_finish_words rho 3%nat); XL (original_finish_words rho 4%nat)])).
+  { destruct i as [|[|[|[|[|i]]]]]; cbn [Nat.lt] in HI; try lia; cbn [Z.of_nat Z.mul u64_cells In]; auto 8. }
+  exact (region_load rho beta m 0 _ _ Mint64 (XL (original_finish_words rho i)) H0 HM).
+Qed.
+
+Local Opaque secp_ge original_finish_checkpoint original_finish_words.
+Theorem eval_original_field_mul_inner_borrowed rho beta m :
+  rep rho beta borrowed_mul_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul_inner)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef /\
+    rep rho beta (borrowed_output_regs rho) mf /\ output_words beta (original_finish_words rho) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape borrowed_mul_regs) b ofs) m mf.
+Proof.
+  intro HR.
+  destruct (owned_void_call secp_ge f_secp256k1_fe_mul_inner [XP 0 0; XP 0 0; XP 1 0]
+    borrowed_mul_regs (fst mul_allocated) (snd mul_allocated) prefix_temps borrowed_final_regs
+    field_function_ok eq_refl eq_refl field_allocation_model field_binding_model
+    borrowed_final_shape borrowed_body_for_call rho beta m HR) as (mf & HX & HP & HF).
+  change (map (den rho (lay beta)) [XP 0 0; XP 0 0; XP 1 0]) with
+    [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0));
+     Vptr (blk beta 1) (Ptrofs.repr (bas beta 1 + 0))] in HX.
+  rewrite !Z.add_0_r in HX.
+  change (rep rho beta (firstn 2 (borrowed_final_regs rho)) mf) in HP.
+  rewrite borrowed_final_prefix in HP.
+  exists mf; split; [exact HX|]; split; [exact HP|]; split; [apply borrowed_output_loads; exact HP|exact HF].
+Qed.
+
+Lemma borrowed_wrapper_shape rho : map rshape (borrowed_output_regs rho) = map rshape (borrowed_mul_regs ++ []).
+Proof. reflexivity. Qed.
+
+Lemma borrowed_wrapper_body rho beta e le m :
+  rep rho beta (borrowed_mul_regs ++ []) m -> tmatch rho beta prefix_temps le -> ematch beta [] e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m (fn_body f_secp256k1_fe_mul) E0 le' mf Out_normal /\
+    rep rho beta (borrowed_output_regs rho) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape (borrowed_mul_regs ++ [])) b ofs) m mf.
+Proof.
+  intros HR HT HE; rewrite app_nil_r in HR.
+  destruct (eval_original_field_mul_inner_borrowed rho beta m HR) as (mf & HC & HP & HO & HF).
+  exists le, mf; split; [eapply exec_wrapper_call; eauto|].
+  split; [exact HP|rewrite app_nil_r; exact HF].
+Qed.
+
+Theorem eval_original_field_mul_wrapper_borrowed rho beta m :
+  rep rho beta borrowed_mul_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef /\
+    rep rho beta (borrowed_output_regs rho) mf /\ output_words beta (original_finish_words rho) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape borrowed_mul_regs) b ofs) m mf.
+Proof.
+  intro HR.
+  destruct (owned_void_call secp_ge f_secp256k1_fe_mul [XP 0 0; XP 0 0; XP 1 0]
+    borrowed_mul_regs [] [] prefix_temps borrowed_output_regs wrapper_function_ok eq_refl eq_refl eq_refl
+    wrapper_binding_model borrowed_wrapper_shape borrowed_wrapper_body rho beta m HR) as (mf & HX & HP & HF).
+  change (map (den rho (lay beta)) [XP 0 0; XP 0 0; XP 1 0]) with
+    [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0));
+     Vptr (blk beta 1) (Ptrofs.repr (bas beta 1 + 0))] in HX.
+  rewrite !Z.add_0_r in HX.
+  change (rep rho beta (firstn 2 (borrowed_output_regs rho)) mf) in HP.
+  change (rep rho beta (borrowed_output_regs rho) mf) in HP.
+  exists mf; split; [exact HX|]; split; [exact HP|]; split; [apply borrowed_output_loads; exact HP|exact HF].
+Qed.
+
+Theorem eval_original_field_mul_wrapper_borrowed_product rho beta m :
+  field_input_bounds rho -> rep rho beta borrowed_mul_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef /\
+    rep rho beta (borrowed_output_regs rho) mf /\ output_words beta (original_finish_words rho) mf /\
+    radix_value (original_finish_words rho) mod field_prime = (radix_value rho * radix_value (second_input rho)) mod field_prime /\
+    (forall i, (i < 5)%nat -> 0 <= Int64.unsigned (original_finish_words rho i) <
+      if Nat.eqb i 4 then 562949953421312 else 4503599627370496) /\
+    lframe (fun b ofs => ~ foot beta (map rshape borrowed_mul_regs) b ofs) m mf.
+Proof.
+  intros HB HR; destruct (eval_original_field_mul_wrapper_borrowed rho beta m HR) as (mf & HC & HP & HO & HF).
+  exists mf; split; [exact HC|]; split; [exact HP|]; split; [exact HO|]; split;
+    [apply original_outputs_product; exact HB|]; split; [apply original_outputs_bounds; exact HB|exact HF].
+Qed.

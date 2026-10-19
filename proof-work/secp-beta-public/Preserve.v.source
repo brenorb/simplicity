@@ -1,0 +1,113 @@
+(** Internal C execution preserves initially readonly old blocks, including
+    readability and raw memory fragments; no final-readability premise. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Coqlib AST Ctypes Cop Clight ClightBigstep Integers Values Memory Events.
+Require Import C.jet_clight_forward C.jet_sx_mem InternalFrame.Internal.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition old_readonly (m : mem) b ofs := Mem.valid_block m b /\ ~ Mem.perm m b ofs Max Writable.
+Definition readonly_preserved (m mf : mem) :=
+  mem_forward m mf /\ Mem.unchanged_on (old_readonly m) m mf.
+
+Lemma preserved_refl m : readonly_preserved m m.
+Proof. split; [apply mem_forward_refl|apply Mem.unchanged_on_refl]. Qed.
+Lemma preserved_trans m mi mf : readonly_preserved m mi -> readonly_preserved mi mf -> readonly_preserved m mf.
+Proof.
+  intros [HF1 HU1] [HF2 HU2]; split; [eapply mem_forward_trans; eassumption|].
+  eapply Mem.unchanged_on_trans; [exact HU1|].
+  eapply Mem.unchanged_on_implies; [exact HU2|].
+  intros b ofs [HV HN] HVI; split; [exact HVI|].
+  intro HW; apply HN; exact (proj2 (HF1 b HV) ofs Writable HW).
+Qed.
+Lemma store_preserved chunk m b ofs v mf : Mem.store chunk m b ofs v = Some mf -> readonly_preserved m mf.
+Proof.
+  intro HS; split; [eapply store_forward; exact HS|].
+  eapply Mem.store_unchanged_on; [exact HS|].
+  intros i HI [_ HN]; apply HN; apply Mem.perm_cur_max.
+  exact (proj1 (Mem.store_valid_access_3 _ _ _ _ _ _ HS) i HI).
+Qed.
+Lemma storebytes_preserved m b ofs bytes mf : Mem.storebytes m b ofs bytes = Some mf -> readonly_preserved m mf.
+Proof.
+  intro HS; split; [eapply storebytes_forward; exact HS|].
+  eapply Mem.storebytes_unchanged_on; [exact HS|].
+  intros i HI [_ HN]; apply HN; apply Mem.perm_cur_max.
+  exact (Mem.storebytes_range_perm _ _ _ _ _ HS i HI).
+Qed.
+Lemma alloc_preserved m lo hi mf fresh : Mem.alloc m lo hi = (mf,fresh) -> readonly_preserved m mf.
+Proof. intro HA; split; [eapply alloc_forward; exact HA|eapply Mem.alloc_unchanged_on; exact HA]. Qed.
+Lemma free_preserved m b lo hi mf : Mem.free m b lo hi = Some mf -> readonly_preserved m mf.
+Proof.
+  intro HF; split; [eapply free_forward; exact HF|].
+  eapply Mem.free_unchanged_on; [exact HF|].
+  intros i HI [_ HN]; apply HN; apply Mem.perm_cur_max.
+  eapply Mem.perm_implies; [exact (Mem.free_range_perm _ _ _ _ _ HF i HI)|constructor].
+Qed.
+Lemma freelist_preserved blocks m mf : Mem.free_list m blocks = Some mf -> readonly_preserved m mf.
+Proof.
+  revert m mf; induction blocks as [|[[b lo] hi] rest IH]; intros m mf HF.
+  - cbn in HF; inversion HF; subst; apply preserved_refl.
+  - cbn in HF; destruct (Mem.free m b lo hi) as [mi|] eqn:HE; [|discriminate].
+    eapply preserved_trans; [eapply free_preserved; exact HE|apply IH; exact HF].
+Qed.
+Lemma alloc_variables_preserved ge e m vars e' m' : alloc_variables ge e m vars e' m' -> readonly_preserved m m'.
+Proof. intro HA; induction HA; eauto using preserved_refl, preserved_trans, alloc_preserved. Qed.
+Lemma entry_preserved ge f args m e le m' : function_entry2 ge f args m e le m' -> readonly_preserved m m'.
+Proof. intro HE; inversion HE; subst; eapply alloc_variables_preserved; eassumption. Qed.
+Lemma assign_preserved ce ty m b ofs bf v m' : assign_loc ce ty m b ofs bf v m' -> readonly_preserved m m'.
+Proof.
+  intro HA; inversion HA; subst.
+  - eapply store_preserved; cbn [Mem.storev] in *; eassumption.
+  - eapply storebytes_preserved; eassumption.
+  - match goal with HBits : store_bitfield _ _ _ _ _ _ _ _ _ _ |- _ => inversion HBits; subst end.
+    eapply store_preserved; cbn [Mem.storev] in *; eassumption.
+Qed.
+
+Theorem internal_exec_preserved ge table : internal_table_ok ge table ->
+  (forall e le m stmt t le' m' out,
+    Clight2.exec_stmt ge e le m stmt t le' m' out ->
+    plain_env e -> closed_stmtb table stmt = true -> readonly_preserved m m') /\
+  (forall m f args t m' result,
+    Clight2.eval_funcall ge m f args t m' result ->
+    allowed_call table f -> readonly_preserved m m').
+Proof.
+  intro HT.
+  apply (exec_stmt_funcall_ind function_entry2 ge
+    (fun e le m stmt t le' m' out =>
+      plain_env e -> closed_stmtb table stmt = true -> readonly_preserved m m')
+    (fun m f args t m' result => allowed_call table f -> readonly_preserved m m')).
+  all: intros.
+  all: try solve [apply preserved_refl].
+  all: try solve [eapply assign_preserved; eassumption].
+  all: try solve [discriminate].
+  all: try match goal with HS : closed_stmtb _ (Ssequence _ _) = true |- _ =>
+    apply andb_true_iff in HS; destruct HS as [HS1 HS2]
+  end.
+  all: try solve [eauto 6 using preserved_trans].
+  - match goal with IH : allowed_call _ _ -> readonly_preserved _ _ |- _ => apply IH end.
+    eapply direct_internal_call; eassumption.
+  - match goal with HS : closed_stmtb _ (Sifthenelse _ _ _) = true |- _ =>
+      apply andb_true_iff in HS; destruct HS as [HS1 HS2]
+    end; destruct b; eauto.
+  - match goal with HS : closed_stmtb _ (Sloop _ _) = true |- _ =>
+      apply andb_true_iff in HS; destruct HS as [HS1 HS2]
+    end; eauto 8 using preserved_trans.
+  - match goal with HS : closed_stmtb _ (Sloop _ _) = true |- _ =>
+      apply andb_true_iff in HS; destruct HS as [HS1 HS2]
+    end; eauto 8 using preserved_trans.
+  - match goal with HS : closed_stmtb _ (Sloop _ _) = true |- _ =>
+      pose proof HS as HLoop; apply andb_true_iff in HS; destruct HS as [HS1 HS2]
+    end.
+    eapply preserved_trans; [apply H0; assumption|].
+    eapply preserved_trans; [apply H3; assumption|apply H5; assumption].
+  - match goal with HA : allowed_call _ (Internal _) |- _ =>
+      destruct HA as (id & fd & HL & HE); injection HE as HE; subst fd
+    end.
+    destruct (HT _ _ HL) as (_ & HS & HV).
+    eapply preserved_trans; [eapply entry_preserved; eassumption|].
+    eapply preserved_trans; [|eapply freelist_preserved; eassumption].
+    eauto using entry_plain.
+  - match goal with HA : allowed_call _ (External _ _ _ _) |- _ =>
+      destruct HA as (id & fd & HL & HE); discriminate HE
+    end.
+Qed.

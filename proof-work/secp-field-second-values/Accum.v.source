@@ -1,0 +1,37 @@
+(** Shared bounded accumulation for the actual two-limb C machine steps. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require Import FieldCheckpoint.Machine FieldFirst.Arithmetic.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Fixpoint products (ps : list (int64 * int64)) : Z :=
+  match ps with [] => 0 | (a,b) :: rest => Int64.unsigned a * Int64.unsigned b + products rest end.
+Fixpoint accumulate (s : int64 * int64) (ps : list (int64 * int64)) : int64 * int64 :=
+  match ps with [] => s | (a,b) :: rest => accumulate (machine_accum s a b) rest end.
+
+Lemma products_nonnegative ps : 0 <= products ps.
+Proof.
+  induction ps as [|[a b] ps IH]; cbn [products]; [lia|].
+  pose proof (Int64.unsigned_range a); pose proof (Int64.unsigned_range b); nia.
+Qed.
+Lemma accumulate_exact ps : forall s,
+  pair_value s + products ps < Int64.modulus * Int64.modulus ->
+  pair_value (accumulate s ps) = pair_value s + products ps.
+Proof.
+  induction ps as [|[a b] ps IH]; intros s HB; cbn [accumulate products] in *; [lia|].
+  pose proof (products_nonnegative ps) as HP.
+  assert (HV : pair_value (machine_accum s a b) = pair_value s + Int64.unsigned a * Int64.unsigned b)
+    by (apply machine_accum_exact; lia).
+  rewrite IH by (rewrite HV; lia).
+  rewrite HV; lia.
+Qed.
+Definition pair56 (p : int64 * int64) :=
+  Int64.unsigned (fst p) < 72057594037927936 /\ Int64.unsigned (snd p) < 72057594037927936.
+Lemma products56_bound ps : Forall pair56 ps ->
+  0 <= products ps <= Z.of_nat (length ps) * 5192296858534827628530496329220096.
+Proof.
+  intro H; induction H as [|[a b] ps [HA HB] HF IH]; cbn [products length fst snd] in *; [lia|].
+  rewrite Nat2Z.inj_succ; pose proof (product56_range a b HA HB); lia.
+Qed.

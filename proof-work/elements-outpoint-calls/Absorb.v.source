@@ -1,0 +1,60 @@
+(** Original byte-array absorption call for either outpoint byte count. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Cop Clight ClightBigstep Maps Values Memory Events Globalenvs.
+Require Import Simplicity.Ty Simplicity.Word.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_read8s_layout C.jet_readBit_layout C.jet_bitmachine_rep.
+Require Import C.jet_sha_ctx_abs C.jet_sha_ctx8_model C.jet_sha_uchars_exec C.jet_sha_add_n_init.
+Require Import C.jet_sha_linkage C.jet_elements_sha_program C.jets_elements C.jet_elements_linkage.
+Require Import NonceExec.Effects NonceExec.Payload OutpointExec.Shape OutpointExec.Read.
+Import Mem Values Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge sha_ge.
+Set Default Timeout 10.
+
+Lemma op_array_preserved m mf changed b base xs :
+  nonce_effects m mf changed -> ~ In b changed ->
+  uint8_array_at m b base xs -> uint8_array_at mf b base xs.
+Proof.
+  intros HE HN HA i x HX. pose proof (HA i x HX) as HL.
+  rewrite (nonce_loads _ _ _ HE); [exact HL|eapply load_valid_block; exact HL|exact HN].
+Qed.
+
+Theorem op_absorb_exec (Hmodel : memcpy_model) le m bl bm bb bx n
+    l regs (xs : list (Ty.tySem Word8)) c ovf :
+  Z.of_nat (length xs) = n -> 0 <= n <= 36 ->
+  bb <> bx -> bb <> bm -> bm <> bx -> GC <> bx -> GC <> bm -> GM <> bx -> GM <> bm ->
+  uint8_array_at m bb 0 (map word8_array_value xs) -> ctx_abs m bx bm l regs c ovf ->
+  exists mf,
+    Clight2.exec_stmt elements_ge (op_env bl bm bb bx) le m (op_absorb n) E0 le mf Out_normal /\
+    ctx_abs mf bx bm (fst (absorb l regs xs)) (snd (absorb l regs xs))
+      (Int64.add c (Int64.repr n)) (uc_overflow ovf c (Int64.repr n)) /\
+    nonce_effects m mf [bx; bm].
+Proof.
+  intros HL HN Hbx Hbm Hmx Hgx Hgm Hcx Hcm HA HC.
+  destruct (ctx_abs_uchars bx bm Hmx Hgx Hgm Hcx Hcm Hmodel m bb Ptrofs.zero l regs xs c ovf
+    HC Hbx Hbm ltac:(rewrite HL; change (0 + n <= Ptrofs.max_unsigned);
+      change Ptrofs.max_unsigned with 18446744073709551615; lia)
+    ltac:(intros i HJ; apply HA, nth_error_nth'; exact HJ))
+    as (mf & HAdd & HCtx & HLoads & HPerm & HValid).
+  rewrite HL in HAdd, HCtx.
+  exists mf. split.
+  - destruct nonce_uchars_link as [HS HFun]. unfold op_absorb.
+    change le with (set_opttemp None (Vint (bit_int (negb (uc_overflow ovf c (Int64.repr n))))) le) at 2.
+    eapply exec_Scall with (vf := Vptr (elements_symbol_block _sha256_uchars) Ptrofs.zero)
+      (f := Internal f_sha256_uchars) (vargs := [Vptr bx Ptrofs.zero; Vptr bb Ptrofs.zero; Vlong (Int64.repr n)])
+      (vres := Vint (bit_int (negb (uc_overflow ovf c (Int64.repr n))))).
+    + reflexivity.
+    + eapply eval_Elvalue; [apply eval_Evar_global; [reflexivity|exact HS]|apply deref_loc_reference; reflexivity].
+    + eapply eval_Econs; [apply eval_Eaddrof, eval_Evar_local; reflexivity|reflexivity|].
+      eapply eval_Econs.
+      * eapply eval_Elvalue; [apply eval_Evar_local; reflexivity|apply deref_loc_reference; reflexivity].
+      * reflexivity.
+      * eapply eval_Econs; [apply eval_Econst_int|apply op_count_cast; exact HN|apply eval_Enil].
+    + exact HFun.
+    + reflexivity.
+    + rewrite <- elements_sha_genv. exact HAdd.
+  - split; [exact HCtx|]. constructor.
+    + intros ch b ofs V N. apply HLoads; [exact V| |]; intro E; subst b; apply N; cbn; tauto.
+    + intros b ofs k p HP. apply HPerm; [eapply Mem.perm_valid_block; exact HP|exact HP].
+    + exact HValid.
+Qed.

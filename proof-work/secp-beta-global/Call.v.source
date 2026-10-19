@@ -1,0 +1,42 @@
+(** Actual original C helper on the reader-derived value and initialized beta.
+    The full public jet's frames, writer and lifecycle remain separate. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Values Events.
+Require Import Simplicity.Word Simplicity.Alg.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_b32_exec C.jet_secp_fe_math C.jet_secp_fe_nv
+  C.jet_secp_write_fe_wide_exec.
+Require Import C.jet_secp_multiply_run_run C.jet_secp_multiply_finish_execute
+  C.jet_secp_multiply_finish_product C.jet_secp_multiply_input_input C.jet_secp_multiply_writer_bridge.
+Require Import FieldBorrowed.Call BetaGlobal.Global BetaGlobal.Inputs BetaGlobal.Spec.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge beta_block original_finish_words literal_fe_multiply_beta.
+
+Theorem eval_beta_from_reader_storage x m ba :
+  fe_at m ba 0 (map Int64.repr (fe_limbs_of (normalized_value x))) ->
+  Mem.range_perm m ba 0 40 Cur Freeable -> beta_initialized m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul)
+      [Vptr ba Ptrofs.zero; Vptr ba Ptrofs.zero; Vptr beta_block Ptrofs.zero] E0 mf Vundef /\
+    rep (beta_input_rho x) [(ba,0);(beta_block,0)] (borrowed_output_regs (beta_input_rho x)) mf /\
+    output_words [(ba,0);(beta_block,0)] (original_finish_words (beta_input_rho x)) mf /\
+    wide_fe_output (original_finish_words (beta_input_rho x) 0%nat)
+      (original_finish_words (beta_input_rho x) 1%nat) (original_finish_words (beta_input_rho x) 2%nat)
+      (original_finish_words (beta_input_rho x) 3%nat) (original_finish_words (beta_input_rho x) 4%nat) =
+      @literal_fe_multiply_beta Alg.CoreFunSem x /\
+    (forall i, (i < 5)%nat -> 0 <= Int64.unsigned (original_finish_words (beta_input_rho x) i) <
+      if Nat.eqb i 4 then 562949953421312 else 4503599627370496) /\
+    lframe (fun b ofs => ~ foot [(ba,0);(beta_block,0)] (map rshape borrowed_mul_regs) b ofs) m mf.
+Proof.
+  intros HA HF [HG HB].
+  pose proof (beta_not_freeable m ba HB HF) as HD.
+  pose proof (beta_inputs_from_storage x m ba HA HF HD HG) as HR.
+  pose proof (beta_input_bounds x) as HBounds.
+  destruct (eval_original_field_mul_wrapper_borrowed_product (beta_input_rho x)
+    [(ba,0);(beta_block,0)] m HBounds HR) as (mf & HC & HP & HO & HV & HL & HFrame).
+  exists mf; split; [exact HC|]; split; [exact HP|]; split; [exact HO|]; split.
+  - rewrite product_writer_output by exact HBounds; apply beta_product_matches_literal.
+  - split; assumption.
+Qed.
