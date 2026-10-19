@@ -36,6 +36,15 @@ the exact loaded source-built closure, original-target guard and recursive
 kernel check are required. The public endpoint must retain exactly the six
 inherited Coq/CompCert assumptions; no external-library model is introduced.
 
+The first combined assumption report reached 338 declaration markers before
+its inherited 180-second per-packet subprocess deadline expired. The terminal
+failure, original launch identity and partial log are preserved separately in
+`REPORT-TIMEOUT.json` and `report-timeout-assumptions.log`; they are not a
+successful report. The complete queries are unchanged in the bounded
+600-second retry. This is an audit-workload adjustment, not an increase to any
+proof tactic timeout or a skipped declaration. An existing launch alone never
+authorizes a retry; the verifier checks the recorded terminal failure first.
+
 The ordinary-module endpoint is
 `C.jet_secp_multiply_literal_jet.fe_multiply_literal_local_spec`, with the same
 unrestricted Word256 pair domain and complete frame/memory contract as the
