@@ -1,0 +1,28 @@
+(** Actual original function call with the proved output-product relation. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events Values.
+Require Import C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_secp_linkage C.jets_secp.
+Require Import FieldRun.Run FieldCheckpoint.Columns FieldFirst.Arithmetic.
+Require Import FieldFinish.Execute FieldFinish.Product FieldCall.Call.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Theorem eval_original_field_mul_inner_product rho beta m :
+  field_input_bounds rho -> rep rho beta field_mul_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul_inner)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef /\
+    rep rho beta (field_output_regs rho) mf /\
+    output_words beta (original_finish_words rho) mf /\
+    radix_value (original_finish_words rho) mod field_prime = (radix_value rho * radix_value (second_input rho)) mod field_prime /\
+    (forall i, (i < 5)%nat -> 0 <= Int64.unsigned (original_finish_words rho i) <
+      if Nat.eqb i 4 then 562949953421312 else 4503599627370496) /\
+    lframe (fun b ofs => ~ foot beta (map rshape field_mul_regs) b ofs) m mf.
+Proof.
+  intros HB HR.
+  destruct (eval_original_field_mul_inner rho beta m HR) as (mf & HX & HRep & HO & HF).
+  exists mf; split; [exact HX|]; split; [exact HRep|]; split; [exact HO|];
+    split; [apply original_outputs_product; exact HB|]; split; [apply original_outputs_bounds; exact HB|exact HF].
+Qed.
