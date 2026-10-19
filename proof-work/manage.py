@@ -14,7 +14,7 @@ import tempfile
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
-SOURCE_GROUPS = ("scalar-u128", "sha-support", "review-witnesses")
+SOURCE_GROUPS = ("scalar-u128", "sha-support", "review-witnesses", "fe-negate", "fe-add", "gej-infinity")
 
 
 def git(*args, env=None):

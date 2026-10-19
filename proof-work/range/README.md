@@ -1,16 +1,10 @@
-# Integrated frame range correction
+# Frame range correction candidate
 
-The repaired range correction is integrated on `codex/range-integration`.
-All 149 changed Coq files match the reviewed reconciliation hashes and the
-complete proof-input fingerprint matches the independently accepted candidate.
-`RECONCILIATION.json`, `RANGE-CONTRACT-REVIEW.md` and `reconciled-accept.log`
-record the scope and evidence. Coverage remains 349/533. Further inherited
-endpoint/evaluator/domain/fidelity review is open.
-
-The original 20-commit series remains an exact historical archive. It includes
-19 original corrections and the endpoint fix already accepted on the main
-topic branch. Replaying only that series reproduces the earlier incomplete
-candidate, not the repaired integration.
+This exact 20-commit patch series is preserved for review and completion. It is
+not applied to the accepted Coq tree and adds no accepted coverage. Nineteen
+commits remain unintegrated. The last patch is the endpoint correction already
+accepted on the main topic branch; it is included to reproduce the candidate
+checkout exactly.
 
 `manifest.json` identifies the base, final candidate commit, original commit
 for each patch, source hashes, verification scope and remaining obligations.
@@ -25,9 +19,9 @@ This is the original stopping point, not the current continuation state.
 remaining obligations and live build handles. The additional `*-repair.patch`
 files apply after the numbered series; they are not covered by the original
 manifest or `proof-work/manage.py` replay. Their separate forward/reverse replay
-has been checked against the candidate commit. Scoped kernel receipts alone do not
-establish acceptance; the later complete acceptance receipt above supersedes
-the original stopping point.
+has been checked against the candidate commit. Scoped kernel receipts do not
+establish full candidate acceptance. Completing this correction has priority
+over new jet coverage.
 
 Reproduce the separate continuation integrity/replay check without changing
 sources or writing Git objects:
