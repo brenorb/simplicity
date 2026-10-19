@@ -1,0 +1,288 @@
+Require C.jet_parallel_fe_mul_calls.
+Require C.jet_parallel_fe_mul_field.
+Require C.jet_parallel_fe_mul_local.
+Require C.jet_parallel_fe_mul_math.
+Require C.jet_parallel_fe_mul_model.
+Require C.jet_parallel_fe_mul_oracle.
+Require C.jet_parallel_fe_mul_run.
+Require C.jet_parallel_fe_mul_shift.
+Require C.jet_parallel_fe_mul_sx.
+Require C.jet_parallel_fe_sqr_field.
+Require C.jet_parallel_fe_sqr_local.
+Require C.jet_parallel_fe_sqr_model.
+Require C.jet_parallel_fe_sqr_run.
+Require C.jet_secp_normalize_local C.jet_secp_negate_literal_contract C.jet_parallel_fe_sqr_field.
+Print C.jet_secp_normalize_local.secp_jet_local_spec.
+Print C.jet_secp_negate_literal_contract.literal_fe_multiply.
+Print C.jet_secp_negate_literal_contract.literal_fe_normalize512.
+Print C.jet_parallel_fe_sqr_field.literal_fe_square.
+About C.jet_parallel_fe_mul_calls.no_fe_mul_foot.
+Print Assumptions C.jet_parallel_fe_mul_calls.no_fe_mul_foot.
+About C.jet_parallel_fe_mul_calls.eval_mul_write_calls.
+Print Assumptions C.jet_parallel_fe_mul_calls.eval_mul_write_calls.
+About C.jet_parallel_fe_mul_calls.eval_fe_mul_four_calls.
+Print Assumptions C.jet_parallel_fe_mul_calls.eval_fe_mul_four_calls.
+About C.jet_parallel_fe_mul_field.literal_fe_multiply_numeric.
+Print Assumptions C.jet_parallel_fe_mul_field.literal_fe_multiply_numeric.
+About C.jet_parallel_fe_mul_field.fmr_first.
+Print Assumptions C.jet_parallel_fe_mul_field.fmr_first.
+About C.jet_parallel_fe_mul_field.fmr_second.
+Print Assumptions C.jet_parallel_fe_mul_field.fmr_second.
+About C.jet_parallel_fe_mul_field.limbs_ok_of.
+Print Assumptions C.jet_parallel_fe_mul_field.limbs_ok_of.
+About C.jet_parallel_fe_mul_field.fe_mul_initial_rep.
+Print Assumptions C.jet_parallel_fe_mul_field.fe_mul_initial_rep.
+About C.jet_parallel_fe_mul_field.out_cell_in.
+Print Assumptions C.jet_parallel_fe_mul_field.out_cell_in.
+About C.jet_parallel_fe_mul_field.fe_mul_out_field.
+Print Assumptions C.jet_parallel_fe_mul_field.fe_mul_out_field.
+About C.jet_parallel_fe_mul_field.fm_solves_fmr.
+Print Assumptions C.jet_parallel_fe_mul_field.fm_solves_fmr.
+About C.jet_parallel_fe_mul_field.fe_mul_out_bounds.
+Print Assumptions C.jet_parallel_fe_mul_field.fe_mul_out_bounds.
+About C.jet_parallel_fe_mul_field.fe_mul_out_value.
+Print Assumptions C.jet_parallel_fe_mul_field.fe_mul_out_value.
+About C.jet_parallel_fe_mul_field.eval_fe_mul_from_normalized_fields.
+Print Assumptions C.jet_parallel_fe_mul_field.eval_fe_mul_from_normalized_fields.
+About C.jet_parallel_fe_mul_local.secp_fe_mul_body.
+Print Assumptions C.jet_parallel_fe_mul_local.secp_fe_mul_body.
+About C.jet_parallel_fe_mul_local.secp_mul_helper_symbols.
+Print Assumptions C.jet_parallel_fe_mul_local.secp_mul_helper_symbols.
+About C.jet_parallel_fe_mul_local.exec_secp_mul_fields.
+Print Assumptions C.jet_parallel_fe_mul_local.exec_secp_mul_fields.
+About C.jet_parallel_fe_mul_local.exec_secp_mul_rest_calls.
+Print Assumptions C.jet_parallel_fe_mul_local.exec_secp_mul_rest_calls.
+About C.jet_parallel_fe_mul_local.secp_fe_mul_entry.
+Print Assumptions C.jet_parallel_fe_mul_local.secp_fe_mul_entry.
+About C.jet_parallel_fe_mul_local.exec_secp_fe_mul_rest_literal.
+Print Assumptions C.jet_parallel_fe_mul_local.exec_secp_fe_mul_rest_literal.
+About C.jet_parallel_fe_mul_local.eval_secp_fe_mul_literal.
+Print Assumptions C.jet_parallel_fe_mul_local.eval_secp_fe_mul_literal.
+About C.jet_parallel_fe_mul_local.fe_multiply_literal_local_spec.
+Print Assumptions C.jet_parallel_fe_mul_local.fe_multiply_literal_local_spec.
+About C.jet_parallel_fe_mul_local.fe_multiply_local_spec.
+Print Assumptions C.jet_parallel_fe_mul_local.fe_multiply_local_spec.
+About C.jet_parallel_fe_mul_math.feMulR_feR.
+Print Assumptions C.jet_parallel_fe_mul_math.feMulR_feR.
+About C.jet_parallel_fe_mul_math.prod_bound.
+Print Assumptions C.jet_parallel_fe_mul_math.prod_bound.
+About C.jet_parallel_fe_mul_math.mod_small_eq.
+Print Assumptions C.jet_parallel_fe_mul_math.mod_small_eq.
+About C.jet_parallel_fe_mul_math.fm_mod_mod_pow.
+Print Assumptions C.jet_parallel_fe_mul_math.fm_mod_mod_pow.
+About C.jet_parallel_fe_mul_math.land_low52.
+Print Assumptions C.jet_parallel_fe_mul_math.land_low52.
+About C.jet_parallel_fe_mul_math.lo_split.
+Print Assumptions C.jet_parallel_fe_mul_math.lo_split.
+About C.jet_parallel_fe_mul_math.l52_split.
+Print Assumptions C.jet_parallel_fe_mul_math.l52_split.
+About C.jet_parallel_fe_mul_math.fe_mul_core.
+Print Assumptions C.jet_parallel_fe_mul_math.fe_mul_core.
+About C.jet_parallel_fe_mul_model.uns_fm_lo.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_fm_lo.
+About C.jet_parallel_fe_mul_model.uns_fm_hi.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_fm_hi.
+About C.jet_parallel_fe_mul_model.fm_join.
+Print Assumptions C.jet_parallel_fe_mul_model.fm_join.
+About C.jet_parallel_fe_mul_model.evok_intro.
+Print Assumptions C.jet_parallel_fe_mul_model.evok_intro.
+About C.jet_parallel_fe_mul_model.range_mul.
+Print Assumptions C.jet_parallel_fe_mul_model.range_mul.
+About C.jet_parallel_fe_mul_model.range_mod.
+Print Assumptions C.jet_parallel_fe_mul_model.range_mod.
+About C.jet_parallel_fe_mul_model.range_shr.
+Print Assumptions C.jet_parallel_fe_mul_model.range_shr.
+About C.jet_parallel_fe_mul_model.lor_lt_pow2.
+Print Assumptions C.jet_parallel_fe_mul_model.lor_lt_pow2.
+About C.jet_parallel_fe_mul_model.uns_or.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_or.
+About C.jet_parallel_fe_mul_model.uns_and.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_and.
+About C.jet_parallel_fe_mul_model.uns_shl4.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_shl4.
+About C.jet_parallel_fe_mul_model.uns_add.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_add.
+About C.jet_parallel_fe_mul_model.uns_R.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_R.
+About C.jet_parallel_fe_mul_model.uns_R12.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_R12.
+About C.jet_parallel_fe_mul_model.uns_R4.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_R4.
+About C.jet_parallel_fe_mul_model.uns_M.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_M.
+About C.jet_parallel_fe_mul_model.uns_M4.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_M4.
+About C.jet_parallel_fe_mul_model.uns_and_lo.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_and_lo.
+About C.jet_parallel_fe_mul_model.uns_u0.
+Print Assumptions C.jet_parallel_fe_mul_model.uns_u0.
+About C.jet_parallel_fe_mul_model.fm_ranges.
+Print Assumptions C.jet_parallel_fe_mul_model.fm_ranges.
+About C.jet_parallel_fe_mul_model.fm_solves.
+Print Assumptions C.jet_parallel_fe_mul_model.fm_solves.
+About C.jet_parallel_fe_mul_model.fm_mul_values.
+Print Assumptions C.jet_parallel_fe_mul_model.fm_mul_values.
+About C.jet_parallel_fe_mul_oracle.find_set_cell_other.
+Print Assumptions C.jet_parallel_fe_mul_oracle.find_set_cell_other.
+About C.jet_parallel_fe_mul_oracle.xload_xreplace_other.
+Print Assumptions C.jet_parallel_fe_mul_oracle.xload_xreplace_other.
+About C.jet_parallel_fe_mul_oracle.int64_eq_unsigned.
+Print Assumptions C.jet_parallel_fe_mul_oracle.int64_eq_unsigned.
+About C.jet_parallel_fe_mul_oracle.den_fresh_long.
+Print Assumptions C.jet_parallel_fe_mul_oracle.den_fresh_long.
+About C.jet_parallel_fe_mul_oracle.u128_inner_pure.
+Print Assumptions C.jet_parallel_fe_mul_oracle.u128_inner_pure.
+About C.jet_parallel_fe_mul_oracle.orc_inner_ok.
+Print Assumptions C.jet_parallel_fe_mul_oracle.orc_inner_ok.
+About C.jet_parallel_fe_mul_oracle.sigma4_long.
+Print Assumptions C.jet_parallel_fe_mul_oracle.sigma4_long.
+About C.jet_parallel_fe_mul_oracle.uns_range.
+Print Assumptions C.jet_parallel_fe_mul_oracle.uns_range.
+About C.jet_parallel_fe_mul_oracle.two_word_split.
+Print Assumptions C.jet_parallel_fe_mul_oracle.two_word_split.
+About C.jet_parallel_fe_mul_oracle.mk_mul_inv.
+Print Assumptions C.jet_parallel_fe_mul_oracle.mk_mul_inv.
+About C.jet_parallel_fe_mul_oracle.mk_acc_inv.
+Print Assumptions C.jet_parallel_fe_mul_oracle.mk_acc_inv.
+About C.jet_parallel_fe_mul_oracle.mk_add64_inv.
+Print Assumptions C.jet_parallel_fe_mul_oracle.mk_add64_inv.
+About C.jet_parallel_fe_mul_oracle.lv_umul_lo.
+Print Assumptions C.jet_parallel_fe_mul_oracle.lv_umul_lo.
+About C.jet_parallel_fe_mul_oracle.lv_umul_hi.
+Print Assumptions C.jet_parallel_fe_mul_oracle.lv_umul_hi.
+About C.jet_parallel_fe_mul_oracle.lv_acc_lo.
+Print Assumptions C.jet_parallel_fe_mul_oracle.lv_acc_lo.
+About C.jet_parallel_fe_mul_oracle.lv_acc_hi.
+Print Assumptions C.jet_parallel_fe_mul_oracle.lv_acc_hi.
+About C.jet_parallel_fe_mul_oracle.mul_sem_ok.
+Print Assumptions C.jet_parallel_fe_mul_oracle.mul_sem_ok.
+About C.jet_parallel_fe_mul_oracle.acc_sem_ok.
+Print Assumptions C.jet_parallel_fe_mul_oracle.acc_sem_ok.
+About C.jet_parallel_fe_mul_oracle.add64_carry_value.
+Print Assumptions C.jet_parallel_fe_mul_oracle.add64_carry_value.
+About C.jet_parallel_fe_mul_oracle.lv_add64_lo.
+Print Assumptions C.jet_parallel_fe_mul_oracle.lv_add64_lo.
+About C.jet_parallel_fe_mul_oracle.lv_add64_hi.
+Print Assumptions C.jet_parallel_fe_mul_oracle.lv_add64_hi.
+About C.jet_parallel_fe_mul_oracle.add64_sem_ok.
+Print Assumptions C.jet_parallel_fe_mul_oracle.add64_sem_ok.
+About C.jet_parallel_fe_mul_oracle.orc_mul_ok.
+Print Assumptions C.jet_parallel_fe_mul_oracle.orc_mul_ok.
+About C.jet_parallel_fe_mul_oracle.orc_acc_ok.
+Print Assumptions C.jet_parallel_fe_mul_oracle.orc_acc_ok.
+About C.jet_parallel_fe_mul_oracle.orc_add64_ok.
+Print Assumptions C.jet_parallel_fe_mul_oracle.orc_add64_ok.
+About C.jet_parallel_fe_mul_run.fe_mul_table_ok.
+Print Assumptions C.jet_parallel_fe_mul_run.fe_mul_table_ok.
+About C.jet_parallel_fe_mul_run.fe_mul_run_eq.
+Print Assumptions C.jet_parallel_fe_mul_run.fe_mul_run_eq.
+About C.jet_parallel_fe_mul_run.fe_mul_log_eq.
+Print Assumptions C.jet_parallel_fe_mul_run.fe_mul_log_eq.
+About C.jet_parallel_fe_mul_run.fe_mul_out_eq.
+Print Assumptions C.jet_parallel_fe_mul_run.fe_mul_out_eq.
+About C.jet_parallel_fe_mul_run.fe_mul_return.
+Print Assumptions C.jet_parallel_fe_mul_run.fe_mul_return.
+About C.jet_parallel_fe_mul_run.eval_fe_mul_owned.
+Print Assumptions C.jet_parallel_fe_mul_run.eval_fe_mul_owned.
+About C.jet_parallel_fe_mul_shift.u128_shift_entry.
+Print Assumptions C.jet_parallel_fe_mul_shift.u128_shift_entry.
+About C.jet_parallel_fe_mul_shift.u128_shift52_actual_body.
+Print Assumptions C.jet_parallel_fe_mul_shift.u128_shift52_actual_body.
+About C.jet_parallel_fe_mul_shift.u128_shift52_branch_eq.
+Print Assumptions C.jet_parallel_fe_mul_shift.u128_shift52_branch_eq.
+About C.jet_parallel_fe_mul_shift.eval_u128_lo.
+Print Assumptions C.jet_parallel_fe_mul_shift.eval_u128_lo.
+About C.jet_parallel_fe_mul_shift.exec_u128_shift52_body.
+Print Assumptions C.jet_parallel_fe_mul_shift.exec_u128_shift52_body.
+About C.jet_parallel_fe_mul_shift.uns_shl12.
+Print Assumptions C.jet_parallel_fe_mul_shift.uns_shl12.
+About C.jet_parallel_fe_mul_shift.uns_shru.
+Print Assumptions C.jet_parallel_fe_mul_shift.uns_shru.
+About C.jet_parallel_fe_mul_shift.shift52_values.
+Print Assumptions C.jet_parallel_fe_mul_shift.shift52_values.
+About C.jet_parallel_fe_mul_shift.orc_shr_inv.
+Print Assumptions C.jet_parallel_fe_mul_shift.orc_shr_inv.
+About C.jet_parallel_fe_mul_shift.shr_tag_cases.
+Print Assumptions C.jet_parallel_fe_mul_shift.shr_tag_cases.
+About C.jet_parallel_fe_mul_shift.orc_shr_ok.
+Print Assumptions C.jet_parallel_fe_mul_shift.orc_shr_ok.
+About C.jet_parallel_fe_mul_sx.bop_beq_true.
+Print Assumptions C.jet_parallel_fe_mul_sx.bop_beq_true.
+About C.jet_parallel_fe_mul_sx.shop_beq_true.
+Print Assumptions C.jet_parallel_fe_mul_sx.shop_beq_true.
+About C.jet_parallel_fe_mul_sx.cmp_beq_true.
+Print Assumptions C.jet_parallel_fe_mul_sx.cmp_beq_true.
+About C.jet_parallel_fe_mul_sx.sg_beq_true.
+Print Assumptions C.jet_parallel_fe_mul_sx.sg_beq_true.
+About C.jet_parallel_fe_mul_sx.isz_beq_true.
+Print Assumptions C.jet_parallel_fe_mul_sx.isz_beq_true.
+About C.jet_parallel_fe_mul_sx.sx_beq_true.
+Print Assumptions C.jet_parallel_fe_mul_sx.sx_beq_true.
+About C.jet_parallel_fe_mul_sx.den_sx_subst.
+Print Assumptions C.jet_parallel_fe_mul_sx.den_sx_subst.
+About C.jet_parallel_fe_mul_sx.lv_sx_subst.
+Print Assumptions C.jet_parallel_fe_mul_sx.lv_sx_subst.
+About C.jet_parallel_fe_mul_sx.xreplace_shape.
+Print Assumptions C.jet_parallel_fe_mul_sx.xreplace_shape.
+About C.jet_parallel_fe_mul_sx.rep_replace.
+Print Assumptions C.jet_parallel_fe_mul_sx.rep_replace.
+About C.jet_parallel_fe_sqr_field.literal_fe_square_parametric.
+Print Assumptions C.jet_parallel_fe_sqr_field.literal_fe_square_parametric.
+About C.jet_parallel_fe_sqr_field.literal_fe_square_numeric.
+Print Assumptions C.jet_parallel_fe_sqr_field.literal_fe_square_numeric.
+About C.jet_parallel_fe_sqr_field.fsr_field.
+Print Assumptions C.jet_parallel_fe_sqr_field.fsr_field.
+About C.jet_parallel_fe_sqr_field.fe_sqr_initial_rep.
+Print Assumptions C.jet_parallel_fe_sqr_field.fe_sqr_initial_rep.
+About C.jet_parallel_fe_sqr_field.sqr_cell_in.
+Print Assumptions C.jet_parallel_fe_sqr_field.sqr_cell_in.
+About C.jet_parallel_fe_sqr_field.fe_sqr_out_field.
+Print Assumptions C.jet_parallel_fe_sqr_field.fe_sqr_out_field.
+About C.jet_parallel_fe_sqr_field.fs_solves_fsr.
+Print Assumptions C.jet_parallel_fe_sqr_field.fs_solves_fsr.
+About C.jet_parallel_fe_sqr_field.fe_sqr_out_bounds.
+Print Assumptions C.jet_parallel_fe_sqr_field.fe_sqr_out_bounds.
+About C.jet_parallel_fe_sqr_field.fe_sqr_out_value.
+Print Assumptions C.jet_parallel_fe_sqr_field.fe_sqr_out_value.
+About C.jet_parallel_fe_sqr_field.eval_fe_sqr_from_normalized_field.
+Print Assumptions C.jet_parallel_fe_sqr_field.eval_fe_sqr_from_normalized_field.
+About C.jet_parallel_fe_sqr_local.eval_sqr_write_after_read_field.
+Print Assumptions C.jet_parallel_fe_sqr_local.eval_sqr_write_after_read_field.
+About C.jet_parallel_fe_sqr_local.secp_fe_sqr_body.
+Print Assumptions C.jet_parallel_fe_sqr_local.secp_fe_sqr_body.
+About C.jet_parallel_fe_sqr_local.secp_sqr_helper_symbols.
+Print Assumptions C.jet_parallel_fe_sqr_local.secp_sqr_helper_symbols.
+About C.jet_parallel_fe_sqr_local.exec_secp_public_sqr.
+Print Assumptions C.jet_parallel_fe_sqr_local.exec_secp_public_sqr.
+About C.jet_parallel_fe_sqr_local.exec_secp_fe_sqr_rest_literal.
+Print Assumptions C.jet_parallel_fe_sqr_local.exec_secp_fe_sqr_rest_literal.
+About C.jet_parallel_fe_sqr_local.secp_fe_square_entry.
+Print Assumptions C.jet_parallel_fe_sqr_local.secp_fe_square_entry.
+About C.jet_parallel_fe_sqr_local.eval_secp_fe_square_literal.
+Print Assumptions C.jet_parallel_fe_sqr_local.eval_secp_fe_square_literal.
+About C.jet_parallel_fe_sqr_local.fe_square_literal_local_spec.
+Print Assumptions C.jet_parallel_fe_sqr_local.fe_square_literal_local_spec.
+About C.jet_parallel_fe_sqr_model.uns_mul2.
+Print Assumptions C.jet_parallel_fe_sqr_model.uns_mul2.
+About C.jet_parallel_fe_sqr_model.uns_shr48.
+Print Assumptions C.jet_parallel_fe_sqr_model.uns_shr48.
+About C.jet_parallel_fe_sqr_model.uns_u0s.
+Print Assumptions C.jet_parallel_fe_sqr_model.uns_u0s.
+About C.jet_parallel_fe_sqr_model.fs_ranges.
+Print Assumptions C.jet_parallel_fe_sqr_model.fs_ranges.
+About C.jet_parallel_fe_sqr_model.fs_solves.
+Print Assumptions C.jet_parallel_fe_sqr_model.fs_solves.
+About C.jet_parallel_fe_sqr_model.fs_sqr_values.
+Print Assumptions C.jet_parallel_fe_sqr_model.fs_sqr_values.
+About C.jet_parallel_fe_sqr_run.fe_sqr_table_ok.
+Print Assumptions C.jet_parallel_fe_sqr_run.fe_sqr_table_ok.
+About C.jet_parallel_fe_sqr_run.fe_sqr_run_eq.
+Print Assumptions C.jet_parallel_fe_sqr_run.fe_sqr_run_eq.
+About C.jet_parallel_fe_sqr_run.fe_sqr_log_eq.
+Print Assumptions C.jet_parallel_fe_sqr_run.fe_sqr_log_eq.
+About C.jet_parallel_fe_sqr_run.fe_sqr_out_eq.
+Print Assumptions C.jet_parallel_fe_sqr_run.fe_sqr_out_eq.
+About C.jet_parallel_fe_sqr_run.fe_sqr_return.
+Print Assumptions C.jet_parallel_fe_sqr_run.fe_sqr_return.
+About C.jet_parallel_fe_sqr_run.eval_fe_sqr_owned.
+Print Assumptions C.jet_parallel_fe_sqr_run.eval_fe_sqr_owned.

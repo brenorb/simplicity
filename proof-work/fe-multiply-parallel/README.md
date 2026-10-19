@@ -1,5 +1,10 @@
 # Parallel proof: `simplicity_fe_multiply` and `simplicity_fe_square`
 
+> **Archived alternative (2026-10-19).** See [ARCHIVE.md](ARCHIVE.md). The modules
+> named below as `Coq/C/jet_parallel_fe_*.v` are now `modules/*.v.source`. The
+> integration instructions at the end are superseded: the registered proofs for
+> these jets are the main ones.
+
 Branch `codex/fe-multiply-parallel`, started from `de1623ea` (`feat/jet-equivalence`).
 See [RESERVATION.md](RESERVATION.md) for the coordination check. Nothing here is
 registered; integration belongs to the main agent (instructions below).
