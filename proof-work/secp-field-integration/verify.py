@@ -93,20 +93,65 @@ def source_reviews(work):
     return rows, inputs
 
 
+def full_reports(work, modules, commands):
+    # Same complete queries/parser as the packet reporter, with a measured
+    # whole-closure deadline. The old 180-second per-packet deadline terminated
+    # after 329 of these 413 declarations, not after a proof failure.
+    results, definitions = [], []
+    for module, path in modules:
+        rs, ds = g.declarations(path.read_text(), module)
+        results += rs
+        definitions += ds
+    header = ['Require ' + ' '.join(m for m, _ in modules) + '.']
+    axioms = header[:]
+    contracts = header + ['Set Printing All.', 'Set Printing Width 120.', 'Set Printing Depth 1000000.']
+    for n in results:
+        axioms += ['Goal True. idtac "JET_ASSUMPTIONS ' + n + '". exact I. Qed.', 'Print Assumptions ' + n + '.']
+    for kind, names in [('TYPE', results), ('DEF', definitions)]:
+        for n in names:
+            contracts += ['Goal True. idtac "TAP_' + kind + ' ' + n + '". exact I. Qed.',
+                ('Check @' if kind == 'TYPE' else 'Print ') + n + '.']
+    for stem, query in [('integration-assumptions', axioms), ('integration-contracts', contracts)]:
+        path = work / (stem.replace('-', '_') + '.v')
+        s.changed({path: '\n'.join(query) + '\n'})
+        commands[stem] = s.run(work, ['bash', 'build-jets.sh', '--coqc', '-q', str(path)], stem, 600)
+    deps = s.reports.assumptions((work / 'integration-assumptions.log').read_text())
+    if set(deps) != set(results) or any(not ds <= s.SIX for ds in deps.values()):
+        raise ValueError('missing declaration or unreviewed assumption in full report')
+    text = (work / 'integration-contracts.log').read_text()
+    if ('...' in text or re.search(r'\?[A-Za-z]', text) or
+            re.findall(r'(?m)^TAP_(TYPE|DEF) (\S+)$', text) !=
+            [('TYPE', n) for n in results] + [('DEF', n) for n in definitions]):
+        raise ValueError('incomplete full theorem types/definitions')
+    return results, definitions, deps
+
+
 def reports():
     work, r, b = built()
+    launch = HERE / 'REPORT-LAUNCH.json'
     if (HERE / 'REPORT-LAUNCH.json').exists():
-        raise ValueError('report phase already launched; poll original handle')
+        failure = json.loads((HERE / 'REPORT-TIMEOUT.json').read_text())
+        old_verifier = subprocess.check_output(['git', 'show',
+            failure['failed_verifier_commit'] + ':proof-work/secp-field-integration/verify.py'], cwd=a.REPO)
+        if (not failure['terminal'] or failure['complete'] or failure['deadline_seconds'] != 180 or
+                failure['launch_sha256'] != s.sha(launch.read_bytes()) or
+                failure['failed_verifier_sha256'] != s.sha(old_verifier) or
+                failure['failed_log_sha256'] != s.sha((HERE / 'report-timeout-assumptions.log').read_bytes())):
+            raise ValueError('old report is not a recorded terminal timeout')
+        launch = HERE / 'REPORT-RETRY-LAUNCH.json'
+        if launch.exists():
+            raise ValueError('bounded report retry already launched; poll original handle')
     expected, inherited = inherited_profiles(r['module_renaming'])
     modules = [(new, work / 'Coq' / (new.replace('.', '/') + '.v'))
         for new in r['module_renaming'].values()]
     declarations = {n for module, path in modules for n in g.declarations(path.read_text(), module)[0]}
     if set(expected) != declarations or len(declarations) != 413:
         raise ValueError('missing inherited exact assumption profiles')
-    s.changed({HERE / 'REPORT-LAUNCH.json': json.dumps(dict(candidate=str(work), complete=False,
-        built_sha256=s.sha((HERE / 'BUILT.json').read_bytes())), indent=2) + '\n'})
+    s.changed({launch: json.dumps(dict(candidate=str(work), complete=False, deadline_seconds=600,
+        built_sha256=s.sha((HERE / 'BUILT.json').read_bytes()),
+        verifier_sha256=s.sha(Path(__file__).read_bytes())), indent=2) + '\n'})
     commands = {}
-    results, definitions, dependencies = g.reports(work, modules, 'integration', commands)
+    results, definitions, dependencies = full_reports(work, modules, commands)
     if dependencies != expected:
         raise ValueError('regular-name theorem assumptions differ from checked originals')
     root = r['root'] + '.fe_multiply_literal_local_spec'
