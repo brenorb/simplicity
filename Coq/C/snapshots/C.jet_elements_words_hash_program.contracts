@@ -1,0 +1,495 @@
+### C.jet_elements_words_hash_program.elements_hash_prim
+@elements_hash_prim
+     : forall (A B : Ty.Ty) (p : jet_elements_prim.Elements.t A B) (a : Ty.tySem A)
+         (e : jet_elements_prim.Elements.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (@EFP.Combinators.prim A B (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) p a e)
+         (@jet_elements_prim.Elements.sem A B p a e)
+### C.jet_elements_words_hash_program.elements_prim_words_hash_spec_parametric
+elements_prim_words_hash_spec_parametric
+     : forall (k w : nat)
+         (p : jet_elements_prim.Elements.t (Word.Word w) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))),
+       @EFP.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@elements_prim_words_hash_spec k w p)
+### C.jet_elements_words_hash_program.elements_prim_words_hash_spec_sem
+elements_prim_words_hash_spec_sem
+     : forall (k w : nat)
+         (p : jet_elements_prim.Elements.t (Word.Word w) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (xs_of : forall _ : jet_elements_prim.Elements.env, list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (_ : forall (i : Ty.tySem (Word.Word w)) (e : jet_elements_prim.Elements.env),
+              @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))))
+                (@jet_elements_prim.Elements.sem (Word.Word w)
+                   (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) p i e)
+                (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   match
+                     @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) (xs_of e)
+                       (BinInt.Z.to_nat (jet_forWhile_seq.wz w i))
+                     return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   with
+                   | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) x
+                   | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) tt
+                   end))
+         (_ : BinInt.Z.lt
+                (BinInt.Z.div
+                   (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) k)) (jet_forWhile_seq.wsize w))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                jet_sha_ctx8_spec.ctx8_limit) (e : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@elements_prim_words_hash_spec k w p (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt e)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.from_hash256 (elements_words_hash_of k w (xs_of e))))
+### C.jet_elements_words_hash_program.elements_tx_words_hash_jet
+elements_tx_words_hash_jet
+     : forall (k w : nat)
+         (p : jet_elements_prim.Elements.t (Word.Word w) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (xs_of : forall _ : jet_elements_prim.Elements.env,
+                  list
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end) (Word.Vector (Word.Word (S (S (S O)))) k))) (f : Clight.function)
+         (field : AST.ident) (hdelta : BinNums.Z)
+         (_ : forall (i : Ty.tySem (Word.Word w)) (e : jet_elements_prim.Elements.env),
+              @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))))
+                (@jet_elements_prim.Elements.sem (Word.Word w)
+                   (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) p i e)
+                (@Some
+                   (sum unit
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end) (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   match
+                     @List.nth_error
+                       ((fix tySem (X : Ty.Ty) : Set :=
+                           match X return Set with
+                           | Ty.Unit => unit
+                           | Ty.Sum A B => sum (tySem A) (tySem B)
+                           | Ty.Prod A B => prod (tySem A) (tySem B)
+                           end) (Word.Vector (Word.Word (S (S (S O)))) k)) (xs_of e)
+                       (BinInt.Z.to_nat (jet_forWhile_seq.wz w i))
+                     return
+                       (sum unit
+                          ((fix tySem (X : Ty.Ty) : Set :=
+                              match X return Set with
+                              | Ty.Unit => unit
+                              | Ty.Sum A B => sum (tySem A) (tySem B)
+                              | Ty.Prod A B => prod (tySem A) (tySem B)
+                              end) (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   with
+                   | Some x =>
+                       @inr unit
+                         ((fix tySem (X : Ty.Ty) : Set :=
+                             match X return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A B => sum (tySem A) (tySem B)
+                             | Ty.Prod A B => prod (tySem A) (tySem B)
+                             end) (Word.Vector (Word.Word (S (S (S O)))) k)) x
+                   | None =>
+                       @inl unit
+                         ((fix tySem (X : Ty.Ty) : Set :=
+                             match X return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A B => sum (tySem A) (tySem B)
+                             | Ty.Prod A B => prod (tySem A) (tySem B)
+                             end) (Word.Vector (Word.Word (S (S (S O)))) k)) tt
+                   end))
+         (_ : BinInt.Z.lt
+                (BinInt.Z.div
+                   (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) k)) (jet_forWhile_seq.wsize w))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                jet_sha_ctx8_spec.ctx8_limit)
+         (_ : jet_elements_wrapper.elements_wrapper_shape f
+                (jet_elements_wrapper.elements_simple_rest
+                   (jet_elements_hash_getters.elements_hash_mid_writeHash jets_elements._tx
+                      jets_elements._elementsTransaction field)))
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction field hdelta)
+         (_ : and (BinInt.Z.le BinNums.Z0 hdelta)
+                (BinInt.Z.le
+                   (BinInt.Z.add hdelta
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))),
+       jet_application_sep.application_jet_local_spec_sep f jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            (fun e : jet_elements_prim.Elements.env => elements_words_hash_of k w (xs_of e)) BinNums.Z0 hdelta
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_prim_words_hash_spec k w p (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_words_hash_program.elements_hash_words_bound_32
+elements_hash_words_bound_32
+     : BinInt.Z.lt
+         (BinInt.Z.div
+            (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) (S (S (S (S (S O)))))))
+               (jet_forWhile_seq.wsize (S (S (S (S (S O)))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         jet_sha_ctx8_spec.ctx8_limit
+### C.jet_elements_words_hash_program.elements_hash_words_bound_4
+elements_hash_words_bound_4
+     : BinInt.Z.lt
+         (BinInt.Z.div
+            (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) (S (S O))))
+               (jet_forWhile_seq.wsize (S (S (S (S (S O)))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         jet_sha_ctx8_spec.ctx8_limit
+### C.jet_elements_words_hash_program.elements_hash_words_bound_path
+elements_hash_words_bound_path
+     : BinInt.Z.lt
+         (BinInt.Z.div
+            (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) (S (S (S (S (S O)))))))
+               (jet_forWhile_seq.wsize (S (S (S O)))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         jet_sha_ctx8_spec.ctx8_limit
+### C.jet_elements_words_hash_program.elements_output_scripts_words_sem
+elements_output_scripts_words_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_elements_prim.Elements.OutputScriptHash
+            i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (elements_output_scripts_words e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_elements_words_hash_program.elements_output_scripts_hash_program_local_spec
+elements_output_scripts_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_output_scripts_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            (fun e : jet_elements_prim.Elements.env =>
+             elements_words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (elements_output_scripts_words e))
+            BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            jet_elements_prim.Elements.OutputScriptHash (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_words_hash_program.elements_output_range_proofs_words_sem
+elements_output_range_proofs_words_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_elements_prim.Elements.OutputRangeProof
+            i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (elements_output_range_proofs_words e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_elements_words_hash_program.elements_output_range_proofs_hash_program_local_spec
+elements_output_range_proofs_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_output_range_proofs_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            (fun e : jet_elements_prim.Elements.env =>
+             elements_words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (elements_output_range_proofs_words e))
+            BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            jet_elements_prim.Elements.OutputRangeProof (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_words_hash_program.elements_output_surjection_proofs_words_sem
+elements_output_surjection_proofs_words_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            jet_elements_prim.Elements.OutputSurjectionProof i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (elements_output_surjection_proofs_words e)
+                (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_elements_words_hash_program.elements_output_surjection_proofs_hash_program_local_spec
+elements_output_surjection_proofs_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_output_surjection_proofs_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            (fun e : jet_elements_prim.Elements.env =>
+             elements_words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+               (elements_output_surjection_proofs_words e)) BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            jet_elements_prim.Elements.OutputSurjectionProof (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_words_hash_program.elements_input_scripts_words_sem
+elements_input_scripts_words_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_elements_prim.Elements.InputScriptHash i
+            e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (elements_input_scripts_words e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_elements_words_hash_program.elements_input_scripts_hash_program_local_spec
+elements_input_scripts_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_input_scripts_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            (fun e : jet_elements_prim.Elements.env =>
+             elements_words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (elements_input_scripts_words e))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            jet_elements_prim.Elements.InputScriptHash (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_words_hash_program.elements_input_sequences_words_sem
+elements_input_sequences_words_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))))
+         (@jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) jet_elements_prim.Elements.InputSequence i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O)))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O))))
+                (elements_input_sequences_words e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O)))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O)))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O)))) tt
+            end)
+### C.jet_elements_words_hash_program.elements_input_sequences_hash_program_local_spec
+elements_input_sequences_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_input_sequences_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            (fun e : jet_elements_prim.Elements.env =>
+             elements_words_hash_of (S (S O)) (S (S (S (S (S O))))) (elements_input_sequences_words e)) BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_prim_words_hash_spec (S (S O)) (S (S (S (S (S O))))) jet_elements_prim.Elements.InputSequence
+            (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_words_hash_program.elements_input_script_sigs_words_sem
+elements_input_script_sigs_words_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            jet_elements_prim.Elements.InputScriptSigHash i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (elements_input_script_sigs_words e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_elements_words_hash_program.elements_input_script_sigs_hash_program_local_spec
+elements_input_script_sigs_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_input_script_sigs_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            (fun e : jet_elements_prim.Elements.env =>
+             elements_words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (elements_input_script_sigs_words e))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            jet_elements_prim.Elements.InputScriptSigHash (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_words_hash_program.elements_tappath_words_sem
+elements_tappath_words_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S O))))) (e : jet_elements_prim.Elements.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_prim.Elements.sem (Word.Word (S (S (S O))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_elements_prim.Elements.Tappath i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (elements_tappath_words e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S O))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_elements_words_hash_program.elements_tappath_hash_program_local_spec
+elements_tappath_hash_program_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_tappath_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.env
+            (fun e : jet_elements_prim.Elements.env =>
+             elements_words_hash_of (S (S (S (S (S O))))) (S (S (S O))) (elements_tappath_words e))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @elements_prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S O))) jet_elements_prim.Elements.Tappath
+            (EFP.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_words_hash_program.elements_prim_words_hash_spec
+elements_prim_words_hash_spec =
+fun (k w : nat)
+  (p : jet_elements_prim.Elements.t (Word.Word w) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+  (alg : EFP.Algebra) =>
+let term : Alg.Assertion.Algebra := EFP.CanonicalStructures.toAssertion alg in
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_sha_hash_words.hash_words_spec k w term Ty.Unit
+  (@jet_buffer_empty_spec.AC.drop Ty.Unit (Word.Word w) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) core
+     (@EFP.Combinators.prim (Word.Word w) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) alg p))
+     : forall (k w : nat)
+         (_ : jet_elements_prim.Elements.t (Word.Word w) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (alg : EFP.Algebra), EFP.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments elements_prim_words_hash_spec (k w)%nat_scope p {alg}
+### C.jet_elements_words_hash_program.elements_words_hash_of
+elements_words_hash_of =
+fun (k w : nat) (xs : list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k))) =>
+jet_sha_hash_words.hash_words_of k
+  (@List.firstn (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) (BinInt.Z.to_nat (jet_forWhile_seq.wsize w)) xs)
+     : forall (k _ : nat) (_ : list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k))), Digest.hash256
+
+Arguments elements_words_hash_of (k w)%nat_scope xs%list_scope
+### C.jet_elements_words_hash_program.elements_output_scripts_words
+elements_output_scripts_words =
+fun e : jet_elements_prim.Elements.env =>
+@List.map jet_elements_prim.txOutput (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (fun o : jet_elements_prim.txOutput => Word.from_hash256 (Digest.byteStringHash (jet_elements_prim.txoScript o)))
+  (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+     : forall _ : jet_elements_prim.Elements.env,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments elements_output_scripts_words e
+### C.jet_elements_words_hash_program.elements_output_range_proofs_words
+elements_output_range_proofs_words =
+fun e : jet_elements_prim.Elements.env =>
+@List.map jet_elements_prim.txOutput (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (fun o : jet_elements_prim.txOutput =>
+   Word.from_hash256
+     (Digest.byteStringHash (@jet_elements_prim.viewPrf Integers.Int64.int (jet_elements_prim.txoAmount o))))
+  (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+     : forall _ : jet_elements_prim.Elements.env,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments elements_output_range_proofs_words e
+### C.jet_elements_words_hash_program.elements_output_surjection_proofs_words
+elements_output_surjection_proofs_words =
+fun e : jet_elements_prim.Elements.env =>
+@List.map jet_elements_prim.txOutput (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (fun o : jet_elements_prim.txOutput =>
+   Word.from_hash256 (Digest.byteStringHash (@jet_elements_prim.viewPrf Digest.hash256 (jet_elements_prim.txoAsset o))))
+  (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+     : forall _ : jet_elements_prim.Elements.env,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments elements_output_surjection_proofs_words e
+### C.jet_elements_words_hash_program.elements_input_scripts_words
+elements_input_scripts_words =
+fun e : jet_elements_prim.Elements.env =>
+@List.map jet_elements_prim.sigTxInput (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (fun i : jet_elements_prim.sigTxInput =>
+   Word.from_hash256 (Digest.byteStringHash (jet_elements_prim.utxoScript (jet_elements_prim.sigTxiTxo i))))
+  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+     : forall _ : jet_elements_prim.Elements.env,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments elements_input_scripts_words e
+### C.jet_elements_words_hash_program.elements_input_sequences_words
+elements_input_sequences_words =
+fun e : jet_elements_prim.Elements.env =>
+@List.map jet_elements_prim.sigTxInput (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+  (fun i : jet_elements_prim.sigTxInput =>
+   @Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+     (Integers.Int.unsigned (jet_elements_prim.sigTxiSequence i)))
+  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+     : forall _ : jet_elements_prim.Elements.env, list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O))))
+
+Arguments elements_input_sequences_words e
+### C.jet_elements_words_hash_program.elements_input_script_sigs_words
+elements_input_script_sigs_words =
+fun e : jet_elements_prim.Elements.env =>
+@List.map jet_elements_prim.sigTxInput (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (fun i : jet_elements_prim.sigTxInput =>
+   Word.from_hash256 (Digest.byteStringHash (jet_elements_prim.sigTxiScriptSig i)))
+  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+     : forall _ : jet_elements_prim.Elements.env,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments elements_input_script_sigs_words e
+### C.jet_elements_words_hash_program.elements_tappath_words
+elements_tappath_words =
+fun e : jet_elements_prim.Elements.env =>
+@List.map Digest.hash256 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Word.from_hash256
+  (jet_elements_prim.tappath (jet_elements_prim.Elements.envTap e))
+     : forall _ : jet_elements_prim.Elements.env,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments elements_tappath_words e

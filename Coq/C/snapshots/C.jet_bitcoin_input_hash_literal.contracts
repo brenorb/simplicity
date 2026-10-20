@@ -1,0 +1,189 @@
+### C.jet_bitcoin_input_hash_literal.literal_bitcoin_assert_iden_matches
+literal_bitcoin_assert_iden_matches
+     : forall (B : Ty.Ty) (term : Alg.Assertion.Algebra),
+       @eq (Alg.Assertion.domain term (Ty.Sum Ty.Unit B) B) (@literal_bitcoin_assert_iden B term)
+         (@jet_bitcoin_vh_hash_spec.assert_iden_spec B term)
+### C.jet_bitcoin_input_hash_literal.literal_bitcoin_input_hash_matches
+literal_bitcoin_input_hash_matches
+     : forall alg : jet_bitcoin_full_prim.PF.Algebra,
+       @eq
+         (jet_bitcoin_full_prim.PF.domain alg (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (@literal_bitcoin_input_hash alg)
+         (@jet_bitcoin_input_hash_spec.input_hash_spec alg)
+### C.jet_bitcoin_input_hash_literal.literal_bitcoin_input_hash_parametric
+literal_bitcoin_input_hash_parametric
+     : @jet_bitcoin_full_prim.PF.Parametric (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@literal_bitcoin_input_hash)
+### C.jet_bitcoin_input_hash_literal.bitcoin_input_hash_literal_local_spec
+bitcoin_input_hash_literal_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_application_sep.application_jet_local_spec_sep jets_sha.f_simplicity_bitcoin_input_hash
+         jet_sha_linkage.sha_ge jet_bitcoin_ext_prim.ext_environment (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_bitcoin_input_hash_jet.input_hash_rep
+         (fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @literal_bitcoin_input_hash
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_input_hash_literal.bitcoin_input_hash_raw_literal_local_spec
+bitcoin_input_hash_raw_literal_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_application_sep.application_jet_local_spec_sep jets_sha.f_simplicity_bitcoin_input_hash
+         jet_sha_linkage.sha_ge jet_bitcoin_raw_env.raw_bitcoin_environment (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_bitcoin_raw_jets.raw_env_rep jet_bitcoin_input_hash_jet.input_hash_rep)
+         (fun (a : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+            (environment : jet_bitcoin_raw_env.raw_bitcoin_environment) =>
+          @literal_bitcoin_input_hash jet_bitcoin_raw_program.raw_fullalg a environment)
+### C.jet_bitcoin_input_hash_literal.literal_bitcoin_assert_iden
+literal_bitcoin_assert_iden =
+fun (B : Ty.Ty) (term : Alg.Assertion.Algebra) =>
+@Alg.Core.Combinators.comp (Ty.Sum Ty.Unit B) (Ty.Prod (Ty.Sum Ty.Unit B) Ty.Unit) B (Alg.Assertion.toCore term)
+  (@Alg.Core.Combinators.pair (Ty.Sum Ty.Unit B) (Ty.Sum Ty.Unit B) Ty.Unit (Alg.Assertion.toCore term)
+     (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit B) (Alg.Assertion.toCore term))
+     (@Alg.Core.Combinators.unit (Ty.Sum Ty.Unit B) (Alg.Assertion.toCore term)))
+  (@Alg.Assertion.Combinators.assertr Ty.Unit B Ty.Unit B term jet_assertion_spec.assertion_cmr_fail0
+     (@Alg.Core.Combinators.take B Ty.Unit B (Alg.Assertion.toCore term)
+        (@Alg.Core.Combinators.iden B (Alg.Assertion.toCore term))))
+     : forall (B : Ty.Ty) (term : Alg.Assertion.Algebra), Alg.Assertion.domain term (Ty.Sum Ty.Unit B) B
+
+Arguments literal_bitcoin_assert_iden B%ty_scope {term}
+### C.jet_bitcoin_input_hash_literal.literal_bitcoin_input_hash
+literal_bitcoin_input_hash =
+fun alg : jet_bitcoin_full_prim.PF.Algebra =>
+let term : Alg.Assertion.Algebra := jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion alg in
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@AC.comp (Word.Word (S (S (S (S (S O))))))
+  (Ty.Prod (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+     (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+  (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+  (@AC.pair (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+     (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))) core
+     (@jet_bitcoin_full_prim.PF.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))) alg
+        (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+           (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+           Bitcoin.Bitcoin.InputPrevOutpoint))
+     (@AC.pair (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) core
+        (@jet_bitcoin_full_prim.PF.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+           (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) alg
+           (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+              (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) Bitcoin.Bitcoin.InputSequence))
+        (@jet_bitcoin_full_prim.PF.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+           (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) alg
+           (@jet_bitcoin_full_prim.BitcoinFull.Ext (Word.Word (S (S (S (S (S O))))))
+              (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+              jet_bitcoin_ext_prim.BitcoinExt.InputAnnexHash))))
+  (@AC.case Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+     (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+     (@AC.injl
+        (Ty.Prod Ty.Unit
+           (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+              (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))) Ty.Unit
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+        (@AC.unit
+           (Ty.Prod Ty.Unit
+              (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                 (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))) core))
+     (@AC.injr
+        (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+           (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+              (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))) Ty.Unit
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+        (@AC.comp
+           (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+              (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                 (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+           (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+              (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+           (@AC.pair
+              (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                 (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                    (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+              jet_sha256_ctx8_init_spec.sha256_ctx8_type (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              core
+              (@AC.comp
+                 (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                    (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                       (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+                 (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S O)))))))
+                 jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+                 (@AC.pair
+                    (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                       (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                          (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+                    jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S O)))))) core
+                    (@AC.comp
+                       (Ty.Prod
+                          (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                          (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                             (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+                       (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                          (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+                       jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+                       (@AC.pair
+                          (Ty.Prod
+                             (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                             (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                                (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+                          jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                          (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                          core
+                          (@AC.comp
+                             (Ty.Prod
+                                (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                                   (Word.Word (S (S (S (S (S O)))))))
+                                (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                                   (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S ...))))))))))))
+                             Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+                             (@AC.unit
+                                (Ty.Prod
+                                   (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                                      (Word.Word (S (S (S (S (S O)))))))
+                                   (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                                      (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S ...))))))))))) core)
+                             (@jet_sha_hash_words_literal.literal_sha_hash_ctx_init core))
+                          (@AC.take
+                             (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                             (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                                (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                             (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                             core
+                             (@AC.iden
+                                (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                                   (Word.Word (S (S (S (S (S O))))))) core)))
+                       (@jet_bitcoin_ctx_hash_literal.literal_bitcoin_outpoint_hash term))
+                    (@AC.drop (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                       (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                          (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                       (Word.Word (S (S (S (S (S O)))))) core
+                       (@AC.take (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                          (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                          (Word.Word (S (S (S (S (S O)))))) core
+                          (@literal_bitcoin_assert_iden (Word.Word (S (S (S (S (S O)))))) term))))
+                 (@jet_sha_ctx8_literal.literal_ctx8_addn (S (S O)) term))
+              (@AC.drop (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+                 (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                    (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                 (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+                 (@AC.drop (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+                    (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                    (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+                    (@literal_bitcoin_assert_iden (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term))))
+           (@AC.comp
+              (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                 (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+              jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+              (@jet_bitcoin_ctx_hash_literal.literal_bitcoin_annex_hash term)
+              (@jet_sha_finalize_literal.literal_ctx8_finalize term)))))
+     : forall alg : jet_bitcoin_full_prim.PF.Algebra,
+       jet_bitcoin_full_prim.PF.domain alg (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments literal_bitcoin_input_hash {alg}

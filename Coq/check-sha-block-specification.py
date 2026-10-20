@@ -1301,6 +1301,184 @@ def bitcoin_input_hashes(s):
             end)''', 'raw nested annex absence')
 
 
+def bitcoin_single_input_hash(s):
+    """Canonical optional single-input tree and both complete computing C contracts.
+    The C memory relation still includes SHA readiness; memcpy stays explicit.
+    """
+    def replace(text, old, new):
+        return re.sub(r'\s*'.join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('single-input binding differs: ' + lhs)
+
+    p.require(s['bitcoin_catalog'], 'InputHash :: SigHashJet Word32 (S Word256)', 'single-input catalog type')
+    binding('bitcoin_catalog', 'specificationSigHash InputHash', 'SigHash.inputHash')
+    binding('sighash_lib', 'inputHash', 'SigHash.inputHash SigHash.lib')
+    binding('sighash', 'ctx8Add4', 'ctx8Addn vector4')
+    assertion = p.definition(s['single_input_port'], 'literal_bitcoin_assert_iden')
+    assertion = replace(assertion,
+        '@Alg.Assertion.Combinators.assertr Ty.Unit B Ty.Unit B term assertion_cmr_fail0', 'assertr cmrFail0')
+    same(hbody(s['hs_bit'], 'assert t').replace('t &&&', 'iden &&&'), assertion, 'single-input assertions')
+    hs = s['sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    selected = re.search(r'\binputHash\s*=(.*?)\n\s*[,}]', hs, re.S)
+    if not selected:
+        raise ValueError('missing canonical single-input program')
+    hs = selected[1]
+    for old, new in [
+        ('primitive InputPrevOutpoint', 'outpointPrim'), ('primitive InputSequence', 'seqPrim'),
+        ('primitive InputAnnexHash', 'annexPrim'),
+        ('(drop . take . assert $ iden)', 'drop (take assertSeq)'),
+        ('(drop . drop . assert $ iden)', 'drop (drop assertAnnex)'),
+    ]:
+        hs = replace(hs, old, new)
+    port = p.definition(s['single_input_port'], 'literal_bitcoin_input_hash')
+    prefix = 'let term := PF.CanonicalStructures.toAssertion alg in'
+    prefix2 = 'let core := Alg.Assertion.toCore term in'
+    if not port.lstrip().startswith(prefix):
+        raise ValueError('single-input primitive algebra differs')
+    port = port.lstrip()[len(prefix):].lstrip()
+    if not port.startswith(prefix2):
+        raise ValueError('single-input Core algebra differs')
+    port = port[len(prefix2):]
+    aliases = [
+        ('@PF.Combinators.prim _ _ alg (BitcoinFull.Base Bitcoin.InputPrevOutpoint)', 'outpointPrim'),
+        ('@PF.Combinators.prim _ _ alg (BitcoinFull.Base Bitcoin.InputSequence)', 'seqPrim'),
+        ('@PF.Combinators.prim _ _ alg (BitcoinFull.Ext BitcoinExt.InputAnnexHash)', 'annexPrim'),
+        ('@literal_sha_hash_ctx_init core', 'ctx8Init'),
+        ('@literal_bitcoin_outpoint_hash term', 'outpointHash'),
+        ('@literal_bitcoin_annex_hash term', 'annexHash'),
+        ('@literal_bitcoin_assert_iden (Word 5) term', 'assertSeq'),
+        ('@literal_bitcoin_assert_iden (Ty.Sum Ty.Unit (Word 8)) term', 'assertAnnex'),
+        ('@literal_ctx8_addn 2 term', 'ctx8Add4'), ('@literal_ctx8_finalize term', 'ctx8Finalize'),
+        ('@AC.comp _ _ _ core', 'compNode'), ('@AC.pair _ _ _ core', 'pairNode'),
+        ('@AC.case _ _ _ _ core', 'caseNode'), ('@AC.injl _ _ _ core', 'injlNode'),
+        ('@AC.injr _ _ _ core', 'injrNode'), ('@AC.take _ _ _ core', 'takeNode'),
+        ('@AC.drop _ _ _ core', 'dropNode'), ('@AC.unit _ core', 'unit'), ('@AC.iden _ core', 'iden'),
+    ]
+    atoms = {new for _, new in aliases if not new.endswith('Node')}
+    for old, new in aliases:
+        port = replace(port, old, new)
+
+    def explicit_tree(node):
+        if node == ('iden',) or (node[0] == 'name' and node[1] in atoms):
+            return node
+        if node[0] == 'app' and node[1][0] == 'name':
+            op = node[1][1]
+            if op in {'takeNode', 'dropNode'}:
+                return ('take' if op == 'takeNode' else 'drop', explicit_tree(node[2]))
+            if op in {'injlNode', 'injrNode'}:
+                return ('app', ('name', op[:-4]), explicit_tree(node[2]))
+        if node[0] == 'app' and node[1][0] == 'app' and node[1][1][0] == 'name':
+            op = node[1][1][1]
+            left, right = explicit_tree(node[1][2]), explicit_tree(node[2])
+            if op in {'compNode', 'pairNode'}:
+                return ('comp' if op == 'compNode' else 'pair', left, right)
+            if op == 'caseNode':
+                return ('app', ('app', ('name', 'case'), left), right)
+        raise ValueError('unsupported explicit single-input hash tree')
+
+    if expression(hs) != explicit_tree(expression(port)):
+        raise ValueError('canonical single-input hash Core tree differs')
+    for suffix, env, rep, alg in [
+        ('literal_local', 'ext_environment', 'input_hash_rep', 'fullalg'),
+        ('raw_literal_local', 'raw_bitcoin_environment', '(raw_env_rep input_hash_rep)', 'raw_fullalg'),
+    ]:
+        statement = re.search(r'Theorem bitcoin_input_hash_' + suffix + r'_spec\s*:(.*?)\bProof\.', s['single_input_port'], re.S)
+        expected = f'''memcpy_model ->
+          application_jet_local_spec_sep f_simplicity_bitcoin_input_hash sha_ge {env}
+            (Word 5) (Ty.Sum Ty.Unit (Word 8)) {rep}
+            (fun a environment => @literal_bitcoin_input_hash {alg} a environment).'''
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('single-input whole C contract differs')
+
+
+def elements_array_hashes(s):
+    """Seven raw-data primitive streams; shared SHA trees have existing gates.
+    Complete getter contracts retain caller cache/frame representations.
+    """
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError('Elements array binding differs: ' + lhs)
+
+    def definition(name, expected):
+        if p.compact(p.definition(s['elements_array_port'], name)) != p.compact(expected):
+            raise ValueError('Elements array program differs: ' + name)
+
+    p.require(s['elements_catalog'], 'import qualified Simplicity.Elements.Programs.SigHash.Lib as SigHash', 'Elements SigHash catalog import')
+    p.require(s['elements_sighash_lib'], 'import qualified Simplicity.Elements.Programs.SigHash as SigHash', 'Elements SigHash wrapper import')
+    p.require(s['elements_sighash'], 'import qualified Simplicity.Programs.Sha256 as Sha256', 'shared SHA library')
+    binding('elements_sighash', 'lib', 'mkLib Sha256.lib Sha256.libAssert Transaction.lib')
+    for lhs, expected in [
+        ('hashWord256s w array', 'iden &&& (unit >>> ctx8Init) >>> hashLoop256 w array >>> ctx8Finalize'),
+        ('hashWord256s32', 'hashWord256s word32'), ('hashWord256s8', 'hashWord256s word8'),
+        ('hashLoop256', 'Sha256.hashLoop vector32'),
+        ('hashWord32s array', 'iden &&& (unit >>> ctx8Init) >>> Sha256.hashLoop vector4 word32 array >>> ctx8Finalize'),
+    ]:
+        binding('elements_sighash', lhs, expected)
+    definition('literal_elements_array_hash', '''
+      let term := EFP.CanonicalStructures.toAssertion alg in
+      @literal_sha_hash_words k w term Ty.Unit
+        (@AC.drop Ty.Unit (Word w) (Ty.Sum Ty.Unit (Vector (Word 3) k))
+          (Alg.Assertion.toCore term) (@EFP.Combinators.prim _ _ alg p))''')
+    body = s['elements_sighash'].split('mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib', 1)[1]
+    cases = [
+        ('OutputScriptsHash', 'outputScriptsHash', 'output_scripts', 'OutputScriptHash', 5, 5, 0, 88, 760),
+        ('OutputRangeProofsHash', 'outputRangeProofsHash', 'output_range_proofs', 'OutputRangeProof', 5, 5, 0, 120, 760),
+        ('OutputSurjectionProofsHash', 'outputSurjectionProofsHash', 'output_surjection_proofs', 'OutputSurjectionProof', 5, 5, 0, 152, 760),
+        ('InputScriptsHash', 'inputScriptsHash', 'input_scripts', 'InputScriptHash', 5, 5, 0, 280, 760),
+        ('InputSequencesHash', 'inputSequencesHash', 'input_sequences', 'InputSequence', 2, 5, 0, 344, 760),
+        ('InputScriptSigsHash', 'inputScriptSigsHash', 'input_script_sigs', 'InputScriptSigHash', 5, 5, 0, 408, 760),
+        ('TappathHash', 'tappathHash', 'tappath', 'Tappath', 5, 3, 8, 40, 176),
+    ]
+    for tag, hs_name, stem, primitive, k, w, ptr, offset, size in cases:
+        p.require(s['elements_catalog'], f'{tag} :: SigHashJet () Word256', 'Elements array catalog type')
+        binding('elements_catalog', 'specificationSigHash ' + tag, 'SigHash.' + hs_name)
+        binding('elements_sighash_lib', hs_name, 'SigHash.' + hs_name + ' SigHash.lib')
+        selected = re.search(r'\b' + hs_name + r'\s*=(.*?)\n\s*[,}]', body, re.S)
+        helper = 'hashWord32s' if k == 2 else ('hashWord256s8' if w == 3 else 'hashWord256s32')
+        if not selected:
+            raise ValueError('missing Elements array hash program')
+        same(selected[1], f'{helper} (drop (primitive {primitive}))', 'Elements array routing')
+        program = 'literal_elements_' + stem + '_hash'
+        definition(program, f'@literal_elements_array_hash {k} {w} Elements.{primitive} alg')
+        statement = re.search(r'Theorem elements_' + stem + r'_hash_literal_local_spec\s*:(.*?)\bProof\.', s['elements_array_port'], re.S)
+        expected = f'''application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256
+          (hash_getter_rep (fun e => elements_words_hash_of {k} {w} (elements_{stem}_words e)) {ptr} {offset} {size})
+          (fun a environment => @{program} elements_hash_alg a environment).'''
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError('Elements array complete C contract differs')
+    for lhs, rhs in {
+        'lookupInput': '(sigTxIn tx !?) . fromIntegral',
+        'lookupOutput': '(sigTxOut tx !?) . fromIntegral',
+        'atInput f': 'cast . fmap f . lookupInput . fromInteger . fromWord32',
+        'atOutput f': 'cast . fmap f . lookupOutput . fromInteger . fromWord32',
+        'cast (Just x)': 'Right x', 'cast Nothing': 'Left ()',
+        'encodeHash': 'toWord256 . integerHash256',
+        'interpret OutputScriptHash': 'return . (atOutput $ encodeHash . bslHash . txoScript)',
+        'interpret OutputRangeProof': 'return . (atOutput $ encodeHash . bslHash . view (to txoAmount.under amount.prf_))',
+        'interpret OutputSurjectionProof': 'return . (atOutput $ encodeHash . bslHash . view (to txoAsset.under asset.prf_))',
+        'interpret InputScriptHash': 'return . (atInput $ encodeHash . bslHash . utxoScript . sigTxiTxo)',
+        'interpret InputSequence': 'return . (atInput $ toWord32 . toInteger . sigTxiSequence)',
+        'interpret InputScriptSigHash': 'return . (atInput $ encodeHash . bslHash . sigTxiScriptSig)',
+        'interpret Tappath': 'return . cast . fmap encodeHash . listToMaybe . flip drop (tappath (envTap env)) . fromInteger . fromWord8',
+    }.items():
+        binding('elements_primitive_hs', lhs, rhs)
+    for expected in [
+        '| OutputScriptHash => atOutput (fun txo => encodeHash (byteStringHash (txoScript txo)))',
+        '| OutputRangeProof => atOutput (fun txo => encodeHash (byteStringHash (viewPrf (txoAmount txo))))',
+        '| OutputSurjectionProof => atOutput (fun txo => encodeHash (byteStringHash (viewPrf (txoAsset txo))))',
+        '| InputScriptHash => atInput (fun txi => encodeHash (byteStringHash (utxoScript (sigTxiTxo txi))))',
+        '| InputSequence => atInput (fun txi => fromZ (Int.unsigned (sigTxiSequence txi)))',
+        '| InputScriptSigHash => atInput (fun txi => encodeHash (byteStringHash (sigTxiScriptSig txi)))',
+        '| Tappath => fun i : Word8 => Some (cast (option_map encodeHash (nth_error (tappath (envTap e)) (Z.to_nat (toZ i)))))',
+    ]:
+        p.require(s['elements_primitive_coq'], expected, 'Elements array primitive interpretation')
+    if p.compact(p.definition(s['elements_primitive_coq'], 'viewPrf')) != p.compact('''match c with
+      | Explicit _ => [] | Confidential _ p => p end'''):
+        raise ValueError('Elements explicit/confidential proof view differs')
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1365,6 +1543,13 @@ def sources():
         "tap_hash_port": COQ / "C/jet_bitcoin_tap_hash_literal.v",
         "inputs_port": COQ / "C/jet_bitcoin_inputs_hash_literal.v",
         "elems_loop": COQ / "C/jet_sha_hash_loop_gen.v",
+        "single_input_port": COQ / "C/jet_bitcoin_input_hash_literal.v",
+        "elements_array_port": COQ / "C/jet_elements_array_hash_literal.v",
+        "elements_sighash": REPO / "Haskell/Simplicity/Elements/Programs/SigHash.hs",
+        "elements_sighash_lib": REPO / "Haskell/Simplicity/Elements/Programs/SigHash/Lib.hs",
+        "elements_catalog": REPO / "Haskell/Simplicity/Elements/Jets.hs",
+        "elements_primitive_hs": REPO / "Haskell/Elements/Simplicity/Elements/Primitive.hs",
+        "elements_primitive_coq": COQ / "C/jet_elements_prim.v",
         "forwhile": COQ / "C/jet_forWhile_spec.v",
         "btc_primitive": REPO / "Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs",
         "ext_primitive": COQ / "C/jet_bitcoin_ext_prim.v",
@@ -1385,6 +1570,8 @@ def test():
     bitcoin_raw_hashes(s)
     bitcoin_tap_environment(s)
     bitcoin_input_hashes(s)
+    bitcoin_single_input_hash(s)
+    elements_array_hashes(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -1786,6 +1973,89 @@ def test():
             continue
         raise ValueError('input hash mutation escaped: ' + old)
     print('Canonical input hash trees and six complete C boundaries match;', len(input_hash_mutations), 'mutations rejected')
+    single_input_mutations = [
+        ('bitcoin_catalog', 'specificationSigHash InputHash = SigHash.inputHash', 'specificationSigHash InputHash = SigHash.inputsHash'),
+        ('sighash_lib', 'inputHash = SigHash.inputHash SigHash.lib', 'inputHash = SigHash.inputsHash SigHash.lib'),
+        ('sighash', 'ctx8Add4 = ctx8Addn vector4', 'ctx8Add4 = ctx8Addn vector8'),
+        ('sighash', 'inputHash = (primitive InputPrevOutpoint', 'inputHash = (primitive InputValue'),
+        ('sighash', '(drop . take . assert $ iden)', '(drop . drop . assert $ iden)'),
+        ('sighash', '(drop . drop . assert $ iden)', '(drop . take . assert $ iden)'),
+        ('sighash', 'injr ((((unit >>> ctx8Init) &&& oh >>> outpointHash)', 'injl ((((unit >>> ctx8Init) &&& oh >>> outpointHash)'),
+        ('single_input_port', '(iden &&& unit)', '(unit &&& iden)'),
+        ('single_input_port', 'term assertion_cmr_fail0', 'term assertion_hash0'),
+        ('single_input_port', '@AC.comp _ _ _ core', '@AC.pair _ _ _ core'),
+        ('single_input_port', '@AC.case _ _ _ _ core', '@AC.pair _ _ _ core'),
+        ('single_input_port', '@AC.injl _ _ _ core', '@AC.injr _ _ _ core'),
+        ('single_input_port', 'BitcoinFull.Base Bitcoin.InputPrevOutpoint', 'BitcoinFull.Base Bitcoin.InputSequence'),
+        ('single_input_port', 'BitcoinFull.Base Bitcoin.InputSequence', 'BitcoinFull.Ext BitcoinExt.InputAnnexHash'),
+        ('single_input_port', 'BitcoinFull.Ext BitcoinExt.InputAnnexHash', 'BitcoinFull.Ext BitcoinExt.InputScriptHash'),
+        ('single_input_port', '@literal_sha_hash_ctx_init core', '@AC.unit _ core'),
+        ('single_input_port', '@literal_ctx8_addn 2 term', '@literal_ctx8_addn 3 term'),
+        ('single_input_port', '@literal_bitcoin_assert_iden (Word 5) term', '@literal_bitcoin_assert_iden (Word 6) term'),
+        ('single_input_port', '@literal_bitcoin_assert_iden (Ty.Sum Ty.Unit (Word 8)) term', '@literal_bitcoin_assert_iden (Word 8) term'),
+        ('single_input_port', '@literal_bitcoin_outpoint_hash term', '@literal_bitcoin_annex_hash term'),
+        ('single_input_port', '@literal_ctx8_finalize term', '@literal_ctx8_addn 5 term'),
+        ('single_input_port', '(raw_env_rep input_hash_rep)', 'input_hash_rep'),
+        ('single_input_port', 'f_simplicity_bitcoin_input_hash sha_ge', 'f_simplicity_bitcoin_input_hash bitcoin_ge'),
+    ]
+    for suffix in ['literal_local', 'raw_literal_local']:
+        declaration = f'Theorem bitcoin_input_hash_{suffix}_spec : memcpy_model ->'
+        single_input_mutations.extend([
+            ('single_input_port', declaration, declaration.replace('memcpy_model', 'False')),
+            ('single_input_port', declaration, declaration.replace('memcpy_model ->', '')),
+        ])
+    for key, old, new in single_input_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive single-input mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            bitcoin_single_input_hash(changed)
+        except ValueError:
+            continue
+        raise ValueError('single-input mutation escaped: ' + old)
+    print('Canonical single-input hash and two complete conditional C contracts match;', len(single_input_mutations), 'mutations rejected')
+    elements_array_mutations = [
+        ('elements_array_port', '@literal_sha_hash_words k w term Ty.Unit', '@literal_sha_hash_words k 3 term Ty.Unit'),
+        ('elements_sighash', 'hashWord256s32 = hashWord256s word32', 'hashWord256s32 = hashWord256s word8'),
+        ('elements_sighash', 'hashWord256s8 = hashWord256s word8', 'hashWord256s8 = hashWord256s word32'),
+        ('elements_sighash', 'Sha256.hashLoop vector4 word32 array', 'Sha256.hashLoop vector32 word32 array'),
+        ('elements_primitive_coq', '| Explicit _ => []', '| Explicit _ => [Byte.zero]'),
+        ('elements_primitive_coq', '| Confidential _ p => p', '| Confidential _ p => []'),
+        ('elements_primitive_coq', '| InputSequence => atInput (fun txi => fromZ (Int.unsigned (sigTxiSequence txi)))', '| InputSequence => atInput (fun txi => fromZ (Int.signed (sigTxiSequence txi)))'),
+        ('elements_primitive_hs', 'to txoAmount.under amount.prf_', 'to txoAsset.under asset.prf_'),
+        ('elements_primitive_hs', 'interpret Tappath = return . cast . fmap encodeHash', 'interpret Tappath = return . cast . fmap encodeKey'),
+    ]
+    for tag, hs_name, stem, primitive, k, w, ptr, offset, size in [
+        ('OutputScriptsHash', 'outputScriptsHash', 'output_scripts', 'OutputScriptHash', 5, 5, 0, 88, 760),
+        ('OutputRangeProofsHash', 'outputRangeProofsHash', 'output_range_proofs', 'OutputRangeProof', 5, 5, 0, 120, 760),
+        ('OutputSurjectionProofsHash', 'outputSurjectionProofsHash', 'output_surjection_proofs', 'OutputSurjectionProof', 5, 5, 0, 152, 760),
+        ('InputScriptsHash', 'inputScriptsHash', 'input_scripts', 'InputScriptHash', 5, 5, 0, 280, 760),
+        ('InputSequencesHash', 'inputSequencesHash', 'input_sequences', 'InputSequence', 2, 5, 0, 344, 760),
+        ('InputScriptSigsHash', 'inputScriptSigsHash', 'input_script_sigs', 'InputScriptSigHash', 5, 5, 0, 408, 760),
+        ('TappathHash', 'tappathHash', 'tappath', 'Tappath', 5, 3, 8, 40, 176),
+    ]:
+        helper = 'hashWord32s' if k == 2 else ('hashWord256s8' if w == 3 else 'hashWord256s32')
+        declaration = f'Theorem elements_{stem}_hash_literal_local_spec :'
+        elements_array_mutations.extend([
+            ('elements_catalog', f'specificationSigHash {tag} = SigHash.{hs_name}', f'specificationSigHash {tag} = SigHash.tapleafHash'),
+            ('elements_sighash_lib', f'{hs_name} = SigHash.{hs_name} SigHash.lib', f'{hs_name} = SigHash.tapleafHash SigHash.lib'),
+            ('elements_sighash', f'{hs_name} = {helper} (drop (primitive {primitive}))', f'{hs_name} = {helper} (drop (primitive InternalKey))'),
+            ('elements_array_port', f'@literal_elements_array_hash {k} {w} Elements.{primitive} alg', f'@literal_elements_array_hash {k} 2 Elements.{primitive} alg'),
+            ('elements_array_port', declaration, declaration + ' False ->'),
+            ('elements_array_port', f'(elements_{stem}_words e)) {ptr} {offset} {size}', f'(elements_{stem}_words e)) {ptr} {offset + 8} {size}'),
+        ])
+    for key, old, new in elements_array_mutations:
+        if old not in s[key]:
+            raise ValueError('inactive Elements array mutation: ' + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            elements_array_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError('Elements array mutation escaped: ' + old)
+    print('Seven Elements array hash trees, raw primitives and whole C contracts match;', len(elements_array_mutations), 'mutations rejected')
 
 
 if __name__ == "__main__":

@@ -433,6 +433,47 @@ assumption records for 151 modules and contract records for 174 modules,
 negative tests and all five AST regenerations. Its command is in
 `JET_ACCEPTANCE.md`.
 
+## Canonical computing single-input hash candidate
+
+`jet_bitcoin_input_hash_literal.v` composes the existing complete original
+`input_hash` execution with a literal canonical program over primitives. The
+three bridges are closed; the two C variants retain the same six inherited
+library assumptions and the explicit `memcpy_model` premise. The registry has
+not selected either variant yet. The intended endpoint is the raw variant.
+
+Unlike the cached composite getters, this C function computes SHA over the
+selected input's outpoint, sequence and optional annex. Its existing
+`input_hash_rep` relation, including SHA-global readiness and environment/output
+separation, is retained. It covers the original absent-input, absent-annex and
+present-annex branches; caller construction/startup and frozen-domain limits
+are not discharged. The source checker compares the whole canonical assertion
+tree and both complete conditional C boundaries, rejecting 27 further mutations.
+
+## Canonical Elements array-hash candidates
+
+The preserved `jet_sha_hash_words_reader.v` and
+`jet_elements_words_hash_program.v` are restored without source changes into
+the normal build. They reuse the existing SHA traversal, context absorption and
+finalization proofs over an arbitrary option Reader, then instantiate the actual
+Elements primitive algebra and complete original C cache getters. There is no
+artificial Bitcoin environment or assumed hash/execution oracle.
+
+`jet_elements_array_hash_literal.v` connects seven getters to the shared literal
+SHA programs: output scripts/range proofs/surjection proofs, input scripts/
+sequences/scriptSigs, and tappath. Both generic bridges are closed. The seven
+complete C contracts retain the same six inherited assumptions and no extra
+libc premise. Their represented cache values come from raw logical script/proof
+bytes, unsigned sequences or taproot paths. Cache construction by actual callers,
+the existing path/domain bounds and general host-library fidelity remain open.
+
+The source checker compares canonical dispatch, array widths/counters, raw
+primitive/proof views and all seven C boundaries, rejecting 51 further mutations.
+Both candidate families compile in the normal pinned-toolchain build after
+rebuilding unchanged stale dependencies. Reviewed snapshots cover 50 public
+theorem records and 20 definitions across the four modules; comparisons without
+update flags match all four. These checks are not ordinary acceptance; the
+eight jets are not registered yet.
+
 ## Source-review question: Elements fee predicates
 
 Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
