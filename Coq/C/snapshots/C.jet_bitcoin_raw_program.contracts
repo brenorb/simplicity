@@ -1,0 +1,107 @@
+### C.jet_bitcoin_raw_program.raw_full_projection
+@raw_full_projection
+     : forall (A B : Ty.Ty) (p : jet_bitcoin_full_prim.BitcoinFull.t A B) (a : Ty.tySem A)
+         (environment : jet_bitcoin_raw_env.raw_bitcoin_environment)
+         (Hpath : le (@length Digest.hash256 (jet_bitcoin_raw_env.raw_tap_path environment))
+                    (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq (option (Ty.tySem B))
+         (@jet_bitcoin_full_prim.BitcoinFull.sem A B p a
+            (jet_bitcoin_raw_env.project_raw_environment environment Hpath)) (@raw_full_sem A B p a environment)
+### C.jet_bitcoin_raw_program.raw_core_relation_class
+raw_core_relation_class
+     : @Alg.Core.Parametric.class
+         (Alg.Assertion.toCore
+            (jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion
+               (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)))
+         (jet_bitcoin_full_prim.PF.CanonicalStructures.toCore raw_fullalg) (@raw_program_relation)
+### C.jet_bitcoin_raw_program.raw_assertion_relation_class
+raw_assertion_relation_class
+     : @Alg.Assertion.Parametric.class
+         (jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))
+         (jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion raw_fullalg) (@raw_program_relation)
+### C.jet_bitcoin_raw_program.raw_program_relation_class
+raw_program_relation_class
+     : @jet_bitcoin_full_prim.PF.Parametric.class
+         (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+         raw_fullalg (@raw_program_relation)
+### C.jet_bitcoin_raw_program.bitcoin_program_raw_projection
+@bitcoin_program_raw_projection
+     : forall (A B : Ty.Ty)
+         (program : forall alg : jet_bitcoin_full_prim.PF.Algebra, jet_bitcoin_full_prim.PF.domain alg A B)
+         (_ : @jet_bitcoin_full_prim.PF.Parametric A B program) (a : Ty.tySem A)
+         (environment : jet_bitcoin_raw_env.raw_bitcoin_environment)
+         (Hpath : le (@length Digest.hash256 (jet_bitcoin_raw_env.raw_tap_path environment))
+                    (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (program
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            (jet_bitcoin_raw_env.project_raw_environment environment Hpath)) (program raw_fullalg a environment)
+### C.jet_bitcoin_raw_program.application_raw_program_local_spec_sep
+application_raw_program_local_spec_sep
+     : forall (f : Clight.function) (ge : Clight.genv) (A B : Ty.Ty)
+         (rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_bitcoin_ext_prim.ext_environment)
+                  (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+         (program : forall alg : jet_bitcoin_full_prim.PF.Algebra, jet_bitcoin_full_prim.PF.domain alg A B)
+         (_ : @jet_bitcoin_full_prim.PF.Parametric A B program)
+         (_ : jet_application_sep.application_jet_local_spec_sep f ge jet_bitcoin_ext_prim.ext_environment A B rep
+                (program
+                   (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem
+                      Option.option_Monad_Zero))),
+       jet_application_sep.application_jet_local_spec_sep f ge jet_bitcoin_raw_env.raw_bitcoin_environment A B
+         (jet_bitcoin_raw_jets.raw_env_rep rep) (program raw_fullalg)
+### C.jet_bitcoin_raw_program.raw_full_sem
+raw_full_sem =
+fun (A B : Ty.Ty) (p : jet_bitcoin_full_prim.BitcoinFull.t A B) (a : Ty.tySem A)
+  (environment : jet_bitcoin_raw_env.raw_bitcoin_environment) =>
+match p in (jet_bitcoin_full_prim.BitcoinFull.prim A0 B0) return (forall _ : Ty.tySem A0, option (Ty.tySem B0)) with
+| @jet_bitcoin_full_prim.BitcoinFull.Base A0 B0 q =>
+    fun a0 : Ty.tySem A0 => @Bitcoin.Bitcoin.sem A0 B0 q a0 (jet_bitcoin_raw_env.raw_base environment)
+| @jet_bitcoin_full_prim.BitcoinFull.Ext A0 B0 q =>
+    fun a0 : Ty.tySem A0 => @jet_bitcoin_raw_env.raw_ext_sem A0 B0 q a0 environment
+end a
+     : forall (A B : Ty.Ty) (_ : jet_bitcoin_full_prim.BitcoinFull.t A B) (_ : Ty.tySem A)
+         (_ : jet_bitcoin_raw_env.raw_bitcoin_environment), option (Ty.tySem B)
+
+Arguments raw_full_sem {A B}%ty_scope p a environment
+### C.jet_bitcoin_raw_program.raw_fullalg
+raw_fullalg =
+@jet_bitcoin_full_prim.PF._Pack
+  (fun A B : Ty.Ty => forall (_ : Ty.tySem A) (_ : jet_bitcoin_raw_env.raw_bitcoin_environment), option (Ty.tySem B))
+  (@jet_bitcoin_full_prim.PF.Class
+     (Alg.Assertion.domain
+        (Alg.AssertionSem
+           (Reader.ReaderT_CIMonadZero jet_bitcoin_raw_env.raw_bitcoin_environment Option.option_Monad_Zero)))
+     (Alg.Assertion.class_of
+        (Alg.AssertionSem
+           (Reader.ReaderT_CIMonadZero jet_bitcoin_raw_env.raw_bitcoin_environment Option.option_Monad_Zero)))
+     (jet_bitcoin_full_prim.PF.Mixin
+        (fun A B : Ty.Ty =>
+         forall (_ : Ty.tySem A) (_ : jet_bitcoin_raw_env.raw_bitcoin_environment), option (Ty.tySem B))
+        (@raw_full_sem)))
+     : jet_bitcoin_full_prim.PF.Algebra
+### C.jet_bitcoin_raw_program.raw_program_relation
+raw_program_relation =
+fun (A B : Ty.Ty)
+  (f : jet_bitcoin_full_prim.PF.domain
+         (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) A B)
+  (g : jet_bitcoin_full_prim.PF.domain raw_fullalg A B) =>
+forall (a : Ty.tySem A) (environment : jet_bitcoin_raw_env.raw_bitcoin_environment)
+  (Hpath : le (@length Digest.hash256 (jet_bitcoin_raw_env.raw_tap_path environment))
+             (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))),
+@eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+  (f a (jet_bitcoin_raw_env.project_raw_environment environment Hpath)) (g a environment)
+     : forall (A B : Ty.Ty)
+         (_ : jet_bitcoin_full_prim.PF.domain
+                (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+                A B) (_ : jet_bitcoin_full_prim.PF.domain raw_fullalg A B), Prop
+
+Arguments raw_program_relation {A B}%ty_scope f g
+### C.jet_bitcoin_raw_program.raw_program_parametric_relation
+raw_program_parametric_relation =
+@jet_bitcoin_full_prim.PF.Parametric.Pack
+  (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) raw_fullalg
+  (@raw_program_relation) raw_program_relation_class
+     : jet_bitcoin_full_prim.PF.Parametric.Rel
+         (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+         raw_fullalg

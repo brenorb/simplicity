@@ -344,15 +344,28 @@ comparisons, 143 contract comparisons, global source/mutation checks, negative
 tests and all five AST regenerations. Audited inputs stayed unchanged and no
 expectations were updated. Reproduce with the command in `JET_ACCEPTANCE.md`.
 
-## Next: raw interpretation of the composed Bitcoin programs
+## Raw interpretation of the composed Bitcoin programs
 
-Reuse the preserved `proof-work/bitcoin-raw-program` bridge before introducing
-another raw-program framework. Its `bitcoin_program_raw_projection` relates
-every parametric program to the existing raw interpretation, including both
-assertions and failure. Review and rebuild it against the current interfaces,
-then compose it with the accepted literal array/tappath endpoints. This ties
-the extended script-hash primitive inputs to raw bytes, without changing the
-primitive signature or frozen base domain. It does not by itself prove cache
-construction by the C environment builders or repair the reported domain
-mismatches. The archived concrete endpoints need adaptation to the current
-literal programs; their old README is not current acceptance evidence.
+`jet_bitcoin_raw_program.v` restores the generic bridge from the preserved
+`proof-work/bitcoin-raw-program` source, unchanged. It relates every parametric
+program to the existing raw interpretation, including both assertions and
+failure. `jet_bitcoin_hash_raw_literal.v` composes it with the accepted literal
+array/tappath endpoints: all five complete C contracts now also have variants
+interpreted on raw script/scriptSig/taproot data. This ties extended script-hash
+primitive inputs to raw bytes without changing the primitive signature or
+frozen base domain. The original abstract-environment endpoints are retained.
+
+Both modules compile in the normal project under the fixed Coq 8.17.1
+toolchain. Reviewed assumption and contract records match. The primitive
+projection and two literal-parametricity lemmas are closed; the general
+program-relation/projection lemmas inherit functional extensionality, and the
+C endpoints retain the same six inherited library assumptions. No additional
+libc, execution or desired-output premise is added. The existing source checker
+protects the raw interpretation, representation boundary and five full C
+contracts, rejecting 22 further mutations. Ordinary acceptance and endpoint
+selection have not yet been completed for these raw variants.
+
+This does not prove cache construction by the C environment builders, remove
+the existing path bound in `raw_env_rep`, or repair the reported Bitcoin-domain
+mismatches. The archived concrete endpoints and their old README remain
+historical, not current acceptance evidence.

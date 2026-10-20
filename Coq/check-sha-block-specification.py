@@ -1015,6 +1015,54 @@ def bitcoin_array_hashes(s):
     p.require(s["full_primitive"], "| Ext q => fun a => BitcoinExt.sem q a e", "extended primitive dispatch")
 
 
+def bitcoin_raw_hashes(s):
+    """Keep raw interpretation, its represented-memory boundary and all five
+    complete C conclusions explicit. This does not prove caller cache creation.
+    """
+    for key, name, expected in [
+        ("raw_program", "raw_full_sem", '''
+          (match p in BitcoinFull.prim A B return Ty.tySem A -> option (Ty.tySem B) with
+           | BitcoinFull.Base q => fun a => Bitcoin.sem q a (raw_base environment)
+           | BitcoinFull.Ext q => fun a => raw_ext_sem q a environment end) a'''),
+        ("raw_program", "raw_fullalg", '''
+          @PF._Pack (fun A B => Ty.tySem A -> raw_bitcoin_environment -> option (Ty.tySem B))
+            (@PF.Class _
+              (Alg.Assertion.class_of (Alg.AssertionSem (ReaderT_CIMonadZero raw_bitcoin_environment option_Monad_Zero)))
+              (@PF.Mixin _ (@raw_full_sem)))'''),
+        ("raw_program", "raw_program_relation", '''forall a environment Hpath,
+          f a (project_raw_environment environment Hpath) = g a environment'''),
+        ("raw_jets", "raw_env_rep", '''exists Hpath : (length (raw_tap_path logical) <= 128)%nat,
+          rep m env (project_raw_environment logical Hpath) fp'''),
+    ]:
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError("raw program/representation differs: " + name)
+    p.require(s["raw_env"], "raw_base : Bitcoin.environment", "unchanged raw base domain")
+    for prim, field, script in [
+        ("InputScriptHash", "extInScriptHash", "raw_redeemed_script"),
+        ("InputScriptSigHash", "extInScriptSigHash", "raw_script_sig"),
+    ]:
+        p.require(s["raw_env"], f'''{field} := map (fun i => byteStringHash ({script} i)) (raw_inputs environment)''', "raw script projection")
+        p.require(s["raw_env"], f'''| BitcoinExt.{prim} => fun i =>
+          Some (cast (option_map (fun data => from_hash256 (byteStringHash ({script} data)))
+            (nth_error (raw_inputs environment) (Z.to_nat (toZ i)))))''', "raw script primitive")
+    p.require(s["raw_env"], '''| BitcoinExt.Tappath => fun i =>
+      Some (cast (option_map from_hash256 (nth_error (raw_tap_path environment) (Z.to_nat (toZ i)))))''', "raw path primitive")
+    for stem, k, w, ptr, offset, size in [
+        ("output_scripts", 5, 5, 0, 48, 432),
+        ("input_scripts", 5, 5, 0, 176, 432),
+        ("input_sequences", 2, 5, 0, 240, 432),
+        ("input_script_sigs", 5, 5, 0, 304, 432),
+        ("tappath", 5, 3, 8, 40, 176),
+    ]:
+        statement = re.search(r"Theorem bitcoin_" + stem + r"_hash_raw_literal_local_spec\s*:(.*?)\bProof\.", s["raw_hash"], re.S)
+        expected = f'''application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge raw_bitcoin_environment
+          Ty.Unit Word256
+          (raw_env_rep (hash_getter_rep (fun e => words_hash_of {k} {w} ({stem}_of e)) {ptr} {offset} {size}))
+          (fun a environment => @literal_bitcoin_{stem}_hash raw_fullalg a environment).'''
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError("raw literal whole C contract differs: " + stem)
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1072,6 +1120,10 @@ def sources():
         "array_port": COQ / "C/jet_bitcoin_array_hash_literal.v",
         "base_primitive": COQ / "Simplicity/Primitive/Bitcoin.v",
         "full_primitive": COQ / "C/jet_bitcoin_full_prim.v",
+        "raw_program": COQ / "C/jet_bitcoin_raw_program.v",
+        "raw_hash": COQ / "C/jet_bitcoin_hash_raw_literal.v",
+        "raw_env": COQ / "C/jet_bitcoin_raw_env.v",
+        "raw_jets": COQ / "C/jet_bitcoin_raw_jets.v",
         "forwhile": COQ / "C/jet_forWhile_spec.v",
         "btc_primitive": REPO / "Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs",
         "ext_primitive": COQ / "C/jet_bitcoin_ext_prim.v",
@@ -1089,6 +1141,7 @@ def test():
     bitcoin_context_hash(s)
     primitive_hash_words(s)
     bitcoin_array_hashes(s)
+    bitcoin_raw_hashes(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -1378,6 +1431,37 @@ def test():
             continue
         raise ValueError("Bitcoin array hash source mutation escaped: " + old)
     print("Four Bitcoin array hash programs, primitive projections and whole C boundaries match;", len(array_hash_mutations), "mutations rejected")
+    raw_hash_mutations = [
+        ("raw_program", "Bitcoin.sem q a (raw_base environment)", "Bitcoin.sem q a changed"),
+        ("raw_program", "raw_ext_sem q a environment", "BitcoinExt.sem q a environment"),
+        ("raw_program", "(@PF.Mixin _ (@raw_full_sem))", "(@PF.Mixin _ (@changed_sem))"),
+        ("raw_program", "option_Monad_Zero", "changed_Monad_Zero"),
+        ("raw_program", "f a (project_raw_environment environment Hpath) = g a environment", "True"),
+        ("raw_jets", "(length (raw_tap_path logical) <= 128)%nat", "(length (raw_tap_path logical) <= 64)%nat"),
+        ("raw_jets", "rep m env (project_raw_environment logical Hpath) fp", "False"),
+        ("raw_env", "raw_base : Bitcoin.environment", "raw_base : changed_environment"),
+        ("raw_env", "byteStringHash (raw_redeemed_script i)", "byteStringHash (raw_script_sig i)"),
+        ("raw_env", "byteStringHash (raw_script_sig i)", "byteStringHash (raw_redeemed_script i)"),
+        ("raw_env", "byteStringHash (raw_redeemed_script data)", "byteStringHash (raw_script_sig data)"),
+        ("raw_env", "byteStringHash (raw_script_sig data)", "byteStringHash (raw_redeemed_script data)"),
+    ]
+    for stem in ["output_scripts", "input_scripts", "input_sequences", "input_script_sigs", "tappath"]:
+        declaration = f"Theorem bitcoin_{stem}_hash_raw_literal_local_spec :"
+        raw_hash_mutations += [
+            ("raw_hash", declaration, declaration + " False ->"),
+            ("raw_hash", f"@literal_bitcoin_{stem}_hash raw_fullalg", f"@literal_bitcoin_{stem}_hash fullalg"),
+        ]
+    for key, old, new in raw_hash_mutations:
+        if old not in s[key]:
+            raise ValueError("inactive raw Bitcoin hash mutation: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            bitcoin_raw_hashes(changed)
+        except ValueError:
+            continue
+        raise ValueError("raw Bitcoin hash source mutation escaped: " + old)
+    print("Raw primitive/whole-program interpretation and five whole C boundaries match;", len(raw_hash_mutations), "mutations rejected")
 
 
 if __name__ == "__main__":
