@@ -19,3 +19,10 @@ schedule; derive fast-operation guards; reconstruct their numeric value;
 prove the real p4 narrowing lossless and <= 2; then prove third/final reduction,
 compose the whole helper's current-memory output loads, and finish public
 multiply/square lifecycle and literal canonical Simplicity bridges.
+
+Historical continuation stopped at the symbolic equality
+`reduce512_second_temp _p3 = sc_lo second_sy3`; bounded conversion closed the
+p0/p1/p2 leaves but timed out on p3, with p4 still to check. The proposed next
+step was to keep the first-fold state shared and prove smaller operation/temp
+bindings rather than unfold the whole duplicated expression. This records an
+unfinished candidate, not a failure of the separate registered scalar proofs.

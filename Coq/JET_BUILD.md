@@ -198,6 +198,12 @@ redoing the proofs against the new AST.
 * The proof target stays `x86_64-linux` on ARM Mac hosts. CompCert's package
   metadata permits that host to build these target semantics.
 
+Both Nix derivations retain C, Haskell and Coq in one filtered source tree and
+start the build in its Coq subdirectory. The payload includes the review helper
+directories, project variants, snapshots, generation configuration and mismatch
+report used by the checks. This keeps the normal repository paths available
+without a separate inventory derivation.
+
 Current acceptance and remaining proof obligations are in
 [C/JET_ACCEPTANCE.md](C/JET_ACCEPTANCE.md) and
 [C/JET_INHERITED_REVIEW.md](C/JET_INHERITED_REVIEW.md).

@@ -92,37 +92,48 @@ original C body; the literal ports and framing/global predicates are included
 in the reviewed definition snapshots. These are scoped source/contract reviews,
 not a verified Haskell compiler or a claim of completing inherited fidelity.
 
-## Module and history accounting
+## Proof preservation and verification
 
-All jet modules, including the twenty former regression-only modules, enter the
-jet build and recursive kernel check. Incomplete derived trees and the five
-failing support modules are explicitly archived in `proof-work/derived-trees`
-and `proof-work/unbuilt-support`. The original upstream secp/modinv verification
-sources retain their original paths and separate full-Coq build; they are not
-additional jet registrations (see `../JET_BUILD.md`).
+Every jet module, including the former regression-only modules, is built and
+recursively kernel-checked. Derived trees and known failing support experiments
+remain archived outside the active build. Original upstream secp/modinv sources
+retain their separate full-Coq build; they are not additional registrations.
 
-The rewritten integration history removes 2,028 log/receipt/duplicate files
-and 1,116,250 lines. Original branch and WIP histories remain under backup refs.
-Pushing, upstream filing, and deleting branches/worktrees/backups require user
-approval and are not part of local acceptance.
+The cleanup removes the fixed recursive source-reference gate, receipt metadata,
+archive integrity machinery, obsolete run journals and byte-identical source
+copies. Every active proof, reviewed snapshot and registration is unchanged;
+every distinct archived Coq source and historical patch remains available.
+The remaining literal correspondence checks and production source pins still
+run. Removing the fixed reference loses its supplementary textual-drift check;
+it does not prove any additional correspondence.
 
-## Completed verification
+Full `bash Coq/check-jets.sh --accept` passed on cleanup source revision
+`e7170ff9a83e3ccd0efd060e57854faa7944be4b`: 1,550 C modules built and
+recursively kernel-checked, 1,305 assumption snapshots and 1,367 contract/definition
+snapshots matched, negative fixtures passed, and all five pinned ASTs regenerated
+identically. The 7,223 public result profiles and fifteen-entry inherited kernel
+axiom allowlist are unchanged. No unsafe kernel category was enabled.
 
-Full `bash Coq/check-jets.sh --accept` passed on proof-source commit
-`d866ef20cc668c91251ad8b1f77a030f4a46c338` with frozen inputs: 1550 built C modules recursively kernel-checked,
-1,305 module assumption snapshots and 1,367 module contract/definition snapshots
-matched, all source/mutation and negative gate checks passed, and all five pinned
-ASTs regenerated identically. The 7,223 public result profiles retain the inherited
-library assumptions; the 5,850 original profiles are unchanged. No kernel axiom
-was added to the fifteen-entry allowlist.
+Both archived parallel multiplication/square endpoints also compiled in a fresh
+external tree and passed recursive kernel checking with the same inherited
+axiom allowlist. Reproduce that check with:
 
-Focused `--accept --jets=simplicity_verify` also passed in a separate checkout
-of `23adcc78`, with the same checker and byte-identical selected closure,
-containing an additional listed proof module whose unknown tactic independently
-fails compilation. This verifies that an unrelated broken proof does not block
-the selected dependency closure; it makes no additional jet coverage claim.
+```sh
+bash proof-work/fe-multiply-parallel/verify.sh /tmp/parallel-field-check
+```
 
-Source archives, alternate proofs and original WIP histories are preserved.
-Acceptance establishes the stated local contracts with the trust and fidelity
-limits above; it does not close the remaining 103 declarations or shared
-evaluator/startup obligations.
+The Nix source filters now retain the review helper directories, snapshots,
+project variants and required source/configuration inputs. Reconstructing their
+filtered payloads preserved the complete audit fingerprint, and all source and
+mutation checks passed against those isolated payloads. A full Nix derivation
+was not run locally because Nix was unavailable.
+
+The earlier focused `--accept --jets=simplicity_verify` test at `23adcc78`
+verified that an unrelated listed, failing module does not block the selected
+closure. Cleanup does not change closure selection or any selected proof.
+
+Git preserves the original candidates and recovery history; see
+`../../proof-work/README.md`. Current acceptance uses the commit and reproducible
+commands, with run output outside the repository. Acceptance establishes the
+local contracts and conditions above; the remaining 103 declarations and shared
+evaluator/startup and inherited-fidelity obligations remain open.
