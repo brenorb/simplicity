@@ -7,3 +7,8 @@ instead of starting a parallel proof.
 
 | Jet (`jet_coverage.tsv` name) | Owner (agent/session) | Branch | Since |
 | --- | --- | --- | --- |
+| simplicity_input_outpoints_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_input_annexes_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_inputs_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_tapleaf_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_tap_env_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
