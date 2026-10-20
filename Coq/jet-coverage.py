@@ -65,6 +65,9 @@ RECOVERED_CONTRACTS = {'simplicity_asset_amount_hash': 'memcpy_model -> asset_el
  'simplicity_nonce_hash': 'memcpy_model -> nonce_elements_partial_local_spec '
                           'f_simplicity_nonce_hash nonce_hash_input_type sha256_ctx8_type (fun a '
                           '=> @nonce_hash_spec optalg a).',
+ 'simplicity_sha_256_block': 'sha_jet_local_spec f_simplicity_sha_256_block '
+                               '(Ty.Prod Word256 Word512) Word256 '
+                               '(@literal_sha_256_block Alg.CoreFunSem).',
  'simplicity_outpoint_hash': 'memcpy_model -> outpoint_elements_partial_local_spec '
                              'f_simplicity_outpoint_hash op_input_type sha256_ctx8_type (fun a => '
                              '@elements_outpoint_hash_spec optalg a).'}

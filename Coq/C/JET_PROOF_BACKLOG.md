@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 431 of the 533 header declarations.
+The current local-contract registry contains 432 of the 533 header declarations.
 The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 102 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 101 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -126,16 +126,14 @@ support. Claude's checked u128 helper oracles remain available in the
 parallel-proof archive if needed; do not register the alternative
 `fe_multiply` or `fe_square` endpoints as well as the selected ones.
 
-## Current target: `simplicity_sha_256_block`
+## Completed proof: `simplicity_sha_256_block`
 
-There is already a complete C execution theorem in `jet_sha_block_local.v`
-and a startup-invariant/preservation adapter in `jet_sha_startup_jets.v`.
-Review the literal canonical Haskell hashBlock program and its word-operation
-dependencies, and the actual startup/caller boundary, before considering a
-registration. In particular the older Coq SHA program uses `Word.adder` where
-Haskell uses `Arith.add`; reuse `canonical_add_word_matches_adder` rather than
-equating these syntactically. Do not repeat the completed C compression proof
-or count an unreviewed startup/specification premise as discharged.
+The complete C execution theorem in `jet_sha_block_local.v` and the
+startup-invariant/preservation adapter in `jet_sha_startup_jets.v` are reused.
+The older Coq SHA program uses `Word.adder` where Haskell uses `Arith.add`;
+the bridge uses `canonical_add_word_matches_adder`, not syntactic identity.
+The original compression proof is not repeated, and global-state scope
+remains explicit below.
 
 `jet_sha_block_literal.v` now has a shared block-tree template, a literal
 `Arith.add word32 >>> ih` adapter, and a semantic equality to the older Coq
@@ -159,12 +157,16 @@ memory/lifecycle is also imported and kernel-checked. The C dispatch pointer
 is mutable: these results cover its initialized portable implementation,
 not arbitrary externally installed optimized callbacks.
 
-This remains unregistered until ordinary acceptance. The old C compression
-and reader/writer proofs are reused rather than reimplemented. Focused builds use
+The registry selects the complete local contract with `sha_dispatch_ok`, not
+the stronger startup/lifecycle preconditions. Ordinary scoped acceptance
+passed the 264-module kernel closure, reviewed snapshots, negative tests and
+all five AST regenerations. Reproduce it with
+`bash Coq/check-jets.sh --accept --jets=simplicity_sha_256_block`.
+The old C compression and reader/writer proofs are reused rather than reimplemented. Focused builds use
 `JET_TARGETS=C/jet_sha_block_literal_local.vo bash Coq/build-jets.sh -j2`.
 The candidate and actual initial-memory existence proof passed recursive
 kernel checking with
 `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sha_block_literal_local C.jet_sha_startup_init`.
 The local endpoint inherits six assumptions and the stronger startup/lifecycle
-endpoints eight, all within the existing Coq/CompCert allowlist. None is an
-additional registry entry yet.
+endpoints eight, all within the existing Coq/CompCert allowlist. The two
+startup/lifecycle variants are supporting results, not additional entries.

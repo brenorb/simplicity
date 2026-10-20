@@ -2,9 +2,10 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The accepted local-contract registry contains 431/533 jets (320 without an extra libc
+The local-contract registry contains 432/533 jets (321 without an extra libc
 premise; 111 conditional on `memcpy_model`). The earlier 430-entry baseline passed
-full acceptance; the additional `gej_rescale` endpoint passed scoped acceptance.
+full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
+passed scoped acceptance.
 
 Reproduce acceptance from the repository root:
 
@@ -72,7 +73,7 @@ ten are newly accepted registrations.
   do not identify the ordinary SHA translation unit with the Elements program.
 - Shared frame/evaluator admissibility and exhaustive inherited canonical
   fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
-- The remaining 102 header declarations have no registered final contract.
+- The remaining 101 header declarations have no registered final contract.
   Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
   and operational boundaries meet the public coverage requirements.
 
@@ -136,7 +137,7 @@ closure. Cleanup does not change closure selection or any selected proof.
 Git preserves the original candidates and recovery history; see
 `../../proof-work/README.md`. Current acceptance uses the commit and reproducible
 commands, with run output outside the repository. Acceptance establishes the
-local contracts and conditions above; the remaining 102 declarations and shared
+local contracts and conditions above; the remaining 101 declarations and shared
 evaluator/startup and inherited-fidelity obligations remain open.
 
 ## Subsequent completion: `gej_rescale`
@@ -162,3 +163,33 @@ and all five regenerated C ASTs. It passed without updating expectations or
 changing production C, the frozen specifications, API contracts or generation
 settings. This scoped result does not close the repository-wide obligations
 listed above.
+
+## SHA block boundary
+
+`C.jet_sha_block_literal_local.sha_256_block_literal_local_spec` executes the
+original SHA-unit jet for every Word256 state and Word512 block, against the
+literal canonical block tree. The word-wiring bridges are closed equalities
+in every Core algebra; the literal-add semantic bridge reuses the checked
+adder adapter. The source gate compares the Core trees, 64 round constants
+and word/bit dependencies, with 86 rejected mutations.
+
+The local contract retains `sha_dispatch_ok`, requiring the initialized
+portable compression function. Supporting startup and caller-lifecycle
+theorems establish and preserve that state from the program's actual initial
+memory through owned memory operations and verified jet calls. They do not
+cover arbitrary externally installed dispatch callbacks, nor discharge the
+general evaluator/caller obligations above. No libc model is required.
+
+Reproduce scoped acceptance with the declared Coq 8.17.1 toolchain:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_sha_256_block
+```
+
+This passed the 264-module kernel closure, reviewed assumption/contract
+comparisons, global source/mutation checks, negative tests and all five AST
+regenerations, with unchanged audited inputs and no expectation updates.
+
+The six local and eight startup/lifecycle assumptions are inherited; there
+are no new project axioms. The selected field multiply/square endpoints remain
+unchanged. This new registration does not assert a fresh full 432-entry audit.
