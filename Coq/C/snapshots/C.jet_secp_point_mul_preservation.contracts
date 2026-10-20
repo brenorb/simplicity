@@ -1,0 +1,111 @@
+### C.jet_secp_point_mul_preservation.point_mul_foot_bounds
+point_mul_foot_bounds
+     : forall (k : jet_secp_point_write_run.point_coordinate) (bp bs bx : Values.block) (pos : BinNums.Z)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bp BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z))))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   (jet_secp_point_mul_run.point_mul_regs k)) bx pos),
+       or
+         (and (@eq Values.block bx bp)
+            (and (BinInt.Z.le (jet_secp_point_write_run.point_coordinate_offset k) pos)
+               (BinInt.Z.lt pos
+                  (BinInt.Z.add (jet_secp_point_write_run.point_coordinate_offset k)
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+         (@eq Values.block bx bs)
+### C.jet_secp_point_mul_preservation.point_mul_other_field
+point_mul_other_field
+     : forall (k j : jet_secp_point_write_run.point_coordinate) (m mf : Memory.Mem.mem) (bp bs : Values.block)
+         (w : forall _ : nat, Integers.Int64.int) (_ : not (@eq jet_secp_point_write_run.point_coordinate k j))
+         (_ : not (@eq Values.block bp bs))
+         (_ : jet_secp_fe_nv.fe_at m bp (jet_secp_point_write_run.point_coordinate_offset j)
+                (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : Memory.Mem.range_perm mf bp BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : jet_sx_mem.lframe
+                (fun (bx : Values.block) (pos : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bp BinNums.Z0)
+                         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+                            (@nil (prod Values.block BinNums.Z))))
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape (jet_secp_point_mul_run.point_mul_regs k)) bx pos)) m mf),
+       jet_secp_fe_nv.fe_at mf bp (jet_secp_point_write_run.point_coordinate_offset j)
+         (jet_secp_multiply_normalize_bridge.words5 w)
+### C.jet_secp_point_mul_preservation.point_mul_external_frame
+point_mul_external_frame
+     : forall (k : jet_secp_point_write_run.point_coordinate) (m mf : Memory.Mem.mem) (bp bs : Values.block)
+         (_ : jet_sx_mem.lframe
+                (fun (bx : Values.block) (pos : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bp BinNums.Z0)
+                         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+                            (@nil (prod Values.block BinNums.Z))))
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape (jet_secp_point_mul_run.point_mul_regs k)) bx pos)) m mf),
+       jet_sx_mem.lframe
+         (fun (bx : Values.block) (_ : BinNums.Z) => and (not (@eq Values.block bx bp)) (not (@eq Values.block bx bs)))
+         m mf
+### C.jet_secp_point_mul_preservation.point_mul_external_field
+point_mul_external_field
+     : forall (k : jet_secp_point_write_run.point_coordinate) (m mf : Memory.Mem.mem) (bp bs b : Values.block)
+         (w : forall _ : nat, Integers.Int64.int) (_ : not (@eq Values.block b bp)) (_ : not (@eq Values.block b bs))
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w))
+         (_ : jet_sx_mem.lframe
+                (fun (bx : Values.block) (pos : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bp BinNums.Z0)
+                         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+                            (@nil (prod Values.block BinNums.Z))))
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape (jet_secp_point_mul_run.point_mul_regs k)) bx pos)) m mf),
+       jet_secp_fe_nv.fe_at mf b BinNums.Z0 (jet_secp_multiply_normalize_bridge.words5 w)
+### C.jet_secp_point_mul_preservation.point_mul_external_free
+point_mul_external_free
+     : forall (k : jet_secp_point_write_run.point_coordinate) (m mf : Memory.Mem.mem) (bp bs b : Values.block)
+         (size : BinNums.Z) (_ : not (@eq Values.block b bp)) (_ : not (@eq Values.block b bs))
+         (_ : BinInt.Z.lt BinNums.Z0 size) (_ : Memory.Mem.range_perm m b BinNums.Z0 size Memtype.Cur Memtype.Freeable)
+         (_ : jet_sx_mem.lframe
+                (fun (bx : Values.block) (pos : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bp BinNums.Z0)
+                         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+                            (@nil (prod Values.block BinNums.Z))))
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape (jet_secp_point_mul_run.point_mul_regs k)) bx pos)) m mf),
+       Memory.Mem.range_perm mf b BinNums.Z0 size Memtype.Cur Memtype.Freeable
+### C.jet_secp_point_mul_preservation.point_mul_flag
+point_mul_flag
+     : forall (k : jet_secp_point_write_run.point_coordinate) (m mf : Memory.Mem.mem) (bp bs : Values.block)
+         (flag : Integers.Int.int) (_ : not (@eq Values.block bp bs)) (_ : Memory.Mem.valid_block m bp)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m bp
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                (@Some Values.val (Values.Vint flag)))
+         (_ : jet_sx_mem.lframe
+                (fun (bx : Values.block) (pos : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bp BinNums.Z0)
+                         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bs BinNums.Z0)
+                            (@nil (prod Values.block BinNums.Z))))
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape (jet_secp_point_mul_run.point_mul_regs k)) bx pos)) m mf),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint32 mf bp
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (@Some Values.val (Values.Vint flag))

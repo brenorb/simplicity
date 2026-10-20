@@ -60,22 +60,35 @@ proofs, without registering alternative field jets. Their numeric model
 uses the C routine's 56-/52-bit operand bounds: normalized-only 52-/48-bit
 bounds would not follow from the square contract's 49-bit top-limb bound.
 
+`jet_secp_point_mul_preservation.v` derives other-coordinate, flag and
+third-block preservation. `jet_secp_rescale_calls.v` chains the four actual
+callee executions; `jet_secp_rescale_statements.v` connects them to the four
+original `Scall` nodes, using the existing generated-layout facts and proving
+the local/global address evaluations. `jet_secp_rescale_owned.v` now proves
+`eval_gej_rescale_owned`: actual entry, all six original body statements and
+the final `zz` free, with exact output limbs, reusable bounds, unchanged
+scalar/flag, retained caller ownership and external framing. This is the
+complete **internal helper**, not the public jet-to-literal-specification
+contract, and it does not increase registered coverage.
+
 With the documented Coq 8.17.1 toolchain and matching pinned dependencies,
 reproduce the focused build and recursive kernel check with:
 
 ```sh
-JET_TARGETS='C/jet_secp_rescale_start.vo C/jet_secp_point_mul_numeric.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_rescale_start C.jet_secp_point_mul_numeric
+JET_TARGETS=C/jet_secp_rescale_owned.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_rescale_owned
 ```
 
 The kernel command enables the checker's supported VM conversion; it still
 recursively checks every imported module, without admitting dependencies or
 disabling kernel checks. The ordinary acceptance command remains unchanged.
 
-Next compose the four actual multiply statements using these caller contracts,
-carry the other coordinate/flag data through their frames, and discharge
-the final local free. Then compose the public reader/writer lifecycle with the
-literal `gej_rescale` program. Coordinates live at offsets 0, 40 and 80 inside
+Next compose the public reader/writer lifecycle with the literal `gej_rescale`
+program. Use the original Haskell `gej_rescale` and `zinv` trees; the C helper
+computes Y by two multiplications while the tree uses the cube, so carry their
+field residues through the existing numeric/writer bridges. Preserve all
+Word256 inputs, including zero scale and arbitrary coordinates; no on-curve
+or nonzero premise is needed by the helper. Coordinates live at offsets 0, 40 and 80 inside
 one owned 128-byte point allocation. The existing owned multiply contract
 requires each owned region's base to be zero; it cannot directly represent
 a fictitious 40-byte allocation at offset 40 or 80. Reuse the whole-point
