@@ -7,3 +7,11 @@ instead of starting a parallel proof.
 
 | Jet (`jet_coverage.tsv` name) | Owner (agent/session) | Branch | Since |
 | --- | --- | --- | --- |
+| simplicity_bitcoin_input_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_output_scripts_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_output_range_proofs_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_output_surjection_proofs_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_input_scripts_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_input_sequences_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_input_script_sigs_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
+| simplicity_tappath_hash | Codex / main proof session | feat/jet-equivalence | 2026-10-20 |
