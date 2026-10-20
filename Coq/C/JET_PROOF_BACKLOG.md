@@ -374,14 +374,31 @@ the existing path bound in `raw_env_rep`, or repair the reported Bitcoin-domain
 mismatches. The archived concrete endpoints and their old README remain
 historical, not current acceptance evidence.
 
-## Next: canonical tapleaf/tap-environment programs
+## Canonical tapleaf/tap-environment candidates
 
-Reuse the accepted fixed-tag host recipe and algebra-general SHA bridges to
-adapt the preserved `bitcoin-tapleaf-literal` program and the existing
-`bitcoin_tapleaf_hash_local_spec` / `bitcoin_tap_env_hash_local_spec` C proofs.
-Compose the raw-program bridge at the final endpoints. Review the old candidate
-against the current literal SHA interfaces; do not restore an obsolete helper
-tree or assume that old compiled objects match the fixed toolchain.
+`jet_bitcoin_tap_hash_literal.v` adapts the preserved tapleaf combinator tree
+to the accepted fixed-tag host recipe and algebra-general SHA bridges. It adds
+literal `tapleafHash` and `tapEnvHash` programs, exact program equalities for
+every primitive algebra, and complete original-C getter contracts in both the
+abstract and raw interpretations. The tagged-context adapter is general over
+a supplied prefix; the host tag computation is the already-checked fixed
+`TapLeaf` recipe, not a new arbitrary-tag interpreter claim.
+
+The existing `bitcoin_tapleaf_hash_local_spec` and
+`bitcoin_tap_env_hash_local_spec` executions are composed, not assumed at the
+final boundaries. The cache relations remain `hash_getter_rep ... 8 8 176`
+and `hash_getter_rep ... 8 72 176`, lifted through `raw_env_rep` for the raw
+endpoints. Caller cache construction, the existing path bound and the reported
+Bitcoin-domain differences remain separate obligations.
+
+The module compiles under the fixed Coq 8.17.1 baseline; older unregistered
+dependency objects were rebuilt from source. Reviewed assumption and contract
+records match: all five program/parametricity lemmas are closed, and the four C
+variants retain six inherited library assumptions without an extra libc or
+execution/output premise. The existing source checker compares both canonical
+Core trees with the actual explicit algebra applications, tagged initialization,
+primitive/raw projections and all four complete C boundaries. It rejects 22
+further mutations. Ordinary acceptance and registration remain pending.
 
 ## Source-review question: Elements fee predicates
 

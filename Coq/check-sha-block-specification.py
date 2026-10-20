@@ -1063,6 +1063,103 @@ def bitcoin_raw_hashes(s):
             raise ValueError("raw literal whole C contract differs: " + stem)
 
 
+def bitcoin_tap_environment(s):
+    """Compare actual canonical trees with the explicit algebra applications;
+    the reused fixed-tag recipe and SHA subtrees are checked separately.
+    """
+    def replace(text, old, new):
+        return re.sub(r"\s*".join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError("tap environment binding differs: " + lhs)
+
+    binding("hs", "prefix", "scribe . toWord256 . integerHash256 . ivHash . tagIv $ tag")
+    init = p.definition(s["tap_hash_port"], "literal_sha_tag_ctx")
+    for old, new in [
+        ("@buffer_empty_spec (Word 3) 5 Ty.Unit term", "buffer63Empty"),
+        ("@literal_tapdata_one64 term", "one word64"), ("Alg.scribe prefix", "prefix"),
+    ]:
+        init = replace(init, old, new)
+    same(hbody(s["hs"], "ctx8InitTag tag"), init, "tagged context initializer")
+    aliases = [
+        ('@literal_sha_tag_ctx (literal_short_tag_prefix "TapLeaf"%string) core', "tagInit"),
+        ("@literal_sha_hash_ctx_init core", "ctx8Init"),
+        ("@literal_bitcoin_tapleaf_hash alg", "tapleafHash"),
+        ("@literal_bitcoin_tappath_hash alg", "tappathHash"),
+        ("@PF.Combinators.prim _ _ alg (BitcoinFull.Ext BitcoinExt.TapleafVersion)", "primVersion"),
+        ("@PF.Combinators.prim _ _ alg (BitcoinFull.Base Bitcoin.ScriptCMR)", "primCMR"),
+        ("@PF.Combinators.prim _ _ alg (BitcoinFull.Ext BitcoinExt.InternalKey)", "primKey"),
+        ("@Alg.scribe Ty.Unit (Word 3) (haskell_to_word 3 32) core", "leafSize"),
+        ("@literal_ctx8_addn 1 term", "add2"), ("@literal_ctx8_addn 5 term", "add32"),
+        ("@literal_ctx8_addn 6 term", "add64"), ("@literal_ctx8_finalize term", "ctx8Finalize"),
+    ]
+    atoms = {new for _, new in aliases}
+
+    def explicit_tree(node):
+        if node[0] == "name" and node[1] in atoms:
+            return node
+        if (node[0] == "app" and node[1][0] == "app"
+                and node[1][1] in [("name", "compNode"), ("name", "pairNode")]):
+            op = "comp" if node[1][1][1] == "compNode" else "pair"
+            return (op, explicit_tree(node[1][2]), explicit_tree(node[2]))
+        raise ValueError("unsupported explicit tap-hash algebra tree")
+
+    body = s["sighash"].split("mkLib Sha256.Lib{..} Sha256.LibAssert{..} Transaction.Lib{..} = lib", 1)[1]
+    for tag, hs_name, stem, offset in [
+        ("TapleafHash", "tapleafHash", "tapleaf", 8), ("TapEnvHash", "tapEnvHash", "tap_env", 72),
+    ]:
+        p.require(s["bitcoin_catalog"], f"{tag} :: SigHashJet () Word256", "tap environment catalog type")
+        binding("bitcoin_catalog", "specificationSigHash " + tag, "SigHash." + hs_name)
+        binding("sighash_lib", hs_name, "SigHash." + hs_name + " SigHash.lib")
+        hs = re.search(r"\b" + hs_name + r"\s*=(.*?)\n\s*[,}]", body, re.S)
+        if not hs:
+            raise ValueError("missing canonical tap environment program")
+        hs = hs[1]
+        for old, new in [
+            ('Sha256.ctx8InitTag "TapLeaf"', "tagInit"),
+            ("primitive TapleafVersion", "primVersion"), ("primitive ScriptCMR", "primCMR"),
+            ("primitive InternalKey", "primKey"), ("scribe (toWord8 32)", "leafSize"),
+            ("ctx8Addn vector2", "add2"), ("ctx8Addn vector32", "add32"),
+            ("ctx8Addn vector64", "add64"),
+        ]:
+            hs = replace(hs, old, new)
+        program = "literal_bitcoin_" + stem + "_hash"
+        coq = p.definition(s["tap_hash_port"], program)
+        matched = re.fullmatch(r"\s*let term := PF\.CanonicalStructures\.toAssertion alg in\s*"
+                               r"let core := Alg\.Assertion\.toCore term in\s*(.*)", coq, re.S)
+        if not matched:
+            raise ValueError("tap program algebra binding differs")
+        coq = matched[1]
+        for old, new in aliases + [("@AC.comp _ _ _ core", "compNode"), ("@AC.pair _ _ _ core", "pairNode")]:
+            coq = replace(coq, old, new)
+        if expression(hs) != explicit_tree(expression(coq)):
+            raise ValueError("canonical tap environment Core tree differs: " + stem)
+        for suffix, env, pre, alg in [
+            ("literal_local", "ext_environment", f"(hash_getter_rep {stem}_hash_of 8 {offset} 176)", "fullalg"),
+            ("raw_literal_local", "raw_bitcoin_environment", f"(raw_env_rep (hash_getter_rep {stem}_hash_of 8 {offset} 176))", "raw_fullalg"),
+        ]:
+            statement = re.search(r"Theorem bitcoin_" + stem + "_hash_" + suffix + r"_spec\s*:(.*?)\bProof\.", s["tap_hash_port"], re.S)
+            expected = f'''application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge {env}
+              Ty.Unit Word256 {pre} (fun a environment => @{program} {alg} a environment).'''
+            if not statement or p.compact(statement[1]) != p.compact(expected):
+                raise ValueError("tap environment complete C contract differs")
+    for lhs, expected in {
+        "interpret TapleafVersion": "element . return . toWord8 . toInteger . tapleafVersion $ envTap env",
+        "interpret ScriptCMR": "element . return . toWord256 . integerHash256 . tapScriptCMR $ envTap env",
+        "interpret InternalKey": "element . return . encodeKey . tapInternalKey $ envTap env",
+        "encodeKey (Schnorr.PubKey x)": "toWord256 . toInteger $ x",
+    }.items():
+        binding("btc_primitive", lhs, expected)
+    p.require(s["base_primitive"], "| ScriptCMR => fun _ => Some (from_hash256 (envScriptCMR e))", "formal CMR primitive")
+    p.require(s["ext_primitive"], "| TapleafVersion => fun _ => Some (fromZ (extTapleafVersion e))", "formal leaf version")
+    p.require(s["ext_primitive"], "| InternalKey => fun _ => Some (from_hash256 (extInternalKey e))", "formal internal key")
+    p.require(s["raw_env"], "| BitcoinExt.TapleafVersion => fun _ => Some (fromZ (Byte.unsigned (raw_leaf_version environment)))", "raw leaf version")
+    p.require(s["raw_env"], "| BitcoinExt.InternalKey => fun _ => Some (from_hash256 (raw_internal_key environment))", "raw internal key")
+    p.require(s["raw_env"], "extTapleafVersion := Byte.unsigned (raw_leaf_version environment)", "projected leaf version")
+    p.require(s["raw_env"], "extInternalKey := raw_internal_key environment", "projected internal key")
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -1124,6 +1221,7 @@ def sources():
         "raw_hash": COQ / "C/jet_bitcoin_hash_raw_literal.v",
         "raw_env": COQ / "C/jet_bitcoin_raw_env.v",
         "raw_jets": COQ / "C/jet_bitcoin_raw_jets.v",
+        "tap_hash_port": COQ / "C/jet_bitcoin_tap_hash_literal.v",
         "forwhile": COQ / "C/jet_forWhile_spec.v",
         "btc_primitive": REPO / "Haskell/Bitcoin/Simplicity/Bitcoin/Primitive.hs",
         "ext_primitive": COQ / "C/jet_bitcoin_ext_prim.v",
@@ -1142,6 +1240,7 @@ def test():
     primitive_hash_words(s)
     bitcoin_array_hashes(s)
     bitcoin_raw_hashes(s)
+    bitcoin_tap_environment(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -1462,6 +1561,41 @@ def test():
             continue
         raise ValueError("raw Bitcoin hash source mutation escaped: " + old)
     print("Raw primitive/whole-program interpretation and five whole C boundaries match;", len(raw_hash_mutations), "mutations rejected")
+    tap_environment_mutations = [
+        ("hs", "ctx8InitTag tag = buffer63Empty", "ctx8InitTag tag = unit"),
+        ("hs", "prefix = scribe . toWord256", "prefix = scribe . toWord128"),
+        ("sighash", 'Sha256.ctx8InitTag "TapLeaf"', 'Sha256.ctx8InitTag "TapBranch"'),
+        ("sighash", "primitive TapleafVersion &&& scribe", "primitive InternalKey &&& scribe"),
+        ("sighash", "tappathHash &&& primitive InternalKey", "tapleafHash &&& primitive InternalKey"),
+        ("tap_hash_port", "@literal_tapdata_one64 term", "@Word.zero 6 term"),
+        ("tap_hash_port", 'literal_short_tag_prefix "TapLeaf"%string', 'literal_short_tag_prefix "TapBranch"%string'),
+        ("tap_hash_port", "haskell_to_word 3 32", "haskell_to_word 3 33"),
+        ("tap_hash_port", "@literal_ctx8_addn 1 term", "@literal_ctx8_addn 2 term"),
+        ("tap_hash_port", "@literal_ctx8_addn 6 term", "@literal_ctx8_addn 5 term"),
+        ("tap_hash_port", "@literal_bitcoin_tappath_hash alg", "@literal_bitcoin_tapleaf_hash alg"),
+        ("tap_hash_port", "@AC.comp _ _ _ core", "@AC.pair _ _ _ core"),
+        ("tap_hash_port", "BitcoinFull.Base Bitcoin.ScriptCMR", "BitcoinFull.Ext BitcoinExt.InternalKey"),
+        ("tap_hash_port", "BitcoinFull.Ext BitcoinExt.InternalKey", "BitcoinFull.Base Bitcoin.ScriptCMR"),
+        ("tap_hash_port", "(hash_getter_rep tapleaf_hash_of 8 8 176)", "(hash_getter_rep tapleaf_hash_of 8 40 176)"),
+        ("btc_primitive", "toWord8 . toInteger . tapleafVersion", "toWord8 . toInteger . tapInternalKey"),
+        ("btc_primitive", "integerHash256 . tapScriptCMR", "integerHash256 . tapInternalKey"),
+        ("raw_env", "Byte.unsigned (raw_leaf_version environment)", "0"),
+    ]
+    for stem in ["tapleaf", "tap_env"]:
+        for suffix in ["literal_local", "raw_literal_local"]:
+            declaration = f"Theorem bitcoin_{stem}_hash_{suffix}_spec :"
+            tap_environment_mutations.append(("tap_hash_port", declaration, declaration + " False ->"))
+    for key, old, new in tap_environment_mutations:
+        if old not in s[key]:
+            raise ValueError("inactive tap environment mutation: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            bitcoin_tap_environment(changed)
+        except ValueError:
+            continue
+        raise ValueError("tap environment source mutation escaped: " + old)
+    print("Tapleaf/tapEnv whole canonical trees, tag initialization and four C boundaries match;", len(tap_environment_mutations), "mutations rejected")
 
 
 if __name__ == "__main__":
