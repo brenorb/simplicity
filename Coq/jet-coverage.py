@@ -115,6 +115,14 @@ RECOVERED_CONTRACTS.update({
         "(fun a environment => @literal_bitcoin_tappath_hash fullalg a environment)."),
 })
 
+for stem, depth, offset in [
+        ("output_scripts", 5, 48), ("input_scripts", 5, 176),
+        ("input_sequences", 2, 240), ("input_script_sigs", 5, 304)]:
+    RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (
+        f"application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge ext_environment "
+        f"Ty.Unit Word256 (hash_getter_rep (fun e => words_hash_of {depth} 5 ({stem}_of e)) 0 {offset} 432) "
+        f"(fun a environment => @literal_bitcoin_{stem}_hash fullalg a environment).")
+
 
 def records(path, fields):
     result = []

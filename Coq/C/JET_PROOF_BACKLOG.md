@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 450 of the 533 header declarations.
+The current local-contract registry contains 454 of the 533 header declarations.
 The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 83 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 79 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -312,7 +312,7 @@ comparisons, global source/mutation checks, negative tests and all five AST
 regenerations. Audited inputs stayed unchanged; no expectations were updated.
 Reproduce with the scoped command in `JET_ACCEPTANCE.md`.
 
-## Bitcoin array-hash candidates
+## Completed: Bitcoin script and sequence array hashes
 
 `jet_bitcoin_array_hash_literal.v` composes the shared literal SHA initializer,
 early-stopping traversal and finalizer with four original C getter proofs:
@@ -336,5 +336,23 @@ theorems each inherit six library assumptions. The existing SHA source checker
 also checks the four full canonical programs, library dispatch, selected
 primitive projections, widths and whole public contracts, rejecting 34 further
 mutations. These host projections are source-reviewed, not a general Haskell
-interpreter theorem. Recursive kernel checking and ordinary scoped acceptance
-must finish before these candidates are described as accepted.
+interpreter theorem. Recursive kernel checking with supported VM conversion
+passed, with no assumptions outside the inherited allowlist and no unsafe
+kernel features. The four endpoints are selected in the registry. Ordinary
+scoped acceptance passed: 241 kernel-checked modules, 126 assumption
+comparisons, 143 contract comparisons, global source/mutation checks, negative
+tests and all five AST regenerations. Audited inputs stayed unchanged and no
+expectations were updated. Reproduce with the command in `JET_ACCEPTANCE.md`.
+
+## Next: raw interpretation of the composed Bitcoin programs
+
+Reuse the preserved `proof-work/bitcoin-raw-program` bridge before introducing
+another raw-program framework. Its `bitcoin_program_raw_projection` relates
+every parametric program to the existing raw interpretation, including both
+assertions and failure. Review and rebuild it against the current interfaces,
+then compose it with the accepted literal array/tappath endpoints. This ties
+the extended script-hash primitive inputs to raw bytes, without changing the
+primitive signature or frozen base domain. It does not by itself prove cache
+construction by the C environment builders or repair the reported domain
+mismatches. The archived concrete endpoints need adaptation to the current
+literal programs; their old README is not current acceptance evidence.
