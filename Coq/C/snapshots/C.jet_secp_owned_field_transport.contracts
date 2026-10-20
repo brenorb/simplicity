@@ -1,0 +1,32 @@
+### C.jet_secp_owned_field_transport.owned_field_slice_foot_bounds
+owned_field_slice_foot_bounds
+     : forall (offset size : BinNums.Z) (b bx : Values.block) (pos : BinNums.Z)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+                   (@nil (prod Values.block BinNums.Z)))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   (jet_secp_owned_field_slice.owned_field_slice offset size)) bx pos),
+       and (@eq Values.block bx b)
+         (and (BinInt.Z.le offset pos)
+            (BinInt.Z.lt pos
+               (BinInt.Z.add offset
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_owned_field_transport.owned_field_load_transport
+owned_field_load_transport
+     : forall (offset size : BinNums.Z) (m mf : Memory.Mem.mem) (b : Values.block) (xs : list Integers.Int64.int)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add offset
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))) size)
+         (_ : le (@length Integers.Int64.int xs) (S (S (S (S (S O)))))) (_ : jet_secp_fe_nv.fe_at m b offset xs)
+         (_ : Memory.Mem.range_perm mf b BinNums.Z0 size Memtype.Cur Memtype.Freeable)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mf b
+                   (BinInt.Z.add offset
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.of_nat i))))
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.add offset
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.of_nat i))))), jet_secp_fe_nv.fe_at mf b offset xs

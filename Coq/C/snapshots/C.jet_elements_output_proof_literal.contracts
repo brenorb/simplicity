@@ -1,0 +1,123 @@
+### C.jet_elements_output_proof_literal.haskell_confidential_proof_view_matches
+@haskell_confidential_proof_view_matches
+     : forall (A : Set) (c : jet_elements_prim.confidential (list Integers.Byte.int) A),
+       @eq (list Integers.Byte.int) (@jet_elements_prim.viewPrf A c) (@haskell_confidential_proof_view A c)
+### C.jet_elements_output_proof_literal.elements_output_proof_digest_literal_matches
+elements_output_proof_digest_literal_matches
+     : forall (proof_of : forall _ : jet_elements_prim.txOutput, list Integers.Byte.int)
+         (a : Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+         (environment : jet_elements_prim.Elements.environment),
+       @eq (option (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@Some (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+            match
+              @List.nth_error jet_elements_prim.txOutput
+                (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))
+                (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) a))
+              return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+            with
+            | Some txo =>
+                @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.from_hash256 (Digest.byteStringHash (proof_of txo)))
+            | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) tt
+            end) (elements_output_proof_digest_literal_spec proof_of a environment)
+### C.jet_elements_output_proof_literal.elements_output_surjection_proof_literal_matches
+elements_output_surjection_proof_literal_matches
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_output_proof_jets.elements_output_surjection_proof_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (elements_output_surjection_proof_literal_spec a environment)
+### C.jet_elements_output_proof_literal.elements_output_range_proof_literal_matches
+elements_output_range_proof_literal_matches
+     : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_output_proof_jets.elements_output_range_proof_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (elements_output_range_proof_literal_spec a environment)
+### C.jet_elements_output_proof_literal.elements_output_surjection_proof_literal_local_spec
+elements_output_surjection_proof_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_output_surjection_proof
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.txOutput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txo : jet_elements_prim.txOutput) =>
+             jet_uint32_array_init.uint32_array_at m b ofs
+               (jet_elements_output_proof_jets.surjection_proof_hash_words txo))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         elements_output_surjection_proof_literal_spec
+### C.jet_elements_output_proof_literal.elements_output_range_proof_literal_local_spec
+elements_output_range_proof_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_output_range_proof
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@jet_elements_indexed_ptr.indexed_ptr_rep jet_elements_prim.Elements.environment jet_elements_prim.txOutput
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+            (fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (txo : jet_elements_prim.txOutput) =>
+             jet_uint32_array_init.uint32_array_at m b ofs (jet_elements_output_proof_jets.range_proof_hash_words txo))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+         elements_output_range_proof_literal_spec
+### C.jet_elements_output_proof_literal.haskell_confidential_proof_view
+haskell_confidential_proof_view =
+fun (A : Set) (c : jet_elements_prim.confidential (list Integers.Byte.int) A) =>
+match c return (list Integers.Byte.int) with
+| jet_elements_prim.Explicit _ => @nil Integers.Byte.int
+| jet_elements_prim.Confidential _ proof => proof
+end
+     : forall (A : Set) (_ : jet_elements_prim.confidential (list Integers.Byte.int) A), list Integers.Byte.int
+
+Arguments haskell_confidential_proof_view {A}%type_scope c
+### C.jet_elements_output_proof_literal.elements_output_proof_digest_literal_spec
+elements_output_proof_digest_literal_spec =
+fun proof_of : forall _ : jet_elements_prim.txOutput, list Integers.Byte.int =>
+@jet_elements_indexed_literal.elements_indexed_literal_result jet_elements_prim.Elements.environment
+  jet_elements_prim.txOutput (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (fun e : jet_elements_prim.Elements.environment => jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+  (fun txo : jet_elements_prim.txOutput =>
+   jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+     (jet_haskell_hash_word.haskell_integer_hash256 (Digest.hash256_to_bytelist (Digest.byteStringHash (proof_of txo)))))
+     : forall (_ : forall _ : jet_elements_prim.txOutput, list Integers.Byte.int)
+         (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.environment),
+       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments elements_output_proof_digest_literal_spec proof_of%function_scope a environment
+### C.jet_elements_output_proof_literal.elements_output_surjection_proof_literal_spec
+elements_output_surjection_proof_literal_spec =
+elements_output_proof_digest_literal_spec
+  (fun txo : jet_elements_prim.txOutput =>
+   @haskell_confidential_proof_view Digest.hash256 (jet_elements_prim.txoAsset txo))
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.environment),
+       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments elements_output_surjection_proof_literal_spec a environment
+### C.jet_elements_output_proof_literal.elements_output_range_proof_literal_spec
+elements_output_range_proof_literal_spec =
+elements_output_proof_digest_literal_spec
+  (fun txo : jet_elements_prim.txOutput =>
+   @haskell_confidential_proof_view Integers.Int64.int (jet_elements_prim.txoAmount txo))
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.environment),
+       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments elements_output_range_proof_literal_spec a environment

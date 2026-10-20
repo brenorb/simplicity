@@ -1,0 +1,55 @@
+### C.jet_layout_witness.increment64_layout_witness
+increment64_layout_witness
+     : forall a z w : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))),
+       @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          @ex jet_bitmachine_rep.bm_layout
+            (fun L : jet_bitmachine_rep.bm_layout =>
+             and (jet_bitmachine_rep.bm_rep m L (witness_state a z w))
+               (and (jet_bitmachine_rep.bm_separated L (witness_state a z w))
+                  (and (jet_bitmachine_rep.active_write_writable m L (witness_state a z w))
+                     (jet_context.gap_buffer_layout L (witness_state a z w))))))
+### C.jet_layout_witness.increment64_layout_witness_context
+increment64_layout_witness_context
+     : forall (env : Values.val) (a z w : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))),
+       @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          @ex jet_bitmachine_rep.bm_layout
+            (fun L : jet_bitmachine_rep.bm_layout =>
+             @ex Memory.Mem.mem
+               (fun mf : Memory.Mem.mem =>
+                and
+                  (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                     (@Ctypes.Internal Clight.function jets.f_simplicity_increment_64)
+                     (jet_bitmachine_rep.jet_args env L) Events.E0 mf (Values.Vint Integers.Int.one))
+                  (and
+                     (jet_bitmachine_rep.bm_rep mf L
+                        (BitMachine.fillContext (witness_ctx z w)
+                           (BitMachine.Build_LocalState (@Translate.encode (Word.Word (S (S (S (S (S (S O))))))) a)
+                              (BitMachine.fullWriteFrame
+                                 (@Translate.encode
+                                    (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+                                    (@jet_increment64_wide_word.increment64_spec Alg.CoreFunSem a))))))
+                     (and
+                        (BitMachine.runProgram (@jet_increment64_wide_word.increment64_spec Translate.Naive.translate)
+                           (BitMachine.Running (witness_state a z w))
+                           (BitMachine.Running
+                              (BitMachine.fillContext (witness_ctx z w)
+                                 (BitMachine.Build_LocalState
+                                    (@Translate.encode (Word.Word (S (S (S (S (S (S O))))))) a)
+                                    (BitMachine.fullWriteFrame
+                                       (@Translate.encode
+                                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+                                          (@jet_increment64_wide_word.increment64_spec Alg.CoreFunSem a)))))))
+                        (and
+                           (@eq (list BitMachine.ReadFrame) (BitMachine.inactiveReadFrames (witness_ctx z w))
+                              (@cons BitMachine.ReadFrame
+                                 (BitMachine.Build_ReadFrame (@nil BitMachine.Cell)
+                                    (@Translate.encode (Word.Word (S (S (S (S (S (S O))))))) z))
+                                 (@nil BitMachine.ReadFrame)))
+                           (@eq (list BitMachine.WriteFrame) (BitMachine.inactiveWriteFrames (witness_ctx z w))
+                              (@cons BitMachine.WriteFrame
+                                 (BitMachine.Build_WriteFrame
+                                    (@List.rev BitMachine.Cell
+                                       (@Translate.encode (Word.Word (S (S (S (S (S (S O))))))) w)) O)
+                                 (@nil BitMachine.WriteFrame)))))))))

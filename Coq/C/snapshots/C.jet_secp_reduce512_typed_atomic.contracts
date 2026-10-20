@@ -1,0 +1,153 @@
+### C.jet_secp_reduce512_typed_atomic.stage_symbolic_source
+stage_symbolic_source
+     : forall (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int),
+       @eq (list jet_sx_expr.sx) (jet_secp_reduce512_typed_stage.reduce512_typed_stage_limbs digits m6)
+         (stage_symbolic_outputs digits m6)
+### C.jet_secp_reduce512_typed_atomic.stage_m6_den
+stage_m6_den
+     : forall (m6 : Integers.Int.int) (rho : forall _ : nat, Integers.Int64.int)
+         (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho beta (stage_sy_m6 m6)) (Values.Vlong (stage_ma_m6 m6))
+### C.jet_secp_reduce512_typed_atomic.stage_columns_rep
+stage_columns_rep
+     : forall (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int)
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       and (jet_secp_reduce512_symbolic.wide_rep rho beta (stage_sy0 digits) (stage_ma0 digits))
+         (and (jet_secp_reduce512_symbolic.wide_rep rho beta (stage_sy1 digits) (stage_ma1 digits))
+            (and (jet_secp_reduce512_symbolic.wide_rep rho beta (stage_sy2 digits m6) (stage_ma2 digits m6))
+               (jet_secp_reduce512_symbolic.wide_rep rho beta (stage_sy3 digits m6) (stage_ma3 digits m6))))
+### C.jet_secp_reduce512_typed_atomic.stage_outputs_machine
+stage_outputs_machine
+     : forall (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int)
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho beta)
+            (jet_secp_reduce512_typed_stage.reduce512_typed_stage_limbs digits m6))
+         (@List.map Integers.Int64.int Values.val Values.Vlong (stage_machine_outputs digits m6))
+### C.jet_secp_reduce512_typed_atomic.stage_sy_m6
+stage_sy_m6 =
+fun m6 : Integers.Int.int => jet_sx_expr.XI2L Ctypes.Unsigned (jet_sx_expr.XI m6)
+     : forall _ : Integers.Int.int, jet_sx_expr.sx
+
+Arguments stage_sy_m6 m6
+### C.jet_secp_reduce512_typed_atomic.stage_ma_m6
+stage_ma_m6 =
+fun m6 : Integers.Int.int => Integers.Int64.repr (Integers.Int.unsigned m6)
+     : forall _ : Integers.Int.int, Integers.Int64.int
+
+Arguments stage_ma_m6 m6
+### C.jet_secp_reduce512_typed_atomic.stage_sy0
+stage_sy0 =
+fun digits : forall _ : nat, Integers.Int64.int =>
+jet_secp_reduce512_symbolic.wide_symbolic_muladd_fast (jet_sx_expr.XL (digits (S (S (S (S O))))))
+  jet_secp_reduce512_symbolic.wide_symbolic_C0
+  (jet_secp_reduce512_symbolic.wide_symbolic_from_word (jet_sx_expr.XL (digits O)))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments stage_sy0 digits%function_scope
+### C.jet_secp_reduce512_typed_atomic.stage_sy1
+stage_sy1 =
+fun digits : forall _ : nat, Integers.Int64.int =>
+jet_secp_reduce512_symbolic.wide_symbolic_muladd (jet_sx_expr.XL (digits (S (S (S (S O))))))
+  jet_secp_reduce512_symbolic.wide_symbolic_C1
+  (jet_secp_reduce512_symbolic.wide_symbolic_muladd (jet_sx_expr.XL (digits (S (S (S (S (S O)))))))
+     jet_secp_reduce512_symbolic.wide_symbolic_C0
+     (jet_secp_reduce512_symbolic.wide_symbolic_sumadd_fast (jet_sx_expr.XL (digits (S O)))
+        (jet_secp_reduce512_symbolic.wide_symbolic_extract_fast (stage_sy0 digits))))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments stage_sy1 digits%function_scope
+### C.jet_secp_reduce512_typed_atomic.stage_sy2
+stage_sy2 =
+fun (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int) =>
+jet_secp_reduce512_symbolic.wide_symbolic_sumadd (jet_sx_expr.XL (digits (S (S (S (S O))))))
+  (jet_secp_reduce512_symbolic.wide_symbolic_muladd (jet_sx_expr.XL (digits (S (S (S (S (S O)))))))
+     jet_secp_reduce512_symbolic.wide_symbolic_C1
+     (jet_secp_reduce512_symbolic.wide_symbolic_muladd (stage_sy_m6 m6) jet_secp_reduce512_symbolic.wide_symbolic_C0
+        (jet_secp_reduce512_symbolic.wide_symbolic_sumadd (jet_sx_expr.XL (digits (S (S O))))
+           (jet_secp_reduce512_symbolic.wide_symbolic_extract (stage_sy1 digits)))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int),
+       jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments stage_sy2 digits%function_scope m6
+### C.jet_secp_reduce512_typed_atomic.stage_sy3
+stage_sy3 =
+fun (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int) =>
+jet_secp_reduce512_symbolic.wide_symbolic_sumadd_fast (jet_sx_expr.XL (digits (S (S (S (S (S O)))))))
+  (jet_secp_reduce512_symbolic.wide_symbolic_muladd_fast (stage_sy_m6 m6) jet_secp_reduce512_symbolic.wide_symbolic_C1
+     (jet_secp_reduce512_symbolic.wide_symbolic_sumadd_fast (jet_sx_expr.XL (digits (S (S (S O)))))
+        (jet_secp_reduce512_symbolic.wide_symbolic_extract (stage_sy2 digits m6))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int),
+       jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments stage_sy3 digits%function_scope m6
+### C.jet_secp_reduce512_typed_atomic.stage_symbolic_outputs
+stage_symbolic_outputs =
+fun (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int) =>
+@cons jet_sx_expr.sx (jet_secp_scalar_mul512_symbolic.sc_lo (stage_sy0 digits))
+  (@cons jet_sx_expr.sx (jet_secp_scalar_mul512_symbolic.sc_lo (stage_sy1 digits))
+     (@cons jet_sx_expr.sx (jet_secp_scalar_mul512_symbolic.sc_lo (stage_sy2 digits m6))
+        (@cons jet_sx_expr.sx (jet_secp_scalar_mul512_symbolic.sc_lo (stage_sy3 digits m6))
+           (@cons jet_sx_expr.sx
+              (jet_sx_expr.XI2L Ctypes.Unsigned
+                 (jet_sx_expr.XL2I
+                    (jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_hi (stage_sy3 digits m6))
+                       (stage_sy_m6 m6)))) (@nil jet_sx_expr.sx)))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), list jet_sx_expr.sx
+
+Arguments stage_symbolic_outputs digits%function_scope m6
+### C.jet_secp_reduce512_typed_atomic.stage_ma0
+stage_ma0 =
+fun digits : forall _ : nat, Integers.Int64.int =>
+jet_secp_reduce512_wide.wide_muladd_fast (digits (S (S (S (S O))))) jet_secp_reduce512_symbolic.wide_C0
+  (jet_secp_reduce512_wide.wide_from_word (digits O))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_reduce512_wide.wide_column
+
+Arguments stage_ma0 digits%function_scope
+### C.jet_secp_reduce512_typed_atomic.stage_ma1
+stage_ma1 =
+fun digits : forall _ : nat, Integers.Int64.int =>
+jet_secp_reduce512_wide.wide_muladd (digits (S (S (S (S O))))) jet_secp_reduce512_symbolic.wide_C1
+  (jet_secp_reduce512_wide.wide_muladd (digits (S (S (S (S (S O)))))) jet_secp_reduce512_symbolic.wide_C0
+     (jet_secp_reduce512_wide.wide_sumadd_fast (digits (S O))
+        (jet_secp_reduce512_wide.wide_extract_fast (stage_ma0 digits))))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_reduce512_wide.wide_column
+
+Arguments stage_ma1 digits%function_scope
+### C.jet_secp_reduce512_typed_atomic.stage_ma2
+stage_ma2 =
+fun (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int) =>
+jet_secp_reduce512_wide.wide_sumadd (digits (S (S (S (S O)))))
+  (jet_secp_reduce512_wide.wide_muladd (digits (S (S (S (S (S O)))))) jet_secp_reduce512_symbolic.wide_C1
+     (jet_secp_reduce512_wide.wide_muladd (stage_ma_m6 m6) jet_secp_reduce512_symbolic.wide_C0
+        (jet_secp_reduce512_wide.wide_sumadd (digits (S (S O)))
+           (jet_secp_reduce512_wide.wide_extract (stage_ma1 digits)))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), jet_secp_reduce512_wide.wide_column
+
+Arguments stage_ma2 digits%function_scope m6
+### C.jet_secp_reduce512_typed_atomic.stage_ma3
+stage_ma3 =
+fun (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int) =>
+jet_secp_reduce512_wide.wide_sumadd_fast (digits (S (S (S (S (S O))))))
+  (jet_secp_reduce512_wide.wide_muladd_fast (stage_ma_m6 m6) jet_secp_reduce512_symbolic.wide_C1
+     (jet_secp_reduce512_wide.wide_sumadd_fast (digits (S (S (S O))))
+        (jet_secp_reduce512_wide.wide_extract (stage_ma2 digits m6))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), jet_secp_reduce512_wide.wide_column
+
+Arguments stage_ma3 digits%function_scope m6
+### C.jet_secp_reduce512_typed_atomic.stage_machine_outputs
+stage_machine_outputs =
+fun (digits : forall _ : nat, Integers.Int64.int) (m6 : Integers.Int.int) =>
+@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (stage_ma0 digits))
+  (@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (stage_ma1 digits))
+     (@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (stage_ma2 digits m6))
+        (@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (stage_ma3 digits m6))
+           (@cons Integers.Int64.int
+              (Integers.Int64.repr
+                 (Integers.Int.unsigned
+                    (Integers.Int64.loword
+                       (Integers.Int64.add (jet_secp_reduce512_wide.whi (stage_ma3 digits m6)) (stage_ma_m6 m6)))))
+              (@nil Integers.Int64.int)))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), list Integers.Int64.int
+
+Arguments stage_machine_outputs digits%function_scope m6

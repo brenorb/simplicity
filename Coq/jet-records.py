@@ -24,6 +24,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.dont_write_bytecode = True
+
 COQ = Path(__file__).resolve().parent
 SNAPSHOTS = COQ / "C/snapshots"
 THEOREMS = COQ / "C/jet_public_theorems.txt"
@@ -69,7 +71,7 @@ def script(kind, module, entries):
         lines += ["Set Printing All.", "Set Printing Width 120."]
     for what, name in entries:
         key = f"{module}.{name}"
-        lines.append(f'Goal True. idtac "{MARK}{key}". exact I. Qed.')
+        lines.append(f'Goal Coq.Init.Logic.True. idtac "{MARK}{key}". constructor. Qed.')
         if kind == "assumptions":
             lines.append(f"Print Assumptions {key}.")
         elif what == "theorem":

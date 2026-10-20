@@ -1,0 +1,181 @@
+### C.jet_timelock_spec.parse_lock_spec_parametric
+parse_lock_spec_parametric
+     : @Alg.Core.Parametric (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (@parse_lock_spec)
+### C.jet_timelock_spec.parse_lock_spec_numeric
+parse_lock_spec_numeric
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       @eq (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+         (@parse_lock_spec Alg.CoreFunSem x)
+         match
+           BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)
+             (BinNums.Zpos
+                (BinNums.xO
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xI
+                                           (BinNums.xO
+                                              (BinNums.xI
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xI
+                                                          (BinNums.xI
+                                                             (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))))))))))
+           return (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+         with
+         | true =>
+             @inl (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+               (prod
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))) x
+         | false =>
+             @inr
+               (prod
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                  (prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S O))))))) x
+         end
+### C.jet_timelock_spec.parse_lock_int64_denotes
+parse_lock_int64_denotes
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)),
+       @eq
+         (sum (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32)))
+            (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32))))
+         match
+           parse_lock_tag r
+           return
+             (sum (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32)))
+                (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32))))
+         with
+         | true =>
+             @inr (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32)))
+               (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32)))
+               (jet_wide_spec.decode_wide jet_wide.W32
+                  (Integers.Int64.zero_ext
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) r))
+         | false =>
+             @inl (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32)))
+               (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32)))
+               (jet_wide_spec.decode_wide jet_wide.W32
+                  (Integers.Int64.zero_ext
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) r))
+         end (@parse_lock_spec Alg.CoreFunSem x)
+### C.jet_timelock_spec.encode_equal_sum_word
+encode_equal_sum_word
+     : forall (n : nat) (tag : bool) (x : Ty.tySem (Word.Word n)),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Ty.Sum (Word.Word n) (Word.Word n))
+            match tag return (Ty.tySem (Ty.Sum (Word.Word n) (Word.Word n))) with
+            | true =>
+                @inr
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word n)) (Ty.tySem (Word.Word n)) x
+            | false =>
+                @inl (Ty.tySem (Word.Word n))
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word n)) x
+            end)
+         (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+            (@pair (sum unit unit) (Ty.tySem (Word.Word n)) (Bit.fromBool tag) x))
+### C.jet_timelock_spec.parse_lock_threshold
+parse_lock_threshold =
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...)))))))))))))))))))))))
+     : Ty.tySem (Word.Word (S (S (S (S (S O))))))
+### C.jet_timelock_spec.parse_lock_spec
+parse_lock_spec =
+fun term : Alg.Core.Algebra =>
+@TC.comp (Word.Word (S (S (S (S (S O)))))) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+  (Ty.Sum (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+  (@TC.pair (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))) term
+     (@TC.comp (Word.Word (S (S (S (S (S O))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Ty.Sum Ty.Unit Ty.Unit) term
+        (@TC.pair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+           term (@TC.iden (Word.Word (S (S (S (S (S O)))))) term)
+           (@Alg.scribe (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) parse_lock_threshold term))
+        (@jet_order_spec.lt_word_spec term (S (S (S (S (S O))))))) (@TC.iden (Word.Word (S (S (S (S (S O)))))) term))
+  (@Bit.cond (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) term
+     (@TC.injl (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+        term (@TC.iden (Word.Word (S (S (S (S (S O)))))) term))
+     (@TC.injr (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+        term (@TC.iden (Word.Word (S (S (S (S (S O)))))) term)))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+
+Arguments parse_lock_spec {term}
+### C.jet_timelock_spec.parse_lock_tag
+parse_lock_tag =
+fun r : Integers.Int64.int =>
+negb
+  (Integers.Int64.ltu r
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI ...))))))))))))))))))))))
+     : forall _ : Integers.Int64.int, bool
+
+Arguments parse_lock_tag r

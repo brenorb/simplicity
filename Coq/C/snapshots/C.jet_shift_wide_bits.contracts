@@ -1,0 +1,9 @@
+### C.jet_shift_wide_bits.shift_wide_count_result_bits
+shift_wide_count_result_bits
+     : forall (s : jet_wide.wide_size) (right : bool) (x : Ty.tySem (Word.Word (jet_wide.wide_log s)))
+         (r : Integers.Int64.int) (a : Integers.Int.int) (j : BinNums.Z)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x))
+         (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j (jet_wide.wide_bits s))),
+       @eq bool (Integers.Int64.testbit (jet_shift_wide_helper_exec.shift_wide_count_result s right r a) j)
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x)
+            (BinInt.Z.sub j (jet_rotate_control_word.rotate_signed_amount right (Integers.Int.unsigned a))))

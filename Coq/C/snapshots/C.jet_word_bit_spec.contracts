@@ -1,0 +1,43 @@
+### C.jet_word_bit_spec.word_bit_spec_parametric
+word_bit_spec_parametric
+     : forall n i : nat, @Alg.Core.Parametric (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) (@word_bit_spec n i)
+### C.jet_word_bit_spec.word_count_power
+word_count_power
+     : forall n : nat, @eq BinNums.Z (Zpower.two_power_nat n) (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) n))
+### C.jet_word_bit_spec.word_bit_spec_numeric
+word_bit_spec_numeric
+     : forall (n i : nat) (x : Ty.tySem (Word.Word n)) (_ : lt i (PeanoNat.Nat.pow (S (S O)) n)),
+       @eq bool (Bit.toBool (@word_bit_spec n i Alg.CoreFunSem x))
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (BinInt.Z.of_nat i))
+### C.jet_word_bit_spec.word_bit_spec
+word_bit_spec =
+fix word_bit_spec (n i : nat) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) :=
+  match n as k return (Alg.Core.domain term (Word.Word k) (Ty.Sum Ty.Unit Ty.Unit)) with
+  | O => @BC.iden (Word.Word O) term
+  | S k =>
+      match
+        PeanoNat.Nat.ltb i (PeanoNat.Nat.pow (S (S O)) k)
+        return (Alg.Core.domain term (Word.Word (S k)) (Ty.Sum Ty.Unit Ty.Unit))
+      with
+      | true =>
+          @BC.drop
+            ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                match n0 return Ty.Ty with
+                | O => X
+                | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                end) (Ty.Sum Ty.Unit Ty.Unit) k) (Word.Word k) (Ty.Sum Ty.Unit Ty.Unit) term
+            (word_bit_spec k i term)
+      | false =>
+          @BC.take (Word.Word k)
+            ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                match n0 return Ty.Ty with
+                | O => X
+                | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                end) (Ty.Sum Ty.Unit Ty.Unit) k) (Ty.Sum Ty.Unit Ty.Unit) term
+            (word_bit_spec k (Nat.sub i (PeanoNat.Nat.pow (S (S O)) k)) term)
+      end
+  end
+     : forall (n _ : nat) (term : Alg.Core.Algebra), Alg.Core.domain term (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments word_bit_spec (n i)%nat_scope {term}

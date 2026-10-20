@@ -1,0 +1,179 @@
+### C.jet_buffer_chunks.buffer_byte_chunks_counts
+buffer_byte_chunks_counts
+     : forall (depth : nat) (x : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) depth)),
+       @eq (list nat)
+         (@List.map (prod nat (option (list (Ty.tySem (Word.Word (S (S (S O)))))))) nat
+            (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))))
+            (jet_buffer_input.buffer_byte_chunks depth x)) (buffer_byte_counts depth)
+### C.jet_buffer_chunks.uint8_array_before_preserved
+uint8_array_before_preserved
+     : forall (m mf : Memory.Mem.mem) (bo : Values.block) (output : BinNums.Z) (xs : list Integers.Int.int)
+         (next : BinNums.Z)
+         (_ : BinInt.Z.le (BinInt.Z.add output (BinInt.Z.of_nat (@length Integers.Int.int xs))) next)
+         (_ : forall (ofs : BinNums.Z) (_ : BinInt.Z.le (BinInt.Z.add ofs (BinNums.Zpos BinNums.xH)) next),
+              @eq (option Values.val) (Memory.Mem.load AST.Mint8unsigned mf bo ofs)
+                (Memory.Mem.load AST.Mint8unsigned m bo ofs)) (_ : jet_read8s_layout.uint8_array_at m bo output xs),
+       jet_read8s_layout.uint8_array_at mf bo output xs
+### C.jet_buffer_chunks.buffer_byte_chunks_sized
+buffer_byte_chunks_sized
+     : forall (depth : nat) (x : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) depth)),
+       byte_chunks_sized (jet_buffer_input.buffer_byte_chunks depth x)
+### C.jet_buffer_chunks.buffer63_chunks_chain
+buffer63_chunks_chain
+     : forall x : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))),
+       jet_write_buffer8_empty_run.buffer8_empty_chain
+         (@List.map (prod nat (option (list (Ty.tySem (Word.Word (S (S (S O)))))))) BinNums.Z
+            (fun c : prod nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) =>
+             BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c))
+            (jet_buffer_input.buffer_byte_chunks (S (S (S (S (S O))))) x))
+### C.jet_buffer_chunks.byte_chunks_width_counts
+byte_chunks_width_counts
+     : forall chunks : list jet_buffer_input.byte_chunk,
+       @eq BinNums.Z (byte_chunks_width chunks)
+         (jet_write_buffer8_empty_cells.buffer8_empty_bits
+            (@List.map (prod nat (option (list (Ty.tySem (Word.Word (S (S (S O)))))))) BinNums.Z
+               (fun c : prod nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) =>
+                BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)) chunks))
+### C.jet_buffer_chunks.buffer63_chunks_width
+buffer63_chunks_width
+     : forall x : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))),
+       @eq BinNums.Z (byte_chunks_width (jet_buffer_input.buffer_byte_chunks (S (S (S (S (S O))))) x))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_buffer_chunks.byte_chunks_capacity_counts
+byte_chunks_capacity_counts
+     : forall chunks : list jet_buffer_input.byte_chunk,
+       @eq nat (byte_chunks_capacity chunks)
+         (@List.fold_right nat nat PeanoNat.Nat.add O
+            (@List.map (prod nat (option (list (Ty.tySem (Word.Word (S (S (S O)))))))) nat
+               (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O)))))))) chunks))
+### C.jet_buffer_chunks.buffer63_chunks_capacity
+buffer63_chunks_capacity
+     : forall x : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))),
+       @eq nat (byte_chunks_capacity (jet_buffer_input.buffer_byte_chunks (S (S (S (S (S O))))) x))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+### C.jet_buffer_chunks.byte_chunk_values_bound
+byte_chunk_values_bound
+     : forall (c : prod nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))))
+         (_ : match @snd nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c return Prop with
+              | Some xs =>
+                  @eq nat (@length (Ty.tySem (Word.Word (S (S (S O))))) xs)
+                    (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)
+              | None => True
+              end),
+       le (@length (Ty.tySem (Word.Word (S (S (S O))))) (byte_chunk_values c))
+         (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)
+### C.jet_buffer_chunks.byte_chunks_values_bound
+byte_chunks_values_bound
+     : forall (chunks : list jet_buffer_input.byte_chunk) (_ : byte_chunks_sized chunks),
+       le (@length (Ty.tySem (Word.Word (S (S (S O))))) (byte_chunks_values chunks)) (byte_chunks_capacity chunks)
+### C.jet_buffer_chunks.encoded_byte_list_length
+encoded_byte_list_length
+     : forall xs : list (Ty.tySem (Word.Word (S (S (S O))))),
+       @eq nat
+         (@length BitMachine.Cell
+            (@List.concat BitMachine.Cell
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) (list BitMachine.Cell)
+                  (@Translate.encode (Word.Word (S (S (S O))))) xs)))
+         (Nat.mul (S (S (S (S (S (S (S (S O)))))))) (@length (Ty.tySem (Word.Word (S (S (S O))))) xs))
+### C.jet_buffer_chunks.byte_chunk_cells_width
+byte_chunk_cells_width
+     : forall (c : prod nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))))
+         (_ : match @snd nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c return Prop with
+              | Some xs =>
+                  @eq nat (@length (Ty.tySem (Word.Word (S (S (S O))))) xs)
+                    (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)
+              | None => True
+              end),
+       @eq BinNums.Z (BinInt.Z.of_nat (@length BitMachine.Cell (jet_buffer_input.byte_chunk_cells c)))
+         (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c))))
+### C.jet_buffer_chunks.byte_chunks_cells_width
+byte_chunks_cells_width
+     : forall (chunks : list jet_buffer_input.byte_chunk) (_ : byte_chunks_sized chunks),
+       @eq BinNums.Z
+         (BinInt.Z.of_nat
+            (@length BitMachine.Cell
+               (@List.concat BitMachine.Cell
+                  (@List.map jet_buffer_input.byte_chunk (list BitMachine.Cell) jet_buffer_input.byte_chunk_cells
+                     chunks)))) (byte_chunks_width chunks)
+### C.jet_buffer_chunks.uint8_array_at_app
+uint8_array_at_app
+     : forall (m : Memory.Mem.mem) (bo : Values.block) (output : BinNums.Z) (xs ys : list Integers.Int.int),
+       iff (jet_read8s_layout.uint8_array_at m bo output (@app Integers.Int.int xs ys))
+         (and (jet_read8s_layout.uint8_array_at m bo output xs)
+            (jet_read8s_layout.uint8_array_at m bo
+               (BinInt.Z.add output (BinInt.Z.of_nat (@length Integers.Int.int xs))) ys))
+### C.jet_buffer_chunks.byte_chunk_values
+byte_chunk_values =
+fun chunk : jet_buffer_input.byte_chunk =>
+match
+  @snd nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) chunk
+  return (list (Ty.tySem (Word.Word (S (S (S O))))))
+with
+| Some xs => xs
+| None => @nil (Ty.tySem (Word.Word (S (S (S O)))))
+end
+     : forall _ : jet_buffer_input.byte_chunk, list (Ty.tySem (Word.Word (S (S (S O)))))
+
+Arguments byte_chunk_values chunk
+### C.jet_buffer_chunks.byte_chunks_values
+byte_chunks_values =
+fix byte_chunks_values (chunks : list jet_buffer_input.byte_chunk) : list (Ty.tySem (Word.Word (S (S (S O))))) :=
+  match chunks return (list (Ty.tySem (Word.Word (S (S (S O)))))) with
+  | nil => @nil (Ty.tySem (Word.Word (S (S (S O)))))
+  | cons c cs => @app (Ty.tySem (Word.Word (S (S (S O))))) (byte_chunk_values c) (byte_chunks_values cs)
+  end
+     : forall _ : list jet_buffer_input.byte_chunk, list (Ty.tySem (Word.Word (S (S (S O)))))
+
+Arguments byte_chunks_values chunks%list_scope
+### C.jet_buffer_chunks.byte_chunks_capacity
+byte_chunks_capacity =
+fix byte_chunks_capacity (chunks : list jet_buffer_input.byte_chunk) : nat :=
+  match chunks return nat with
+  | nil => O
+  | cons c cs => Nat.add (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c) (byte_chunks_capacity cs)
+  end
+     : forall _ : list jet_buffer_input.byte_chunk, nat
+
+Arguments byte_chunks_capacity chunks%list_scope
+### C.jet_buffer_chunks.byte_chunks_width
+byte_chunks_width =
+fix byte_chunks_width (chunks : list jet_buffer_input.byte_chunk) : BinNums.Z :=
+  match chunks return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons c cs =>
+      BinInt.Z.add
+        (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+              (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c))))
+        (byte_chunks_width cs)
+  end
+     : forall _ : list jet_buffer_input.byte_chunk, BinNums.Z
+
+Arguments byte_chunks_width chunks%list_scope
+### C.jet_buffer_chunks.byte_chunks_sized
+byte_chunks_sized =
+@List.Forall jet_buffer_input.byte_chunk
+  (fun chunk : jet_buffer_input.byte_chunk =>
+   match @snd nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) chunk return Prop with
+   | Some xs =>
+       @eq nat (@length (Ty.tySem (Word.Word (S (S (S O))))) xs)
+         (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) chunk)
+   | None => True
+   end)
+     : forall _ : list jet_buffer_input.byte_chunk, Prop
+
+Arguments byte_chunks_sized _%list_scope
+### C.jet_buffer_chunks.buffer_byte_counts
+buffer_byte_counts =
+fix buffer_byte_counts (depth : nat) : list nat :=
+  match depth return (list nat) with
+  | O => @cons nat (S O) (@nil nat)
+  | S d => @cons nat (PeanoNat.Nat.pow (S (S O)) (S d)) (buffer_byte_counts d)
+  end
+     : forall _ : nat, list nat
+
+Arguments buffer_byte_counts depth%nat_scope

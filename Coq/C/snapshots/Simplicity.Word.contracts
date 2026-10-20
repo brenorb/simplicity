@@ -1,0 +1,159 @@
+### Simplicity.Word.zero
+zero =
+fix zero (n : nat) (term : Alg.Core.Algebra) {struct n} : Alg.Core.domain term Ty.Unit (Word n) :=
+  match n as n0 return (Alg.Core.domain term Ty.Unit (Word n0)) with
+  | O => @Bit.false Ty.Unit term
+  | S n0 => @Alg.Core.Combinators.pair Ty.Unit (Word n0) (Word n0) term (zero n0 term) (zero n0 term)
+  end
+     : forall (n : nat) (term : Alg.Core.Algebra), Alg.Core.domain term Ty.Unit (Word n)
+
+Arguments zero {n}%nat_scope {term}
+### Simplicity.Word.fill
+fill =
+fix fill (C X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) (t : Alg.Core.domain term C X) {struct n} :
+    Alg.Core.domain term C (Vector X n) :=
+  match n as n0 return (Alg.Core.domain term C (Vector X n0)) with
+  | O => t
+  | S n0 => @build_fill C (Vector X n0) term (fill C X n0 term t)
+  end
+     : forall (C X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) (_ : Alg.Core.domain term C X),
+       Alg.Core.domain term C (Vector X n)
+
+Arguments fill {C X}%ty_scope {n}%nat_scope {term} t
+### Simplicity.Word.bitwiseTri
+bitwiseTri =
+fix bitwiseTri
+  (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) (op : Alg.Core.domain term (Ty.Prod X (Ty.Prod X X)) X) {struct n} :
+    Alg.Core.domain term (Ty.Prod (Vector X n) (Ty.Prod (Vector X n) (Vector X n))) (Vector X n) :=
+  match
+    n as n0 return (Alg.Core.domain term (Ty.Prod (Vector X n0) (Ty.Prod (Vector X n0) (Vector X n0))) (Vector X n0))
+  with
+  | O => op
+  | S n0 => @buildBitwiseTri (Vector X n0) term (bitwiseTri X n0 term op)
+  end
+     : forall (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) (_ : Alg.Core.domain term (Ty.Prod X (Ty.Prod X X)) X),
+       Alg.Core.domain term (Ty.Prod (Vector X n) (Ty.Prod (Vector X n) (Vector X n))) (Vector X n)
+
+Arguments bitwiseTri {X}%ty_scope {n}%nat_scope {term} op
+### Simplicity.Word.buildBitwiseTri
+buildBitwiseTri =
+fun (W : Ty.Ty) (term : Alg.Core.Algebra) (rec : Alg.Core.domain term (Ty.Prod W (Ty.Prod W W)) W) =>
+@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W))) W W term
+  (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W)))
+     (Ty.Prod W (Ty.Prod W W)) W term
+     (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W))) W
+        (Ty.Prod W W) term
+        (@Alg.Core.Combinators.take (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W)) W term
+           (@Alg.Core.Combinators.take W W W term (@Alg.Core.Combinators.iden W term)))
+        (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W))) W W term
+           (@Alg.Core.Combinators.drop (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W)) W term
+              (@Alg.Core.Combinators.take (Ty.Prod W W) (Ty.Prod W W) W term
+                 (@Alg.Core.Combinators.take W W W term (@Alg.Core.Combinators.iden W term))))
+           (@Alg.Core.Combinators.drop (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W)) W term
+              (@Alg.Core.Combinators.drop (Ty.Prod W W) (Ty.Prod W W) W term
+                 (@Alg.Core.Combinators.take W W W term (@Alg.Core.Combinators.iden W term)))))) rec)
+  (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W)))
+     (Ty.Prod W (Ty.Prod W W)) W term
+     (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W))) W
+        (Ty.Prod W W) term
+        (@Alg.Core.Combinators.take (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W)) W term
+           (@Alg.Core.Combinators.drop W W W term (@Alg.Core.Combinators.iden W term)))
+        (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W))) W W term
+           (@Alg.Core.Combinators.drop (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W)) W term
+              (@Alg.Core.Combinators.take (Ty.Prod W W) (Ty.Prod W W) W term
+                 (@Alg.Core.Combinators.drop W W W term (@Alg.Core.Combinators.iden W term))))
+           (@Alg.Core.Combinators.drop (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W)) W term
+              (@Alg.Core.Combinators.drop (Ty.Prod W W) (Ty.Prod W W) W term
+                 (@Alg.Core.Combinators.drop W W W term (@Alg.Core.Combinators.iden W term)))))) rec)
+     : forall (W : Ty.Ty) (term : Alg.Core.Algebra) (_ : Alg.Core.domain term (Ty.Prod W (Ty.Prod W W)) W),
+       Alg.Core.domain term (Ty.Prod (Ty.Prod W W) (Ty.Prod (Ty.Prod W W) (Ty.Prod W W))) (Ty.Prod W W)
+
+Arguments buildBitwiseTri {W}%ty_scope {term} rec
+### Simplicity.Word.build_full_left_shift1
+build_full_left_shift1 =
+fun (X W : Ty.Ty) (term : Alg.Core.Algebra) (rec : Alg.Core.domain term (Ty.Prod W X) (Ty.Prod X W)) =>
+@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod W W) X) (Ty.Prod W (Ty.Prod X W)) (Ty.Prod X (Ty.Prod W W)) term
+  (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod W W) X) W (Ty.Prod X W) term
+     (@Alg.Core.Combinators.take (Ty.Prod W W) X W term
+        (@Alg.Core.Combinators.take W W W term (@Alg.Core.Combinators.iden W term)))
+     (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod W W) X) (Ty.Prod W X) (Ty.Prod X W) term
+        (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod W W) X) W X term
+           (@Alg.Core.Combinators.take (Ty.Prod W W) X W term
+              (@Alg.Core.Combinators.drop W W W term (@Alg.Core.Combinators.iden W term)))
+           (@Alg.Core.Combinators.drop (Ty.Prod W W) X X term (@Alg.Core.Combinators.iden X term))) rec))
+  (@Alg.Core.Combinators.comp (Ty.Prod W (Ty.Prod X W)) (Ty.Prod (Ty.Prod X W) W) (Ty.Prod X (Ty.Prod W W)) term
+     (@Alg.Core.Combinators.pair (Ty.Prod W (Ty.Prod X W)) (Ty.Prod X W) W term
+        (@Alg.Core.Combinators.comp (Ty.Prod W (Ty.Prod X W)) (Ty.Prod W X) (Ty.Prod X W) term
+           (@Alg.Core.Combinators.pair (Ty.Prod W (Ty.Prod X W)) W X term
+              (@Alg.Core.Combinators.take W (Ty.Prod X W) W term (@Alg.Core.Combinators.iden W term))
+              (@Alg.Core.Combinators.drop W (Ty.Prod X W) X term
+                 (@Alg.Core.Combinators.take X W X term (@Alg.Core.Combinators.iden X term)))) rec)
+        (@Alg.Core.Combinators.drop W (Ty.Prod X W) W term
+           (@Alg.Core.Combinators.drop X W W term (@Alg.Core.Combinators.iden W term))))
+     (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod X W) W) X (Ty.Prod W W) term
+        (@Alg.Core.Combinators.take (Ty.Prod X W) W X term
+           (@Alg.Core.Combinators.take X W X term (@Alg.Core.Combinators.iden X term)))
+        (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod X W) W) W W term
+           (@Alg.Core.Combinators.take (Ty.Prod X W) W W term
+              (@Alg.Core.Combinators.drop X W W term (@Alg.Core.Combinators.iden W term)))
+           (@Alg.Core.Combinators.drop (Ty.Prod X W) W W term (@Alg.Core.Combinators.iden W term)))))
+     : forall (X W : Ty.Ty) (term : Alg.Core.Algebra) (_ : Alg.Core.domain term (Ty.Prod W X) (Ty.Prod X W)),
+       Alg.Core.domain term (Ty.Prod (Ty.Prod W W) X) (Ty.Prod X (Ty.Prod W W))
+
+Arguments build_full_left_shift1 {X W}%ty_scope {term} rec
+### Simplicity.Word.full_left_shift1
+full_left_shift1 =
+fix full_left_shift1 (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Ty.Prod (Vector X n) X) (Ty.Prod X (Vector X n)) :=
+  match n as n0 return (Alg.Core.domain term (Ty.Prod (Vector X n0) X) (Ty.Prod X (Vector X n0))) with
+  | O => @Alg.Core.Combinators.iden (Ty.Prod (Vector X O) X) term
+  | S n0 => @build_full_left_shift1 X (Vector X n0) term (full_left_shift1 X n0 term)
+  end
+     : forall (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Vector X n) X) (Ty.Prod X (Vector X n))
+
+Arguments full_left_shift1 {X}%ty_scope {n}%nat_scope {term}
+### Simplicity.Word.build_full_right_shift1
+build_full_right_shift1 =
+fun (X W : Ty.Ty) (term : Alg.Core.Algebra) (rec : Alg.Core.domain term (Ty.Prod X W) (Ty.Prod W X)) =>
+@Alg.Core.Combinators.comp (Ty.Prod X (Ty.Prod W W)) (Ty.Prod (Ty.Prod W X) W) (Ty.Prod (Ty.Prod W W) X) term
+  (@Alg.Core.Combinators.pair (Ty.Prod X (Ty.Prod W W)) (Ty.Prod W X) W term
+     (@Alg.Core.Combinators.comp (Ty.Prod X (Ty.Prod W W)) (Ty.Prod X W) (Ty.Prod W X) term
+        (@Alg.Core.Combinators.pair (Ty.Prod X (Ty.Prod W W)) X W term
+           (@Alg.Core.Combinators.take X (Ty.Prod W W) X term (@Alg.Core.Combinators.iden X term))
+           (@Alg.Core.Combinators.drop X (Ty.Prod W W) W term
+              (@Alg.Core.Combinators.take W W W term (@Alg.Core.Combinators.iden W term)))) rec)
+     (@Alg.Core.Combinators.drop X (Ty.Prod W W) W term
+        (@Alg.Core.Combinators.drop W W W term (@Alg.Core.Combinators.iden W term))))
+  (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod W X) W) (Ty.Prod W (Ty.Prod W X)) (Ty.Prod (Ty.Prod W W) X) term
+     (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod W X) W) W (Ty.Prod W X) term
+        (@Alg.Core.Combinators.take (Ty.Prod W X) W W term
+           (@Alg.Core.Combinators.take W X W term (@Alg.Core.Combinators.iden W term)))
+        (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod W X) W) (Ty.Prod X W) (Ty.Prod W X) term
+           (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod W X) W) X W term
+              (@Alg.Core.Combinators.take (Ty.Prod W X) W X term
+                 (@Alg.Core.Combinators.drop W X X term (@Alg.Core.Combinators.iden X term)))
+              (@Alg.Core.Combinators.drop (Ty.Prod W X) W W term (@Alg.Core.Combinators.iden W term))) rec))
+     (@Alg.Core.Combinators.pair (Ty.Prod W (Ty.Prod W X)) (Ty.Prod W W) X term
+        (@Alg.Core.Combinators.pair (Ty.Prod W (Ty.Prod W X)) W W term
+           (@Alg.Core.Combinators.take W (Ty.Prod W X) W term (@Alg.Core.Combinators.iden W term))
+           (@Alg.Core.Combinators.drop W (Ty.Prod W X) W term
+              (@Alg.Core.Combinators.take W X W term (@Alg.Core.Combinators.iden W term))))
+        (@Alg.Core.Combinators.drop W (Ty.Prod W X) X term
+           (@Alg.Core.Combinators.drop W X X term (@Alg.Core.Combinators.iden X term)))))
+     : forall (X W : Ty.Ty) (term : Alg.Core.Algebra) (_ : Alg.Core.domain term (Ty.Prod X W) (Ty.Prod W X)),
+       Alg.Core.domain term (Ty.Prod X (Ty.Prod W W)) (Ty.Prod (Ty.Prod W W) X)
+
+Arguments build_full_right_shift1 {X W}%ty_scope {term} rec
+### Simplicity.Word.full_right_shift1
+full_right_shift1 =
+fix full_right_shift1 (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Ty.Prod X (Vector X n)) (Ty.Prod (Vector X n) X) :=
+  match n as n0 return (Alg.Core.domain term (Ty.Prod X (Vector X n0)) (Ty.Prod (Vector X n0) X)) with
+  | O => @Alg.Core.Combinators.iden (Ty.Prod X (Vector X O)) term
+  | S n0 => @build_full_right_shift1 X (Vector X n0) term (full_right_shift1 X n0 term)
+  end
+     : forall (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod X (Vector X n)) (Ty.Prod (Vector X n) X)
+
+Arguments full_right_shift1 {X}%ty_scope {n}%nat_scope {term}

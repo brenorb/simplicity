@@ -1,0 +1,46 @@
+### C.jet_secp_field_zero.field_zero_run_eq
+field_zero_run_eq
+     : @eq (option jet_sx_exec.res) field_zero_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone field_zero_state jet_sx_exec.ONormal))
+### C.jet_secp_field_zero.field_zero_return
+field_zero_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps field_zero_state))
+         (@Some jet_sx_expr.sx field_zero_ret)
+### C.jet_secp_field_zero.field_zero_regions
+field_zero_regions
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs field_zero_state)
+         jet_secp_local_regions.local_write_initial_regs
+### C.jet_secp_field_zero.field_zero_value
+field_zero_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout field_zero_ret)
+         (Values.Vint
+            match Integers.Int64.eq (field_or_value rho) Integers.Int64.zero return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_secp_field_zero.eval_field_zero_from_owned_region
+eval_field_zero_from_owned_region
+     : forall (m : Memory.Mem.mem) (layout : jet_sx_state.layout) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_sx_state.rep rho layout jet_secp_local_regions.local_write_initial_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_is_zero)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@nil Values.val)) Events.E0 mf
+               (Values.Vint
+                  match Integers.Int64.eq (field_or_value rho) Integers.Int64.zero return Integers.Int.int with
+                  | true => Integers.Int.one
+                  | false => Integers.Int.zero
+                  end))
+            (and (jet_sx_state.rep rho layout jet_secp_local_regions.local_write_initial_regs mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot layout
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape jet_secp_local_regions.local_write_initial_regs) b pos)) m mf)))

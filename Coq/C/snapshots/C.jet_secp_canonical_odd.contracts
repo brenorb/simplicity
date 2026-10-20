@@ -1,0 +1,28 @@
+### C.jet_secp_canonical_odd.canonical_fe_is_odd_numeric
+canonical_fe_is_odd_numeric
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq bool (Bit.toBool (@canonical_fe_is_odd Alg.CoreFunSem value))
+         (BinInt.Z.testbit
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value)) BinNums.Z0)
+### C.jet_secp_canonical_odd.field_low_limb_odd_value
+field_low_limb_odd_value
+     : forall value : BinNums.Z,
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.and
+               (Integers.Int64.repr
+                  (BinInt.Z.modulo value
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+               Integers.Int64.one)) (BinInt.Z.b2z (BinInt.Z.testbit value BinNums.Z0))
+### C.jet_secp_canonical_odd.canonical_fe_is_odd
+canonical_fe_is_odd =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (Ty.Sum Ty.Unit Ty.Unit) term (@jet_secp_canonical_normalize.canonical_fe_normalize term)
+  (@Word.rightmost (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S (S O)))))))) term)
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments canonical_fe_is_odd {term}

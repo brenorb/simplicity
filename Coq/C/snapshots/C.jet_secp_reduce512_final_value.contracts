@@ -1,0 +1,59 @@
+### C.jet_secp_reduce512_final_value.final_carry_one_no_overflow
+final_carry_one_no_overflow
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned carry) (BinNums.Zpos BinNums.xH))
+         (_ : BinInt.Z.lt (final_untruncated digits carry)
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order)),
+       @eq bool (jet_secp_scalar_overflow_flags.scalar_overflow_bool digits) false
+### C.jet_secp_reduce512_final_value.final_flag_bound
+final_flag_bound
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+         (_ : BinInt.Z.le (Integers.Int64.unsigned carry) (BinNums.Zpos BinNums.xH))
+         (_ : BinInt.Z.lt (final_untruncated digits carry)
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order)),
+       and (BinInt.Z.le BinNums.Z0 (jet_secp_reduce512_final_atomic.final_flag_integer digits carry))
+         (BinInt.Z.le (jet_secp_reduce512_final_atomic.final_flag_integer digits carry) (BinNums.Zpos BinNums.xH))
+### C.jet_secp_reduce512_final_value.final_flag_bool_value
+final_flag_bool_value
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+         (_ : BinInt.Z.le (Integers.Int64.unsigned carry) (BinNums.Zpos BinNums.xH))
+         (_ : BinInt.Z.lt (final_untruncated digits carry)
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order)),
+       @eq BinNums.Z (jet_secp_reduce512_final_atomic.final_flag_integer digits carry)
+         (jet_sx_zval.b2z (final_flag_bool digits carry))
+### C.jet_secp_reduce512_final_value.final_modulo_identity
+final_modulo_identity
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+         (_ : BinInt.Z.le (Integers.Int64.unsigned carry) (BinNums.Zpos BinNums.xH))
+         (_ : BinInt.Z.lt (final_untruncated digits carry)
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order)),
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (BinInt.Z.add (jet_secp_scalar_overflow_numeric.scalar_limb_value digits)
+               (BinInt.Z.mul (jet_secp_reduce512_final_atomic.final_flag_integer digits carry)
+                  jet_secp_reduce512_first_value.first_delta)) jet_secp_reduce512_fold_bounds.reduce512_radix)
+         (BinInt.Z.modulo (final_untruncated digits carry) jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_reduce512_final_value.final_suffix_numeric
+final_suffix_numeric
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : BinInt.Z.le (Integers.Int64.unsigned carry) (BinNums.Zpos BinNums.xH))
+         (_ : BinInt.Z.lt (final_untruncated digits carry)
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order)),
+       @eq BinNums.Z (jet_secp_reduce512_final_atomic.final_output_value digits carry rho beta)
+         (BinInt.Z.modulo (final_untruncated digits carry) jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_reduce512_final_value.final_untruncated
+final_untruncated =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) =>
+BinInt.Z.add (jet_secp_scalar_overflow_numeric.scalar_limb_value digits)
+  (BinInt.Z.mul jet_secp_reduce512_fold_bounds.reduce512_radix (Integers.Int64.unsigned carry))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), BinNums.Z
+
+Arguments final_untruncated digits%function_scope carry
+### C.jet_secp_reduce512_final_value.final_flag_bool
+final_flag_bool =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) =>
+BinInt.Z.eqb (jet_secp_reduce512_final_atomic.final_flag_integer digits carry) (BinNums.Zpos BinNums.xH)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments final_flag_bool digits%function_scope carry

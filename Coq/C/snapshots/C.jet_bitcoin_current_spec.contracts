@@ -1,0 +1,73 @@
+### C.jet_bitcoin_current_spec.bitcoin_assert_spec
+bitcoin_assert_spec =
+fun (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra) (A B : Ty.Ty)
+  (t : Bitcoin.PrimitiveBitcoin.Primitive.domain alg A (Ty.Sum Ty.Unit B)) =>
+@Alg.Core.Combinators.comp A (Ty.Prod (Ty.Sum Ty.Unit B) Ty.Unit) B
+  (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg)
+  (@Alg.Core.Combinators.pair A (Ty.Sum Ty.Unit B) Ty.Unit
+     (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg) t
+     (@Alg.Core.Combinators.unit A (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg)))
+  (@Alg.Assertion.Combinators.assertr Ty.Unit B Ty.Unit B
+     (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toAssertion alg) jet_assertion_spec.assertion_cmr_fail0
+     (@Alg.Core.Combinators.take B Ty.Unit B
+        (Alg.Assertion.toCore (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toAssertion alg))
+        (@Alg.Core.Combinators.iden B
+           (Alg.Assertion.toCore (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toAssertion alg)))))
+     : forall (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra) (A B : Ty.Ty)
+         (_ : Bitcoin.PrimitiveBitcoin.Primitive.domain alg A (Ty.Sum Ty.Unit B)),
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg A B
+
+Arguments bitcoin_assert_spec {alg} {A B}%ty_scope t
+### C.jet_bitcoin_current_spec.bitcoin_comp
+bitcoin_comp =
+fun (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra) (A B C : Ty.Ty)
+  (p : Bitcoin.PrimitiveBitcoin.Primitive.domain alg A B) (q : Bitcoin.PrimitiveBitcoin.Primitive.domain alg B C) =>
+@Alg.Core.Combinators.comp A B C (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg) p q
+     : forall (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra) (A B C : Ty.Ty)
+         (_ : Bitcoin.PrimitiveBitcoin.Primitive.domain alg A B)
+         (_ : Bitcoin.PrimitiveBitcoin.Primitive.domain alg B C), Bitcoin.PrimitiveBitcoin.Primitive.domain alg A C
+
+Arguments bitcoin_comp {alg} {A B C}%ty_scope p q
+### C.jet_bitcoin_current_spec.bitcoin_current_value_spec
+bitcoin_current_value_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@bitcoin_comp alg Ty.Unit (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S (S O)))))))
+  (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+     Bitcoin.Bitcoin.CurrentIndex)
+  (@bitcoin_assert_spec alg (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S (S O)))))))
+     (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) alg Bitcoin.Bitcoin.InputValue))
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+
+Arguments bitcoin_current_value_spec {alg}
+### C.jet_bitcoin_current_spec.bitcoin_current_sequence_spec
+bitcoin_current_sequence_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@bitcoin_comp alg Ty.Unit (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+  (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+     Bitcoin.Bitcoin.CurrentIndex)
+  (@bitcoin_assert_spec alg (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+     (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) alg Bitcoin.Bitcoin.InputSequence))
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments bitcoin_current_sequence_spec {alg}
+### C.jet_bitcoin_current_spec.bitcoin_current_prev_outpoint_spec
+bitcoin_current_prev_outpoint_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@bitcoin_comp alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+  (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+     Bitcoin.Bitcoin.CurrentIndex)
+  (@bitcoin_assert_spec alg (Word.Word (S (S (S (S (S O))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+     (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))) alg
+        Bitcoin.Bitcoin.InputPrevOutpoint))
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit
+         (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+
+Arguments bitcoin_current_prev_outpoint_spec {alg}

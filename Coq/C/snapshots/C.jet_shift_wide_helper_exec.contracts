@@ -1,0 +1,121 @@
+### C.jet_shift_wide_helper_exec.exec_shift_wide_payload_reader
+exec_shift_wide_payload_reader
+     : forall (s : jet_wide.wide_size) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (bs : Values.block) (sofs : Integers.Ptrofs.int) (r : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src le)
+                (@Some Values.val (Values.Vptr bs sofs)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function (jet_wide.wide_reader s))
+                (@cons Values.val (Values.Vptr bs sofs) (@nil Values.val)) Events.E0 mf (Values.Vlong r)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m
+         (jet_shift_wide_expr.shift_wide_payload_reader s) Events.E0
+         (@Maps.PTree.set Values.val jets._t'2 (Values.Vlong r) le) mf ClightBigstep.Out_normal
+### C.jet_shift_wide_helper_exec.shift_wide_fill_env_output
+shift_wide_fill_env_output
+     : forall (s : jet_wide.wide_size) (fill : bool) (r : Integers.Int64.int) (le : Maps.PTree.tree Values.val)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._output le) (@Some Values.val (Values.Vlong r))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets._output (shift_wide_fill_env s fill r le))
+         (@Some Values.val (Values.Vlong (shift_wide_maybe_fill s fill r)))
+### C.jet_shift_wide_helper_exec.shift_wide_fill_env_other
+shift_wide_fill_env_other
+     : forall (s : jet_wide.wide_size) (fill : bool) (r : Integers.Int64.int) (le : Maps.PTree.tree Values.val)
+         (id : AST.ident) (_ : not (@eq AST.ident id jets._output)),
+       @eq (option Values.val) (@Maps.PTree.get Values.val id (shift_wide_fill_env s fill r le))
+         (@Maps.PTree.get Values.val id le)
+### C.jet_shift_wide_helper_exec.exec_shift_wide_fill_step
+exec_shift_wide_fill_step
+     : forall (s : jet_wide.wide_size) (fill : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (r : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._with le)
+                (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int fill))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._output le) (@Some Values.val (Values.Vlong r))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (jet_shift_wide_expr.shift_wide_fill_step s) Events.E0
+         (shift_wide_fill_env s fill r le) m ClightBigstep.Out_normal
+### C.jet_shift_wide_helper_exec.entry_shift_wide_helper
+entry_shift_wide_helper
+     : forall (s : jet_wide.wide_size) (right fill : bool) (m : Memory.Mem.mem) (bd : Values.block)
+         (dofs : Integers.Ptrofs.int) (bs : Values.block) (sofs : Integers.Ptrofs.int),
+       Clight.function_entry2 jet_exec.ge0 (jet_shift_wide_expr.shift_wide_helper s right)
+         (@cons Values.val (Values.Vint (jet_readBit_layout.bit_int fill))
+            (@cons Values.val (Values.Vptr bd dofs) (@cons Values.val (Values.Vptr bs sofs) (@nil Values.val)))) m
+         Clight.empty_env (le_shift_wide_helper s right fill bd dofs bs sofs) m
+### C.jet_shift_wide_helper_exec.eval_shift_wide_helper_composes
+eval_shift_wide_helper_composes
+     : forall (s : jet_wide.wide_size) (right fill : bool) (m mr mr2 mf : Memory.Mem.mem) (bd : Values.block)
+         (dofs : Integers.Ptrofs.int) (bs : Values.block) (sofs : Integers.Ptrofs.int) (a : Integers.Int.int)
+         (r : Integers.Int64.int)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function
+                   (jet_shift8_helper_exec.shift8_reader_function
+                      match s return bool with
+                      | jet_wide.W16 => true
+                      | jet_wide.W32 => false
+                      | jet_wide.W64 => false
+                      end)) (@cons Values.val (Values.Vptr bs sofs) (@nil Values.val)) Events.E0 mr
+                (Values.Vint a))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr
+                (@Ctypes.Internal Clight.function (jet_wide.wide_reader s))
+                (@cons Values.val (Values.Vptr bs sofs) (@nil Values.val)) Events.E0 mr2 (Values.Vlong r))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr2
+                (@Ctypes.Internal Clight.function (jet_wide.wide_writer s))
+                (@cons Values.val (Values.Vptr bd dofs)
+                   (@cons Values.val (Values.Vlong (shift_wide_payload s right fill r a)) (@nil Values.val))) Events.E0
+                mf Values.Vundef),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+         (@Ctypes.Internal Clight.function (jet_shift_wide_expr.shift_wide_helper s right))
+         (@cons Values.val (Values.Vint (jet_readBit_layout.bit_int fill))
+            (@cons Values.val (Values.Vptr bd dofs) (@cons Values.val (Values.Vptr bs sofs) (@nil Values.val))))
+         Events.E0 mf Values.Vundef
+### C.jet_shift_wide_helper_exec.shift_wide_maybe_fill
+shift_wide_maybe_fill =
+fun (s : jet_wide.wide_size) (fill : bool) (r : Integers.Int64.int) =>
+match fill return Integers.Int64.int with
+| true => jet_shift_wide_expr.shift_wide_fill_result s r
+| false => r
+end
+     : forall (_ : jet_wide.wide_size) (_ : bool) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments shift_wide_maybe_fill s fill%bool_scope r
+### C.jet_shift_wide_helper_exec.shift_wide_fill_env
+shift_wide_fill_env =
+fun (s : jet_wide.wide_size) (fill : bool) (r : Integers.Int64.int) (le : Maps.PTree.tree Values.val) =>
+match fill return (Maps.PTree.tree Values.val) with
+| true => @Maps.PTree.set Values.val jets._output (Values.Vlong (jet_shift_wide_expr.shift_wide_fill_result s r)) le
+| false => le
+end
+     : forall (_ : jet_wide.wide_size) (_ : bool) (_ : Integers.Int64.int) (_ : Maps.PTree.tree Values.val),
+       Maps.PTree.tree Values.val
+
+Arguments shift_wide_fill_env s fill%bool_scope r le
+### C.jet_shift_wide_helper_exec.shift_wide_count_result
+shift_wide_count_result =
+fun (s : jet_wide.wide_size) (right : bool) (r : Integers.Int64.int) (a : Integers.Int.int) =>
+match Coqlib.zlt (Integers.Int.unsigned a) (jet_wide.wide_bits s) return Integers.Int64.int with
+| left _ => jet_shift_wide_expr.shift_wide_scalar_result right r a
+| right _ => Integers.Int64.zero
+end
+     : forall (_ : jet_wide.wide_size) (_ : bool) (_ : Integers.Int64.int) (_ : Integers.Int.int), Integers.Int64.int
+
+Arguments shift_wide_count_result s right%bool_scope r a
+### C.jet_shift_wide_helper_exec.shift_wide_payload
+shift_wide_payload =
+fun (s : jet_wide.wide_size) (right fill : bool) (r : Integers.Int64.int) (a : Integers.Int.int) =>
+shift_wide_maybe_fill s fill
+  (shift_wide_count_result s right (shift_wide_maybe_fill s fill r)
+     (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) a))
+     : forall (_ : jet_wide.wide_size) (_ : bool) (_ : bool) (_ : Integers.Int64.int) (_ : Integers.Int.int),
+       Integers.Int64.int
+
+Arguments shift_wide_payload s (right fill)%bool_scope r a
+### C.jet_shift_wide_helper_exec.le_shift_wide_helper
+le_shift_wide_helper =
+fun (s : jet_wide.wide_size) (right fill : bool) (bd : Values.block) (dofs : Integers.Ptrofs.int)
+  (bs : Values.block) (sofs : Integers.Ptrofs.int) =>
+@Maps.PTree.set Values.val jets._src (Values.Vptr bs sofs)
+  (@Maps.PTree.set Values.val jets._dst (Values.Vptr bd dofs)
+     (@Maps.PTree.set Values.val jets._with (Values.Vint (jet_readBit_layout.bit_int fill))
+        (Clight.create_undef_temps (Clight.fn_temps (jet_shift_wide_expr.shift_wide_helper s right)))))
+     : forall (_ : jet_wide.wide_size) (_ : bool) (_ : bool) (_ : Values.block) (_ : Integers.Ptrofs.int)
+         (_ : Values.block) (_ : Integers.Ptrofs.int), Maps.PTree.tree Values.val
+
+Arguments le_shift_wide_helper s (right fill)%bool_scope bd dofs bs sofs

@@ -1,0 +1,96 @@
+### C.jet_bitcoin_totals_canonical.bitcoin_total_input_value_spec_parametric
+bitcoin_total_input_value_spec_parametric
+     : @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+         (@bitcoin_total_input_value_spec)
+### C.jet_bitcoin_totals_canonical.bitcoin_total_output_value_spec_parametric
+bitcoin_total_output_value_spec_parametric
+     : @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+         (@bitcoin_total_output_value_spec)
+### C.jet_bitcoin_totals_canonical.total_list_op
+@total_list_op
+     : forall (X : Type) (xs : list X) (f : forall _ : X, BinNums.Z) (w : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))))
+         (@Some (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))))
+            match
+              @option_map X (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                (fun x : X => jet_bitcoin_totals_spec.fw6 (f x))
+                (@List.nth_error X xs (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) w)))
+              return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))))
+            with
+            | Some b => @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) b
+            | None =>
+                @inl unit
+                  (prod
+                     (prod
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                     (prod
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                  tt
+            end)
+         (@Some (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+            match
+              @List.nth_error BinNums.Z (@List.map X BinNums.Z f xs)
+                (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) w))
+              return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+            with
+            | Some v => @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (jet_bitcoin_totals_spec.fw6 v)
+            | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) tt
+            end)
+### C.jet_bitcoin_totals_canonical.bitcoin_total_input_value_spec_sum
+bitcoin_total_input_value_spec_sum
+     : forall environment : Bitcoin.Bitcoin.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+         (@bitcoin_total_input_value_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+            (jet_bitcoin_totals_spec.fw6 (Bitcoin.sigTxTotalInValue (Bitcoin.Bitcoin.envTx environment))))
+### C.jet_bitcoin_totals_canonical.bitcoin_total_output_value_spec_sum
+bitcoin_total_output_value_spec_sum
+     : forall environment : Bitcoin.Bitcoin.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+         (@bitcoin_total_output_value_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+            (jet_bitcoin_totals_spec.fw6 (Bitcoin.sigTxTotalOutValue (Bitcoin.Bitcoin.envTx environment))))
+### C.jet_bitcoin_totals_canonical.bitcoin_total_input_value_spec
+bitcoin_total_input_value_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@jet_bitcoin_totals_spec.total_program (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg)
+  (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) alg Bitcoin.Bitcoin.InputValue)
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+
+Arguments bitcoin_total_input_value_spec {alg}
+### C.jet_bitcoin_totals_canonical.bitcoin_total_output_value_spec
+bitcoin_total_output_value_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@jet_bitcoin_totals_spec.total_program (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg)
+  (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) alg Bitcoin.Bitcoin.OutputValue)
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+
+Arguments bitcoin_total_output_value_spec {alg}

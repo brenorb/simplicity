@@ -1,0 +1,63 @@
+### C.jet_ternary_wide_exec.wide_ternary
+wide_ternary =
+fun (k : jet_ternary_spec.ternary_op) (s : jet_wide.wide_size) =>
+match k return Clight.function with
+| jet_ternary_spec.TMaj =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_maj_16
+    | jet_wide.W32 => jets.f_simplicity_maj_32
+    | jet_wide.W64 => jets.f_simplicity_maj_64
+    end
+| jet_ternary_spec.TXorXor =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_xor_xor_16
+    | jet_wide.W32 => jets.f_simplicity_xor_xor_32
+    | jet_wide.W64 => jets.f_simplicity_xor_xor_64
+    end
+| jet_ternary_spec.TCh =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_ch_16
+    | jet_wide.W32 => jets.f_simplicity_ch_32
+    | jet_wide.W64 => jets.f_simplicity_ch_64
+    end
+end
+     : forall (_ : jet_ternary_spec.ternary_op) (_ : jet_wide.wide_size), Clight.function
+
+Arguments wide_ternary k s
+### C.jet_ternary_wide_exec.long_bin
+long_bin =
+fun (k : jet_binary_spec.binary_op) (a b : Clight.expr) =>
+Clight.Ebinop (jet_binary_wide_exec.binary_clight_op k) a b Ctypesdefs.tulong
+     : forall (_ : jet_binary_spec.binary_op) (_ : Clight.expr) (_ : Clight.expr), Clight.expr
+
+Arguments long_bin k a b
+### C.jet_ternary_wide_exec.wide_ternary_expr
+wide_ternary_expr =
+fun k : jet_ternary_spec.ternary_op =>
+match k return Clight.expr with
+| jet_ternary_spec.TMaj =>
+    long_bin jet_binary_spec.BOr
+      (long_bin jet_binary_spec.BOr
+         (long_bin jet_binary_spec.BAnd (Clight.Etempvar jets._x Ctypesdefs.tulong)
+            (Clight.Etempvar jets._y Ctypesdefs.tulong))
+         (long_bin jet_binary_spec.BAnd (Clight.Etempvar jets._y Ctypesdefs.tulong)
+            (Clight.Etempvar jets._z Ctypesdefs.tulong)))
+      (long_bin jet_binary_spec.BAnd (Clight.Etempvar jets._z Ctypesdefs.tulong)
+         (Clight.Etempvar jets._x Ctypesdefs.tulong))
+| jet_ternary_spec.TXorXor =>
+    long_bin jet_binary_spec.BXor
+      (long_bin jet_binary_spec.BXor (Clight.Etempvar jets._x Ctypesdefs.tulong)
+         (Clight.Etempvar jets._y Ctypesdefs.tulong)) (Clight.Etempvar jets._z Ctypesdefs.tulong)
+| jet_ternary_spec.TCh =>
+    long_bin jet_binary_spec.BOr
+      (long_bin jet_binary_spec.BAnd (Clight.Etempvar jets._x Ctypesdefs.tulong)
+         (Clight.Etempvar jets._y Ctypesdefs.tulong))
+      (long_bin jet_binary_spec.BAnd
+         (Clight.Eunop Cop.Onotint
+            (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+               (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tulong) Ctypesdefs.tulong)
+         (Clight.Etempvar jets._z Ctypesdefs.tulong))
+end
+     : forall _ : jet_ternary_spec.ternary_op, Clight.expr
+
+Arguments wide_ternary_expr k

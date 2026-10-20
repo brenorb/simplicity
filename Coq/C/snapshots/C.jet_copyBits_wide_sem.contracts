@@ -1,0 +1,122 @@
+### C.jet_copyBits_wide_sem.copied_app
+copied_app
+     : forall (m0 mf : Memory.Mem.mem) (bi : Values.block) (edge : BinNums.Z) (bw : Values.block)
+         (outedge C lo mid hi : BinNums.Z) (_ : copied m0 mf bi edge bw outedge C lo mid)
+         (_ : copied m0 mf bi edge bw outedge C mid hi), copied m0 mf bi edge bw outedge C lo hi
+### C.jet_copyBits_wide_sem.copied_sub
+copied_sub
+     : forall (m0 mf : Memory.Mem.mem) (bi : Values.block) (edge : BinNums.Z) (bw : Values.block)
+         (outedge C lo hi lo' hi' : BinNums.Z) (_ : copied m0 mf bi edge bw outedge C lo hi)
+         (_ : BinInt.Z.le lo lo') (_ : BinInt.Z.le hi' hi), copied m0 mf bi edge bw outedge C lo' hi'
+### C.jet_copyBits_wide_sem.copied_preserved
+copied_preserved
+     : forall (m0 mf mf' : Memory.Mem.mem) (bi : Values.block) (edge : BinNums.Z) (bw : Values.block)
+         (outedge C lo hi : BinNums.Z) (_ : copied m0 mf bi edge bw outedge C lo hi)
+         (_ : forall (p : BinNums.Z) (_ : and (BinInt.Z.le lo p) (BinInt.Z.lt p hi)),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mf' bw
+                   (BinInt.Z.add outedge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.div p
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (Memory.Mem.load AST.Mint64 mf bw
+                   (BinInt.Z.add outedge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.div p
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       copied m0 mf' bi edge bw outedge C lo hi
+### C.jet_copyBits_wide_sem.copied_word
+copied_word
+     : forall (m0 mf : Memory.Mem.mem) (bi : Values.block) (edge : BinNums.Z) (bw : Values.block)
+         (outedge C d k delta lo hi : BinNums.Z) (W S : Integers.Int64.int)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mf bw
+                   (BinInt.Z.add outedge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) d)))
+                (@Some Values.val (Values.Vlong W)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m0 bi
+                   (BinInt.Z.sub edge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos BinNums.xH) k)))) (@Some Values.val (Values.Vlong S)))
+         (_ : BinInt.Z.le BinNums.Z0 d) (_ : BinInt.Z.le BinNums.Z0 lo)
+         (_ : BinInt.Z.le hi
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq BinNums.Z
+                (BinInt.Z.add
+                   (BinInt.Z.sub
+                      (BinInt.Z.sub C
+                         (BinInt.Z.mul
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                            d))
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))) delta)
+                (BinInt.Z.mul
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) k))
+         (_ : forall (i : BinNums.Z) (_ : and (BinInt.Z.le lo i) (BinInt.Z.lt i hi)),
+              and
+                (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add i delta))
+                   (BinInt.Z.lt (BinInt.Z.add i delta)
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                (@eq bool (Integers.Int64.testbit W i) (Integers.Int64.testbit S (BinInt.Z.add i delta)))),
+       copied m0 mf bi edge bw outedge C
+         (BinInt.Z.add
+            (BinInt.Z.mul
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               d) lo)
+         (BinInt.Z.add
+            (BinInt.Z.mul
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               d) hi)
+### C.jet_copyBits_wide_sem.copied_output_cells
+copied_output_cells
+     : forall (m0 mf : Memory.Mem.mem) (bi : Values.block) (edge rc : BinNums.Z) (bw : Values.block)
+         (outedge cursor : BinNums.Z) (cells : list BitMachine.Cell)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc cells)
+         (_ : copied m0 mf bi edge bw outedge (BinInt.Z.add (BinInt.Z.sub cursor (BinNums.Zpos BinNums.xH)) rc)
+                (BinInt.Z.sub cursor (BinInt.Z.of_nat (@length BitMachine.Cell cells))) cursor),
+       jet_encoding.frame_output_cells_at mf bw outedge cursor cells
+### C.jet_copyBits_wide_sem.input_cells_word
+input_cells_word
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (edge rc : BinNums.Z) (cells : list BitMachine.Cell)
+         (j : BinNums.Z) (_ : jet_encoding.frame_input_cells_at m bi edge rc cells)
+         (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j (BinInt.Z.of_nat (@length BitMachine.Cell cells)))),
+       and
+         (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add rc j))
+            (BinInt.Z.le (BinInt.Z.add rc j) Integers.Int64.max_unsigned))
+         (and
+            (and
+               (BinInt.Z.le
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                     (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                        (BinInt.Z.div (BinInt.Z.add rc j)
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                  edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned))
+            (@ex Integers.Int64.int
+               (fun S : Integers.Int64.int =>
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 m bi
+                     (BinInt.Z.sub edge
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                              (BinInt.Z.div (BinInt.Z.add rc j)
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                  (@Some Values.val (Values.Vlong S)))))
+### C.jet_copyBits_wide_sem.copied
+copied =
+fun (m0 mf : Memory.Mem.mem) (bi : Values.block) (edge : BinNums.Z) (bw : Values.block) (outedge C lo hi : BinNums.Z)
+=>
+forall (p : BinNums.Z) (b : bool) (_ : and (BinInt.Z.le lo p) (BinInt.Z.lt p hi))
+  (_ : jet_input_layout.frame_input_bit_at m0 bi edge (BinInt.Z.sub C p) b),
+jet_encoding.frame_output_bit_at mf bw outedge p b
+     : forall (_ : Memory.Mem.mem) (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z)
+         (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), Prop
+
+Arguments copied m0 mf bi edge%Z_scope bw (outedge C lo hi)%Z_scope

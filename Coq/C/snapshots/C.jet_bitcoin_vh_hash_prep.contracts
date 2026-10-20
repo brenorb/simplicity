@@ -1,0 +1,36 @@
+### C.jet_bitcoin_vh_hash_prep.write_cells_seq
+write_cells_seq
+     : forall (m m1 m1' m2 : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor n1 n2 : BinNums.Z) (cells1 cells2 : list BitMachine.Cell)
+         (_ : @eq BinNums.Z (BinInt.Z.of_nat (@length BitMachine.Cell cells1)) n1) (_ : BinInt.Z.le BinNums.Z0 n2)
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor (BinInt.Z.add n1 n2))
+         (_ : jet_bitcoin_effects.write_effect m m1 bf base bw edge cursor n1 cells1)
+         (_ : forall (ch : AST.memory_chunk) (ofs : BinNums.Z),
+              @eq (option Values.val) (Memory.Mem.load ch m1' bw ofs) (Memory.Mem.load ch m1 bw ofs))
+         (_ : jet_bitcoin_effects.write_effect m1' m2 bf base bw edge (BinInt.Z.sub cursor n1) n2 cells2),
+       and (jet_encoding.frame_output_cells_at m2 bw edge cursor (@app BitMachine.Cell cells1 cells2))
+         (and (jet_output_layout.write_prefix_at m m2 bw edge cursor)
+            (jet_frame_layout.frame_fields_at m2 bf base bw edge (BinInt.Z.sub cursor (BinInt.Z.add n1 n2))))
+### C.jet_bitcoin_vh_hash_prep.repr_signed_word
+repr_signed_word
+     : forall x : Integers.Int64.int,
+       @eq Integers.Int64.int
+         (Integers.Int64.repr
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+               (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.signed x)))) x
+### C.jet_bitcoin_vh_hash_prep.vh_regs_eq
+vh_regs_eq
+     : forall (x : Integers.Int64.int) (H : Digest.hash256),
+       @eq (list Integers.Int.int)
+         (@snd (list Integers.Int.int) (list Integers.Int.int)
+            (jet_sha_uchars_prep.absorb_i
+               (@app Integers.Int.int (jet_sha_be64_exec.c_be64_bytes x)
+                  (jet_sha_be32_write.be_bytes (Digest.hash256_reg H))) jet_sha256_iv_init.sha256_iv_words
+               (jet_sha_finalize_exec.sha_pad
+                  (Integers.Int64.repr
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+         (Digest.hash256_reg
+            (jet_bitcoin_composite_hash.sha256_bytes_of
+               (jet_bitcoin_vh_hash_spec.vh_bytes
+                  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.signed x))
+                  (Word.from_hash256 H))))

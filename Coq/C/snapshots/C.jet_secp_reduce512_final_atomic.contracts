@@ -1,0 +1,127 @@
+### C.jet_secp_reduce512_final_atomic.final_symbolic_source
+final_symbolic_source
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int),
+       @eq (list jet_sx_expr.sx) (jet_secp_reduce512_final_stage.reduce512_final_limbs digits carry)
+         (final_symbolic_outputs digits carry)
+### C.jet_secp_reduce512_final_atomic.final_overflow_den
+final_overflow_den
+     : forall (digits rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho beta (final_overflow_sx digits))
+         (Values.Vint (jet_sx_expr.b2i (jet_secp_scalar_overflow_flags.scalar_overflow_bool digits)))
+### C.jet_secp_reduce512_final_atomic.final_flag_integer_small
+final_flag_integer_small
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+         (_ : BinInt.Z.le (Integers.Int64.unsigned carry) (BinNums.Zpos BinNums.xH)),
+       and (BinInt.Z.le BinNums.Z0 (final_flag_integer digits carry))
+         (BinInt.Z.le (final_flag_integer digits carry) (BinNums.Zpos (BinNums.xO BinNums.xH)))
+### C.jet_secp_reduce512_final_atomic.final_flag_den
+final_flag_den
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : BinInt.Z.le (Integers.Int64.unsigned carry) (BinNums.Zpos BinNums.xH)),
+       @eq Values.val (jet_sx_expr.den rho beta (final_flag_sx digits carry))
+         (Values.Vint (Integers.Int.repr (final_flag_integer digits carry)))
+### C.jet_secp_reduce512_final_atomic.final_bind_den
+final_bind_den
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (x : jet_sx_expr.sx) (_ : BinInt.Z.le (Integers.Int64.unsigned carry) (BinNums.Zpos BinNums.xH)),
+       @eq Values.val (jet_sx_expr.den rho beta (final_bind digits carry x))
+         (jet_sx_expr.den (final_rho digits carry) beta x)
+### C.jet_secp_reduce512_final_atomic.final_output_weighted
+final_output_weighted
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : BinInt.Z.le (Integers.Int64.unsigned carry) (BinNums.Zpos BinNums.xH)) (b : bool)
+         (_ : @eq BinNums.Z (final_flag_integer digits carry) (jet_sx_zval.b2z b)),
+       @eq BinNums.Z (final_output_value digits carry rho beta)
+         (BinInt.Z.modulo
+            (BinInt.Z.add (jet_secp_scalar_overflow_numeric.scalar_limb_value digits)
+               (BinInt.Z.mul (jet_sx_zval.b2z b)
+                  (BinInt.Z.sub
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                     jet_secp_canonical_scalar.canonical_group_order)))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+### C.jet_secp_reduce512_final_atomic.final_overflow_sx
+final_overflow_sx =
+fun digits : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_bind.scalar_bind (fun n : nat => jet_sx_expr.XL (digits n))
+  (jet_sx_expr.XL2I (jet_sx_expr.XL (digits (S (S (S (S O))))))) jet_secp_scalar_overflow_exec.scalar_overflow_return
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_sx_expr.sx
+
+Arguments final_overflow_sx digits%function_scope
+### C.jet_secp_reduce512_final_atomic.final_flag_sx
+final_flag_sx =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) =>
+jet_sx_expr.XL2I
+  (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XL carry) (jet_sx_expr.XI2L Ctypes.Signed (final_overflow_sx digits)))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), jet_sx_expr.sx
+
+Arguments final_flag_sx digits%function_scope carry
+### C.jet_secp_reduce512_final_atomic.final_sigma
+final_sigma =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) (n : nat) =>
+match PeanoNat.Nat.eqb n (S (S (S (S O)))) return jet_sx_expr.sx with
+| true => jet_sx_expr.XI2L Ctypes.Unsigned (final_flag_sx digits carry)
+| false => jet_sx_expr.XL (digits n)
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int) (_ : nat), jet_sx_expr.sx
+
+Arguments final_sigma digits%function_scope carry n%nat_scope
+### C.jet_secp_reduce512_final_atomic.final_bind
+final_bind =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) (x : jet_sx_expr.sx) =>
+jet_secp_scalar_bind.scalar_bind (final_sigma digits carry) (final_flag_sx digits carry) x
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments final_bind digits%function_scope carry x
+### C.jet_secp_reduce512_final_atomic.final_symbolic_outputs
+final_symbolic_outputs =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) =>
+@List.map jet_sx_expr.sx jet_sx_expr.sx (final_bind digits carry)
+  (@cons jet_sx_expr.sx jet_secp_scalar_reduce_numeric.scalar_reduce_low0
+     (@cons jet_sx_expr.sx jet_secp_scalar_reduce_numeric.scalar_reduce_low1
+        (@cons jet_sx_expr.sx jet_secp_scalar_reduce_numeric.scalar_reduce_low2
+           (@cons jet_sx_expr.sx jet_secp_scalar_reduce_numeric.scalar_reduce_low3 (@nil jet_sx_expr.sx)))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), list jet_sx_expr.sx
+
+Arguments final_symbolic_outputs digits%function_scope carry
+### C.jet_secp_reduce512_final_atomic.final_flag_integer
+final_flag_integer =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) =>
+BinInt.Z.add (Integers.Int64.unsigned carry)
+  (jet_sx_zval.b2z (jet_secp_scalar_overflow_flags.scalar_overflow_bool digits))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), BinNums.Z
+
+Arguments final_flag_integer digits%function_scope carry
+### C.jet_secp_reduce512_final_atomic.final_rho
+final_rho =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) (n : nat) =>
+match PeanoNat.Nat.eqb n (S (S (S (S O)))) return Integers.Int64.int with
+| true => Integers.Int64.repr (final_flag_integer digits carry)
+| false => digits n
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments final_rho digits%function_scope carry n%nat_scope
+### C.jet_secp_reduce512_final_atomic.final_output_value
+final_output_value =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int)
+  (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z) =>
+jet_secp_scalar_mul512_accumulate.column_words_value
+  (@List.map jet_sx_expr.sx Integers.Int64.int
+     (fun sy : jet_sx_expr.sx => jet_sx_expr.il (jet_sx_expr.den rho beta sy))
+     (jet_secp_reduce512_final_stage.reduce512_final_limbs digits carry))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z), BinNums.Z
+
+Arguments final_output_value digits%function_scope carry (rho beta)%function_scope

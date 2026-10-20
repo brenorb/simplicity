@@ -1,0 +1,46 @@
+### C.jet_divmod96_init_layout.divmod96_initial_values
+divmod96_initial_values
+     : forall (ah al b : Integers.Int64.int)
+         (_ : BinInt.Z.le Integers.Int64.modulus
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned b)))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned ah) (Integers.Int64.unsigned b))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) jet_divmod96_value.divmod96_radix),
+       let q : Integers.Int64.int := jet_divmod96_init.divmod96_clamp ah (jet_divmod96_value.divmod96_high b) in
+       and
+         (@eq BinNums.Z (Integers.Int64.unsigned (jet_divmod96_init_exec.divmod96_initial_rh ah b))
+            (BinInt.Z.sub (Integers.Int64.unsigned ah)
+               (BinInt.Z.mul (Integers.Int64.unsigned q) (Integers.Int64.unsigned (jet_divmod96_value.divmod96_high b)))))
+         (@eq BinNums.Z (Integers.Int64.unsigned (jet_divmod96_init_exec.divmod96_initial_d ah b))
+            (BinInt.Z.mul (Integers.Int64.unsigned q) (Integers.Int64.unsigned (jet_divmod96_value.divmod96_low b))))
+### C.jet_divmod96_init_layout.divmod96_initial_invariant
+divmod96_initial_invariant
+     : forall (ah al b : Integers.Int64.int)
+         (_ : BinInt.Z.le Integers.Int64.modulus
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned b)))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned ah) (Integers.Int64.unsigned b))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) jet_divmod96_value.divmod96_radix),
+       and
+         (jet_divmod96_loop_layout.divmod96_loop_inv (Integers.Int64.unsigned ah) al
+            (jet_divmod96_value.divmod96_high b) (jet_divmod96_value.divmod96_low b)
+            (jet_divmod96_init.divmod96_clamp ah (jet_divmod96_value.divmod96_high b))
+            (jet_divmod96_init_exec.divmod96_initial_rh ah b) (jet_divmod96_init_exec.divmod96_initial_d ah b))
+         (BinInt.Z.le
+            (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH))
+               (jet_divmod96_loop_layout.divmod96_denominator (jet_divmod96_value.divmod96_high b)
+                  (jet_divmod96_value.divmod96_low b)))
+            (jet_divmod96_loop_layout.divmod96_delta (jet_divmod96_init_exec.divmod96_initial_rh ah b) al
+               (jet_divmod96_init_exec.divmod96_initial_d ah b)))
+### C.jet_divmod96_init_layout.divmod96_initial_loop_env
+divmod96_initial_loop_env
+     : forall (le : Maps.PTree.tree Values.val) (bq : Values.block) (ofs : Integers.Ptrofs.int)
+         (ah al b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._q le) (@Some Values.val (Values.Vptr bq ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._al le) (@Some Values.val (Values.Vlong al))),
+       jet_divmod96_loop_layout.divmod96_loop_env (jet_divmod96_init_exec.divmod96_init_env le ah b) bq ofs
+         (jet_divmod96_init_exec.divmod96_initial_rh ah b) (jet_divmod96_value.divmod96_high b) al
+         (jet_divmod96_init_exec.divmod96_initial_d ah b) (jet_divmod96_value.divmod96_low b)
+### C.jet_divmod96_init_layout.divmod96_initial_r_pointer
+divmod96_initial_r_pointer
+     : forall (le : Maps.PTree.tree Values.val) (ah b : Integers.Int64.int),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets._r (jet_divmod96_init_exec.divmod96_init_env le ah b))
+         (@Maps.PTree.get Values.val jets._r le)

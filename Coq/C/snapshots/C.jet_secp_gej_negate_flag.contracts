@@ -1,0 +1,106 @@
+### C.jet_secp_gej_negate_flag.gej_negate_helper_entry
+gej_negate_helper_entry
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_gej_neg
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base)) (@nil Values.val))) m Clight.empty_env
+         (gej_negate_helper_temps b base) m
+### C.jet_secp_gej_negate_flag.gej_negate_helper_temp_r
+gej_negate_helper_temp_r
+     : forall (b : Values.block) (base : BinNums.Z),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r (gej_negate_helper_temps b base))
+         (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base)))
+### C.jet_secp_gej_negate_flag.gej_negate_helper_temp_a
+gej_negate_helper_temp_a
+     : forall (b : Values.block) (base : BinNums.Z),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a (gej_negate_helper_temps b base))
+         (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base)))
+### C.jet_secp_gej_negate_flag.exec_gej_negate_flag_owned
+exec_gej_negate_flag_owned
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (flag : Integers.Int.int) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : Memory.Mem.range_perm m b base
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add base
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                (@Some Values.val (Values.Vint flag))),
+       @ex Memory.Mem.mem
+         (fun mi : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m gej_negate_flag_prefix
+               Events.E0 (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint flag) le) mi ClightBigstep.Out_normal)
+            (and
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint32 mi b
+                     (BinInt.Z.add base
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                  (@Some Values.val (Values.Vint flag)))
+               (and
+                  (Memory.Mem.range_perm mi b base
+                     (BinInt.Z.add base
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (forall (chunk : AST.memory_chunk) (b' : Values.block) (ofs : BinNums.Z)
+                        (_ : or (not (@eq Values.block b' b))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add base
+                                        (BinNums.Zpos
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add base
+                                        (BinNums.Zpos
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mi b' ofs) (Memory.Mem.load chunk m b' ofs))
+                     (and
+                        (forall (b' : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission),
+                         iff (Memory.Mem.perm mi b' ofs k p) (Memory.Mem.perm m b' ofs k p))
+                        (forall (b' : Values.block) (_ : Memory.Mem.valid_block m b'), Memory.Mem.valid_block mi b'))))))
+### C.jet_secp_gej_negate_flag.gej_negate_helper_temps
+gej_negate_helper_temps =
+fun (b : Values.block) (base : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_secp._a (Values.Vptr b (Integers.Ptrofs.repr base))
+  (@Maps.PTree.set Values.val jets_secp._r (Values.Vptr b (Integers.Ptrofs.repr base))
+     (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_secp256k1_gej_neg)))
+     : forall (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments gej_negate_helper_temps b base%Z_scope
+### C.jet_secp_gej_negate_flag.gej_negate_flag_prefix
+gej_negate_flag_prefix =
+Clight.Ssequence
+  (Clight.Sset jets_secp._t'1
+     (Clight.Efield
+        (Clight.Ederef (Clight.Etempvar jets_secp._a (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)))
+           (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)) jets_secp._infinity Ctypesdefs.tint))
+  (Clight.Sassign
+     (Clight.Efield
+        (Clight.Ederef (Clight.Etempvar jets_secp._r (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)))
+           (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)) jets_secp._infinity Ctypesdefs.tint)
+     (Clight.Etempvar jets_secp._t'1 Ctypesdefs.tint))
+     : Clight.statement

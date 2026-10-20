@@ -1,0 +1,629 @@
+### C.jet_sx_eval.ptr_add_repr
+ptr_add_repr
+     : forall B d sz k : BinNums.Z,
+       @eq Integers.Ptrofs.int
+         (Integers.Ptrofs.add (Integers.Ptrofs.repr (BinInt.Z.add B d))
+            (Integers.Ptrofs.mul (Integers.Ptrofs.repr sz) (Integers.Ptrofs.repr k)))
+         (Integers.Ptrofs.repr (BinInt.Z.add B (BinInt.Z.add d (BinInt.Z.mul sz k))))
+### C.jet_sx_eval.ptr_add_repr1
+ptr_add_repr1
+     : forall B d k : BinNums.Z,
+       @eq Integers.Ptrofs.int (Integers.Ptrofs.add (Integers.Ptrofs.repr (BinInt.Z.add B d)) (Integers.Ptrofs.repr k))
+         (Integers.Ptrofs.repr (BinInt.Z.add B (BinInt.Z.add d k)))
+### C.jet_sx_eval.xptradd_sound
+xptradd_sound
+     : forall (ge : Clight.genv) (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (xa : jet_sx_expr.sx) (ta : Ctypes.type) (xb : jet_sx_expr.sx)
+         (tb : Ctypes.type) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx) (xptradd (Clight.genv_cenv ge) xa ta xb tb) (@Some jet_sx_expr.sx x)),
+       @eq (option Values.val)
+         (Cop.sem_binary_operation (Clight.genv_cenv ge) Cop.Oadd (jet_sx_expr.den ρ (jet_sx_state.lay β) xa) ta
+            (jet_sx_expr.den ρ (jet_sx_state.lay β) xb) tb m)
+         (@Some Values.val (jet_sx_expr.den ρ (jet_sx_state.lay β) x))
+### C.jet_sx_eval.xbinop_sound
+xbinop_sound
+     : forall (ge : Clight.genv) (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (op : Cop.binary_operation) (xa : jet_sx_expr.sx) (ta : Ctypes.type)
+         (xb : jet_sx_expr.sx) (tb : Ctypes.type) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx) (xbinop (Clight.genv_cenv ge) op xa ta xb tb) (@Some jet_sx_expr.sx x)),
+       @eq (option Values.val)
+         (Cop.sem_binary_operation (Clight.genv_cenv ge) op (jet_sx_expr.den ρ (jet_sx_state.lay β) xa) ta
+            (jet_sx_expr.den ρ (jet_sx_state.lay β) xb) tb m)
+         (@Some Values.val (jet_sx_expr.den ρ (jet_sx_state.lay β) x))
+### C.jet_sx_eval.load_lv_sound
+load_lv_sound
+     : forall (ge : Clight.genv) (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout)
+         (Σ : sstate) (m : Memory.Mem.mem) (e : Clight.env) (le : Clight.temp_env)
+         (_ : jet_sx_state.rep ρ β (sregs Σ) m) (a : Clight.expr) (r : nat) (d : BinNums.Z)
+         (x : jet_sx_expr.sx)
+         (_ : Clight.eval_lvalue ge e le m a (jet_sx_state.blk β r)
+                (Integers.Ptrofs.repr (BinInt.Z.add (jet_sx_state.bas β r) d)) Ctypes.Full)
+         (_ : @eq (option jet_sx_expr.sx) (jet_sx_state.xload (sregs Σ) r d (Clight.typeof a)) (@Some jet_sx_expr.sx x)),
+       Clight.eval_expr ge e le m a (jet_sx_expr.den ρ (jet_sx_state.lay β) x)
+### C.jet_sx_eval.lv_var_sound
+lv_var_sound
+     : forall (ge : Clight.genv) (ve gv : venv) (β : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (_ : ematch β ve e) (_ : gmatch ge β gv) (id : AST.ident)
+         (ty : Ctypes.type) (r : nat) (d : BinNums.Z)
+         (_ : @eq (option (prod nat BinNums.Z)) (lv_var ve gv id ty)
+                (@Some (prod nat BinNums.Z) (@pair nat BinNums.Z r d))),
+       Clight.eval_lvalue ge e le m (Clight.Evar id ty) (jet_sx_state.blk β r)
+         (Integers.Ptrofs.repr (BinInt.Z.add (jet_sx_state.bas β r) d)) Ctypes.Full
+### C.jet_sx_eval.xexpr_sound_both
+xexpr_sound_both
+     : forall (ge : Clight.genv) (ve gv : venv) (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout)
+         (Σ : sstate) (m : Memory.Mem.mem) (e : Clight.env) (le : Clight.temp_env)
+         (_ : jet_sx_state.rep ρ β (sregs Σ) m) (_ : tmatch ρ β (stemps Σ) le) (_ : ematch β ve e)
+         (_ : gmatch ge β gv) (a : Clight.expr),
+       and
+         (forall (x : jet_sx_expr.sx)
+            (_ : @eq (option jet_sx_expr.sx) (xexpr (Clight.genv_cenv ge) ve gv Σ a) (@Some jet_sx_expr.sx x)),
+          Clight.eval_expr ge e le m a (jet_sx_expr.den ρ (jet_sx_state.lay β) x))
+         (forall (r : nat) (d : BinNums.Z)
+            (_ : @eq (option (prod nat BinNums.Z)) (xlval (Clight.genv_cenv ge) ve gv Σ a)
+                   (@Some (prod nat BinNums.Z) (@pair nat BinNums.Z r d))),
+          Clight.eval_lvalue ge e le m a (jet_sx_state.blk β r)
+            (Integers.Ptrofs.repr (BinInt.Z.add (jet_sx_state.bas β r) d)) Ctypes.Full)
+### C.jet_sx_eval.xexpr_sound
+xexpr_sound
+     : forall (ge : Clight.genv) (ve gv : venv) (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout)
+         (Σ : sstate) (m : Memory.Mem.mem) (e : Clight.env) (le : Clight.temp_env)
+         (_ : jet_sx_state.rep ρ β (sregs Σ) m) (_ : tmatch ρ β (stemps Σ) le) (_ : ematch β ve e)
+         (_ : gmatch ge β gv) (a : Clight.expr) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx) (xexpr (Clight.genv_cenv ge) ve gv Σ a) (@Some jet_sx_expr.sx x)),
+       Clight.eval_expr ge e le m a (jet_sx_expr.den ρ (jet_sx_state.lay β) x)
+### C.jet_sx_eval.xlval_sound
+xlval_sound
+     : forall (ge : Clight.genv) (ve gv : venv) (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout)
+         (Σ : sstate) (m : Memory.Mem.mem) (e : Clight.env) (le : Clight.temp_env)
+         (_ : jet_sx_state.rep ρ β (sregs Σ) m) (_ : tmatch ρ β (stemps Σ) le) (_ : ematch β ve e)
+         (_ : gmatch ge β gv) (a : Clight.expr) (r : nat) (d : BinNums.Z)
+         (_ : @eq (option (prod nat BinNums.Z)) (xlval (Clight.genv_cenv ge) ve gv Σ a)
+                (@Some (prod nat BinNums.Z) (@pair nat BinNums.Z r d))),
+       Clight.eval_lvalue ge e le m a (jet_sx_state.blk β r)
+         (Integers.Ptrofs.repr (BinInt.Z.add (jet_sx_state.bas β r) d)) Ctypes.Full
+### C.jet_sx_eval.xargs_sound
+xargs_sound
+     : forall (ge : Clight.genv) (ve gv : venv) (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout)
+         (Σ : sstate) (m : Memory.Mem.mem) (e : Clight.env) (le : Clight.temp_env)
+         (_ : jet_sx_state.rep ρ β (sregs Σ) m) (_ : tmatch ρ β (stemps Σ) le) (_ : ematch β ve e)
+         (_ : gmatch ge β gv) (al : list Clight.expr) (tys : Ctypes.typelist) (xs : list jet_sx_expr.sx)
+         (_ : @eq (option (list jet_sx_expr.sx)) (xargs (Clight.genv_cenv ge) ve gv Σ al tys)
+                (@Some (list jet_sx_expr.sx) xs)),
+       Clight.eval_exprlist ge e le m al tys
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den ρ (jet_sx_state.lay β)) xs)
+### C.jet_sx_eval.event
+Variant event : Type :=  mkev : forall (_ : nat) (_ : nat) (_ : nat) (_ : list jet_sx_expr.sx), event.
+
+Arguments mkev (etag ebase ecnt)%nat_scope eargs%list_scope
+### C.jet_sx_eval.sstate
+Variant sstate : Type :=
+    mkst : forall (_ : Maps.PTree.t jet_sx_expr.sx) (_ : list jet_sx_state.region) (_ : list event) (_ : nat), sstate.
+
+Arguments mkst stemps (sregs slog)%list_scope snv%nat_scope
+### C.jet_sx_eval.venv
+venv = list (prod AST.ident (prod nat Ctypes.type))
+     : Set
+### C.jet_sx_eval.vlookup
+vlookup =
+fix vlookup (ve : venv) (id : AST.ident) {struct ve} : option (prod nat Ctypes.type) :=
+  match ve return (option (prod nat Ctypes.type)) with
+  | nil => @None (prod nat Ctypes.type)
+  | cons p t =>
+      match p return (option (prod nat Ctypes.type)) with
+      | pair i v =>
+          match BinPos.Pos.eqb i id return (option (prod nat Ctypes.type)) with
+          | true => @Some (prod nat Ctypes.type) v
+          | false => vlookup t id
+          end
+      end
+  end
+     : forall (_ : venv) (_ : AST.ident), option (prod nat Ctypes.type)
+
+Arguments vlookup ve id
+### C.jet_sx_eval.lv_var
+lv_var =
+fun (ve gv : venv) (id : AST.ident) (ty : Ctypes.type) =>
+match vlookup ve id return (option (prod nat BinNums.Z)) with
+| Some p =>
+    match p return (option (prod nat BinNums.Z)) with
+    | pair r ty' =>
+        match Ctypes.type_eq ty ty' return (option (prod nat BinNums.Z)) with
+        | left _ => @Some (prod nat BinNums.Z) (@pair nat BinNums.Z r BinNums.Z0)
+        | right _ => @None (prod nat BinNums.Z)
+        end
+    end
+| None =>
+    match vlookup gv id return (option (prod nat BinNums.Z)) with
+    | Some p =>
+        match p return (option (prod nat BinNums.Z)) with
+        | pair r _ => @Some (prod nat BinNums.Z) (@pair nat BinNums.Z r BinNums.Z0)
+        end
+    | None => @None (prod nat BinNums.Z)
+    end
+end
+     : forall (_ : venv) (_ : venv) (_ : AST.ident) (_ : Ctypes.type), option (prod nat BinNums.Z)
+
+Arguments lv_var ve gv id ty
+### C.jet_sx_eval.lv_deref
+lv_deref =
+fun xa : option jet_sx_expr.sx =>
+match xa return (option (prod nat BinNums.Z)) with
+| Some s =>
+    match s return (option (prod nat BinNums.Z)) with
+    | jet_sx_expr.XI _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIc _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XL _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLc _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLv _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XV _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XA _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XP r d => @Some (prod nat BinNums.Z) (@pair nat BinNums.Z r d)
+    | jet_sx_expr.XIb _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLb _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIsh _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLsh _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIcmp _ _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLcmp _ _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XI2L _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XL2I _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIcast _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XInz _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLnz _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIz _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLz _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIneg _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLneg _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XInot _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLnot _ => @None (prod nat BinNums.Z)
+    end
+| None => @None (prod nat BinNums.Z)
+end
+     : forall _ : option jet_sx_expr.sx, option (prod nat BinNums.Z)
+
+Arguments lv_deref xa
+### C.jet_sx_eval.lv_field
+lv_field =
+fun (ce : Ctypes.composite_env) (xa : option jet_sx_expr.sx) (ta : Ctypes.type) (f : AST.ident) =>
+match xa return (option (prod nat BinNums.Z)) with
+| Some s =>
+    match s return (option (prod nat BinNums.Z)) with
+    | jet_sx_expr.XI _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIc _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XL _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLc _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLv _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XV _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XA _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XP r d =>
+        match ta return (option (prod nat BinNums.Z)) with
+        | Ctypes.Tvoid => @None (prod nat BinNums.Z)
+        | Ctypes.Tint _ _ _ => @None (prod nat BinNums.Z)
+        | Ctypes.Tlong _ _ => @None (prod nat BinNums.Z)
+        | Ctypes.Tfloat _ _ => @None (prod nat BinNums.Z)
+        | Ctypes.Tpointer _ _ => @None (prod nat BinNums.Z)
+        | Ctypes.Tarray _ _ _ => @None (prod nat BinNums.Z)
+        | Ctypes.Tfunction _ _ _ => @None (prod nat BinNums.Z)
+        | Ctypes.Tstruct id _ =>
+            match @Maps.PTree.get Ctypes.composite id ce return (option (prod nat BinNums.Z)) with
+            | Some co =>
+                match Ctypes.field_offset ce f (Ctypes.co_members co) return (option (prod nat BinNums.Z)) with
+                | Errors.OK p =>
+                    match p return (option (prod nat BinNums.Z)) with
+                    | pair delta b =>
+                        match b return (option (prod nat BinNums.Z)) with
+                        | Ctypes.Full => @Some (prod nat BinNums.Z) (@pair nat BinNums.Z r (BinInt.Z.add d delta))
+                        | Ctypes.Bits _ _ _ _ => @None (prod nat BinNums.Z)
+                        end
+                    end
+                | Errors.Error _ => @None (prod nat BinNums.Z)
+                end
+            | None => @None (prod nat BinNums.Z)
+            end
+        | Ctypes.Tunion _ _ => @None (prod nat BinNums.Z)
+        end
+    | jet_sx_expr.XIb _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLb _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIsh _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLsh _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIcmp _ _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLcmp _ _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XI2L _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XL2I _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIcast _ _ _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XInz _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLnz _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIz _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLz _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XIneg _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLneg _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XInot _ => @None (prod nat BinNums.Z)
+    | jet_sx_expr.XLnot _ => @None (prod nat BinNums.Z)
+    end
+| None => @None (prod nat BinNums.Z)
+end
+     : forall (_ : Ctypes.composite_env) (_ : option jet_sx_expr.sx) (_ : Ctypes.type) (_ : AST.ident),
+       option (prod nat BinNums.Z)
+
+Arguments lv_field ce xa ta f
+### C.jet_sx_eval.xptradd
+xptradd =
+fun (ce : Ctypes.composite_env) (xa : jet_sx_expr.sx) (ta : Ctypes.type) (xb : jet_sx_expr.sx) (tb : Ctypes.type) =>
+match xa return (option jet_sx_expr.sx) with
+| jet_sx_expr.XI _ => @None jet_sx_expr.sx
+| jet_sx_expr.XIc _ => @None jet_sx_expr.sx
+| jet_sx_expr.XL _ => @None jet_sx_expr.sx
+| jet_sx_expr.XLc _ => @None jet_sx_expr.sx
+| jet_sx_expr.XLv _ => @None jet_sx_expr.sx
+| jet_sx_expr.XV _ => @None jet_sx_expr.sx
+| jet_sx_expr.XA _ _ => @None jet_sx_expr.sx
+| jet_sx_expr.XP r d =>
+    match ta return (option jet_sx_expr.sx) with
+    | Ctypes.Tvoid => @None jet_sx_expr.sx
+    | Ctypes.Tint _ _ _ => @None jet_sx_expr.sx
+    | Ctypes.Tlong _ _ => @None jet_sx_expr.sx
+    | Ctypes.Tfloat _ _ => @None jet_sx_expr.sx
+    | Ctypes.Tpointer ty _ =>
+        match xb return (option jet_sx_expr.sx) with
+        | jet_sx_expr.XI _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIc n =>
+            match tb return (option jet_sx_expr.sx) with
+            | Ctypes.Tvoid => @None jet_sx_expr.sx
+            | Ctypes.Tint _ _ _ =>
+                @Some jet_sx_expr.sx
+                  (jet_sx_expr.XP r
+                     (BinInt.Z.add d
+                        (BinInt.Z.mul (Ctypes.sizeof ce ty)
+                           match jet_sx_expr.isg tb return BinNums.Z with
+                           | Ctypes.Signed => Integers.Int.signed n
+                           | Ctypes.Unsigned => Integers.Int.unsigned n
+                           end)))
+            | Ctypes.Tlong _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tfloat _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tpointer _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tarray _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tfunction _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tstruct _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tunion _ _ => @None jet_sx_expr.sx
+            end
+        | jet_sx_expr.XL _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLc n =>
+            match tb return (option jet_sx_expr.sx) with
+            | Ctypes.Tvoid => @None jet_sx_expr.sx
+            | Ctypes.Tint _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tlong _ _ =>
+                @Some jet_sx_expr.sx
+                  (jet_sx_expr.XP r (BinInt.Z.add d (BinInt.Z.mul (Ctypes.sizeof ce ty) (Integers.Int64.unsigned n))))
+            | Ctypes.Tfloat _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tpointer _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tarray _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tfunction _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tstruct _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tunion _ _ => @None jet_sx_expr.sx
+            end
+        | jet_sx_expr.XLv _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XV _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XA _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XP _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIb _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLb _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIsh _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLsh _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIcmp _ _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLcmp _ _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XI2L _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XL2I _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIcast _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XInz _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLnz _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIz _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLz _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIneg _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLneg _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XInot _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLnot _ => @None jet_sx_expr.sx
+        end
+    | Ctypes.Tarray ty _ _ =>
+        match xb return (option jet_sx_expr.sx) with
+        | jet_sx_expr.XI _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIc n =>
+            match tb return (option jet_sx_expr.sx) with
+            | Ctypes.Tvoid => @None jet_sx_expr.sx
+            | Ctypes.Tint _ _ _ =>
+                @Some jet_sx_expr.sx
+                  (jet_sx_expr.XP r
+                     (BinInt.Z.add d
+                        (BinInt.Z.mul (Ctypes.sizeof ce ty)
+                           match jet_sx_expr.isg tb return BinNums.Z with
+                           | Ctypes.Signed => Integers.Int.signed n
+                           | Ctypes.Unsigned => Integers.Int.unsigned n
+                           end)))
+            | Ctypes.Tlong _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tfloat _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tpointer _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tarray _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tfunction _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tstruct _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tunion _ _ => @None jet_sx_expr.sx
+            end
+        | jet_sx_expr.XL _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLc n =>
+            match tb return (option jet_sx_expr.sx) with
+            | Ctypes.Tvoid => @None jet_sx_expr.sx
+            | Ctypes.Tint _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tlong _ _ =>
+                @Some jet_sx_expr.sx
+                  (jet_sx_expr.XP r (BinInt.Z.add d (BinInt.Z.mul (Ctypes.sizeof ce ty) (Integers.Int64.unsigned n))))
+            | Ctypes.Tfloat _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tpointer _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tarray _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tfunction _ _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tstruct _ _ => @None jet_sx_expr.sx
+            | Ctypes.Tunion _ _ => @None jet_sx_expr.sx
+            end
+        | jet_sx_expr.XLv _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XV _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XA _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XP _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIb _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLb _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIsh _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLsh _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIcmp _ _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLcmp _ _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XI2L _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XL2I _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIcast _ _ _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XInz _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLnz _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIz _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLz _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XIneg _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLneg _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XInot _ => @None jet_sx_expr.sx
+        | jet_sx_expr.XLnot _ => @None jet_sx_expr.sx
+        end
+    | Ctypes.Tfunction _ _ _ => @None jet_sx_expr.sx
+    | Ctypes.Tstruct _ _ => @None jet_sx_expr.sx
+    | Ctypes.Tunion _ _ => @None jet_sx_expr.sx
+    end
+| jet_sx_expr.XIb _ _ _ => @None jet_sx_expr.sx
+| jet_sx_expr.XLb _ _ _ => @None jet_sx_expr.sx
+| jet_sx_expr.XIsh _ _ _ => @None jet_sx_expr.sx
+| jet_sx_expr.XLsh _ _ _ => @None jet_sx_expr.sx
+| jet_sx_expr.XIcmp _ _ _ _ => @None jet_sx_expr.sx
+| jet_sx_expr.XLcmp _ _ _ _ => @None jet_sx_expr.sx
+| jet_sx_expr.XI2L _ _ => @None jet_sx_expr.sx
+| jet_sx_expr.XL2I _ => @None jet_sx_expr.sx
+| jet_sx_expr.XIcast _ _ _ => @None jet_sx_expr.sx
+| jet_sx_expr.XInz _ => @None jet_sx_expr.sx
+| jet_sx_expr.XLnz _ => @None jet_sx_expr.sx
+| jet_sx_expr.XIz _ => @None jet_sx_expr.sx
+| jet_sx_expr.XLz _ => @None jet_sx_expr.sx
+| jet_sx_expr.XIneg _ => @None jet_sx_expr.sx
+| jet_sx_expr.XLneg _ => @None jet_sx_expr.sx
+| jet_sx_expr.XInot _ => @None jet_sx_expr.sx
+| jet_sx_expr.XLnot _ => @None jet_sx_expr.sx
+end
+     : forall (_ : Ctypes.composite_env) (_ : jet_sx_expr.sx) (_ : Ctypes.type) (_ : jet_sx_expr.sx) (_ : Ctypes.type),
+       option jet_sx_expr.sx
+
+Arguments xptradd ce xa ta xb tb
+### C.jet_sx_eval.xbinop
+xbinop =
+fun (ce : Ctypes.composite_env) (op : Cop.binary_operation) (xa : jet_sx_expr.sx) (ta : Ctypes.type)
+  (xb : jet_sx_expr.sx) (tb : Ctypes.type) =>
+match op return (option jet_sx_expr.sx) with
+| Cop.Oadd =>
+    match xa return (option jet_sx_expr.sx) with
+    | jet_sx_expr.XI _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XIc _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XL _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XLc _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XLv _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XV _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XA _ _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XP _ _ => xptradd ce xa ta xb tb
+    | jet_sx_expr.XIb _ _ _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XLb _ _ _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XIsh _ _ _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XLsh _ _ _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XIcmp _ _ _ _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XLcmp _ _ _ _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XI2L _ _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XL2I _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XIcast _ _ _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XInz _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XLnz _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XIz _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XLz _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XIneg _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XLneg _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XInot _ => jet_sx_expr.xbin op xa ta xb tb
+    | jet_sx_expr.XLnot _ => jet_sx_expr.xbin op xa ta xb tb
+    end
+| Cop.Osub => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Omul => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Odiv => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Omod => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Oand => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Oor => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Oxor => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Oshl => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Oshr => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Oeq => jet_sx_expr.xbin op xa ta xb tb
+| Cop.One => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Olt => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Ogt => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Ole => jet_sx_expr.xbin op xa ta xb tb
+| Cop.Oge => jet_sx_expr.xbin op xa ta xb tb
+end
+     : forall (_ : Ctypes.composite_env) (_ : Cop.binary_operation) (_ : jet_sx_expr.sx) (_ : Ctypes.type)
+         (_ : jet_sx_expr.sx) (_ : Ctypes.type), option jet_sx_expr.sx
+
+Arguments xbinop ce op xa ta xb tb
+### C.jet_sx_eval.xlv_of
+xlv_of =
+fun (ce : Ctypes.composite_env) (ve gv : venv) (rec : forall _ : Clight.expr, option jet_sx_expr.sx) (a : Clight.expr)
+=>
+match a return (option (prod nat BinNums.Z)) with
+| Clight.Econst_int _ _ => @None (prod nat BinNums.Z)
+| Clight.Econst_float _ _ => @None (prod nat BinNums.Z)
+| Clight.Econst_single _ _ => @None (prod nat BinNums.Z)
+| Clight.Econst_long _ _ => @None (prod nat BinNums.Z)
+| Clight.Evar id ty => lv_var ve gv id ty
+| Clight.Etempvar _ _ => @None (prod nat BinNums.Z)
+| Clight.Ederef b _ => lv_deref (rec b)
+| Clight.Eaddrof _ _ => @None (prod nat BinNums.Z)
+| Clight.Eunop _ _ _ => @None (prod nat BinNums.Z)
+| Clight.Ebinop _ _ _ _ => @None (prod nat BinNums.Z)
+| Clight.Ecast _ _ => @None (prod nat BinNums.Z)
+| Clight.Efield b f _ => lv_field ce (rec b) (Clight.typeof b) f
+| Clight.Esizeof _ _ => @None (prod nat BinNums.Z)
+| Clight.Ealignof _ _ => @None (prod nat BinNums.Z)
+end
+     : forall (_ : Ctypes.composite_env) (_ : venv) (_ : venv) (_ : forall _ : Clight.expr, option jet_sx_expr.sx)
+         (_ : Clight.expr), option (prod nat BinNums.Z)
+
+Arguments xlv_of ce ve gv rec%function_scope a
+### C.jet_sx_eval.load_lv
+load_lv =
+fun (Σ : sstate) (lv : option (prod nat BinNums.Z)) (ty : Ctypes.type) =>
+match lv return (option jet_sx_expr.sx) with
+| Some p => match p return (option jet_sx_expr.sx) with
+            | pair r d => jet_sx_state.xload (sregs Σ) r d ty
+            end
+| None => @None jet_sx_expr.sx
+end
+     : forall (_ : sstate) (_ : option (prod nat BinNums.Z)) (_ : Ctypes.type), option jet_sx_expr.sx
+
+Arguments load_lv Σ lv ty
+### C.jet_sx_eval.xexpr
+xexpr =
+fun (ce : Ctypes.composite_env) (ve gv : venv) =>
+fix xexpr (Σ : sstate) (a : Clight.expr) {struct a} : option jet_sx_expr.sx :=
+  match a return (option jet_sx_expr.sx) with
+  | Clight.Econst_int i _ => @Some jet_sx_expr.sx (jet_sx_expr.XIc i)
+  | Clight.Econst_float _ _ => @None jet_sx_expr.sx
+  | Clight.Econst_single _ _ => @None jet_sx_expr.sx
+  | Clight.Econst_long l _ => @Some jet_sx_expr.sx (jet_sx_expr.XLc l)
+  | Clight.Evar id ty => load_lv Σ (lv_var ve gv id ty) ty
+  | Clight.Etempvar id _ => @Maps.PTree.get jet_sx_expr.sx id (stemps Σ)
+  | Clight.Ederef b ty => load_lv Σ (lv_deref (xexpr Σ b)) ty
+  | Clight.Eaddrof b _ =>
+      match xlv_of ce ve gv (xexpr Σ) b return (option jet_sx_expr.sx) with
+      | Some p =>
+          match p return (option jet_sx_expr.sx) with
+          | pair r d => @Some jet_sx_expr.sx (jet_sx_expr.XP r d)
+          end
+      | None => @None jet_sx_expr.sx
+      end
+  | Clight.Eunop op b _ =>
+      match xexpr Σ b return (option jet_sx_expr.sx) with
+      | Some xb => jet_sx_expr.xun op xb (Clight.typeof b)
+      | None => @None jet_sx_expr.sx
+      end
+  | Clight.Ebinop op b c _ =>
+      match xexpr Σ b return (option jet_sx_expr.sx) with
+      | Some xb =>
+          match xexpr Σ c return (option jet_sx_expr.sx) with
+          | Some xc => xbinop ce op xb (Clight.typeof b) xc (Clight.typeof c)
+          | None => @None jet_sx_expr.sx
+          end
+      | None => @None jet_sx_expr.sx
+      end
+  | Clight.Ecast b ty =>
+      match xexpr Σ b return (option jet_sx_expr.sx) with
+      | Some xb => jet_sx_expr.xcast xb (Clight.typeof b) ty
+      | None => @None jet_sx_expr.sx
+      end
+  | Clight.Efield b f ty => load_lv Σ (lv_field ce (xexpr Σ b) (Clight.typeof b) f) ty
+  | Clight.Esizeof _ _ => @None jet_sx_expr.sx
+  | Clight.Ealignof _ _ => @None jet_sx_expr.sx
+  end
+     : forall (_ : Ctypes.composite_env) (_ : venv) (_ : venv) (_ : sstate) (_ : Clight.expr), option jet_sx_expr.sx
+
+Arguments xexpr ce ve gv Σ a
+### C.jet_sx_eval.xlval
+xlval =
+fun (ce : Ctypes.composite_env) (ve gv : venv) (Σ : sstate) (a : Clight.expr) => xlv_of ce ve gv (xexpr ce ve gv Σ) a
+     : forall (_ : Ctypes.composite_env) (_ : venv) (_ : venv) (_ : sstate) (_ : Clight.expr),
+       option (prod nat BinNums.Z)
+
+Arguments xlval ce ve gv Σ a
+### C.jet_sx_eval.xargs
+xargs =
+fun (ce : Ctypes.composite_env) (ve gv : venv) =>
+fix xargs (Σ : sstate) (al : list Clight.expr) (tys : Ctypes.typelist) {struct al} : option (list jet_sx_expr.sx) :=
+  match al return (option (list jet_sx_expr.sx)) with
+  | nil =>
+      match tys return (option (list jet_sx_expr.sx)) with
+      | Ctypes.Tnil => @Some (list jet_sx_expr.sx) (@nil jet_sx_expr.sx)
+      | Ctypes.Tcons _ _ => @None (list jet_sx_expr.sx)
+      end
+  | cons a al0 =>
+      match tys return (option (list jet_sx_expr.sx)) with
+      | Ctypes.Tnil => @None (list jet_sx_expr.sx)
+      | Ctypes.Tcons ty tys0 =>
+          match xexpr ce ve gv Σ a return (option (list jet_sx_expr.sx)) with
+          | Some x =>
+              match jet_sx_expr.xcast x (Clight.typeof a) ty return (option (list jet_sx_expr.sx)) with
+              | Some x' =>
+                  match xargs Σ al0 tys0 return (option (list jet_sx_expr.sx)) with
+                  | Some xs => @Some (list jet_sx_expr.sx) (@cons jet_sx_expr.sx x' xs)
+                  | None => @None (list jet_sx_expr.sx)
+                  end
+              | None => @None (list jet_sx_expr.sx)
+              end
+          | None => @None (list jet_sx_expr.sx)
+          end
+      end
+  end
+     : forall (_ : Ctypes.composite_env) (_ : venv) (_ : venv) (_ : sstate) (_ : list Clight.expr)
+         (_ : Ctypes.typelist), option (list jet_sx_expr.sx)
+
+Arguments xargs ce ve gv Σ al%list_scope tys
+### C.jet_sx_eval.tmatch
+tmatch =
+fun (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout) (ts : Maps.PTree.t jet_sx_expr.sx)
+  (le : Clight.temp_env) =>
+forall (id : BinNums.positive) (x : jet_sx_expr.sx)
+  (_ : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx id ts) (@Some jet_sx_expr.sx x)),
+@eq (option Values.val) (@Maps.PTree.get Values.val id le)
+  (@Some Values.val (jet_sx_expr.den ρ (jet_sx_state.lay β) x))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : Maps.PTree.t jet_sx_expr.sx)
+         (_ : Clight.temp_env), Prop
+
+Arguments tmatch ρ%function_scope β ts le
+### C.jet_sx_eval.ematch
+ematch =
+fun (β : jet_sx_state.layout) (ve : venv) (e : Clight.env) =>
+forall id : BinNums.positive,
+and
+  (@eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+     match vlookup ve id return (option (prod Values.block Ctypes.type)) with
+     | Some p =>
+         match p return (option (prod Values.block Ctypes.type)) with
+         | pair r ty =>
+             @Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type (jet_sx_state.blk β r) ty)
+         end
+     | None => @None (prod Values.block Ctypes.type)
+     end)
+  (forall (r : nat) (ty : Ctypes.type)
+     (_ : @eq (option (prod nat Ctypes.type)) (vlookup ve id)
+            (@Some (prod nat Ctypes.type) (@pair nat Ctypes.type r ty))),
+   @eq BinNums.Z (jet_sx_state.bas β r) BinNums.Z0)
+     : forall (_ : jet_sx_state.layout) (_ : venv) (_ : Clight.env), Prop
+
+Arguments ematch β ve e
+### C.jet_sx_eval.gmatch
+gmatch =
+fun (ge : Clight.genv) (β : jet_sx_state.layout) (gv : venv) =>
+forall (id : AST.ident) (r : nat) (ty : Ctypes.type)
+  (_ : @eq (option (prod nat Ctypes.type)) (vlookup gv id) (@Some (prod nat Ctypes.type) (@pair nat Ctypes.type r ty))),
+and
+  (@eq (option Values.block) (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+     (@Some Values.block (jet_sx_state.blk β r))) (@eq BinNums.Z (jet_sx_state.bas β r) BinNums.Z0)
+     : forall (_ : Clight.genv) (_ : jet_sx_state.layout) (_ : venv), Prop
+
+Arguments gmatch ge β gv

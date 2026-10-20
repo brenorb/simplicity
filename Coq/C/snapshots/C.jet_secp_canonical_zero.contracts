@@ -1,0 +1,43 @@
+### C.jet_secp_canonical_zero.canonical_fe_is_zero_numeric
+canonical_fe_is_zero_numeric
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq bool (Bit.toBool (@canonical_fe_is_zero Alg.CoreFunSem value))
+         (orb (BinInt.Z.eqb (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value) BinNums.Z0)
+            (BinInt.Z.eqb (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value)
+               jet_secp_canonical_normalize.canonical_field_order))
+### C.jet_secp_canonical_zero.word_mod_field_zero
+word_mod_field_zero
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value (jet_predicate_spec.word_modulus (S (S (S (S (S (S (S (S O))))))))))),
+       @eq bool (BinInt.Z.eqb (BinInt.Z.modulo value jet_secp_canonical_normalize.canonical_field_order) BinNums.Z0)
+         (orb (BinInt.Z.eqb value BinNums.Z0) (BinInt.Z.eqb value jet_secp_canonical_normalize.canonical_field_order))
+### C.jet_secp_canonical_zero.canonical_fe_zero_after_normalize
+canonical_fe_zero_after_normalize
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq bool
+         (BinInt.Z.eqb
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value)) BinNums.Z0)
+         (Bit.toBool (@canonical_fe_is_zero Alg.CoreFunSem value))
+### C.jet_secp_canonical_zero.canonical_fe_is_zero
+canonical_fe_is_zero =
+fun term : Alg.Core.Algebra =>
+@Bit.or (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@jet_test_value_spec.is_zero_word_spec (S (S (S (S (S (S (S (S O)))))))) term)
+  (@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Sum Ty.Unit Ty.Unit) term
+     (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+        (@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O))))))))) Ty.Unit
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+           (@Alg.Core.Combinators.unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) term)
+           (@Alg.scribe Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              jet_secp_canonical_normalize.canonical_field_word term))
+        (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+     (@jet_equality_spec.equality_spec (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments canonical_fe_is_zero {term}

@@ -1,0 +1,28 @@
+### C.jet_secp_zero_body.secp_fe_zero_body
+secp_fe_zero_body
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_simplicity_fe_is_zero)
+         (Clight.Ssequence
+            (Clight.Sassign (Clight.Evar jets_secp._src jet_secp_public_body.secp_frame_type)
+               (Clight.Etempvar jets_secp._src jet_secp_public_body.secp_frame_type)) secp_fe_zero_rest)
+### C.jet_secp_zero_body.secp_zero_helper_symbols
+secp_zero_helper_symbols
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._secp256k1_fe_is_zero)
+            (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_fe_is_zero)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_fe_is_zero) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_is_zero)))
+### C.jet_secp_zero_body.exec_secp_public_zero
+exec_secp_public_zero
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl ba : Values.block) (bit : bool)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_is_zero)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+                (Values.Vint (jet_readBit_layout.bit_int bit))),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_public_copy.secp_public_env bl ba) le m
+         secp_public_zero_stmt Events.E0
+         (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint (jet_readBit_layout.bit_int bit)) le) mf
+         ClightBigstep.Out_normal

@@ -1,0 +1,38 @@
+### C.jet_test_value8_exec.test_value8_denotes
+test_value8_denotes
+     : forall (one : bool) (payload : Integers.Int64.int),
+       @eq bool (test_value8_bit one (jet_read8.read8_result payload))
+         (Bit.toBool
+            (@jet_test_value_spec.test_value_spec (S (S (S O))) one Alg.CoreFunSem (jet_spec.decode_word8 payload)))
+### C.jet_test_value8_exec.test_value8
+test_value8 =
+fun one : bool =>
+match one return Clight.function with
+| true => jets.f_simplicity_is_one_8
+| false => jets.f_simplicity_is_zero_8
+end
+     : forall _ : bool, Clight.function
+
+Arguments test_value8 one%bool_scope
+### C.jet_test_value8_exec.test_value8_expr
+test_value8_expr =
+fun one : bool =>
+Clight.Ebinop Cop.Oeq (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+  (Clight.Econst_int match one return Integers.Int.int with
+                     | true => Integers.Int.one
+                     | false => Integers.Int.zero
+                     end Ctypesdefs.tint) Ctypesdefs.tint
+     : forall _ : bool, Clight.expr
+
+Arguments test_value8_expr one%bool_scope
+### C.jet_test_value8_exec.test_value8_bit
+test_value8_bit =
+fun (one : bool) (r : Integers.Int.int) =>
+Integers.Int.eq (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r)
+  match one return Integers.Int.int with
+  | true => Integers.Int.one
+  | false => Integers.Int.zero
+  end
+     : forall (_ : bool) (_ : Integers.Int.int), bool
+
+Arguments test_value8_bit one%bool_scope r

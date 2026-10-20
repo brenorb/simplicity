@@ -1,0 +1,121 @@
+### C.jet_sha_block_local.hash256_reg_chunks
+hash256_reg_chunks
+     : forall h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq SHA256.registers (Digest.hash256_reg (Word.to_hash256 h))
+         (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int jet_read32s_layout.word32_array_value
+            (jet_word32_chunks.word32_chunks (S (S (S O))) h))
+### C.jet_sha_block_local.repr_Block_chunks
+repr_Block_chunks
+     : forall b : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))),
+       @eq (list Integers.Int.int) (SHA256.repr_Block b)
+         (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int jet_read32s_layout.word32_array_value
+            (jet_word32_chunks.word32_chunks (S (S (S (S O)))) b))
+### C.jet_sha_block_local.encode_word_pair'
+encode_word_pair'
+     : forall (n : nat) (hi lo : Ty.tySem (Word.Word n)),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Word.Word (S n)) (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) hi lo))
+         (@app BitMachine.Cell (@Translate.encode (Word.Word n) hi) (@Translate.encode (Word.Word n) lo))
+### C.jet_sha_block_local.uint32_cells_from_hash256
+uint32_cells_from_hash256
+     : forall h : Digest.hash256,
+       @eq (list BitMachine.Cell) (jet_write32s_layout.uint32_word_cells (Digest.hash256_reg h))
+         (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.from_hash256 h))
+### C.jet_sha_block_local.sha_256_block_spec_cells
+sha_256_block_spec_cells
+     : forall (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (b : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))),
+       @eq (list BitMachine.Cell)
+         (jet_write32s_layout.uint32_word_cells
+            (SHA256.hash_block
+               (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                  jet_read32s_layout.word32_array_value (jet_word32_chunks.word32_chunks (S (S (S O))) h))
+               (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                  jet_read32s_layout.word32_array_value (jet_word32_chunks.word32_chunks (S (S (S (S O)))) b))))
+         (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+            (sha_256_block_spec
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))) h b)))
+### C.jet_sha_block_local.uint32_array_nth
+uint32_array_nth
+     : forall (m : Memory.Mem.mem) (b : Values.block) (xs : list Integers.Int.int) (i : nat)
+         (_ : jet_uint32_array_init.uint32_array_at m b BinNums.Z0 xs) (_ : lt i (@length Integers.Int.int xs)),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint32 m b
+            (BinInt.Z.add BinNums.Z0
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i))))
+         (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i xs Integers.Int.zero)))
+### C.jet_sha_block_local.sha_256_block_local_spec
+sha_256_block_local_spec
+     : sha_jet_local_spec jets_sha.f_simplicity_sha_256_block
+         (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+         (Word.Word (S (S (S (S (S (S (S (S O))))))))) sha_256_block_spec
+### C.jet_sha_block_local.sha_dispatch_ok
+sha_dispatch_ok =
+fun m : Memory.Mem.mem =>
+@eq (option Values.val)
+  (Memory.Mem.load AST.Mptr m (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) BinNums.Z0)
+  (@Some Values.val
+     (Values.Vptr (jet_sha_linkage.sha_symbol_block jets_sha._sha256_compression_portable) Integers.Ptrofs.zero))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments sha_dispatch_ok m
+### C.jet_sha_block_local.sha_jet_local_spec
+sha_jet_local_spec =
+fun (f : Clight.function) (A B : Ty.Ty) (spec : forall _ : Ty.tySem A, Ty.tySem B) =>
+forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block)
+  (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+  (a : Ty.tySem A) (_ : sha_dispatch_ok m) (_ : jet_frame_layout.frame_base_valid sbase)
+  (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+  (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+  (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize A))) Integers.Int64.max_unsigned)
+  (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor (@Translate.encode A a))
+  (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor (BinInt.Z.of_nat (Translate.bitSize B))),
+@ex Memory.Mem.mem
+  (fun mf : Memory.Mem.mem =>
+   and
+     (ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge m (@Ctypes.Internal Clight.function f)
+        (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+           (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+        Events.E0 mf (Values.Vint Integers.Int.one))
+     (and (jet_encoding.frame_output_cells_at mf bw outedge cursor (@Translate.encode B (spec a)))
+        (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+           (and
+              (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                 (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize B))))
+              (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+                 (_ : or (not (@eq Values.block b bd))
+                        (or
+                           (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                              (BinInt.Z.add dbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                           (BinInt.Z.le
+                              (BinInt.Z.add dbase
+                                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs)))
+                 (_ : or (not (@eq Values.block b bw))
+                        (or
+                           (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                              (BinInt.Z.add outedge
+                                 (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                    (BinInt.Z.div (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize B)))
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                           (BinInt.Z.le
+                              (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+               @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+     : forall (_ : Clight.function) (A B : Ty.Ty) (_ : forall _ : Ty.tySem A, Ty.tySem B), Prop
+
+Arguments sha_jet_local_spec f (A B)%ty_scope spec%function_scope
+### C.jet_sha_block_local.sha_256_block_spec
+sha_256_block_spec =
+fun
+  hb : Ty.tySem
+         (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))) =>
+@SHA256.hashBlock Alg.CoreFunSem hb
+     : forall
+         _ : Ty.tySem
+               (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))),
+       Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments sha_256_block_spec hb

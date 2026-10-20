@@ -1,0 +1,740 @@
+### C.jet_secp_b32_exec.nth_byte_bound
+nth_byte_bound
+     : forall (bytes : list BinNums.Z)
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes) (n : nat),
+       and (BinInt.Z.le BinNums.Z0 (@List.nth BinNums.Z n bytes BinNums.Z0))
+         (BinInt.Z.le (@List.nth BinNums.Z n bytes BinNums.Z0)
+            (BinNums.Zpos
+               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_secp_b32_exec.byte_rho_unsigned
+byte_rho_unsigned
+     : forall (bytes : list BinNums.Z) (n : nat)
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes),
+       @eq BinNums.Z (Integers.Int64.unsigned (byte_rho bytes n)) (@List.nth BinNums.Z n bytes BinNums.Z0)
+### C.jet_secp_b32_exec.byte_rho_bound
+byte_rho_bound
+     : forall (bytes : list BinNums.Z)
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes) (n : nat),
+       and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (byte_bnd n)) (Integers.Int64.unsigned (byte_rho bytes n)))
+         (BinInt.Z.le (Integers.Int64.unsigned (byte_rho bytes n)) (@snd BinNums.Z BinNums.Z (byte_bnd n)))
+### C.jet_secp_b32_exec.sb_output_region
+sb_output_region
+     : @eq (option jet_sx_state.region)
+         (@List.nth_error jet_sx_state.region (jet_sx_eval.sregs jet_secp_fe_b32.sb_leaf) O)
+         (@Some jet_sx_state.region
+            (jet_sx_state.mkreg (jet_secp_fe_nv.cells0 jet_secp_fe_b32.sb_leaf) true (@None BinNums.Z)))
+### C.jet_secp_b32_exec.sb_output_length
+sb_output_length
+     : @eq nat (@length jet_sx_state.cell (jet_secp_fe_nv.cells0 jet_secp_fe_b32.sb_leaf)) (S (S (S (S (S O)))))
+### C.jet_secp_b32_exec.sb_output_checked
+sb_output_checked
+     : @eq bool (jet_sx_zrep.zreg_okb byte_bnd BinNums.Z0 (jet_secp_fe_nv.cells0 jet_secp_fe_b32.sb_leaf)) true
+### C.jet_secp_b32_exec.sb_return_checked
+sb_return_checked
+     : @eq (option (prod BinNums.Z BinNums.Z)) (jet_sx_zval.zb byte_bnd jet_secp_fe_b32.sb_ret)
+         (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH)))
+### C.jet_secp_b32_exec.sb_return_kind
+sb_return_kind
+     : @eq bool (jet_sx_expr.isk jet_sx_expr.KI jet_secp_fe_b32.sb_ret) true
+### C.jet_secp_b32_exec.sb_output_numeric
+sb_output_numeric
+     : forall (bytes : list BinNums.Z)
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes),
+       and
+         (@eq (list BinNums.Z)
+            (jet_sx_zrep.zcells (jet_sx_zval.zrho (byte_rho bytes)) (jet_secp_fe_nv.cells0 jet_secp_fe_b32.sb_leaf))
+            (jet_secp_fe_math.fe_limbs_of (jet_secp_fe_math.be_val bytes)))
+         (@eq BinNums.Z (jet_sx_zval.zval (jet_sx_zval.zrho (byte_rho bytes)) jet_secp_fe_b32.sb_ret)
+            (jet_sx_zval.b2z (BinInt.Z.ltb (jet_secp_fe_math.be_val bytes) jet_secp_fe_math.feP)))
+### C.jet_secp_b32_exec.eval_fe_set_b32_from_initial_regions
+eval_fe_set_b32_from_initial_regions
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (bb : Values.block)
+         (offset : BinNums.Z) (bytes : list BinNums.Z)
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_sx_state.rep (byte_rho bytes)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b ofs)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb offset)
+                      (@nil (prod Values.block BinNums.Z))))
+                (@cons jet_sx_state.region jet_secp_fe_b32.fe_undef
+                   (@cons jet_sx_state.region
+                      (jet_sx_state.mkreg
+                         (jet_secp_fe_b32.byte_cells BinNums.Z0
+                            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))) O) false
+                         (@None BinNums.Z)) (@nil jet_sx_state.region))) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_set_b32)
+               (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs))
+                  (@cons Values.val (Values.Vptr bb (Integers.Ptrofs.repr offset)) (@nil Values.val))) Events.E0 mf
+               (Values.Vint
+                  (Integers.Int.repr
+                     (jet_sx_zval.b2z (BinInt.Z.ltb (jet_secp_fe_math.be_val bytes) jet_secp_fe_math.feP)))))
+            (and
+               (jet_secp_fe_nv.fe_at mf b ofs
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                     (jet_secp_fe_math.fe_limbs_of (jet_secp_fe_math.be_val bytes))))
+               (jet_sx_mem.lframe
+                  (fun (block : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot
+                        (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b ofs)
+                           (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb offset)
+                              (@nil (prod Values.block BinNums.Z))))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape
+                           (@cons jet_sx_state.region jet_secp_fe_b32.fe_undef
+                              (@cons jet_sx_state.region
+                                 (jet_sx_state.mkreg
+                                    (jet_secp_fe_b32.byte_cells BinNums.Z0
+                                       (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))) O) false
+                                    (@None BinNums.Z)) (@nil jet_sx_state.region)))) block pos)) m mf)))
+### C.jet_secp_b32_exec.fold_be_bytes_bound
+fold_be_bytes_bound
+     : forall (bytes : list BinNums.Z)
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes) (acc : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 acc),
+       and
+         (BinInt.Z.le
+            (BinInt.Z.mul acc
+               (BinInt.Z.pow
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (BinInt.Z.of_nat (@length BinNums.Z bytes))))
+            (@List.fold_left BinNums.Z BinNums.Z
+               (fun v byte : BinNums.Z =>
+                BinInt.Z.add
+                  (BinInt.Z.mul v
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                  byte) bytes acc))
+         (BinInt.Z.lt
+            (@List.fold_left BinNums.Z BinNums.Z
+               (fun v byte : BinNums.Z =>
+                BinInt.Z.add
+                  (BinInt.Z.mul v
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                  byte) bytes acc)
+            (BinInt.Z.mul (BinInt.Z.add acc (BinNums.Zpos BinNums.xH))
+               (BinInt.Z.pow
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (BinInt.Z.of_nat (@length BinNums.Z bytes)))))
+### C.jet_secp_b32_exec.be_32_bytes_bound
+be_32_bytes_bound
+     : forall (bytes : list BinNums.Z)
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes),
+       and (BinInt.Z.le BinNums.Z0 (jet_secp_fe_math.be_val bytes))
+         (BinInt.Z.lt (jet_secp_fe_math.be_val bytes)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+### C.jet_secp_b32_exec.canonical_limbs_from_bytes_bound
+canonical_limbs_from_bytes_bound
+     : forall (bytes : list BinNums.Z)
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes),
+       @List.Forall BinNums.Z
+         (fun limb : BinNums.Z =>
+          and (BinInt.Z.le BinNums.Z0 limb)
+            (BinInt.Z.le limb
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (jet_secp_fe_math.fe_limbs_of (jet_secp_fe_math.be_val bytes))
+### C.jet_secp_b32_exec.canonical_limb_unsigned
+canonical_limb_unsigned
+     : forall (limb : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 limb)
+                (BinInt.Z.le limb
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.repr limb)) limb
+### C.jet_secp_b32_exec.set_b32_normalization_bounds_derived
+set_b32_normalization_bounds_derived
+     : forall (bytes : list BinNums.Z)
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes),
+       @List.Forall Integers.Int64.int
+         (fun limb : Integers.Int64.int =>
+          BinInt.Z.le (Integers.Int64.unsigned limb)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+            (jet_secp_fe_math.fe_limbs_of (jet_secp_fe_math.be_val bytes)))
+### C.jet_secp_b32_exec.zbyte_region_load
+zbyte_region_load
+     : forall (rho : forall _ : nat, Integers.Int64.int) (bnd : forall _ : nat, prod BinNums.Z BinNums.Z)
+         (layout : jet_sx_state.layout)
+         (_ : forall n : nat,
+              and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (bnd n)) (Integers.Int64.unsigned (rho n)))
+                (BinInt.Z.le (Integers.Int64.unsigned (rho n)) (@snd BinNums.Z BinNums.Z (bnd n))))
+         (m : Memory.Mem.mem) (r : nat) (writable : bool) (cells : list jet_sx_state.cell)
+         (offset : BinNums.Z) (_ : @eq bool (zbyte_reg_okb bnd offset cells) true)
+         (_ : @List.Forall jet_sx_state.cell (jet_sx_state.cell_ok rho layout m r writable) cells)
+         (i : nat) (z : BinNums.Z)
+         (_ : @eq (option BinNums.Z) (@List.nth_error BinNums.Z (jet_sx_zrep.zcells (jet_sx_zval.zrho rho) cells) i)
+                (@Some BinNums.Z z)),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint8unsigned m (jet_sx_state.blk layout r)
+            (BinInt.Z.add (jet_sx_state.bas layout r) (BinInt.Z.add offset (BinInt.Z.of_nat i))))
+         (@Some Values.val (Values.Vint (Integers.Int.repr z)))
+### C.jet_secp_b32_exec.gb_output_region
+gb_output_region
+     : @eq (option jet_sx_state.region)
+         (@List.nth_error jet_sx_state.region (jet_sx_eval.sregs jet_secp_fe_b32.gb_leaf) O)
+         (@Some jet_sx_state.region
+            (jet_sx_state.mkreg (jet_secp_fe_nv.cells0 jet_secp_fe_b32.gb_leaf) true (@None BinNums.Z)))
+### C.jet_secp_b32_exec.gb_output_length
+gb_output_length
+     : @eq nat (@length jet_sx_state.cell (jet_secp_fe_nv.cells0 jet_secp_fe_b32.gb_leaf))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+### C.jet_secp_b32_exec.gb_output_checked
+gb_output_checked
+     : @eq bool (zbyte_reg_okb limb52_bnd BinNums.Z0 (jet_secp_fe_nv.cells0 jet_secp_fe_b32.gb_leaf)) true
+### C.jet_secp_b32_exec.gb_return_empty
+gb_return_empty
+     : @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps jet_secp_fe_b32.gb_leaf))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_b32_exec.limb_list_52_bound
+limb_list_52_bound
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @List.Forall BinNums.Z
+         (fun limb : BinNums.Z =>
+          and (BinInt.Z.le BinNums.Z0 limb)
+            (BinInt.Z.le limb
+               (BinInt.Z.sub
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                  (BinNums.Zpos BinNums.xH)))) (jet_secp_fe_math.fe_limbs_of value)
+### C.jet_secp_b32_exec.nth_limb_52_bound
+nth_limb_52_bound
+     : forall (limbs : list BinNums.Z)
+         (_ : @List.Forall BinNums.Z
+                (fun limb : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 limb)
+                   (BinInt.Z.le limb
+                      (BinInt.Z.sub
+                         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                         (BinNums.Zpos BinNums.xH)))) limbs) (n : nat),
+       and (BinInt.Z.le BinNums.Z0 (@List.nth BinNums.Z n limbs BinNums.Z0))
+         (BinInt.Z.le (@List.nth BinNums.Z n limbs BinNums.Z0)
+            (BinInt.Z.sub
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+               (BinNums.Zpos BinNums.xH)))
+### C.jet_secp_b32_exec.limb_rho_unsigned
+limb_rho_unsigned
+     : forall (value : BinNums.Z) (n : nat)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (limb_rho value n))
+         (@List.nth BinNums.Z n (jet_secp_fe_math.fe_limbs_of value) BinNums.Z0)
+### C.jet_secp_b32_exec.limb_rho_bound
+limb_rho_bound
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (n : nat),
+       and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (limb52_bnd n)) (Integers.Int64.unsigned (limb_rho value n)))
+         (BinInt.Z.le (Integers.Int64.unsigned (limb_rho value n)) (@snd BinNums.Z BinNums.Z (limb52_bnd n)))
+### C.jet_secp_b32_exec.gb_output_numeric
+gb_output_numeric
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq (list BinNums.Z)
+         (jet_sx_zrep.zcells (jet_sx_zval.zrho (limb_rho value)) (jet_secp_fe_nv.cells0 jet_secp_fe_b32.gb_leaf))
+         (jet_secp_fe_b32.be_bytes value)
+### C.jet_secp_b32_exec.eval_fe_get_b32_from_initial_regions
+eval_fe_get_b32_from_initial_regions
+     : forall (m : Memory.Mem.mem) (b : Values.block) (offset : BinNums.Z) (bf : Values.block)
+         (base value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : jet_sx_state.rep (limb_rho value)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b offset)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bf base)
+                      (@nil (prod Values.block BinNums.Z))))
+                (@cons jet_sx_state.region
+                   (jet_sx_state.mkreg
+                      (jet_secp_fe_b32.byte_undef BinNums.Z0
+                         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))) true
+                      (@None BinNums.Z))
+                   (@cons jet_sx_state.region
+                      (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 O)) false
+                         (@None BinNums.Z)) (@nil jet_sx_state.region))) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_get_b32)
+               (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr offset))
+                  (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_read8s_layout.uint8_array_at mf b offset
+                  (@List.map BinNums.Z Integers.Int.int Integers.Int.repr (jet_secp_fe_b32.be_bytes value)))
+               (jet_sx_mem.lframe
+                  (fun (block : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot
+                        (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b offset)
+                           (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bf base)
+                              (@nil (prod Values.block BinNums.Z))))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape
+                           (@cons jet_sx_state.region
+                              (jet_sx_state.mkreg
+                                 (jet_secp_fe_b32.byte_undef BinNums.Z0
+                                    (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))) true
+                                 (@None BinNums.Z))
+                              (@cons jet_sx_state.region
+                                 (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 O)) false
+                                    (@None BinNums.Z)) (@nil jet_sx_state.region)))) block pos)) m mf)))
+### C.jet_secp_b32_exec.writable_undefined_cell
+writable_undefined_cell
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (chunk : AST.memory_chunk) (offset : BinNums.Z)
+         (_ : BinInt.Z.le (BinInt.Z.add (BinInt.Z.add (jet_sx_state.bas layout r) offset) (Memdata.size_chunk chunk))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.divide (Memdata.align_chunk chunk) (BinInt.Z.add (jet_sx_state.bas layout r) offset))
+         (_ : Memory.Mem.range_perm m (jet_sx_state.blk layout r) (BinInt.Z.add (jet_sx_state.bas layout r) offset)
+                (BinInt.Z.add (BinInt.Z.add (jet_sx_state.bas layout r) offset) (Memdata.size_chunk chunk)) Memtype.Cur
+                Memtype.Writable),
+       jet_sx_state.cell_ok rho layout m r true (jet_sx_state.mkcell offset chunk (@None jet_sx_expr.sx))
+### C.jet_secp_b32_exec.region_fe_undefined_from_storage
+region_fe_undefined_from_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (_ : BinInt.Z.le BinNums.Z0 (jet_sx_state.bas layout r))
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                (jet_sx_state.bas layout r))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (jet_sx_state.bas layout r)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m (jet_sx_state.blk layout r) (jet_sx_state.bas layout r)
+                (BinInt.Z.add (jet_sx_state.bas layout r)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable), jet_sx_state.region_ok rho layout m r jet_secp_fe_b32.fe_undef
+### C.jet_secp_b32_exec.byte_cells_sorted
+byte_cells_sorted
+     : forall (count : nat) (offset : BinNums.Z) (start : nat) (lower : BinNums.Z) (_ : BinInt.Z.le lower offset),
+       @eq bool (jet_sx_state.cells_sorted lower (jet_secp_fe_b32.byte_cells offset count start)) true
+### C.jet_secp_b32_exec.b32_byte_cells_in
+b32_byte_cells_in
+     : forall (count : nat) (offset : BinNums.Z) (start : nat) (c : jet_sx_state.cell)
+         (_ : @List.In jet_sx_state.cell c (jet_secp_fe_b32.byte_cells offset count start)),
+       @ex nat
+         (fun i : nat =>
+          and (lt i count)
+            (@eq jet_sx_state.cell c
+               (jet_sx_state.mkcell (BinInt.Z.add offset (BinInt.Z.of_nat i)) AST.Mint8unsigned
+                  (@Some jet_sx_expr.sx (jet_sx_expr.XL2I (jet_sx_expr.XLv (Nat.add start i)))))))
+### C.jet_secp_b32_exec.byte_loword_exact
+byte_loword_exact
+     : forall (bytes : list BinNums.Z) (n : nat)
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes),
+       @eq Integers.Int.int (Integers.Int64.loword (byte_rho bytes n))
+         (Integers.Int.repr (@List.nth BinNums.Z n bytes BinNums.Z0))
+### C.jet_secp_b32_exec.region_b32_bytes_from_storage
+region_b32_bytes_from_storage
+     : forall (bytes : list BinNums.Z) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat)
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes) (_ : BinInt.Z.le BinNums.Z0 (jet_sx_state.bas layout r))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (jet_sx_state.bas layout r)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m (jet_sx_state.blk layout r) (jet_sx_state.bas layout r)
+                (BinInt.Z.add (jet_sx_state.bas layout r)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Readable)
+         (_ : forall (i : nat)
+                (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m (jet_sx_state.blk layout r)
+                   (BinInt.Z.add (jet_sx_state.bas layout r) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vint (Integers.Int.repr (@List.nth BinNums.Z i bytes BinNums.Z0))))),
+       jet_sx_state.region_ok (byte_rho bytes) layout m r
+         (jet_sx_state.mkreg
+            (jet_secp_fe_b32.byte_cells BinNums.Z0
+               (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))) O) false
+            (@None BinNums.Z))
+### C.jet_secp_b32_exec.two_region_rep_separate
+two_region_rep_separate
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : list (prod Values.block BinNums.Z))
+         (m : Memory.Mem.mem) (left right : jet_sx_state.region)
+         (_ : @eq nat (@length (prod Values.block BinNums.Z) layout) (S (S O)))
+         (_ : not (@eq Values.block (jet_sx_state.blk layout O) (jet_sx_state.blk layout (S O))))
+         (_ : jet_sx_state.region_ok rho layout m O left) (_ : jet_sx_state.region_ok rho layout m (S O) right),
+       jet_sx_state.rep rho layout
+         (@cons jet_sx_state.region left (@cons jet_sx_state.region right (@nil jet_sx_state.region))) m
+### C.jet_secp_b32_exec.set_b32_initial_rep_derived
+set_b32_initial_rep_derived
+     : forall (bytes : list BinNums.Z) (bfe : Values.block) (feofs : BinNums.Z) (bbytes : Values.block)
+         (byteofs : BinNums.Z) (m : Memory.Mem.mem)
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes) (_ : BinInt.Z.le BinNums.Z0 feofs)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) feofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add feofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bfe feofs
+                (BinInt.Z.add feofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable) (_ : BinInt.Z.le BinNums.Z0 byteofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add byteofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bbytes byteofs
+                (BinInt.Z.add byteofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Readable)
+         (_ : forall (i : nat)
+                (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m bbytes (BinInt.Z.add byteofs (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vint (Integers.Int.repr (@List.nth BinNums.Z i bytes BinNums.Z0)))))
+         (_ : not (@eq Values.block bfe bbytes)),
+       jet_sx_state.rep (byte_rho bytes)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bfe feofs)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bbytes byteofs)
+               (@nil (prod Values.block BinNums.Z))))
+         (@cons jet_sx_state.region jet_secp_fe_b32.fe_undef
+            (@cons jet_sx_state.region
+               (jet_sx_state.mkreg
+                  (jet_secp_fe_b32.byte_cells BinNums.Z0
+                     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))) O) false
+                  (@None BinNums.Z)) (@nil jet_sx_state.region))) m
+### C.jet_secp_b32_exec.eval_fe_set_b32_from_storage
+eval_fe_set_b32_from_storage
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (bb : Values.block)
+         (offset : BinNums.Z) (bytes : list BinNums.Z)
+         (_ : @eq nat (@length BinNums.Z bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : @List.Forall BinNums.Z
+                (fun byte : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 byte)
+                   (BinInt.Z.le byte
+                      (BinNums.Zpos
+                         (BinNums.xI
+                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                bytes) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m b ofs
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable) (_ : BinInt.Z.le BinNums.Z0 offset)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add offset
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bb offset
+                (BinInt.Z.add offset
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Readable)
+         (_ : forall (i : nat)
+                (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m bb (BinInt.Z.add offset (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vint (Integers.Int.repr (@List.nth BinNums.Z i bytes BinNums.Z0)))))
+         (_ : not (@eq Values.block b bb)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_set_b32)
+               (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs))
+                  (@cons Values.val (Values.Vptr bb (Integers.Ptrofs.repr offset)) (@nil Values.val))) Events.E0 mf
+               (Values.Vint
+                  (Integers.Int.repr
+                     (jet_sx_zval.b2z (BinInt.Z.ltb (jet_secp_fe_math.be_val bytes) jet_secp_fe_math.feP)))))
+            (and
+               (jet_secp_fe_nv.fe_at mf b ofs
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                     (jet_secp_fe_math.fe_limbs_of (jet_secp_fe_math.be_val bytes))))
+               (jet_sx_mem.lframe
+                  (fun (block : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot
+                        (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b ofs)
+                           (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb offset)
+                              (@nil (prod Values.block BinNums.Z))))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape
+                           (@cons jet_sx_state.region jet_secp_fe_b32.fe_undef
+                              (@cons jet_sx_state.region
+                                 (jet_sx_state.mkreg
+                                    (jet_secp_fe_b32.byte_cells BinNums.Z0
+                                       (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))) O) false
+                                    (@None BinNums.Z)) (@nil jet_sx_state.region)))) block pos)) m mf)))
+### C.jet_secp_b32_exec.b32_undefined_cells_sorted
+b32_undefined_cells_sorted
+     : forall (count : nat) (offset lower : BinNums.Z) (_ : BinInt.Z.le lower offset),
+       @eq bool (jet_sx_state.cells_sorted lower (jet_secp_fe_b32.byte_undef offset count)) true
+### C.jet_secp_b32_exec.b32_undefined_cells_in
+b32_undefined_cells_in
+     : forall (count : nat) (offset : BinNums.Z) (c : jet_sx_state.cell)
+         (_ : @List.In jet_sx_state.cell c (jet_secp_fe_b32.byte_undef offset count)),
+       @ex nat
+         (fun i : nat =>
+          and (lt i count)
+            (@eq jet_sx_state.cell c
+               (jet_sx_state.mkcell (BinInt.Z.add offset (BinInt.Z.of_nat i)) AST.Mint8unsigned (@None jet_sx_expr.sx))))
+### C.jet_secp_b32_exec.region_b32_undefined_from_storage
+region_b32_undefined_from_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (_ : BinInt.Z.le BinNums.Z0 (jet_sx_state.bas layout r))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (jet_sx_state.bas layout r)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m (jet_sx_state.blk layout r) (jet_sx_state.bas layout r)
+                (BinInt.Z.add (jet_sx_state.bas layout r)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable),
+       jet_sx_state.region_ok rho layout m r
+         (jet_sx_state.mkreg
+            (jet_secp_fe_b32.byte_undef BinNums.Z0
+               (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))) true
+            (@None BinNums.Z))
+### C.jet_secp_b32_exec.vars5_zero_nth
+vars5_zero_nth
+     : forall (i : nat) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx) (@List.nth_error jet_sx_expr.sx (jet_secp_fe_nv.vars5 O) i)
+                (@Some jet_sx_expr.sx x)), and (lt i (S (S (S (S (S O)))))) (@eq jet_sx_expr.sx x (jet_sx_expr.XLv i))
+### C.jet_secp_b32_exec.region_canonical_limbs_from_fe_at
+region_canonical_limbs_from_fe_at
+     : forall (value : BinNums.Z) (layout : jet_sx_state.layout) (m : Memory.Mem.mem) (r : nat)
+         (_ : jet_secp_fe_nv.fe_at m (jet_sx_state.blk layout r) (jet_sx_state.bas layout r)
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value))),
+       jet_sx_state.region_ok (limb_rho value) layout m r
+         (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 O)) false (@None BinNums.Z))
+### C.jet_secp_b32_exec.get_b32_initial_rep_derived
+get_b32_initial_rep_derived
+     : forall (value : BinNums.Z) (bbytes : Values.block) (byteofs : BinNums.Z) (bfe : Values.block)
+         (feofs : BinNums.Z) (m : Memory.Mem.mem) (_ : BinInt.Z.le BinNums.Z0 byteofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add byteofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bbytes byteofs
+                (BinInt.Z.add byteofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable)
+         (_ : jet_secp_fe_nv.fe_at m bfe feofs
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value)))
+         (_ : not (@eq Values.block bbytes bfe)),
+       jet_sx_state.rep (limb_rho value)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bbytes byteofs)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bfe feofs)
+               (@nil (prod Values.block BinNums.Z))))
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg
+               (jet_secp_fe_b32.byte_undef BinNums.Z0
+                  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))) true
+               (@None BinNums.Z))
+            (@cons jet_sx_state.region
+               (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 O)) false (@None BinNums.Z))
+               (@nil jet_sx_state.region))) m
+### C.jet_secp_b32_exec.eval_fe_get_b32_from_storage
+eval_fe_get_b32_from_storage
+     : forall (m : Memory.Mem.mem) (b : Values.block) (offset : BinNums.Z) (bf : Values.block)
+         (base value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 offset)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add offset
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m b offset
+                (BinInt.Z.add offset
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable)
+         (_ : jet_secp_fe_nv.fe_at m bf base
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value)))
+         (_ : not (@eq Values.block b bf)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_get_b32)
+               (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr offset))
+                  (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_read8s_layout.uint8_array_at mf b offset
+                  (@List.map BinNums.Z Integers.Int.int Integers.Int.repr (jet_secp_fe_b32.be_bytes value)))
+               (jet_sx_mem.lframe
+                  (fun (block : Values.block) (pos : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot
+                        (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b offset)
+                           (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bf base)
+                              (@nil (prod Values.block BinNums.Z))))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape
+                           (@cons jet_sx_state.region
+                              (jet_sx_state.mkreg
+                                 (jet_secp_fe_b32.byte_undef BinNums.Z0
+                                    (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))) true
+                                 (@None BinNums.Z))
+                              (@cons jet_sx_state.region
+                                 (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 O)) false
+                                    (@None BinNums.Z)) (@nil jet_sx_state.region)))) block pos)) m mf)))

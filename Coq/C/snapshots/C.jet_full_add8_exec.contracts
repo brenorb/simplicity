@@ -1,0 +1,31 @@
+### C.jet_full_add8_exec.full_add8_sum_raw_expr
+full_add8_sum_raw_expr =
+Clight.Ebinop Cop.Oadd
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+     (Clight.Etempvar jets._x Ctypesdefs.tuchar) Ctypesdefs.tuint) (Clight.Etempvar jets._y Ctypesdefs.tuchar)
+  Ctypesdefs.tuint
+     : Clight.expr
+### C.jet_full_add8_exec.full_add8_second_carry_expr
+full_add8_second_carry_expr =
+Clight.Ebinop Cop.Olt
+  (Clight.Ebinop Cop.Osub
+     (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+        (Clight.Econst_int
+           (Integers.Int.repr
+              (BinNums.Zpos
+                 (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+           Ctypesdefs.tint) Ctypesdefs.tuint) (Clight.Etempvar jets._z Ctypesdefs.tbool) Ctypesdefs.tuint)
+  full_add8_sum_raw_expr Ctypesdefs.tint
+     : Clight.expr
+### C.jet_full_add8_exec.full_add8_sum_expr
+full_add8_sum_expr =
+Clight.Ecast
+  (Clight.Ebinop Cop.Oadd full_add8_sum_raw_expr (Clight.Etempvar jets._z Ctypesdefs.tbool) Ctypesdefs.tuint)
+  Ctypesdefs.tuchar
+     : Clight.expr
+### C.jet_full_add8_exec.full_add8_choose
+full_add8_choose =
+Clight.Sifthenelse jet_add8.add8_carry_expr
+  (Clight.Sset jets._t'4 (Clight.Econst_int Integers.Int.one Ctypesdefs.tint))
+  (Clight.Sset jets._t'4 (Clight.Ecast full_add8_second_carry_expr Ctypesdefs.tbool))
+     : Clight.statement

@@ -1,0 +1,57 @@
+### C.jet_rotate_control_word.rotate_control_word_bits
+rotate_control_word_bits
+     : forall (m n : nat) (right : bool) (i count : nat) (amount : Ty.tySem (Word.Word m))
+         (x : Ty.tySem (Word.Word n)) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j (Zpower.two_power_nat n))),
+       @eq bool
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ n) (rotate_control_word_fun m n right i count amount x))
+            j)
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ n) x)
+            (BinInt.Z.modulo
+               (BinInt.Z.sub j (rotate_signed_amount right (rotate_control_word_amount m i count amount)))
+               (Zpower.two_power_nat n)))
+### C.jet_rotate_control_word.rotate_signed_amount
+rotate_signed_amount =
+fun (right : bool) (amount : BinNums.Z) =>
+match right return BinNums.Z with
+| true => BinInt.Z.opp amount
+| false => amount
+end
+     : forall (_ : bool) (_ : BinNums.Z), BinNums.Z
+
+Arguments rotate_signed_amount right%bool_scope amount%Z_scope
+### C.jet_rotate_control_word.rotate_control_word_fun
+rotate_control_word_fun =
+fix rotate_control_word_fun
+  (m n : nat) (right : bool) (i count : nat) (amount : Ty.tySem (Word.Word m)) (x : Ty.tySem (Word.Word n)) {struct
+   count} : Ty.tySem (Word.Word n) :=
+  match count return (Ty.tySem (Word.Word n)) with
+  | O => x
+  | S count0 =>
+      rotate_control_word_fun m n right (S i) count0 amount
+        match @jet_word_bit_spec.word_bit_spec m i Alg.CoreFunSem amount return (Ty.tySem (Word.Word n)) with
+        | inl _ => x
+        | inr _ =>
+            @Word.rotate_const (Ty.Sum Ty.Unit Ty.Unit) n Alg.CoreFunSem
+              (rotate_signed_amount right (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat i))) x
+        end
+  end
+     : forall (m n : nat) (_ : bool) (_ : nat) (_ : nat) (_ : Ty.tySem (Word.Word m)) (_ : Ty.tySem (Word.Word n)),
+       Ty.tySem (Word.Word n)
+
+Arguments rotate_control_word_fun (m n)%nat_scope right%bool_scope (i count)%nat_scope amount x
+### C.jet_rotate_control_word.rotate_control_word_amount
+rotate_control_word_amount =
+fix rotate_control_word_amount (m i count : nat) (amount : Ty.tySem (Word.Word m)) {struct count} : BinNums.Z :=
+  match count return BinNums.Z with
+  | O => BinNums.Z0
+  | S count0 =>
+      BinInt.Z.add
+        match @jet_word_bit_spec.word_bit_spec m i Alg.CoreFunSem amount return BinNums.Z with
+        | inl _ => BinNums.Z0
+        | inr _ => BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat i)
+        end (rotate_control_word_amount m (S i) count0 amount)
+  end
+     : forall (m _ : nat) (_ : nat) (_ : Ty.tySem (Word.Word m)), BinNums.Z
+
+Arguments rotate_control_word_amount (m i count)%nat_scope amount

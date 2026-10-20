@@ -1,0 +1,46 @@
+### C.jet_add64_wide_word.add64_values_denote_input
+add64_values_denote_input
+     : forall (r s : Integers.Int64.int) (x y : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned s)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) y)),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W64))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W64)))
+            match add64_carry r s return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (jet_wide_spec.decode_wide jet_wide.W64
+               (Integers.Int64.zero_ext
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (add64_payload r s))))
+         (add64_spec_value
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) x
+               y))
+### C.jet_add64_wide_word.add64_spec
+add64_spec =
+fun term : Alg.Core.Algebra => @Word.adder (S (S (S (S (S (S O)))))) term
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+
+Arguments add64_spec {term}
+### C.jet_add64_wide_word.add64_spec_value
+add64_spec_value =
+@add64_spec Alg.CoreFunSem
+     : forall _ : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))),
+       Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+### C.jet_add64_wide_word.add64_carry
+add64_carry =
+fun x y : Integers.Int64.int => Integers.Int64.ltu (Integers.Int64.sub Integers.Int64.mone y) x
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments add64_carry x y
+### C.jet_add64_wide_word.add64_payload
+add64_payload =
+fun x y : Integers.Int64.int => Integers.Int64.add x y
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments add64_payload x y

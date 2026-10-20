@@ -1,0 +1,112 @@
+### C.jet_pad_bit_spec.right_pad_low_1_n_parametric
+right_pad_low_1_n_parametric
+     : forall n : nat, @Alg.Core.Parametric (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (@right_pad_low_1_n n)
+### C.jet_pad_bit_spec.left_pad_high_1_n_parametric
+left_pad_high_1_n_parametric
+     : forall n : nat, @Alg.Core.Parametric (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (@left_pad_high_1_n n)
+### C.jet_pad_bit_spec.left_extend_bit_spec_parametric
+left_extend_bit_spec_parametric
+     : forall n : nat, @Alg.Core.Parametric (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (@left_extend_bit_spec n)
+### C.jet_pad_bit_spec.right_pad_bit_wide_decode
+right_pad_bit_wide_decode
+     : forall (s : jet_wide.wide_size) (x : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+         (jet_wide_spec.decode_wide s
+            (Integers.Int64.zero_ext (jet_wide.wide_bits s) (right_pad_bit_long s (Bit.toBool x))))
+         (@right_pad_low_1_n (jet_wide.wide_log s) Alg.CoreFunSem x)
+### C.jet_pad_bit_spec.right_pad_bit8_decode
+right_pad_bit8_decode
+     : forall x : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit),
+       @eq (Ty.tySem (Word.Word (S (S (S O)))))
+         (jet_spec.decode_word8
+            (Integers.Int64.repr
+               (Integers.Int.unsigned
+                  (Integers.Int.shl (jet_readBit_layout.bit_int (Bit.toBool x))
+                     (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (@right_pad_low_1_n (S (S (S O))) Alg.CoreFunSem x)
+### C.jet_pad_bit_spec.extend_bit_wide_decode
+extend_bit_wide_decode
+     : forall (s : jet_wide.wide_size) (x : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+         (jet_wide_spec.decode_wide s
+            (Integers.Int64.zero_ext (jet_wide.wide_bits s) (extend_bit_long s (Bit.toBool x))))
+         (@left_extend_bit_spec (jet_wide.wide_log s) Alg.CoreFunSem x)
+### C.jet_pad_bit_spec.extend_bit8_decode
+extend_bit8_decode
+     : forall x : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit),
+       @eq (Ty.tySem (Word.Word (S (S (S O)))))
+         (jet_spec.decode_word8
+            (Integers.Int64.repr
+               (Integers.Int.unsigned
+                  match Bit.toBool x return Integers.Int.int with
+                  | true =>
+                      Integers.Int.repr
+                        (BinNums.Zpos
+                           (BinNums.xI
+                              (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                  | false => Integers.Int.zero
+                  end))) (@left_extend_bit_spec (S (S (S O))) Alg.CoreFunSem x)
+### C.jet_pad_bit_spec.right_pad_low_1_n
+right_pad_low_1_n =
+fix right_pad_low_1_n (n : nat) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) :=
+  match n as n0 return (Alg.Core.domain term (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n0)) with
+  | O => @AC.iden (Ty.Sum Ty.Unit Ty.Unit) term
+  | S n0 =>
+      @AC.pair (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n0) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n0) term
+        (right_pad_low_1_n n0 term)
+        (@Word.fill (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) n0 term
+           (@AC.comp (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) term
+              (@AC.unit (Ty.Sum Ty.Unit Ty.Unit) term) (@Bit.false Ty.Unit term)))
+  end
+     : forall (n : nat) (term : Alg.Core.Algebra), Alg.Core.domain term (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)
+
+Arguments right_pad_low_1_n n%nat_scope {term}
+### C.jet_pad_bit_spec.left_pad_high_1_n
+left_pad_high_1_n =
+fix left_pad_high_1_n (n : nat) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) :=
+  match n as n0 return (Alg.Core.domain term (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n0)) with
+  | O => @AC.iden (Ty.Sum Ty.Unit Ty.Unit) term
+  | S n0 =>
+      @AC.pair (Ty.Sum Ty.Unit Ty.Unit) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n0) (Word.Word n0) term
+        (@Word.fill (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) n0 term
+           (@AC.comp (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) term
+              (@AC.unit (Ty.Sum Ty.Unit Ty.Unit) term) (@Bit.true Ty.Unit term))) (left_pad_high_1_n n0 term)
+  end
+     : forall (n : nat) (term : Alg.Core.Algebra), Alg.Core.domain term (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)
+
+Arguments left_pad_high_1_n n%nat_scope {term}
+### C.jet_pad_bit_spec.left_extend_bit_spec
+left_extend_bit_spec =
+fun (n : nat) (term : Alg.Core.Algebra) =>
+@AC.comp (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+  (Word.Word n) term
+  (@AC.pair (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+     (@AC.iden (Ty.Sum Ty.Unit Ty.Unit) term) (@AC.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+  (@Bit.cond (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) term (@left_pad_high_1_n n term)
+     (@jet_spec.left_pad_low_1_n term n))
+     : forall (n : nat) (term : Alg.Core.Algebra), Alg.Core.domain term (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)
+
+Arguments left_extend_bit_spec n%nat_scope {term}
+### C.jet_pad_bit_spec.right_pad_bit_long
+right_pad_bit_long =
+fun (s : jet_wide.wide_size) (b : bool) =>
+Integers.Int64.shl (jet_readBit_layout.bit_long b)
+  (Integers.Int64.repr (BinInt.Z.sub (jet_wide.wide_bits s) (BinNums.Zpos BinNums.xH)))
+     : forall (_ : jet_wide.wide_size) (_ : bool), Integers.Int64.int
+
+Arguments right_pad_bit_long s b%bool_scope
+### C.jet_pad_bit_spec.extend_bit_long
+extend_bit_long =
+fun (s : jet_wide.wide_size) (b : bool) =>
+match b return Integers.Int64.int with
+| true =>
+    Integers.Int64.repr
+      (BinInt.Z.sub (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (jet_wide.wide_bits s))
+         (BinNums.Zpos BinNums.xH))
+| false => Integers.Int64.zero
+end
+     : forall (_ : jet_wide.wide_size) (_ : bool), Integers.Int64.int
+
+Arguments extend_bit_long s b%bool_scope

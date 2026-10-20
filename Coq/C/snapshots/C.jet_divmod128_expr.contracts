@@ -1,0 +1,82 @@
+### C.jet_divmod128_expr.eval_divmod128_normal_expr
+eval_divmod128_normal_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._b le) (@Some Values.val (Values.Vlong b))),
+       Clight.eval_expr jet_exec.ge0 e le m divmod128_normal_expr
+         (Values.Vint
+            (jet_readBit_layout.bit_int
+               (negb
+                  (Integers.Int64.ltu b
+                     (Integers.Int64.repr
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+### C.jet_divmod128_expr.eval_divmod128_bound_expr
+eval_divmod128_bound_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ah b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._ah le) (@Some Values.val (Values.Vlong ah)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._b le) (@Some Values.val (Values.Vlong b))),
+       Clight.eval_expr jet_exec.ge0 e le m divmod128_bound_expr
+         (Values.Vint (jet_readBit_layout.bit_int (Integers.Int64.ltu ah b)))
+### C.jet_divmod128_expr.exec_divmod128_guard_stmt
+exec_divmod128_guard_stmt
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ah b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._ah le) (@Some Values.val (Values.Vlong ah)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._b le) (@Some Values.val (Values.Vlong b))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m divmod128_guard_stmt Events.E0
+         (@Maps.PTree.set Values.val jets._t'5
+            (Values.Vint (jet_readBit_layout.bit_int (jet_divmod128_spec.divmod128_guard ah b))) le) m
+         ClightBigstep.Out_normal
+### C.jet_divmod128_expr.divmod128_guard_preconditions
+divmod128_guard_preconditions
+     : forall ah b : Integers.Int64.int,
+       iff (@eq bool (jet_divmod128_spec.divmod128_guard ah b) true)
+         (and
+            (BinInt.Z.le Integers.Int64.modulus
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned b)))
+            (BinInt.Z.lt (Integers.Int64.unsigned ah) (Integers.Int64.unsigned b)))
+### C.jet_divmod128_expr.divmod128_normal_expr
+divmod128_normal_expr =
+Clight.Ebinop Cop.Ole
+  (Clight.Econst_long
+     (Integers.Int64.repr
+        (BinNums.Zneg
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))))
+     Ctypesdefs.tulong) (Clight.Etempvar jets._b Ctypesdefs.tulong) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_divmod128_expr.divmod128_bound_expr
+divmod128_bound_expr =
+Clight.Ebinop Cop.Olt (Clight.Etempvar jets._ah Ctypesdefs.tulong) (Clight.Etempvar jets._b Ctypesdefs.tulong)
+  Ctypesdefs.tint
+     : Clight.expr
+### C.jet_divmod128_expr.divmod128_guard_stmt
+divmod128_guard_stmt =
+Clight.Sifthenelse divmod128_normal_expr (Clight.Sset jets._t'5 (Clight.Ecast divmod128_bound_expr Ctypesdefs.tbool))
+  (Clight.Sset jets._t'5 (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint))
+     : Clight.statement

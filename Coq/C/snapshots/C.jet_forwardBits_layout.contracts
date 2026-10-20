@@ -1,0 +1,62 @@
+### C.jet_forwardBits_layout.forwardBits_entry
+forwardBits_entry
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base n : BinNums.Z),
+       Clight.function_entry2 jet_exec.ge0 jets.f_forwardBits
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val))) m Clight.empty_env
+         (forwardBits_env bf base n) m
+### C.jet_forwardBits_layout.eval_forwardBits_layout_raw
+eval_forwardBits_layout_raw
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (base cursor n : BinNums.Z)
+         (_ : jet_frame_layout.frame_base_valid base) (_ : BinInt.Z.le BinNums.Z0 cursor)
+         (_ : BinInt.Z.le BinNums.Z0 n) (_ : BinInt.Z.le (BinInt.Z.add cursor n) Integers.Int64.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bf
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr cursor))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bf
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (Values.Vlong (Integers.Int64.repr (BinInt.Z.add cursor n)))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_forwardBits)
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val))) Events.E0 mf Values.Vundef
+### C.jet_forwardBits_layout.eval_forwardBits_layout
+eval_forwardBits_layout
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bi : Values.block)
+         (edge cursor n : BinNums.Z) (_ : jet_frame_layout.frame_base_valid base) (_ : BinInt.Z.le BinNums.Z0 cursor)
+         (_ : BinInt.Z.le BinNums.Z0 n) (_ : BinInt.Z.le (BinInt.Z.add cursor n) Integers.Int64.max_unsigned)
+         (_ : jet_frame_layout.frame_fields_at m bf base bi edge cursor)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_forwardBits)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_frame_layout.frame_fields_at mf bf base bi edge (BinInt.Z.add cursor n))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bf))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))
+### C.jet_forwardBits_layout.forwardBits_env
+forwardBits_env =
+fun (bf : Values.block) (base n : BinNums.Z) =>
+@Maps.PTree.set Values.val jets._n (Values.Vlong (Integers.Int64.repr n))
+  (@Maps.PTree.set Values.val jets._frame (Values.Vptr bf (Integers.Ptrofs.repr base))
+     (Clight.create_undef_temps (Clight.fn_temps jets.f_forwardBits)))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments forwardBits_env bf (base n)%Z_scope

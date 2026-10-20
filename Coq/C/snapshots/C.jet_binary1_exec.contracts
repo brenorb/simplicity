@@ -1,0 +1,70 @@
+### C.jet_binary1_exec.binary1
+binary1 =
+fun k : jet_binary_spec.binary_op =>
+match k return Clight.function with
+| jet_binary_spec.BAnd => jets.f_simplicity_and_1
+| jet_binary_spec.BOr => jets.f_simplicity_or_1
+| jet_binary_spec.BXor => jets.f_simplicity_xor_1
+end
+     : forall _ : jet_binary_spec.binary_op, Clight.function
+
+Arguments binary1 k
+### C.jet_binary1_exec.binary1_read
+binary1_read =
+fun result : AST.ident =>
+Clight.Scall (@Some AST.ident result)
+  (Clight.Evar jets._readBit
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tbool AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr))) (@nil Clight.expr))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments binary1_read result
+### C.jet_binary1_exec.binary1_choose
+binary1_choose =
+fun k : jet_binary_spec.binary_op =>
+match k return Clight.statement with
+| jet_binary_spec.BAnd =>
+    Clight.Sifthenelse (Clight.Etempvar jets._x Ctypesdefs.tbool)
+      (Clight.Sset jets._t'3 (Clight.Ecast (Clight.Etempvar jets._y Ctypesdefs.tbool) Ctypesdefs.tbool))
+      (Clight.Sset jets._t'3 (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint))
+| jet_binary_spec.BOr =>
+    Clight.Sifthenelse (Clight.Etempvar jets._x Ctypesdefs.tbool)
+      (Clight.Sset jets._t'3 (Clight.Econst_int Integers.Int.one Ctypesdefs.tint))
+      (Clight.Sset jets._t'3 (Clight.Ecast (Clight.Etempvar jets._y Ctypesdefs.tbool) Ctypesdefs.tbool))
+| jet_binary_spec.BXor => Clight.Sskip
+end
+     : forall _ : jet_binary_spec.binary_op, Clight.statement
+
+Arguments binary1_choose k
+### C.jet_binary1_exec.binary1_arg
+binary1_arg =
+fun k : jet_binary_spec.binary_op =>
+match k return Clight.expr with
+| jet_binary_spec.BAnd => Clight.Etempvar jets._t'3 Ctypesdefs.tint
+| jet_binary_spec.BOr => Clight.Etempvar jets._t'3 Ctypesdefs.tint
+| jet_binary_spec.BXor =>
+    Clight.Ebinop Cop.Oxor (Clight.Etempvar jets._x Ctypesdefs.tbool) (Clight.Etempvar jets._y Ctypesdefs.tbool)
+      Ctypesdefs.tint
+end
+     : forall _ : jet_binary_spec.binary_op, Clight.expr
+
+Arguments binary1_arg k
+### C.jet_binary1_exec.binary1_write
+binary1_write =
+fun k : jet_binary_spec.binary_op =>
+match k return Clight.statement with
+| jet_binary_spec.BAnd =>
+    Clight.Ssequence (binary1_choose k)
+      (jet_arith8_layout_exec.frame_writer_call jets._writeBit Ctypesdefs.tbool Ctypesdefs.tbool (binary1_arg k))
+| jet_binary_spec.BOr =>
+    Clight.Ssequence (binary1_choose k)
+      (jet_arith8_layout_exec.frame_writer_call jets._writeBit Ctypesdefs.tbool Ctypesdefs.tbool (binary1_arg k))
+| jet_binary_spec.BXor =>
+    jet_arith8_layout_exec.frame_writer_call jets._writeBit Ctypesdefs.tbool Ctypesdefs.tbool (binary1_arg k)
+end
+     : forall _ : jet_binary_spec.binary_op, Clight.statement
+
+Arguments binary1_write k

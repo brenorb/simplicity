@@ -1,0 +1,89 @@
+### C.jet_secp_scalar_add_reduced.scalar_add_limb_reduced_value
+scalar_add_limb_reduced_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (i : nat) (_ : lt i (S (S (S (S O))))),
+       @eq Integers.Int64.int (scalar_add_limb rho layout i)
+         (jet_secp_scalar_reduce_numeric.scalar_reduce_limb
+            (jet_secp_scalar_add_values.scalar_add_reduction_rho rho layout) layout i)
+### C.jet_secp_scalar_add_reduced.scalar_add_output_weighted
+scalar_add_output_weighted
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 (jet_secp_scalar_add_numeric.scalar_add_input_value rho))
+                (BinInt.Z.lt (jet_secp_scalar_add_numeric.scalar_add_input_value rho)
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order))),
+       @eq BinNums.Z (scalar_add_output_value rho layout)
+         (BinInt.Z.modulo
+            (BinInt.Z.add (jet_secp_scalar_add_numeric.scalar_add_raw_value rho layout)
+               (BinInt.Z.mul
+                  (jet_sx_zval.b2z
+                     (BinInt.Z.leb jet_secp_canonical_scalar.canonical_group_order
+                        (jet_secp_scalar_add_numeric.scalar_add_input_value rho)))
+                  (BinInt.Z.sub
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                     jet_secp_canonical_scalar.canonical_group_order)))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+### C.jet_secp_scalar_add_reduced.scalar_add_modulus_bridge
+scalar_add_modulus_bridge
+     : forall (s : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 s)
+                (BinInt.Z.lt s
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order))),
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (BinInt.Z.add
+               (BinInt.Z.modulo s
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+               (BinInt.Z.mul (jet_sx_zval.b2z (BinInt.Z.leb jet_secp_canonical_scalar.canonical_group_order s))
+                  (BinInt.Z.sub
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                     jet_secp_canonical_scalar.canonical_group_order)))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (BinInt.Z.modulo s jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_scalar_add_reduced.scalar_add_output_mod_group
+scalar_add_output_mod_group
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 (jet_secp_scalar_add_numeric.scalar_add_input_value rho))
+                (BinInt.Z.lt (jet_secp_scalar_add_numeric.scalar_add_input_value rho)
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order))),
+       @eq BinNums.Z (scalar_add_output_value rho layout)
+         (BinInt.Z.modulo (jet_secp_scalar_add_numeric.scalar_add_input_value rho)
+            jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_scalar_add_reduced.scalar_add_limb
+scalar_add_limb =
+fun (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z) (i : nat) =>
+jet_sx_expr.il
+  (jet_sx_expr.den rho layout
+     (@List.nth jet_sx_expr.sx i jet_secp_scalar_add_exec.scalar_add_limbs (jet_sx_expr.XLc Integers.Int64.zero)))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z) (_ : nat),
+       Integers.Int64.int
+
+Arguments scalar_add_limb (rho layout)%function_scope i%nat_scope
+### C.jet_secp_scalar_add_reduced.scalar_add_output_value
+scalar_add_output_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z) =>
+jet_secp_scalar_overflow_numeric.scalar_limb_value (scalar_add_limb rho layout)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z), BinNums.Z
+
+Arguments scalar_add_output_value (rho layout)%function_scope

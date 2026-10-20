@@ -1,0 +1,10 @@
+### C.jet_readonly_int64.readonly_int64_global_initialized
+@readonly_int64_global_initialized
+     : forall (F V : Type) (p : AST.program F V) (b : Values.block) (info : V) (x : Integers.Int64.int)
+         (m : Memory.Mem.mem)
+         (_ : @eq (option (AST.globvar V)) (@Globalenvs.Genv.find_var_info F V (@Globalenvs.Genv.globalenv F V p) b)
+                (@Some (AST.globvar V)
+                   (@AST.mkglobvar V info (@cons AST.init_data (AST.Init_int64 x) (@nil AST.init_data)) true false)))
+         (_ : @eq (option Memory.Mem.mem) (@Globalenvs.Genv.init_mem F V p) (@Some Memory.Mem.mem m)),
+       and (@eq (option Values.val) (Memory.Mem.load AST.Mint64 m b BinNums.Z0) (@Some Values.val (Values.Vlong x)))
+         (forall ofs : BinNums.Z, not (Memory.Mem.perm m b ofs Memtype.Cur Memtype.Writable))

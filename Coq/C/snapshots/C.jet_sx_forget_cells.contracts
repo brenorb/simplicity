@@ -1,0 +1,84 @@
+### C.jet_sx_forget_cells.forget_cells_sorted
+forget_cells_sorted
+     : forall (cs : list jet_sx_state.cell) (lo : BinNums.Z),
+       @eq bool (jet_sx_state.cells_sorted lo (@List.map jet_sx_state.cell jet_sx_state.cell forget_cell cs))
+         (jet_sx_state.cells_sorted lo cs)
+### C.jet_sx_forget_cells.forget_region_shape
+forget_region_shape
+     : forall reg : jet_sx_state.region,
+       @eq (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+         (jet_sx_state.rshape (forget_region reg)) (jet_sx_state.rshape reg)
+### C.jet_sx_forget_cells.forget_after_length
+forget_after_length
+     : forall (regs : list jet_sx_state.region) (n : nat),
+       @eq nat (@length jet_sx_state.region (forget_after n regs)) (@length jet_sx_state.region regs)
+### C.jet_sx_forget_cells.forget_after_shape
+forget_after_shape
+     : forall (regs : list jet_sx_state.region) (n : nat),
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (forget_after n regs))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape regs)
+### C.jet_sx_forget_cells.forget_after_lookup
+forget_after_lookup
+     : forall (regs : list jet_sx_state.region) (n i : nat) (reg : jet_sx_state.region)
+         (_ : @eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region (forget_after n regs) i)
+                (@Some jet_sx_state.region reg)),
+       @ex jet_sx_state.region
+         (fun old : jet_sx_state.region =>
+          and
+            (@eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region regs i)
+               (@Some jet_sx_state.region old))
+            (or (@eq jet_sx_state.region reg old) (@eq jet_sx_state.region reg (forget_region old))))
+### C.jet_sx_forget_cells.forget_region_ok
+forget_region_ok
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (reg : jet_sx_state.region) (_ : jet_sx_state.region_ok rho beta m r reg),
+       jet_sx_state.region_ok rho beta m r (forget_region reg)
+### C.jet_sx_forget_cells.forget_regions_shape
+forget_regions_shape
+     : forall regs : list jet_sx_state.region,
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (@List.map jet_sx_state.region jet_sx_state.region forget_region regs))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape regs)
+### C.jet_sx_forget_cells.rep_forget_cells
+rep_forget_cells
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (regs : list jet_sx_state.region)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta regs m),
+       jet_sx_state.rep rho beta (@List.map jet_sx_state.region jet_sx_state.region forget_region regs) m
+### C.jet_sx_forget_cells.rep_forget_after
+rep_forget_after
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (regs : list jet_sx_state.region)
+         (m : Memory.Mem.mem) (n : nat) (_ : jet_sx_state.rep rho beta regs m),
+       jet_sx_state.rep rho beta (forget_after n regs) m
+### C.jet_sx_forget_cells.forget_cell
+forget_cell =
+fun c : jet_sx_state.cell => jet_sx_state.mkcell (jet_sx_state.cofs c) (jet_sx_state.cchunk c) (@None jet_sx_expr.sx)
+     : forall _ : jet_sx_state.cell, jet_sx_state.cell
+
+Arguments forget_cell c
+### C.jet_sx_forget_cells.forget_region
+forget_region =
+fun reg : jet_sx_state.region =>
+jet_sx_state.mkreg (@List.map jet_sx_state.cell jet_sx_state.cell forget_cell (jet_sx_state.rcells reg))
+  (jet_sx_state.rw reg) (jet_sx_state.rfree reg)
+     : forall _ : jet_sx_state.region, jet_sx_state.region
+
+Arguments forget_region reg
+### C.jet_sx_forget_cells.forget_after
+forget_after =
+fix forget_after (n : nat) (regs : list jet_sx_state.region) {struct regs} : list jet_sx_state.region :=
+  match regs return (list jet_sx_state.region) with
+  | nil => @nil jet_sx_state.region
+  | cons h t =>
+      match n return (list jet_sx_state.region) with
+      | O => @cons jet_sx_state.region (forget_region h) (forget_after O t)
+      | S k => @cons jet_sx_state.region h (forget_after k t)
+      end
+  end
+     : forall (_ : nat) (_ : list jet_sx_state.region), list jet_sx_state.region
+
+Arguments forget_after n%nat_scope regs%list_scope

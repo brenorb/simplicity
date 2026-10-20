@@ -1,0 +1,86 @@
+### C.jet_sx_revalue_cells.revalue_cells_sorted
+revalue_cells_sorted
+     : forall (f : forall _ : jet_sx_expr.sx, jet_sx_expr.sx) (cs : list jet_sx_state.cell) (lo : BinNums.Z),
+       @eq bool (jet_sx_state.cells_sorted lo (@List.map jet_sx_state.cell jet_sx_state.cell (revalue_cell f) cs))
+         (jet_sx_state.cells_sorted lo cs)
+### C.jet_sx_revalue_cells.revalue_region_shape
+revalue_region_shape
+     : forall (f : forall _ : jet_sx_expr.sx, jet_sx_expr.sx) (reg : jet_sx_state.region),
+       @eq (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+         (jet_sx_state.rshape (revalue_region f reg)) (jet_sx_state.rshape reg)
+### C.jet_sx_revalue_cells.region_ok_revalue
+region_ok_revalue
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (f : forall _ : jet_sx_expr.sx, jet_sx_expr.sx) (reg : jet_sx_state.region)
+         (_ : jet_sx_state.region_ok rho beta m r reg)
+         (_ : forall (c : jet_sx_state.cell) (x : jet_sx_expr.sx)
+                (_ : @List.In jet_sx_state.cell c (jet_sx_state.rcells reg))
+                (_ : @eq (option jet_sx_expr.sx) (jet_sx_state.cval c) (@Some jet_sx_expr.sx x)),
+              and
+                (@eq Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) (f x))
+                   (jet_sx_expr.den rho (jet_sx_state.lay beta) x)) (@eq bool (jet_sx_state.xp_le r (f x)) true)),
+       jet_sx_state.region_ok rho beta m r (revalue_region f reg)
+### C.jet_sx_revalue_cells.rep_change_head
+rep_change_head
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (old new : jet_sx_state.region)
+         (rest : list jet_sx_state.region) (m : Memory.Mem.mem)
+         (_ : @eq (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                (jet_sx_state.rshape new) (jet_sx_state.rshape old)) (_ : jet_sx_state.region_ok rho beta m O new)
+         (_ : jet_sx_state.rep rho beta (@cons jet_sx_state.region old rest) m),
+       jet_sx_state.rep rho beta (@cons jet_sx_state.region new rest) m
+### C.jet_sx_revalue_cells.revalue_u64_den
+revalue_u64_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (r : nat)
+         (x : jet_sx_expr.sx) (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL x) true),
+       and
+         (@eq Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) (revalue_u64 rho beta x))
+            (jet_sx_expr.den rho (jet_sx_state.lay beta) x))
+         (@eq bool (jet_sx_state.xp_le r (revalue_u64 rho beta x)) true)
+### C.jet_sx_revalue_cells.revalue_u64_cells
+revalue_u64_cells
+     : forall (f : forall _ : jet_sx_expr.sx, jet_sx_expr.sx) (xs : list jet_sx_expr.sx) (ofs : BinNums.Z),
+       @eq (list jet_sx_state.cell)
+         (@List.map jet_sx_state.cell jet_sx_state.cell (revalue_cell f) (jet_sx_rep.u64_cells ofs xs))
+         (jet_sx_rep.u64_cells ofs (@List.map jet_sx_expr.sx jet_sx_expr.sx f xs))
+### C.jet_sx_revalue_cells.region_ok_revalue_u64
+region_ok_revalue_u64
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (xs : list jet_sx_expr.sx) (w : bool) (owned : option BinNums.Z)
+         (_ : jet_sx_state.region_ok rho beta m r (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 xs) w owned))
+         (_ : @eq bool (@List.forallb jet_sx_expr.sx (jet_sx_expr.isk jet_sx_expr.KL) xs) true),
+       jet_sx_state.region_ok rho beta m r
+         (jet_sx_state.mkreg
+            (jet_sx_rep.u64_cells BinNums.Z0 (@List.map jet_sx_expr.sx jet_sx_expr.sx (revalue_u64 rho beta) xs)) w
+            owned)
+### C.jet_sx_revalue_cells.revalue_u64_machine_map
+revalue_u64_machine_map
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (xs : list jet_sx_expr.sx)
+         (ys : list Integers.Int64.int)
+         (_ : @eq (list Values.val)
+                (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) xs)
+                (@List.map Integers.Int64.int Values.val Values.Vlong ys)),
+       @eq (list jet_sx_expr.sx) (@List.map jet_sx_expr.sx jet_sx_expr.sx (revalue_u64 rho beta) xs)
+         (@List.map Integers.Int64.int jet_sx_expr.sx jet_sx_expr.XL ys)
+### C.jet_sx_revalue_cells.revalue_cell
+revalue_cell =
+fun (f : forall _ : jet_sx_expr.sx, jet_sx_expr.sx) (c : jet_sx_state.cell) =>
+jet_sx_state.mkcell (jet_sx_state.cofs c) (jet_sx_state.cchunk c)
+  (@option_map jet_sx_expr.sx jet_sx_expr.sx f (jet_sx_state.cval c))
+     : forall (_ : forall _ : jet_sx_expr.sx, jet_sx_expr.sx) (_ : jet_sx_state.cell), jet_sx_state.cell
+
+Arguments revalue_cell f%function_scope c
+### C.jet_sx_revalue_cells.revalue_region
+revalue_region =
+fun (f : forall _ : jet_sx_expr.sx, jet_sx_expr.sx) (reg : jet_sx_state.region) =>
+jet_sx_state.mkreg (@List.map jet_sx_state.cell jet_sx_state.cell (revalue_cell f) (jet_sx_state.rcells reg))
+  (jet_sx_state.rw reg) (jet_sx_state.rfree reg)
+     : forall (_ : forall _ : jet_sx_expr.sx, jet_sx_expr.sx) (_ : jet_sx_state.region), jet_sx_state.region
+
+Arguments revalue_region f%function_scope reg
+### C.jet_sx_revalue_cells.revalue_u64
+revalue_u64 =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (x : jet_sx_expr.sx) =>
+jet_sx_expr.XL (jet_sx_expr.il (jet_sx_expr.den rho (jet_sx_state.lay beta) x))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments revalue_u64 rho%function_scope beta x

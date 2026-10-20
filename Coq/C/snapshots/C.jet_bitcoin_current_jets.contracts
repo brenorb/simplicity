@@ -1,0 +1,85 @@
+### C.jet_bitcoin_current_jets.bitcoin_current_value_local_spec
+bitcoin_current_value_local_spec
+     : jet_application_contract.application_jet_local_spec jets_bitcoin.f_simplicity_bitcoin_current_value
+         jet_bitcoin_linkage.bitcoin_ge Bitcoin.Bitcoin.env Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+         (@current_scalar_rep Bitcoin.sigTxInput
+            (fun e : Bitcoin.Bitcoin.env => Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx e))
+            (fun txi : Bitcoin.sigTxInput => Integers.Int64.unsigned (Bitcoin.sigTxiValue txi))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : Bitcoin.Bitcoin.env) =>
+          @jet_bitcoin_current_spec.bitcoin_current_value_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a environment)
+### C.jet_bitcoin_current_jets.bitcoin_current_sequence_local_spec
+bitcoin_current_sequence_local_spec
+     : jet_application_contract.application_jet_local_spec jets_bitcoin.f_simplicity_bitcoin_current_sequence
+         jet_bitcoin_linkage.bitcoin_ge Bitcoin.Bitcoin.env Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@current_scalar_rep Bitcoin.sigTxInput
+            (fun e : Bitcoin.Bitcoin.env => Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx e))
+            (fun txi : Bitcoin.sigTxInput => Integers.Int.unsigned (Bitcoin.sigTxiSequence txi))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : Bitcoin.Bitcoin.env) =>
+          @jet_bitcoin_current_spec.bitcoin_current_sequence_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a environment)
+### C.jet_bitcoin_current_jets.current_scalar_rep
+current_scalar_rep =
+fun (A : Type) (elems_of : forall _ : Bitcoin.Bitcoin.env, list A) (valz : forall _ : A, BinNums.Z)
+  (sz voff adelta cdelta : BinNums.Z) (m : Memory.Mem.mem) (env : Values.val) (environment : Bitcoin.Bitcoin.env) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun txbase : BinNums.Z =>
+            @ex Values.block
+              (fun bin : Values.block =>
+               @ex BinNums.Z
+                 (fun inbase : BinNums.Z =>
+                  @ex Integers.Int64.int
+                    (fun nI : Integers.Int64.int =>
+                     @ex Integers.Int64.int
+                       (fun ixv : Integers.Int64.int =>
+                        and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                          (and (BinInt.Z.le BinNums.Z0 ebase)
+                             (and
+                                (BinInt.Z.le
+                                   (BinInt.Z.add ebase
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                                   Integers.Ptrofs.max_unsigned)
+                                (and (BinInt.Z.le BinNums.Z0 txbase)
+                                   (and
+                                      (BinInt.Z.le
+                                         (BinInt.Z.add txbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...)))))
+                                         Integers.Ptrofs.max_unsigned)
+                                      (and (BinInt.Z.le BinNums.Z0 inbase)
+                                         (and
+                                            (BinInt.Z.le (BinInt.Z.add inbase (BinInt.Z.mul sz (BinInt.Z.of_nat ...)))
+                                               Integers.Ptrofs.max_unsigned)
+                                            (and
+                                               (@eq (option Values.val)
+                                                  (Memory.Mem.load AST.Mptr m be (BinInt.Z.add ebase BinNums.Z0))
+                                                  (@Some Values.val (Values.Vptr bt ...)))
+                                               (and
+                                                  (@eq (option Values.val) (Memory.Mem.load AST.Mptr m bt ...)
+                                                     (@Some Values.val ...)) (and (@eq ... ... ...) (and ... ...))))))))))))))))))
+     : forall (A : Type) (_ : forall _ : Bitcoin.Bitcoin.env, list A) (_ : forall _ : A, BinNums.Z)
+         (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Memory.Mem.mem)
+         (_ : Values.val) (_ : Bitcoin.Bitcoin.env), Prop
+
+Arguments current_scalar_rep {A}%type_scope (elems_of valz)%function_scope (sz voff adelta cdelta)%Z_scope
+  m env environment

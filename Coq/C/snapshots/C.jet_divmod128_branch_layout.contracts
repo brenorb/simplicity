@@ -1,0 +1,103 @@
+### C.jet_divmod128_branch_layout.divmod128_wide_decode
+divmod128_wide_decode
+     : forall (s : jet_wide.wide_size) (w : Integers.Int64.int)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned w) (jet_predicate_spec.word_modulus (jet_wide.wide_log s))),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+         (jet_wide_spec.decode_wide s (Integers.Int64.zero_ext (jet_wide.wide_bits s) w))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (jet_wide.wide_log s)) (Integers.Int64.unsigned w))
+### C.jet_divmod128_branch_layout.exec_divmod128_branch_layout
+exec_divmod128_branch_layout
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bl bqh bql br bd : Values.block)
+         (dbase : BinNums.Z) (bw : Values.block) (outedge cursor : BinNums.Z)
+         (xh : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (xm xl : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (y : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (ah am al b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._ah le) (@Some Values.val (Values.Vlong ah)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._am le) (@Some Values.val (Values.Vlong am)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._al le) (@Some Values.val (Values.Vlong al)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._b le) (@Some Values.val (Values.Vlong b)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._t'5 le)
+                (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int (jet_divmod128_spec.divmod128_guard ah b)))))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned ah)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) xh))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned am) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) xm))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned al) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) xl))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned b)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) y))
+         (_ : jet_divmod128_allocate.divmod128_local_distinct bl bqh bql br)
+         (_ : jet_divmod128_allocate.divmod128_local_permissions m bl bqh bql br)
+         (_ : forall (bb : Values.block) (_ : or (@eq Values.block bb bd) (@eq Values.block bb bw)),
+              and (not (@eq Values.block bb bqh)) (and (not (@eq Values.block bb bql)) (not (@eq Values.block bb br))))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @ex Memory.Mem.mem
+         (fun me : Memory.Mem.mem =>
+          @ex Clight.temp_env
+            (fun lef : Clight.temp_env =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (jet_divmod128_entry.divmod128_env bl bqh bql br) le m
+                  jet_divmod128_exec.divmod128_branch_stmt Events.E0 lef me ClightBigstep.Out_normal)
+               (and
+                  (jet_encoding.frame_output_cells_at me bw outedge cursor
+                     (@Translate.encode (Word.Word (S (S (S (S (S (S (S O))))))))
+                        (@jet_division_core_spec.div2n1n_word_spec (S (S (S (S (S (S O)))))) Alg.CoreFunSem
+                           (@pair
+                              (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                                 (prod (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+                                    (Ty.tySem (Word.Word (S (S (S (S (S O)))))))))
+                              (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                              (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                                 (prod (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+                                    (Ty.tySem (Word.Word (S (S (S (S (S O)))))))) xh
+                                 (@pair (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+                                    (Ty.tySem (Word.Word (S (S (S (S (S O))))))) xm xl)) y))))
+                  (and (jet_output_layout.write_prefix_at m me bw outedge cursor)
+                     (and
+                        (jet_frame_layout.frame_fields_at me bd dbase bw outedge
+                           (BinInt.Z.sub cursor
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                        (and
+                           (forall (chunk : AST.memory_chunk) (bb : Values.block) (ofs : BinNums.Z)
+                              (_ : not (@eq Values.block bb bqh)) (_ : not (@eq Values.block bb bql))
+                              (_ : not (@eq Values.block bb br))
+                              (_ : or (not (@eq Values.block bb bd))
+                                     (or
+                                        (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                           (BinInt.Z.add dbase
+                                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                        (BinInt.Z.le
+                                           (BinInt.Z.add dbase
+                                              (BinNums.Zpos
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs)))
+                              (_ : or (not (@eq Values.block bb bw))
+                                     (or
+                                        (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                           (BinInt.Z.add outedge
+                                              (BinInt.Z.mul
+                                                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                                 (BinInt.Z.div
+                                                    (BinInt.Z.sub cursor
+                                                       (BinNums.Zpos
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))
+                                                    (BinNums.Zpos
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                        (BinInt.Z.le
+                                           (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                            @eq (option Values.val) (Memory.Mem.load chunk me bb ofs) (Memory.Mem.load chunk m bb ofs))
+                           (and
+                              (forall (bb : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                                 (p : Memtype.permission) (_ : Memory.Mem.perm m bb ofs kind p),
+                               Memory.Mem.perm me bb ofs kind p)
+                              (forall (bb : Values.block) (_ : Memory.Mem.valid_block m bb),
+                               Memory.Mem.valid_block me bb))))))))

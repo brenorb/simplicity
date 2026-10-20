@@ -1,0 +1,600 @@
+### C.jet_elements_null_data_opcode.elements_opcode_value_cells
+elements_opcode_value_cells
+     : forall (push : bool) (n : nat) (bit small : bool) (h : Digest.hash256),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode
+            (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))) (elements_opcode_value push n bit small h))
+         (@cons (option bool) (@Some bool (negb push))
+            match push return (list (option bool)) with
+            | true =>
+                @Translate.encode (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S O))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (@Word.ToZ.Theory.fromZ (Word.WordToZ (S O)) (BinInt.Z.of_nat n)) (Word.from_hash256 h))
+            | false =>
+                @app (option bool)
+                  (@List.repeat (option bool) (@None bool)
+                     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))
+                  (@Translate.encode (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))
+                     (jet_elements_null_data_nonpush.elements_nonpush_value n bit small))
+            end)
+### C.jet_elements_null_data_opcode.elements_opcode_is_nonpush
+elements_opcode_is_nonpush
+     : forall (push : bool) (n : nat) (bit small : bool)
+         (_ : lt n
+                match push return nat with
+                | true => S (S (S (S O)))
+                | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))
+                end),
+       @eq bool
+         (Integers.Int.cmp Integers.Clt (Integers.Int.repr (BinNums.Zpos (BinNums.xI BinNums.xH)))
+            (elements_opcode_code_value push n bit small)) (negb push)
+### C.jet_elements_null_data_opcode.eval_elements_opcode_test
+eval_elements_opcode_test
+     : forall (push : bool) (n : nat) (bit small : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem)
+         (_ : lt n
+                match push return nat with
+                | true => S (S (S (S O)))
+                | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))
+                end)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._t'39 le)
+                (@Some Values.val (Values.Vint (elements_opcode_code_value push n bit small)))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m elements_opcode_test
+         (Values.Vint
+            match negb push return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end)
+### C.jet_elements_null_data_opcode.exec_elements_opcode_condition
+exec_elements_opcode_condition
+     : forall (push : bool) (n : nat) (bit small : bool) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bw : Values.block) (edge cur : BinNums.Z) (be : Values.block) (ebase : BinNums.Z)
+         (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z)
+         (bop : Values.block) (opbase : BinNums.Z) (i j : Integers.Int64.int)
+         (_ : lt n
+                match push return nat with
+                | true => S (S (S (S O)))
+                | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))
+                end)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._i le)
+                (@Some Values.val (Values.Vlong i)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._j le)
+                (@Some Values.val (Values.Vlong j)))
+         (_ : jet_elements_null_data_small.elements_null_data_path_valid m be ebase bt txbase bout outbase bop opbase i
+                j (elements_opcode_code_value push n bit small))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur (BinNums.Zpos BinNums.xH)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m elements_opcode_condition
+               Events.E0 (elements_opcode_condition_temps push n bit small bt txbase bout outbase bop opbase le) mf
+               ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur (BinNums.Zpos BinNums.xH)
+               (@cons (option bool) (@Some bool (negb push)) (@nil (option bool)))))
+### C.jet_elements_null_data_opcode.exec_elements_null_data_opcode_block
+exec_elements_null_data_opcode_block
+     : forall (push : bool) (n : nat) (bit small : bool) (h : Digest.hash256)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (be : Values.block) (ebase : BinNums.Z) (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block)
+         (outbase : BinNums.Z) (bop : Values.block) (opbase : BinNums.Z) (i j : Integers.Int64.int)
+         (_ : lt n
+                match push return nat with
+                | true => S (S (S (S O)))
+                | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))
+                end)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._skipBits e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeHash e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._i le)
+                (@Some Values.val (Values.Vlong i)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._j le)
+                (@Some Values.val (Values.Vlong j)))
+         (_ : jet_elements_null_data_small.elements_null_data_path_valid m be ebase bt txbase bout outbase bop opbase i
+                j (elements_opcode_code_value push n bit small))
+         (_ : match push return Prop with
+              | true =>
+                  and
+                    (jet_uint32_array_init.uint32_array_at m bop
+                       (BinInt.Z.add opbase
+                          (BinInt.Z.mul
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                             (Integers.Int64.unsigned j))) (Digest.hash256_reg h))
+                    (jet_application_sep.out_sep bd dbase bw edge cur
+                       (BinNums.Zpos
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                       bop
+                       (BinInt.Z.add opbase
+                          (BinInt.Z.mul
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                             (Integers.Int64.unsigned j)))
+                       (BinInt.Z.add
+                          (BinInt.Z.add opbase
+                             (BinInt.Z.mul
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                (Integers.Int64.unsigned j)))
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+              | false => True
+              end)
+         (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                 match pat return Prop with
+                 | pair y hi =>
+                     match y return Prop with
+                     | pair b lo =>
+                         jet_application_sep.out_sep bd dbase bw edge cur
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           b lo hi
+                     end
+                 end)
+                (jet_elements_null_data_loads.elements_null_data_path_footprint be ebase bt txbase bout outbase bop
+                   opbase i j))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m elements_null_data_opcode_block
+                  Events.E0 le' mf ClightBigstep.Out_normal)
+               (jet_elements_effects.write_effect m mf bd dbase bw edge cur
+                  (BinNums.Zpos
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (@Translate.encode
+                     (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))
+                     (elements_opcode_value push n bit small h)))))
+### C.jet_elements_null_data_opcode.elements_null_data_opcode_block_source
+elements_null_data_opcode_block_source
+     : @eq (option Clight.statement)
+         (jet_elements_null_data_payload.elements_find_head_prefix jets_elements._t'36
+            (Clight.fn_body jets_elements.f_simplicity_output_null_datum))
+         (@Some Clight.statement elements_null_data_opcode_block)
+### C.jet_elements_null_data_opcode.elements_datum_number_bound
+elements_datum_number_bound
+     : forall d : jet_elements_prim.txNullDatumF Digest.hash256,
+       lt (elements_datum_number d)
+         match elements_datum_push d return nat with
+         | true => S (S (S (S O)))
+         | false => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))
+         end
+### C.jet_elements_null_data_opcode.elements_output_null_datum_present_sem
+elements_output_null_datum_present_sem
+     : forall (environment : jet_elements_prim.Elements.environment) (i j : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (txo : jet_elements_prim.txOutput) (parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+         (d : jet_elements_prim.txNullDatumF (list Integers.Byte.int)) (unused_hash : Digest.hash256)
+         (_ : @eq (option jet_elements_prim.txOutput)
+                (@List.nth_error jet_elements_prim.txOutput
+                   (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))
+                   (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) i)))
+                (@Some jet_elements_prim.txOutput txo))
+         (_ : @eq (option (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+                (jet_elements_prim.txNullData (jet_elements_prim.txoScript txo))
+                (@Some (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) parsed))
+         (_ : @eq (option (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+                (@List.nth_error (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) parsed
+                   (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) j)))
+                (@Some (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) d)),
+       @eq
+         (option
+            (Ty.tySem
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum Ty.Unit
+                     (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))))
+         (@jet_elements_prim.Elements.sem (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+            (Ty.Sum Ty.Unit
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))
+            jet_elements_prim.Elements.OutputNullDatum
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Ty.tySem (Word.Word (S (S (S (S (S O))))))) i j)
+            environment)
+         (@Some
+            (sum unit
+               (sum unit
+                  (Ty.tySem
+                     (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))))
+            (@inr unit
+               (sum unit
+                  (Ty.tySem
+                     (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))
+               (@inr unit
+                  (Ty.tySem
+                     (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))
+                  (elements_datum_value
+                     (@jet_elements_prim.mapNullDatum (list Integers.Byte.int) Digest.hash256 Digest.byteStringHash d)
+                     unused_hash))))
+### C.jet_elements_null_data_opcode.exec_elements_null_data_datum
+exec_elements_null_data_datum
+     : forall (d : jet_elements_prim.txNullDatumF Digest.hash256) (unused_hash : Digest.hash256)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (be : Values.block) (ebase : BinNums.Z) (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block)
+         (outbase : BinNums.Z) (bop : Values.block) (opbase : BinNums.Z) (i j : Integers.Int64.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._skipBits e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeHash e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._i le)
+                (@Some Values.val (Values.Vlong i)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._j le)
+                (@Some Values.val (Values.Vlong j)))
+         (_ : jet_elements_null_data_small.elements_null_data_path_valid m be ebase bt txbase bout outbase bop opbase i
+                j (elements_datum_code d))
+         (_ : match elements_datum_push d return Prop with
+              | true =>
+                  and
+                    (jet_uint32_array_init.uint32_array_at m bop
+                       (BinInt.Z.add opbase
+                          (BinInt.Z.mul
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                             (Integers.Int64.unsigned j))) (Digest.hash256_reg (elements_datum_hash d unused_hash)))
+                    (jet_application_sep.out_sep bd dbase bw edge cur
+                       (BinNums.Zpos
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                       bop
+                       (BinInt.Z.add opbase
+                          (BinInt.Z.mul
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                             (Integers.Int64.unsigned j)))
+                       (BinInt.Z.add
+                          (BinInt.Z.add opbase
+                             (BinInt.Z.mul
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                (Integers.Int64.unsigned j)))
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+              | false => True
+              end)
+         (_ : @List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                 match pat return Prop with
+                 | pair y hi =>
+                     match y return Prop with
+                     | pair b lo =>
+                         jet_application_sep.out_sep bd dbase bw edge cur
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                           b lo hi
+                     end
+                 end)
+                (jet_elements_null_data_loads.elements_null_data_path_footprint be ebase bt txbase bout outbase bop
+                   opbase i j))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m elements_null_data_opcode_block
+                  Events.E0 le' mf ClightBigstep.Out_normal)
+               (jet_elements_effects.write_effect m mf bd dbase bw edge cur
+                  (BinNums.Zpos
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (@Translate.encode
+                     (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))) (elements_datum_value d unused_hash)))))
+### C.jet_elements_null_data_opcode.elements_opcode_code_value
+elements_opcode_code_value =
+fun (push : bool) (n : nat) (bit small : bool) =>
+match push return Integers.Int.int with
+| true => Integers.Int.repr (BinInt.Z.of_nat n)
+| false => jet_elements_null_data_nonpush.elements_nonpush_code n bit small
+end
+     : forall (_ : bool) (_ : nat) (_ : bool) (_ : bool), Integers.Int.int
+
+Arguments elements_opcode_code_value push%bool_scope n%nat_scope (bit small)%bool_scope
+### C.jet_elements_null_data_opcode.elements_opcode_value
+elements_opcode_value =
+fun (push : bool) (n : nat) (bit small : bool) (h : Digest.hash256) =>
+match
+  push
+  return
+    (Ty.tySem
+       (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+          (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))
+with
+| true =>
+    @inl (prod (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S O)))) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+      (sum
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Ty.Sum Ty.Unit Ty.Unit))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S O)))))
+      (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S O)))) (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S O)) (BinInt.Z.of_nat n)) (Word.from_hash256 h))
+| false =>
+    @inr
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S O)))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+      (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))
+      (jet_elements_null_data_nonpush.elements_nonpush_value n bit small)
+end
+     : forall (_ : bool) (_ : nat) (_ : bool) (_ : bool) (_ : Digest.hash256),
+       Ty.tySem
+         (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))
+
+Arguments elements_opcode_value push%bool_scope n%nat_scope (bit small)%bool_scope h
+### C.jet_elements_null_data_opcode.elements_opcode_test
+elements_opcode_test =
+Clight.Ebinop Cop.Olt (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xI BinNums.xH))) Ctypesdefs.tint)
+  (Clight.Etempvar jets_elements._t'39 Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_elements_null_data_opcode.elements_opcode_condition
+elements_opcode_condition =
+jet_elements_null_data_loads.elements_append_stmt
+  (jet_elements_null_data_loads.elements_null_data_reload jets_elements._t'36 jets_elements._t'37 jets_elements._t'38
+     jets_elements._t'39)
+  (jet_elements_bit_expr.elements_bit_expr_stmt (@Some AST.ident jets_elements._t'5) elements_opcode_test)
+     : Clight.statement
+### C.jet_elements_null_data_opcode.elements_opcode_condition_temps
+elements_opcode_condition_temps =
+fun (push : bool) (n : nat) (bit small : bool) (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block)
+  (outbase : BinNums.Z) (bop : Values.block) (opbase : BinNums.Z) (le : Maps.PTree.tree Values.val) =>
+@Maps.PTree.set Values.val jets_elements._t'5
+  (Values.Vint match negb push return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end)
+  (jet_elements_null_data_loads.elements_null_data_reload_temps jets_elements._t'36 jets_elements._t'37
+     jets_elements._t'38 jets_elements._t'39 bt txbase bout outbase bop opbase
+     (elements_opcode_code_value push n bit small) le)
+     : forall (_ : bool) (_ : nat) (_ : bool) (_ : bool) (_ : Values.block) (_ : BinNums.Z)
+         (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : Maps.PTree.tree Values.val),
+       Maps.PTree.tree Values.val
+
+Arguments elements_opcode_condition_temps push%bool_scope n%nat_scope (bit small)%bool_scope
+  bt txbase%Z_scope bout outbase%Z_scope bop opbase%Z_scope le
+### C.jet_elements_null_data_opcode.elements_null_data_opcode_block
+elements_null_data_opcode_block =
+Clight.Ssequence elements_opcode_condition
+  (Clight.Sifthenelse (Clight.Etempvar jets_elements._t'5 Ctypesdefs.tbool)
+     jet_elements_null_data_nonpush.elements_null_data_nonpush_arm
+     jet_elements_null_data_payload.elements_null_data_push_arm)
+     : Clight.statement
+### C.jet_elements_null_data_opcode.elements_datum_push
+elements_datum_push =
+fun d : jet_elements_prim.txNullDatumF Digest.hash256 =>
+match d return bool with
+| jet_elements_prim.Immediate _ => true
+| jet_elements_prim.PushData _ => true
+| jet_elements_prim.PushData2 _ => true
+| jet_elements_prim.PushData4 _ => true
+| jet_elements_prim.OP1Negate => false
+| jet_elements_prim.OPReserved => false
+| jet_elements_prim.OP1 => false
+| jet_elements_prim.OP2 => false
+| jet_elements_prim.OP3 => false
+| jet_elements_prim.OP4 => false
+| jet_elements_prim.OP5 => false
+| jet_elements_prim.OP6 => false
+| jet_elements_prim.OP7 => false
+| jet_elements_prim.OP8 => false
+| jet_elements_prim.OP9 => false
+| jet_elements_prim.OP10 => false
+| jet_elements_prim.OP11 => false
+| jet_elements_prim.OP12 => false
+| jet_elements_prim.OP13 => false
+| jet_elements_prim.OP14 => false
+| jet_elements_prim.OP15 => false
+| jet_elements_prim.OP16 => false
+end
+     : forall _ : jet_elements_prim.txNullDatumF Digest.hash256, bool
+
+Arguments elements_datum_push d
+### C.jet_elements_null_data_opcode.elements_datum_number
+elements_datum_number =
+fun d : jet_elements_prim.txNullDatumF Digest.hash256 =>
+match d return nat with
+| jet_elements_prim.Immediate _ => O
+| jet_elements_prim.PushData _ => S O
+| jet_elements_prim.PushData2 _ => S (S O)
+| jet_elements_prim.PushData4 _ => S (S (S O))
+| jet_elements_prim.OP1Negate => O
+| jet_elements_prim.OPReserved => O
+| jet_elements_prim.OP1 => O
+| jet_elements_prim.OP2 => S O
+| jet_elements_prim.OP3 => S (S O)
+| jet_elements_prim.OP4 => S (S (S O))
+| jet_elements_prim.OP5 => S (S (S (S O)))
+| jet_elements_prim.OP6 => S (S (S (S (S O))))
+| jet_elements_prim.OP7 => S (S (S (S (S (S O)))))
+| jet_elements_prim.OP8 => S (S (S (S (S (S (S O))))))
+| jet_elements_prim.OP9 => S (S (S (S (S (S (S (S O)))))))
+| jet_elements_prim.OP10 => S (S (S (S (S (S (S (S (S O))))))))
+| jet_elements_prim.OP11 => S (S (S (S (S (S (S (S (S (S O)))))))))
+| jet_elements_prim.OP12 => S (S (S (S (S (S (S (S (S (S (S O))))))))))
+| jet_elements_prim.OP13 => S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))
+| jet_elements_prim.OP14 => S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+| jet_elements_prim.OP15 => S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+| jet_elements_prim.OP16 => S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+end
+     : forall _ : jet_elements_prim.txNullDatumF Digest.hash256, nat
+
+Arguments elements_datum_number d
+### C.jet_elements_null_data_opcode.elements_datum_bit
+elements_datum_bit =
+fun d : jet_elements_prim.txNullDatumF Digest.hash256 =>
+match d return bool with
+| jet_elements_prim.Immediate _ => false
+| jet_elements_prim.PushData _ => false
+| jet_elements_prim.PushData2 _ => false
+| jet_elements_prim.PushData4 _ => false
+| jet_elements_prim.OP1Negate => false
+| jet_elements_prim.OPReserved => true
+| jet_elements_prim.OP1 => false
+| jet_elements_prim.OP2 => false
+| jet_elements_prim.OP3 => false
+| jet_elements_prim.OP4 => false
+| jet_elements_prim.OP5 => false
+| jet_elements_prim.OP6 => false
+| jet_elements_prim.OP7 => false
+| jet_elements_prim.OP8 => false
+| jet_elements_prim.OP9 => false
+| jet_elements_prim.OP10 => false
+| jet_elements_prim.OP11 => false
+| jet_elements_prim.OP12 => false
+| jet_elements_prim.OP13 => false
+| jet_elements_prim.OP14 => false
+| jet_elements_prim.OP15 => false
+| jet_elements_prim.OP16 => false
+end
+     : forall _ : jet_elements_prim.txNullDatumF Digest.hash256, bool
+
+Arguments elements_datum_bit d
+### C.jet_elements_null_data_opcode.elements_datum_small
+elements_datum_small =
+fun d : jet_elements_prim.txNullDatumF Digest.hash256 =>
+match d return bool with
+| jet_elements_prim.Immediate _ => false
+| jet_elements_prim.PushData _ => false
+| jet_elements_prim.PushData2 _ => false
+| jet_elements_prim.PushData4 _ => false
+| jet_elements_prim.OP1Negate => false
+| jet_elements_prim.OPReserved => false
+| jet_elements_prim.OP1 => true
+| jet_elements_prim.OP2 => true
+| jet_elements_prim.OP3 => true
+| jet_elements_prim.OP4 => true
+| jet_elements_prim.OP5 => true
+| jet_elements_prim.OP6 => true
+| jet_elements_prim.OP7 => true
+| jet_elements_prim.OP8 => true
+| jet_elements_prim.OP9 => true
+| jet_elements_prim.OP10 => true
+| jet_elements_prim.OP11 => true
+| jet_elements_prim.OP12 => true
+| jet_elements_prim.OP13 => true
+| jet_elements_prim.OP14 => true
+| jet_elements_prim.OP15 => true
+| jet_elements_prim.OP16 => true
+end
+     : forall _ : jet_elements_prim.txNullDatumF Digest.hash256, bool
+
+Arguments elements_datum_small d
+### C.jet_elements_null_data_opcode.elements_datum_hash
+elements_datum_hash =
+fun (d : jet_elements_prim.txNullDatumF Digest.hash256) (unused_hash : Digest.hash256) =>
+match d return Digest.hash256 with
+| jet_elements_prim.Immediate h => h
+| jet_elements_prim.PushData h => h
+| jet_elements_prim.PushData2 h => h
+| jet_elements_prim.PushData4 h => h
+| jet_elements_prim.OP1Negate => unused_hash
+| jet_elements_prim.OPReserved => unused_hash
+| jet_elements_prim.OP1 => unused_hash
+| jet_elements_prim.OP2 => unused_hash
+| jet_elements_prim.OP3 => unused_hash
+| jet_elements_prim.OP4 => unused_hash
+| jet_elements_prim.OP5 => unused_hash
+| jet_elements_prim.OP6 => unused_hash
+| jet_elements_prim.OP7 => unused_hash
+| jet_elements_prim.OP8 => unused_hash
+| jet_elements_prim.OP9 => unused_hash
+| jet_elements_prim.OP10 => unused_hash
+| jet_elements_prim.OP11 => unused_hash
+| jet_elements_prim.OP12 => unused_hash
+| jet_elements_prim.OP13 => unused_hash
+| jet_elements_prim.OP14 => unused_hash
+| jet_elements_prim.OP15 => unused_hash
+| jet_elements_prim.OP16 => unused_hash
+end
+     : forall (_ : jet_elements_prim.txNullDatumF Digest.hash256) (_ : Digest.hash256), Digest.hash256
+
+Arguments elements_datum_hash d unused_hash
+### C.jet_elements_null_data_opcode.elements_datum_code
+elements_datum_code =
+fun d : jet_elements_prim.txNullDatumF Digest.hash256 =>
+elements_opcode_code_value (elements_datum_push d) (elements_datum_number d) (elements_datum_bit d)
+  (elements_datum_small d)
+     : forall _ : jet_elements_prim.txNullDatumF Digest.hash256, Integers.Int.int
+
+Arguments elements_datum_code d
+### C.jet_elements_null_data_opcode.elements_datum_value
+elements_datum_value =
+fun (d : jet_elements_prim.txNullDatumF Digest.hash256) (unused_hash : Digest.hash256) =>
+elements_opcode_value (elements_datum_push d) (elements_datum_number d) (elements_datum_bit d)
+  (elements_datum_small d) (elements_datum_hash d unused_hash)
+     : forall (_ : jet_elements_prim.txNullDatumF Digest.hash256) (_ : Digest.hash256),
+       Ty.tySem
+         (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))
+
+Arguments elements_datum_value d unused_hash

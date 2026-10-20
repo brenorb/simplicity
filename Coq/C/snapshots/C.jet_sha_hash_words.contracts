@@ -1,0 +1,151 @@
+### C.jet_sha_hash_words.ctx8_hash_closed_gen
+ctx8_hash_closed_gen
+     : forall (bs : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (buf : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+         (count : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))),
+       let l : list (Ty.tySem (Word.Word (S (S (S O))))) :=
+         jet_sha_ctx8_spec.buffer_list (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) buf in
+       forall
+         _ : BinInt.Z.lt
+               (BinInt.Z.add (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count)
+                  (BinInt.Z.div
+                     (BinInt.Z.add (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) l))
+                        (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) bs)))
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               jet_sha_ctx8_spec.ctx8_limit,
+       @ex (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+         (fun cf : Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type =>
+          and
+            (@eq (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+               (jet_sha_ctx8_spec.ctx8_add_list
+                  (@pair (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                     (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) buf
+                     (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) count h)) bs)
+               (@Some (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type) cf))
+            (@eq
+               (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+               (@jet_sha_finalize_spec.ctx8_finalize_spec (Alg.AssertionSem Option.option_Monad_Zero) cf)
+               (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Word.from_hash256
+                     (jet_sha_hash_closed.mk_hash256
+                        (jet_sha_hash_closed.sha_stream l (jet_sha_ctx8_model.state_regs h)
+                           (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count) bs))))))
+### C.jet_sha_hash_words.fx_unit
+@fx_unit
+     : forall (A : Ty.Ty) (a : Ty.tySem A) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         (@jet_sha256_ctx8_init_spec.AC.unit A
+            (Alg.Assertion.toCore
+               (jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion
+                  (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem
+                     Option.option_Monad_Zero))) a e) (@Some unit tt)
+### C.jet_sha_hash_words.hash_words_spec_parametric
+hash_words_spec_parametric
+     : forall (k w : nat) (C : Ty.Ty) (alg1 alg2 : Alg.Assertion.Algebra) (R : Alg.Assertion.Parametric.Rel alg1 alg2)
+         (a1 : Alg.Assertion.domain alg1 (Ty.Prod C (Word.Word w))
+                 (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (a2 : Alg.Assertion.domain alg2 (Ty.Prod C (Word.Word w))
+                 (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (_ : @Alg.Assertion.Parametric.rel alg1 alg2 R (Ty.Prod C (Word.Word w))
+                (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) a1 a2),
+       @Alg.Assertion.Parametric.rel alg1 alg2 R C (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@hash_words_spec k w alg1 C a1) (@hash_words_spec k w alg2 C a2)
+### C.jet_sha_hash_words.iv_spec_regs
+iv_spec_regs
+     : @eq (list Integers.Int.int)
+         (jet_sha_ctx8_model.state_regs (@jet_sha256_iv_init.sha256_iv_spec Alg.CoreFunSem tt))
+         jet_sha256_iv_init.sha256_iv_words
+### C.jet_sha_hash_words.loop_bytes_length
+loop_bytes_length
+     : forall (k : nat) (l : list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k))),
+       @eq nat (@length (Ty.tySem (Word.Word (S (S (S O))))) (jet_sha_hash_loop.loop_bytes k l))
+         (Nat.mul (PeanoNat.Nat.pow (S (S O)) k) (@length (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) l))
+### C.jet_sha_hash_words.hash_words_sem
+hash_words_sem
+     : forall (k w : nat) (C : Ty.Ty)
+         (array : Alg.Assertion.domain
+                    (jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion
+                       (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem
+                          Option.option_Monad_Zero)) (Ty.Prod C (Word.Word w))
+                    (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))) (c : Ty.tySem C)
+         (e : jet_bitcoin_ext_prim.ext_environment) (xs : list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (_ : forall
+                i : (fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end) (Word.Word w),
+              @eq
+                (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                   (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))))
+                (array
+                   (@pair (Ty.tySem C)
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end) (Word.Word w)) c i) e)
+                (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   match
+                     @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) xs
+                       (BinInt.Z.to_nat (jet_forWhile_seq.wz w i))
+                     return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   with
+                   | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) x
+                   | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) tt
+                   end))
+         (_ : BinInt.Z.lt
+                (BinInt.Z.div
+                   (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) k)) (jet_forWhile_seq.wsize w))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                jet_sha_ctx8_spec.ctx8_limit),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@hash_words_spec k w
+            (jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion
+               (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))
+            C array c e)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.from_hash256
+               (hash_words_of k
+                  (@List.firstn (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k))
+                     (BinInt.Z.to_nat (jet_forWhile_seq.wsize w)) xs))))
+### C.jet_sha_hash_words.hash_words_spec
+hash_words_spec =
+fun (k w : nat) (term : Alg.Assertion.Algebra) (C : Ty.Ty)
+  (array : Alg.Assertion.domain term (Ty.Prod C (Word.Word w))
+             (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))) =>
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_sha256_ctx8_init_spec.AC.comp C (Ty.Prod C jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+  (@jet_sha256_ctx8_init_spec.AC.pair C C jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+     (@jet_sha256_ctx8_init_spec.AC.iden C core)
+     (@jet_sha256_ctx8_init_spec.AC.comp C Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+        (@jet_sha256_ctx8_init_spec.AC.unit C core) (@jet_sha256_ctx8_init_spec.sha256_ctx8_init_spec core)))
+  (@jet_sha256_ctx8_init_spec.AC.comp (Ty.Prod C jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+     jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+     (@jet_sha_hash_loop.hash_loop_spec k w term C array) (@jet_sha_finalize_spec.ctx8_finalize_spec term))
+     : forall (k w : nat) (term : Alg.Assertion.Algebra) (C : Ty.Ty)
+         (_ : Alg.Assertion.domain term (Ty.Prod C (Word.Word w))
+                (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))),
+       Alg.Assertion.domain term C (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments hash_words_spec (k w)%nat_scope {term} {C}%ty_scope array
+### C.jet_sha_hash_words.hash_words_of
+hash_words_of =
+fun (k : nat) (items : list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k))) =>
+jet_sha_hash_closed.mk_hash256
+  (jet_sha_hash_closed.sha_stream (@nil (Ty.tySem (Word.Word (S (S (S O)))))) jet_sha256_iv_init.sha256_iv_words
+     BinNums.Z0 (jet_sha_hash_loop.loop_bytes k items))
+     : forall (k : nat) (_ : list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k))), Digest.hash256
+
+Arguments hash_words_of k%nat_scope items%list_scope

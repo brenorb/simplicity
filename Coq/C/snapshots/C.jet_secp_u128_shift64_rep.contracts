@@ -1,0 +1,64 @@
+### C.jet_secp_u128_shift64_rep.xload_u64_defined_sound
+xload_u64_defined_sound
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (regs : list jet_sx_state.region) (m : Memory.Mem.mem) (r : nat) (d : BinNums.Z) (x : jet_sx_expr.sx)
+         (_ : jet_sx_state.rep rho layout regs m)
+         (_ : @eq (option jet_sx_expr.sx) (jet_sx_state.xload regs r d Ctypesdefs.tulong) (@Some jet_sx_expr.sx x)),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk layout r) (BinInt.Z.add (jet_sx_state.bas layout r) d))
+         (@Some Values.val (jet_sx_expr.den rho (jet_sx_state.lay layout) x))
+### C.jet_secp_u128_shift64_rep.rep_owned_region_base_zero
+rep_owned_region_base_zero
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (regs : list jet_sx_state.region) (m : Memory.Mem.mem) (r : nat) (reg : jet_sx_state.region)
+         (sz : BinNums.Z) (_ : jet_sx_state.rep rho layout regs m)
+         (_ : @eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region regs r)
+                (@Some jet_sx_state.region reg))
+         (_ : @eq (option BinNums.Z) (jet_sx_state.rfree reg) (@Some BinNums.Z sz)),
+       @eq BinNums.Z (jet_sx_state.bas layout r) BinNums.Z0
+### C.jet_secp_u128_shift64_rep.eval_u128_shift64_from_symbolic_stores
+eval_u128_shift64_from_symbolic_stores
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (regs : list jet_sx_state.region) (m : Memory.Mem.mem) (r : nat) (reg : jet_sx_state.region)
+         (hi : jet_sx_expr.sx) (regs1 regs2 : list jet_sx_state.region) (_ : jet_sx_state.rep rho layout regs m)
+         (_ : @eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region regs r)
+                (@Some jet_sx_state.region reg))
+         (_ : @eq (option BinNums.Z) (jet_sx_state.rfree reg)
+                (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (_ : @eq (option jet_sx_expr.sx)
+                (jet_sx_state.xload regs r (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                   Ctypesdefs.tulong) (@Some jet_sx_expr.sx hi))
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL hi) true)
+         (_ : @eq (option (list jet_sx_state.region)) (jet_sx_state.xstore regs r BinNums.Z0 AST.Mint64 hi)
+                (@Some (list jet_sx_state.region) regs1))
+         (_ : @eq (option (list jet_sx_state.region))
+                (jet_sx_state.xstore regs1 r (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                   AST.Mint64 (jet_sx_expr.XLc Integers.Int64.zero)) (@Some (list jet_sx_state.region) regs2)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_u128_rshift)
+               (@cons Values.val (Values.Vptr (jet_sx_state.blk layout r) Integers.Ptrofs.zero)
+                  (@cons Values.val
+                     (Values.Vint
+                        (Integers.Int.repr
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho layout regs2 mf)
+               (and
+                  (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                     (@List.map jet_sx_state.region
+                        (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                        jet_sx_state.rshape regs2)
+                     (@List.map jet_sx_state.region
+                        (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                        jet_sx_state.rshape regs))
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot layout
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape regs) b ofs)) m mf))))

@@ -1,0 +1,528 @@
+### C.jet_sx_mem.den_proj_indep
+den_proj_indep
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (x : jet_sx_expr.sx)
+         (β β' : forall _ : nat, prod Values.block BinNums.Z),
+       and (@eq Integers.Int.int (jet_sx_expr.ii (jet_sx_expr.den ρ β x)) (jet_sx_expr.ii (jet_sx_expr.den ρ β' x)))
+         (@eq Integers.Int64.int (jet_sx_expr.il (jet_sx_expr.den ρ β x)) (jet_sx_expr.il (jet_sx_expr.den ρ β' x)))
+### C.jet_sx_mem.truth_indep
+truth_indep
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β β' : forall _ : nat, prod Values.block BinNums.Z)
+         (c : jet_sx_expr.sx), @eq bool (jet_sx_expr.truth ρ β c) (jet_sx_expr.truth ρ β' c)
+### C.jet_sx_mem.den_ext
+den_ext
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (x : jet_sx_expr.sx)
+         (β β' : forall _ : nat, prod Values.block BinNums.Z) (n : nat)
+         (_ : forall (r : nat) (_ : lt r n), @eq (prod Values.block BinNums.Z) (β' r) (β r))
+         (_ : @eq bool (xp_lt n x) true), @eq Values.val (jet_sx_expr.den ρ β' x) (jet_sx_expr.den ρ β x)
+### C.jet_sx_mem.xp_le_lt
+xp_le_lt
+     : forall (r : nat) (x : jet_sx_expr.sx) (_ : @eq bool (jet_sx_state.xp_le r x) true),
+       @eq bool (xp_lt (S r) x) true
+### C.jet_sx_mem.lay_app_l
+lay_app_l
+     : forall (β βN : list (prod Values.block BinNums.Z)) (r : nat)
+         (_ : lt r (@length (prod Values.block BinNums.Z) β)),
+       @eq (prod Values.block BinNums.Z) (jet_sx_state.lay (@app (prod Values.block BinNums.Z) β βN) r)
+         (jet_sx_state.lay β r)
+### C.jet_sx_mem.region_ok_ext
+region_ok_ext
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β β' : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (reg : jet_sx_state.region)
+         (_ : forall (r' : nat) (_ : le r' r),
+              @eq (prod Values.block BinNums.Z) (jet_sx_state.lay β' r') (jet_sx_state.lay β r'))
+         (_ : jet_sx_state.region_ok ρ β m r reg), jet_sx_state.region_ok ρ β' m r reg
+### C.jet_sx_mem.region_ok_mem
+region_ok_mem
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout) (m m' : Memory.Mem.mem)
+         (r : nat) (reg : jet_sx_state.region)
+         (_ : Memory.Mem.unchanged_on
+                (fun (b : Values.block) (_ : BinNums.Z) => @eq Values.block b (jet_sx_state.blk β r)) m m')
+         (_ : jet_sx_state.region_ok ρ β m r reg), jet_sx_state.region_ok ρ β m' r reg
+### C.jet_sx_mem.rep_mem
+rep_mem
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : list (prod Values.block BinNums.Z))
+         (regs : list jet_sx_state.region) (m m' : Memory.Mem.mem)
+         (_ : Memory.Mem.unchanged_on
+                (fun (b : Values.block) (_ : BinNums.Z) =>
+                 @List.In Values.block b
+                   (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) β)) m m')
+         (_ : jet_sx_state.rep ρ β regs m), jet_sx_state.rep ρ β regs m'
+### C.jet_sx_mem.rep_prefix
+rep_prefix
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β βN : list (prod Values.block BinNums.Z))
+         (regs regsN : list jet_sx_state.region) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep ρ (@app (prod Values.block BinNums.Z) β βN) (@app jet_sx_state.region regs regsN) m)
+         (_ : @eq nat (@length (prod Values.block BinNums.Z) β) (@length jet_sx_state.region regs)),
+       jet_sx_state.rep ρ β regs m
+### C.jet_sx_mem.blk_in
+blk_in
+     : forall (β : list (prod Values.block BinNums.Z)) (r : nat) (_ : lt r (@length (prod Values.block BinNums.Z) β)),
+       @List.In Values.block (jet_sx_state.blk β r)
+         (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) β)
+### C.jet_sx_mem.rsep_snoc
+rsep_snoc
+     : forall (β : list (prod Values.block BinNums.Z)) (regs : list jet_sx_state.region) (b : Values.block)
+         (base : BinNums.Z) (reg : jet_sx_state.region)
+         (_ : @eq nat (@length (prod Values.block BinNums.Z) β) (@length jet_sx_state.region regs))
+         (_ : jet_sx_state.rsep β regs)
+         (_ : not
+                (@List.In Values.block b
+                   (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) β))),
+       jet_sx_state.rsep
+         (@app (prod Values.block BinNums.Z) β
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b base)
+               (@nil (prod Values.block BinNums.Z))))
+         (@app jet_sx_state.region regs (@cons jet_sx_state.region reg (@nil jet_sx_state.region)))
+### C.jet_sx_mem.rep_snoc
+rep_snoc
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout) (regs : list jet_sx_state.region)
+         (m : Memory.Mem.mem) (b : Values.block) (cs : list jet_sx_state.cell) (sz : BinNums.Z)
+         (_ : jet_sx_state.rep ρ β regs m)
+         (_ : not
+                (@List.In Values.block b
+                   (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) β)))
+         (_ : Memory.Mem.valid_block m b) (_ : Memory.Mem.range_perm m b BinNums.Z0 sz Memtype.Cur Memtype.Freeable)
+         (_ : @eq bool (jet_sx_state.cells_sorted BinNums.Z0 cs) true)
+         (_ : @List.Forall jet_sx_state.cell
+                (fun c : jet_sx_state.cell =>
+                 and (BinInt.Z.le (BinInt.Z.add (jet_sx_state.cofs c) (Memdata.size_chunk (jet_sx_state.cchunk c))) sz)
+                   (and (BinInt.Z.divide (Memdata.align_chunk (jet_sx_state.cchunk c)) (jet_sx_state.cofs c))
+                      (@eq (option jet_sx_expr.sx) (jet_sx_state.cval c) (@None jet_sx_expr.sx)))) cs)
+         (_ : BinInt.Z.le sz Integers.Ptrofs.max_unsigned),
+       jet_sx_state.rep ρ
+         (@app (prod Values.block BinNums.Z) β
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+               (@nil (prod Values.block BinNums.Z))))
+         (@app jet_sx_state.region regs
+            (@cons jet_sx_state.region (jet_sx_state.mkreg cs true (@Some BinNums.Z sz)) (@nil jet_sx_state.region))) m
+### C.jet_sx_mem.align_chunk_pos'
+align_chunk_pos'
+     : forall ch : AST.memory_chunk, BinInt.Z.lt BinNums.Z0 (Memdata.align_chunk ch)
+### C.jet_sx_mem.cell_allocb_true
+cell_allocb_true
+     : forall (sz : BinNums.Z) (c : jet_sx_state.cell) (_ : @eq bool (cell_allocb sz c) true),
+       and (BinInt.Z.le (BinInt.Z.add (jet_sx_state.cofs c) (Memdata.size_chunk (jet_sx_state.cchunk c))) sz)
+         (and (BinInt.Z.divide (Memdata.align_chunk (jet_sx_state.cchunk c)) (jet_sx_state.cofs c))
+            (@eq (option jet_sx_expr.sx) (jet_sx_state.cval c) (@None jet_sx_expr.sx)))
+### C.jet_sx_mem.vlookup_cons
+vlookup_cons
+     : forall (id0 : AST.ident) (v : prod nat Ctypes.type) (ve : list (prod AST.ident (prod nat Ctypes.type)))
+         (id : AST.ident),
+       @eq (option (prod nat Ctypes.type))
+         (jet_sx_eval.vlookup
+            (@cons (prod AST.ident (prod nat Ctypes.type)) (@pair AST.ident (prod nat Ctypes.type) id0 v) ve) id)
+         match BinPos.Pos.eqb id0 id return (option (prod nat Ctypes.type)) with
+         | true => @Some (prod nat Ctypes.type) v
+         | false => jet_sx_eval.vlookup ve id
+         end
+### C.jet_sx_mem.xalloc_sound
+xalloc_sound
+     : forall (ge : Clight.genv) (ρ : forall _ : nat, Integers.Int64.int)
+         (cf : forall (_ : AST.ident) (_ : Ctypes.type), option (list jet_sx_state.cell))
+         (vars : list (prod AST.ident Ctypes.type)) (n : nat) (regsN : list jet_sx_state.region)
+         (veN : jet_sx_eval.venv) (β : jet_sx_state.layout) (regs : list jet_sx_state.region)
+         (m : Memory.Mem.mem) (e : Clight.env)
+         (_ : @eq (option (prod (list jet_sx_state.region) jet_sx_eval.venv)) (xalloc cf (Clight.genv_cenv ge) vars n)
+                (@Some (prod (list jet_sx_state.region) jet_sx_eval.venv)
+                   (@pair (list jet_sx_state.region) jet_sx_eval.venv regsN veN))) (_ : jet_sx_state.rep ρ β regs m)
+         (_ : @eq nat (@length (prod Values.block BinNums.Z) β) n)
+         (_ : @Coqlib.list_norepet AST.ident (Clight.var_names vars)),
+       @ex Clight.env
+         (fun e' : Clight.env =>
+          @ex Memory.Mem.mem
+            (fun m' : Memory.Mem.mem =>
+             @ex (list (prod Values.block BinNums.Z))
+               (fun βN : list (prod Values.block BinNums.Z) =>
+                and (Clight.alloc_variables ge e m vars e' m')
+                  (and
+                     (jet_sx_state.rep ρ (@app (prod Values.block BinNums.Z) β βN)
+                        (@app jet_sx_state.region regs regsN) m')
+                     (and (@eq nat (@length (prod Values.block BinNums.Z) βN) (@length jet_sx_state.region regsN))
+                        (and
+                           (forall id : BinNums.positive,
+                            @eq (option (prod Values.block Ctypes.type))
+                              (@Maps.PTree.get (prod Values.block Ctypes.type) id e')
+                              match jet_sx_eval.vlookup veN id return (option (prod Values.block Ctypes.type)) with
+                              | Some p =>
+                                  match p return (option (prod Values.block Ctypes.type)) with
+                                  | pair r ty =>
+                                      @Some (prod Values.block Ctypes.type)
+                                        (@pair Values.block Ctypes.type
+                                           (jet_sx_state.blk (@app (prod Values.block BinNums.Z) β βN) r) ty)
+                                  end
+                              | None => @Maps.PTree.get (prod Values.block Ctypes.type) id e
+                              end)
+                           (and
+                              (forall (id : AST.ident) (r : nat) (ty : Ctypes.type)
+                                 (_ : @eq (option (prod nat Ctypes.type)) (jet_sx_eval.vlookup veN id)
+                                        (@Some (prod nat Ctypes.type) (@pair nat Ctypes.type r ty))),
+                               and (@List.In AST.ident id (Clight.var_names vars))
+                                 (and (le n r)
+                                    (and
+                                       (@eq BinNums.Z (jet_sx_state.bas (@app (prod Values.block BinNums.Z) β βN) r)
+                                          BinNums.Z0)
+                                       (@ex jet_sx_state.region
+                                          (fun reg : jet_sx_state.region =>
+                                           and
+                                             (@eq (option jet_sx_state.region)
+                                                (@List.nth_error jet_sx_state.region
+                                                   (@app jet_sx_state.region regs regsN) r)
+                                                (@Some jet_sx_state.region reg))
+                                             (@eq (option BinNums.Z) (jet_sx_state.rfree reg)
+                                                (@Some BinNums.Z (Ctypes.sizeof (Clight.genv_cenv ge) ty))))))))
+                              (and
+                                 (forall (id1 id2 : AST.ident) (r : nat) (ty1 ty2 : Ctypes.type)
+                                    (_ : @eq (option (prod nat Ctypes.type)) (jet_sx_eval.vlookup veN id1)
+                                           (@Some (prod nat Ctypes.type) (@pair nat Ctypes.type r ty1)))
+                                    (_ : @eq (option (prod nat Ctypes.type)) (jet_sx_eval.vlookup veN id2)
+                                           (@Some (prod nat Ctypes.type) (@pair nat Ctypes.type r ty2))),
+                                  @eq AST.ident id1 id2)
+                                 (and
+                                    (@List.Forall (prod Values.block BinNums.Z)
+                                       (fun p : prod Values.block BinNums.Z =>
+                                        not (Memory.Mem.valid_block m (@fst Values.block BinNums.Z p))) βN)
+                                    (Memory.Mem.unchanged_on (fun (_ : Values.block) (_ : BinNums.Z) => True) m m'))))))))))
+### C.jet_sx_mem.tmatch_set
+tmatch_set
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout) (ts : Maps.PTree.t jet_sx_expr.sx)
+         (le : Clight.temp_env) (id : BinNums.positive) (x : jet_sx_expr.sx) (_ : jet_sx_eval.tmatch ρ β ts le),
+       jet_sx_eval.tmatch ρ β (@Maps.PTree.set jet_sx_expr.sx id x ts)
+         (@Maps.PTree.set Values.val id (jet_sx_expr.den ρ (jet_sx_state.lay β) x) le)
+### C.jet_sx_mem.xbind_sound
+xbind_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout)
+         (params : list (prod AST.ident Ctypes.type)) (xs : list jet_sx_expr.sx) (ts ts' : Maps.PTree.t jet_sx_expr.sx)
+         (le : Clight.temp_env)
+         (_ : @eq (option (Maps.PTree.t jet_sx_expr.sx)) (xbind params xs ts) (@Some (Maps.PTree.t jet_sx_expr.sx) ts'))
+         (_ : jet_sx_eval.tmatch ρ β ts le),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          and
+            (@eq (option Clight.temp_env)
+               (Clight.bind_parameter_temps params
+                  (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den ρ (jet_sx_state.lay β)) xs) le)
+               (@Some Clight.temp_env le')) (jet_sx_eval.tmatch ρ β ts' le'))
+### C.jet_sx_mem.free_list_exists
+free_list_exists
+     : forall (l : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (m : Memory.Mem.mem)
+         (_ : @Coqlib.list_norepet Values.block
+                (@List.map (prod (prod Values.block BinNums.Z) BinNums.Z) Values.block
+                   (fun x : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                    @fst Values.block BinNums.Z (@fst (prod Values.block BinNums.Z) BinNums.Z x)) l))
+         (_ : forall (b : Values.block) (lo hi : BinNums.Z)
+                (_ : @List.In (prod (prod Values.block BinNums.Z) BinNums.Z)
+                       (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z b lo) hi) l),
+              Memory.Mem.range_perm m b lo hi Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and (@eq (option Memory.Mem.mem) (Memory.Mem.free_list m l) (@Some Memory.Mem.mem m'))
+            (Memory.Mem.unchanged_on
+               (fun (b : Values.block) (_ : BinNums.Z) =>
+                not
+                  (@List.In Values.block b
+                     (@List.map (prod (prod Values.block BinNums.Z) BinNums.Z) Values.block
+                        (fun x : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                         @fst Values.block BinNums.Z (@fst (prod Values.block BinNums.Z) BinNums.Z x)) l))) m m'))
+### C.jet_sx_mem.norepet_map_keys
+@norepet_map_keys
+     : forall (A B C : Type) (f : forall _ : A, B) (g : forall _ : A, C) (l : list A)
+         (_ : @Coqlib.list_norepet B (@List.map A B f l))
+         (_ : forall (x y : A) (_ : @List.In A x l) (_ : @List.In A y l) (_ : @eq C (g x) (g y)), @eq B (f x) (f y)),
+       @Coqlib.list_norepet C (@List.map A C g l)
+### C.jet_sx_mem.lframe_refl
+lframe_refl
+     : forall (P : forall (_ : Values.block) (_ : BinNums.Z), Prop) (m : Memory.Mem.mem), lframe P m m
+### C.jet_sx_mem.lframe_unchanged
+lframe_unchanged
+     : forall (P : forall (_ : Values.block) (_ : BinNums.Z), Prop) (m m' : Memory.Mem.mem)
+         (_ : Memory.Mem.unchanged_on P m m'), lframe P m m'
+### C.jet_sx_mem.lframe_implies
+lframe_implies
+     : forall (P Q : forall (_ : Values.block) (_ : BinNums.Z), Prop) (m m' : Memory.Mem.mem)
+         (_ : lframe P m m')
+         (_ : forall (b : Values.block) (ofs : BinNums.Z) (_ : Q b ofs) (_ : Memory.Mem.valid_block m b), P b ofs),
+       lframe Q m m'
+### C.jet_sx_mem.lframe_trans
+lframe_trans
+     : forall (P : forall (_ : Values.block) (_ : BinNums.Z), Prop) (m1 m2 m3 : Memory.Mem.mem)
+         (_ : lframe P m1 m2) (_ : lframe P m2 m3), lframe P m1 m3
+### C.jet_sx_mem.xp_lt
+xp_lt =
+fun (n : nat) (x : jet_sx_expr.sx) =>
+match x return bool with
+| jet_sx_expr.XI _ => true
+| jet_sx_expr.XIc _ => true
+| jet_sx_expr.XL _ => true
+| jet_sx_expr.XLc _ => true
+| jet_sx_expr.XLv _ => true
+| jet_sx_expr.XV _ => true
+| jet_sx_expr.XA _ _ => true
+| jet_sx_expr.XP r _ => PeanoNat.Nat.ltb r n
+| jet_sx_expr.XIb _ _ _ => true
+| jet_sx_expr.XLb _ _ _ => true
+| jet_sx_expr.XIsh _ _ _ => true
+| jet_sx_expr.XLsh _ _ _ => true
+| jet_sx_expr.XIcmp _ _ _ _ => true
+| jet_sx_expr.XLcmp _ _ _ _ => true
+| jet_sx_expr.XI2L _ _ => true
+| jet_sx_expr.XL2I _ => true
+| jet_sx_expr.XIcast _ _ _ => true
+| jet_sx_expr.XInz _ => true
+| jet_sx_expr.XLnz _ => true
+| jet_sx_expr.XIz _ => true
+| jet_sx_expr.XLz _ => true
+| jet_sx_expr.XIneg _ => true
+| jet_sx_expr.XLneg _ => true
+| jet_sx_expr.XInot _ => true
+| jet_sx_expr.XLnot _ => true
+end
+     : forall (_ : nat) (_ : jet_sx_expr.sx), bool
+
+Arguments xp_lt n%nat_scope x
+### C.jet_sx_mem.arr_cells
+arr_cells =
+fix arr_cells
+  (f : forall _ : BinNums.Z, option (list jet_sx_state.cell)) (sz : BinNums.Z) (k : nat) (ofs : BinNums.Z) {struct k} :
+    option (list jet_sx_state.cell) :=
+  match k return (option (list jet_sx_state.cell)) with
+  | O => @Some (list jet_sx_state.cell) (@nil jet_sx_state.cell)
+  | S k0 =>
+      match f ofs return (option (list jet_sx_state.cell)) with
+      | Some a =>
+          match arr_cells f sz k0 (BinInt.Z.add ofs sz) return (option (list jet_sx_state.cell)) with
+          | Some b => @Some (list jet_sx_state.cell) (@app jet_sx_state.cell a b)
+          | None => @None (list jet_sx_state.cell)
+          end
+      | None => @None (list jet_sx_state.cell)
+      end
+  end
+     : forall (_ : forall _ : BinNums.Z, option (list jet_sx_state.cell)) (_ : BinNums.Z) (_ : nat) (_ : BinNums.Z),
+       option (list jet_sx_state.cell)
+
+Arguments arr_cells f%function_scope sz%Z_scope k%nat_scope ofs%Z_scope
+### C.jet_sx_mem.mem_cells
+mem_cells =
+fix mem_cells
+  (f : forall (_ : Ctypes.type) (_ : BinNums.Z), option (list jet_sx_state.cell)) (ce : Ctypes.composite_env)
+  (all ms : Ctypes.members) (ofs : BinNums.Z) {struct ms} : option (list jet_sx_state.cell) :=
+  match ms return (option (list jet_sx_state.cell)) with
+  | nil => @Some (list jet_sx_state.cell) (@nil jet_sx_state.cell)
+  | cons m rest =>
+      match m return (option (list jet_sx_state.cell)) with
+      | Ctypes.Member_plain fid t =>
+          match Ctypes.field_offset ce fid all return (option (list jet_sx_state.cell)) with
+          | Errors.OK p =>
+              match p return (option (list jet_sx_state.cell)) with
+              | pair delta b =>
+                  match b return (option (list jet_sx_state.cell)) with
+                  | Ctypes.Full =>
+                      match f t (BinInt.Z.add ofs delta) return (option (list jet_sx_state.cell)) with
+                      | Some a =>
+                          match mem_cells f ce all rest ofs return (option (list jet_sx_state.cell)) with
+                          | Some b0 => @Some (list jet_sx_state.cell) (@app jet_sx_state.cell a b0)
+                          | None => @None (list jet_sx_state.cell)
+                          end
+                      | None => @None (list jet_sx_state.cell)
+                      end
+                  | Ctypes.Bits _ _ _ _ => @None (list jet_sx_state.cell)
+                  end
+              end
+          | Errors.Error _ => @None (list jet_sx_state.cell)
+          end
+      | Ctypes.Member_bitfield _ _ _ _ _ _ => @None (list jet_sx_state.cell)
+      end
+  end
+     : forall (_ : forall (_ : Ctypes.type) (_ : BinNums.Z), option (list jet_sx_state.cell))
+         (_ : Ctypes.composite_env) (_ : Ctypes.members) (_ : Ctypes.members) (_ : BinNums.Z),
+       option (list jet_sx_state.cell)
+
+Arguments mem_cells f%function_scope ce all ms ofs%Z_scope
+### C.jet_sx_mem.cells_of
+cells_of =
+fix cells_of (fuel : nat) (ce : Ctypes.composite_env) (ty : Ctypes.type) (ofs : BinNums.Z) {struct fuel} :
+    option (list jet_sx_state.cell) :=
+  match fuel return (option (list jet_sx_state.cell)) with
+  | O => @None (list jet_sx_state.cell)
+  | S fuel0 =>
+      match ty return (option (list jet_sx_state.cell)) with
+      | Ctypes.Tvoid =>
+          match Ctypes.access_mode ty return (option (list jet_sx_state.cell)) with
+          | Ctypes.By_value ch =>
+              @Some (list jet_sx_state.cell)
+                (@cons jet_sx_state.cell (jet_sx_state.mkcell ofs ch (@None jet_sx_expr.sx)) (@nil jet_sx_state.cell))
+          | Ctypes.By_reference => @None (list jet_sx_state.cell)
+          | Ctypes.By_copy => @None (list jet_sx_state.cell)
+          | Ctypes.By_nothing => @None (list jet_sx_state.cell)
+          end
+      | Ctypes.Tint _ _ _ =>
+          match Ctypes.access_mode ty return (option (list jet_sx_state.cell)) with
+          | Ctypes.By_value ch =>
+              @Some (list jet_sx_state.cell)
+                (@cons jet_sx_state.cell (jet_sx_state.mkcell ofs ch (@None jet_sx_expr.sx)) (@nil jet_sx_state.cell))
+          | Ctypes.By_reference => @None (list jet_sx_state.cell)
+          | Ctypes.By_copy => @None (list jet_sx_state.cell)
+          | Ctypes.By_nothing => @None (list jet_sx_state.cell)
+          end
+      | Ctypes.Tlong _ _ =>
+          match Ctypes.access_mode ty return (option (list jet_sx_state.cell)) with
+          | Ctypes.By_value ch =>
+              @Some (list jet_sx_state.cell)
+                (@cons jet_sx_state.cell (jet_sx_state.mkcell ofs ch (@None jet_sx_expr.sx)) (@nil jet_sx_state.cell))
+          | Ctypes.By_reference => @None (list jet_sx_state.cell)
+          | Ctypes.By_copy => @None (list jet_sx_state.cell)
+          | Ctypes.By_nothing => @None (list jet_sx_state.cell)
+          end
+      | Ctypes.Tfloat _ _ =>
+          match Ctypes.access_mode ty return (option (list jet_sx_state.cell)) with
+          | Ctypes.By_value ch =>
+              @Some (list jet_sx_state.cell)
+                (@cons jet_sx_state.cell (jet_sx_state.mkcell ofs ch (@None jet_sx_expr.sx)) (@nil jet_sx_state.cell))
+          | Ctypes.By_reference => @None (list jet_sx_state.cell)
+          | Ctypes.By_copy => @None (list jet_sx_state.cell)
+          | Ctypes.By_nothing => @None (list jet_sx_state.cell)
+          end
+      | Ctypes.Tpointer _ _ =>
+          match Ctypes.access_mode ty return (option (list jet_sx_state.cell)) with
+          | Ctypes.By_value ch =>
+              @Some (list jet_sx_state.cell)
+                (@cons jet_sx_state.cell (jet_sx_state.mkcell ofs ch (@None jet_sx_expr.sx)) (@nil jet_sx_state.cell))
+          | Ctypes.By_reference => @None (list jet_sx_state.cell)
+          | Ctypes.By_copy => @None (list jet_sx_state.cell)
+          | Ctypes.By_nothing => @None (list jet_sx_state.cell)
+          end
+      | Ctypes.Tarray t n _ => arr_cells (cells_of fuel0 ce t) (Ctypes.sizeof ce t) (BinInt.Z.to_nat n) ofs
+      | Ctypes.Tfunction _ _ _ =>
+          match Ctypes.access_mode ty return (option (list jet_sx_state.cell)) with
+          | Ctypes.By_value ch =>
+              @Some (list jet_sx_state.cell)
+                (@cons jet_sx_state.cell (jet_sx_state.mkcell ofs ch (@None jet_sx_expr.sx)) (@nil jet_sx_state.cell))
+          | Ctypes.By_reference => @None (list jet_sx_state.cell)
+          | Ctypes.By_copy => @None (list jet_sx_state.cell)
+          | Ctypes.By_nothing => @None (list jet_sx_state.cell)
+          end
+      | Ctypes.Tstruct id _ =>
+          match @Maps.PTree.get Ctypes.composite id ce return (option (list jet_sx_state.cell)) with
+          | Some co => mem_cells (cells_of fuel0 ce) ce (Ctypes.co_members co) (Ctypes.co_members co) ofs
+          | None => @None (list jet_sx_state.cell)
+          end
+      | Ctypes.Tunion _ _ =>
+          match Ctypes.access_mode ty return (option (list jet_sx_state.cell)) with
+          | Ctypes.By_value ch =>
+              @Some (list jet_sx_state.cell)
+                (@cons jet_sx_state.cell (jet_sx_state.mkcell ofs ch (@None jet_sx_expr.sx)) (@nil jet_sx_state.cell))
+          | Ctypes.By_reference => @None (list jet_sx_state.cell)
+          | Ctypes.By_copy => @None (list jet_sx_state.cell)
+          | Ctypes.By_nothing => @None (list jet_sx_state.cell)
+          end
+      end
+  end
+     : forall (_ : nat) (_ : Ctypes.composite_env) (_ : Ctypes.type) (_ : BinNums.Z), option (list jet_sx_state.cell)
+
+Arguments cells_of fuel%nat_scope ce ty ofs%Z_scope
+### C.jet_sx_mem.std_cells
+std_cells =
+fun (ce : Ctypes.composite_env) (_ : AST.ident) (ty : Ctypes.type) =>
+cells_of (S (S (S (S (S (S (S (S O)))))))) ce ty BinNums.Z0
+     : forall (_ : Ctypes.composite_env) (_ : AST.ident) (_ : Ctypes.type), option (list jet_sx_state.cell)
+
+Arguments std_cells ce id ty
+### C.jet_sx_mem.cell_allocb
+cell_allocb =
+fun (sz : BinNums.Z) (c : jet_sx_state.cell) =>
+andb
+  (andb (BinInt.Z.leb (BinInt.Z.add (jet_sx_state.cofs c) (Memdata.size_chunk (jet_sx_state.cchunk c))) sz)
+     (BinInt.Z.eqb (BinInt.Z.modulo (jet_sx_state.cofs c) (Memdata.align_chunk (jet_sx_state.cchunk c))) BinNums.Z0))
+  match jet_sx_state.cval c return bool with
+  | Some _ => false
+  | None => true
+  end
+     : forall (_ : BinNums.Z) (_ : jet_sx_state.cell), bool
+
+Arguments cell_allocb sz%Z_scope c
+### C.jet_sx_mem.xalloc
+xalloc =
+fix xalloc
+  (cf : forall (_ : AST.ident) (_ : Ctypes.type), option (list jet_sx_state.cell)) (ce : Ctypes.composite_env)
+  (vars : list (prod AST.ident Ctypes.type)) (n : nat) {struct vars} :
+    option (prod (list jet_sx_state.region) jet_sx_eval.venv) :=
+  match vars return (option (prod (list jet_sx_state.region) jet_sx_eval.venv)) with
+  | nil =>
+      @Some (prod (list jet_sx_state.region) (list (prod AST.ident (prod nat Ctypes.type))))
+        (@pair (list jet_sx_state.region) (list (prod AST.ident (prod nat Ctypes.type))) (@nil jet_sx_state.region)
+           (@nil (prod AST.ident (prod nat Ctypes.type))))
+  | cons p t =>
+      match p return (option (prod (list jet_sx_state.region) jet_sx_eval.venv)) with
+      | pair id ty =>
+          match cf id ty return (option (prod (list jet_sx_state.region) jet_sx_eval.venv)) with
+          | Some cs =>
+              match xalloc cf ce t (S n) return (option (prod (list jet_sx_state.region) jet_sx_eval.venv)) with
+              | Some p0 =>
+                  match p0 return (option (prod (list jet_sx_state.region) jet_sx_eval.venv)) with
+                  | pair regs ve =>
+                      let sz : BinNums.Z := Ctypes.sizeof ce ty in
+                      match
+                        andb
+                          (andb (jet_sx_state.cells_sorted BinNums.Z0 cs)
+                             (@List.forallb jet_sx_state.cell (cell_allocb sz) cs))
+                          (BinInt.Z.leb sz Integers.Ptrofs.max_unsigned)
+                        return (option (prod (list jet_sx_state.region) jet_sx_eval.venv))
+                      with
+                      | true =>
+                          @Some (prod (list jet_sx_state.region) (list (prod AST.ident (prod nat Ctypes.type))))
+                            (@pair (list jet_sx_state.region) (list (prod AST.ident (prod nat Ctypes.type)))
+                               (@cons jet_sx_state.region (jet_sx_state.mkreg cs true (@Some BinNums.Z sz)) regs)
+                               (@cons (prod AST.ident (prod nat Ctypes.type))
+                                  (@pair AST.ident (prod nat Ctypes.type) id (@pair nat Ctypes.type n ty)) ve))
+                      | false => @None (prod (list jet_sx_state.region) jet_sx_eval.venv)
+                      end
+                  end
+              | None => @None (prod (list jet_sx_state.region) jet_sx_eval.venv)
+              end
+          | None => @None (prod (list jet_sx_state.region) jet_sx_eval.venv)
+          end
+      end
+  end
+     : forall (_ : forall (_ : AST.ident) (_ : Ctypes.type), option (list jet_sx_state.cell))
+         (_ : Ctypes.composite_env) (_ : list (prod AST.ident Ctypes.type)) (_ : nat),
+       option (prod (list jet_sx_state.region) jet_sx_eval.venv)
+
+Arguments xalloc cf%function_scope ce vars%list_scope n%nat_scope
+### C.jet_sx_mem.xbind
+xbind =
+fix xbind
+  (params : list (prod AST.ident Ctypes.type)) (xs : list jet_sx_expr.sx) (ts : Maps.PTree.t jet_sx_expr.sx) {struct
+   params} : option (Maps.PTree.t jet_sx_expr.sx) :=
+  match params return (option (Maps.PTree.t jet_sx_expr.sx)) with
+  | nil =>
+      match xs return (option (Maps.PTree.t jet_sx_expr.sx)) with
+      | nil => @Some (Maps.PTree.t jet_sx_expr.sx) ts
+      | cons _ _ => @None (Maps.PTree.t jet_sx_expr.sx)
+      end
+  | cons p ps =>
+      match p return (option (Maps.PTree.t jet_sx_expr.sx)) with
+      | pair id _ =>
+          match xs return (option (Maps.PTree.t jet_sx_expr.sx)) with
+          | nil => @None (Maps.PTree.t jet_sx_expr.sx)
+          | cons x xs0 => xbind ps xs0 (@Maps.PTree.set jet_sx_expr.sx id x ts)
+          end
+      end
+  end
+     : forall (_ : list (prod AST.ident Ctypes.type)) (_ : list jet_sx_expr.sx) (_ : Maps.PTree.t jet_sx_expr.sx),
+       option (Maps.PTree.t jet_sx_expr.sx)
+
+Arguments xbind (params xs)%list_scope ts
+### C.jet_sx_mem.lframe
+lframe =
+fun (P : forall (_ : Values.block) (_ : BinNums.Z), Prop) (m m' : Memory.Mem.mem) =>
+and
+  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+     (_ : forall (i : BinNums.Z)
+            (_ : and (BinInt.Z.le ofs i) (BinInt.Z.lt i (BinInt.Z.add ofs (Memdata.size_chunk chunk)))),
+          P b i), @eq (option Values.val) (Memory.Mem.load chunk m' b ofs) (Memory.Mem.load chunk m b ofs))
+  (and
+     (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+        (_ : Memory.Mem.valid_block m b) (_ : P b ofs) (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm m' b ofs k p)
+     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block m' b))
+     : forall (_ : forall (_ : Values.block) (_ : BinNums.Z), Prop) (_ : Memory.Mem.mem) (_ : Memory.Mem.mem), Prop
+
+Arguments lframe P%function_scope m m'

@@ -1,0 +1,158 @@
+### C.jet_write_buffer8_chunk_layout.buffer8_write_chunk_dst
+buffer8_write_chunk_dst
+     : forall (le : Maps.PTree.tree Values.val) (bi : Values.block) (input len : BinNums.Z)
+         (c : jet_buffer_input.byte_chunk),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst (buffer8_write_chunk_temps le bi input len c))
+         (@Maps.PTree.get Values.val jets._dst le)
+### C.jet_write_buffer8_chunk_layout.buffer8_write_chunk_buf
+buffer8_write_chunk_buf
+     : forall (le : Maps.PTree.tree Values.val) (bi : Values.block) (input len : BinNums.Z)
+         (c : prod nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))))
+         (_ : match @snd nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c return Prop with
+              | Some xs =>
+                  @eq nat (@length (Ty.tySem (Word.Word (S (S (S O))))) xs)
+                    (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)
+              | None => True
+              end)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._buf le)
+                (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr input)))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets._buf (buffer8_write_chunk_temps le bi input len c))
+         (@Some Values.val
+            (Values.Vptr bi
+               (Integers.Ptrofs.repr
+                  (BinInt.Z.add input
+                     (BinInt.Z.of_nat
+                        (@length (Ty.tySem (Word.Word (S (S (S O))))) (jet_buffer_chunks.byte_chunk_values c)))))))
+### C.jet_write_buffer8_chunk_layout.buffer8_write_chunk_len
+buffer8_write_chunk_len
+     : forall (le : Maps.PTree.tree Values.val) (bi : Values.block) (input len : BinNums.Z)
+         (c : prod nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))))
+         (_ : match @snd nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c return Prop with
+              | Some xs =>
+                  @eq nat (@length (Ty.tySem (Word.Word (S (S (S O))))) xs)
+                    (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)
+              | None => True
+              end)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len)))),
+       @eq (option Values.val) (@Maps.PTree.get Values.val jets._len (buffer8_write_chunk_temps le bi input len c))
+         (@Some Values.val
+            (Values.Vlong
+               (Integers.Int64.repr
+                  (BinInt.Z.sub len
+                     (BinInt.Z.of_nat
+                        (@length (Ty.tySem (Word.Word (S (S (S O))))) (jet_buffer_chunks.byte_chunk_values c)))))))
+### C.jet_write_buffer8_chunk_layout.exec_buffer8_write_body_then_halve
+exec_buffer8_write_body_then_halve
+     : forall (le : Clight.temp_env) (next : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (j : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.le j Integers.Int64.max_unsigned))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._i next)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr j))))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m
+                jet_write_buffer8_empty_exec.buffer8_loop_body Events.E0 next mf ClightBigstep.Out_normal),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m
+         (Clight.Ssequence jet_write_buffer8_empty_exec.buffer8_loop_body
+            jet_write_buffer8_empty_exec.buffer8_loop_update) Events.E0
+         (@Maps.PTree.set Values.val jets._i
+            (Values.Vlong (Integers.Int64.repr (BinInt.Z.div j (BinNums.Zpos (BinNums.xO BinNums.xH))))) next) mf
+         ClightBigstep.Out_normal
+### C.jet_write_buffer8_chunk_layout.exec_buffer8_write_chunk_layout
+exec_buffer8_write_chunk_layout
+     : forall (m : Memory.Mem.mem) (le : Maps.PTree.tree Values.val) (bi : Values.block) (input : BinNums.Z)
+         (bf : Values.block) (base : BinNums.Z) (bw : Values.block) (edge cursor len : BinNums.Z)
+         (c : prod nat (option (list (Ty.tySem (Word.Word (S (S (S O)))))))) (tail : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._buf le)
+                (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr input))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._len le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr len))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._i le)
+                (@Some Values.val
+                   (Values.Vlong
+                      (Integers.Int64.repr
+                         (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c))))))
+         (_ : BinInt.Z.lt BinNums.Z0
+                (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)))
+         (_ : match @snd nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c return Prop with
+              | Some xs =>
+                  @eq nat (@length (Ty.tySem (Word.Word (S (S (S O))))) xs)
+                    (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)
+              | None => True
+              end) (_ : and (BinInt.Z.le BinNums.Z0 len) (BinInt.Z.le len Integers.Int64.max_unsigned))
+         (_ : @eq bool (jet_read_buffer8_tag_layout.byte_chunk_tag c)
+                (BinInt.Z.leb (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)) len))
+         (_ : BinInt.Z.le BinNums.Z0 tail) (_ : BinInt.Z.le BinNums.Z0 input)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add input (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)))
+                Integers.Ptrofs.max_unsigned) (_ : not (@eq Values.block bi bf)) (_ : not (@eq Values.block bi bw))
+         (_ : jet_read8s_layout.uint8_array_at m bi input
+                (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+                   (jet_buffer_chunks.byte_chunk_values c)))
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor
+                (BinInt.Z.add
+                   (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)))) tail)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m
+               (Clight.Ssequence jet_write_buffer8_empty_exec.buffer8_loop_body
+                  jet_write_buffer8_empty_exec.buffer8_loop_update) Events.E0
+               (@Maps.PTree.set Values.val jets._i
+                  (Values.Vlong
+                     (Integers.Int64.repr
+                        (BinInt.Z.div
+                           (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c))
+                           (BinNums.Zpos (BinNums.xO BinNums.xH))))) (buffer8_write_chunk_temps le bi input len c)) mf
+               ClightBigstep.Out_normal)
+            (and (jet_encoding.frame_output_cells_at mf bw edge cursor (jet_buffer_input.byte_chunk_cells c))
+               (and (jet_output_layout.write_prefix_at m mf bw edge cursor)
+                  (and
+                     (jet_output_layout.write_frame_at mf bf base bw edge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                 (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)))))
+                        tail)
+                     (and
+                        (jet_output_layout.loads_outside_ranges m mf bf
+                           (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                           (BinInt.Z.add base
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) bw
+                           (BinInt.Z.add edge
+                              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                 (BinInt.Z.div
+                                    (BinInt.Z.sub cursor
+                                       (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                                          (BinInt.Z.mul
+                                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                             (BinInt.Z.of_nat
+                                                (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)))))
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                           (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        (and
+                           (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                            Memory.Mem.perm mf b ofs kind p)
+                           (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))))
+### C.jet_write_buffer8_chunk_layout.buffer8_write_chunk_temps
+buffer8_write_chunk_temps =
+fun (le : Maps.PTree.tree Values.val) (bi : Values.block) (input len : BinNums.Z) (c : jet_buffer_input.byte_chunk) =>
+let tagged : Maps.PTree.tree Values.val :=
+  @Maps.PTree.set Values.val jets._t'2
+    (Values.Vint (jet_readBit_layout.bit_int (jet_read_buffer8_tag_layout.byte_chunk_tag c))) le in
+match @snd nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c return (Maps.PTree.tree Values.val) with
+| Some _ =>
+    jet_write_buffer8_exec.buffer8_write_present_temps tagged bi input len
+      (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c))
+| None => tagged
+end
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z)
+         (_ : jet_buffer_input.byte_chunk), Maps.PTree.tree Values.val
+
+Arguments buffer8_write_chunk_temps le bi (input len)%Z_scope c

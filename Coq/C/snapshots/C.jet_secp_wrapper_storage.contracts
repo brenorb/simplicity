@@ -1,0 +1,46 @@
+### C.jet_secp_wrapper_storage.read_fe_region_from_frame
+read_fe_region_from_frame
+     : forall (bits : list bool) (rc : BinNums.Z) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (bi : Values.block) (edge : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 (jet_sx_state.bas layout r))
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                (jet_sx_state.bas layout r))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (jet_sx_state.bas layout r)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m (jet_sx_state.blk layout r) (jet_sx_state.bas layout r)
+                (BinInt.Z.add (jet_sx_state.bas layout r)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable)
+         (_ : jet_frame_layout.frame_fields_at m (jet_sx_state.blk layout r) (jet_sx_state.bas layout r) bi edge rc),
+       jet_sx_state.region_ok (jet_secp_wrapper_run.read_fe_rho bits rc) layout m r
+         (jet_sx_state.mkreg
+            (jet_secp_frame.mk_frame_cells (jet_sx_expr.XA bi (Integers.Ptrofs.repr edge)) Integers.Int64.zero) true
+            (@None BinNums.Z))
+### C.jet_secp_wrapper_storage.read_fe_initial_rep_from_storage
+read_fe_initial_rep_from_storage
+     : forall (bits : list bool) (rc : BinNums.Z) (m : Memory.Mem.mem) (bfe : Values.block)
+         (feofs : BinNums.Z) (bframe : Values.block) (frameofs : BinNums.Z) (bi : Values.block)
+         (edge : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 feofs)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) feofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add feofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bfe feofs
+                (BinInt.Z.add feofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable) (_ : BinInt.Z.le BinNums.Z0 frameofs)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) frameofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add frameofs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bframe frameofs
+                (BinInt.Z.add frameofs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                Memtype.Cur Memtype.Writable) (_ : jet_frame_layout.frame_fields_at m bframe frameofs bi edge rc)
+         (_ : not (@eq Values.block bfe bframe)),
+       jet_sx_state.rep (jet_secp_wrapper_run.read_fe_rho bits rc)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bfe feofs)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bframe frameofs)
+               (@nil (prod Values.block BinNums.Z))))
+         (jet_secp_wrapper_run.read_fe_initial_regs bi (Integers.Ptrofs.repr edge)) m

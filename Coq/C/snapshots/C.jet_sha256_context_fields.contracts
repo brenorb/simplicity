@@ -1,0 +1,103 @@
+### C.jet_sha256_context_fields.sha256_context_size
+sha256_context_size
+     : @eq BinNums.Z
+         (Ctypes.sizeof (Clight.genv_cenv jet_exec.ge0) (Ctypes.Tstruct jets._sha256_context Ctypes.noattr))
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+### C.jet_sha256_context_fields.sha256_context_address
+sha256_context_address
+     : forall (base : BinNums.Z) (k : sha256_context_slot) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned),
+       @eq BinNums.Z
+         (Integers.Ptrofs.unsigned
+            (Integers.Ptrofs.add (Integers.Ptrofs.repr base) (Integers.Ptrofs.repr (sha256_context_offset k))))
+         (BinInt.Z.add base (sha256_context_offset k))
+### C.jet_sha256_context_fields.eval_sha256_context_field_lvalue
+eval_sha256_context_field_lvalue
+     : forall (k : sha256_context_slot) (id : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bc : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bc (Integers.Ptrofs.repr base)))),
+       Clight.eval_lvalue jet_exec.ge0 e le m (sha256_context_field_expr k id) bc
+         (Integers.Ptrofs.add (Integers.Ptrofs.repr base) (Integers.Ptrofs.repr (sha256_context_offset k))) Ctypes.Full
+### C.jet_sha256_context_fields.eval_sha256_context_field
+eval_sha256_context_field
+     : forall (k : sha256_context_slot) (id : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bc : Values.block) (base : BinNums.Z) (chunk : AST.memory_chunk)
+         (v : Values.val) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq Ctypes.mode (Ctypes.access_mode (sha256_context_field_type k)) (Ctypes.By_value chunk))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bc (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (Memory.Mem.load chunk m bc (BinInt.Z.add base (sha256_context_offset k)))
+                (@Some Values.val v)), Clight.eval_expr jet_exec.ge0 e le m (sha256_context_field_expr k id) v
+### C.jet_sha256_context_fields.eval_sha256_context_block
+eval_sha256_context_block
+     : forall (id : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (bc : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr bc (Integers.Ptrofs.repr base)))),
+       Clight.eval_expr jet_exec.ge0 e le m (sha256_context_field_expr CtxBlock id)
+         (Values.Vptr bc
+            (Integers.Ptrofs.add (Integers.Ptrofs.repr base)
+               (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_sha256_context_fields.sha256_context_slot
+Inductive sha256_context_slot : Set :=
+    CtxOutput : sha256_context_slot
+  | CtxCounter : sha256_context_slot
+  | CtxBlock : sha256_context_slot
+  | CtxOverflow : sha256_context_slot.
+### C.jet_sha256_context_fields.sha256_context_field
+sha256_context_field =
+fun k : sha256_context_slot =>
+match k return AST.ident with
+| CtxOutput => jets._output
+| CtxCounter => jets._counter
+| CtxBlock => jets._block
+| CtxOverflow => jets._overflow
+end
+     : forall _ : sha256_context_slot, AST.ident
+
+Arguments sha256_context_field k
+### C.jet_sha256_context_fields.sha256_context_offset
+sha256_context_offset =
+fun k : sha256_context_slot =>
+match k return BinNums.Z with
+| CtxOutput => BinNums.Z0
+| CtxCounter => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))
+| CtxBlock => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+| CtxOverflow => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+end
+     : forall _ : sha256_context_slot, BinNums.Z
+
+Arguments sha256_context_offset k
+### C.jet_sha256_context_fields.sha256_context_field_type
+sha256_context_field_type =
+fun k : sha256_context_slot =>
+match k return Ctypes.type with
+| CtxOutput => Ctypesdefs.tptr Ctypesdefs.tuint
+| CtxCounter => Ctypesdefs.tulong
+| CtxBlock =>
+    Ctypesdefs.tarray Ctypesdefs.tuchar
+      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+| CtxOverflow => Ctypesdefs.tbool
+end
+     : forall _ : sha256_context_slot, Ctypes.type
+
+Arguments sha256_context_field_type k
+### C.jet_sha256_context_fields.sha256_context_field_expr
+sha256_context_field_expr =
+fun (k : sha256_context_slot) (id : AST.ident) =>
+Clight.Efield
+  (Clight.Ederef (Clight.Etempvar id (Ctypesdefs.tptr (Ctypes.Tstruct jets._sha256_context Ctypes.noattr)))
+     (Ctypes.Tstruct jets._sha256_context Ctypes.noattr)) (sha256_context_field k) (sha256_context_field_type k)
+     : forall (_ : sha256_context_slot) (_ : AST.ident), Clight.expr
+
+Arguments sha256_context_field_expr k id

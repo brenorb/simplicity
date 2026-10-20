@@ -1,0 +1,41 @@
+### C.jet_borrow_unary8_exec.borrow_unary8
+borrow_unary8 =
+fun k : jet_borrow_unary_word.unary_borrow_op =>
+match k return Clight.function with
+| jet_borrow_unary_word.UNegate => jets.f_simplicity_negate_8
+| jet_borrow_unary_word.UDecrement => jets.f_simplicity_decrement_8
+end
+     : forall _ : jet_borrow_unary_word.unary_borrow_op, Clight.function
+
+Arguments borrow_unary8 k
+### C.jet_borrow_unary8_exec.unary8_borrow_expr
+unary8_borrow_expr =
+fun k : jet_borrow_unary_word.unary_borrow_op =>
+match k return Clight.expr with
+| jet_borrow_unary_word.UNegate =>
+    Clight.Ebinop Cop.One (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+      (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint
+| jet_borrow_unary_word.UDecrement =>
+    Clight.Ebinop Cop.Olt (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+      (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint
+end
+     : forall _ : jet_borrow_unary_word.unary_borrow_op, Clight.expr
+
+Arguments unary8_borrow_expr k
+### C.jet_borrow_unary8_exec.unary8_mul_expr
+unary8_mul_expr =
+Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+  (Clight.Etempvar jets._x Ctypesdefs.tuchar) Ctypesdefs.tuint
+     : Clight.expr
+### C.jet_borrow_unary8_exec.unary8_payload_expr
+unary8_payload_expr =
+fun k : jet_borrow_unary_word.unary_borrow_op =>
+Clight.Ecast
+  match k return Clight.expr with
+  | jet_borrow_unary_word.UNegate => Clight.Eunop Cop.Oneg unary8_mul_expr Ctypesdefs.tuint
+  | jet_borrow_unary_word.UDecrement =>
+      Clight.Ebinop Cop.Osub unary8_mul_expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tuint
+  end Ctypesdefs.tuchar
+     : forall _ : jet_borrow_unary_word.unary_borrow_op, Clight.expr
+
+Arguments unary8_payload_expr k

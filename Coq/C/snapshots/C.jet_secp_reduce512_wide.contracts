@@ -1,0 +1,171 @@
+### C.jet_secp_reduce512_wide.wide_value_nonnegative
+wide_value_nonnegative
+     : forall s : wide_column, BinInt.Z.le BinNums.Z0 (wide_value s)
+### C.jet_secp_reduce512_wide.wide_from_word_value
+wide_from_word_value
+     : forall x : Integers.Int64.int, @eq BinNums.Z (wide_value (wide_from_word x)) (Integers.Int64.unsigned x)
+### C.jet_secp_reduce512_wide.wide_top_small
+wide_top_small
+     : forall (s : wide_column)
+         (_ : BinInt.Z.lt (wide_value s)
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+                   (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))),
+       BinInt.Z.lt (Integers.Int64.unsigned (wtop s)) Integers.Int64.max_unsigned
+### C.jet_secp_reduce512_wide.wide_add_top_value
+wide_add_top_value
+     : forall (t x y : Integers.Int64.int) (_ : BinInt.Z.lt (Integers.Int64.unsigned t) Integers.Int64.max_unsigned),
+       @eq BinNums.Z
+         (Integers.Int64.unsigned (Integers.Int64.add t (jet_secp_scalar_mul512_machine.column_carry64 x y)))
+         (BinInt.Z.add (Integers.Int64.unsigned t)
+            (BinInt.Z.div (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)) Integers.Int64.modulus))
+### C.jet_secp_reduce512_wide.wide_muladd_value
+wide_muladd_value
+     : forall (a b : Integers.Int64.int) (s : wide_column)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned (wtop s)) Integers.Int64.max_unsigned),
+       @eq BinNums.Z (wide_value (wide_muladd a b s))
+         (BinInt.Z.add (wide_value s) (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+### C.jet_secp_reduce512_wide.wide_sumadd_value
+wide_sumadd_value
+     : forall (x : Integers.Int64.int) (s : wide_column)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned (wtop s)) Integers.Int64.max_unsigned),
+       @eq BinNums.Z (wide_value (wide_sumadd x s)) (BinInt.Z.add (wide_value s) (Integers.Int64.unsigned x))
+### C.jet_secp_reduce512_wide.wide_lower_value
+wide_lower_value
+     : forall (s : wide_column) (_ : @eq Integers.Int64.int (wtop s) Integers.Int64.zero),
+       @eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (wide_lower s)) (wide_value s)
+### C.jet_secp_reduce512_wide.wide_muladd_fast_value
+wide_muladd_fast_value
+     : forall (a b : Integers.Int64.int) (s : wide_column) (_ : @eq Integers.Int64.int (wtop s) Integers.Int64.zero)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add (wide_value s) (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z (wide_value (wide_muladd_fast a b s))
+         (BinInt.Z.add (wide_value s) (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+### C.jet_secp_reduce512_wide.wide_sumadd_fast_value
+wide_sumadd_fast_value
+     : forall (x : Integers.Int64.int) (s : wide_column) (_ : @eq Integers.Int64.int (wtop s) Integers.Int64.zero)
+         (_ : BinInt.Z.lt (BinInt.Z.add (wide_value s) (Integers.Int64.unsigned x))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z (wide_value (wide_sumadd_fast x s)) (BinInt.Z.add (wide_value s) (Integers.Int64.unsigned x))
+### C.jet_secp_reduce512_wide.wide_extract_decomposition
+wide_extract_decomposition
+     : forall s : wide_column,
+       @eq BinNums.Z (wide_value s)
+         (BinInt.Z.add (Integers.Int64.unsigned (wlo s))
+            (BinInt.Z.mul Integers.Int64.modulus (wide_value (wide_extract s))))
+### C.jet_secp_reduce512_wide.wide_extract_value
+wide_extract_value
+     : forall s : wide_column,
+       @eq BinNums.Z (wide_value (wide_extract s)) (BinInt.Z.div (wide_value s) Integers.Int64.modulus)
+### C.jet_secp_reduce512_wide.wide_extract_fast_decomposition
+wide_extract_fast_decomposition
+     : forall (s : wide_column) (_ : @eq Integers.Int64.int (wtop s) Integers.Int64.zero),
+       @eq BinNums.Z (wide_value s)
+         (BinInt.Z.add (Integers.Int64.unsigned (wlo s))
+            (BinInt.Z.mul Integers.Int64.modulus (wide_value (wide_extract_fast s))))
+### C.jet_secp_reduce512_wide.wide_column
+Variant wide_column : Set :=
+    wcolumn : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), wide_column.
+
+Arguments wcolumn wlo whi wtop
+### C.jet_secp_reduce512_wide.wcolumn
+Variant wide_column : Set :=
+    wcolumn : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), wide_column.
+
+Arguments wcolumn wlo whi wtop
+### C.jet_secp_reduce512_wide.wlo
+wlo =
+fun w : wide_column => match w return Integers.Int64.int with
+                       | wcolumn wlo _ _ => wlo
+                       end
+     : forall _ : wide_column, Integers.Int64.int
+
+Arguments wlo w
+### C.jet_secp_reduce512_wide.whi
+whi =
+fun w : wide_column => match w return Integers.Int64.int with
+                       | wcolumn _ whi _ => whi
+                       end
+     : forall _ : wide_column, Integers.Int64.int
+
+Arguments whi w
+### C.jet_secp_reduce512_wide.wtop
+wtop =
+fun w : wide_column => match w return Integers.Int64.int with
+                       | wcolumn _ _ wtop => wtop
+                       end
+     : forall _ : wide_column, Integers.Int64.int
+
+Arguments wtop w
+### C.jet_secp_reduce512_wide.wide_value
+wide_value =
+fun s : wide_column =>
+BinInt.Z.add (Integers.Int64.unsigned (wlo s))
+  (BinInt.Z.mul Integers.Int64.modulus
+     (BinInt.Z.add (Integers.Int64.unsigned (whi s))
+        (BinInt.Z.mul Integers.Int64.modulus (Integers.Int64.unsigned (wtop s)))))
+     : forall _ : wide_column, BinNums.Z
+
+Arguments wide_value s
+### C.jet_secp_reduce512_wide.wide_lower
+wide_lower =
+fun s : wide_column => jet_secp_scalar_mul512_machine.column (wlo s) (whi s) Integers.Int.zero
+     : forall _ : wide_column, jet_secp_scalar_mul512_machine.mul_column
+
+Arguments wide_lower s
+### C.jet_secp_reduce512_wide.wide_from_word
+wide_from_word =
+fun x : Integers.Int64.int => wcolumn x Integers.Int64.zero Integers.Int64.zero
+     : forall _ : Integers.Int64.int, wide_column
+
+Arguments wide_from_word x
+### C.jet_secp_reduce512_wide.wide_muladd
+wide_muladd =
+fun (a b : Integers.Int64.int) (s : wide_column) =>
+wcolumn (jet_secp_scalar_mul512_machine.column_product_lo a b (wide_lower s))
+  (Integers.Int64.add (whi s) (jet_secp_scalar_mul512_machine.column_product_hi_add a b (wide_lower s)))
+  (Integers.Int64.add (wtop s)
+     (jet_secp_scalar_mul512_machine.column_carry64 (whi s)
+        (jet_secp_scalar_mul512_machine.column_product_hi_add a b (wide_lower s))))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : wide_column), wide_column
+
+Arguments wide_muladd a b s
+### C.jet_secp_reduce512_wide.wide_muladd_fast
+wide_muladd_fast =
+fun (a b : Integers.Int64.int) (s : wide_column) =>
+wcolumn (jet_secp_scalar_mul512_machine.column_product_lo a b (wide_lower s))
+  (Integers.Int64.add (whi s) (jet_secp_scalar_mul512_machine.column_product_hi_add a b (wide_lower s)))
+  (wtop s)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : wide_column), wide_column
+
+Arguments wide_muladd_fast a b s
+### C.jet_secp_reduce512_wide.wide_sumadd
+wide_sumadd =
+fun (x : Integers.Int64.int) (s : wide_column) =>
+wcolumn (Integers.Int64.add (wlo s) x)
+  (Integers.Int64.add (whi s) (jet_secp_scalar_mul512_machine.column_carry64 (wlo s) x))
+  (Integers.Int64.add (wtop s)
+     (jet_secp_scalar_mul512_machine.column_carry64 (whi s) (jet_secp_scalar_mul512_machine.column_carry64 (wlo s) x)))
+     : forall (_ : Integers.Int64.int) (_ : wide_column), wide_column
+
+Arguments wide_sumadd x s
+### C.jet_secp_reduce512_wide.wide_sumadd_fast
+wide_sumadd_fast =
+fun (x : Integers.Int64.int) (s : wide_column) =>
+wcolumn (Integers.Int64.add (wlo s) x)
+  (Integers.Int64.add (whi s) (jet_secp_scalar_mul512_machine.column_carry64 (wlo s) x)) (wtop s)
+     : forall (_ : Integers.Int64.int) (_ : wide_column), wide_column
+
+Arguments wide_sumadd_fast x s
+### C.jet_secp_reduce512_wide.wide_extract
+wide_extract =
+fun s : wide_column => wcolumn (whi s) (wtop s) Integers.Int64.zero
+     : forall _ : wide_column, wide_column
+
+Arguments wide_extract s
+### C.jet_secp_reduce512_wide.wide_extract_fast
+wide_extract_fast =
+fun s : wide_column => wcolumn (whi s) Integers.Int64.zero (wtop s)
+     : forall _ : wide_column, wide_column
+
+Arguments wide_extract_fast s

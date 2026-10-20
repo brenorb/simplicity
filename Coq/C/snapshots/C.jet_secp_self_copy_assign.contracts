@@ -1,0 +1,13 @@
+### C.jet_secp_self_copy_assign.assign_loc_owned_self_copy
+assign_loc_owned_self_copy
+     : forall (ce : Ctypes.composite_env) (ty : Ctypes.type) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (_ : @eq Ctypes.mode (Ctypes.access_mode ty) Ctypes.By_copy)
+         (_ : BinInt.Z.le BinNums.Z0 (Ctypes.sizeof ce ty))
+         (_ : forall _ : BinInt.Z.gt (Ctypes.sizeof ce ty) BinNums.Z0,
+              BinInt.Z.divide (Ctypes.alignof_blockcopy ce ty) (Integers.Ptrofs.unsigned ofs))
+         (_ : Memory.Mem.range_perm m b (Integers.Ptrofs.unsigned ofs)
+                (BinInt.Z.add (Integers.Ptrofs.unsigned ofs) (Ctypes.sizeof ce ty)) Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and (Clight.assign_loc ce ty m b ofs Ctypes.Full (Values.Vptr b ofs) mf)
+            (Memory.Mem.unchanged_on (fun (_ : Values.block) (_ : BinNums.Z) => True) m mf))

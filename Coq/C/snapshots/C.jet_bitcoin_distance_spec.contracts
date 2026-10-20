@@ -1,0 +1,257 @@
+### C.jet_bitcoin_distance_spec.word16_zero_parametric
+@word16_zero_parametric
+     : forall (A : Ty.Ty) (alg1 alg2 : Alg.Core.Algebra) (R : Alg.Core.Parametric.Rel alg1 alg2),
+       @Alg.Core.Parametric.rel alg1 alg2 R A (Word.Word (S (S (S (S O))))) (@word16_zero A alg1) (@word16_zero A alg2)
+### C.jet_bitcoin_distance_spec.dist_tail_parametric
+dist_tail_parametric
+     : forall dist : bool,
+       @Alg.Core.Parametric
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+            (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S O))))) (fun term : Alg.Core.Algebra => @dist_tail dist term)
+### C.jet_bitcoin_distance_spec.core_reader_sem
+@core_reader_sem
+     : forall (A B : Ty.Ty) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (_ : @Alg.Core.Parametric A B (fun alg : Alg.Core.Algebra => t alg)) (E : Type) (x : Ty.tySem A)
+         (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem B))
+         (t (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) x environment)
+         (@Some (Ty.tySem B) (t Alg.CoreFunSem x))
+### C.jet_bitcoin_distance_spec.bitcoin_pair_sem
+@bitcoin_pair_sem
+     : forall (A B C : Ty.Ty) (p : forall (_ : Ty.tySem A) (_ : Bitcoin.Bitcoin.env), option (Ty.tySem B))
+         (q : forall (_ : Ty.tySem A) (_ : Bitcoin.Bitcoin.env), option (Ty.tySem C)) (a : Ty.tySem A)
+         (env : Bitcoin.Bitcoin.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+         (@bitcoin_pair (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) A B C p q
+            a env)
+         match
+           p a env
+           return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+         with
+         | Some b =>
+             match
+               q a env
+               return
+                 (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+             with
+             | Some c => @Some (prod (Ty.tySem B) (Ty.tySem C)) (@pair (Ty.tySem B) (Ty.tySem C) b c)
+             | None => @None (Ty.tySem (Ty.Prod B C))
+             end
+         | None => @None (Ty.tySem (Ty.Prod B C))
+         end
+### C.jet_bitcoin_distance_spec.bitcoin_core_sem
+@bitcoin_core_sem
+     : forall (A B : Ty.Ty) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (_ : @Alg.Core.Parametric A B (fun alg : Alg.Core.Algebra => t alg)) (a : Ty.tySem A)
+         (env : Bitcoin.Bitcoin.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (@bitcoin_core A B t (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            env) (@Some (Ty.tySem B) (t Alg.CoreFunSem a))
+### C.jet_bitcoin_distance_spec.zero_fw4
+zero_fw4
+     : @eq (Ty.tySem (Word.Word (S (S (S (S O)))))) (@Word.zero (S (S (S (S O)))) Alg.CoreFunSem tt)
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O))))) BinNums.Z0)
+### C.jet_bitcoin_distance_spec.dist_tail_value
+dist_tail_value
+     : forall (dist : bool) (vb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (s : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S O))))))
+         (@dist_tail dist Alg.CoreFunSem
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+               (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))) vb
+               (@jet_parse_sequence_spec.parse_sequence_spec Alg.CoreFunSem s)))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+            (dist_value dist (Bit.toBool vb) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) s)))
+### C.jet_bitcoin_distance_spec.bitcoin_version_word
+bitcoin_version_word
+     : forall environment : Bitcoin.Bitcoin.env,
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+               (Integers.Int.signed (Bitcoin.sigTxVersion (Bitcoin.Bitcoin.envTx environment)))))
+         (Integers.Int.unsigned (Bitcoin.sigTxVersion (Bitcoin.Bitcoin.envTx environment)))
+### C.jet_bitcoin_distance_spec.bitcoin_bip68_spec_value
+bitcoin_bip68_spec_value
+     : forall environment : Bitcoin.Bitcoin.env,
+       @ex (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (fun vb : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit) =>
+          and
+            (@eq
+               (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                  (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)))
+               (@bitcoin_bip68_spec
+                  (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt environment)
+               (@Some (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) vb))
+            (@eq bool (Bit.toBool vb)
+               (BinInt.Z.leb (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (Integers.Int.unsigned (Bitcoin.sigTxVersion (Bitcoin.Bitcoin.envTx environment))))))
+### C.jet_bitcoin_distance_spec.bitcoin_lock_distance_program_value
+bitcoin_lock_distance_program_value
+     : forall (dist : bool) (environment : Bitcoin.Bitcoin.env),
+       @ex Bitcoin.sigTxInput
+         (fun txi : Bitcoin.sigTxInput =>
+          and
+            (@eq (option Bitcoin.sigTxInput)
+               (@List.nth_error Bitcoin.sigTxInput (Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx environment))
+                  (Bitcoin.Bitcoin.envIx environment)) (@Some Bitcoin.sigTxInput txi))
+            (@eq
+               (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                  (Ty.tySem (Word.Word (S (S (S (S O)))))))
+               (@bitcoin_lock_distance_program dist
+                  (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt environment)
+               (@Some (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O)))))))
+                  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+                     (dist_value dist
+                        (BinInt.Z.leb (BinNums.Zpos (BinNums.xO BinNums.xH))
+                           (Integers.Int.unsigned (Bitcoin.sigTxVersion (Bitcoin.Bitcoin.envTx environment))))
+                        (Integers.Int.unsigned (Bitcoin.sigTxiSequence txi)))))))
+### C.jet_bitcoin_distance_spec.word16_zero
+word16_zero =
+fun (A : Ty.Ty) (alg : Alg.Core.Algebra) =>
+@DC.comp A Ty.Unit (Word.Word (S (S (S (S O))))) alg (@DC.unit A alg) (@Word.zero (S (S (S (S O)))) alg)
+     : forall (A : Ty.Ty) (alg : Alg.Core.Algebra), Alg.Core.domain alg A (Word.Word (S (S (S (S O)))))
+
+Arguments word16_zero {A}%ty_scope {alg}
+### C.jet_bitcoin_distance_spec.dist_tail
+dist_tail =
+fun (dist : bool) (alg : Alg.Core.Algebra) =>
+@Bit.cond (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+  (Word.Word (S (S (S (S O))))) alg
+  (@DC.copair Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+     (Word.Word (S (S (S (S O))))) alg (@word16_zero Ty.Unit alg)
+     match
+       dist
+       return
+         (Alg.Core.domain alg (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+            (Word.Word (S (S (S (S O))))))
+     with
+     | true =>
+         @DC.copair (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+           (@DC.iden (Word.Word (S (S (S (S O))))) alg) (@word16_zero (Word.Word (S (S (S (S O))))) alg)
+     | false =>
+         @DC.copair (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+           (@word16_zero (Word.Word (S (S (S (S O))))) alg) (@DC.iden (Word.Word (S (S (S (S O))))) alg)
+     end) (@word16_zero (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))) alg)
+     : forall (_ : bool) (alg : Alg.Core.Algebra),
+       Alg.Core.domain alg
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+            (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S O)))))
+
+Arguments dist_tail dist%bool_scope {alg}
+### C.jet_bitcoin_distance_spec.bip68_two
+bip68_two =
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) (BinNums.Zpos (BinNums.xO BinNums.xH))
+     : Ty.tySem (Word.Word (S (S (S (S (S O))))))
+### C.jet_bitcoin_distance_spec.bip68_core
+bip68_core =
+fun (alg : Alg.Core.Algebra) (version : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))) =>
+@DC.comp Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+  (Ty.Sum Ty.Unit Ty.Unit) alg
+  (@DC.pair Ty.Unit (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) alg
+     (@Alg.scribe Ty.Unit (Word.Word (S (S (S (S (S O)))))) bip68_two alg) version)
+  (@jet_order_spec.le_word_spec alg (S (S (S (S (S O))))))
+     : forall (alg : Alg.Core.Algebra) (_ : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))),
+       Alg.Core.domain alg Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments bip68_core {alg} version
+### C.jet_bitcoin_distance_spec.bitcoin_pair
+bitcoin_pair =
+fun (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra) (A B C : Ty.Ty)
+  (p : Bitcoin.PrimitiveBitcoin.Primitive.domain alg A B) (q : Bitcoin.PrimitiveBitcoin.Primitive.domain alg A C) =>
+@DC.pair A B C (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg) p q
+     : forall (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra) (A B C : Ty.Ty)
+         (_ : Bitcoin.PrimitiveBitcoin.Primitive.domain alg A B)
+         (_ : Bitcoin.PrimitiveBitcoin.Primitive.domain alg A C),
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg A (Ty.Prod B C)
+
+Arguments bitcoin_pair {alg} {A B C}%ty_scope p q
+### C.jet_bitcoin_distance_spec.bitcoin_core
+bitcoin_core =
+fun (A B : Ty.Ty) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+  (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra) =>
+t (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg)
+     : forall (A B : Ty.Ty) (_ : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra), Bitcoin.PrimitiveBitcoin.Primitive.domain alg A B
+
+Arguments bitcoin_core {A B}%ty_scope t%function_scope {alg}
+### C.jet_bitcoin_distance_spec.bitcoin_version_prim
+bitcoin_version_prim =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+  Bitcoin.Bitcoin.Version
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments bitcoin_version_prim {alg}
+### C.jet_bitcoin_distance_spec.bitcoin_bip68_spec
+bitcoin_bip68_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@jet_bitcoin_current_spec.bitcoin_comp alg Ty.Unit
+  (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Ty.Sum Ty.Unit Ty.Unit)
+  (@bitcoin_pair alg Ty.Unit (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+     (@bitcoin_core Ty.Unit (Word.Word (S (S (S (S (S O))))))
+        (fun alg0 : Alg.Core.Algebra => @Alg.scribe Ty.Unit (Word.Word (S (S (S (S (S O)))))) bip68_two alg0) alg)
+     (@bitcoin_version_prim alg))
+  (@bitcoin_core (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+     (Ty.Sum Ty.Unit Ty.Unit) (fun alg0 : Alg.Core.Algebra => @jet_order_spec.le_word_spec alg0 (S (S (S (S (S O))))))
+     alg)
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments bitcoin_bip68_spec {alg}
+### C.jet_bitcoin_distance_spec.bitcoin_lock_distance_program
+bitcoin_lock_distance_program =
+fun (dist : bool) (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra) =>
+@jet_bitcoin_current_spec.bitcoin_comp alg Ty.Unit
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+     (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+  (Word.Word (S (S (S (S O)))))
+  (@bitcoin_pair alg Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)
+     (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+     (@bitcoin_bip68_spec alg)
+     (@jet_bitcoin_current_spec.bitcoin_comp alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+        (@jet_bitcoin_current_spec.bitcoin_current_sequence_spec alg)
+        (@bitcoin_core (Word.Word (S (S (S (S (S O))))))
+           (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+           (@jet_parse_sequence_spec.parse_sequence_spec) alg)))
+  (@bitcoin_core
+     (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+        (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+     (Word.Word (S (S (S (S O))))) (fun alg0 : Alg.Core.Algebra => @dist_tail dist alg0) alg)
+     : forall (_ : bool) (alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra),
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S O)))))
+
+Arguments bitcoin_lock_distance_program dist%bool_scope {alg}
+### C.jet_bitcoin_distance_spec.bitcoin_tx_lock_distance_spec
+bitcoin_tx_lock_distance_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra => @bitcoin_lock_distance_program true alg
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S O)))))
+
+Arguments bitcoin_tx_lock_distance_spec {alg}
+### C.jet_bitcoin_distance_spec.bitcoin_tx_lock_duration_spec
+bitcoin_tx_lock_duration_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra => @bitcoin_lock_distance_program false alg
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S O)))))
+
+Arguments bitcoin_tx_lock_duration_spec {alg}
+### C.jet_bitcoin_distance_spec.dist_value
+dist_value =
+fun (dist ok : bool) (s : BinNums.Z) =>
+match
+  andb
+    (andb ok (negb (BinInt.Z.testbit s (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+    match dist return bool with
+    | true => negb (BinInt.Z.testbit s (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+    | false => BinInt.Z.testbit s (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))
+    end return BinNums.Z
+with
+| true => s
+| false => BinNums.Z0
+end
+     : forall (_ : bool) (_ : bool) (_ : BinNums.Z), BinNums.Z
+
+Arguments dist_value (dist ok)%bool_scope s%Z_scope

@@ -1,0 +1,796 @@
+### C.jet_sx_zval.land_range
+land_range
+     : forall (a b n : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 a) (BinInt.Z.lt a (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) n)))
+         (_ : BinInt.Z.le BinNums.Z0 b) (_ : BinInt.Z.le BinNums.Z0 n),
+       and (BinInt.Z.le BinNums.Z0 (BinInt.Z.land a b))
+         (BinInt.Z.lt (BinInt.Z.land a b) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) n))
+### C.jet_sx_zval.lor_range
+lor_range
+     : forall (a b h : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 a) (BinInt.Z.le a h))
+         (_ : and (BinInt.Z.le BinNums.Z0 b) (BinInt.Z.le b h)),
+       and (BinInt.Z.le BinNums.Z0 (BinInt.Z.lor a b))
+         (BinInt.Z.le (BinInt.Z.lor a b)
+            (BinInt.Z.sub
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinInt.Z.add (BinInt.Z.log2 h) (BinNums.Zpos BinNums.xH))) (BinNums.Zpos BinNums.xH)))
+### C.jet_sx_zval.lxor_range
+lxor_range
+     : forall (a b h : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 a) (BinInt.Z.le a h))
+         (_ : and (BinInt.Z.le BinNums.Z0 b) (BinInt.Z.le b h)),
+       and (BinInt.Z.le BinNums.Z0 (BinInt.Z.lxor a b))
+         (BinInt.Z.le (BinInt.Z.lxor a b)
+            (BinInt.Z.sub
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinInt.Z.add (BinInt.Z.log2 h) (BinNums.Zpos BinNums.xH))) (BinNums.Zpos BinNums.xH)))
+### C.jet_sx_zval.op64_sound
+op64_sound
+     : forall (o : jet_sx_expr.bop) (a b : Integers.Int64.int) (la ha lb hb lo hi : BinNums.Z)
+         (_ : @eq (option (prod BinNums.Z BinNums.Z)) (zb_op M64 o la ha lb hb)
+                (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z lo hi)))
+         (_ : and (BinInt.Z.le la (Integers.Int64.unsigned a)) (BinInt.Z.le (Integers.Int64.unsigned a) ha))
+         (_ : and (BinInt.Z.le lb (Integers.Int64.unsigned b)) (BinInt.Z.le (Integers.Int64.unsigned b) hb)),
+       and
+         (@eq BinNums.Z (Integers.Int64.unsigned (jet_sx_expr.lop o a b))
+            (zop o (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+         (and (BinInt.Z.le lo (zop o (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+            (BinInt.Z.le (zop o (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)) hi))
+### C.jet_sx_zval.op32_sound
+op32_sound
+     : forall (o : jet_sx_expr.bop) (a b : Integers.Int.int) (la ha lb hb lo hi : BinNums.Z)
+         (_ : @eq (option (prod BinNums.Z BinNums.Z)) (zb_op M32 o la ha lb hb)
+                (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z lo hi)))
+         (_ : and (BinInt.Z.le la (Integers.Int.unsigned a)) (BinInt.Z.le (Integers.Int.unsigned a) ha))
+         (_ : and (BinInt.Z.le lb (Integers.Int.unsigned b)) (BinInt.Z.le (Integers.Int.unsigned b) hb)),
+       and
+         (@eq BinNums.Z (Integers.Int.unsigned (jet_sx_expr.iop o a b))
+            (zop o (Integers.Int.unsigned a) (Integers.Int.unsigned b)))
+         (and (BinInt.Z.le lo (zop o (Integers.Int.unsigned a) (Integers.Int.unsigned b)))
+            (BinInt.Z.le (zop o (Integers.Int.unsigned a) (Integers.Int.unsigned b)) hi))
+### C.jet_sx_zval.pow2_pos
+pow2_pos
+     : forall (k : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 k),
+       BinInt.Z.lt BinNums.Z0 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+### C.jet_sx_zval.sh64_sound
+sh64_sound
+     : forall (o : jet_sx_expr.shop) (a : Integers.Int64.int) (la ha k lo hi : BinNums.Z)
+         (_ : @eq (option (prod BinNums.Z BinNums.Z))
+                (zb_sh
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) M64 o
+                   la ha k) (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z lo hi)))
+         (_ : and (BinInt.Z.le la (Integers.Int64.unsigned a)) (BinInt.Z.le (Integers.Int64.unsigned a) ha)),
+       and
+         (@eq BinNums.Z (Integers.Int64.unsigned (jet_sx_expr.lsh o a k))
+            match o return BinNums.Z with
+            | jet_sx_expr.Hshl =>
+                BinInt.Z.mul (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+            | jet_sx_expr.Hshr =>
+                BinInt.Z.div (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+            | jet_sx_expr.Hshru =>
+                BinInt.Z.div (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+            end)
+         (and
+            (BinInt.Z.le lo
+               match o return BinNums.Z with
+               | jet_sx_expr.Hshl =>
+                   BinInt.Z.mul (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               | jet_sx_expr.Hshr =>
+                   BinInt.Z.div (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               | jet_sx_expr.Hshru =>
+                   BinInt.Z.div (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               end)
+            (BinInt.Z.le
+               match o return BinNums.Z with
+               | jet_sx_expr.Hshl =>
+                   BinInt.Z.mul (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               | jet_sx_expr.Hshr =>
+                   BinInt.Z.div (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               | jet_sx_expr.Hshru =>
+                   BinInt.Z.div (Integers.Int64.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               end hi))
+### C.jet_sx_zval.sh32_sound
+sh32_sound
+     : forall (o : jet_sx_expr.shop) (a : Integers.Int.int) (la ha k lo hi : BinNums.Z)
+         (_ : @eq (option (prod BinNums.Z BinNums.Z))
+                (zb_sh (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) M32 o
+                   la ha k) (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z lo hi)))
+         (_ : and (BinInt.Z.le la (Integers.Int.unsigned a)) (BinInt.Z.le (Integers.Int.unsigned a) ha)),
+       and
+         (@eq BinNums.Z (Integers.Int.unsigned (jet_sx_expr.ish o a k))
+            match o return BinNums.Z with
+            | jet_sx_expr.Hshl =>
+                BinInt.Z.mul (Integers.Int.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+            | jet_sx_expr.Hshr =>
+                BinInt.Z.div (Integers.Int.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+            | jet_sx_expr.Hshru =>
+                BinInt.Z.div (Integers.Int.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+            end)
+         (and
+            (BinInt.Z.le lo
+               match o return BinNums.Z with
+               | jet_sx_expr.Hshl =>
+                   BinInt.Z.mul (Integers.Int.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               | jet_sx_expr.Hshr =>
+                   BinInt.Z.div (Integers.Int.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               | jet_sx_expr.Hshru =>
+                   BinInt.Z.div (Integers.Int.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               end)
+            (BinInt.Z.le
+               match o return BinNums.Z with
+               | jet_sx_expr.Hshl =>
+                   BinInt.Z.mul (Integers.Int.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               | jet_sx_expr.Hshr =>
+                   BinInt.Z.div (Integers.Int.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               | jet_sx_expr.Hshru =>
+                   BinInt.Z.div (Integers.Int.unsigned a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+               end hi))
+### C.jet_sx_zval.cmpu64_zcmp
+cmpu64_zcmp
+     : forall (c : Integers.comparison) (a b : Integers.Int64.int),
+       @eq bool (Integers.Int64.cmpu c a b) (zcmp c (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+### C.jet_sx_zval.cmpu32_zcmp
+cmpu32_zcmp
+     : forall (c : Integers.comparison) (a b : Integers.Int.int),
+       @eq bool (Integers.Int.cmpu c a b) (zcmp c (Integers.Int.unsigned a) (Integers.Int.unsigned b))
+### C.jet_sx_zval.cmp64_zcmp
+cmp64_zcmp
+     : forall (c : Integers.comparison) (a b : Integers.Int64.int)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned a)
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned b)
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @eq bool (Integers.Int64.cmp c a b) (zcmp c (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+### C.jet_sx_zval.cmp32_zcmp
+cmp32_zcmp
+     : forall (c : Integers.comparison) (a b : Integers.Int.int)
+         (_ : BinInt.Z.lt (Integers.Int.unsigned a)
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : BinInt.Z.lt (Integers.Int.unsigned b)
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))),
+       @eq bool (Integers.Int.cmp c a b) (zcmp c (Integers.Int.unsigned a) (Integers.Int.unsigned b))
+### C.jet_sx_zval.b2i_unsigned
+b2i_unsigned
+     : forall b : bool, @eq BinNums.Z (Integers.Int.unsigned (jet_sx_expr.b2i b)) (b2z b)
+### C.jet_sx_zval.b2z_range
+b2z_range
+     : forall b : bool, and (BinInt.Z.le BinNums.Z0 (b2z b)) (BinInt.Z.le (b2z b) (BinNums.Zpos BinNums.xH))
+### C.jet_sx_zval.zgood_KI
+zgood_KI
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (a : jet_sx_expr.sx) (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KI a) true) (_ : zgood ρ β a),
+       @eq BinNums.Z (Integers.Int.unsigned (jet_sx_expr.ii (jet_sx_expr.den ρ β a))) (zval (zrho ρ) a)
+### C.jet_sx_zval.zgood_KL
+zgood_KL
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (a : jet_sx_expr.sx) (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL a) true) (_ : zgood ρ β a),
+       @eq BinNums.Z (Integers.Int64.unsigned (jet_sx_expr.il (jet_sx_expr.den ρ β a))) (zval (zrho ρ) a)
+### C.jet_sx_zval.zb_sound
+zb_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (bnd : forall _ : nat, prod BinNums.Z BinNums.Z)
+         (β : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : forall n : nat,
+              and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (bnd n)) (Integers.Int64.unsigned (ρ n)))
+                (BinInt.Z.le (Integers.Int64.unsigned (ρ n)) (@snd BinNums.Z BinNums.Z (bnd n))))
+         (x : jet_sx_expr.sx) (lo hi : BinNums.Z)
+         (_ : @eq (option (prod BinNums.Z BinNums.Z)) (zb bnd x)
+                (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z lo hi))),
+       and (zgood ρ β x) (and (BinInt.Z.le lo (zval (zrho ρ) x)) (BinInt.Z.le (zval (zrho ρ) x) hi))
+### C.jet_sx_zval.den_zval_long
+den_zval_long
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (bnd : forall _ : nat, prod BinNums.Z BinNums.Z)
+         (β : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : forall n : nat,
+              and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (bnd n)) (Integers.Int64.unsigned (ρ n)))
+                (BinInt.Z.le (Integers.Int64.unsigned (ρ n)) (@snd BinNums.Z BinNums.Z (bnd n))))
+         (x : jet_sx_expr.sx) (lo hi : BinNums.Z)
+         (_ : @eq (option (prod BinNums.Z BinNums.Z)) (zb bnd x)
+                (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z lo hi)))
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL x) true),
+       and (@eq Values.val (jet_sx_expr.den ρ β x) (Values.Vlong (Integers.Int64.repr (zval (zrho ρ) x))))
+         (and (BinInt.Z.le lo (zval (zrho ρ) x)) (BinInt.Z.le (zval (zrho ρ) x) hi))
+### C.jet_sx_zval.den_zval_int
+den_zval_int
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (bnd : forall _ : nat, prod BinNums.Z BinNums.Z)
+         (β : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : forall n : nat,
+              and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (bnd n)) (Integers.Int64.unsigned (ρ n)))
+                (BinInt.Z.le (Integers.Int64.unsigned (ρ n)) (@snd BinNums.Z BinNums.Z (bnd n))))
+         (x : jet_sx_expr.sx) (lo hi : BinNums.Z)
+         (_ : @eq (option (prod BinNums.Z BinNums.Z)) (zb bnd x)
+                (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z lo hi)))
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KI x) true),
+       and (@eq Values.val (jet_sx_expr.den ρ β x) (Values.Vint (Integers.Int.repr (zval (zrho ρ) x))))
+         (and (BinInt.Z.le lo (zval (zrho ρ) x)) (BinInt.Z.le (zval (zrho ρ) x) hi))
+### C.jet_sx_zval.truth_zval
+truth_zval
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (bnd : forall _ : nat, prod BinNums.Z BinNums.Z)
+         (β : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : forall n : nat,
+              and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (bnd n)) (Integers.Int64.unsigned (ρ n)))
+                (BinInt.Z.le (Integers.Int64.unsigned (ρ n)) (@snd BinNums.Z BinNums.Z (bnd n))))
+         (c : jet_sx_expr.sx) (lo hi : BinNums.Z)
+         (_ : @eq (option (prod BinNums.Z BinNums.Z)) (zb bnd c)
+                (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z lo hi)))
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KI c) true),
+       @eq bool (jet_sx_expr.truth ρ β c) (negb (BinInt.Z.eqb (zval (zrho ρ) c) BinNums.Z0))
+### C.jet_sx_zval.zval_ext
+zval_ext
+     : forall (z1 z2 : forall _ : nat, BinNums.Z) (x : jet_sx_expr.sx)
+         (_ : forall n : nat, @eq BinNums.Z (z1 n) (z2 n)), @eq BinNums.Z (zval z1 x) (zval z2 x)
+### C.jet_sx_zval.b2z
+b2z =
+fun b : bool => match b return BinNums.Z with
+                | true => BinNums.Zpos BinNums.xH
+                | false => BinNums.Z0
+                end
+     : forall _ : bool, BinNums.Z
+
+Arguments b2z b%bool_scope
+### C.jet_sx_zval.zcmp
+zcmp =
+fun (c : Integers.comparison) (a b : BinNums.Z) =>
+match c return bool with
+| Integers.Ceq => BinInt.Z.eqb a b
+| Integers.Cne => negb (BinInt.Z.eqb a b)
+| Integers.Clt => BinInt.Z.ltb a b
+| Integers.Cle => negb (BinInt.Z.ltb b a)
+| Integers.Cgt => BinInt.Z.ltb b a
+| Integers.Cge => negb (BinInt.Z.ltb a b)
+end
+     : forall (_ : Integers.comparison) (_ : BinNums.Z) (_ : BinNums.Z), bool
+
+Arguments zcmp c (a b)%Z_scope
+### C.jet_sx_zval.zop
+zop =
+fun (o : jet_sx_expr.bop) (a b : BinNums.Z) =>
+match o return BinNums.Z with
+| jet_sx_expr.Badd => BinInt.Z.add a b
+| jet_sx_expr.Bsub => BinInt.Z.sub a b
+| jet_sx_expr.Bmul => BinInt.Z.mul a b
+| jet_sx_expr.Band => BinInt.Z.land a b
+| jet_sx_expr.Bor => BinInt.Z.lor a b
+| jet_sx_expr.Bxor => BinInt.Z.lxor a b
+end
+     : forall (_ : jet_sx_expr.bop) (_ : BinNums.Z) (_ : BinNums.Z), BinNums.Z
+
+Arguments zop o (a b)%Z_scope
+### C.jet_sx_zval.zval
+zval =
+fix zval (ρ : forall _ : nat, BinNums.Z) (x : jet_sx_expr.sx) {struct x} : BinNums.Z :=
+  match x return BinNums.Z with
+  | jet_sx_expr.XI i => Integers.Int.unsigned i
+  | jet_sx_expr.XIc i => Integers.Int.unsigned i
+  | jet_sx_expr.XL l => Integers.Int64.unsigned l
+  | jet_sx_expr.XLc l => Integers.Int64.unsigned l
+  | jet_sx_expr.XLv n => ρ n
+  | jet_sx_expr.XV _ => BinNums.Z0
+  | jet_sx_expr.XA _ _ => BinNums.Z0
+  | jet_sx_expr.XP _ _ => BinNums.Z0
+  | jet_sx_expr.XIb o a b => zop o (zval ρ a) (zval ρ b)
+  | jet_sx_expr.XLb o a b => zop o (zval ρ a) (zval ρ b)
+  | jet_sx_expr.XIsh o a k =>
+      match o return BinNums.Z with
+      | jet_sx_expr.Hshl => BinInt.Z.mul (zval ρ a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+      | jet_sx_expr.Hshr => BinInt.Z.div (zval ρ a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+      | jet_sx_expr.Hshru => BinInt.Z.div (zval ρ a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+      end
+  | jet_sx_expr.XLsh o a k =>
+      match o return BinNums.Z with
+      | jet_sx_expr.Hshl => BinInt.Z.mul (zval ρ a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+      | jet_sx_expr.Hshr => BinInt.Z.div (zval ρ a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+      | jet_sx_expr.Hshru => BinInt.Z.div (zval ρ a) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+      end
+  | jet_sx_expr.XIcmp c _ a b => b2z (zcmp c (zval ρ a) (zval ρ b))
+  | jet_sx_expr.XLcmp c _ a b => b2z (zcmp c (zval ρ a) (zval ρ b))
+  | jet_sx_expr.XI2L _ a => zval ρ a
+  | jet_sx_expr.XL2I a =>
+      BinInt.Z.modulo (zval ρ a)
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+  | jet_sx_expr.XIcast sz sg a =>
+      match sz return BinNums.Z with
+      | Ctypes.I8 =>
+          match sg return BinNums.Z with
+          | Ctypes.Signed => zval ρ a
+          | Ctypes.Unsigned =>
+              BinInt.Z.modulo (zval ρ a)
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+          end
+      | Ctypes.I16 =>
+          match sg return BinNums.Z with
+          | Ctypes.Signed => zval ρ a
+          | Ctypes.Unsigned =>
+              BinInt.Z.modulo (zval ρ a)
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+          end
+      | Ctypes.I32 => zval ρ a
+      | Ctypes.IBool => zval ρ a
+      end
+  | jet_sx_expr.XInz a => b2z (negb (BinInt.Z.eqb (zval ρ a) BinNums.Z0))
+  | jet_sx_expr.XLnz a => b2z (negb (BinInt.Z.eqb (zval ρ a) BinNums.Z0))
+  | jet_sx_expr.XIz a => b2z (BinInt.Z.eqb (zval ρ a) BinNums.Z0)
+  | jet_sx_expr.XLz a => b2z (BinInt.Z.eqb (zval ρ a) BinNums.Z0)
+  | jet_sx_expr.XIneg _ => BinNums.Z0
+  | jet_sx_expr.XLneg _ => BinNums.Z0
+  | jet_sx_expr.XInot _ => BinNums.Z0
+  | jet_sx_expr.XLnot _ => BinNums.Z0
+  end
+     : forall (_ : forall _ : nat, BinNums.Z) (_ : jet_sx_expr.sx), BinNums.Z
+
+Arguments zval ρ%function_scope x
+### C.jet_sx_zval.M32
+M32 =
+BinNums.Zpos
+  (BinNums.xI
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+     : BinNums.Z
+### C.jet_sx_zval.M64
+M64 =
+BinNums.Zpos
+  (BinNums.xI
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+     : BinNums.Z
+### C.jet_sx_zval.orb_hi
+orb_hi =
+fun ha hb : BinNums.Z =>
+BinInt.Z.sub
+  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+     (BinInt.Z.add (BinInt.Z.log2 (BinInt.Z.max ha hb)) (BinNums.Zpos BinNums.xH))) (BinNums.Zpos BinNums.xH)
+     : forall (_ : BinNums.Z) (_ : BinNums.Z), BinNums.Z
+
+Arguments orb_hi (ha hb)%Z_scope
+### C.jet_sx_zval.zb_op
+zb_op =
+fun (mx : BinNums.Z) (o : jet_sx_expr.bop) (la ha lb hb : BinNums.Z) =>
+match o return (option (prod BinNums.Z BinNums.Z)) with
+| jet_sx_expr.Badd =>
+    match BinInt.Z.leb (BinInt.Z.add ha hb) mx return (option (prod BinNums.Z BinNums.Z)) with
+    | true => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z (BinInt.Z.add la lb) (BinInt.Z.add ha hb))
+    | false => @None (prod BinNums.Z BinNums.Z)
+    end
+| jet_sx_expr.Bsub =>
+    match BinInt.Z.leb BinNums.Z0 (BinInt.Z.sub la hb) return (option (prod BinNums.Z BinNums.Z)) with
+    | true => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z (BinInt.Z.sub la hb) (BinInt.Z.sub ha lb))
+    | false => @None (prod BinNums.Z BinNums.Z)
+    end
+| jet_sx_expr.Bmul =>
+    match BinInt.Z.leb (BinInt.Z.mul ha hb) mx return (option (prod BinNums.Z BinNums.Z)) with
+    | true =>
+        @Some (prod BinNums.Z BinNums.Z)
+          (@pair BinNums.Z BinNums.Z (BinInt.Z.mul (BinInt.Z.max BinNums.Z0 la) (BinInt.Z.max BinNums.Z0 lb))
+             (BinInt.Z.mul ha hb))
+    | false => @None (prod BinNums.Z BinNums.Z)
+    end
+| jet_sx_expr.Band => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinInt.Z.min ha hb))
+| jet_sx_expr.Bor =>
+    match BinInt.Z.leb (orb_hi ha hb) mx return (option (prod BinNums.Z BinNums.Z)) with
+    | true => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (orb_hi ha hb))
+    | false => @None (prod BinNums.Z BinNums.Z)
+    end
+| jet_sx_expr.Bxor =>
+    match BinInt.Z.leb (orb_hi ha hb) mx return (option (prod BinNums.Z BinNums.Z)) with
+    | true => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (orb_hi ha hb))
+    | false => @None (prod BinNums.Z BinNums.Z)
+    end
+end
+     : forall (_ : BinNums.Z) (_ : jet_sx_expr.bop) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z),
+       option (prod BinNums.Z BinNums.Z)
+
+Arguments zb_op mx%Z_scope o (la ha lb hb)%Z_scope
+### C.jet_sx_zval.zb_sh
+zb_sh =
+fun (w mx : BinNums.Z) (o : jet_sx_expr.shop) (la ha k : BinNums.Z) =>
+match andb (BinInt.Z.leb BinNums.Z0 k) (BinInt.Z.ltb k w) return (option (prod BinNums.Z BinNums.Z)) with
+| true =>
+    match o return (option (prod BinNums.Z BinNums.Z)) with
+    | jet_sx_expr.Hshl =>
+        match
+          BinInt.Z.leb (BinInt.Z.mul ha (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)) mx
+          return (option (prod BinNums.Z BinNums.Z))
+        with
+        | true =>
+            @Some (prod BinNums.Z BinNums.Z)
+              (@pair BinNums.Z BinNums.Z (BinInt.Z.mul la (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+                 (BinInt.Z.mul ha (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+        | false => @None (prod BinNums.Z BinNums.Z)
+        end
+    | jet_sx_expr.Hshr =>
+        match
+          BinInt.Z.ltb ha
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.sub w (BinNums.Zpos BinNums.xH)))
+          return (option (prod BinNums.Z BinNums.Z))
+        with
+        | true =>
+            @Some (prod BinNums.Z BinNums.Z)
+              (@pair BinNums.Z BinNums.Z (BinInt.Z.div la (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+                 (BinInt.Z.div ha (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+        | false => @None (prod BinNums.Z BinNums.Z)
+        end
+    | jet_sx_expr.Hshru =>
+        @Some (prod BinNums.Z BinNums.Z)
+          (@pair BinNums.Z BinNums.Z (BinInt.Z.div la (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+             (BinInt.Z.div ha (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+    end
+| false => @None (prod BinNums.Z BinNums.Z)
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : jet_sx_expr.shop) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z),
+       option (prod BinNums.Z BinNums.Z)
+
+Arguments zb_sh (w mx)%Z_scope o (la ha k)%Z_scope
+### C.jet_sx_zval.zb
+zb =
+fix zb (bnd : forall _ : nat, prod BinNums.Z BinNums.Z) (x : jet_sx_expr.sx) {struct x} :
+    option (prod BinNums.Z BinNums.Z) :=
+  match x return (option (prod BinNums.Z BinNums.Z)) with
+  | jet_sx_expr.XI _ => @None (prod BinNums.Z BinNums.Z)
+  | jet_sx_expr.XIc i =>
+      @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z (Integers.Int.unsigned i) (Integers.Int.unsigned i))
+  | jet_sx_expr.XL _ => @None (prod BinNums.Z BinNums.Z)
+  | jet_sx_expr.XLc l =>
+      @Some (prod BinNums.Z BinNums.Z)
+        (@pair BinNums.Z BinNums.Z (Integers.Int64.unsigned l) (Integers.Int64.unsigned l))
+  | jet_sx_expr.XLv n => @Some (prod BinNums.Z BinNums.Z) (bnd n)
+  | jet_sx_expr.XV _ => @None (prod BinNums.Z BinNums.Z)
+  | jet_sx_expr.XA _ _ => @None (prod BinNums.Z BinNums.Z)
+  | jet_sx_expr.XP _ _ => @None (prod BinNums.Z BinNums.Z)
+  | jet_sx_expr.XIb o a b =>
+      match
+        andb (jet_sx_expr.isk jet_sx_expr.KI a) (jet_sx_expr.isk jet_sx_expr.KI b)
+        return (option (prod BinNums.Z BinNums.Z))
+      with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some p =>
+              match p return (option (prod BinNums.Z BinNums.Z)) with
+              | pair la ha =>
+                  match zb bnd b return (option (prod BinNums.Z BinNums.Z)) with
+                  | Some p0 =>
+                      match p0 return (option (prod BinNums.Z BinNums.Z)) with
+                      | pair lb hb => zb_op M32 o la ha lb hb
+                      end
+                  | None => @None (prod BinNums.Z BinNums.Z)
+                  end
+              end
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XLb o a b =>
+      match
+        andb (jet_sx_expr.isk jet_sx_expr.KL a) (jet_sx_expr.isk jet_sx_expr.KL b)
+        return (option (prod BinNums.Z BinNums.Z))
+      with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some p =>
+              match p return (option (prod BinNums.Z BinNums.Z)) with
+              | pair la ha =>
+                  match zb bnd b return (option (prod BinNums.Z BinNums.Z)) with
+                  | Some p0 =>
+                      match p0 return (option (prod BinNums.Z BinNums.Z)) with
+                      | pair lb hb => zb_op M64 o la ha lb hb
+                      end
+                  | None => @None (prod BinNums.Z BinNums.Z)
+                  end
+              end
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XIsh o a k =>
+      match jet_sx_expr.isk jet_sx_expr.KI a return (option (prod BinNums.Z BinNums.Z)) with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some p =>
+              match p return (option (prod BinNums.Z BinNums.Z)) with
+              | pair la ha =>
+                  zb_sh (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) M32
+                    o la ha k
+              end
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XLsh o a k =>
+      match jet_sx_expr.isk jet_sx_expr.KL a return (option (prod BinNums.Z BinNums.Z)) with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some p =>
+              match p return (option (prod BinNums.Z BinNums.Z)) with
+              | pair la ha =>
+                  zb_sh
+                    (BinNums.Zpos
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) M64 o
+                    la ha k
+              end
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XIcmp _ sg a b =>
+      match
+        andb (jet_sx_expr.isk jet_sx_expr.KI a) (jet_sx_expr.isk jet_sx_expr.KI b)
+        return (option (prod BinNums.Z BinNums.Z))
+      with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some p =>
+              match p return (option (prod BinNums.Z BinNums.Z)) with
+              | pair _ ha =>
+                  match zb bnd b return (option (prod BinNums.Z BinNums.Z)) with
+                  | Some p0 =>
+                      match p0 return (option (prod BinNums.Z BinNums.Z)) with
+                      | pair _ hb =>
+                          match sg return (option (prod BinNums.Z BinNums.Z)) with
+                          | Ctypes.Signed =>
+                              match
+                                andb
+                                  (BinInt.Z.ltb ha
+                                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                        (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                                  (BinInt.Z.ltb hb
+                                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                        (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                                return (option (prod BinNums.Z BinNums.Z))
+                              with
+                              | true =>
+                                  @Some (prod BinNums.Z BinNums.Z)
+                                    (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+                              | false => @None (prod BinNums.Z BinNums.Z)
+                              end
+                          | Ctypes.Unsigned =>
+                              @Some (prod BinNums.Z BinNums.Z)
+                                (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+                          end
+                      end
+                  | None => @None (prod BinNums.Z BinNums.Z)
+                  end
+              end
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XLcmp _ sg a b =>
+      match
+        andb (jet_sx_expr.isk jet_sx_expr.KL a) (jet_sx_expr.isk jet_sx_expr.KL b)
+        return (option (prod BinNums.Z BinNums.Z))
+      with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some p =>
+              match p return (option (prod BinNums.Z BinNums.Z)) with
+              | pair _ ha =>
+                  match zb bnd b return (option (prod BinNums.Z BinNums.Z)) with
+                  | Some p0 =>
+                      match p0 return (option (prod BinNums.Z BinNums.Z)) with
+                      | pair _ hb =>
+                          match sg return (option (prod BinNums.Z BinNums.Z)) with
+                          | Ctypes.Signed =>
+                              match
+                                andb
+                                  (BinInt.Z.ltb ha
+                                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                        (BinNums.Zpos
+                                           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                                  (BinInt.Z.ltb hb
+                                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                        (BinNums.Zpos
+                                           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                                return (option (prod BinNums.Z BinNums.Z))
+                              with
+                              | true =>
+                                  @Some (prod BinNums.Z BinNums.Z)
+                                    (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+                              | false => @None (prod BinNums.Z BinNums.Z)
+                              end
+                          | Ctypes.Unsigned =>
+                              @Some (prod BinNums.Z BinNums.Z)
+                                (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+                          end
+                      end
+                  | None => @None (prod BinNums.Z BinNums.Z)
+                  end
+              end
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XI2L sg a =>
+      match jet_sx_expr.isk jet_sx_expr.KI a return (option (prod BinNums.Z BinNums.Z)) with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some p =>
+              match p return (option (prod BinNums.Z BinNums.Z)) with
+              | pair la ha =>
+                  match sg return (option (prod BinNums.Z BinNums.Z)) with
+                  | Ctypes.Signed =>
+                      match
+                        BinInt.Z.ltb ha
+                          (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                             (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                        return (option (prod BinNums.Z BinNums.Z))
+                      with
+                      | true => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z la ha)
+                      | false => @None (prod BinNums.Z BinNums.Z)
+                      end
+                  | Ctypes.Unsigned => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z la ha)
+                  end
+              end
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XL2I a =>
+      match jet_sx_expr.isk jet_sx_expr.KL a return (option (prod BinNums.Z BinNums.Z)) with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some p =>
+              match p return (option (prod BinNums.Z BinNums.Z)) with
+              | pair la ha =>
+                  match BinInt.Z.leb ha M32 return (option (prod BinNums.Z BinNums.Z)) with
+                  | true => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z la ha)
+                  | false => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 M32)
+                  end
+              end
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XIcast sz sg a =>
+      match sz return (option (prod BinNums.Z BinNums.Z)) with
+      | Ctypes.I8 =>
+          match sg return (option (prod BinNums.Z BinNums.Z)) with
+          | Ctypes.Signed => @None (prod BinNums.Z BinNums.Z)
+          | Ctypes.Unsigned =>
+              match jet_sx_expr.isk jet_sx_expr.KI a return (option (prod BinNums.Z BinNums.Z)) with
+              | true =>
+                  match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+                  | Some _ =>
+                      @Some (prod BinNums.Z BinNums.Z)
+                        (@pair BinNums.Z BinNums.Z BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                  | None => @None (prod BinNums.Z BinNums.Z)
+                  end
+              | false => @None (prod BinNums.Z BinNums.Z)
+              end
+          end
+      | Ctypes.I16 =>
+          match sg return (option (prod BinNums.Z BinNums.Z)) with
+          | Ctypes.Signed => @None (prod BinNums.Z BinNums.Z)
+          | Ctypes.Unsigned =>
+              match jet_sx_expr.isk jet_sx_expr.KI a return (option (prod BinNums.Z BinNums.Z)) with
+              | true =>
+                  match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+                  | Some _ =>
+                      @Some (prod BinNums.Z BinNums.Z)
+                        (@pair BinNums.Z BinNums.Z BinNums.Z0
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI
+                                                            (BinNums.xI
+                                                               (BinNums.xI
+                                                                  (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+                  | None => @None (prod BinNums.Z BinNums.Z)
+                  end
+              | false => @None (prod BinNums.Z BinNums.Z)
+              end
+          end
+      | Ctypes.I32 => @None (prod BinNums.Z BinNums.Z)
+      | Ctypes.IBool => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XInz a =>
+      match jet_sx_expr.isk jet_sx_expr.KI a return (option (prod BinNums.Z BinNums.Z)) with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some _ => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XLnz a =>
+      match jet_sx_expr.isk jet_sx_expr.KL a return (option (prod BinNums.Z BinNums.Z)) with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some _ => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XIz a =>
+      match jet_sx_expr.isk jet_sx_expr.KI a return (option (prod BinNums.Z BinNums.Z)) with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some _ => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XLz a =>
+      match jet_sx_expr.isk jet_sx_expr.KL a return (option (prod BinNums.Z BinNums.Z)) with
+      | true =>
+          match zb bnd a return (option (prod BinNums.Z BinNums.Z)) with
+          | Some _ => @Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))
+          | None => @None (prod BinNums.Z BinNums.Z)
+          end
+      | false => @None (prod BinNums.Z BinNums.Z)
+      end
+  | jet_sx_expr.XIneg _ => @None (prod BinNums.Z BinNums.Z)
+  | jet_sx_expr.XLneg _ => @None (prod BinNums.Z BinNums.Z)
+  | jet_sx_expr.XInot _ => @None (prod BinNums.Z BinNums.Z)
+  | jet_sx_expr.XLnot _ => @None (prod BinNums.Z BinNums.Z)
+  end
+     : forall (_ : forall _ : nat, prod BinNums.Z BinNums.Z) (_ : jet_sx_expr.sx), option (prod BinNums.Z BinNums.Z)
+
+Arguments zb bnd%function_scope x
+### C.jet_sx_zval.zrho
+zrho =
+fun (ρ : forall _ : nat, Integers.Int64.int) (n : nat) => Integers.Int64.unsigned (ρ n)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), BinNums.Z
+
+Arguments zrho ρ%function_scope n%nat_scope
+### C.jet_sx_zval.zgood
+zgood =
+fun (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z) (x : jet_sx_expr.sx) =>
+match jet_sx_expr.ktop x return Prop with
+| jet_sx_expr.KI => @eq BinNums.Z (Integers.Int.unsigned (jet_sx_expr.ii (jet_sx_expr.den ρ β x))) (zval (zrho ρ) x)
+| jet_sx_expr.KL => @eq BinNums.Z (Integers.Int64.unsigned (jet_sx_expr.il (jet_sx_expr.den ρ β x))) (zval (zrho ρ) x)
+| jet_sx_expr.KP => True
+| jet_sx_expr.KA => True
+| jet_sx_expr.KV => True
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : jet_sx_expr.sx), Prop
+
+Arguments zgood (ρ β)%function_scope x

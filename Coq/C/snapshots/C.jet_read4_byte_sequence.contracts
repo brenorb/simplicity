@@ -1,0 +1,72 @@
+### C.jet_read4_byte_sequence.eval_read4_byte_sequence
+eval_read4_byte_sequence
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bi : Values.block)
+         (edge rc : BinNums.Z) (amount : Ty.tySem (Word.Word (S (S O)))) (x : Ty.tySem (Word.Word (S (S (S O)))))
+         (_ : jet_frame_layout.frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinInt.Z.add (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : jet_frame_layout.frame_fields_at m bf base bi edge rc)
+         (_ : @jet_input_layout.frame_input_word_at (S (S O)) m bi edge rc amount)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S O))) m bi edge
+                (BinInt.Z.add rc (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))) x)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable)
+         (_ : not (@eq Values.block bf bi)),
+       @ex Memory.Mem.mem
+         (fun mr : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex Integers.Int.int
+               (fun a : Integers.Int.int =>
+                @ex Integers.Int.int
+                  (fun r : Integers.Int.int =>
+                   and
+                     (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                        (@Ctypes.Internal Clight.function jets.f_simplicity_read4)
+                        (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mr
+                        (Values.Vint a))
+                     (and
+                        (@eq BinNums.Z (Integers.Int.unsigned a) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S O))) amount))
+                        (and
+                           (@eq Integers.Int.int
+                              (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) a)
+                              a)
+                           (and
+                              (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr
+                                 (@Ctypes.Internal Clight.function jets.f_simplicity_read8)
+                                 (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val))
+                                 Events.E0 mf (Values.Vint r))
+                              (and
+                                 (@eq BinNums.Z (Integers.Int.unsigned r)
+                                    (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x))
+                                 (and
+                                    (jet_frame_layout.frame_fields_at mf bf base bi edge
+                                       (BinInt.Z.add rc
+                                          (BinInt.Z.add (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                    (and
+                                       (forall (chunk : AST.memory_chunk) (b : Values.block)
+                                          (ofs : BinNums.Z)
+                                          (_ : or (not (@eq Values.block b bf))
+                                                 (or
+                                                    (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                                       (BinInt.Z.add base
+                                                          (BinNums.Zpos
+                                                             (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                                    (BinInt.Z.le
+                                                       (BinInt.Z.add base
+                                                          (BinNums.Zpos
+                                                             (BinNums.xO
+                                                                (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                                       ofs))),
+                                        @eq (option Values.val) (Memory.Mem.load chunk mf b ofs)
+                                          (Memory.Mem.load chunk m b ofs))
+                                       (and
+                                          (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                                             (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                                           Memory.Mem.perm mf b ofs kind p)
+                                          (forall (b : Values.block) (_ : Memory.Mem.valid_block m b),
+                                           Memory.Mem.valid_block mf b))))))))))))

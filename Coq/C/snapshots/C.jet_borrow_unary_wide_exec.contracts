@@ -1,0 +1,51 @@
+### C.jet_borrow_unary_wide_exec.wide_borrow_unary
+wide_borrow_unary =
+fun (k : jet_borrow_unary_word.unary_borrow_op) (s : jet_wide.wide_size) =>
+match k return Clight.function with
+| jet_borrow_unary_word.UNegate =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_negate_16
+    | jet_wide.W32 => jets.f_simplicity_negate_32
+    | jet_wide.W64 => jets.f_simplicity_negate_64
+    end
+| jet_borrow_unary_word.UDecrement =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_decrement_16
+    | jet_wide.W32 => jets.f_simplicity_decrement_32
+    | jet_wide.W64 => jets.f_simplicity_decrement_64
+    end
+end
+     : forall (_ : jet_borrow_unary_word.unary_borrow_op) (_ : jet_wide.wide_size), Clight.function
+
+Arguments wide_borrow_unary k s
+### C.jet_borrow_unary_wide_exec.wide_unary_borrow_expr
+wide_unary_borrow_expr =
+fun k : jet_borrow_unary_word.unary_borrow_op =>
+match k return Clight.expr with
+| jet_borrow_unary_word.UNegate =>
+    Clight.Ebinop Cop.One (Clight.Etempvar jets._x Ctypesdefs.tulong)
+      (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint
+| jet_borrow_unary_word.UDecrement =>
+    Clight.Ebinop Cop.Olt (Clight.Etempvar jets._x Ctypesdefs.tulong)
+      (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint
+end
+     : forall _ : jet_borrow_unary_word.unary_borrow_op, Clight.expr
+
+Arguments wide_unary_borrow_expr k
+### C.jet_borrow_unary_wide_exec.wide_unary_mul_expr
+wide_unary_mul_expr =
+Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+  (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_borrow_unary_wide_exec.wide_unary_payload_expr
+wide_unary_payload_expr =
+fun k : jet_borrow_unary_word.unary_borrow_op =>
+Clight.Ecast
+  match k return Clight.expr with
+  | jet_borrow_unary_word.UNegate => Clight.Eunop Cop.Oneg wide_unary_mul_expr Ctypesdefs.tulong
+  | jet_borrow_unary_word.UDecrement =>
+      Clight.Ebinop Cop.Osub wide_unary_mul_expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tulong
+  end Ctypesdefs.tulong
+     : forall _ : jet_borrow_unary_word.unary_borrow_op, Clight.expr
+
+Arguments wide_unary_payload_expr k

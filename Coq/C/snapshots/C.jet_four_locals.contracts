@@ -1,0 +1,99 @@
+### C.jet_four_locals.allocate_four_locals
+allocate_four_locals
+     : forall (m : Memory.Mem.mem) (na nb nc nd : BinNums.Z),
+       @ex Memory.Mem.mem'
+         (fun ma : Memory.Mem.mem' =>
+          @ex Memory.Mem.mem'
+            (fun mb : Memory.Mem.mem' =>
+             @ex Memory.Mem.mem'
+               (fun mc : Memory.Mem.mem' =>
+                @ex Memory.Mem.mem'
+                  (fun md : Memory.Mem.mem' =>
+                   @ex Values.block
+                     (fun a : Values.block =>
+                      @ex Values.block
+                        (fun b : Values.block =>
+                         @ex Values.block
+                           (fun c : Values.block =>
+                            @ex Values.block
+                              (fun d : Values.block =>
+                               and
+                                 (@eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m BinNums.Z0 na)
+                                    (@pair Memory.Mem.mem' Values.block ma a))
+                                 (and
+                                    (@eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc ma BinNums.Z0 nb)
+                                       (@pair Memory.Mem.mem' Values.block mb b))
+                                    (and
+                                       (@eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc mb BinNums.Z0 nc)
+                                          (@pair Memory.Mem.mem' Values.block mc c))
+                                       (and
+                                          (@eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc mc BinNums.Z0 nd)
+                                             (@pair Memory.Mem.mem' Values.block md d))
+                                          (and (four_local_distinct a b c d)
+                                             (and (four_local_permissions md a na b nb c nc d nd)
+                                                (and
+                                                   (forall (x : Values.block) (_ : Memory.Mem.valid_block m x),
+                                                    and (not (@eq Values.block x a))
+                                                      (and (not (@eq Values.block x b)) (and (not ...) (not ...))))
+                                                   (and
+                                                      (forall (chunk : AST.memory_chunk) (x : Values.block)
+                                                         (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m x),
+                                                       @eq (option Values.val) (Memory.Mem.load chunk md x ofs)
+                                                         (Memory.Mem.load chunk m x ofs))
+                                                      (forall (x : Values.block) (ofs : BinNums.Z)
+                                                         (kind : Memtype.perm_kind) (p : Memtype.permission)
+                                                         (_ : Memory.Mem.perm m x ofs kind p),
+                                                       Memory.Mem.perm md x ofs kind p))))))))))))))))
+### C.jet_four_locals.free_four_locals
+free_four_locals
+     : forall (m : Memory.Mem.mem) (a : Values.block) (na : BinNums.Z) (b : Values.block) (nb : BinNums.Z)
+         (c : Values.block) (nc : BinNums.Z) (d : Values.block) (nd : BinNums.Z) (_ : four_local_distinct a b c d)
+         (_ : four_local_permissions m a na b nb c nc d nd),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (Memory.Mem.free_list m
+                  (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                     (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z a BinNums.Z0) na)
+                     (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                        (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z b BinNums.Z0) nb)
+                        (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                           (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z c BinNums.Z0)
+                              nc)
+                           (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                              (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                 (@pair Values.block BinNums.Z d BinNums.Z0) nd)
+                              (@nil (prod (prod Values.block BinNums.Z) BinNums.Z))))))) (@Some Memory.Mem.mem mf))
+            (and
+               (forall (chunk : AST.memory_chunk) (x : Values.block) (ofs : BinNums.Z) (_ : not (@eq Values.block x a))
+                  (_ : not (@eq Values.block x b)) (_ : not (@eq Values.block x c)) (_ : not (@eq Values.block x d)),
+                @eq (option Values.val) (Memory.Mem.load chunk mf x ofs) (Memory.Mem.load chunk m x ofs))
+               (and
+                  (forall (x : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind) (p : Memtype.permission)
+                     (_ : not (@eq Values.block x a)) (_ : not (@eq Values.block x b)) (_ : not (@eq Values.block x c))
+                     (_ : not (@eq Values.block x d)) (_ : Memory.Mem.perm m x ofs kind p),
+                   Memory.Mem.perm mf x ofs kind p)
+                  (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m)))))
+### C.jet_four_locals.four_local_distinct
+four_local_distinct =
+fun a b c d : Values.block =>
+and (not (@eq Values.block a b))
+  (and (not (@eq Values.block a c))
+     (and (not (@eq Values.block a d))
+        (and (not (@eq Values.block b c)) (and (not (@eq Values.block b d)) (not (@eq Values.block c d))))))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block), Prop
+
+Arguments four_local_distinct a b c d
+### C.jet_four_locals.four_local_permissions
+four_local_permissions =
+fun (m : Memory.Mem.mem) (a : Values.block) (na : BinNums.Z) (b : Values.block) (nb : BinNums.Z)
+  (c : Values.block) (nc : BinNums.Z) (d : Values.block) (nd : BinNums.Z) =>
+and (Memory.Mem.range_perm m a BinNums.Z0 na Memtype.Cur Memtype.Freeable)
+  (and (Memory.Mem.range_perm m b BinNums.Z0 nb Memtype.Cur Memtype.Freeable)
+     (and (Memory.Mem.range_perm m c BinNums.Z0 nc Memtype.Cur Memtype.Freeable)
+        (Memory.Mem.range_perm m d BinNums.Z0 nd Memtype.Cur Memtype.Freeable)))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments four_local_permissions m a na%Z_scope b nb%Z_scope c nc%Z_scope d nd%Z_scope

@@ -1,0 +1,59 @@
+### C.jet_elements_bool_wrapper.elements_bool_wrapper
+elements_bool_wrapper
+     : forall (f : Clight.function) (rest : Clight.statement) (env : Values.val) (m : Memory.Mem.mem)
+         (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) (bytes : list Memdata.memval)
+         (b : bool) (_ : jet_elements_wrapper.elements_wrapper_shape f rest)
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes m bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : forall (ma : Memory.Mem.mem') (mc : Memory.Mem.mem) (bl : Values.block)
+                (_ : @eq (prod Memory.Mem.mem' Values.block)
+                       (Memory.Mem.alloc m BinNums.Z0
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                       (@pair Memory.Mem.mem' Values.block ma bl))
+                (_ : @eq (option (list Memdata.memval))
+                       (Memory.Mem.loadbytes ma bs sbase
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                       (@Some (list Memdata.memval) bytes))
+                (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes ma bl BinNums.Z0 bytes)
+                       (@Some Memory.Mem.mem mc)),
+              @ex Clight.temp_env
+                (fun le1 : Clight.temp_env =>
+                 @ex Memory.Mem.mem
+                   (fun me : Memory.Mem.mem =>
+                    and
+                      (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge
+                         (jet_elements_version_exec.elements_version_locals bl)
+                         (jet_elements_wrapper.elements_wrapper_temps f env bd dbase bs sbase) mc rest Events.E0 le1 me
+                         (ClightBigstep.Out_return
+                            (@Some (prod Values.val Ctypes.type)
+                               (@pair Values.val Ctypes.type (Values.Val.of_bool b) Ctypesdefs.tint))))
+                      (and
+                         (forall (chunk : AST.memory_chunk) (b' : Values.block) (ofs : BinNums.Z)
+                            (_ : not (@eq Values.block b' bl)),
+                          @eq (option Values.val) (Memory.Mem.load chunk me b' ofs) (Memory.Mem.load chunk mc b' ofs))
+                         (forall (b' : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                            (p : Memtype.permission) (_ : Memory.Mem.perm mc b' ofs kind p),
+                          Memory.Mem.perm me b' ofs kind p))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m (@Ctypes.Internal Clight.function f)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (bool_val_int b))
+            (forall (chunk : AST.memory_chunk) (b' : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b'),
+             @eq (option Values.val) (Memory.Mem.load chunk mf b' ofs) (Memory.Mem.load chunk m b' ofs)))
+### C.jet_elements_bool_wrapper.bool_val_int
+bool_val_int =
+fun b : bool =>
+Values.Vint match b return Integers.Int.int with
+            | true => Integers.Int.one
+            | false => Integers.Int.zero
+            end
+     : forall _ : bool, Values.val
+
+Arguments bool_val_int b%bool_scope

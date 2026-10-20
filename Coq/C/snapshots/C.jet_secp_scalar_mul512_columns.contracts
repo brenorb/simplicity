@@ -1,0 +1,64 @@
+### C.jet_secp_scalar_mul512_columns.column_value_nonnegative
+column_value_nonnegative
+     : forall s : jet_secp_scalar_mul512_machine.mul_column,
+       BinInt.Z.le BinNums.Z0 (jet_secp_scalar_mul512_machine.column_value s)
+### C.jet_secp_scalar_mul512_columns.column_value_zero
+column_value_zero
+     : @eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value jet_secp_scalar_mul512_machine.column_zero)
+         BinNums.Z0
+### C.jet_secp_scalar_mul512_columns.column_top_small
+column_top_small
+     : forall (s : jet_secp_scalar_mul512_machine.mul_column)
+         (_ : BinInt.Z.lt (jet_secp_scalar_mul512_machine.column_value s)
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+                   (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))),
+       BinInt.Z.lt (Integers.Int.unsigned (jet_secp_scalar_mul512_machine.col_top s)) Integers.Int.max_unsigned
+### C.jet_secp_scalar_mul512_columns.column_muladd_value
+column_muladd_value
+     : forall (a b : Integers.Int64.int) (s : jet_secp_scalar_mul512_machine.mul_column)
+         (_ : BinInt.Z.lt (Integers.Int.unsigned (jet_secp_scalar_mul512_machine.col_top s)) Integers.Int.max_unsigned),
+       @eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (jet_secp_scalar_mul512_machine.column_muladd a b s))
+         (BinInt.Z.add (jet_secp_scalar_mul512_machine.column_value s)
+            (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+### C.jet_secp_scalar_mul512_columns.column_extract_decomposition
+column_extract_decomposition
+     : forall s : jet_secp_scalar_mul512_machine.mul_column,
+       @eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value s)
+         (BinInt.Z.add (Integers.Int64.unsigned (jet_secp_scalar_mul512_machine.col_lo s))
+            (BinInt.Z.mul Integers.Int64.modulus
+               (jet_secp_scalar_mul512_machine.column_value (jet_secp_scalar_mul512_machine.column_extract s))))
+### C.jet_secp_scalar_mul512_columns.column_extract_value
+column_extract_value
+     : forall s : jet_secp_scalar_mul512_machine.mul_column,
+       @eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (jet_secp_scalar_mul512_machine.column_extract s))
+         (BinInt.Z.div (jet_secp_scalar_mul512_machine.column_value s) Integers.Int64.modulus)
+### C.jet_secp_scalar_mul512_columns.column_fast_mod
+column_fast_mod
+     : forall (a b : Integers.Int64.int) (s : jet_secp_scalar_mul512_machine.mul_column)
+         (_ : @eq Integers.Int.int (jet_secp_scalar_mul512_machine.col_top s) Integers.Int.zero),
+       @eq BinNums.Z
+         (jet_secp_scalar_mul512_machine.column_value (jet_secp_scalar_mul512_machine.column_muladd_fast a b s))
+         (BinInt.Z.modulo
+            (BinInt.Z.add (jet_secp_scalar_mul512_machine.column_value s)
+               (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+            (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+### C.jet_secp_scalar_mul512_columns.column_fast_value
+column_fast_value
+     : forall (a b : Integers.Int64.int) (s : jet_secp_scalar_mul512_machine.mul_column)
+         (_ : @eq Integers.Int.int (jet_secp_scalar_mul512_machine.col_top s) Integers.Int.zero)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add (jet_secp_scalar_mul512_machine.column_value s)
+                   (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z
+         (jet_secp_scalar_mul512_machine.column_value (jet_secp_scalar_mul512_machine.column_muladd_fast a b s))
+         (BinInt.Z.add (jet_secp_scalar_mul512_machine.column_value s)
+            (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+### C.jet_secp_scalar_mul512_columns.column_fast_extract_decomposition
+column_fast_extract_decomposition
+     : forall (s : jet_secp_scalar_mul512_machine.mul_column)
+         (_ : @eq Integers.Int.int (jet_secp_scalar_mul512_machine.col_top s) Integers.Int.zero),
+       @eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value s)
+         (BinInt.Z.add (Integers.Int64.unsigned (jet_secp_scalar_mul512_machine.col_lo s))
+            (BinInt.Z.mul Integers.Int64.modulus
+               (jet_secp_scalar_mul512_machine.column_value (jet_secp_scalar_mul512_machine.column_extract_fast s))))

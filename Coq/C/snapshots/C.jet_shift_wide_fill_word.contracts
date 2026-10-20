@@ -1,0 +1,26 @@
+### C.jet_shift_wide_fill_word.shift_wide_fill_mask_low
+shift_wide_fill_mask_low
+     : forall s : jet_wide.wide_size,
+       @eq Integers.Int64.int (jet_shift_wide_expr.shift_wide_fill_mask s)
+         (Integers.Int64.zero_ext (jet_wide.wide_bits s) Integers.Int64.mone)
+### C.jet_shift_wide_fill_word.shift_wide_fill_result_bits
+shift_wide_fill_result_bits
+     : forall (s : jet_wide.wide_size) (r : Integers.Int64.int) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j (jet_wide.wide_bits s))),
+       @eq bool (Integers.Int64.testbit (jet_shift_wide_expr.shift_wide_fill_result s r) j)
+         (negb (Integers.Int64.testbit r j))
+### C.jet_shift_wide_fill_word.shift_wide_fill_result_repr
+shift_wide_fill_result_repr
+     : forall (s : jet_wide.wide_size) (x : Ty.tySem (Word.Word (jet_wide.wide_log s))) (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x)),
+       @eq Integers.Int64.int (jet_shift_wide_expr.shift_wide_fill_result s r)
+         (Integers.Int64.repr
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s))
+               (@jet_complement_spec.complement_spec (jet_wide.wide_log s) Alg.CoreFunSem x)))
+### C.jet_shift_wide_fill_word.shift_wide_fill_result_unsigned
+shift_wide_fill_result_unsigned
+     : forall (s : jet_wide.wide_size) (x : Ty.tySem (Word.Word (jet_wide.wide_log s))) (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x)),
+       @eq BinNums.Z (Integers.Int64.unsigned (jet_shift_wide_expr.shift_wide_fill_result s r))
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s))
+            (@jet_complement_spec.complement_spec (jet_wide.wide_log s) Alg.CoreFunSem x))

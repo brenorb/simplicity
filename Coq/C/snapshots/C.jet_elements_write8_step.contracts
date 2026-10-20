@@ -1,0 +1,27 @@
+### C.jet_elements_write8_step.byte_write_low_cursor
+byte_write_low_cursor
+     : forall (edge cursor : BinNums.Z)
+         (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) cursor),
+       @eq BinNums.Z (jet_output_layout.byte_write_low edge cursor)
+         (BinInt.Z.add edge
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinInt.Z.div (BinInt.Z.sub cursor (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_elements_write8_step.elements_write8_step
+elements_write8_step
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (x : Integers.Int.int)
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+               (@Ctypes.Internal Clight.function jets.f_simplicity_write8)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vint x) (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (jet_elements_effects.write_effect m mf bf base bw edge cursor
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (@Translate.encode (Word.Word (S (S (S O))))
+                  (jet_spec.decode_word8 (Integers.Int64.repr (Integers.Int.unsigned x))))))

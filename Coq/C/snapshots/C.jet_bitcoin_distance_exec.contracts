@@ -1,0 +1,375 @@
+### C.jet_bitcoin_distance_exec.f_lockDistance_shape
+f_lockDistance_shape
+     : @eq Clight.function jets_bitcoin.f_lockDistance
+         (dist_fn
+            (assert_fail_stmt jets_bitcoin.___stringlit_13 jets_bitcoin.___stringlit_12
+               (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+               (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+               jets_bitcoin.___func____7) lock_distance_bit)
+### C.jet_bitcoin_distance_exec.f_lockDuration_shape
+f_lockDuration_shape
+     : @eq Clight.function jets_bitcoin.f_lockDuration
+         (dist_fn
+            (assert_fail_stmt jets_bitcoin.___stringlit_13 jets_bitcoin.___stringlit_12
+               (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))
+               jets_bitcoin.___func____8) lock_duration_bit)
+### C.jet_bitcoin_distance_exec.bitcoin_tx_numInputs
+bitcoin_tx_numInputs
+     : jet_bitcoin_field_eval.bitcoin_field_at jets_bitcoin._bitcoinTransaction jets_bitcoin._numInputs
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_bitcoin_distance_exec.bitcoin_tx_version
+bitcoin_tx_version
+     : jet_bitcoin_field_eval.bitcoin_field_at jets_bitcoin._bitcoinTransaction jets_bitcoin._version
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_bitcoin_distance_exec.eval_tx_field64
+eval_tx_field64
+     : forall (m : Memory.Mem.mem) (bt : Values.block) (tbase : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 tbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add tbase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned) (le : Maps.PTree.tree Values.val) (field : AST.ident)
+         (delta : BinNums.Z) (v : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._tx le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
+         (_ : jet_bitcoin_field_eval.bitcoin_field_at jets_bitcoin._bitcoinTransaction field delta)
+         (_ : and (BinInt.Z.le BinNums.Z0 delta)
+                (BinInt.Z.le delta
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bt (BinInt.Z.add tbase delta))
+                (@Some Values.val (Values.Vlong v))),
+       Clight.eval_expr jet_bitcoin_linkage.bitcoin_ge Clight.empty_env le m (tx_field_expr field Ctypesdefs.tulong)
+         (Values.Vlong v)
+### C.jet_bitcoin_distance_exec.eval_tx_input
+eval_tx_input
+     : forall (m : Memory.Mem.mem) (bt : Values.block) (tbase : BinNums.Z) (bin : Values.block)
+         (inbase : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 tbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add tbase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bt (BinInt.Z.add tbase BinNums.Z0))
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr inbase)))) (le : Maps.PTree.tree Values.val)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._tx le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase)))),
+       Clight.eval_expr jet_bitcoin_linkage.bitcoin_ge Clight.empty_env le m
+         (tx_field_expr jets_bitcoin._input (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr)))
+         (Values.Vptr bin (Integers.Ptrofs.repr inbase))
+### C.jet_bitcoin_distance_exec.eval_seq_elem
+eval_seq_elem
+     : forall (m : Memory.Mem.mem) (bin : Values.block) (inbase : BinNums.Z) (ix seq : Integers.Int64.int)
+         (_ : BinInt.Z.le BinNums.Z0 inbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add
+                   (BinInt.Z.add
+                      (BinInt.Z.add inbase
+                         (BinInt.Z.mul
+                            (BinNums.Zpos
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                            (Integers.Int64.unsigned ix)))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bin
+                   (BinInt.Z.add
+                      (BinInt.Z.add inbase
+                         (BinInt.Z.mul
+                            (BinNums.Zpos
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                            (Integers.Int64.unsigned ix)))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                (@Some Values.val (Values.Vlong seq))) (le : Maps.PTree.tree Values.val) (t : BinNums.positive)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val t le)
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr inbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._ix le)
+                (@Some Values.val (Values.Vlong ix))),
+       Clight.eval_expr jet_bitcoin_linkage.bitcoin_ge Clight.empty_env le m (seq_elem_expr t) (Values.Vlong seq)
+### C.jet_bitcoin_distance_exec.eval_enabled_cmp
+eval_enabled_cmp
+     : forall (m : Memory.Mem.mem) (seq : Integers.Int64.int) (le : Maps.PTree.tree Values.val)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._t'9 le)
+                (@Some Values.val (Values.Vlong seq))),
+       Clight.eval_expr jet_bitcoin_linkage.bitcoin_ge Clight.empty_env le m
+         (Clight.Ecast
+            (Clight.Ebinop Cop.Olt (Clight.Etempvar jets_bitcoin._t'9 Ctypesdefs.tulong)
+               (Clight.Econst_int
+                  (Integers.Int.repr
+                     (BinNums.Zneg
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))
+                  Ctypesdefs.tuint) Ctypesdefs.tint) Ctypesdefs.tbool)
+         (Values.Vint (jet_bitcoin_is_final_local.bool_int (jet_parse_sequence_spec.parse_sequence_enabled seq)))
+### C.jet_bitcoin_distance_exec.eval_dist_fn
+eval_dist_fn
+     : forall (afail : Clight.statement) (bitexpr : Clight.expr) (m : Memory.Mem.mem) (bt : Values.block)
+         (tbase : BinNums.Z) (bin : Values.block) (inbase : BinNums.Z) (ix nI ver seq : Integers.Int64.int)
+         (c : bool) (_ : BinInt.Z.le BinNums.Z0 tbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add tbase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 inbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add
+                   (BinInt.Z.add
+                      (BinInt.Z.add inbase
+                         (BinInt.Z.mul
+                            (BinNums.Zpos
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                            (Integers.Int64.unsigned ix)))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bt
+                   (BinInt.Z.add tbase
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+                (@Some Values.val (Values.Vlong nI)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bt
+                   (BinInt.Z.add tbase
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+                (@Some Values.val (Values.Vlong ver)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bt (BinInt.Z.add tbase BinNums.Z0))
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr inbase))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bin
+                   (BinInt.Z.add
+                      (BinInt.Z.add inbase
+                         (BinInt.Z.mul
+                            (BinNums.Zpos
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                            (Integers.Int64.unsigned ix)))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                (@Some Values.val (Values.Vlong seq))) (_ : @eq bool (Integers.Int64.ltu ix nI) true)
+         (_ : forall (le : Maps.PTree.tree Values.val)
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._t'6 le)
+                       (@Some Values.val (Values.Vlong seq))),
+              Clight.eval_expr jet_bitcoin_linkage.bitcoin_ge Clight.empty_env le m
+                (Clight.Ecast bitexpr Ctypesdefs.tbool) (Values.Vint (jet_bitcoin_is_final_local.bool_int c))),
+       ClightBigstep.Clight2.eval_funcall jet_bitcoin_linkage.bitcoin_ge m
+         (@Ctypes.Internal Clight.function (dist_fn afail bitexpr))
+         (@cons Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))
+            (@cons Values.val (Values.Vlong ix) (@nil Values.val))) Events.E0 m (Values.Vlong (dist_result ver seq c))
+### C.jet_bitcoin_distance_exec.tx_field_expr
+tx_field_expr =
+fun (field : AST.ident) (ty : Ctypes.type) =>
+Clight.Efield
+  (Clight.Ederef
+     (Clight.Etempvar jets_bitcoin._tx
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)))
+     (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)) field ty
+     : forall (_ : AST.ident) (_ : Ctypes.type), Clight.expr
+
+Arguments tx_field_expr field ty
+### C.jet_bitcoin_distance_exec.seq_elem_expr
+seq_elem_expr =
+fun t : AST.ident =>
+Clight.Efield
+  (Clight.Ederef
+     (Clight.Ebinop Cop.Oadd
+        (Clight.Etempvar t (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr)))
+        (Clight.Etempvar jets_bitcoin._ix Ctypesdefs.tulong)
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr)))
+     (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr)) jets_bitcoin._sequence Ctypesdefs.tulong
+     : forall _ : AST.ident, Clight.expr
+
+Arguments seq_elem_expr t
+### C.jet_bitcoin_distance_exec.bit22_expr
+bit22_expr =
+Clight.Ebinop Cop.Oand (Clight.Etempvar jets_bitcoin._t'6 Ctypesdefs.tulong)
+  (Clight.Ebinop Cop.Oshl
+     (Clight.Ecast (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint) Ctypesdefs.tulong)
+     (Clight.Econst_int
+        (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+        Ctypesdefs.tint) Ctypesdefs.tulong) Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_bitcoin_distance_exec.dist_fn
+dist_fn =
+fun (afail : Clight.statement) (bitexpr : Clight.expr) =>
+Clight.mkfunction Ctypesdefs.tulong AST.cc_default
+  (@cons (prod AST.ident Ctypes.type)
+     (@pair AST.ident Ctypes.type jets_bitcoin._tx
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)))
+     (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type jets_bitcoin._ix Ctypesdefs.tulong)
+        (@nil (prod AST.ident Ctypes.type)))) (@nil (prod AST.ident Ctypes.type))
+  (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type jets_bitcoin._t'2 Ctypesdefs.tint)
+     (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type jets_bitcoin._t'1 Ctypesdefs.tint)
+        (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type jets_bitcoin._t'10 Ctypesdefs.tulong)
+           (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type jets_bitcoin._t'9 Ctypesdefs.tulong)
+              (@cons (prod AST.ident Ctypes.type)
+                 (@pair AST.ident Ctypes.type jets_bitcoin._t'8
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr)))
+                 (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type jets_bitcoin._t'7 Ctypesdefs.tulong)
+                    (@cons (prod AST.ident Ctypes.type)
+                       (@pair AST.ident Ctypes.type jets_bitcoin._t'6 Ctypesdefs.tulong)
+                       (@cons (prod AST.ident Ctypes.type)
+                          (@pair AST.ident Ctypes.type jets_bitcoin._t'5
+                             (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr)))
+                          (@cons (prod AST.ident Ctypes.type)
+                             (@pair AST.ident Ctypes.type jets_bitcoin._t'4 Ctypesdefs.tulong)
+                             (@cons (prod AST.ident Ctypes.type)
+                                (@pair AST.ident Ctypes.type jets_bitcoin._t'3
+                                   (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr)))
+                                (@nil (prod AST.ident Ctypes.type))))))))))))
+  (Clight.Ssequence
+     (Clight.Ssequence (Clight.Sset jets_bitcoin._t'10 (tx_field_expr jets_bitcoin._numInputs Ctypesdefs.tulong))
+        (Clight.Sifthenelse
+           (Clight.Ebinop Cop.Olt (Clight.Etempvar jets_bitcoin._ix Ctypesdefs.tulong)
+              (Clight.Etempvar jets_bitcoin._t'10 Ctypesdefs.tulong) Ctypesdefs.tint) Clight.Sskip afail))
+     (Clight.Ssequence
+        (Clight.Ssequence
+           (Clight.Ssequence (Clight.Sset jets_bitcoin._t'7 (tx_field_expr jets_bitcoin._version Ctypesdefs.tulong))
+              (Clight.Sifthenelse
+                 (Clight.Ebinop Cop.Ole
+                    (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))) Ctypesdefs.tint)
+                    (Clight.Etempvar jets_bitcoin._t'7 Ctypesdefs.tulong) Ctypesdefs.tint)
+                 (Clight.Ssequence
+                    (Clight.Sset jets_bitcoin._t'8
+                       (tx_field_expr jets_bitcoin._input
+                          (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr))))
+                    (Clight.Ssequence (Clight.Sset jets_bitcoin._t'9 (seq_elem_expr jets_bitcoin._t'8))
+                       (Clight.Sset jets_bitcoin._t'1
+                          (Clight.Ecast
+                             (Clight.Ebinop Cop.Olt (Clight.Etempvar jets_bitcoin._t'9 Ctypesdefs.tulong)
+                                (Clight.Econst_int
+                                   (Integers.Int.repr
+                                      (BinNums.Zneg
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))
+                                   Ctypesdefs.tuint) Ctypesdefs.tint) Ctypesdefs.tbool))))
+                 (Clight.Sset jets_bitcoin._t'1 (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint))))
+           (Clight.Sifthenelse (Clight.Etempvar jets_bitcoin._t'1 Ctypesdefs.tint)
+              (Clight.Ssequence
+                 (Clight.Sset jets_bitcoin._t'5
+                    (tx_field_expr jets_bitcoin._input
+                       (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr))))
+                 (Clight.Ssequence (Clight.Sset jets_bitcoin._t'6 (seq_elem_expr jets_bitcoin._t'5))
+                    (Clight.Sset jets_bitcoin._t'2 (Clight.Ecast bitexpr Ctypesdefs.tbool))))
+              (Clight.Sset jets_bitcoin._t'2 (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint))))
+        (Clight.Sifthenelse (Clight.Etempvar jets_bitcoin._t'2 Ctypesdefs.tint)
+           (Clight.Ssequence
+              (Clight.Sset jets_bitcoin._t'3
+                 (tx_field_expr jets_bitcoin._input
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sigInput Ctypes.noattr))))
+              (Clight.Ssequence (Clight.Sset jets_bitcoin._t'4 (seq_elem_expr jets_bitcoin._t'3))
+                 (Clight.Sreturn
+                    (@Some Clight.expr
+                       (Clight.Ebinop Cop.Oand (Clight.Etempvar jets_bitcoin._t'4 Ctypesdefs.tulong)
+                          (Clight.Econst_int
+                             (Integers.Int.repr
+                                (BinNums.Zpos
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))
+                             Ctypesdefs.tint) Ctypesdefs.tulong)))))
+           (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint))))))
+     : forall (_ : Clight.statement) (_ : Clight.expr), Clight.function
+
+Arguments dist_fn afail bitexpr
+### C.jet_bitcoin_distance_exec.assert_fail_stmt
+assert_fail_stmt =
+fun (strA strB : AST.ident) (lenA lenB line : BinNums.Z) (fname : AST.ident) =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_bitcoin.___assert_fail
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tschar)
+           (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tschar)
+              (Ctypes.Tcons Ctypesdefs.tuint (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tschar) Ctypes.Tnil))))
+        Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr (Clight.Evar strA (Ctypesdefs.tarray Ctypesdefs.tschar lenA))
+     (@cons Clight.expr (Clight.Evar strB (Ctypesdefs.tarray Ctypesdefs.tschar lenB))
+        (@cons Clight.expr (Clight.Econst_int (Integers.Int.repr line) Ctypesdefs.tint)
+           (@cons Clight.expr
+              (Clight.Evar fname
+                 (Ctypesdefs.tarray Ctypesdefs.tschar (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))
+              (@nil Clight.expr)))))
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : AST.ident),
+       Clight.statement
+
+Arguments assert_fail_stmt strA strB (lenA lenB line)%Z_scope fname
+### C.jet_bitcoin_distance_exec.lock_distance_bit
+lock_distance_bit = Clight.Eunop Cop.Onotbool bit22_expr Ctypesdefs.tint
+     : Clight.expr
+### C.jet_bitcoin_distance_exec.lock_duration_bit
+lock_duration_bit =
+Clight.Eunop Cop.Onotbool (Clight.Eunop Cop.Onotbool bit22_expr Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_bitcoin_distance_exec.version_ok
+version_ok =
+fun ver : Integers.Int64.int =>
+negb (Integers.Int64.ltu ver (Integers.Int64.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))
+     : forall _ : Integers.Int64.int, bool
+
+Arguments version_ok ver
+### C.jet_bitcoin_distance_exec.dist_result
+dist_result =
+fun (ver seq : Integers.Int64.int) (c : bool) =>
+match
+  andb (andb (version_ok ver) (jet_parse_sequence_spec.parse_sequence_enabled seq)) c return Integers.Int64.int
+with
+| true => jet_parse_sequence_spec.parse_sequence_payload seq
+| false => Integers.Int64.zero
+end
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : bool), Integers.Int64.int
+
+Arguments dist_result ver seq c%bool_scope

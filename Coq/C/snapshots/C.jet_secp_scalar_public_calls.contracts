@@ -1,0 +1,249 @@
+### C.jet_secp_scalar_public_calls.scalar_public_read_symbols
+scalar_public_read_symbols
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._read_scalar) (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._read_scalar)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._read_scalar) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)))
+### C.jet_secp_scalar_public_calls.scalar_public_zero_symbols
+scalar_public_zero_symbols
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._secp256k1_scalar_is_zero)
+            (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_scalar_is_zero)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_scalar_is_zero)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_is_zero)))
+### C.jet_secp_scalar_public_calls.exec_scalar_public_read
+exec_scalar_public_read
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl ba : Values.block)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_scalar_public_entry.scalar_public_env bl ba)
+         le m scalar_public_read_stmt Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_scalar_public_calls.exec_scalar_public_zero
+exec_scalar_public_zero
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl ba : Values.block) (flag : Integers.Int.int)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_is_zero)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+                (Values.Vint flag)),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_scalar_public_entry.scalar_public_env bl ba)
+         le m scalar_public_zero_stmt Events.E0 (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint flag) le) mf
+         ClightBigstep.Out_normal
+### C.jet_secp_scalar_public_calls.scalar_zero_foot_block
+scalar_zero_foot_block
+     : forall (ba b : Values.block) (pos : BinNums.Z)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@nil (prod Values.block BinNums.Z)))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   jet_secp_scalar_zero_exec.scalar_initial_regs) b pos), @eq Values.block b ba
+### C.jet_secp_scalar_public_calls.exec_scalar_public_read_and_test
+exec_scalar_public_read_and_test
+     : forall (le : Clight.temp_env) (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bw : Values.block) (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z)
+         (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (m : Memory.Mem.mem)
+         (ba bl : Values.block) (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc
+                (@List.map bool (option bool) (@Some bool)
+                   (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value)))
+         (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned)
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bl BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Cur
+                Memtype.Freeable) (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : not (@eq Values.block ba bl))
+         (_ : jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bl BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z)))))
+         (_ : jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc false (@nil BitMachine.Cell)
+                (BinNums.Zpos BinNums.xH)
+                (jet_secp_wrapper_run.read_fe_rho
+                   (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc)
+                (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mr : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                  (jet_secp_scalar_public_entry.scalar_public_env bl ba) le m scalar_public_read_stmt Events.E0 le mr
+                  ClightBigstep.Out_normal)
+               (and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge
+                     (jet_secp_scalar_public_entry.scalar_public_env bl ba) le mr scalar_public_zero_stmt Events.E0
+                     (@Maps.PTree.set Values.val jets_secp._t'1
+                        (Values.Vint
+                           (jet_readBit_layout.bit_int
+                              (Bit.toBool
+                                 (@jet_secp_canonical_scalar_zero.canonical_scalar_is_zero Alg.CoreFunSem value)))) le)
+                     mf ClightBigstep.Out_normal)
+                  (and
+                     (jet_sx_state.rep
+                        (jet_secp_scalar_reader_zero.scalar_reader_zero_rho
+                           (jet_secp_wrapper_run.read_fe_rho
+                              (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc)
+                           (jet_sx_state.lay
+                              (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                                 (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bl BinNums.Z0)
+                                    (@nil (prod Values.block BinNums.Z))))))
+                        (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                           (@nil (prod Values.block BinNums.Z))) jet_secp_scalar_zero_exec.scalar_initial_regs mf)
+                     (and
+                        (Memory.Mem.range_perm mf ba BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                           Memtype.Cur Memtype.Freeable)
+                        (and
+                           (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge
+                              (BinInt.Z.add rc
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                           (and
+                              (Memory.Mem.range_perm mf bl BinNums.Z0
+                                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (and
+                                 (jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc false
+                                    (@nil BitMachine.Cell) (BinNums.Zpos BinNums.xH)
+                                    (jet_secp_wrapper_run.read_fe_rho
+                                       (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value)
+                                       rc)
+                                    (jet_secp_scalar_reader_run.scalar_reader_log bi (Integers.Ptrofs.repr edge)) mf)
+                                 (jet_sx_mem.lframe
+                                    (fun (b : Values.block) (pos : BinNums.Z) =>
+                                     not
+                                       (jet_sx_state.foot
+                                          (@cons (prod Values.block BinNums.Z)
+                                             (@pair Values.block BinNums.Z ba BinNums.Z0)
+                                             (@nil (prod Values.block BinNums.Z)))
+                                          (@List.map jet_sx_state.region
+                                             (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool)
+                                                (option BinNums.Z)) jet_sx_state.rshape
+                                             jet_secp_scalar_zero_exec.scalar_initial_regs) b pos)) mr mf)))))))))
+### C.jet_secp_scalar_public_calls.scalar_public_read_stmt
+scalar_public_read_stmt =
+match Clight.fn_body jets_secp.f_simplicity_scalar_is_zero return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence read _ => read
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_scalar_public_calls.scalar_public_zero_stmt
+scalar_public_zero_stmt =
+match Clight.fn_body jets_secp.f_simplicity_scalar_is_zero return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence s3 _ =>
+            match s3 return Clight.statement with
+            | Clight.Sskip => Clight.Sskip
+            | Clight.Sassign _ _ => Clight.Sskip
+            | Clight.Sset _ _ => Clight.Sskip
+            | Clight.Scall _ _ _ => Clight.Sskip
+            | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+            | Clight.Ssequence test _ => test
+            | Clight.Sifthenelse _ _ _ => Clight.Sskip
+            | Clight.Sloop _ _ => Clight.Sskip
+            | Clight.Sbreak => Clight.Sskip
+            | Clight.Scontinue => Clight.Sskip
+            | Clight.Sreturn _ => Clight.Sskip
+            | Clight.Sswitch _ _ => Clight.Sskip
+            | Clight.Slabel _ _ => Clight.Sskip
+            | Clight.Sgoto _ => Clight.Sskip
+            end
+        | Clight.Sifthenelse _ _ _ => Clight.Sskip
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement

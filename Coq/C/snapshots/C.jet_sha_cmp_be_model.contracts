@@ -1,0 +1,61 @@
+### C.jet_sha_cmp_be_model.be_val_range
+be_val_range
+     : forall ws : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       and (BinInt.Z.le BinNums.Z0 (be_val ws))
+         (BinInt.Z.lt (be_val ws)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                  (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S (S (S O))))))) ws)))))
+### C.jet_sha_cmp_be_model.be_val_app
+be_val_app
+     : forall xs ys : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq BinNums.Z (be_val (@app (Ty.tySem (Word.Word (S (S (S (S (S O))))))) xs ys))
+         (BinInt.Z.add
+            (BinInt.Z.mul (be_val xs)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinInt.Z.mul
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S (S (S O))))))) ys)))))
+            (be_val ys))
+### C.jet_sha_cmp_be_model.be_val_chunks
+be_val_chunks
+     : forall (n : nat) (x : Ty.tySem (Word.Word (Nat.add n (S (S (S (S (S O)))))))),
+       @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (Nat.add n (S (S (S (S (S O))))))) x)
+         (be_val (jet_word32_chunks.word32_chunks n x))
+### C.jet_sha_cmp_be_model.cmp_model_words
+cmp_model_words
+     : forall (xs ys : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (_ : @eq nat (@length (Ty.tySem (Word.Word (S (S (S (S (S O))))))) xs)
+                (@length (Ty.tySem (Word.Word (S (S (S (S (S O))))))) ys)),
+       @eq bool
+         (Integers.Int.lt
+            (jet_sha_cmp_be_exec.cmp_model
+               (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                  jet_read32s_layout.word32_array_value xs)
+               (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                  jet_read32s_layout.word32_array_value ys)) Integers.Int.zero) (BinInt.Z.ltb (be_val xs) (be_val ys))
+### C.jet_sha_cmp_be_model.cmp_model_lt
+cmp_model_lt
+     : forall a b : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq bool
+         (Integers.Int.lt
+            (jet_sha_cmp_be_exec.cmp_model (jet_sha_ctx8_model.state_regs a) (jet_sha_ctx8_model.state_regs b))
+            Integers.Int.zero)
+         (BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) a)
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) b))
+### C.jet_sha_cmp_be_model.be_val
+be_val =
+fix be_val (ws : list (Ty.tySem (Word.Word (S (S (S (S (S O)))))))) : BinNums.Z :=
+  match ws return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons w ws' =>
+      BinInt.Z.add
+        (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) w)
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                 (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S (S (S O))))))) ws')))))
+        (be_val ws')
+  end
+     : forall _ : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))), BinNums.Z
+
+Arguments be_val ws%list_scope

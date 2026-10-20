@@ -1,0 +1,47 @@
+### C.jet_projection_cells.projection_vector_size
+projection_vector_size
+     : forall (X : Ty.Ty) (n : nat), le (Translate.bitSize X) (Translate.bitSize (Word.Vector X n))
+### C.jet_projection_cells.encode_leftmost
+encode_leftmost
+     : forall (X : Ty.Ty) (n : nat) (v : Ty.tySem (Word.Vector X n)),
+       @eq (list BitMachine.Cell) (@Translate.encode X (@Word.leftmost X n Alg.CoreFunSem v))
+         (@List.firstn BitMachine.Cell (Translate.bitSize X) (@Translate.encode (Word.Vector X n) v))
+### C.jet_projection_cells.encode_rightmost
+encode_rightmost
+     : forall (X : Ty.Ty) (n : nat) (v : Ty.tySem (Word.Vector X n)),
+       @eq (list BitMachine.Cell) (@Translate.encode X (@Word.rightmost X n Alg.CoreFunSem v))
+         (@List.skipn BitMachine.Cell (Nat.sub (Translate.bitSize (Word.Vector X n)) (Translate.bitSize X))
+            (@Translate.encode (Word.Vector X n) v))
+### C.jet_projection_cells.projection_input_firstn
+projection_input_firstn
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (edge rc : BinNums.Z) (cells : list BitMachine.Cell)
+         (n : nat) (_ : jet_encoding.frame_input_cells_at m bi edge rc cells),
+       jet_encoding.frame_input_cells_at m bi edge rc (@List.firstn BitMachine.Cell n cells)
+### C.jet_projection_cells.projection_input_skipn
+projection_input_skipn
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (edge rc : BinNums.Z) (cells : list BitMachine.Cell)
+         (n : nat) (_ : le n (@length BitMachine.Cell cells))
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc cells),
+       jet_encoding.frame_input_cells_at m bi edge (BinInt.Z.add rc (BinInt.Z.of_nat n))
+         (@List.skipn BitMachine.Cell n cells)
+### C.jet_projection_cells.projection_left_input
+projection_left_input
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (edge rc : BinNums.Z) (X : Ty.Ty) (n : nat)
+         (v : Ty.tySem (Word.Vector X n))
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc (@Translate.encode (Word.Vector X n) v)),
+       jet_encoding.frame_input_cells_at m bi edge rc (@Translate.encode X (@Word.leftmost X n Alg.CoreFunSem v))
+### C.jet_projection_cells.projection_right_input
+projection_right_input
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (edge rc : BinNums.Z) (X : Ty.Ty) (n : nat)
+         (v : Ty.tySem (Word.Vector X n))
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc (@Translate.encode (Word.Vector X n) v)),
+       jet_encoding.frame_input_cells_at m bi edge
+         (BinInt.Z.add rc (BinInt.Z.of_nat (Nat.sub (Translate.bitSize (Word.Vector X n)) (Translate.bitSize X))))
+         (@Translate.encode X (@Word.rightmost X n Alg.CoreFunSem v))
+### C.jet_projection_cells.projection_buffers_slice
+projection_buffers_slice
+     : forall (bd bi bw : Values.block) (edge outedge cursor rc total skip count : BinNums.Z)
+         (_ : jet_context_separated.jet_copy_buffers_separated bd bi bw edge outedge cursor rc total)
+         (_ : BinInt.Z.le BinNums.Z0 skip) (_ : BinInt.Z.le BinNums.Z0 count)
+         (_ : BinInt.Z.le (BinInt.Z.add skip count) total),
+       jet_context_separated.jet_copy_buffers_separated bd bi bw edge outedge cursor (BinInt.Z.add rc skip) count

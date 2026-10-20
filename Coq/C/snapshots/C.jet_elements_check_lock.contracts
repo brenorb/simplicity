@@ -1,0 +1,393 @@
+### C.jet_elements_check_lock.lock_value_range
+lock_value_range
+     : forall (height final : bool) (z : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 z)
+                (BinInt.Z.lt z
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))))),
+       and (BinInt.Z.le BinNums.Z0 (jet_elements_lock_spec.lock_value height final z))
+         (BinInt.Z.lt (jet_elements_lock_spec.lock_value height final z)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+### C.jet_elements_check_lock.elements_lock_value_range
+elements_lock_value_range
+     : forall (height : bool) (environment : jet_elements_prim.Elements.env),
+       and (BinInt.Z.le BinNums.Z0 (jet_elements_lock_spec.elements_lock_value height environment))
+         (BinInt.Z.lt (jet_elements_lock_spec.elements_lock_value height environment)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+### C.jet_elements_check_lock.bit_match_toBool
+bit_match_toBool
+     : forall v : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit),
+       @eq (option unit) match v return (option unit) with
+                         | inl _ => @None unit
+                         | inr b => @Some unit b
+                         end
+         match Bit.toBool v return (option unit) with
+         | true => @Some unit tt
+         | false => @None unit
+         end
+### C.jet_elements_check_lock.elements_check_lock_program_value
+elements_check_lock_program_value
+     : forall (height : bool) (x : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (environment : jet_elements_prim.Elements.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         (@elements_check_lock_program height
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) x
+            environment)
+         match
+           BinInt.Z.leb (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)
+             (jet_elements_lock_spec.elements_lock_value height environment)
+           return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         with
+         | true => @Some unit tt
+         | false => @None (Ty.tySem Ty.Unit)
+         end
+### C.jet_elements_check_lock.exec_elements_check_lock_rest
+exec_elements_check_lock_rest
+     : forall (fid : AST.ident) (f : Clight.function) (bl : Values.block) (le : Maps.PTree.tree Values.val)
+         (mc mr : Memory.Mem.mem) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+         (tbase : BinNums.Z) (xr r : Integers.Int64.int)
+         (_ : @eq (option Values.block)
+                (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                   (Clight.genv_genv jet_elements_linkage.elements_ge) fid)
+                (@Some Values.block (jet_elements_linkage.elements_symbol_block fid)))
+         (_ : @eq (option Clight.fundef)
+                (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type
+                   (Clight.genv_genv jet_elements_linkage.elements_ge)
+                   (Values.Vptr (jet_elements_linkage.elements_symbol_block fid) Integers.Ptrofs.zero))
+                (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+         (_ : @eq Ctypes.type (Clight.type_of_fundef (@Ctypes.Internal Clight.function f))
+                jet_elements_lock_local.lock_fn_type)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) fid
+                   (jet_elements_version_exec.elements_version_locals bl)) (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)))) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge mc
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read32)
+                (@cons Values.val (Values.Vptr bl (Integers.Ptrofs.repr BinNums.Z0)) (@nil Values.val)) Events.E0 mr
+                (Values.Vlong xr))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mr be ebase)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge mr
+                (@Ctypes.Internal Clight.function f)
+                (@cons Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase)) (@nil Values.val)) Events.E0 mr
+                (Values.Vlong r)),
+       @ex Clight.temp_env
+         (fun le1 : Clight.temp_env =>
+          ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge
+            (jet_elements_version_exec.elements_version_locals bl) le mc (elements_check_lock_rest fid) Events.E0 le1
+            mr
+            (ClightBigstep.Out_return
+               (@Some (prod Values.val Ctypes.type)
+                  (@pair Values.val Ctypes.type (Values.Val.of_bool (negb (Integers.Int64.ltu r xr))) Ctypesdefs.tint))))
+### C.jet_elements_check_lock.lock_result_unsigned
+lock_result_unsigned
+     : forall (height final : bool) (lt : Integers.Int64.int) (L : BinNums.Z)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned lt) L),
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (jet_elements_lock_exec.lock_result final
+               match height return bool with
+               | true => Integers.Int64.ltu lt jet_elements_lock_local.lock_threshold
+               | false => negb (Integers.Int64.ltu lt jet_elements_lock_local.lock_threshold)
+               end lt)) (jet_elements_lock_spec.lock_value height final L)
+### C.jet_elements_check_lock.load_valid_block
+load_valid_block
+     : forall (chunk : AST.memory_chunk) (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (v : Values.val) (_ : @eq (option Values.val) (Memory.Mem.load chunk m b ofs) (@Some Values.val v)),
+       Memory.Mem.valid_block m b
+### C.jet_elements_check_lock.elements_check_lock_jet_spec
+elements_check_lock_jet_spec
+     : forall (height : bool) (jet : Clight.function) (fid : AST.ident) (f : Clight.function)
+         (_ : @eq (option Values.block)
+                (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                   (Clight.genv_genv jet_elements_linkage.elements_ge) fid)
+                (@Some Values.block (jet_elements_linkage.elements_symbol_block fid)))
+         (_ : @eq (option Clight.fundef)
+                (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type
+                   (Clight.genv_genv jet_elements_linkage.elements_ge)
+                   (Values.Vptr (jet_elements_linkage.elements_symbol_block fid) Integers.Ptrofs.zero))
+                (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+         (_ : jet_elements_wrapper.elements_wrapper_shape jet (elements_check_lock_rest fid))
+         (_ : forall bl : Values.block,
+              @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) fid
+                   (jet_elements_version_exec.elements_version_locals bl)) (@None (prod Values.block Ctypes.type)))
+         (_ : forall (m : Memory.Mem.mem) (bt : Values.block) (tbase : BinNums.Z) (b : bool)
+                (lt : Integers.Int64.int) (_ : BinInt.Z.le BinNums.Z0 tbase)
+                (_ : BinInt.Z.le
+                       (BinInt.Z.add tbase
+                          (BinNums.Zpos
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+                       Integers.Ptrofs.max_unsigned)
+                (_ : @eq (option Values.val)
+                       (Memory.Mem.load AST.Mint8unsigned m bt
+                          (BinInt.Z.add tbase
+                             (BinNums.Zpos
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                       (@Some Values.val (Values.Vint (jet_elements_is_final_local.bool_int b))))
+                (_ : @eq (option Values.val)
+                       (Memory.Mem.load AST.Mint64 m bt
+                          (BinInt.Z.add tbase
+                             (BinNums.Zpos
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                       (@Some Values.val (Values.Vlong lt))),
+              ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+                (@Ctypes.Internal Clight.function f)
+                (@cons Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase)) (@nil Values.val)) Events.E0 m
+                (Values.Vlong
+                   (jet_elements_lock_exec.lock_result b
+                      match height return bool with
+                      | true => Integers.Int64.ltu lt jet_elements_lock_local.lock_threshold
+                      | false => negb (Integers.Int64.ltu lt jet_elements_lock_local.lock_threshold)
+                      end lt)))
+         (_ : @eq Ctypes.type (Clight.type_of_fundef (@Ctypes.Internal Clight.function f))
+                jet_elements_lock_local.lock_fn_type),
+       jet_application_partial.application_jet_partial_spec jet jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O)))))) Ty.Unit elements_check_lock_env_rep
+         (fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+          @elements_check_lock_program height
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_check_lock.lockHeight_exec
+lockHeight_exec
+     : forall (m : Memory.Mem.mem) (bt : Values.block) (tbase : BinNums.Z) (b : bool) (lt : Integers.Int64.int)
+         (_ : BinInt.Z.le BinNums.Z0 tbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add tbase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m bt
+                   (BinInt.Z.add tbase
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vint (jet_elements_is_final_local.bool_int b))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bt
+                   (BinInt.Z.add tbase
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xI
+                                     (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong lt))),
+       ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+         (@Ctypes.Internal Clight.function jets_elements.f_lockHeight)
+         (@cons Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase)) (@nil Values.val)) Events.E0 m
+         (Values.Vlong
+            (jet_elements_lock_exec.lock_result b (Integers.Int64.ltu lt jet_elements_lock_local.lock_threshold) lt))
+### C.jet_elements_check_lock.lockTime_exec
+lockTime_exec
+     : forall (m : Memory.Mem.mem) (bt : Values.block) (tbase : BinNums.Z) (b : bool) (lt : Integers.Int64.int)
+         (_ : BinInt.Z.le BinNums.Z0 tbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add tbase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m bt
+                   (BinInt.Z.add tbase
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vint (jet_elements_is_final_local.bool_int b))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bt
+                   (BinInt.Z.add tbase
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xI
+                                     (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong lt))),
+       ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+         (@Ctypes.Internal Clight.function jets_elements.f_lockTime)
+         (@cons Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase)) (@nil Values.val)) Events.E0 m
+         (Values.Vlong
+            (jet_elements_lock_exec.lock_result b (negb (Integers.Int64.ltu lt jet_elements_lock_local.lock_threshold))
+               lt))
+### C.jet_elements_check_lock.elements_check_lock_height_shape
+elements_check_lock_height_shape
+     : jet_elements_wrapper.elements_wrapper_shape jets_elements.f_simplicity_check_lock_height
+         (elements_check_lock_rest jets_elements._lockHeight)
+### C.jet_elements_check_lock.elements_check_lock_time_shape
+elements_check_lock_time_shape
+     : jet_elements_wrapper.elements_wrapper_shape jets_elements.f_simplicity_check_lock_time
+         (elements_check_lock_rest jets_elements._lockTime)
+### C.jet_elements_check_lock.elements_check_lock_height_local_spec
+elements_check_lock_height_local_spec
+     : jet_application_partial.application_jet_partial_spec jets_elements.f_simplicity_check_lock_height
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O)))))) Ty.Unit
+         elements_check_lock_env_rep
+         (fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+          @elements_check_lock_height_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_check_lock.elements_check_lock_time_local_spec
+elements_check_lock_time_local_spec
+     : jet_application_partial.application_jet_partial_spec jets_elements.f_simplicity_check_lock_time
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S (S (S O)))))) Ty.Unit
+         elements_check_lock_env_rep
+         (fun (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : jet_elements_prim.Elements.env) =>
+          @elements_check_lock_time_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_check_lock.elements_check_lock_program
+elements_check_lock_program =
+fun (height : bool) (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) =>
+@jet_elements_current_spec.elements_assert_spec alg (Word.Word (S (S (S (S (S O)))))) Ty.Unit
+  (@jet_elements_current_spec.elements_comp alg (Word.Word (S (S (S (S (S O))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Ty.Sum Ty.Unit Ty.Unit)
+     (@jet_elements_prim_sem.elements_pair alg (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+        (Word.Word (S (S (S (S (S O))))))
+        (@jet_elements_prim_sem.elements_core (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+           (fun alg0 : Alg.Core.Algebra => @jet_elements_prim_sem.DC.iden (Word.Word (S (S (S (S (S O)))))) alg0) alg)
+        (@jet_elements_current_spec.elements_comp alg (Word.Word (S (S (S (S (S O)))))) Ty.Unit
+           (Word.Word (S (S (S (S (S O))))))
+           (@jet_elements_prim_sem.elements_core (Word.Word (S (S (S (S (S O)))))) Ty.Unit
+              (fun alg0 : Alg.Core.Algebra => @jet_elements_prim_sem.DC.unit (Word.Word (S (S (S (S (S O)))))) alg0)
+              alg)
+           (@jet_elements_lock_spec.lock_program height
+              (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore alg)
+              (@jet_elements_is_final_spec.elements_tx_is_final_spec alg)
+              (@jet_elements_lock_spec.elements_lock_time_prim alg))))
+     (@jet_elements_prim_sem.elements_core
+        (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Ty.Sum Ty.Unit Ty.Unit)
+        (fun alg0 : Alg.Core.Algebra => @jet_order_spec.le_word_spec alg0 (S (S (S (S (S O)))))) alg))
+     : forall (_ : bool) (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra),
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O)))))) Ty.Unit
+
+Arguments elements_check_lock_program height%bool_scope {alg}
+### C.jet_elements_check_lock.elements_check_lock_height_spec
+elements_check_lock_height_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra => @elements_check_lock_program true alg
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O)))))) Ty.Unit
+
+Arguments elements_check_lock_height_spec {alg}
+### C.jet_elements_check_lock.elements_check_lock_time_spec
+elements_check_lock_time_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra => @elements_check_lock_program false alg
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O)))))) Ty.Unit
+
+Arguments elements_check_lock_time_spec {alg}
+### C.jet_elements_check_lock.elements_check_lock_rest
+elements_check_lock_rest =
+fun fid : AST.ident =>
+Clight.Ssequence
+  (Clight.Ssequence
+     (Clight.Scall (@Some AST.ident jets_elements._t'1)
+        (Clight.Evar jets_elements._simplicity_read32
+           (Ctypes.Tfunction
+              (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)) Ctypes.Tnil)
+              Ctypesdefs.tulong AST.cc_default))
+        (@cons Clight.expr
+           (Clight.Eaddrof (Clight.Evar jets_elements._src (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))) (@nil Clight.expr)))
+     (Clight.Sset jets_elements._x (Clight.Etempvar jets_elements._t'1 Ctypesdefs.tulong)))
+  (Clight.Ssequence
+     (Clight.Ssequence (jet_elements_tx_field_set.elements_env_tx_set jets_elements._t'3)
+        (Clight.Scall (@Some AST.ident jets_elements._t'2) (Clight.Evar fid jet_elements_lock_local.lock_fn_type)
+           (@cons Clight.expr
+              (Clight.Etempvar jets_elements._t'3
+                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr)))
+              (@nil Clight.expr))))
+     (Clight.Sreturn
+        (@Some Clight.expr
+           (Clight.Ebinop Cop.Ole (Clight.Etempvar jets_elements._x Ctypesdefs.tulong)
+              (Clight.Etempvar jets_elements._t'2 Ctypesdefs.tulong) Ctypesdefs.tint))))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments elements_check_lock_rest fid
+### C.jet_elements_check_lock.elements_check_lock_env_rep
+elements_check_lock_env_rep =
+fun (m : Memory.Mem.mem) (env : Values.val) (environment : jet_elements_prim.Elements.env) =>
+@ex (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+  (fun fp : list (prod (prod Values.block BinNums.Z) BinNums.Z) =>
+   jet_elements_lock_local.elements_lock_env_rep m env environment fp)
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env), Prop
+
+Arguments elements_check_lock_env_rep m env environment

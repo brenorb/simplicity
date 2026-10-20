@@ -1,0 +1,118 @@
+### C.jet_secp_wrapper_run.read_fe_tree_nonempty
+read_fe_tree_nonempty
+     : forall (input_edge : Values.block) (edge : Integers.Ptrofs.int),
+       @eq bool match read_fe_tree input_edge edge return bool with
+                | Some _ => true
+                | None => false
+                end true
+### C.jet_secp_wrapper_run.read_fe_run_eq
+read_fe_run_eq
+     : forall (input_edge : Values.block) (edge : Integers.Ptrofs.int),
+       @eq (option jet_sx_exec.res) (read_fe_run input_edge edge)
+         (@Some jet_sx_exec.res (read_fe_result input_edge edge))
+### C.jet_secp_wrapper_run.all_leaf_logs_selected
+all_leaf_logs_selected
+     : forall (log : list jet_sx_eval.event) (rr : jet_sx_exec.res) (_ : all_leaf_logs log rr)
+         (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (list jet_sx_eval.event)
+         (jet_sx_eval.slog (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout rr))) log
+### C.jet_secp_wrapper_run.read_fe_result_leaf_logs
+read_fe_result_leaf_logs
+     : forall (input_edge : Values.block) (edge : Integers.Ptrofs.int),
+       all_leaf_logs (read_fe_log input_edge edge) (read_fe_result input_edge edge)
+### C.jet_secp_wrapper_run.read_fe_selected_log
+read_fe_selected_log
+     : forall (input_edge : Values.block) (edge : Integers.Ptrofs.int) (rho : forall _ : nat, Integers.Int64.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (list jet_sx_eval.event)
+         (jet_sx_eval.slog
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (read_fe_result input_edge edge))))
+         (read_fe_log input_edge edge)
+### C.jet_secp_wrapper_run.read_fe_selected_return
+read_fe_selected_return
+     : forall (input_edge : Values.block) (edge : Integers.Ptrofs.int) (rho : forall _ : nat, Integers.Int64.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH
+            (jet_sx_eval.stemps
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (read_fe_result input_edge edge)))))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_wrapper_run.read_fe_entries
+read_fe_entries
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (ibits : list bool)
+         (outs0 : list BitMachine.Cell) (cap : BinNums.Z)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc (@List.map bool (option bool) (@Some bool) ibits))
+         (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le (BinInt.Z.add rc (BinInt.Z.of_nat (@length bool ibits))) Integers.Int64.max_unsigned)
+         (_ : @eq nat (@length bool ibits)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (id : AST.ident) (ent : jet_sx_exec.fentry)
+         (_ : @eq (option jet_sx_exec.fentry) (jet_sx_exec.flookup read_fe_table id) (@Some jet_sx_exec.fentry ent)),
+       and
+         (@ex Values.block
+            (fun b : Values.block =>
+             and
+               (@eq (option Values.block)
+                  (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+                     id) (@Some Values.block b))
+               (@eq (option Clight.fundef)
+                  (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                     (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                  (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function (jet_sx_exec.fentry_fd ent))))))
+         match ent return Prop with
+         | jet_sx_exec.FInt _ => True
+         | jet_sx_exec.FOra fd oracle =>
+             jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge (jet_secp_wrapper_run.read_evok bd dbase bi edge ibits)
+               (jet_secp_wrapper_run.read_inv m0 bd dbase bw outedge cursor N bi rc outs0 cap)
+               (jet_secp_wrapper_run.read_ext m0 bd bw bi) fd oracle
+         end
+### C.jet_secp_wrapper_run.read_fe_input_events
+read_fe_input_events
+     : forall (bd : Values.block) (dbase : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z)
+         (ibits : list bool) (layout : jet_sx_state.layout),
+       jet_sx_exec.solves (jet_secp_wrapper_run.read_evok bd dbase bi edge ibits) (read_fe_rho ibits rc)
+         (jet_sx_eval.slog
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout
+               (jet_sx_exec.rsel (read_fe_rho ibits rc) (jet_sx_state.lay layout)
+                  (read_fe_result bi (Integers.Ptrofs.repr edge)))))
+### C.jet_secp_wrapper_run.eval_read_fe_from_initial_regions
+eval_read_fe_from_initial_regions
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (ibits : list bool)
+         (outs0 : list BitMachine.Cell) (cap : BinNums.Z)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc (@List.map bool (option bool) (@Some bool) ibits))
+         (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le (BinInt.Z.add rc (BinInt.Z.of_nat (@length bool ibits))) Integers.Int64.max_unsigned)
+         (_ : @eq nat (@length bool ibits)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (m : Memory.Mem.mem) (layout : jet_sx_state.layout)
+         (_ : jet_sx_state.rep (read_fe_rho ibits rc) layout (read_fe_initial_regs bi (Integers.Ptrofs.repr edge)) m)
+         (_ : jet_sx_exec.xsep (jet_secp_wrapper_run.read_ext m0 bd bw bi) layout)
+         (_ : jet_secp_wrapper_run.read_inv m0 bd dbase bw outedge cursor N bi rc outs0 cap
+                (read_fe_rho ibits rc) (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (jet_sx_state.bas layout (S O)))) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_sx_state.rep (read_fe_rho ibits rc) layout
+                  (jet_sx_eval.sregs
+                     (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                        (jet_sx_exec.rsel (read_fe_rho ibits rc) (jet_sx_state.lay layout)
+                           (read_fe_result bi (Integers.Ptrofs.repr edge))))) mf)
+               (and
+                  (jet_secp_wrapper_run.read_inv m0 bd dbase bw outedge cursor N bi rc outs0 cap
+                     (read_fe_rho ibits rc) (read_fe_log bi (Integers.Ptrofs.repr edge)) mf)
+                  (jet_sx_mem.lframe
+                     (jet_sx_exec.frame (jet_secp_wrapper_run.read_ext m0 bd bw bi) layout
+                        (read_fe_initial_regs bi (Integers.Ptrofs.repr edge)) m) m mf))))

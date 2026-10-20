@@ -1,0 +1,54 @@
+### C.jet_equality_spec.equality_spec_parametric
+equality_spec_parametric
+     : forall A : Ty.Ty, @Alg.Core.Parametric (Ty.Prod A A) (Ty.Sum Ty.Unit Ty.Unit) (@equality_spec A)
+### C.jet_equality_spec.equality_spec_true
+equality_spec_true
+     : forall (A : Ty.Ty) (x y : Ty.tySem A),
+       iff (@eq bool (Bit.toBool (@equality_spec A Alg.CoreFunSem (@pair (Ty.tySem A) (Ty.tySem A) x y))) true)
+         (@eq (Ty.tySem A) x y)
+### C.jet_equality_spec.equality_spec_word_numeric
+equality_spec_word_numeric
+     : forall (n : nat) (x y : Ty.tySem (Word.Word n)),
+       @eq bool
+         (Bit.toBool
+            (@equality_spec (Word.Word n) Alg.CoreFunSem (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+         (BinInt.Z.eqb (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+### C.jet_equality_spec.equality_spec
+equality_spec =
+fix equality_spec (A : Ty.Ty) (term : Alg.Core.Algebra) {struct A} :
+    Alg.Core.domain term (Ty.Prod A A) (Ty.Sum Ty.Unit Ty.Unit) :=
+  match A as A0 return (Alg.Core.domain term (Ty.Prod A0 A0) (Ty.Sum Ty.Unit Ty.Unit)) with
+  | Ty.Unit => @Bit.true (Ty.Prod Ty.Unit Ty.Unit) term
+  | Ty.Sum L R =>
+      @Alg.Core.Combinators.case L R (Ty.Sum L R) (Ty.Sum Ty.Unit Ty.Unit) term
+        (@Alg.Core.Combinators.comp (Ty.Prod L (Ty.Sum L R)) (Ty.Prod (Ty.Sum L R) L) (Ty.Sum Ty.Unit Ty.Unit) term
+           (@Alg.Core.Combinators.swapP L (Ty.Sum L R) term)
+           (@Alg.Core.Combinators.case L R L (Ty.Sum Ty.Unit Ty.Unit) term (equality_spec L term)
+              (@Bit.false (Ty.Prod R L) term)))
+        (@Alg.Core.Combinators.comp (Ty.Prod R (Ty.Sum L R)) (Ty.Prod (Ty.Sum L R) R) (Ty.Sum Ty.Unit Ty.Unit) term
+           (@Alg.Core.Combinators.swapP R (Ty.Sum L R) term)
+           (@Alg.Core.Combinators.case L R R (Ty.Sum Ty.Unit Ty.Unit) term (@Bit.false (Ty.Prod L R) term)
+              (equality_spec R term)))
+  | Ty.Prod L R =>
+      @Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod L R) (Ty.Prod L R)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod R R))
+        (Ty.Sum Ty.Unit Ty.Unit) term
+        (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod L R) (Ty.Prod L R)) (Ty.Sum Ty.Unit Ty.Unit)
+           (Ty.Prod R R) term
+           (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod L R) (Ty.Prod L R)) (Ty.Prod L L)
+              (Ty.Sum Ty.Unit Ty.Unit) term
+              (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod L R) (Ty.Prod L R)) L L term
+                 (@Alg.Core.Combinators.take (Ty.Prod L R) (Ty.Prod L R) L term
+                    (@Alg.Core.Combinators.take L R L term (@Alg.Core.Combinators.iden L term)))
+                 (@Alg.Core.Combinators.drop (Ty.Prod L R) (Ty.Prod L R) L term
+                    (@Alg.Core.Combinators.take L R L term (@Alg.Core.Combinators.iden L term))))
+              (equality_spec L term))
+           (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Prod L R) (Ty.Prod L R)) R R term
+              (@Alg.Core.Combinators.take (Ty.Prod L R) (Ty.Prod L R) R term
+                 (@Alg.Core.Combinators.drop L R R term (@Alg.Core.Combinators.iden R term)))
+              (@Alg.Core.Combinators.drop (Ty.Prod L R) (Ty.Prod L R) R term
+                 (@Alg.Core.Combinators.drop L R R term (@Alg.Core.Combinators.iden R term)))))
+        (@Bit.cond (Ty.Prod R R) (Ty.Sum Ty.Unit Ty.Unit) term (equality_spec R term) (@Bit.false (Ty.Prod R R) term))
+  end
+     : forall (A : Ty.Ty) (term : Alg.Core.Algebra), Alg.Core.domain term (Ty.Prod A A) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments equality_spec A {term}

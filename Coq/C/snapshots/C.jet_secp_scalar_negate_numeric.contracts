@@ -1,0 +1,87 @@
+### C.jet_secp_scalar_negate_numeric.scalar_negate_raw_weighted_value
+scalar_negate_raw_weighted_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq BinNums.Z (scalar_negate_raw_value rho layout)
+         (BinInt.Z.modulo
+            (BinInt.Z.sub jet_secp_canonical_scalar.canonical_group_order
+               (jet_secp_scalar_overflow_numeric.scalar_limb_value rho))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+### C.jet_secp_scalar_negate_numeric.scalar_negate_masked_weighted_value
+scalar_negate_masked_weighted_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq BinNums.Z (scalar_negate_output_value rho layout)
+         match BinInt.Z.eqb (jet_secp_scalar_overflow_numeric.scalar_limb_value rho) BinNums.Z0 return BinNums.Z with
+         | true => BinNums.Z0
+         | false => scalar_negate_raw_value rho layout
+         end
+### C.jet_secp_scalar_negate_numeric.scalar_negate_normalized_value
+scalar_negate_normalized_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 (jet_secp_scalar_overflow_numeric.scalar_limb_value rho))
+                (BinInt.Z.lt (jet_secp_scalar_overflow_numeric.scalar_limb_value rho)
+                   jet_secp_canonical_scalar.canonical_group_order)),
+       @eq BinNums.Z (scalar_negate_output_value rho layout)
+         (BinInt.Z.modulo (BinInt.Z.opp (jet_secp_scalar_overflow_numeric.scalar_limb_value rho))
+            jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_scalar_negate_numeric.scalar_negate_raw_value
+scalar_negate_raw_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z) =>
+BinInt.Z.add
+  (BinInt.Z.add
+     (BinInt.Z.add
+        (Integers.Int64.unsigned
+           (jet_sx_expr.il (jet_sx_expr.den rho layout jet_secp_scalar_negate_values.scalar_negate_low0)))
+        (BinInt.Z.mul
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+           (Integers.Int64.unsigned
+              (jet_sx_expr.il (jet_sx_expr.den rho layout jet_secp_scalar_negate_values.scalar_negate_low1)))))
+     (BinInt.Z.mul
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (Integers.Int64.unsigned
+           (jet_sx_expr.il (jet_sx_expr.den rho layout jet_secp_scalar_negate_values.scalar_negate_low2)))))
+  (BinInt.Z.mul
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+     (Integers.Int64.unsigned
+        (jet_sx_expr.il (jet_sx_expr.den rho layout jet_secp_scalar_negate_values.scalar_negate_low3))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z), BinNums.Z
+
+Arguments scalar_negate_raw_value (rho layout)%function_scope
+### C.jet_secp_scalar_negate_numeric.scalar_negate_output_value
+scalar_negate_output_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z) =>
+let limb : forall _ : nat, BinNums.Z :=
+  fun i : nat =>
+  Integers.Int64.unsigned
+    (jet_sx_expr.il
+       (jet_sx_expr.den rho layout
+          (@List.nth jet_sx_expr.sx i jet_secp_scalar_negate_exec.scalar_negate_limbs
+             (jet_sx_expr.XLc Integers.Int64.zero)))) in
+BinInt.Z.add
+  (BinInt.Z.add
+     (BinInt.Z.add (limb O)
+        (BinInt.Z.mul
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+           (limb (S O))))
+     (BinInt.Z.mul
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (limb (S (S O)))))
+  (BinInt.Z.mul
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+     (limb (S (S (S O)))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z), BinNums.Z
+
+Arguments scalar_negate_output_value (rho layout)%function_scope

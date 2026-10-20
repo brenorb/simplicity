@@ -1,0 +1,100 @@
+### C.jet_secp_reduce512_fold_bounds.reduce512_delta_order
+reduce512_delta_order
+     : @eq BinNums.Z jet_secp_reduce512_first_value.first_delta
+         (BinInt.Z.sub reduce512_radix jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_reduce512_fold_bounds.reduce512_delta_bounds
+reduce512_delta_bounds
+     : and
+         (and (BinInt.Z.lt BinNums.Z0 jet_secp_reduce512_first_value.first_delta)
+            (BinInt.Z.lt jet_secp_reduce512_first_value.first_delta reduce512_radix))
+         (and
+            (BinInt.Z.lt
+               (BinInt.Z.mul jet_secp_reduce512_first_value.first_delta jet_secp_reduce512_first_value.first_delta)
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) reduce512_radix))
+            (and
+               (BinInt.Z.lt
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_reduce512_first_value.first_delta)
+                  reduce512_radix)
+               (BinInt.Z.lt
+                  (BinInt.Z.add reduce512_radix
+                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_reduce512_first_value.first_delta))
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order))))
+### C.jet_secp_reduce512_fold_bounds.first_machine_split
+first_machine_split
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (jet_secp_scalar_mul512_accumulate.column_words_value
+            (jet_secp_reduce512_first_symbolic.first_machine_outputs rho))
+         (BinInt.Z.add (first_low256 rho) (BinInt.Z.mul reduce512_radix (first_high256 rho)))
+### C.jet_secp_reduce512_fold_bounds.first_low256_bound
+first_low256_bound
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (first_low256 rho)) (BinInt.Z.lt (first_low256 rho) reduce512_radix)
+### C.jet_secp_reduce512_fold_bounds.first_high256_bound
+first_high256_bound
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (first_high256 rho))
+         (BinInt.Z.le (first_high256 rho) jet_secp_reduce512_first_value.first_delta)
+### C.jet_secp_reduce512_fold_bounds.second_fold_bridge_bound
+second_fold_bridge_bound
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (second_fold_bridge_value rho))
+         (BinInt.Z.lt (second_fold_bridge_value rho)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xI BinNums.xH)) reduce512_radix))
+### C.jet_secp_reduce512_fold_bounds.first_fold_modulo_order
+first_fold_modulo_order
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (jet_secp_scalar_mul512_accumulate.column_words_value
+               (jet_secp_reduce512_first_symbolic.first_machine_outputs rho))
+            jet_secp_canonical_scalar.canonical_group_order)
+         (BinInt.Z.modulo
+            (BinInt.Z.add (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+               (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O)))))
+                  reduce512_radix)) jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_reduce512_fold_bounds.second_fold_bridge_modulo_order
+second_fold_bridge_modulo_order
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z (BinInt.Z.modulo (second_fold_bridge_value rho) jet_secp_canonical_scalar.canonical_group_order)
+         (BinInt.Z.modulo
+            (jet_secp_scalar_mul512_accumulate.column_words_value
+               (jet_secp_reduce512_first_symbolic.first_machine_outputs rho))
+            jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_reduce512_fold_bounds.reduce512_radix
+reduce512_radix =
+BinInt.Z.pow Integers.Int64.modulus (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+     : BinNums.Z
+### C.jet_secp_reduce512_fold_bounds.first_low256
+first_low256 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_accumulate.column_words_value
+  (@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (jet_secp_reduce512_first_symbolic.first_ma0 rho))
+     (@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (jet_secp_reduce512_first_symbolic.first_ma1 rho))
+        (@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (jet_secp_reduce512_first_symbolic.first_ma2 rho))
+           (@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (jet_secp_reduce512_first_symbolic.first_ma3 rho))
+              (@nil Integers.Int64.int)))))
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments first_low256 rho%function_scope
+### C.jet_secp_reduce512_fold_bounds.first_high256
+first_high256 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_accumulate.column_words_value
+  (@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (jet_secp_reduce512_first_symbolic.first_ma4 rho))
+     (@cons Integers.Int64.int (jet_secp_reduce512_wide.wlo (jet_secp_reduce512_first_symbolic.first_ma5 rho))
+        (@cons Integers.Int64.int
+           (Integers.Int64.repr
+              (Integers.Int.unsigned
+                 (Integers.Int64.loword (jet_secp_reduce512_wide.whi (jet_secp_reduce512_first_symbolic.first_ma5 rho)))))
+           (@nil Integers.Int64.int))))
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments first_high256 rho%function_scope
+### C.jet_secp_reduce512_fold_bounds.second_fold_bridge_value
+second_fold_bridge_value =
+fun rho : forall _ : nat, Integers.Int64.int =>
+BinInt.Z.add (first_low256 rho) (BinInt.Z.mul (first_high256 rho) jet_secp_reduce512_first_value.first_delta)
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments second_fold_bridge_value rho%function_scope

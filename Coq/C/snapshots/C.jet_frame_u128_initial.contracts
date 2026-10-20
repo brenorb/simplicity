@@ -1,0 +1,128 @@
+### C.jet_frame_u128_initial.frame_u128_permissions_preserved
+frame_u128_permissions_preserved
+     : forall (m mf : Memory.Mem.mem) (bl br : Values.block)
+         (_ : forall (bb : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind) (p : Memtype.permission)
+                (_ : Memory.Mem.perm m bb ofs kind p), Memory.Mem.perm mf bb ofs kind p)
+         (_ : frame_u128_local_permissions m bl br), frame_u128_local_permissions mf bl br
+### C.jet_frame_u128_initial.allocate_frame_u128_locals
+allocate_frame_u128_locals
+     : forall m : Memory.Mem.mem,
+       @ex Memory.Mem.mem'
+         (fun ma : Memory.Mem.mem' =>
+          @ex Memory.Mem.mem'
+            (fun mb : Memory.Mem.mem' =>
+             @ex Values.block
+               (fun bl : Values.block =>
+                @ex Values.block
+                  (fun br : Values.block =>
+                   and
+                     (@eq (prod Memory.Mem.mem' Values.block)
+                        (Memory.Mem.alloc m BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        (@pair Memory.Mem.mem' Values.block ma bl))
+                     (and
+                        (@eq (prod Memory.Mem.mem' Values.block)
+                           (Memory.Mem.alloc ma BinNums.Z0
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                           (@pair Memory.Mem.mem' Values.block mb br))
+                        (and (not (@eq Values.block bl br))
+                           (and (frame_u128_local_permissions mb bl br)
+                              (and
+                                 (forall (bb : Values.block) (_ : Memory.Mem.valid_block m bb),
+                                  and (not (@eq Values.block bb bl)) (not (@eq Values.block bb br)))
+                                 (and
+                                    (forall (chunk : AST.memory_chunk) (bb : Values.block)
+                                       (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m bb),
+                                     @eq (option Values.val) (Memory.Mem.load chunk mb bb ofs)
+                                       (Memory.Mem.load chunk m bb ofs))
+                                    (forall (bb : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                                       (p : Memtype.permission) (_ : Memory.Mem.perm m bb ofs kind p),
+                                     Memory.Mem.perm mb bb ofs kind p))))))))))
+### C.jet_frame_u128_initial.frame_u128_slots_writable
+frame_u128_slots_writable
+     : forall (m : Memory.Mem.mem) (bl br : Values.block) (_ : frame_u128_local_permissions m bl br),
+       and
+         (Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            Memtype.Writable)
+         (and (Memory.Mem.valid_access m AST.Mint64 br BinNums.Z0 Memtype.Writable)
+            (Memory.Mem.valid_access m AST.Mint64 br (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               Memtype.Writable))
+### C.jet_frame_u128_initial.initialize_frame_u128_input
+initialize_frame_u128_input
+     : forall (m : Memory.Mem.mem) (bs : Values.block) (sbase : BinNums.Z) (bi : Values.block)
+         (edge rc : BinNums.Z) (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge rc),
+       @ex Memory.Mem.mem'
+         (fun ma : Memory.Mem.mem' =>
+          @ex Memory.Mem.mem'
+            (fun mb : Memory.Mem.mem' =>
+             @ex Memory.Mem.mem
+               (fun mc : Memory.Mem.mem =>
+                @ex Values.block
+                  (fun bl : Values.block =>
+                   @ex Values.block
+                     (fun br : Values.block =>
+                      @ex (list Memdata.memval)
+                        (fun bytes : list Memdata.memval =>
+                         and
+                           (@eq (prod Memory.Mem.mem' Values.block)
+                              (Memory.Mem.alloc m BinNums.Z0
+                                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                              (@pair Memory.Mem.mem' Values.block ma bl))
+                           (and
+                              (@eq (prod Memory.Mem.mem' Values.block)
+                                 (Memory.Mem.alloc ma BinNums.Z0
+                                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                 (@pair Memory.Mem.mem' Values.block mb br))
+                              (and
+                                 (@eq (option (list Memdata.memval))
+                                    (Memory.Mem.loadbytes mb bs sbase
+                                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                    (@Some (list Memdata.memval) bytes))
+                                 (and
+                                    (@eq (option Memory.Mem.mem) (Memory.Mem.storebytes mb bl BinNums.Z0 bytes)
+                                       (@Some Memory.Mem.mem mc))
+                                    (and (not (@eq Values.block bl br))
+                                       (and (jet_frame_layout.frame_fields_at mc bl BinNums.Z0 bi edge rc)
+                                          (and (frame_u128_local_permissions mc bl br)
+                                             (and
+                                                (forall (bb : Values.block) (_ : Memory.Mem.valid_block m bb),
+                                                 and (not (@eq Values.block bb bl)) (not (@eq Values.block bb br)))
+                                                (and
+                                                   (forall (chunk : AST.memory_chunk) (bb : Values.block)
+                                                      (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m bb),
+                                                    @eq (option Values.val) (Memory.Mem.load chunk mc bb ofs)
+                                                      (Memory.Mem.load chunk m bb ofs))
+                                                   (forall (bb : Values.block) (ofs : BinNums.Z)
+                                                      (kind : Memtype.perm_kind) (p : Memtype.permission)
+                                                      (_ : Memory.Mem.perm m bb ofs kind p),
+                                                    Memory.Mem.perm mc bb ofs kind p)))))))))))))))
+### C.jet_frame_u128_initial.free_frame_u128_locals
+free_frame_u128_locals
+     : forall (m : Memory.Mem.mem) (bl br : Values.block) (_ : not (@eq Values.block bl br))
+         (_ : frame_u128_local_permissions m bl br),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (Memory.Mem.free_list m (Clight.blocks_of_env jet_exec.ge0 (jet_multiply64_exec.e_frame_u128 bl br)))
+               (@Some Memory.Mem.mem mf))
+            (and
+               (forall (chunk : AST.memory_chunk) (bb : Values.block) (ofs : BinNums.Z)
+                  (_ : not (@eq Values.block bb bl)) (_ : not (@eq Values.block bb br)),
+                @eq (option Values.val) (Memory.Mem.load chunk mf bb ofs) (Memory.Mem.load chunk m bb ofs))
+               (and
+                  (forall (bb : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                     (p : Memtype.permission) (_ : not (@eq Values.block bb bl)) (_ : not (@eq Values.block bb br))
+                     (_ : Memory.Mem.perm m bb ofs kind p), Memory.Mem.perm mf bb ofs kind p)
+                  (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m)))))
+### C.jet_frame_u128_initial.frame_u128_local_permissions
+frame_u128_local_permissions =
+fun (m : Memory.Mem.mem) (bl br : Values.block) =>
+and
+  (Memory.Mem.range_perm m bl BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     Memtype.Cur Memtype.Freeable)
+  (Memory.Mem.range_perm m br BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     Memtype.Cur Memtype.Freeable)
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : Values.block), Prop
+
+Arguments frame_u128_local_permissions m bl br

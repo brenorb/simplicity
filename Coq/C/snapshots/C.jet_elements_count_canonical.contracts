@@ -1,0 +1,60 @@
+### C.jet_elements_count_canonical.elements_transaction_num_inputs_spec_parametric
+elements_transaction_num_inputs_spec_parametric
+     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@elements_transaction_num_inputs_spec)
+### C.jet_elements_count_canonical.elements_transaction_num_outputs_spec_parametric
+elements_transaction_num_outputs_spec_parametric
+     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@elements_transaction_num_outputs_spec)
+### C.jet_elements_count_canonical.elements_transaction_num_inputs_spec_search
+elements_transaction_num_inputs_spec_search
+     : forall environment : jet_elements_prim.Elements.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@elements_transaction_num_inputs_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
+            environment)
+         (@jet_firstFail_spec.first_fail_run (S (S (S (S (S O))))) Ty.Unit
+            (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+            (fun w : Ty.tySem (Word.Word (S (S (S (S (S O)))))) =>
+             @jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               jet_elements_prim.Elements.InputScriptHash w environment))
+### C.jet_elements_count_canonical.elements_transaction_num_outputs_spec_search
+elements_transaction_num_outputs_spec_search
+     : forall environment : jet_elements_prim.Elements.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@elements_transaction_num_outputs_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
+            environment)
+         (@jet_firstFail_spec.first_fail_run (S (S (S (S (S O))))) Ty.Unit
+            (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+            (fun w : Ty.tySem (Word.Word (S (S (S (S (S O)))))) =>
+             @jet_elements_prim.Elements.sem (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               jet_elements_prim.Elements.OutputScriptHash w environment))
+### C.jet_elements_count_canonical.elements_transaction_num_inputs_spec
+elements_transaction_num_inputs_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_firstFail_spec.first_fail_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toAssertion alg)
+  (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) alg jet_elements_prim.Elements.InputScriptHash)
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments elements_transaction_num_inputs_spec {alg}
+### C.jet_elements_count_canonical.elements_transaction_num_outputs_spec
+elements_transaction_num_outputs_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_firstFail_spec.first_fail_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toAssertion alg)
+  (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) alg jet_elements_prim.Elements.OutputScriptHash)
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments elements_transaction_num_outputs_spec {alg}

@@ -1,0 +1,110 @@
+### C.jet_elements_hash_helpers.eval_elements_midstate_array
+eval_elements_midstate_array
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (x : BinNums.positive)
+         (b : Values.block) (hbase : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val x le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr hbase)))) (_ : BinInt.Z.le BinNums.Z0 hbase),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         (Clight.Efield
+            (Clight.Ederef
+               (Clight.Etempvar x (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)))
+               (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)) jets_elements._s
+            (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (Values.Vptr b (Integers.Ptrofs.repr hbase))
+### C.jet_elements_hash_helpers.eval_elements_writeHash_layout
+eval_elements_writeHash_layout
+     : forall (m : Memory.Mem.mem) (bh : Values.block) (hbase : BinNums.Z) (bf : Values.block)
+         (base : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z) (xs : list Integers.Int.int)
+         (_ : @eq nat (@length Integers.Int.int xs) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : BinInt.Z.le BinNums.Z0 hbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add hbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_application_sep.out_sep bf base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) bh
+                hbase
+                (BinInt.Z.add hbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : jet_uint32_array_init.uint32_array_at m bh hbase xs)
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+               (@Ctypes.Internal Clight.function jets_elements.f_writeHash)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bh (Integers.Ptrofs.repr hbase)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (jet_elements_effects.write_effect m mf bf base bw edge cursor
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (jet_elements_hash_write.hash_cells xs)))
+### C.jet_elements_hash_helpers.elements_outpoint_txid
+elements_outpoint_txid
+     : jet_elements_field_eval.elements_field_at jets_elements._outpoint jets_elements._txid BinNums.Z0
+### C.jet_elements_hash_helpers.elements_outpoint_ix
+elements_outpoint_ix
+     : jet_elements_field_eval.elements_field_at jets_elements._outpoint jets_elements._ix
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_elements_hash_helpers.eval_elements_prevOutpoint_layout
+eval_elements_prevOutpoint_layout
+     : forall (m : Memory.Mem.mem) (bo : Values.block) (obase : BinNums.Z) (bf : Values.block)
+         (base : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z) (xs : list Integers.Int.int)
+         (ixv : Integers.Int64.int) (_ : @eq nat (@length Integers.Int.int xs) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : BinInt.Z.le BinNums.Z0 obase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add obase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_application_sep.out_sep bf base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))) bo
+                obase
+                (BinInt.Z.add obase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+         (_ : jet_uint32_array_init.uint32_array_at m bo obase xs)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bo
+                   (BinInt.Z.add obase
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vlong ixv)))
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+               (@Ctypes.Internal Clight.function jets_elements.f_prevOutpoint)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bo (Integers.Ptrofs.repr obase)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (jet_elements_effects.write_effect m mf bf base bw edge cursor
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (elements_outpoint_cells xs ixv)))
+### C.jet_elements_hash_helpers.elements_outpoint_cells
+elements_outpoint_cells =
+fun (xs : list Integers.Int.int) (ixv : Integers.Int64.int) =>
+@app BitMachine.Cell (jet_elements_hash_write.hash_cells xs)
+  (@Translate.encode (Word.Word (jet_wide.wide_log jet_wide.W32))
+     (jet_wide_spec.decode_wide jet_wide.W32 (Integers.Int64.zero_ext (jet_wide.wide_bits jet_wide.W32) ixv)))
+     : forall (_ : list Integers.Int.int) (_ : Integers.Int64.int), list BitMachine.Cell
+
+Arguments elements_outpoint_cells xs%list_scope ixv

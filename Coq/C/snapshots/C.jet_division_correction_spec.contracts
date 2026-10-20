@@ -1,0 +1,864 @@
+### C.jet_division_correction_spec.division_high_word_value
+division_high_word_value
+     : forall n : nat,
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ n) (@jet_division_core_spec.division_high_word n Alg.CoreFunSem tt))
+         (BinInt.Z.sub (jet_predicate_spec.word_modulus n) (BinNums.Zpos BinNums.xH))
+### C.jet_division_correction_spec.div3n2n_loop1_unfold
+div3n2n_loop1_unfold
+     : forall (n : nat) (r b : Ty.tySem (Word.Word (S n))) (q : Ty.tySem (Word.Word n)),
+       @eq (Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n))))
+         (@jet_division_core_spec.div3n2n_loop1_spec n Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S n))) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n)))) r
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n))) q b)))
+         (let s : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S n))) :=
+            @Word.adder (S n) Alg.CoreFunSem (@pair (Ty.tySem (Word.Word (S n))) (Ty.tySem (Word.Word (S n))) r b) in
+          let d :
+            (fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end) (Word.Word n) :=
+            @snd (sum unit unit)
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end) (Word.Word n)) (@jet_subtract_spec.decrement_word_spec Alg.CoreFunSem n q) in
+          match
+            @fst (sum unit unit)
+              (prod
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end)
+                    ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                        match n0 return Ty.Ty with
+                        | O => X
+                        | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end)
+                    ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                        match n0 return Ty.Ty with
+                        | O => X
+                        | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) n))) s
+            return (Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n))))
+          with
+          | inl _ =>
+              @jet_division_core_spec.div3n2n_loop2_spec n Alg.CoreFunSem
+                (@pair
+                   (prod
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end)
+                         ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                             match n0 return Ty.Ty with
+                             | O => X
+                             | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                             end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end)
+                         ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                             match n0 return Ty.Ty with
+                             | O => X
+                             | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                             end) (Ty.Sum Ty.Unit Ty.Unit) n)))
+                   (prod
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end) (Word.Word n)) (Ty.tySem (Word.Word (S n))))
+                   (@snd (sum unit unit)
+                      (prod
+                         ((fix tySem (X : Ty.Ty) : Set :=
+                             match X return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A B => sum (tySem A) (tySem B)
+                             | Ty.Prod A B => prod (tySem A) (tySem B)
+                             end)
+                            ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                                match n0 return Ty.Ty with
+                                | O => X
+                                | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                                end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                         ((fix tySem (X : Ty.Ty) : Set :=
+                             match X return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A B => sum (tySem A) (tySem B)
+                             | Ty.Prod A B => prod (tySem A) (tySem B)
+                             end)
+                            ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                                match n0 return Ty.Ty with
+                                | O => X
+                                | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                                end) (Ty.Sum Ty.Unit Ty.Unit) n))) s)
+                   (@pair
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end) (Word.Word n)) (Ty.tySem (Word.Word (S n))) d b))
+          | inr _ =>
+              @pair
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end) (Word.Word n))
+                (prod
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end)
+                      ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                          match n0 return Ty.Ty with
+                          | O => X
+                          | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                          end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end)
+                      ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                          match n0 return Ty.Ty with
+                          | O => X
+                          | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                          end) (Ty.Sum Ty.Unit Ty.Unit) n))) d
+                (@snd (sum unit unit)
+                   (prod
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end)
+                         ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                             match n0 return Ty.Ty with
+                             | O => X
+                             | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                             end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end)
+                         ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                             match n0 return Ty.Ty with
+                             | O => X
+                             | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                             end) (Ty.Sum Ty.Unit Ty.Unit) n))) s)
+          end)
+### C.jet_division_correction_spec.div3n2n_loop0_unfold
+div3n2n_loop0_unfold
+     : forall (n : nat) (r b : Ty.tySem (Word.Word (S n))) (q : Ty.tySem (Word.Word n)) (c : sum unit unit),
+       @eq (Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n))))
+         (@jet_division_core_spec.div3n2n_loop0_spec n Alg.CoreFunSem
+            (@pair (prod (sum unit unit) (Ty.tySem (Word.Word (S n))))
+               (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n))))
+               (@pair (sum unit unit) (Ty.tySem (Word.Word (S n))) c r)
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n))) q b)))
+         match c return (Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n)))) with
+         | inl _ => @pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n))) q r
+         | inr _ =>
+             @jet_division_core_spec.div3n2n_loop1_spec n Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S n))) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n)))) r
+                  (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n))) q b))
+         end
+### C.jet_division_correction_spec.division_add_balance
+division_add_balance
+     : forall (n : nat) (x y : Ty.tySem (Word.Word n)),
+       let z : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) :=
+         @Word.adder n Alg.CoreFunSem (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y) in
+       @eq BinNums.Z
+         (BinInt.Z.add
+            (BinInt.Z.mul (jet_predicate_spec.word_modulus n)
+               (@Word.ToZ.Theory.toZ Word.BitToZ
+                  (@fst (sum unit unit)
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n)) z)))
+            (@Word.ToZ.Theory.toZ (Word.WordToZ n)
+               (@snd (sum unit unit)
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word n)) z)))
+         (BinInt.Z.add (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+### C.jet_division_correction_spec.division_decrement_positive
+division_decrement_positive
+     : forall (n : nat) (q : Ty.tySem (Word.Word n))
+         (_ : BinInt.Z.lt BinNums.Z0 (@Word.ToZ.Theory.toZ (Word.WordToZ n) q)),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ n)
+            (@snd (sum unit unit)
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) (Word.Word n)) (@jet_subtract_spec.decrement_word_spec Alg.CoreFunSem n q)))
+         (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) q) (BinNums.Zpos BinNums.xH))
+### C.jet_division_correction_spec.div3n2n_loop2_value
+div3n2n_loop2_value
+     : forall (n : nat) (r b : Ty.tySem (Word.Word (S n))) (q : Ty.tySem (Word.Word n)) (delta : BinNums.Z)
+         (_ : BinInt.Z.lt BinNums.Z0 (@Word.ToZ.Theory.toZ (Word.WordToZ n) q))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) r)
+                (BinInt.Z.add delta (jet_predicate_spec.word_modulus (S n))))
+         (_ : and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add delta (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b)))
+                (BinInt.Z.lt (BinInt.Z.add delta (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b))
+                   (jet_predicate_spec.word_modulus (S n)))),
+       let z : Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n))) :=
+         @jet_division_core_spec.div3n2n_loop2_spec n Alg.CoreFunSem
+           (@pair (Ty.tySem (Word.Word (S n))) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n)))) r
+              (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n))) q b)) in
+       and
+         (@eq BinNums.Z
+            (@Word.ToZ.Theory.toZ (Word.WordToZ n)
+               (@fst
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word n))
+                  (prod
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end)
+                        ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                            match n0 return Ty.Ty with
+                            | O => X
+                            | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                            end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end)
+                        ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                            match n0 return Ty.Ty with
+                            | O => X
+                            | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                            end) (Ty.Sum Ty.Unit Ty.Unit) n))) z))
+            (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) q) (BinNums.Zpos BinNums.xH)))
+         (@eq BinNums.Z
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+               (@snd
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Word.Word n))
+                  (prod
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end)
+                        ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                            match n0 return Ty.Ty with
+                            | O => X
+                            | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                            end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end)
+                        ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                            match n0 return Ty.Ty with
+                            | O => X
+                            | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                            end) (Ty.Sum Ty.Unit Ty.Unit) n))) z))
+            (BinInt.Z.add delta (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b)))
+### C.jet_division_correction_spec.div3n2n_loop1_value
+div3n2n_loop1_value
+     : forall (n : nat) (r b : Ty.tySem (Word.Word (S n))) (q : Ty.tySem (Word.Word n)) (delta : BinNums.Z)
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) r)
+                (BinInt.Z.add delta (jet_predicate_spec.word_modulus (S n))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b))
+                   delta) (BinInt.Z.lt delta BinNums.Z0))
+         (_ : BinInt.Z.le BinNums.Z0
+                (BinInt.Z.add
+                   (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ n) q)
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b)) delta)),
+       let z : Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n))) :=
+         @jet_division_core_spec.div3n2n_loop1_spec n Alg.CoreFunSem
+           (@pair (Ty.tySem (Word.Word (S n))) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n)))) r
+              (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n))) q b)) in
+       and
+         (@eq BinNums.Z
+            (BinInt.Z.add
+               (BinInt.Z.mul
+                  (@Word.ToZ.Theory.toZ (Word.WordToZ n)
+                     (@fst
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end) (Word.Word n))
+                        (prod
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                                  match n0 return Ty.Ty with
+                                  | O => X
+                                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                                  match n0 return Ty.Ty with
+                                  | O => X
+                                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)) (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b))
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@snd
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n))
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)))
+            (BinInt.Z.add
+               (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ n) q) (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b))
+               delta))
+         (and
+            (BinInt.Z.le BinNums.Z0
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@snd
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n))
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)))
+            (BinInt.Z.lt
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@snd
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n))
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)) (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b)))
+### C.jet_division_correction_spec.div3n2n_loop0_value
+div3n2n_loop0_value
+     : forall (n : nat) (r b : Ty.tySem (Word.Word (S n))) (q : Ty.tySem (Word.Word n)) (c : sum unit unit)
+         (delta : BinNums.Z)
+         (_ : @eq BinNums.Z
+                (jet_subtract_spec.borrow_word_balance (S n) (@pair (sum unit unit) (Ty.tySem (Word.Word (S n))) c r))
+                delta)
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b))
+                   delta) (BinInt.Z.lt delta (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b)))
+         (_ : BinInt.Z.le BinNums.Z0
+                (BinInt.Z.add
+                   (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ n) q)
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b)) delta)),
+       let z : Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n))) :=
+         @jet_division_core_spec.div3n2n_loop0_spec n Alg.CoreFunSem
+           (@pair (prod (sum unit unit) (Ty.tySem (Word.Word (S n))))
+              (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n))))
+              (@pair (sum unit unit) (Ty.tySem (Word.Word (S n))) c r)
+              (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word (S n))) q b)) in
+       and
+         (@eq BinNums.Z
+            (BinInt.Z.add
+               (BinInt.Z.mul
+                  (@Word.ToZ.Theory.toZ (Word.WordToZ n)
+                     (@fst
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end) (Word.Word n))
+                        (prod
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                                  match n0 return Ty.Ty with
+                                  | O => X
+                                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                                  match n0 return Ty.Ty with
+                                  | O => X
+                                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)) (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b))
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@snd
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n))
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)))
+            (BinInt.Z.add
+               (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ n) q) (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b))
+               delta))
+         (and
+            (BinInt.Z.le BinNums.Z0
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@snd
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n))
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)))
+            (BinInt.Z.lt
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@snd
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n))
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)) (@Word.ToZ.Theory.toZ (Word.WordToZ (S n)) b)))
+### C.jet_division_correction_spec.div3n2n_body_unfold
+div3n2n_body_unfold
+     : forall (n : nat) (q rho a3 b1 b2 : Ty.tySem (Word.Word n)) (c : sum unit unit),
+       @eq (Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n))))
+         (@jet_division_core_spec.div3n2n_body_spec n Alg.CoreFunSem
+            (@pair (prod (sum unit unit) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))))
+               (prod (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))))
+               (@pair (sum unit unit) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) c
+                  (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) q rho))
+               (@pair (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) a3
+                  (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) b1 b2))))
+         (let s : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S n))) :=
+            @jet_subtract_spec.subtract_word_spec Alg.CoreFunSem (S n)
+              (@pair (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) (Ty.tySem (Word.Word (S n)))
+                 (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) rho a3)
+                 (@jet_multiply_spec.multiply_word_spec n Alg.CoreFunSem
+                    (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) q b2))) in
+          match c return (Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n)))) with
+          | inl _ =>
+              @jet_division_core_spec.div3n2n_loop0_spec n Alg.CoreFunSem
+                (@pair (Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S n))))
+                   (prod (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)))) s
+                   (@pair (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) q
+                      (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) b1 b2)))
+          | inr _ =>
+              @pair (Ty.tySem (Word.Word n))
+                (prod
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end)
+                      ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                          match n0 return Ty.Ty with
+                          | O => X
+                          | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                          end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end)
+                      ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                          match n0 return Ty.Ty with
+                          | O => X
+                          | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                          end) (Ty.Sum Ty.Unit Ty.Unit) n))) q
+                (@snd (sum unit unit)
+                   (prod
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end)
+                         ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                             match n0 return Ty.Ty with
+                             | O => X
+                             | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                             end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end)
+                         ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                             match n0 return Ty.Ty with
+                             | O => X
+                             | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                             end) (Ty.Sum Ty.Unit Ty.Unit) n))) s)
+          end)
+### C.jet_division_correction_spec.div3n2n_body_value
+div3n2n_body_value
+     : forall (n : nat) (q rho a3 b1 b2 : Ty.tySem (Word.Word n)) (c : Ty.tySem (Word.ToZ.obj Word.BitToZ))
+         (delta : BinNums.Z)
+         (_ : @eq BinNums.Z delta
+                (BinInt.Z.add
+                   (BinInt.Z.sub
+                      (BinInt.Z.add
+                         (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ n) rho) (jet_predicate_spec.word_modulus n))
+                         (@Word.ToZ.Theory.toZ (Word.WordToZ n) a3))
+                      (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ n) q)
+                         (@Word.ToZ.Theory.toZ (Word.WordToZ n) b2)))
+                   (BinInt.Z.mul (jet_predicate_spec.word_modulus (S n)) (@Word.ToZ.Theory.toZ Word.BitToZ c))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH))
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                         (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) b1 b2))) delta)
+                (BinInt.Z.lt delta
+                   (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                      (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) b1 b2))))
+         (_ : BinInt.Z.le BinNums.Z0
+                (BinInt.Z.add
+                   (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ n) q)
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                         (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) b1 b2))) delta)),
+       let z : Ty.tySem (Ty.Prod (Word.Word n) (Word.Word (S n))) :=
+         @jet_division_core_spec.div3n2n_body_spec n Alg.CoreFunSem
+           (@pair (prod (Ty.tySem (Word.ToZ.obj Word.BitToZ)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))))
+              (prod (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))))
+              (@pair (Ty.tySem (Word.ToZ.obj Word.BitToZ)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) c
+                 (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) q rho))
+              (@pair (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) a3
+                 (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) b1 b2))) in
+       and
+         (@eq BinNums.Z
+            (BinInt.Z.add
+               (BinInt.Z.mul
+                  (@Word.ToZ.Theory.toZ (Word.WordToZ n)
+                     (@fst
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end) (Word.Word n))
+                        (prod
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                                  match n0 return Ty.Ty with
+                                  | O => X
+                                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                                  match n0 return Ty.Ty with
+                                  | O => X
+                                  | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) n))) z))
+                  (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                     (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) b1 b2)))
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@snd
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n))
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)))
+            (BinInt.Z.add
+               (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ n) q)
+                  (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                     (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) b1 b2))) delta))
+         (and
+            (BinInt.Z.le BinNums.Z0
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@snd
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n))
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))) z)))
+            (BinInt.Z.lt
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@snd
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word n))
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                               match n0 return Ty.Ty with
+                               | O => X
+                               | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                               end) (Ty.Sum Ty.Unit Ty.Unit) n))) z))
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S n))
+                  (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) b1 b2))))

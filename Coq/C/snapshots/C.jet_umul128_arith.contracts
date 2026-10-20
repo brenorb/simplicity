@@ -1,0 +1,27 @@
+### C.jet_umul128_arith.umul128_limb_algorithm
+umul128_limb_algorithm
+     : forall (B a b : BinNums.Z) (_ : BinInt.Z.lt (BinNums.Zpos BinNums.xH) B)
+         (_ : and (BinInt.Z.le BinNums.Z0 a) (BinInt.Z.lt a (BinInt.Z.mul B B)))
+         (_ : and (BinInt.Z.le BinNums.Z0 b) (BinInt.Z.lt b (BinInt.Z.mul B B))),
+       let ll : BinNums.Z := BinInt.Z.mul (BinInt.Z.modulo a B) (BinInt.Z.modulo b B) in
+       let lh : BinNums.Z := BinInt.Z.mul (BinInt.Z.modulo a B) (BinInt.Z.div b B) in
+       let hl : BinNums.Z := BinInt.Z.mul (BinInt.Z.div a B) (BinInt.Z.modulo b B) in
+       let hh : BinNums.Z := BinInt.Z.mul (BinInt.Z.div a B) (BinInt.Z.div b B) in
+       let mid : BinNums.Z :=
+         BinInt.Z.add (BinInt.Z.add (BinInt.Z.div ll B) (BinInt.Z.modulo lh B)) (BinInt.Z.modulo hl B) in
+       let hi : BinNums.Z :=
+         BinInt.Z.add (BinInt.Z.add (BinInt.Z.add hh (BinInt.Z.div lh B)) (BinInt.Z.div hl B)) (BinInt.Z.div mid B) in
+       let lo : BinNums.Z := BinInt.Z.add (BinInt.Z.mul (BinInt.Z.modulo mid B) B) (BinInt.Z.modulo ll B) in
+       and (and (BinInt.Z.le BinNums.Z0 ll) (BinInt.Z.lt ll (BinInt.Z.mul B B)))
+         (and (and (BinInt.Z.le BinNums.Z0 lh) (BinInt.Z.lt lh (BinInt.Z.mul B B)))
+            (and (and (BinInt.Z.le BinNums.Z0 hl) (BinInt.Z.lt hl (BinInt.Z.mul B B)))
+               (and (and (BinInt.Z.le BinNums.Z0 hh) (BinInt.Z.lt hh (BinInt.Z.mul B B)))
+                  (and
+                     (and (BinInt.Z.le BinNums.Z0 mid)
+                        (BinInt.Z.lt mid (BinInt.Z.mul (BinNums.Zpos (BinNums.xI BinNums.xH)) B)))
+                     (and (and (BinInt.Z.le BinNums.Z0 hi) (BinInt.Z.lt hi (BinInt.Z.mul B B)))
+                        (and (and (BinInt.Z.le BinNums.Z0 lo) (BinInt.Z.lt lo (BinInt.Z.mul B B)))
+                           (and
+                              (@eq BinNums.Z (BinInt.Z.mul a b) (BinInt.Z.add (BinInt.Z.mul hi (BinInt.Z.mul B B)) lo))
+                              (and (@eq BinNums.Z hi (BinInt.Z.div (BinInt.Z.mul a b) (BinInt.Z.mul B B)))
+                                 (@eq BinNums.Z lo (BinInt.Z.modulo (BinInt.Z.mul a b) (BinInt.Z.mul B B)))))))))))

@@ -1,0 +1,126 @@
+### C.jet_copyBits_two_words_left_exec.exec_copy_partial_continue_left
+exec_copy_partial_continue_left
+     : forall (le : Maps.PTree.tree Values.val) (m mc ml mp : Memory.Mem.mem) (bi : Values.block)
+         (src_ofs : Integers.Ptrofs.int) (bw : Values.block) (dst_ofs : Integers.Ptrofs.int)
+         (ss ds n : BinNums.Z) (old source next : Integers.Int64.int)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt ds n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src_ptr le)
+                (@Some Values.val (Values.Vptr bi src_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst_ptr le)
+                (@Some Values.val (Values.Vptr bw dst_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ss))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ds))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._n le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr n))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_word_bits.clear_low ds old))) (@Some Memory.Mem.mem mc))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mc bi (Integers.Ptrofs.unsigned src_ofs))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mc bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_copyBits_helper_exec.copy_left_value ss ds old source)))
+                (@Some Memory.Mem.mem ml))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 ml bi
+                   (Integers.Ptrofs.unsigned
+                      (Integers.Ptrofs.sub src_ofs
+                         (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vlong next)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 ml bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_copyBits_partial_crossing.copy_partial_cross_value ss ds old source next)))
+                (@Some Memory.Mem.mem mp)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m jet_copyBits_helper_exec.copy_partial
+         Events.E0 (copy_two_left_env le bi src_ofs bw dst_ofs ss ds n old source next) mp ClightBigstep.Out_normal
+### C.jet_copyBits_two_words_left_exec.exec_copy_tail_two_left
+exec_copy_tail_two_left
+     : forall (le : Maps.PTree.tree Values.val) (m mc ml mp mf : Memory.Mem.mem) (bi : Values.block)
+         (src_ofs : Integers.Ptrofs.int) (bw : Values.block) (dst_ofs : Integers.Ptrofs.int)
+         (ss ds n : BinNums.Z) (old source next : Integers.Int64.int)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt ds n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src_ptr le)
+                (@Some Values.val (Values.Vptr bi src_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst_ptr le)
+                (@Some Values.val (Values.Vptr bw dst_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ss))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ds))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._n le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr n))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs))
+                (@Some Values.val (Values.Vlong old)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_word_bits.clear_low ds old))) (@Some Memory.Mem.mem mc))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mc bi (Integers.Ptrofs.unsigned src_ofs))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mc bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_copyBits_helper_exec.copy_left_value ss ds old source)))
+                (@Some Memory.Mem.mem ml))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 ml bi
+                   (Integers.Ptrofs.unsigned
+                      (Integers.Ptrofs.sub src_ofs
+                         (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vlong next)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 ml bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_copyBits_partial_crossing.copy_partial_cross_value ss ds old source next)))
+                (@Some Memory.Mem.mem mp))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mp bi
+                   (Integers.Ptrofs.unsigned
+                      (Integers.Ptrofs.sub src_ofs
+                         (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vlong next)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mp bw
+                   (Integers.Ptrofs.unsigned
+                      (Integers.Ptrofs.sub dst_ofs
+                         (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                   (Values.Vlong
+                      (jet_copyBits_loop_exec.copy_loop_value
+                         (BinInt.Z.sub
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                            (BinInt.Z.sub ds ss)) next))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m jet_copyBits_helper_exec.copy_helper_tail
+         Events.E0
+         (jet_copyBits_loop_exec.copy_loop_env (copy_two_left_env le bi src_ofs bw dst_ofs ss ds n old source next)
+            (BinInt.Z.sub
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               (BinInt.Z.sub ds ss)) next) mf (ClightBigstep.Out_return (@None (prod Values.val Ctypes.type)))
+### C.jet_copyBits_two_words_left_exec.copy_two_left_env
+copy_two_left_env =
+fun (le : Maps.PTree.tree Values.val) (bi : Values.block) (src_ofs : Integers.Ptrofs.int) (bw : Values.block)
+  (dst_ofs : Integers.Ptrofs.int) (ss ds n : BinNums.Z) (old source next : Integers.Int64.int) =>
+jet_copyBits_right_advance.copy_right_advance_env
+  (jet_copyBits_partial_crossing.copy_partial_cross_env le bi src_ofs ss ds n old source next) bw dst_ofs
+  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+  (BinInt.Z.sub ds ss) (BinInt.Z.sub n ss)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Values.block) (_ : Integers.Ptrofs.int)
+         (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments copy_two_left_env le bi src_ofs bw dst_ofs (ss ds n)%Z_scope old source next

@@ -1,0 +1,68 @@
+### C.jet_order_wide_exec.wide_order_bit_numeric
+wide_order_bit_numeric
+     : forall (k : jet_order_spec.order_op) (r t : Integers.Int64.int),
+       @eq bool (wide_order_bit k r t)
+         (jet_order_spec.order_numeric k (Integers.Int64.unsigned r) (Integers.Int64.unsigned t))
+### C.jet_order_wide_exec.order_int64_denotes
+order_int64_denotes
+     : forall (k : jet_order_spec.order_op) (n : nat) (x y : Ty.tySem (Word.Word n)) (r t : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned t) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)),
+       @eq bool (wide_order_bit k r t)
+         (Bit.toBool
+            (@jet_order_spec.order_word_spec k n Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+### C.jet_order_wide_exec.order_cmp
+order_cmp =
+fun k : jet_order_spec.order_op =>
+match k return Integers.comparison with
+| jet_order_spec.OLt => Integers.Clt
+| jet_order_spec.OLe => Integers.Cle
+end
+     : forall _ : jet_order_spec.order_op, Integers.comparison
+
+Arguments order_cmp k
+### C.jet_order_wide_exec.order_binop
+order_binop =
+fun k : jet_order_spec.order_op =>
+match k return Cop.binary_operation with
+| jet_order_spec.OLt => Cop.Olt
+| jet_order_spec.OLe => Cop.Ole
+end
+     : forall _ : jet_order_spec.order_op, Cop.binary_operation
+
+Arguments order_binop k
+### C.jet_order_wide_exec.wide_order
+wide_order =
+fun (k : jet_order_spec.order_op) (s : jet_wide.wide_size) =>
+match k return Clight.function with
+| jet_order_spec.OLt =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_lt_16
+    | jet_wide.W32 => jets.f_simplicity_lt_32
+    | jet_wide.W64 => jets.f_simplicity_lt_64
+    end
+| jet_order_spec.OLe =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_le_16
+    | jet_wide.W32 => jets.f_simplicity_le_32
+    | jet_wide.W64 => jets.f_simplicity_le_64
+    end
+end
+     : forall (_ : jet_order_spec.order_op) (_ : jet_wide.wide_size), Clight.function
+
+Arguments wide_order k s
+### C.jet_order_wide_exec.wide_order_expr
+wide_order_expr =
+fun k : jet_order_spec.order_op =>
+Clight.Ebinop (order_binop k) (Clight.Etempvar jets._x Ctypesdefs.tulong) (Clight.Etempvar jets._y Ctypesdefs.tulong)
+  Ctypesdefs.tint
+     : forall _ : jet_order_spec.order_op, Clight.expr
+
+Arguments wide_order_expr k
+### C.jet_order_wide_exec.wide_order_bit
+wide_order_bit =
+fun (k : jet_order_spec.order_op) (r t : Integers.Int64.int) => Integers.Int64.cmpu (order_cmp k) r t
+     : forall (_ : jet_order_spec.order_op) (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments wide_order_bit k r t

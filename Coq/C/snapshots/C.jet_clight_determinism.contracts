@@ -1,0 +1,721 @@
+### C.jet_clight_determinism.step2_determ
+step2_determ
+     : forall (ge : Clight.genv) (s : Clight.state) (t1 : Events.trace) (s1 : Clight.state)
+         (t2 : Events.trace) (s2 : Clight.state) (_ : Clight.step2 ge s t1 s1) (_ : Clight.step2 ge s t2 s2),
+       and (Events.match_traces (@Globalenvs.Genv.to_senv Clight.fundef Ctypes.type (Clight.genv_genv ge)) t1 t2)
+         (forall _ : @eq Events.trace t1 t2, @eq Clight.state s1 s2)
+### C.jet_clight_determinism.eval_funcall_call_boundary
+eval_funcall_call_boundary
+     : forall (p : Clight.program) (m : Memory.Mem.mem) (fd : Clight.fundef) (args : list Values.val)
+         (mf : Memory.Mem.mem) (res : Values.val) (k : Clight.cont)
+         (_ : ClightBigstep.Clight2.eval_funcall (Clight.globalenv p) m fd args Events.E0 mf res)
+         (_ : Clight.is_call_cont k), @ex nat (fun n : nat => call_boundary (Clight.globalenv p) fd args k m res mf n)
+### C.jet_clight_determinism.eval_funcall_unique
+eval_funcall_unique
+     : forall (p : Clight.program) (m : Memory.Mem.mem) (fd : Clight.fundef) (args : list Values.val)
+         (mf : Memory.Mem.mem) (res : Values.val) (t' : Events.trace) (m' : Memory.Mem.mem)
+         (res' : Values.val) (_ : ClightBigstep.Clight2.eval_funcall (Clight.globalenv p) m fd args Events.E0 mf res)
+         (_ : ClightBigstep.Clight2.eval_funcall (Clight.globalenv p) m fd args t' m' res'),
+       and (@eq Events.trace t' Events.E0) (and (@eq Memory.Mem.mem m' mf) (@eq Values.val res' res))
+### C.jet_clight_determinism.eval_funcall_Kstop_terminates
+eval_funcall_Kstop_terminates
+     : forall (p : Clight.program) (m : Memory.Mem.mem) (fd : Clight.fundef) (args : list Values.val)
+         (mf : Memory.Mem.mem) (res : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall (Clight.globalenv p) m fd args Events.E0 mf res),
+       and
+         (forall T : Events.traceinf,
+          not
+            (@Smallstep.forever Clight.genv Clight.state Clight.step2 (Clight.globalenv p)
+               (Clight.Callstate fd args Clight.Kstop m) T))
+         (forall (t : Events.trace) (S : Clight.state)
+            (_ : @Smallstep.star Clight.genv Clight.state Clight.step2 (Clight.globalenv p)
+                   (Clight.Callstate fd args Clight.Kstop m) t S)
+            (_ : forall (t' : Events.trace) (S' : Clight.state), not (Clight.step2 (Clight.globalenv p) S t' S')),
+          and (@eq Events.trace t Events.E0) (@eq Clight.state S (Clight.Returnstate res Clight.Kstop mf)))
+### C.jet_clight_determinism.eval_funcall_silent_guarantees
+eval_funcall_silent_guarantees
+     : forall (p : Clight.program) (m : Memory.Mem.mem) (fd : Clight.fundef) (args : list Values.val)
+         (mf : Memory.Mem.mem) (res : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall (Clight.globalenv p) m fd args Events.E0 mf res),
+       silent_call_guarantees (Clight.globalenv p) fd args m res mf
+### C.jet_clight_determinism.cont_app
+cont_app =
+fix cont_app (k0 k : Clight.cont) {struct k0} : Clight.cont :=
+  match k0 return Clight.cont with
+  | Clight.Kstop => k
+  | Clight.Kseq s k1 => Clight.Kseq s (cont_app k1 k)
+  | Clight.Kloop1 s1 s2 k1 => Clight.Kloop1 s1 s2 (cont_app k1 k)
+  | Clight.Kloop2 s1 s2 k1 => Clight.Kloop2 s1 s2 (cont_app k1 k)
+  | Clight.Kswitch k1 => Clight.Kswitch (cont_app k1 k)
+  | Clight.Kcall o f e le k1 => Clight.Kcall o f e le (cont_app k1 k)
+  end
+     : forall (_ : Clight.cont) (_ : Clight.cont), Clight.cont
+
+Arguments cont_app k0 k
+### C.jet_clight_determinism.state_app
+state_app =
+fun (k : Clight.cont) (s : Clight.state) =>
+match s return Clight.state with
+| Clight.State f st k0 e le m => Clight.State f st (cont_app k0 k) e le m
+| Clight.Callstate fd args k0 m => Clight.Callstate fd args (cont_app k0 k) m
+| Clight.Returnstate v k0 m => Clight.Returnstate v (cont_app k0 k) m
+end
+     : forall (_ : Clight.cont) (_ : Clight.state), Clight.state
+
+Arguments state_app k s
+### C.jet_clight_determinism.cont_size
+cont_size =
+fix cont_size (k : Clight.cont) : nat :=
+  match k return nat with
+  | Clight.Kstop => O
+  | Clight.Kseq _ k0 => S (cont_size k0)
+  | Clight.Kloop1 _ _ k0 => S (cont_size k0)
+  | Clight.Kloop2 _ _ k0 => S (cont_size k0)
+  | Clight.Kswitch k0 => S (cont_size k0)
+  | Clight.Kcall _ _ _ _ k0 => S (cont_size k0)
+  end
+     : forall _ : Clight.cont, nat
+
+Arguments cont_size k
+### C.jet_clight_determinism.find_label_app
+find_label_app =
+fix find_label_app (lbl : Clight.label) (s : Clight.statement) (k0 k : Clight.cont) {struct s} :
+    @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl s (cont_app k0 k))
+      (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+         (fun p : prod Clight.statement Clight.cont =>
+          @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+            (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl s k0)) :=
+  match
+    s as s0
+    return
+      (@eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl s0 (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl s0 k0)))
+  with
+  | Clight.Sskip =>
+      @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+      :
+      @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl Clight.Sskip (cont_app k0 k))
+        (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+           (fun p : prod Clight.statement Clight.cont =>
+            @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+              (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl Clight.Sskip k0))
+  | Clight.Sassign e e0 =>
+      (fun e1 e2 : Clight.expr =>
+       @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+       :
+       @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl (Clight.Sassign e1 e2) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl (Clight.Sassign e1 e2) k0)))
+        e e0
+  | Clight.Sset i e =>
+      (fun (i0 : AST.ident) (e0 : Clight.expr) =>
+       @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+       :
+       @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl (Clight.Sset i0 e0) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl (Clight.Sset i0 e0) k0))) i e
+  | Clight.Scall o e l =>
+      (fun (o0 : option AST.ident) (e0 : Clight.expr) (l0 : list Clight.expr) =>
+       @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+       :
+       @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl (Clight.Scall o0 e0 l0) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl (Clight.Scall o0 e0 l0) k0)))
+        o e l
+  | Clight.Sbuiltin o e t l =>
+      (fun (o0 : option AST.ident) (e0 : AST.external_function) (t0 : Ctypes.typelist) (l0 : list Clight.expr) =>
+       @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+       :
+       @eq (option (prod Clight.statement Clight.cont))
+         (Clight.find_label lbl (Clight.Sbuiltin o0 e0 t0 l0) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k))
+            (Clight.find_label lbl (Clight.Sbuiltin o0 e0 t0 l0) k0))) o e t l
+  | Clight.Ssequence s0 s1 =>
+      (fun s2 s3 : Clight.statement =>
+       @eq_ind_r (option (prod Clight.statement Clight.cont))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl s2 (Clight.Kseq s3 k0)))
+         (fun o : option (prod Clight.statement Clight.cont) =>
+          @eq (option (prod Clight.statement Clight.cont))
+            match o return (option (prod Clight.statement Clight.cont)) with
+            | Some sk => @Some (prod Clight.statement Clight.cont) sk
+            | None => Clight.find_label lbl s3 (cont_app k0 k)
+            end
+            (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+               (fun p : prod Clight.statement Clight.cont =>
+                @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                  (cont_app (@snd Clight.statement Clight.cont p) k))
+               match
+                 Clight.find_label lbl s2 (Clight.Kseq s3 k0) return (option (prod Clight.statement Clight.cont))
+               with
+               | Some sk => @Some (prod Clight.statement Clight.cont) sk
+               | None => Clight.find_label lbl s3 k0
+               end))
+         (let o : option (prod Clight.statement Clight.cont) := Clight.find_label lbl s2 (Clight.Kseq s3 k0) in
+          match
+            o as o0
+            return
+              (@eq (option (prod Clight.statement Clight.cont))
+                 match
+                   @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                     (fun p : prod Clight.statement Clight.cont =>
+                      @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                        (cont_app (@snd Clight.statement Clight.cont p) k)) o0
+                   return (option (prod Clight.statement Clight.cont))
+                 with
+                 | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                 | None => Clight.find_label lbl s3 (cont_app k0 k)
+                 end
+                 (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k))
+                    match o0 return (option (prod Clight.statement Clight.cont)) with
+                    | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                    | None => Clight.find_label lbl s3 k0
+                    end))
+          with
+          | Some a =>
+              (fun p : prod Clight.statement Clight.cont =>
+               @eq_refl (option (prod Clight.statement Clight.cont))
+                 (@Some (prod Clight.statement Clight.cont)
+                    (@pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k)))
+               :
+               @eq (option (prod Clight.statement Clight.cont))
+                 match
+                   @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                     (fun p0 : prod Clight.statement Clight.cont =>
+                      @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p0)
+                        (cont_app (@snd Clight.statement Clight.cont p0) k))
+                     (@Some (prod Clight.statement Clight.cont) p) return (option (prod Clight.statement Clight.cont))
+                 with
+                 | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                 | None => Clight.find_label lbl s3 (cont_app k0 k)
+                 end
+                 (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p0 : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p0)
+                       (cont_app (@snd Clight.statement Clight.cont p0) k))
+                    (@Some (prod Clight.statement Clight.cont) p))) a
+          | None =>
+              find_label_app lbl s3 k0 k
+              :
+              @eq (option (prod Clight.statement Clight.cont))
+                match
+                  @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k)) (@None (prod Clight.statement Clight.cont))
+                  return (option (prod Clight.statement Clight.cont))
+                with
+                | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                | None => Clight.find_label lbl s3 (cont_app k0 k)
+                end
+                (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                   (fun p : prod Clight.statement Clight.cont =>
+                    @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                      (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl s3 k0))
+          end) (Clight.find_label lbl s2 (cont_app (Clight.Kseq s3 k0) k))
+         (find_label_app lbl s2 (Clight.Kseq s3 k0) k)
+       :
+       @eq (option (prod Clight.statement Clight.cont))
+         (Clight.find_label lbl (Clight.Ssequence s2 s3) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl (Clight.Ssequence s2 s3) k0)))
+        s0 s1
+  | Clight.Sifthenelse e s0 s1 =>
+      (fun (e0 : Clight.expr) (s2 s3 : Clight.statement) =>
+       @eq_ind_r (option (prod Clight.statement Clight.cont))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl s2 k0))
+         (fun o : option (prod Clight.statement Clight.cont) =>
+          @eq (option (prod Clight.statement Clight.cont))
+            match o return (option (prod Clight.statement Clight.cont)) with
+            | Some sk => @Some (prod Clight.statement Clight.cont) sk
+            | None => Clight.find_label lbl s3 (cont_app k0 k)
+            end
+            (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+               (fun p : prod Clight.statement Clight.cont =>
+                @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                  (cont_app (@snd Clight.statement Clight.cont p) k))
+               match Clight.find_label lbl s2 k0 return (option (prod Clight.statement Clight.cont)) with
+               | Some sk => @Some (prod Clight.statement Clight.cont) sk
+               | None => Clight.find_label lbl s3 k0
+               end))
+         (let o : option (prod Clight.statement Clight.cont) := Clight.find_label lbl s2 k0 in
+          match
+            o as o0
+            return
+              (@eq (option (prod Clight.statement Clight.cont))
+                 match
+                   @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                     (fun p : prod Clight.statement Clight.cont =>
+                      @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                        (cont_app (@snd Clight.statement Clight.cont p) k)) o0
+                   return (option (prod Clight.statement Clight.cont))
+                 with
+                 | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                 | None => Clight.find_label lbl s3 (cont_app k0 k)
+                 end
+                 (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k))
+                    match o0 return (option (prod Clight.statement Clight.cont)) with
+                    | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                    | None => Clight.find_label lbl s3 k0
+                    end))
+          with
+          | Some a =>
+              (fun p : prod Clight.statement Clight.cont =>
+               @eq_refl (option (prod Clight.statement Clight.cont))
+                 (@Some (prod Clight.statement Clight.cont)
+                    (@pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k)))
+               :
+               @eq (option (prod Clight.statement Clight.cont))
+                 match
+                   @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                     (fun p0 : prod Clight.statement Clight.cont =>
+                      @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p0)
+                        (cont_app (@snd Clight.statement Clight.cont p0) k))
+                     (@Some (prod Clight.statement Clight.cont) p) return (option (prod Clight.statement Clight.cont))
+                 with
+                 | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                 | None => Clight.find_label lbl s3 (cont_app k0 k)
+                 end
+                 (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p0 : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p0)
+                       (cont_app (@snd Clight.statement Clight.cont p0) k))
+                    (@Some (prod Clight.statement Clight.cont) p))) a
+          | None =>
+              find_label_app lbl s3 k0 k
+              :
+              @eq (option (prod Clight.statement Clight.cont))
+                match
+                  @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k)) (@None (prod Clight.statement Clight.cont))
+                  return (option (prod Clight.statement Clight.cont))
+                with
+                | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                | None => Clight.find_label lbl s3 (cont_app k0 k)
+                end
+                (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                   (fun p : prod Clight.statement Clight.cont =>
+                    @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                      (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl s3 k0))
+          end) (Clight.find_label lbl s2 (cont_app k0 k)) (find_label_app lbl s2 k0 k)
+       :
+       @eq (option (prod Clight.statement Clight.cont))
+         (Clight.find_label lbl (Clight.Sifthenelse e0 s2 s3) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k))
+            (Clight.find_label lbl (Clight.Sifthenelse e0 s2 s3) k0))) e s0 s1
+  | Clight.Sloop s0 s1 =>
+      (fun s2 s3 : Clight.statement =>
+       @eq_ind_r (option (prod Clight.statement Clight.cont))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl s2 (Clight.Kloop1 s2 s3 k0)))
+         (fun o : option (prod Clight.statement Clight.cont) =>
+          @eq (option (prod Clight.statement Clight.cont))
+            match o return (option (prod Clight.statement Clight.cont)) with
+            | Some sk => @Some (prod Clight.statement Clight.cont) sk
+            | None => Clight.find_label lbl s3 (Clight.Kloop2 s2 s3 (cont_app k0 k))
+            end
+            (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+               (fun p : prod Clight.statement Clight.cont =>
+                @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                  (cont_app (@snd Clight.statement Clight.cont p) k))
+               match
+                 Clight.find_label lbl s2 (Clight.Kloop1 s2 s3 k0) return (option (prod Clight.statement Clight.cont))
+               with
+               | Some sk => @Some (prod Clight.statement Clight.cont) sk
+               | None => Clight.find_label lbl s3 (Clight.Kloop2 s2 s3 k0)
+               end))
+         (let o : option (prod Clight.statement Clight.cont) := Clight.find_label lbl s2 (Clight.Kloop1 s2 s3 k0) in
+          match
+            o as o0
+            return
+              (@eq (option (prod Clight.statement Clight.cont))
+                 match
+                   @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                     (fun p : prod Clight.statement Clight.cont =>
+                      @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                        (cont_app (@snd Clight.statement Clight.cont p) k)) o0
+                   return (option (prod Clight.statement Clight.cont))
+                 with
+                 | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                 | None => Clight.find_label lbl s3 (Clight.Kloop2 s2 s3 (cont_app k0 k))
+                 end
+                 (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k))
+                    match o0 return (option (prod Clight.statement Clight.cont)) with
+                    | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                    | None => Clight.find_label lbl s3 (Clight.Kloop2 s2 s3 k0)
+                    end))
+          with
+          | Some a =>
+              (fun p : prod Clight.statement Clight.cont =>
+               @eq_refl (option (prod Clight.statement Clight.cont))
+                 (@Some (prod Clight.statement Clight.cont)
+                    (@pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k)))
+               :
+               @eq (option (prod Clight.statement Clight.cont))
+                 match
+                   @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                     (fun p0 : prod Clight.statement Clight.cont =>
+                      @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p0)
+                        (cont_app (@snd Clight.statement Clight.cont p0) k))
+                     (@Some (prod Clight.statement Clight.cont) p) return (option (prod Clight.statement Clight.cont))
+                 with
+                 | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                 | None => Clight.find_label lbl s3 (Clight.Kloop2 s2 s3 (cont_app k0 k))
+                 end
+                 (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p0 : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p0)
+                       (cont_app (@snd Clight.statement Clight.cont p0) k))
+                    (@Some (prod Clight.statement Clight.cont) p))) a
+          | None =>
+              find_label_app lbl s3 (Clight.Kloop2 s2 s3 k0) k
+              :
+              @eq (option (prod Clight.statement Clight.cont))
+                match
+                  @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k)) (@None (prod Clight.statement Clight.cont))
+                  return (option (prod Clight.statement Clight.cont))
+                with
+                | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                | None => Clight.find_label lbl s3 (Clight.Kloop2 s2 s3 (cont_app k0 k))
+                end
+                (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                   (fun p : prod Clight.statement Clight.cont =>
+                    @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                      (cont_app (@snd Clight.statement Clight.cont p) k))
+                   (Clight.find_label lbl s3 (Clight.Kloop2 s2 s3 k0)))
+          end) (Clight.find_label lbl s2 (cont_app (Clight.Kloop1 s2 s3 k0) k))
+         (find_label_app lbl s2 (Clight.Kloop1 s2 s3 k0) k)
+       :
+       @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl (Clight.Sloop s2 s3) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl (Clight.Sloop s2 s3) k0))) s0
+        s1
+  | Clight.Sbreak =>
+      @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+      :
+      @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl Clight.Sbreak (cont_app k0 k))
+        (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+           (fun p : prod Clight.statement Clight.cont =>
+            @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+              (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl Clight.Sbreak k0))
+  | Clight.Scontinue =>
+      @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+      :
+      @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl Clight.Scontinue (cont_app k0 k))
+        (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+           (fun p : prod Clight.statement Clight.cont =>
+            @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+              (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl Clight.Scontinue k0))
+  | Clight.Sreturn o =>
+      (fun o0 : option Clight.expr =>
+       @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+       :
+       @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl (Clight.Sreturn o0) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl (Clight.Sreturn o0) k0))) o
+  | Clight.Sswitch e l =>
+      (fun (e0 : Clight.expr) (l0 : Clight.labeled_statements) =>
+       find_label_ls_app lbl l0 (Clight.Kswitch k0) k
+       :
+       @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl (Clight.Sswitch e0 l0) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl (Clight.Sswitch e0 l0) k0)))
+        e l
+  | Clight.Slabel l s0 =>
+      (fun (l0 : Clight.label) (s1 : Clight.statement) =>
+       (let s2 : sumbool (@eq BinNums.positive lbl l0) (not (@eq BinNums.positive lbl l0)) := AST.ident_eq lbl l0 in
+        match
+          s2 as s3
+          return
+            (@eq (option (prod Clight.statement Clight.cont))
+               match s3 return (option (prod Clight.statement Clight.cont)) with
+               | left _ =>
+                   @Some (prod Clight.statement Clight.cont) (@pair Clight.statement Clight.cont s1 (cont_app k0 k))
+               | right _ => Clight.find_label lbl s1 (cont_app k0 k)
+               end
+               (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                  (fun p : prod Clight.statement Clight.cont =>
+                   @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                     (cont_app (@snd Clight.statement Clight.cont p) k))
+                  match s3 return (option (prod Clight.statement Clight.cont)) with
+                  | left _ => @Some (prod Clight.statement Clight.cont) (@pair Clight.statement Clight.cont s1 k0)
+                  | right _ => Clight.find_label lbl s1 k0
+                  end))
+        with
+        | left a =>
+            (fun _ : @eq BinNums.positive lbl l0 =>
+             @eq_refl (option (prod Clight.statement Clight.cont))
+               (@Some (prod Clight.statement Clight.cont) (@pair Clight.statement Clight.cont s1 (cont_app k0 k)))
+             :
+             @eq (option (prod Clight.statement Clight.cont))
+               (@Some (prod Clight.statement Clight.cont) (@pair Clight.statement Clight.cont s1 (cont_app k0 k)))
+               (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                  (fun p : prod Clight.statement Clight.cont =>
+                   @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                     (cont_app (@snd Clight.statement Clight.cont p) k))
+                  (@Some (prod Clight.statement Clight.cont) (@pair Clight.statement Clight.cont s1 k0)))) a
+        | right b =>
+            (fun _ : not (@eq BinNums.positive lbl l0) =>
+             find_label_app lbl s1 k0 k
+             :
+             @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl s1 (cont_app k0 k))
+               (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                  (fun p : prod Clight.statement Clight.cont =>
+                   @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                     (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl s1 k0))) b
+        end)
+       :
+       @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl (Clight.Slabel l0 s1) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl (Clight.Slabel l0 s1) k0))) l
+        s0
+  | Clight.Sgoto l =>
+      (fun l0 : Clight.label =>
+       @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+       :
+       @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl (Clight.Sgoto l0) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl (Clight.Sgoto l0) k0))) l
+  end
+with find_label_ls_app (lbl : Clight.label) (sl : Clight.labeled_statements) (k0 k : Clight.cont) {struct sl} :
+    @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label_ls lbl sl (cont_app k0 k))
+      (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+         (fun p : prod Clight.statement Clight.cont =>
+          @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+            (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label_ls lbl sl k0)) :=
+  match
+    sl as l
+    return
+      (@eq (option (prod Clight.statement Clight.cont)) (Clight.find_label_ls lbl l (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label_ls lbl l k0)))
+  with
+  | Clight.LSnil =>
+      @eq_refl (option (prod Clight.statement Clight.cont)) (@None (prod Clight.statement Clight.cont))
+      :
+      @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label_ls lbl Clight.LSnil (cont_app k0 k))
+        (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+           (fun p : prod Clight.statement Clight.cont =>
+            @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+              (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label_ls lbl Clight.LSnil k0))
+  | Clight.LScons o s l =>
+      (fun (o0 : option BinNums.Z) (s0 : Clight.statement) (sl0 : Clight.labeled_statements) =>
+       @eq_ind_r (option (prod Clight.statement Clight.cont))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k))
+            (Clight.find_label lbl s0 (Clight.Kseq (Clight.seq_of_labeled_statement sl0) k0)))
+         (fun o1 : option (prod Clight.statement Clight.cont) =>
+          @eq (option (prod Clight.statement Clight.cont))
+            match o1 return (option (prod Clight.statement Clight.cont)) with
+            | Some sk => @Some (prod Clight.statement Clight.cont) sk
+            | None => Clight.find_label_ls lbl sl0 (cont_app k0 k)
+            end
+            (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+               (fun p : prod Clight.statement Clight.cont =>
+                @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                  (cont_app (@snd Clight.statement Clight.cont p) k))
+               match
+                 Clight.find_label lbl s0 (Clight.Kseq (Clight.seq_of_labeled_statement sl0) k0)
+                 return (option (prod Clight.statement Clight.cont))
+               with
+               | Some sk => @Some (prod Clight.statement Clight.cont) sk
+               | None => Clight.find_label_ls lbl sl0 k0
+               end))
+         (let o1 : option (prod Clight.statement Clight.cont) :=
+            Clight.find_label lbl s0 (Clight.Kseq (Clight.seq_of_labeled_statement sl0) k0) in
+          match
+            o1 as o2
+            return
+              (@eq (option (prod Clight.statement Clight.cont))
+                 match
+                   @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                     (fun p : prod Clight.statement Clight.cont =>
+                      @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                        (cont_app (@snd Clight.statement Clight.cont p) k)) o2
+                   return (option (prod Clight.statement Clight.cont))
+                 with
+                 | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                 | None => Clight.find_label_ls lbl sl0 (cont_app k0 k)
+                 end
+                 (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k))
+                    match o2 return (option (prod Clight.statement Clight.cont)) with
+                    | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                    | None => Clight.find_label_ls lbl sl0 k0
+                    end))
+          with
+          | Some a =>
+              (fun p : prod Clight.statement Clight.cont =>
+               @eq_refl (option (prod Clight.statement Clight.cont))
+                 (@Some (prod Clight.statement Clight.cont)
+                    (@pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k)))
+               :
+               @eq (option (prod Clight.statement Clight.cont))
+                 match
+                   @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                     (fun p0 : prod Clight.statement Clight.cont =>
+                      @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p0)
+                        (cont_app (@snd Clight.statement Clight.cont p0) k))
+                     (@Some (prod Clight.statement Clight.cont) p) return (option (prod Clight.statement Clight.cont))
+                 with
+                 | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                 | None => Clight.find_label_ls lbl sl0 (cont_app k0 k)
+                 end
+                 (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p0 : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p0)
+                       (cont_app (@snd Clight.statement Clight.cont p0) k))
+                    (@Some (prod Clight.statement Clight.cont) p))) a
+          | None =>
+              find_label_ls_app lbl sl0 k0 k
+              :
+              @eq (option (prod Clight.statement Clight.cont))
+                match
+                  @Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                    (fun p : prod Clight.statement Clight.cont =>
+                     @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                       (cont_app (@snd Clight.statement Clight.cont p) k)) (@None (prod Clight.statement Clight.cont))
+                  return (option (prod Clight.statement Clight.cont))
+                with
+                | Some sk => @Some (prod Clight.statement Clight.cont) sk
+                | None => Clight.find_label_ls lbl sl0 (cont_app k0 k)
+                end
+                (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+                   (fun p : prod Clight.statement Clight.cont =>
+                    @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+                      (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label_ls lbl sl0 k0))
+          end) (Clight.find_label lbl s0 (cont_app (Clight.Kseq (Clight.seq_of_labeled_statement sl0) k0) k))
+         (find_label_app lbl s0 (Clight.Kseq (Clight.seq_of_labeled_statement sl0) k0) k)
+       :
+       @eq (option (prod Clight.statement Clight.cont))
+         (Clight.find_label_ls lbl (Clight.LScons o0 s0 sl0) (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k))
+            (Clight.find_label_ls lbl (Clight.LScons o0 s0 sl0) k0))) o s l
+  end
+for
+find_label_app
+     : forall (lbl : Clight.label) (s : Clight.statement) (k0 k : Clight.cont),
+       @eq (option (prod Clight.statement Clight.cont)) (Clight.find_label lbl s (cont_app k0 k))
+         (@Coqlib.option_map (prod Clight.statement Clight.cont) (prod Clight.statement Clight.cont)
+            (fun p : prod Clight.statement Clight.cont =>
+             @pair Clight.statement Clight.cont (@fst Clight.statement Clight.cont p)
+               (cont_app (@snd Clight.statement Clight.cont p) k)) (Clight.find_label lbl s k0))
+
+Arguments find_label_app lbl s k0 k
+### C.jet_clight_determinism.call_boundary
+Variant
+call_boundary (ge : Clight.genv) (fd : Clight.fundef) (args : list Values.val) (k : Clight.cont)
+(m : Memory.Mem.mem) (res : Values.val) (mf : Memory.Mem.mem) (n : nat) : Prop :=
+    Build_call_boundary : forall
+                            (_ : @Smallstep.starN Clight.genv Clight.state Clight.step2 ge n
+                                   (Clight.Callstate fd args k m) Events.E0 (Clight.Returnstate res k mf))
+                            (_ : forall (j : nat) (t : Events.trace) (S : Clight.state) (_ : lt j n)
+                                   (_ : @Smallstep.starN Clight.genv Clight.state Clight.step2 ge j
+                                          (Clight.Callstate fd args k m) t S),
+                                 and (@eq Events.trace t Events.E0)
+                                   (and
+                                      (forall (v : Values.val) (k' : Clight.cont) (m' : Memory.Mem.mem)
+                                         (_ : @eq Clight.state S (Clight.Returnstate v k' m')),
+                                       not (@eq Clight.cont k' k))
+                                      (@ex Clight.state
+                                         (fun S' : Clight.state =>
+                                          and (Clight.step2 ge S Events.E0 S')
+                                            (forall (t' : Events.trace) (S'' : Clight.state)
+                                               (_ : Clight.step2 ge S t' S''),
+                                             and (@eq Events.trace t' Events.E0) (@eq Clight.state S'' S'))))))
+                            (_ : forall (j : nat) (t : Events.trace) (S : Clight.state) (_ : le n j)
+                                   (_ : @Smallstep.starN Clight.genv Clight.state Clight.step2 ge j
+                                          (Clight.Callstate fd args k m) t S),
+                                 @Smallstep.starN Clight.genv Clight.state Clight.step2 ge
+                                   (Nat.sub j n) (Clight.Returnstate res k mf) t S)
+                            (_ : forall (T : Events.traceinf)
+                                   (_ : @Smallstep.forever Clight.genv Clight.state Clight.step2 ge
+                                          (Clight.Callstate fd args k m) T),
+                                 @Smallstep.forever Clight.genv Clight.state Clight.step2 ge
+                                   (Clight.Returnstate res k mf) T), call_boundary ge fd args k m res mf n.
+
+Arguments call_boundary ge fd args%list_scope k m res mf n%nat_scope
+Arguments Build_call_boundary ge fd args%list_scope k m res mf n%nat_scope cb_path
+  (cb_before cb_after cb_forever)%function_scope
+### C.jet_clight_determinism.silent_call_guarantees
+silent_call_guarantees =
+fun (ge : Clight.genv) (fd : Clight.fundef) (args : list Values.val) (m : Memory.Mem.mem) (res : Values.val)
+  (mf : Memory.Mem.mem) =>
+and
+  (forall (k : Clight.cont) (_ : Clight.is_call_cont k), @ex nat (fun n : nat => call_boundary ge fd args k m res mf n))
+  (and
+     (forall (t' : Events.trace) (m' : Memory.Mem.mem) (res' : Values.val)
+        (_ : ClightBigstep.Clight2.eval_funcall ge m fd args t' m' res'),
+      and (@eq Events.trace t' Events.E0) (and (@eq Memory.Mem.mem m' mf) (@eq Values.val res' res)))
+     (and
+        (forall T : Events.traceinf,
+         not (@Smallstep.forever Clight.genv Clight.state Clight.step2 ge (Clight.Callstate fd args Clight.Kstop m) T))
+        (forall (t : Events.trace) (S : Clight.state)
+           (_ : @Smallstep.star Clight.genv Clight.state Clight.step2 ge (Clight.Callstate fd args Clight.Kstop m) t S)
+           (_ : forall (t' : Events.trace) (S' : Clight.state), not (Clight.step2 ge S t' S')),
+         and (@eq Events.trace t Events.E0) (@eq Clight.state S (Clight.Returnstate res Clight.Kstop mf)))))
+     : forall (_ : Clight.genv) (_ : Clight.fundef) (_ : list Values.val) (_ : Memory.Mem.mem)
+         (_ : Values.val) (_ : Memory.Mem.mem), Prop
+
+Arguments silent_call_guarantees ge fd args%list_scope m res mf

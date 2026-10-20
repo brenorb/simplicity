@@ -1,0 +1,120 @@
+### C.jet_divmod96_value.divmod96_high_unsigned
+divmod96_high_unsigned
+     : forall b : Integers.Int64.int,
+       @eq BinNums.Z (Integers.Int64.unsigned (divmod96_high b))
+         (BinInt.Z.div (Integers.Int64.unsigned b) divmod96_radix)
+### C.jet_divmod96_value.divmod96_low_unsigned
+divmod96_low_unsigned
+     : forall b : Integers.Int64.int,
+       @eq BinNums.Z (Integers.Int64.unsigned (divmod96_low b))
+         (BinInt.Z.modulo (Integers.Int64.unsigned b) divmod96_radix)
+### C.jet_divmod96_value.divmod96_sum_modular
+divmod96_sum_modular
+     : forall (B : BinNums.Z) (rh al : Integers.Int64.int),
+       @eq Integers.Int64.int (Integers.Int64.add (Integers.Int64.mul (Integers.Int64.repr B) rh) al)
+         (Integers.Int64.repr (BinInt.Z.add (BinInt.Z.mul B (Integers.Int64.unsigned rh)) (Integers.Int64.unsigned al)))
+### C.jet_divmod96_value.divmod96_final_modular
+divmod96_final_modular
+     : forall (B : BinNums.Z) (rh al d : Integers.Int64.int),
+       @eq Integers.Int64.int
+         (Integers.Int64.sub (Integers.Int64.add (Integers.Int64.mul (Integers.Int64.repr B) rh) al) d)
+         (Integers.Int64.repr
+            (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul B (Integers.Int64.unsigned rh)) (Integers.Int64.unsigned al))
+               (Integers.Int64.unsigned d)))
+### C.jet_divmod96_value.divmod96_final_unsigned
+divmod96_final_unsigned
+     : forall (rh al d : Integers.Int64.int)
+         (_ : and
+                (BinInt.Z.le BinNums.Z0
+                   (BinInt.Z.sub
+                      (BinInt.Z.add (BinInt.Z.mul divmod96_radix (Integers.Int64.unsigned rh))
+                         (Integers.Int64.unsigned al)) (Integers.Int64.unsigned d)))
+                (BinInt.Z.lt
+                   (BinInt.Z.sub
+                      (BinInt.Z.add (BinInt.Z.mul divmod96_radix (Integers.Int64.unsigned rh))
+                         (Integers.Int64.unsigned al)) (Integers.Int64.unsigned d)) Integers.Int64.modulus)),
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.sub (Integers.Int64.add (Integers.Int64.mul (Integers.Int64.repr divmod96_radix) rh) al) d))
+         (BinInt.Z.sub
+            (BinInt.Z.add (BinInt.Z.mul divmod96_radix (Integers.Int64.unsigned rh)) (Integers.Int64.unsigned al))
+            (Integers.Int64.unsigned d))
+### C.jet_divmod96_value.divmod96_guard_negative
+divmod96_guard_negative
+     : forall (rh al d : Integers.Int64.int) (_ : BinInt.Z.lt (Integers.Int64.unsigned al) divmod96_radix)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned d) (BinInt.Z.mul divmod96_radix divmod96_radix)),
+       iff (@eq bool (divmod96_guard rh al d) true)
+         (BinInt.Z.lt
+            (BinInt.Z.sub
+               (BinInt.Z.add (BinInt.Z.mul divmod96_radix (Integers.Int64.unsigned rh)) (Integers.Int64.unsigned al))
+               (Integers.Int64.unsigned d)) BinNums.Z0)
+### C.jet_divmod96_value.divmod96_radix
+divmod96_radix =
+BinNums.Zpos
+  (BinNums.xO
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+     : BinNums.Z
+### C.jet_divmod96_value.divmod96_high
+divmod96_high =
+fun b : Integers.Int64.int =>
+Integers.Int64.shru b
+  (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+     : forall _ : Integers.Int64.int, Integers.Int64.int
+
+Arguments divmod96_high b
+### C.jet_divmod96_value.divmod96_low
+divmod96_low =
+fun b : Integers.Int64.int =>
+Integers.Int64.and b
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))))
+     : forall _ : Integers.Int64.int, Integers.Int64.int
+
+Arguments divmod96_low b
+### C.jet_divmod96_value.divmod96_guard
+divmod96_guard =
+fun rh al d : Integers.Int64.int =>
+match
+  negb (Integers.Int64.ltu (Integers.Int64.repr (BinInt.Z.sub divmod96_radix (BinNums.Zpos BinNums.xH))) rh)
+  return bool
+with
+| true => Integers.Int64.ltu (Integers.Int64.add (Integers.Int64.mul (Integers.Int64.repr divmod96_radix) rh) al) d
+| false => false
+end
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments divmod96_guard rh al d

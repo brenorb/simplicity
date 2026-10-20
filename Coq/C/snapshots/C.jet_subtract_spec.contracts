@@ -1,0 +1,214 @@
+### C.jet_subtract_spec.full_subtract_word_spec_parametric
+full_subtract_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @full_subtract_word_spec term n)
+### C.jet_subtract_spec.subtract_word_spec_parametric
+subtract_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @subtract_word_spec term n)
+### C.jet_subtract_spec.negate_word_spec_parametric
+negate_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @negate_word_spec term n)
+### C.jet_subtract_spec.full_decrement_word_spec_parametric
+full_decrement_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @full_decrement_word_spec term n)
+### C.jet_subtract_spec.decrement_word_spec_parametric
+decrement_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @decrement_word_spec term n)
+### C.jet_subtract_spec.complement_spec_numeric
+complement_spec_numeric
+     : forall (n : nat) (x : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ n) (@jet_complement_spec.complement_spec n Alg.CoreFunSem x))
+         (BinInt.Z.sub (BinInt.Z.sub (jet_predicate_spec.word_modulus n) (BinNums.Zpos BinNums.xH))
+            (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+### C.jet_subtract_spec.borrow_word_balance_injective
+borrow_word_balance_injective
+     : forall (n : nat) (a b : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)))
+         (_ : @eq BinNums.Z (borrow_word_balance n a) (borrow_word_balance n b)),
+       @eq (Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))) a b
+### C.jet_subtract_spec.full_subtract_word_spec_numeric
+full_subtract_word_spec_numeric
+     : forall (n : nat) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (x y : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z
+         (borrow_word_balance n
+            (@full_subtract_word_spec Alg.CoreFunSem n
+               (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) c
+                  (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))))
+         (BinInt.Z.sub
+            (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+            (@Word.ToZ.Theory.toZ Word.BitToZ c))
+### C.jet_subtract_spec.subtract_word_spec_numeric
+subtract_word_spec_numeric
+     : forall (n : nat) (x y : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z
+         (borrow_word_balance n
+            (@subtract_word_spec Alg.CoreFunSem n (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+         (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+### C.jet_subtract_spec.subtract_representation_matches
+subtract_representation_matches
+     : forall (n : nat) (x y payload : Ty.tySem (Word.Word n))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ n) payload)
+                (BinInt.Z.modulo
+                   (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+                   (jet_predicate_spec.word_modulus n))),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word n)))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word n))
+            match
+              BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)
+              return (sum unit unit)
+            with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end payload)
+         (@subtract_word_spec Alg.CoreFunSem n (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))
+### C.jet_subtract_spec.full_subtract_word_spec
+full_subtract_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n))) (Ty.Sum Ty.Unit Ty.Unit)
+     (Ty.Prod (Word.Word n) (Word.Word n)) term
+     (@Bit.not (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n))) term
+        (@AC.take (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit) term
+           (@AC.iden (Ty.Sum Ty.Unit Ty.Unit) term)))
+     (@AC.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Word.Word n) (Word.Word n))
+        term
+        (@AC.pair (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) (Word.Word n) term
+           (@AC.take (Word.Word n) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+           (@AC.comp (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) (Word.Word n) term
+              (@AC.drop (Word.Word n) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+              (@jet_complement_spec.complement_spec n term)))))
+  (@AC.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+     (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+     (@Word.fullAdder n term)
+     (@AC.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) term
+        (@Bit.not (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+           (@AC.take (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) term
+              (@AC.iden (Ty.Sum Ty.Unit Ty.Unit) term)))
+        (@AC.drop (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))))
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments full_subtract_word_spec {term} n%nat_scope
+### C.jet_subtract_spec.subtract_word_spec
+subtract_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)) term
+     (@Bit.false (Ty.Prod (Word.Word n) (Word.Word n)) term) (@AC.iden (Ty.Prod (Word.Word n) (Word.Word n)) term))
+  (@full_subtract_word_spec term n)
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments subtract_word_spec {term} n%nat_scope
+### C.jet_subtract_spec.negate_word_spec
+negate_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Word.Word n) (Word.Word n) (Word.Word n) term
+     (@AC.comp (Word.Word n) Ty.Unit (Word.Word n) term (@AC.unit (Word.Word n) term) (@Word.zero n term))
+     (@AC.iden (Word.Word n) term)) (@subtract_word_spec term n)
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments negate_word_spec {term} n%nat_scope
+### C.jet_subtract_spec.full_decrement_word_spec
+full_decrement_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)
+     (Ty.Prod (Word.Word n) (Word.Word n)) term
+     (@AC.take (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) term
+        (@AC.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+     (@AC.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) (Word.Word n) (Word.Word n) term
+        (@AC.drop (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+        (@AC.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) Ty.Unit (Word.Word n) term
+           (@AC.unit (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term) (@Word.zero n term))))
+  (@full_subtract_word_spec term n)
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments full_decrement_word_spec {term} n%nat_scope
+### C.jet_subtract_spec.decrement_word_spec
+decrement_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@AC.comp (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@AC.pair (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) term (@Bit.true (Word.Word n) term)
+     (@AC.iden (Word.Word n) term)) (@full_decrement_word_spec term n)
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments decrement_word_spec {term} n%nat_scope
+### C.jet_subtract_spec.bit_complement
+bit_complement =
+fun c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit) => @jet_complement_spec.complement_spec O Alg.CoreFunSem c
+     : forall _ : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit), Ty.tySem (Word.Word O)
+
+Arguments bit_complement c
+### C.jet_subtract_spec.borrow_word_balance
+borrow_word_balance =
+fun (n : nat) (z : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))) =>
+BinInt.Z.sub
+  (@Word.ToZ.Theory.toZ (Word.WordToZ n)
+     (@snd
+        (sum
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end) Ty.Unit)
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end) Ty.Unit))
+        ((fix tySem (X : Ty.Ty) : Set :=
+            match X return Set with
+            | Ty.Unit => unit
+            | Ty.Sum A B => sum (tySem A) (tySem B)
+            | Ty.Prod A B => prod (tySem A) (tySem B)
+            end) (Word.Word n)) z))
+  (BinInt.Z.mul (jet_predicate_spec.word_modulus n)
+     (@Word.ToZ.Theory.toZ Word.BitToZ
+        (@fst
+           (sum
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end) Ty.Unit)
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end) Ty.Unit))
+           ((fix tySem (X : Ty.Ty) : Set :=
+               match X return Set with
+               | Ty.Unit => unit
+               | Ty.Sum A B => sum (tySem A) (tySem B)
+               | Ty.Prod A B => prod (tySem A) (tySem B)
+               end) (Word.Word n)) z)))
+     : forall (n : nat) (_ : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))), BinNums.Z
+
+Arguments borrow_word_balance n%nat_scope z

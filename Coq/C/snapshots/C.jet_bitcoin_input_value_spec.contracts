@@ -1,0 +1,52 @@
+### C.jet_bitcoin_input_value_spec.bitcoin_input_value_spec
+bitcoin_input_value_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+  (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) alg Bitcoin.Bitcoin.InputValue
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))
+
+Arguments bitcoin_input_value_spec {alg}
+### C.jet_bitcoin_input_value_spec.bitcoin_input_value_result
+bitcoin_input_value_result =
+fun (environment : Bitcoin.Bitcoin.env) (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) =>
+match
+  @List.nth_error Bitcoin.sigTxInput (Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx environment))
+    (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) a))
+  return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))))
+with
+| Some txi =>
+    @inr unit (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+      (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+         (Integers.Int64.signed (Bitcoin.sigTxiValue txi)))
+| None =>
+    @inl unit
+      (prod
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                match n return Ty.Ty with
+                | O => X
+                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))
+         ((fix tySem (X : Ty.Ty) : Set :=
+             match X return Set with
+             | Ty.Unit => unit
+             | Ty.Sum A B => sum (tySem A) (tySem B)
+             | Ty.Prod A B => prod (tySem A) (tySem B)
+             end)
+            ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                match n return Ty.Ty with
+                | O => X
+                | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))) tt
+end
+     : forall (_ : Bitcoin.Bitcoin.env) (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))
+
+Arguments bitcoin_input_value_result environment a

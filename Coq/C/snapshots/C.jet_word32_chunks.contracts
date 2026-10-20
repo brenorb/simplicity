@@ -1,0 +1,143 @@
+### C.jet_word32_chunks.word32_chunks_length
+word32_chunks_length
+     : forall (n : nat) (x : Ty.tySem (Word.Word (Nat.add n (S (S (S (S (S O)))))))),
+       @eq nat (@length (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (word32_chunks n x))
+         (PeanoNat.Nat.pow (S (S O)) n)
+### C.jet_word32_chunks.word32_chunks_encode
+word32_chunks_encode
+     : forall (n : nat) (x : Ty.tySem (Word.Word (Nat.add n (S (S (S (S (S O)))))))),
+       @eq (list BitMachine.Cell) (@Translate.encode (Word.Word (Nat.add n (S (S (S (S (S O))))))) x)
+         (@List.concat BitMachine.Cell
+            (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (list BitMachine.Cell)
+               (@Translate.encode (Word.Word (S (S (S (S (S O))))))) (word32_chunks n x)))
+### C.jet_word32_chunks.word32_chunks_injective
+word32_chunks_injective
+     : forall (n : nat) (x y : Ty.tySem (Word.Word (Nat.add n (S (S (S (S (S O))))))))
+         (_ : @eq (list (Ty.tySem (Word.Word (S (S (S (S (S O)))))))) (word32_chunks n x) (word32_chunks n y)),
+       @eq (Ty.tySem (Word.Word (Nat.add n (S (S (S (S (S O)))))))) x y
+### C.jet_word32_chunks.frame_input_word32_sequence
+frame_input_word32_sequence
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (edge cursor : BinNums.Z)
+         (xs : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (_ : jet_encoding.frame_input_cells_at m bi edge cursor
+                (@List.concat BitMachine.Cell
+                   (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (list BitMachine.Cell)
+                      (@Translate.encode (Word.Word (S (S (S (S (S O))))))) xs))) (i : nat)
+         (x : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (_ : @eq (option (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+                (@List.nth_error (Ty.tySem (Word.Word (S (S (S (S (S O))))))) xs i)
+                (@Some (Ty.tySem (Word.Word (S (S (S (S (S O))))))) x)),
+       @jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi edge
+         (BinInt.Z.add cursor
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+               (BinInt.Z.of_nat i))) x
+### C.jet_word32_chunks.frame_input_word32_chunks
+frame_input_word32_chunks
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (edge cursor : BinNums.Z) (n : nat)
+         (x : Ty.tySem (Word.Word (Nat.add n (S (S (S (S (S O))))))))
+         (_ : jet_encoding.frame_input_cells_at m bi edge cursor
+                (@Translate.encode (Word.Word (Nat.add n (S (S (S (S (S O))))))) x)) (i : nat)
+         (y : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (_ : @eq (option (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+                (@List.nth_error (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (word32_chunks n x) i)
+                (@Some (Ty.tySem (Word.Word (S (S (S (S (S O))))))) y)),
+       @jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi edge
+         (BinInt.Z.add cursor
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+               (BinInt.Z.of_nat i))) y
+### C.jet_word32_chunks.word32_array_value_injective
+word32_array_value_injective
+     : forall (x y : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (_ : @eq Integers.Int.int (jet_read32s_layout.word32_array_value x) (jet_read32s_layout.word32_array_value y)),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S O))))))) x y
+### C.jet_word32_chunks.word32_chunks
+word32_chunks =
+fix word32_chunks (n : nat) :
+    forall _ : Ty.tySem (Word.Word (Nat.add n (S (S (S (S (S O))))))),
+    list (Ty.tySem (Word.Word (S (S (S (S (S O))))))) :=
+  match
+    n as k
+    return
+      (forall _ : Ty.tySem (Word.Word (Nat.add k (S (S (S (S (S O))))))),
+       list (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+  with
+  | O =>
+      fun x : Ty.tySem (Word.Word (Nat.add O (S (S (S (S (S O))))))) =>
+      @cons (Ty.tySem (Word.Word (Nat.add O (S (S (S (S (S O)))))))) x
+        (@nil (Ty.tySem (Word.Word (Nat.add O (S (S (S (S (S O)))))))))
+  | S k =>
+      fun x : Ty.tySem (Word.Word (Nat.add (S k) (S (S (S (S (S O))))))) =>
+      @app (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+        (word32_chunks k
+           (@fst
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit)
+                    ((fix add (n0 m : nat) {struct n0} : nat :=
+                        match n0 return nat with
+                        | O => m
+                        | S p => S (add p m)
+                        end) k (S (S (S (S (S O))))))))
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit)
+                    ((fix add (n0 m : nat) {struct n0} : nat :=
+                        match n0 return nat with
+                        | O => m
+                        | S p => S (add p m)
+                        end) k (S (S (S (S (S O)))))))) x))
+        (word32_chunks k
+           (@snd
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit)
+                    ((fix add (n0 m : nat) {struct n0} : nat :=
+                        match n0 return nat with
+                        | O => m
+                        | S p => S (add p m)
+                        end) k (S (S (S (S (S O))))))))
+              ((fix tySem (X : Ty.Ty) : Set :=
+                  match X return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X : Ty.Ty) (n0 : nat) {struct n0} : Ty.Ty :=
+                     match n0 return Ty.Ty with
+                     | O => X
+                     | S n1 => Ty.Prod (Vector X n1) (Vector X n1)
+                     end) (Ty.Sum Ty.Unit Ty.Unit)
+                    ((fix add (n0 m : nat) {struct n0} : nat :=
+                        match n0 return nat with
+                        | O => m
+                        | S p => S (add p m)
+                        end) k (S (S (S (S (S O)))))))) x))
+  end
+     : forall (n : nat) (_ : Ty.tySem (Word.Word (Nat.add n (S (S (S (S (S O)))))))),
+       list (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+
+Arguments word32_chunks n%nat_scope _

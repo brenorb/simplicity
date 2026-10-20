@@ -1,0 +1,77 @@
+### C.jet_secp_scalar_lambda_readonly.scalar_lambda_initial_bounds
+scalar_lambda_initial_bounds
+     : forall (m : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem)
+                (@Globalenvs.Genv.init_mem (Ctypes.fundef Clight.function) Ctypes.type
+                   (@Ctypes.program_of_program Clight.function jets_secp.prog)) (@Some Memory.Mem.mem m)),
+       jet_clight_readonly_frame.readonly_region_bounds m jet_secp_scalar_lambda_global.scalar_lambda_block BinNums.Z0
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_secp_scalar_lambda_readonly.scalar_lambda_borrowed_foot
+scalar_lambda_borrowed_foot
+     : forall (ba block : Values.block) (ofs : BinNums.Z)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z)
+                      (@pair Values.block BinNums.Z jet_secp_scalar_lambda_global.scalar_lambda_block BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z))))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs) block ofs),
+       or
+         (jet_sx_state.foot
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+               (@nil (prod Values.block BinNums.Z)))
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+               jet_secp_scalar_writer_run.scalar_writer_initial_regs) block ofs)
+         (@eq Values.block block jet_secp_scalar_lambda_global.scalar_lambda_block)
+### C.jet_secp_scalar_lambda_readonly.eval_scalar_lambda_tight_frame
+eval_scalar_lambda_tight_frame
+     : forall (m : Memory.Mem.mem) (ba : Values.block) (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_secp_scalar_get_b32_storage.scalar_at m ba BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                         (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem value)))))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : not (@eq Values.block ba jet_secp_scalar_lambda_global.scalar_lambda_block))
+         (_ : jet_secp_scalar_lambda_global.scalar_lambda_global_rep m)
+         (_ : jet_clight_readonly_frame.readonly_region_bounds m jet_secp_scalar_lambda_global.scalar_lambda_block
+                BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul)
+               (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                     (@cons Values.val
+                        (Values.Vptr jet_secp_scalar_lambda_global.scalar_lambda_block Integers.Ptrofs.zero)
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep
+                  (jet_secp_scalar_get_b32_numeric.scalar_limb_rho
+                     (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                        (@jet_secp_canonical_scalar_lambda.canonical_scalar_multiply_lambda Alg.CoreFunSem value)))
+                  (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                     (@nil (prod Values.block BinNums.Z))) jet_secp_scalar_writer_run.scalar_writer_initial_regs mf)
+               (and
+                  (Memory.Mem.range_perm mf ba BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and (jet_secp_scalar_lambda_global.scalar_lambda_global_rep mf)
+                     (and
+                        (jet_clight_readonly_frame.readonly_region_bounds mf
+                           jet_secp_scalar_lambda_global.scalar_lambda_block BinNums.Z0
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                        (jet_sx_mem.lframe
+                           (fun (block : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot
+                                 (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                                    (@nil (prod Values.block BinNums.Z)))
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape jet_secp_scalar_writer_run.scalar_writer_initial_regs) block
+                                 ofs)) m mf))))))

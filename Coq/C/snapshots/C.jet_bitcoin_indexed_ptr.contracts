@@ -1,0 +1,70 @@
+### C.jet_bitcoin_indexed_ptr.indexed_ptr_cells
+indexed_ptr_cells =
+fun (A : Type) (elems : list A) (nbits : BinNums.Z) (pcells : forall _ : A, list BitMachine.Cell)
+  (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) =>
+match @List.nth_error A elems (BinInt.Z.to_nat (jet_bitcoin_indexed_scalar.toZ32 a)) return (list BitMachine.Cell) with
+| Some x => @cons (option bool) (@Some bool true) (pcells x)
+| None => @cons (option bool) (@Some bool false) (@List.repeat (option bool) (@None bool) (BinInt.Z.to_nat nbits))
+end
+     : forall (A : Type) (_ : list A) (_ : BinNums.Z) (_ : forall _ : A, list BitMachine.Cell)
+         (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))), list BitMachine.Cell
+
+Arguments indexed_ptr_cells {A}%type_scope elems%list_scope nbits%Z_scope pcells%function_scope a
+### C.jet_bitcoin_indexed_ptr.indexed_ptr_rep
+indexed_ptr_rep =
+fun (E : Set) (A : Type) (elems_of : forall _ : E, list A)
+  (elemrep : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : A), Prop)
+  (sz poff adelta cdelta : BinNums.Z) (m : Memory.Mem.mem) (env : Values.val) (environment : E)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun txbase : BinNums.Z =>
+            @ex Values.block
+              (fun bin : Values.block =>
+               @ex BinNums.Z
+                 (fun inbase : BinNums.Z =>
+                  @ex Integers.Int64.int
+                    (fun nI : Integers.Int64.int =>
+                     and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                       (and (BinInt.Z.le BinNums.Z0 ebase)
+                          (and
+                             (BinInt.Z.le
+                                (BinInt.Z.add ebase
+                                   (BinNums.Zpos
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                                Integers.Ptrofs.max_unsigned)
+                             (and (BinInt.Z.le BinNums.Z0 txbase)
+                                (and
+                                   (BinInt.Z.le
+                                      (BinInt.Z.add txbase
+                                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))
+                                      Integers.Ptrofs.max_unsigned)
+                                   (and (BinInt.Z.le BinNums.Z0 inbase)
+                                      (and
+                                         (BinInt.Z.le
+                                            (BinInt.Z.add inbase (BinInt.Z.mul sz (BinInt.Z.of_nat (@length A (...)))))
+                                            Integers.Ptrofs.max_unsigned)
+                                         (and
+                                            (@eq (option Values.val)
+                                               (Memory.Mem.load AST.Mptr m be (BinInt.Z.add ebase BinNums.Z0))
+                                               (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+                                            (and
+                                               (@eq (option Values.val)
+                                                  (Memory.Mem.load AST.Mptr m bt (BinInt.Z.add txbase adelta))
+                                                  (@Some Values.val (Values.Vptr bin (...))))
+                                               (and
+                                                  (@eq (option Values.val) (Memory.Mem.load AST.Mint64 m bt (...))
+                                                     (@Some Values.val (...)))
+                                                  (and (@eq BinNums.Z (...) (...)) (and (...) (...)))))))))))))))))))
+     : forall (E : Set) (A : Type) (_ : forall _ : E, list A)
+         (_ : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : A), Prop)
+         (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Memory.Mem.mem)
+         (_ : Values.val) (_ : E) (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments indexed_ptr_rep {E A}%type_scope (elems_of elemrep)%function_scope (sz poff adelta cdelta)%Z_scope
+  m env environment fp%list_scope

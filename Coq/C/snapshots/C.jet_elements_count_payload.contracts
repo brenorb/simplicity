@@ -1,0 +1,69 @@
+### C.jet_elements_count_payload.elements_count_observation_spec_value
+@elements_count_observation_spec_value
+     : forall (X : Set) (elems : forall _ : jet_elements_prim.Elements.env, list X)
+         (payload : forall _ : X, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (e : jet_elements_prim.Elements.env)
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat (@length X (elems e)))
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))))),
+       @eq (option (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@elements_count_observation_spec X elems payload tt e)
+         (@Some (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) (BinInt.Z.of_nat (@length X (elems e)))))
+### C.jet_elements_count_payload.application_jet_local_spec_pointwise
+application_jet_local_spec_pointwise
+     : forall (f : Clight.function) (ge : Clight.genv) (E : Set) (A B : Ty.Ty)
+         (rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : E), Prop)
+         (spec1 spec2 : forall (_ : Ty.tySem A) (_ : E), option (Ty.tySem B))
+         (_ : forall (a : Ty.tySem A) (e : E), @eq (option (Ty.tySem B)) (spec1 a e) (spec2 a e))
+         (_ : jet_application_contract.application_jet_local_spec f ge E A B rep spec1),
+       jet_application_contract.application_jet_local_spec f ge E A B rep spec2
+### C.jet_elements_count_payload.elements_num_inputs_any_payload_local_spec
+elements_num_inputs_any_payload_local_spec
+     : forall payload : forall _ : jet_elements_prim.sigTxInput, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       jet_application_contract.application_jet_local_spec jets_elements.f_simplicity_num_inputs
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         jet_elements_count_local.elements_num_inputs_env_rep
+         (@elements_count_observation_spec jet_elements_prim.sigTxInput
+            (fun e : jet_elements_prim.Elements.env => jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+            payload)
+### C.jet_elements_count_payload.elements_num_outputs_any_payload_local_spec
+elements_num_outputs_any_payload_local_spec
+     : forall payload : forall _ : jet_elements_prim.txOutput, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       jet_application_contract.application_jet_local_spec jets_elements.f_simplicity_num_outputs
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         jet_elements_count_local.elements_num_outputs_env_rep
+         (@elements_count_observation_spec jet_elements_prim.txOutput
+            (fun e : jet_elements_prim.Elements.env => jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx e))
+            payload)
+### C.jet_elements_count_payload.elements_count_observation_spec
+elements_count_observation_spec =
+fun (X : Set) (elems : forall _ : jet_elements_prim.Elements.env, list X)
+  (payload : forall _ : X, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) =>
+@jet_firstFail_spec.first_fail_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (Alg.AssertionSem (Reader.ReaderT_CIMonadZero jet_elements_prim.Elements.env Option.option_Monad_Zero))
+  (fun (w : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env) =>
+   @jet_firstFail_list.indexed_list_primitive (S (S (S (S (S O))))) X (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (elems e) payload w)
+     : forall (X : Set) (_ : forall _ : jet_elements_prim.Elements.env, list X)
+         (_ : forall _ : X, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : Ty.tySem Ty.Unit)
+         (_ : jet_elements_prim.Elements.env), option (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+
+Arguments elements_count_observation_spec {X}%type_scope (elems payload)%function_scope _ _

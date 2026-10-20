@@ -1,0 +1,52 @@
+### C.jet_divides_spec.divides_word_spec_numeric
+divides_word_spec_numeric
+     : forall (n : nat) (x y : Ty.tySem (Word.Word n)),
+       @eq bool
+         (Bit.toBool
+            (@jet_division_core_spec.divides_word_spec n Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+         (divides_numeric (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+### C.jet_divides_spec.divides8_bit_numeric
+divides8_bit_numeric
+     : forall r t : Integers.Int.int,
+       @eq bool (divides8_bit r t)
+         (divides_numeric (Integers.Int.unsigned (jet_add8.add8_u r)) (Integers.Int.unsigned (jet_add8.add8_u t)))
+### C.jet_divides_spec.divides8_denotes
+divides8_denotes
+     : forall w z : Integers.Int64.int,
+       @eq bool (divides8_bit (jet_read8.read8_result w) (jet_read8.read8_result z))
+         (Bit.toBool
+            (@jet_division_core_spec.divides_word_spec (S (S (S O))) Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Word (S (S (S O)))))
+                  (jet_spec.decode_word8 w) (jet_spec.decode_word8 z))))
+### C.jet_divides_spec.wide_divides_bit_numeric
+wide_divides_bit_numeric
+     : forall r t : Integers.Int64.int,
+       @eq bool (wide_divides_bit r t) (divides_numeric (Integers.Int64.unsigned r) (Integers.Int64.unsigned t))
+### C.jet_divides_spec.divides_int64_denotes
+divides_int64_denotes
+     : forall (n : nat) (x y : Ty.tySem (Word.Word n)) (r t : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned t) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)),
+       @eq bool (wide_divides_bit r t)
+         (Bit.toBool
+            (@jet_division_core_spec.divides_word_spec n Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+### C.jet_divides_spec.divides_numeric
+divides_numeric =
+fun a b : BinNums.Z => BinInt.Z.eqb (jet_division_value.division_numeric true b a) BinNums.Z0
+     : forall (_ : BinNums.Z) (_ : BinNums.Z), bool
+
+Arguments divides_numeric (a b)%Z_scope
+### C.jet_divides_spec.divides8_bit
+divides8_bit =
+fun r t : Integers.Int.int => Integers.Int.eq Integers.Int.zero (jet_division_value.division8_raw true t r)
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int), bool
+
+Arguments divides8_bit r t
+### C.jet_divides_spec.wide_divides_bit
+wide_divides_bit =
+fun r t : Integers.Int64.int => Integers.Int64.eq Integers.Int64.zero (jet_division_value.division_wide_raw true t r)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments wide_divides_bit r t

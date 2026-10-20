@@ -1,0 +1,299 @@
+### C.jet_secp_scalar_negate_values.scalar_negate_output_exact
+scalar_negate_output_exact
+     : @eq (list jet_sx_expr.sx) jet_secp_scalar_negate_exec.scalar_negate_limbs
+         (@List.map jet_sx_expr.sx jet_sx_expr.sx
+            (fun x : jet_sx_expr.sx => jet_sx_expr.XLb jet_sx_expr.Band x scalar_negate_mask) scalar_negate_raw)
+### C.jet_secp_scalar_negate_values.scalar_negate_delta0_value
+scalar_negate_delta0_value
+     : @eq Integers.Int64.int
+         (Integers.Int64.add
+            (Integers.Int64.repr
+               (BinNums.Zneg
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI
+                                                            (BinNums.xO
+                                                               (BinNums.xI
+                                                                  (BinNums.xI
+                                                                     (BinNums.xO (BinNums.xO (BinNums.xI ...))))))))))))))))))))))
+            (Integers.Int64.repr (Integers.Int.signed Integers.Int.one)))
+         (Integers.Int64.repr
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xI
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xI
+                                    (BinNums.xO
+                                       (BinNums.xI
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xI
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xI
+                                                                     (BinNums.xI (BinNums.xO (BinNums.xI ...)))))))))))))))))))))))
+### C.jet_secp_scalar_negate_values.scalar_negate_or_zero
+scalar_negate_or_zero
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq bool
+         (Integers.Int64.eq
+            (Integers.Int64.or (Integers.Int64.or (Integers.Int64.or (rho O) (rho (S O))) (rho (S (S O))))
+               (rho (S (S (S O))))) Integers.Int64.zero)
+         (BinInt.Z.eqb (jet_secp_scalar_overflow_numeric.scalar_limb_value rho) BinNums.Z0)
+### C.jet_secp_scalar_negate_values.scalar_negate_mask_value
+scalar_negate_mask_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout scalar_negate_mask)
+         (Values.Vlong
+            match
+              BinInt.Z.eqb (jet_secp_scalar_overflow_numeric.scalar_limb_value rho) BinNums.Z0
+              return Integers.Int64.int
+            with
+            | true => Integers.Int64.zero
+            | false => Integers.Int64.mone
+            end)
+### C.jet_secp_scalar_negate_values.scalar_negate_limb_masked
+scalar_negate_limb_masked
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (x : jet_sx_expr.sx),
+       @eq Integers.Int64.int
+         (jet_sx_expr.il (jet_sx_expr.den rho layout (jet_sx_expr.XLb jet_sx_expr.Band x scalar_negate_mask)))
+         match
+           BinInt.Z.eqb (jet_secp_scalar_overflow_numeric.scalar_limb_value rho) BinNums.Z0 return Integers.Int64.int
+         with
+         | true => Integers.Int64.zero
+         | false => jet_sx_expr.il (jet_sx_expr.den rho layout x)
+         end
+### C.jet_secp_scalar_negate_values.scalar_negate_raw_values
+scalar_negate_raw_values
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       let s0 : BinNums.Z :=
+         BinInt.Z.add (BinInt.Z.sub Integers.Int64.max_unsigned (Integers.Int64.unsigned (rho O)))
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI
+                                                           (BinNums.xO
+                                                              (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))))))))))))))))
+         in
+       let s1 : BinNums.Z :=
+         BinInt.Z.add
+           (BinInt.Z.add (BinInt.Z.div s0 Integers.Int64.modulus)
+              (BinInt.Z.sub Integers.Int64.max_unsigned (Integers.Int64.unsigned (rho (S O)))))
+           (BinNums.Zpos
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xO
+                                                           (BinNums.xI
+                                                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))))))))))))))
+         in
+       let s2 : BinNums.Z :=
+         BinInt.Z.add
+           (BinInt.Z.add (BinInt.Z.div s1 Integers.Int64.modulus)
+              (BinInt.Z.sub Integers.Int64.max_unsigned (Integers.Int64.unsigned (rho (S (S O))))))
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI
+                                                           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))
+         in
+       let s3 : BinNums.Z :=
+         BinInt.Z.add
+           (BinInt.Z.add (BinInt.Z.div s2 Integers.Int64.modulus)
+              (BinInt.Z.sub Integers.Int64.max_unsigned (Integers.Int64.unsigned (rho (S (S (S O)))))))
+           (BinNums.Zpos
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI
+                                                           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))
+         in
+       and
+         (@eq BinNums.Z (Integers.Int64.unsigned (jet_sx_expr.il (jet_sx_expr.den rho layout scalar_negate_low0)))
+            (BinInt.Z.modulo s0 Integers.Int64.modulus))
+         (and
+            (@eq BinNums.Z (Integers.Int64.unsigned (jet_sx_expr.il (jet_sx_expr.den rho layout scalar_negate_low1)))
+               (BinInt.Z.modulo s1 Integers.Int64.modulus))
+            (and
+               (@eq BinNums.Z
+                  (Integers.Int64.unsigned (jet_sx_expr.il (jet_sx_expr.den rho layout scalar_negate_low2)))
+                  (BinInt.Z.modulo s2 Integers.Int64.modulus))
+               (@eq BinNums.Z
+                  (Integers.Int64.unsigned (jet_sx_expr.il (jet_sx_expr.den rho layout scalar_negate_low3)))
+                  (BinInt.Z.modulo s3 Integers.Int64.modulus))))
+### C.jet_secp_scalar_negate_values.scalar_negate_mask
+scalar_negate_mask =
+jet_sx_expr.XLb jet_sx_expr.Bmul (jet_sx_expr.XLc (Integers.Int64.repr (BinNums.Zneg BinNums.xH)))
+  (jet_sx_expr.XI2L Ctypes.Signed
+     (jet_sx_expr.XIcmp Integers.Ceq Ctypes.Signed
+        (jet_sx_expr.XLcmp Integers.Ceq Ctypes.Unsigned
+           (jet_sx_expr.XLb jet_sx_expr.Bor
+              (jet_sx_expr.XLb jet_sx_expr.Bor
+                 (jet_sx_expr.XLb jet_sx_expr.Bor (jet_sx_expr.XLv O) (jet_sx_expr.XLv (S O)))
+                 (jet_sx_expr.XLv (S (S O)))) (jet_sx_expr.XLv (S (S (S O)))))
+           (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.zero))) (jet_sx_expr.XIc Integers.Int.zero)))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_negate_values.scalar_negate_delta0
+scalar_negate_delta0 =
+jet_sx_expr.XLb jet_sx_expr.Badd
+  (jet_sx_expr.XLc
+     (Integers.Int64.repr
+        (BinNums.Zneg
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+  (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.one))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_negate_values.scalar_negate_low0
+scalar_negate_low0 =
+jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLnot (jet_sx_expr.XLv O)) scalar_negate_delta0
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_negate_values.scalar_negate_high0
+scalar_negate_high0 =
+jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.zero))
+  (jet_secp_scalar_reduce_numeric.scalar_carry_sx (jet_sx_expr.XLnot (jet_sx_expr.XLv O)) scalar_negate_delta0)
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_negate_values.scalar_negate_low1
+scalar_negate_low1 =
+jet_secp_scalar_reduce_numeric.scalar_sum_low scalar_negate_high0 (jet_sx_expr.XLnot (jet_sx_expr.XLv (S O)))
+  (jet_sx_expr.XLc
+     (Integers.Int64.repr
+        (BinNums.Zneg
+           (BinNums.xI
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_negate_values.scalar_negate_high1
+scalar_negate_high1 =
+jet_secp_scalar_reduce_numeric.scalar_sum_high scalar_negate_high0 (jet_sx_expr.XLnot (jet_sx_expr.XLv (S O)))
+  (jet_sx_expr.XLc
+     (Integers.Int64.repr
+        (BinNums.Zneg
+           (BinNums.xI
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_negate_values.scalar_negate_low2
+scalar_negate_low2 =
+jet_secp_scalar_reduce_numeric.scalar_sum_low scalar_negate_high1 (jet_sx_expr.XLnot (jet_sx_expr.XLv (S (S O))))
+  (jet_sx_expr.XLc (Integers.Int64.repr (BinNums.Zneg (BinNums.xO BinNums.xH))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_negate_values.scalar_negate_high2
+scalar_negate_high2 =
+jet_secp_scalar_reduce_numeric.scalar_sum_high scalar_negate_high1 (jet_sx_expr.XLnot (jet_sx_expr.XLv (S (S O))))
+  (jet_sx_expr.XLc (Integers.Int64.repr (BinNums.Zneg (BinNums.xO BinNums.xH))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_negate_values.scalar_negate_low3
+scalar_negate_low3 =
+jet_secp_scalar_reduce_numeric.scalar_sum_low scalar_negate_high2 (jet_sx_expr.XLnot (jet_sx_expr.XLv (S (S (S O)))))
+  (jet_sx_expr.XLc (Integers.Int64.repr (BinNums.Zneg BinNums.xH)))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_negate_values.scalar_negate_raw
+scalar_negate_raw =
+@cons jet_sx_expr.sx scalar_negate_low0
+  (@cons jet_sx_expr.sx scalar_negate_low1
+     (@cons jet_sx_expr.sx scalar_negate_low2 (@cons jet_sx_expr.sx scalar_negate_low3 (@nil jet_sx_expr.sx))))
+     : list jet_sx_expr.sx

@@ -1,0 +1,31 @@
+### C.jet_elements_call.elements_helper_lookup
+elements_helper_lookup
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f)
+                jet_elements_transport.elements_core_helpers),
+       and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               id) (@Some Values.block (jet_elements_linkage.elements_symbol_block id)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block id) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+### C.jet_elements_call.exec_elements_helper_call
+exec_elements_helper_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (optid : option AST.ident) (id : AST.ident) (f : Clight.function)
+         (al : list Clight.expr) (tyargs : Ctypes.typelist) (tyres : Ctypes.type) (cc : AST.calling_convention)
+         (vargs : list Values.val) (vres : Values.val) (m' : Memory.Mem.mem)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f)
+                jet_elements_transport.elements_core_helpers)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : Clight.eval_exprlist jet_elements_linkage.elements_ge e le m al tyargs vargs)
+         (_ : @eq Ctypes.type (Clight.type_of_fundef (@Ctypes.Internal Clight.function f))
+                (Ctypes.Tfunction tyargs tyres cc))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+                (@Ctypes.Internal Clight.function f) vargs Events.E0 m' vres),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+         (Clight.Scall optid (Clight.Evar id (Ctypes.Tfunction tyargs tyres cc)) al) Events.E0
+         (Clight.set_opttemp optid vres le) m' ClightBigstep.Out_normal

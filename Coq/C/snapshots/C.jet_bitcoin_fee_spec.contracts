@@ -1,0 +1,111 @@
+### C.jet_bitcoin_fee_spec.fee_tail_core_parametric
+fee_tail_core_parametric
+     : @Alg.Core.Parametric (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S (S (S O))))))) (fun term : Alg.Core.Algebra => @fee_tail term)
+### C.jet_bitcoin_fee_spec.fee_program_parametric
+@fee_program_parametric
+     : forall (alg1 alg2 : Alg.Core.Algebra) (R : Alg.Core.Parametric.Rel alg1 alg2)
+         (a1 b1 : Alg.Core.domain alg1 Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))
+         (a2 b2 : Alg.Core.domain alg2 Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))
+         (_ : @Alg.Core.Parametric.rel alg1 alg2 R Ty.Unit (Word.Word (S (S (S (S (S (S O))))))) a1 a2)
+         (_ : @Alg.Core.Parametric.rel alg1 alg2 R Ty.Unit (Word.Word (S (S (S (S (S (S O))))))) b1 b2),
+       @Alg.Core.Parametric.rel alg1 alg2 R Ty.Unit (Word.Word (S (S (S (S (S (S O))))))) (@fee_program alg1 a1 b1)
+         (@fee_program alg2 a2 b2)
+### C.jet_bitcoin_fee_spec.fee_tail_reader_sem
+@fee_tail_reader_sem
+     : forall (E : Type)
+         (x : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+         (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+         (@fee_tail (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) x environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (@fee_tail Alg.CoreFunSem x))
+### C.jet_bitcoin_fee_spec.fee_program_reader_sem
+@fee_program_reader_sem
+     : forall (E : Type)
+         (tin
+          tout : Alg.Core.domain (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) Ty.Unit
+                   (Word.Word (S (S (S (S (S (S O)))))))) (environment : E)
+         (x y : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (_ : @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+                (tin tt environment) (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) x))
+         (_ : @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+                (tout tt environment) (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) y)),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+         (@fee_program (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) tin tout tt environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+            (@fee_tail Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                  x y)))
+### C.jet_bitcoin_fee_spec.subtract_balance
+subtract_balance
+     : forall (a b : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (w : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (_ : @eq (Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))))
+                (@jet_subtract_spec.subtract_word_spec Alg.CoreFunSem (S (S (S (S (S (S O))))))
+                   (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) a b))
+                (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) c w)),
+       @eq BinNums.Z
+         (BinInt.Z.sub (jet_forWhile_seq.wz (S (S (S (S (S (S O)))))) w)
+            (BinInt.Z.mul (jet_forWhile_seq.wsize (S (S (S (S (S (S O))))))) (@Word.ToZ.Theory.toZ Word.BitToZ c)))
+         (BinInt.Z.sub (jet_forWhile_seq.wz (S (S (S (S (S (S O)))))) a)
+            (jet_forWhile_seq.wz (S (S (S (S (S (S O)))))) b))
+### C.jet_bitcoin_fee_spec.fee_tail_fromZ
+fee_tail_fromZ
+     : forall x y : BinNums.Z,
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (@fee_tail Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+               (jet_bitcoin_totals_spec.fw6 x) (jet_bitcoin_totals_spec.fw6 y)))
+         (jet_bitcoin_totals_spec.fw6 (BinInt.Z.sub x y))
+### C.jet_bitcoin_fee_spec.bitcoin_fee_spec_parametric
+bitcoin_fee_spec_parametric
+     : @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S O))))))) (@bitcoin_fee_spec)
+### C.jet_bitcoin_fee_spec.bitcoin_fee_spec_value
+bitcoin_fee_spec_value
+     : forall environment : Bitcoin.Bitcoin.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+         (@bitcoin_fee_spec (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
+            environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+            (jet_bitcoin_totals_spec.fw6
+               (BinInt.Z.sub (Bitcoin.sigTxTotalInValue (Bitcoin.Bitcoin.envTx environment))
+                  (Bitcoin.sigTxTotalOutValue (Bitcoin.Bitcoin.envTx environment)))))
+### C.jet_bitcoin_fee_spec.fee_tail
+fee_tail =
+fun alg : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))) (Word.Word (S (S (S (S (S (S O))))))) alg
+  (@jet_subtract_spec.subtract_word_spec alg (S (S (S (S (S (S O)))))))
+  (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))
+     (Word.Word (S (S (S (S (S (S O))))))) alg (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S O))))))) alg))
+     : forall alg : Alg.Core.Algebra,
+       Alg.Core.domain alg (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S (S (S O)))))))
+
+Arguments fee_tail {alg}
+### C.jet_bitcoin_fee_spec.fee_program
+fee_program =
+fun (alg : Alg.Core.Algebra) (tin tout : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) =>
+@Alg.Core.Combinators.comp Ty.Unit
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+  (Word.Word (S (S (S (S (S (S O))))))) alg
+  (@Alg.Core.Combinators.pair Ty.Unit (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))) alg
+     tin tout) (@fee_tail alg)
+     : forall (alg : Alg.Core.Algebra) (_ : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S O))))))))
+         (_ : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))),
+       Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+
+Arguments fee_program {alg} tin tout
+### C.jet_bitcoin_fee_spec.bitcoin_fee_spec
+bitcoin_fee_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@fee_program (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg)
+  (@jet_bitcoin_totals_canonical.bitcoin_total_input_value_spec alg)
+  (@jet_bitcoin_totals_canonical.bitcoin_total_output_value_spec alg)
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+
+Arguments bitcoin_fee_spec {alg}

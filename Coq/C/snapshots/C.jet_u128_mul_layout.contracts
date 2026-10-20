@@ -1,0 +1,68 @@
+### C.jet_u128_mul_layout.umul128_symbol
+umul128_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            jets._secp256k1_umul128) (@Some Values.block (jet_exec.jet_symbol_block jets._secp256k1_umul128))
+### C.jet_u128_mul_layout.umul128_funct
+umul128_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            (Values.Vptr (jet_exec.jet_symbol_block jets._secp256k1_umul128) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_secp256k1_umul128))
+### C.jet_u128_mul_layout.eval_u128_mul_layout
+eval_u128_mul_layout
+     : forall (m : Memory.Mem.mem) (br : Values.block) (base : BinNums.Z) (a b : Integers.Int64.int)
+         (_ : jet_frame_layout.frame_base_valid base)
+         (_ : Memory.Mem.valid_access m AST.Mint64 br base Memtype.Writable)
+         (_ : Memory.Mem.valid_access m AST.Mint64 br
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+               (@Ctypes.Internal Clight.function jets.f_secp256k1_u128_mul)
+               (@cons Values.val (Values.Vptr br (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vlong a) (@cons Values.val (Values.Vlong b) (@nil Values.val)))) Events.E0
+               mf Values.Vundef)
+            (and
+               (@eq (option Values.val) (Memory.Mem.load AST.Mint64 mf br base)
+                  (@Some Values.val (Values.Vlong (jet_umul128_layout.umul128_result_lo a b))))
+               (and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf br
+                        (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     (@Some Values.val (Values.Vlong (jet_umul128_layout.umul128_result_hi a b))))
+                  (and
+                     (@eq BinNums.Z (Integers.Int64.unsigned (jet_umul128_layout.umul128_result_hi a b))
+                        (BinInt.Z.div (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+                           Integers.Int64.modulus))
+                     (and
+                        (@eq BinNums.Z (Integers.Int64.unsigned (jet_umul128_layout.umul128_result_lo a b))
+                           (BinInt.Z.modulo (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+                              Integers.Int64.modulus))
+                        (and
+                           (forall (chunk : AST.memory_chunk) (bb : Values.block) (addr : BinNums.Z)
+                              (_ : or (not (@eq Values.block bb br))
+                                     (or (BinInt.Z.le (BinInt.Z.add addr (Memdata.size_chunk chunk)) base)
+                                        (BinInt.Z.le
+                                           (BinInt.Z.add base
+                                              (BinNums.Zpos
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) addr))),
+                            @eq (option Values.val) (Memory.Mem.load chunk mf bb addr)
+                              (Memory.Mem.load chunk m bb addr))
+                           (and
+                              (forall (bb : Values.block) (addr : BinNums.Z) (kind : Memtype.perm_kind)
+                                 (p : Memtype.permission) (_ : Memory.Mem.perm m bb addr kind p),
+                               Memory.Mem.perm mf bb addr kind p)
+                              (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m)))))))))
+### C.jet_u128_mul_layout.u128_mul_temps
+u128_mul_temps =
+fun (br : Values.block) (base : BinNums.Z) (a b : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets._b (Values.Vlong b)
+  (@Maps.PTree.set Values.val jets._a (Values.Vlong a)
+     (@Maps.PTree.set Values.val jets._r (Values.Vptr br (Integers.Ptrofs.repr base))
+        (Clight.create_undef_temps (Clight.fn_temps jets.f_secp256k1_u128_mul))))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments u128_mul_temps br base%Z_scope a b

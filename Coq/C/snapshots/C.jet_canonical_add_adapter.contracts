@@ -1,0 +1,23 @@
+### C.jet_canonical_add_adapter.canonical_add_word_parametric
+canonical_add_word_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (@canonical_add_word n)
+### C.jet_canonical_add_adapter.canonical_add_word_matches_adder
+canonical_add_word_matches_adder
+     : forall (n : nat) (x : Ty.tySem (Ty.Prod (Word.Word n) (Word.Word n))),
+       @eq (Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))) (@canonical_add_word n Alg.CoreFunSem x)
+         (@Word.adder n Alg.CoreFunSem x)
+### C.jet_canonical_add_adapter.canonical_add_word
+canonical_add_word =
+fun (n : nat) (term : Alg.Core.Algebra) =>
+@Alg.Core.Combinators.comp (Ty.Prod (Word.Word n) (Word.Word n))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n)) term
+  (@Alg.Core.Combinators.pair (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)
+     (Ty.Prod (Word.Word n) (Word.Word n)) term (@Bit.false (Ty.Prod (Word.Word n) (Word.Word n)) term)
+     (@Alg.Core.Combinators.iden (Ty.Prod (Word.Word n) (Word.Word n)) term)) (@Word.fullAdder n term)
+     : forall (n : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments canonical_add_word n%nat_scope {term}

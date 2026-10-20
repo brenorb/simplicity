@@ -1,0 +1,135 @@
+### C.jet_core_fullshift64_jets.core_copy_phase_call_wide
+core_copy_phase_call_wide
+     : forall (_ : jet_memcpy_model.memcpy_model) (m1 : Memory.Mem.mem) (bl bd : Values.block)
+         (dbase : BinNums.Z) (bw : Values.block) (outedge cursor : BinNums.Z) (bi : Values.block)
+         (edge rc K : BinNums.Z) (cells : list BitMachine.Cell)
+         (_ : jet_frame_layout.frame_fields_at m1 bl BinNums.Z0 bi edge rc)
+         (_ : jet_output_layout.write_frame_at m1 bd dbase bw outedge cursor K)
+         (_ : @eq BinNums.Z K (BinInt.Z.of_nat (@length BitMachine.Cell cells)))
+         (_ : and
+                (BinInt.Z.lt
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) K)
+                (BinInt.Z.le K
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : jet_context_separated.jet_copy_buffers_separated bd bi bw edge outedge cursor rc K)
+         (_ : jet_encoding.frame_input_cells_at m1 bi edge rc cells),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m1
+               (@Ctypes.Internal Clight.function jets.f_simplicity_copyBits)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero)
+                     (@cons Values.val (Values.Vlong (Integers.Int64.repr K)) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef) (jet_bitcoin_effects.write_effect m1 mf bd dbase bw outedge cursor K cells))
+### C.jet_core_fullshift64_jets.core_leftmost_jet_e_wide
+core_leftmost_jet_e_wide
+     : forall (_ : jet_memcpy_model.memcpy_model) (f : Clight.function) (A B : Ty.Ty)
+         (spec : forall _ : Ty.tySem A, Ty.tySem B) (arg : Clight.expr)
+         (_ : jet_core_wrapper.core_wrapper_shape f
+                (jet_core_wrapper.core_simple_rest (jet_core_copy_exec.core_copy_call_e arg)))
+         (_ : @eq Ctypes.type (Clight.typeof arg) Ctypesdefs.tint)
+         (_ : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem),
+              Clight.eval_expr jet_exec.ge0 e le m arg
+                (Values.Vint (Integers.Int.repr (BinInt.Z.of_nat (Translate.bitSize B)))))
+         (_ : and
+                (BinInt.Z.lt
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                   (BinInt.Z.of_nat (Translate.bitSize B)))
+                (BinInt.Z.le (BinInt.Z.of_nat (Translate.bitSize B))
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : le (Translate.bitSize B) (Translate.bitSize A))
+         (_ : forall a : Ty.tySem A,
+              @eq (list BitMachine.Cell) (@Translate.encode B (spec a))
+                (@List.firstn BitMachine.Cell (Translate.bitSize B) (@Translate.encode A a))),
+       jet_context_separated.jet_separated_local_spec f A B spec
+### C.jet_core_fullshift64_jets.full_left_shift_64_1_local_spec
+full_left_shift_64_1_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_left_shift_64_1
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word O))
+         (Ty.Prod (Word.Word O) (Word.Word (S (S (S (S (S (S O))))))))
+         (@Word.full_left_shift1 (Word.Word O) (S (S (S (S (S (S O)))))) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_left_shift_64_2_local_spec
+full_left_shift_64_2_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_left_shift_64_2
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S O)))
+         (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S O))))))))
+         (@Word.full_left_shift1 (Word.Word (S O)) (S (S (S (S (S O))))) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_left_shift_64_4_local_spec
+full_left_shift_64_4_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_left_shift_64_4
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S O))))
+         (Ty.Prod (Word.Word (S (S O))) (Word.Word (S (S (S (S (S (S O))))))))
+         (@Word.full_left_shift1 (Word.Word (S (S O))) (S (S (S (S O)))) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_left_shift_64_8_local_spec
+full_left_shift_64_8_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_left_shift_64_8
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S O)))))
+         (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S (S (S (S O))))))))
+         (@Word.full_left_shift1 (Word.Word (S (S (S O)))) (S (S (S O))) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_left_shift_64_16_local_spec
+full_left_shift_64_16_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_left_shift_64_16
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O))))))
+         (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (@Word.full_left_shift1 (Word.Word (S (S (S (S O))))) (S (S O)) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_left_shift_64_32_local_spec
+full_left_shift_64_32_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_left_shift_64_32
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O)))))))
+         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (@Word.full_left_shift1 (Word.Word (S (S (S (S (S O)))))) (S O) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_right_shift_64_1_local_spec
+full_right_shift_64_1_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_right_shift_64_1
+         (Ty.Prod (Word.Word O) (Word.Word (S (S (S (S (S (S O))))))))
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word O))
+         (@Word.full_right_shift1 (Word.Word O) (S (S (S (S (S (S O)))))) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_right_shift_64_2_local_spec
+full_right_shift_64_2_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_right_shift_64_2
+         (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S O))))))))
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S O)))
+         (@Word.full_right_shift1 (Word.Word (S O)) (S (S (S (S (S O))))) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_right_shift_64_4_local_spec
+full_right_shift_64_4_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_right_shift_64_4
+         (Ty.Prod (Word.Word (S (S O))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S O))))
+         (@Word.full_right_shift1 (Word.Word (S (S O))) (S (S (S (S O)))) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_right_shift_64_8_local_spec
+full_right_shift_64_8_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_right_shift_64_8
+         (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S O)))))
+         (@Word.full_right_shift1 (Word.Word (S (S (S O)))) (S (S (S O))) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_right_shift_64_16_local_spec
+full_right_shift_64_16_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_right_shift_64_16
+         (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O))))))
+         (@Word.full_right_shift1 (Word.Word (S (S (S (S O))))) (S (S O)) Alg.CoreFunSem)
+### C.jet_core_fullshift64_jets.full_right_shift_64_32_local_spec
+full_right_shift_64_32_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_context_separated.jet_separated_local_spec jets.f_simplicity_full_right_shift_64_32
+         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S (S O))))))))
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O)))))))
+         (@Word.full_right_shift1 (Word.Word (S (S (S (S (S O)))))) (S O) Alg.CoreFunSem)

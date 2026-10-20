@@ -1,0 +1,72 @@
+### C.jet_shift32_spec.shift32_plain_spec_parametric
+shift32_plain_spec_parametric
+     : forall right : bool,
+       @Alg.Core.Parametric (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S (S O)))))) (@shift32_plain_spec right)
+### C.jet_shift32_spec.shift32_controls_normalform
+shift32_controls_normalform
+     : forall (right : bool)
+         (amount : prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+         (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (@shift32_plain_spec right Alg.CoreFunSem
+            (@pair
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+               (Ty.tySem (Word.Word (S (S (S (S (S O))))))) amount x))
+         (@Word.shift_const (S (S (S (S (S O))))) Alg.CoreFunSem
+            (jet_rotate_control_word.rotate_signed_amount right
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) amount)) x)
+### C.jet_shift32_spec.shift32_plain_spec_bits
+shift32_plain_spec_bits
+     : forall (right : bool)
+         (amount : prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+         (x : prod
+                (prod
+                   (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                      (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                   (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                      (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                (prod
+                   (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                      (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                   (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                      (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+         (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j)
+                (BinInt.Z.lt j
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+       @eq bool
+         (BinInt.Z.testbit
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O))))))
+               (@shift32_plain_spec right Alg.CoreFunSem
+                  (@pair
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                     amount x))) j)
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)
+            (BinInt.Z.sub j
+               (jet_rotate_control_word.rotate_signed_amount right
+                  (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) amount))))
+### C.jet_shift32_spec.shift32_plain_spec
+shift32_plain_spec =
+fun (right : bool) (term : Alg.Core.Algebra) =>
+@jet_shift_spec.shift_word_spec (S (S (S O))) (S (S (S (S (S O))))) right term
+     : forall (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S (S O))))))
+
+Arguments shift32_plain_spec right%bool_scope {term}

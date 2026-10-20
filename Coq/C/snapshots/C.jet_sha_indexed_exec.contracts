@@ -1,0 +1,302 @@
+### C.jet_sha_indexed_exec.eval_shx_deref_struct
+eval_shx_deref_struct
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (x : BinNums.positive)
+         (sid : AST.ident) (b : Values.block) (ofs : Integers.Ptrofs.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val x le) (@Some Values.val (Values.Vptr b ofs))),
+       Clight.eval_expr jet_sha_linkage.sha_ge e le m
+         (Clight.Ederef (Clight.Etempvar x (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+            (Ctypes.Tstruct sid Ctypes.noattr)) (Values.Vptr b ofs)
+### C.jet_sha_indexed_exec.eval_shx_field_lvalue
+eval_shx_field_lvalue
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (a : Clight.expr)
+         (sid field : AST.ident) (delta : BinNums.Z) (ty : Ctypes.type) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (_ : @eq Ctypes.type (Clight.typeof a) (Ctypes.Tstruct sid Ctypes.noattr))
+         (_ : shx_field_at sid field delta) (_ : Clight.eval_expr jet_sha_linkage.sha_ge e le m a (Values.Vptr b ofs)),
+       Clight.eval_lvalue jet_sha_linkage.sha_ge e le m (Clight.Efield a field ty) b
+         (Integers.Ptrofs.add ofs (Integers.Ptrofs.repr delta)) Ctypes.Full
+### C.jet_sha_indexed_exec.eval_shx_field_value
+eval_shx_field_value
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (a : Clight.expr)
+         (sid field : AST.ident) (delta : BinNums.Z) (ty : Ctypes.type) (chunk : AST.memory_chunk)
+         (b : Values.block) (ofs : Integers.Ptrofs.int) (v : Values.val)
+         (_ : @eq Ctypes.type (Clight.typeof a) (Ctypes.Tstruct sid Ctypes.noattr)) (_ : shx_field_at sid field delta)
+         (_ : @eq Ctypes.mode (Ctypes.access_mode ty) (Ctypes.By_value chunk))
+         (_ : Clight.eval_expr jet_sha_linkage.sha_ge e le m a (Values.Vptr b ofs))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.loadv chunk m (Values.Vptr b (Integers.Ptrofs.add ofs (Integers.Ptrofs.repr delta))))
+                (@Some Values.val v)), Clight.eval_expr jet_sha_linkage.sha_ge e le m (Clight.Efield a field ty) v
+### C.jet_sha_indexed_exec.eval_shx_field_struct
+eval_shx_field_struct
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (a : Clight.expr)
+         (sid field : AST.ident) (delta : BinNums.Z) (sid' : AST.ident) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (_ : @eq Ctypes.type (Clight.typeof a) (Ctypes.Tstruct sid Ctypes.noattr))
+         (_ : shx_field_at sid field delta) (_ : Clight.eval_expr jet_sha_linkage.sha_ge e le m a (Values.Vptr b ofs)),
+       Clight.eval_expr jet_sha_linkage.sha_ge e le m (Clight.Efield a field (Ctypes.Tstruct sid' Ctypes.noattr))
+         (Values.Vptr b (Integers.Ptrofs.add ofs (Integers.Ptrofs.repr delta)))
+### C.jet_sha_indexed_exec.eval_shx_field_array
+eval_shx_field_array
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (a : Clight.expr)
+         (sid field : AST.ident) (delta : BinNums.Z) (ty : Ctypes.type) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (_ : @eq Ctypes.type (Clight.typeof a) (Ctypes.Tstruct sid Ctypes.noattr))
+         (_ : shx_field_at sid field delta)
+         (_ : forall chunk : AST.memory_chunk, not (@eq Ctypes.mode (Ctypes.access_mode ty) (Ctypes.By_value chunk)))
+         (_ : @eq Ctypes.mode (Ctypes.access_mode ty) Ctypes.By_reference)
+         (_ : Clight.eval_expr jet_sha_linkage.sha_ge e le m a (Values.Vptr b ofs)),
+       Clight.eval_expr jet_sha_linkage.sha_ge e le m (Clight.Efield a field ty)
+         (Values.Vptr b (Integers.Ptrofs.add ofs (Integers.Ptrofs.repr delta)))
+### C.jet_sha_indexed_exec.shx_ptr_add_repr
+shx_ptr_add_repr
+     : forall (base delta : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 base) (_ : BinInt.Z.le BinNums.Z0 delta)
+         (_ : BinInt.Z.le (BinInt.Z.add base delta) Integers.Ptrofs.max_unsigned),
+       @eq Integers.Ptrofs.int (Integers.Ptrofs.add (Integers.Ptrofs.repr base) (Integers.Ptrofs.repr delta))
+         (Integers.Ptrofs.repr (BinInt.Z.add base delta))
+### C.jet_sha_indexed_exec.shx_loadv_repr
+shx_loadv_repr
+     : forall (chunk : AST.memory_chunk) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (v : Values.val) (_ : and (BinInt.Z.le BinNums.Z0 base) (BinInt.Z.le base Integers.Ptrofs.max_unsigned))
+         (_ : @eq (option Values.val) (Memory.Mem.load chunk m b base) (@Some Values.val v)),
+       @eq (option Values.val) (Memory.Mem.loadv chunk m (Values.Vptr b (Integers.Ptrofs.repr base)))
+         (@Some Values.val v)
+### C.jet_sha_indexed_exec.shx_txEnv_tx
+shx_txEnv_tx
+     : shx_field_at jets_sha._txEnv jets_sha._tx BinNums.Z0
+### C.jet_sha_indexed_exec.shx_txEnv_taproot
+shx_txEnv_taproot
+     : shx_field_at jets_sha._txEnv jets_sha._taproot (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+### C.jet_sha_indexed_exec.shx_txEnv_ix
+shx_txEnv_ix
+     : shx_field_at jets_sha._txEnv jets_sha._ix
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+### C.jet_sha_indexed_exec.shx_tapEnv_scriptCMR
+shx_tapEnv_scriptCMR
+     : shx_field_at jets_sha._bitcoinTapEnv jets_sha._scriptCMR
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_sha_indexed_exec.shx_tapEnv_internalKey
+shx_tapEnv_internalKey
+     : shx_field_at jets_sha._bitcoinTapEnv jets_sha._internalKey
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+### C.jet_sha_indexed_exec.shx_midstate_s
+shx_midstate_s
+     : shx_field_at jets_sha._sha256_midstate jets_sha._s BinNums.Z0
+### C.jet_sha_indexed_exec.shx_helper_lookup
+shx_helper_lookup
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f)
+                jet_sha_transport.sha_core_helpers),
+       and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_sha_linkage.sha_ge) id)
+            (@Some Values.block (jet_sha_linkage.sha_symbol_block id)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_sha_linkage.sha_ge)
+               (Values.Vptr (jet_sha_linkage.sha_symbol_block id) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+### C.jet_sha_indexed_exec.exec_shx_helper_call
+exec_shx_helper_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (optid : option AST.ident) (id : AST.ident) (f : Clight.function)
+         (al : list Clight.expr) (tyargs : Ctypes.typelist) (tyres : Ctypes.type) (cc : AST.calling_convention)
+         (vargs : list Values.val) (vres : Values.val) (m' : Memory.Mem.mem)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f)
+                jet_sha_transport.sha_core_helpers)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : Clight.eval_exprlist jet_sha_linkage.sha_ge e le m al tyargs vargs)
+         (_ : @eq Ctypes.type (Clight.type_of_fundef (@Ctypes.Internal Clight.function f))
+                (Ctypes.Tfunction tyargs tyres cc))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge m (@Ctypes.Internal Clight.function f) vargs
+                Events.E0 m' vres),
+       ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge e le m
+         (Clight.Scall optid (Clight.Evar id (Ctypes.Tfunction tyargs tyres cc)) al) Events.E0
+         (Clight.set_opttemp optid vres le) m' ClightBigstep.Out_normal
+### C.jet_sha_indexed_exec.shx_ltu_cmp
+shx_ltu_cmp
+     : forall (r nI : Integers.Int64.int) (m : Memory.Mem.mem),
+       @eq (option Values.val)
+         (Cop.sem_binary_operation (Clight.genv_cenv jet_sha_linkage.sha_ge) Cop.Olt (Values.Vlong r) Ctypesdefs.tulong
+            (Values.Vlong nI) Ctypesdefs.tulong m) (@Some Values.val (Values.Val.of_bool (Integers.Int64.ltu r nI)))
+### C.jet_sha_indexed_exec.shx_bool_cast
+shx_bool_cast
+     : forall (b : bool) (m : Memory.Mem.mem),
+       @eq (option Values.val) (Cop.sem_cast (Values.Val.of_bool b) Ctypesdefs.tint Ctypesdefs.tbool m)
+         (@Some Values.val
+            (Values.Vint
+               match b return Integers.Int.int with
+               | true => Integers.Int.one
+               | false => Integers.Int.zero
+               end))
+### C.jet_sha_indexed_exec.exec_shx_indexed_rest
+exec_shx_indexed_rest
+     : forall (tp cp : AST.ident)
+         (_ : and (not (@eq AST.ident tp jets_sha._env))
+                (and (not (@eq AST.ident tp jets_sha._dst))
+                   (and (not (@eq AST.ident tp jets_sha._i))
+                      (and (not (@eq AST.ident tp jets_sha._t'1))
+                         (and (not (@eq AST.ident tp jets_sha._t'2)) (not (@eq AST.ident tp cp)))))))
+         (_ : and (not (@eq AST.ident cp jets_sha._env))
+                (and (not (@eq AST.ident cp jets_sha._dst))
+                   (and (not (@eq AST.ident cp jets_sha._i))
+                      (and (not (@eq AST.ident cp jets_sha._t'1)) (not (@eq AST.ident cp jets_sha._t'2))))))
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le0 : Maps.PTree.tree Values.val)
+         (countfield : AST.ident) (cdelta : BinNums.Z) (then_s else_s : Clight.statement) (mc mr mb : Memory.Mem.mem)
+         (be : Values.block) (ebase : BinNums.Z) (bt : Values.block) (txbase : BinNums.Z) (bl bd : Values.block)
+         (dbase : BinNums.Z) (r nI : Integers.Int64.int) (Post : forall _ : Memory.Mem.mem, Prop)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._simplicity_read32 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._env le0)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._dst le0)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge mc
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read32)
+                (@cons Values.val (Values.Vptr bl (Integers.Ptrofs.repr BinNums.Z0)) (@nil Values.val)) Events.E0 mr
+                (Values.Vlong r)) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 txbase) (_ : BinInt.Z.le BinNums.Z0 cdelta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (BinInt.Z.add txbase cdelta)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : shx_field_at jets_sha._bitcoinTransaction countfield cdelta)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mr be (BinInt.Z.add ebase BinNums.Z0))
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mr bt (BinInt.Z.add txbase cdelta))
+                (@Some Values.val (Values.Vlong nI)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge mr
+                (@Ctypes.Internal Clight.function jets.f_writeBit)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val
+                      (Values.Vint
+                         match Integers.Int64.ltu r nI return Integers.Int.int with
+                         | true => Integers.Int.one
+                         | false => Integers.Int.zero
+                         end) (@nil Values.val))) Events.E0 mb
+                (Values.Vint
+                   match Integers.Int64.ltu r nI return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end))
+         (_ : forall (le' : Maps.PTree.tree Values.val)
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._i le')
+                       (@Some Values.val (Values.Vlong r)))
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._dst le')
+                       (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._env le')
+                       (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+                (_ : @eq bool (Integers.Int64.ltu r nI) true),
+              @ex Clight.temp_env
+                (fun le'' : Clight.temp_env =>
+                 @ex Memory.Mem.mem
+                   (fun me : Memory.Mem.mem =>
+                    and
+                      (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge e le' mb then_s Events.E0 le'' me
+                         ClightBigstep.Out_normal) (Post me))))
+         (_ : forall (le' : Maps.PTree.tree Values.val)
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._i le')
+                       (@Some Values.val (Values.Vlong r)))
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._dst le')
+                       (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._env le')
+                       (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+                (_ : @eq bool (Integers.Int64.ltu r nI) false),
+              @ex Clight.temp_env
+                (fun le'' : Clight.temp_env =>
+                 @ex Memory.Mem.mem
+                   (fun me : Memory.Mem.mem =>
+                    and
+                      (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge e le' mb else_s Events.E0 le'' me
+                         ClightBigstep.Out_normal) (Post me)))),
+       @ex Clight.temp_env
+         (fun le1 : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun me : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge e le0 mc
+                  (shx_indexed_rest tp cp countfield then_s else_s) Events.E0 le1 me shx_returned_one)
+               (Post me)))
+### C.jet_sha_indexed_exec.shx_field_at
+shx_field_at =
+fun (sid field : AST.ident) (delta : BinNums.Z) =>
+match @Maps.PTree.get Ctypes.composite sid (Clight.genv_cenv jet_sha_linkage.sha_ge) return Prop with
+| Some co =>
+    @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+      (Ctypes.field_offset (Clight.genv_cenv jet_sha_linkage.sha_ge) field (Ctypes.co_members co))
+      (@Errors.OK (prod BinNums.Z Ctypes.bitfield) (@pair BinNums.Z Ctypes.bitfield delta Ctypes.Full))
+| None => False
+end
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : BinNums.Z), Prop
+
+Arguments shx_field_at sid field delta%Z_scope
+### C.jet_sha_indexed_exec.shx_struct
+shx_struct =
+fun (t : Ctypes.type) (sid : AST.ident) => @eq Ctypes.type t (Ctypes.Tstruct sid Ctypes.noattr)
+     : forall (_ : Ctypes.type) (_ : AST.ident), Prop
+
+Arguments shx_struct t sid
+### C.jet_sha_indexed_exec.shx_returned_one
+shx_returned_one =
+ClightBigstep.Out_return
+  (@Some (prod Values.val Ctypes.type) (@pair Values.val Ctypes.type (Values.Vint Integers.Int.one) Ctypesdefs.tint))
+     : ClightBigstep.outcome
+### C.jet_sha_indexed_exec.shx_indexed_head
+shx_indexed_head =
+Clight.Ssequence
+  (Clight.Scall (@Some AST.ident jets_sha._t'1)
+     (Clight.Evar jets_sha._simplicity_read32
+        (Ctypes.Tfunction
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr)) Ctypes.Tnil)
+           Ctypesdefs.tulong AST.cc_default))
+     (@cons Clight.expr
+        (Clight.Eaddrof (Clight.Evar jets_sha._src (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr))) (@nil Clight.expr)))
+  (Clight.Sset jets_sha._i (Clight.Etempvar jets_sha._t'1 Ctypesdefs.tulong))
+     : Clight.statement
+### C.jet_sha_indexed_exec.shx_indexed_cond
+shx_indexed_cond =
+fun tp cp countfield : AST.ident =>
+Clight.Ssequence
+  (Clight.Sset tp
+     (Clight.Efield
+        (Clight.Ederef (Clight.Etempvar jets_sha._env (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._txEnv Ctypes.noattr)))
+           (Ctypes.Tstruct jets_sha._txEnv Ctypes.noattr)) jets_sha._tx
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._bitcoinTransaction Ctypes.noattr))))
+  (Clight.Ssequence
+     (Clight.Sset cp
+        (Clight.Efield
+           (Clight.Ederef
+              (Clight.Etempvar tp (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._bitcoinTransaction Ctypes.noattr)))
+              (Ctypes.Tstruct jets_sha._bitcoinTransaction Ctypes.noattr)) countfield Ctypesdefs.tulong))
+     (Clight.Scall (@Some AST.ident jets_sha._t'2)
+        (Clight.Evar jets_sha._writeBit
+           (Ctypes.Tfunction
+              (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr))
+                 (Ctypes.Tcons Ctypesdefs.tbool Ctypes.Tnil)) Ctypesdefs.tbool AST.cc_default))
+        (@cons Clight.expr
+           (Clight.Etempvar jets_sha._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr)))
+           (@cons Clight.expr
+              (Clight.Ebinop Cop.Olt (Clight.Etempvar jets_sha._i Ctypesdefs.tulong)
+                 (Clight.Etempvar cp Ctypesdefs.tulong) Ctypesdefs.tint) (@nil Clight.expr)))))
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : AST.ident), Clight.statement
+
+Arguments shx_indexed_cond tp cp countfield
+### C.jet_sha_indexed_exec.shx_indexed_rest
+shx_indexed_rest =
+fun (tp cp countfield : AST.ident) (then_s else_s : Clight.statement) =>
+Clight.Ssequence shx_indexed_head
+  (Clight.Ssequence
+     (Clight.Ssequence (shx_indexed_cond tp cp countfield)
+        (Clight.Sifthenelse (Clight.Etempvar jets_sha._t'2 Ctypesdefs.tbool) then_s else_s))
+     (Clight.Sreturn
+        (@Some Clight.expr (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint))))
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : Clight.statement) (_ : Clight.statement),
+       Clight.statement
+
+Arguments shx_indexed_rest tp cp countfield then_s else_s

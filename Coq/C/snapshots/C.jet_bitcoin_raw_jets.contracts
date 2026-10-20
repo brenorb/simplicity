@@ -1,0 +1,315 @@
+### C.jet_bitcoin_raw_jets.application_raw_local_spec_sep
+application_raw_local_spec_sep
+     : forall (f : Clight.function) (ge : Clight.genv) (A B : Ty.Ty)
+         (rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_bitcoin_ext_prim.ext_environment)
+                  (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+         (spec : forall (_ : Ty.tySem A) (_ : jet_bitcoin_ext_prim.ext_environment), option (Ty.tySem B))
+         (raw_spec : forall (_ : Ty.tySem A) (_ : jet_bitcoin_raw_env.raw_bitcoin_environment), option (Ty.tySem B))
+         (_ : forall (a : Ty.tySem A) (logical : jet_bitcoin_raw_env.raw_bitcoin_environment)
+                (Hpath : le (@length Digest.hash256 (jet_bitcoin_raw_env.raw_tap_path logical))
+                           (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              @eq (option (Ty.tySem B)) (spec a (jet_bitcoin_raw_env.project_raw_environment logical Hpath))
+                (raw_spec a logical))
+         (_ : jet_application_sep.application_jet_local_spec_sep f ge jet_bitcoin_ext_prim.ext_environment A B rep spec),
+       jet_application_sep.application_jet_local_spec_sep f ge jet_bitcoin_raw_env.raw_bitcoin_environment A B
+         (raw_env_rep rep) raw_spec
+### C.jet_bitcoin_raw_jets.application_raw_primitive_local_spec_sep
+application_raw_primitive_local_spec_sep
+     : forall (f : Clight.function) (ge : Clight.genv) (A B : Ty.Ty) (p : jet_bitcoin_ext_prim.BitcoinExt.t A B)
+         (rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_bitcoin_ext_prim.ext_environment)
+                  (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop)
+         (_ : jet_application_sep.application_jet_local_spec_sep f ge jet_bitcoin_ext_prim.ext_environment A B rep
+                (@jet_bitcoin_ext_prim.BitcoinExt.sem A B p)),
+       jet_application_sep.application_jet_local_spec_sep f ge jet_bitcoin_raw_env.raw_bitcoin_environment A B
+         (raw_env_rep rep) (@jet_bitcoin_raw_env.raw_ext_sem A B p)
+### C.jet_bitcoin_raw_jets.bitcoin_transaction_id_raw_local_spec
+bitcoin_transaction_id_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_transaction_id
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+               jet_bitcoin_ext_prim.extTxid BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (@jet_bitcoin_raw_env.raw_ext_sem Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+            jet_bitcoin_ext_prim.BitcoinExt.TransactionId)
+### C.jet_bitcoin_raw_jets.bitcoin_internal_key_raw_local_spec
+bitcoin_internal_key_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_internal_key
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+               jet_bitcoin_ext_prim.extInternalKey (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+         (@jet_bitcoin_raw_env.raw_ext_sem Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+            jet_bitcoin_ext_prim.BitcoinExt.InternalKey)
+### C.jet_bitcoin_raw_jets.bitcoin_tapleaf_version_raw_local_spec
+bitcoin_tapleaf_version_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tapleaf_version
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment Ty.Unit
+         (Word.Word (S (S (S O)))) (raw_env_rep jet_bitcoin_tapleaf_version_local.bitcoin_tapleaf_version_env_rep)
+         (@jet_bitcoin_raw_env.raw_ext_sem Ty.Unit (Word.Word (S (S (S O))))
+            jet_bitcoin_ext_prim.BitcoinExt.TapleafVersion)
+### C.jet_bitcoin_raw_jets.bitcoin_input_script_hash_raw_local_spec
+bitcoin_input_script_hash_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_script_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (raw_env_rep
+            (@jet_bitcoin_indexed_ptr.indexed_ptr_rep jet_bitcoin_ext_prim.ext_environment Digest.hash256
+               jet_bitcoin_ext_prim.extInScriptHash jet_bitcoin_ext_ptr_jets.hash_elem_rep
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+         (@jet_bitcoin_raw_env.raw_ext_sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            jet_bitcoin_ext_prim.BitcoinExt.InputScriptHash)
+### C.jet_bitcoin_raw_jets.bitcoin_input_script_sig_hash_raw_local_spec
+bitcoin_input_script_sig_hash_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_script_sig_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (raw_env_rep
+            (@jet_bitcoin_indexed_ptr.indexed_ptr_rep jet_bitcoin_ext_prim.ext_environment Digest.hash256
+               jet_bitcoin_ext_prim.extInScriptSigHash jet_bitcoin_ext_ptr_jets.hash_elem_rep
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+         (@jet_bitcoin_raw_env.raw_ext_sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            jet_bitcoin_ext_prim.BitcoinExt.InputScriptSigHash)
+### C.jet_bitcoin_raw_jets.bitcoin_tappath_raw_local_spec
+bitcoin_tappath_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tappath
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment (Word.Word (S (S (S O))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (raw_env_rep jet_bitcoin_tappath_local.bitcoin_tappath_env_rep)
+         (@jet_bitcoin_raw_env.raw_ext_sem (Word.Word (S (S (S O))))
+            (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_bitcoin_ext_prim.BitcoinExt.Tappath)
+### C.jet_bitcoin_raw_jets.ext_primitive_option_sem
+@ext_primitive_option_sem
+     : forall (A B : Ty.Ty) (p : jet_bitcoin_ext_prim.BitcoinExt.t A B) (a : Ty.tySem A)
+         (e : jet_bitcoin_ext_prim.BitcoinExt.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (@jet_bitcoin_ext_prim.PrimitiveBitcoinExt.Primitive.Combinators.prim A B
+            (jet_bitcoin_ext_prim.PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) p a e)
+         (@jet_bitcoin_ext_prim.BitcoinExt.sem A B p a e)
+### C.jet_bitcoin_raw_jets.raw_current_composition
+raw_current_composition
+     : forall
+         (p : jet_bitcoin_ext_prim.BitcoinExt.t (Word.Word (S (S (S (S (S O))))))
+                (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (a : Ty.tySem Ty.Unit)
+         (logical : jet_bitcoin_raw_env.raw_bitcoin_environment)
+         (Hpath : le (@length Digest.hash256 (jet_bitcoin_raw_env.raw_tap_path logical))
+                    (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_bitcoin_ext_current_spec.ext_comp
+            (jet_bitcoin_ext_prim.PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+            Ty.Unit (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+            (@jet_bitcoin_ext_prim.PrimitiveBitcoinExt.Primitive.Combinators.prim Ty.Unit
+               (Word.Word (S (S (S (S (S O))))))
+               (jet_bitcoin_ext_prim.PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+               jet_bitcoin_ext_prim.BitcoinExt.CurrentIndex)
+            (@jet_bitcoin_ext_current_spec.ext_assert_spec
+               (jet_bitcoin_ext_prim.PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+               (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+               (@jet_bitcoin_ext_prim.PrimitiveBitcoinExt.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+                  (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (jet_bitcoin_ext_prim.PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+                  p)) a (jet_bitcoin_raw_env.project_raw_environment logical Hpath)) (raw_current_hash_sem p a logical)
+### C.jet_bitcoin_raw_jets.bitcoin_current_script_hash_raw_local_spec
+bitcoin_current_script_hash_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_current_script_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@jet_bitcoin_current_ptr_jets.current_ptr_rep jet_bitcoin_ext_prim.ext_environment Digest.hash256
+               jet_bitcoin_ext_prim.extInScriptHash jet_bitcoin_ext_current_spec.ext_ix
+               jet_bitcoin_ext_ptr_jets.hash_elem_rep
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+               BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+         (raw_current_hash_sem jet_bitcoin_ext_prim.BitcoinExt.InputScriptHash)
+### C.jet_bitcoin_raw_jets.bitcoin_current_script_sig_hash_raw_local_spec
+bitcoin_current_script_sig_hash_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_current_script_sig_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (raw_env_rep
+            (@jet_bitcoin_current_ptr_jets.current_ptr_rep jet_bitcoin_ext_prim.ext_environment Digest.hash256
+               jet_bitcoin_ext_prim.extInScriptSigHash jet_bitcoin_ext_current_spec.ext_ix
+               jet_bitcoin_ext_ptr_jets.hash_elem_rep
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) BinNums.Z0
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+         (raw_current_hash_sem jet_bitcoin_ext_prim.BitcoinExt.InputScriptSigHash)
+### C.jet_bitcoin_raw_jets.bitcoin_input_annex_hash_raw_local_spec
+bitcoin_input_annex_hash_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_annex_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (raw_env_rep jet_bitcoin_annex_local.bitcoin_input_annex_hash_env_rep)
+         (@jet_bitcoin_raw_env.raw_ext_sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+            jet_bitcoin_ext_prim.BitcoinExt.InputAnnexHash)
+### C.jet_bitcoin_raw_jets.raw_current_annex_composition
+raw_current_annex_composition
+     : forall (a : Ty.tySem Ty.Unit) (logical : jet_bitcoin_raw_env.raw_bitcoin_environment)
+         (Hpath : le (@length Digest.hash256 (jet_bitcoin_raw_env.raw_tap_path logical))
+                    (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_bitcoin_current_annex_local.bitcoin_current_annex_hash_spec
+            (jet_bitcoin_ext_prim.PrimitiveBitcoinExt.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            (jet_bitcoin_raw_env.project_raw_environment logical Hpath)) (raw_current_annex_sem a logical)
+### C.jet_bitcoin_raw_jets.bitcoin_current_annex_hash_raw_local_spec
+bitcoin_current_annex_hash_raw_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_current_annex_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_raw_env.raw_bitcoin_environment Ty.Unit
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (raw_env_rep jet_bitcoin_current_annex_local.bitcoin_current_annex_hash_env_rep) raw_current_annex_sem
+### C.jet_bitcoin_raw_jets.raw_env_rep
+raw_env_rep =
+fun
+  (rep : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_bitcoin_ext_prim.ext_environment)
+           (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop) (m : Memory.Mem.mem)
+  (env : Values.val) (logical : jet_bitcoin_raw_env.raw_bitcoin_environment)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex
+  (le (@length Digest.hash256 (jet_bitcoin_raw_env.raw_tap_path logical))
+     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  (fun
+     Hpath : le (@length Digest.hash256 (jet_bitcoin_raw_env.raw_tap_path logical))
+               (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))) =>
+   rep m env (jet_bitcoin_raw_env.project_raw_environment logical Hpath) fp)
+     : forall
+         (_ : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_bitcoin_ext_prim.ext_environment)
+                (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop) (_ : Memory.Mem.mem)
+         (_ : Values.val) (_ : jet_bitcoin_raw_env.raw_bitcoin_environment)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments raw_env_rep rep%function_scope m env logical fp%list_scope
+### C.jet_bitcoin_raw_jets.raw_current_hash_sem
+raw_current_hash_sem =
+fun
+  (p : jet_bitcoin_ext_prim.BitcoinExt.t (Word.Word (S (S (S (S (S O))))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (a : Ty.tySem Ty.Unit)
+  (logical : jet_bitcoin_raw_env.raw_bitcoin_environment) =>
+match
+  @jet_bitcoin_raw_env.raw_ext_sem Ty.Unit (Word.Word (S (S (S (S (S O))))))
+    jet_bitcoin_ext_prim.BitcoinExt.CurrentIndex a logical
+  return (option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+with
+| Some ix =>
+    match
+      @jet_bitcoin_raw_env.raw_ext_sem (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) p ix logical
+      return (option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+    with
+    | Some t =>
+        match t return (option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) with
+        | inl _ => @None (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        | inr h =>
+            @Some
+              (prod
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end)
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end)
+                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                        match n return Ty.Ty with
+                        | O => X
+                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) h
+        end
+    | None => @None (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+    end
+| None => @None (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+end
+     : forall
+         (_ : jet_bitcoin_ext_prim.BitcoinExt.t (Word.Word (S (S (S (S (S O))))))
+                (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (_ : Ty.tySem Ty.Unit)
+         (_ : jet_bitcoin_raw_env.raw_bitcoin_environment),
+       option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments raw_current_hash_sem p a logical
+### C.jet_bitcoin_raw_jets.raw_current_annex_sem
+raw_current_annex_sem =
+fun (a : Ty.tySem Ty.Unit) (logical : jet_bitcoin_raw_env.raw_bitcoin_environment) =>
+match
+  @jet_bitcoin_raw_env.raw_ext_sem Ty.Unit (Word.Word (S (S (S (S (S O))))))
+    jet_bitcoin_ext_prim.BitcoinExt.CurrentIndex a logical
+  return (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+with
+| Some ix =>
+    match
+      @jet_bitcoin_raw_env.raw_ext_sem (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        jet_bitcoin_ext_prim.BitcoinExt.InputAnnexHash ix logical
+      return (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+    with
+    | Some t =>
+        match t return (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))) with
+        | inl _ => @None (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        | inr annex =>
+            @Some
+              (sum unit
+                 ((fix tySem (X : Ty.Ty) : Set :=
+                     match X return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) annex
+        end
+    | None => @None (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+    end
+| None => @None (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+end
+     : forall (_ : Ty.tySem Ty.Unit) (_ : jet_bitcoin_raw_env.raw_bitcoin_environment),
+       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments raw_current_annex_sem a logical

@@ -1,0 +1,105 @@
+### C.jet_ternary_spec.ternary_word_spec_parametric
+ternary_word_spec_parametric
+     : forall (n : nat) (k : ternary_op),
+       @Alg.Core.Parametric
+         (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)
+            (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n) (@ternary_word_spec n k)
+### C.jet_ternary_spec.ternary_int_denotes
+ternary_int_denotes
+     : forall (n : nat) (k : ternary_op) (x y z : Ty.tySem (Word.Word n)) (r t u : Integers.Int.int)
+         (_ : BinInt.Z.le (Zpower.two_power_nat n)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (_ : @eq BinNums.Z (Integers.Int.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+         (_ : @eq BinNums.Z (Integers.Int.unsigned t) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+         (_ : @eq BinNums.Z (Integers.Int.unsigned u) (@Word.ToZ.Theory.toZ (Word.WordToZ n) z)),
+       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ n)))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ n) (Integers.Int.unsigned (ternary_int k r t u)))
+         (@ternary_word_spec n k Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) x
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) y z)))
+### C.jet_ternary_spec.ternary_int64_denotes
+ternary_int64_denotes
+     : forall (n : nat) (k : ternary_op) (x y z : Ty.tySem (Word.Word n)) (r t u : Integers.Int64.int)
+         (_ : BinInt.Z.le (Zpower.two_power_nat n)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned t) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned u) (@Word.ToZ.Theory.toZ (Word.WordToZ n) z)),
+       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ n)))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ n) (Integers.Int64.unsigned (ternary_int64 k r t u)))
+         (@ternary_word_spec n k Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) x
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) y z)))
+### C.jet_ternary_spec.ternary_op
+Inductive ternary_op : Set :=  TMaj : ternary_op | TXorXor : ternary_op | TCh : ternary_op.
+### C.jet_ternary_spec.ternary_bool
+ternary_bool =
+fun (k : ternary_op) (x y z : bool) =>
+match k return bool with
+| TMaj => orb (orb (andb x y) (andb y z)) (andb z x)
+| TXorXor => xorb (xorb x y) z
+| TCh => orb (andb x y) (andb (negb x) z)
+end
+     : forall (_ : ternary_op) (_ : bool) (_ : bool) (_ : bool), bool
+
+Arguments ternary_bool k (x y z)%bool_scope
+### C.jet_ternary_spec.ternary_int64
+ternary_int64 =
+fun (k : ternary_op) (x y z : Integers.Int64.int) =>
+match k return Integers.Int64.int with
+| TMaj =>
+    Integers.Int64.or (Integers.Int64.or (Integers.Int64.and x y) (Integers.Int64.and y z)) (Integers.Int64.and z x)
+| TXorXor => Integers.Int64.xor (Integers.Int64.xor x y) z
+| TCh =>
+    Integers.Int64.or (Integers.Int64.and x y)
+      (Integers.Int64.and (Integers.Int64.not (Integers.Int64.mul Integers.Int64.one x)) z)
+end
+     : forall (_ : ternary_op) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Integers.Int64.int
+
+Arguments ternary_int64 k x y z
+### C.jet_ternary_spec.ternary_int
+ternary_int =
+fun (k : ternary_op) (x y z : Integers.Int.int) =>
+match k return Integers.Int.int with
+| TMaj => Integers.Int.or (Integers.Int.or (Integers.Int.and x y) (Integers.Int.and y z)) (Integers.Int.and z x)
+| TXorXor => Integers.Int.xor (Integers.Int.xor x y) z
+| TCh =>
+    Integers.Int.or (Integers.Int.and x y)
+      (Integers.Int.and (Integers.Int.not (Integers.Int.mul Integers.Int.one x)) z)
+end
+     : forall (_ : ternary_op) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments ternary_int k x y z
+### C.jet_ternary_spec.ternary_bit_spec
+ternary_bit_spec =
+fun (k : ternary_op) (term : Alg.Core.Algebra) =>
+match
+  k
+  return
+    (Alg.Core.domain term
+       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)))
+       (Ty.Sum Ty.Unit Ty.Unit))
+with
+| TMaj => @Bit.maj term
+| TXorXor => @Bit.xor3 term
+| TCh => @Bit.ch (Ty.Sum Ty.Unit Ty.Unit) term
+end
+     : forall (_ : ternary_op) (term : Alg.Core.Algebra),
+       Alg.Core.domain term
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)))
+         (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments ternary_bit_spec k {term}
+### C.jet_ternary_spec.ternary_word_spec
+ternary_word_spec =
+fun (n : nat) (k : ternary_op) (term : Alg.Core.Algebra) =>
+@Word.bitwiseTri (Ty.Sum Ty.Unit Ty.Unit) n term (@ternary_bit_spec k term)
+     : forall (n : nat) (_ : ternary_op) (term : Alg.Core.Algebra),
+       Alg.Core.domain term
+         (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)
+            (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)
+
+Arguments ternary_word_spec n%nat_scope k {term}

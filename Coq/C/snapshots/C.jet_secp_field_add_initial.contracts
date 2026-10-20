@@ -1,0 +1,40 @@
+### C.jet_secp_field_add_initial.field_region_from_values
+field_region_from_values
+     : forall (rho : forall _ : nat, Integers.Int64.int) (start : nat) (layout : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (r : nat)
+         (_ : jet_secp_fe_nv.fe_at m (jet_sx_state.blk layout r) (jet_sx_state.bas layout r) (field_values rho start)),
+       jet_sx_state.region_ok rho layout m r (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 start))
+### C.jet_secp_field_add_initial.field_region_storage_size
+field_region_storage_size
+     : forall start : nat,
+       @List.Forall jet_sx_state.cell
+         (fun c : jet_sx_state.cell =>
+          BinInt.Z.le (BinInt.Z.add (jet_sx_state.cofs c) (Memdata.size_chunk (jet_sx_state.cchunk c)))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+         (jet_sx_state.rcells (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 start)))
+### C.jet_secp_field_add_initial.field_add_initial_from_owned_fields
+field_add_initial_from_owned_fields
+     : forall (m : Memory.Mem.mem) (a b : Values.block) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : not (@eq Values.block a b)) (_ : jet_secp_fe_nv.fe_at m a BinNums.Z0 (field_values rho (S O)))
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0 (field_values rho (S (S (S (S (S (S O))))))))
+         (_ : Memory.Mem.range_perm m a BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       jet_sx_state.rep rho
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z a BinNums.Z0)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+               (@nil (prod Values.block BinNums.Z)))) jet_secp_field_add.field_add_initial_regs m
+### C.jet_secp_field_add_initial.field_values
+field_values =
+fun (rho : forall _ : nat, Integers.Int64.int) (start : nat) =>
+@cons Integers.Int64.int (rho start)
+  (@cons Integers.Int64.int (rho (Nat.add start (S O)))
+     (@cons Integers.Int64.int (rho (Nat.add start (S (S O))))
+        (@cons Integers.Int64.int (rho (Nat.add start (S (S (S O)))))
+           (@cons Integers.Int64.int (rho (Nat.add start (S (S (S (S O)))))) (@nil Integers.Int64.int)))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), list Integers.Int64.int
+
+Arguments field_values rho%function_scope start%nat_scope

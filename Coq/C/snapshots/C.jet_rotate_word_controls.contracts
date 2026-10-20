@@ -1,0 +1,123 @@
+### C.jet_rotate_word_controls.left_rotate32_controls_normalform
+left_rotate32_controls_normalform
+     : forall (amount : Ty.tySem (Word.Word (S (S (S O))))) (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq (Ty.tySem (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))
+         (@jet_rotate_spec.left_rotate_word_spec (S (S (S O))) (S (S (S (S (S O))))) Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Word (S (S (S (S (S O))))))) amount x))
+         (rotate_low_controls_fun (S (S (S (S (S O))))) O (S (S (S (S (S O))))) amount x)
+### C.jet_rotate_word_controls.left_rotate64_controls_normalform
+left_rotate64_controls_normalform
+     : forall (amount : Ty.tySem (Word.Word (S (S (S O))))) (x : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))),
+       @eq (Ty.tySem (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S O))))))))
+         (@jet_rotate_spec.left_rotate_word_spec (S (S (S O))) (S (S (S (S (S (S O)))))) Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) amount x))
+         (rotate_low_controls_fun (S (S (S (S (S (S O)))))) O (S (S (S (S (S (S O)))))) amount x)
+### C.jet_rotate_word_controls.rotate_const_left_bits
+rotate_const_left_bits
+     : forall (n : nat) (a : BinNums.Z) (x : Ty.tySem (Word.Word n)) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j (Zpower.two_power_nat n))),
+       @eq bool
+         (BinInt.Z.testbit
+            (@Word.ToZ.Theory.toZ (Word.WordToZ n) (@Word.rotate_const (Ty.Sum Ty.Unit Ty.Unit) n Alg.CoreFunSem a x))
+            j)
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ n) x)
+            (BinInt.Z.modulo (BinInt.Z.sub j a) (Zpower.two_power_nat n)))
+### C.jet_rotate_word_controls.rotate_mod_sub
+rotate_mod_sub
+     : forall (a b modulus : BinNums.Z) (_ : not (@eq BinNums.Z modulus BinNums.Z0)),
+       @eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.sub (BinInt.Z.modulo a modulus) b) modulus)
+         (BinInt.Z.modulo (BinInt.Z.sub a b) modulus)
+### C.jet_rotate_word_controls.rotate_low_controls_bits
+rotate_low_controls_bits
+     : forall (n i count : nat) (amount : Ty.tySem (Word.Word (S (S (S O))))) (x : Ty.tySem (Word.Word n))
+         (j : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j (Zpower.two_power_nat n))),
+       @eq bool
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ n) (rotate_low_controls_fun n i count amount x)) j)
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ n) x)
+            (BinInt.Z.modulo (BinInt.Z.sub j (rotate_control_amount i count amount)) (Zpower.two_power_nat n)))
+### C.jet_rotate_word_controls.rotate_control_amount32
+rotate_control_amount32
+     : forall amount : Ty.tySem (Word.Word (S (S (S O)))),
+       @eq BinNums.Z (rotate_control_amount O (S (S (S (S (S O))))) amount)
+         (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) amount)
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+### C.jet_rotate_word_controls.rotate_control_amount64
+rotate_control_amount64
+     : forall amount : Ty.tySem (Word.Word (S (S (S O)))),
+       @eq BinNums.Z (rotate_control_amount O (S (S (S (S (S (S O)))))) amount)
+         (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) amount)
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_rotate_word_controls.left_rotate_byte_spec_bits
+left_rotate_byte_spec_bits
+     : forall (s : jet_left_rotate_wide_exec.byte_rotate_size)
+         (amount : prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+         (x : (fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A B => sum (tySem A) (tySem B)
+                 | Ty.Prod A B => prod (tySem A) (tySem B)
+                 end)
+                (Word.Vector (Ty.Sum Ty.Unit Ty.Unit)
+                   (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)))) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j)
+                (BinInt.Z.lt j (jet_wide.wide_bits (jet_left_rotate_wide_exec.byte_rotate_width s)))),
+       @eq bool
+         (BinInt.Z.testbit
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)))
+               (@jet_rotate_spec.left_rotate_byte_spec s Alg.CoreFunSem
+                  (@pair
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end)
+                        (Word.Vector (Ty.Sum Ty.Unit Ty.Unit)
+                           (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)))) amount x))) j)
+         (BinInt.Z.testbit
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s))) x)
+            (BinInt.Z.modulo
+               (BinInt.Z.sub j
+                  (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) amount)
+                     (jet_wide.wide_bits (jet_left_rotate_wide_exec.byte_rotate_width s))))
+               (jet_wide.wide_bits (jet_left_rotate_wide_exec.byte_rotate_width s))))
+### C.jet_rotate_word_controls.rotate_low_controls_fun
+rotate_low_controls_fun =
+fix rotate_low_controls_fun
+  (n i count : nat) (amount : Ty.tySem (Word.Word (S (S (S O))))) (x : Ty.tySem (Word.Word n)) {struct count} :
+    Ty.tySem (Word.Word n) :=
+  match count return (Ty.tySem (Word.Word n)) with
+  | O => x
+  | S count0 =>
+      rotate_low_controls_fun n (S i) count0 amount
+        match
+          @jet_word_bit_spec.word_bit_spec (S (S (S O))) i Alg.CoreFunSem amount return (Ty.tySem (Word.Word n))
+        with
+        | inl _ => x
+        | inr _ =>
+            @Word.rotate_const (Ty.Sum Ty.Unit Ty.Unit) n Alg.CoreFunSem
+              (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat i)) x
+        end
+  end
+     : forall (n _ : nat) (_ : nat) (_ : Ty.tySem (Word.Word (S (S (S O))))) (_ : Ty.tySem (Word.Word n)),
+       Ty.tySem (Word.Word n)
+
+Arguments rotate_low_controls_fun (n i count)%nat_scope amount x
+### C.jet_rotate_word_controls.rotate_control_amount
+rotate_control_amount =
+fix rotate_control_amount (i count : nat) (amount : Ty.tySem (Word.Word (S (S (S O))))) {struct count} : BinNums.Z :=
+  match count return BinNums.Z with
+  | O => BinNums.Z0
+  | S count0 =>
+      BinInt.Z.add
+        match @jet_word_bit_spec.word_bit_spec (S (S (S O))) i Alg.CoreFunSem amount return BinNums.Z with
+        | inl _ => BinNums.Z0
+        | inr _ => BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat i)
+        end (rotate_control_amount (S i) count0 amount)
+  end
+     : forall (_ : nat) (_ : nat) (_ : Ty.tySem (Word.Word (S (S (S O))))), BinNums.Z
+
+Arguments rotate_control_amount (i count)%nat_scope amount

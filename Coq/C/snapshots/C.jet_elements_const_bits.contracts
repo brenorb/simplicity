@@ -1,0 +1,65 @@
+### C.jet_elements_const_bits.exec_elements_const_bit
+exec_elements_const_bit
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (bit : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur (BinNums.Zpos BinNums.xH)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m (elements_const_bit bit) Events.E0
+               le mf ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur (BinNums.Zpos BinNums.xH)
+               (@cons (option bool) (@Some bool bit) (@nil (option bool)))))
+### C.jet_elements_const_bits.exec_elements_const_bits
+exec_elements_const_bits
+     : forall (bits : list bool) (_ : not (@eq (list bool) bits (@nil bool)))
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur (BinInt.Z.of_nat (@length bool bits))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m (elements_const_bits bits)
+               Events.E0 le mf ClightBigstep.Out_break)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur (BinInt.Z.of_nat (@length bool bits))
+               (@List.map bool (option bool) (@Some bool) bits)))
+### C.jet_elements_const_bits.elements_const_bit
+elements_const_bit =
+fun bit : bool =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._writeBit
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tbool Ctypes.Tnil)) Ctypesdefs.tbool AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Econst_int
+           match bit return Integers.Int.int with
+           | true => Integers.Int.one
+           | false => Integers.Int.zero
+           end Ctypesdefs.tint) (@nil Clight.expr)))
+     : forall _ : bool, Clight.statement
+
+Arguments elements_const_bit bit%bool_scope
+### C.jet_elements_const_bits.elements_const_bits
+elements_const_bits =
+fix elements_const_bits (bits : list bool) : Clight.statement :=
+  match bits return Clight.statement with
+  | nil => Clight.Sbreak
+  | cons bit rest => Clight.Ssequence (elements_const_bit bit) (elements_const_bits rest)
+  end
+     : forall _ : list bool, Clight.statement
+
+Arguments elements_const_bits bits%list_scope

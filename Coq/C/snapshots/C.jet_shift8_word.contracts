@@ -1,0 +1,16 @@
+### C.jet_shift8_word.shift8_count_result_bits
+shift8_count_result_bits
+     : forall (right : bool) (x : Ty.tySem (Word.Word (S (S (S O))))) (r a : Integers.Int.int)
+         (j : BinNums.Z)
+         (_ : @eq BinNums.Z (Integers.Int.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x))
+         (_ : and (BinInt.Z.le BinNums.Z0 j)
+                (BinInt.Z.lt j (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))),
+       @eq bool (Integers.Int.testbit (jet_shift8_helper_exec.shift8_count_result right r a) j)
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x)
+            (BinInt.Z.sub j (jet_rotate_control_word.rotate_signed_amount right (Integers.Int.unsigned a))))
+### C.jet_shift8_word.shift8_machine_denotes
+shift8_machine_denotes
+     : forall (right : bool) (amount : Ty.tySem (Word.Word (S (S O)))) (x : Ty.tySem (Word.Word (S (S (S O))))),
+       @eq (Ty.tySem (Word.Word (S (S (S O))))) (jet_shift8_layout_machine.shift8_machine_value right amount x)
+         (@jet_shift8_spec.shift8_plain_spec right Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S O)))) (Ty.tySem (Word.Word (S (S (S O))))) amount x))

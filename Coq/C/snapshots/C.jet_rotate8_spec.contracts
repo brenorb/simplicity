@@ -1,0 +1,59 @@
+### C.jet_rotate8_spec.rotate8_spec_parametric
+rotate8_spec_parametric
+     : forall right : bool,
+       @Alg.Core.Parametric (Ty.Prod (Word.Word (S (S O))) (Word.Word (S (S (S O))))) (Word.Word (S (S (S O))))
+         (@rotate8_spec right)
+### C.jet_rotate8_spec.rotate8_controls_normalform
+rotate8_controls_normalform
+     : forall (right : bool)
+         (amount : prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+         (x : Ty.tySem (Word.Word (S (S (S O))))),
+       @eq (Ty.tySem (Word.Word (S (S (S O)))))
+         (@rotate8_spec right Alg.CoreFunSem
+            (@pair (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+               (Ty.tySem (Word.Word (S (S (S O))))) amount x))
+         (jet_rotate_control_word.rotate_control_word_fun (S (S O)) (S (S (S O))) right O (S (S (S O))) amount x)
+### C.jet_rotate8_spec.rotate_control_nibble_amount3
+rotate_control_nibble_amount3
+     : forall amount : Ty.tySem (Word.Word (S (S O))),
+       @eq BinNums.Z (jet_rotate_control_word.rotate_control_word_amount (S (S O)) O (S (S (S O))) amount)
+         (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S O))) amount)
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+### C.jet_rotate8_spec.rotate8_spec_bits
+rotate8_spec_bits
+     : forall (right : bool)
+         (amount : prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+         (x : prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+         (j : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 j)
+                (BinInt.Z.lt j (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))),
+       @eq bool
+         (BinInt.Z.testbit
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O))))
+               (@rotate8_spec right Alg.CoreFunSem
+                  (@pair (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))) amount x)))
+            j)
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x)
+            (BinInt.Z.modulo
+               (BinInt.Z.sub j
+                  (jet_rotate_control_word.rotate_signed_amount right
+                     (BinInt.Z.modulo (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S O))) amount)
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_rotate8_spec.rotate8_spec
+rotate8_spec =
+fun (right : bool) (term : Alg.Core.Algebra) =>
+match
+  right
+  return (Alg.Core.domain term (Ty.Prod (Word.Word (S (S O))) (Word.Word (S (S (S O))))) (Word.Word (S (S (S O)))))
+with
+| true => @jet_right_rotate_spec.right_rotate_word_spec (S (S O)) (S (S (S O))) term
+| false => @jet_rotate_spec.left_rotate_word_spec (S (S O)) (S (S (S O))) term
+end
+     : forall (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word (S (S O))) (Word.Word (S (S (S O))))) (Word.Word (S (S (S O))))
+
+Arguments rotate8_spec right%bool_scope {term}

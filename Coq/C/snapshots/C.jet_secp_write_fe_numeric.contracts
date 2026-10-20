@@ -1,0 +1,453 @@
+### C.jet_secp_write_fe_numeric.write_fe_condition_from_normalizer
+write_fe_condition_from_normalizer
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq jet_sx_expr.sx (write_fe_condition bd base)
+         (jet_secp_symbolic_substitution.sx_subst write_limb_shift jet_secp_fe_nv.nv_c)
+### C.jet_secp_write_fe_numeric.write_fe_true_bytes_from_get_b32
+write_fe_true_bytes_from_get_b32
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq (list jet_sx_expr.sx) (write_fe_true_bytes bd base)
+         (@List.map jet_sx_expr.sx jet_sx_expr.sx
+            (jet_secp_symbolic_substitution.sx_subst (write_normalized_variables jet_secp_fe_nv.nv_a))
+            (@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_frame.cell_sx
+               (jet_secp_fe_nv.cells0 jet_secp_fe_b32.gb_leaf)))
+### C.jet_secp_write_fe_numeric.write_fe_false_bytes_from_get_b32
+write_fe_false_bytes_from_get_b32
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq (list jet_sx_expr.sx) (write_fe_false_bytes bd base)
+         (@List.map jet_sx_expr.sx jet_sx_expr.sx
+            (jet_secp_symbolic_substitution.sx_subst (write_normalized_variables jet_secp_fe_nv.nv_b))
+            (@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_frame.cell_sx
+               (jet_secp_fe_nv.cells0 jet_secp_fe_b32.gb_leaf)))
+### C.jet_secp_write_fe_numeric.write_fe_condition_checked
+write_fe_condition_checked
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int),
+       and
+         (@eq (option (prod BinNums.Z BinNums.Z)) (jet_sx_zval.zb write_bounds (write_fe_condition bd base))
+            (@Some (prod BinNums.Z BinNums.Z) (@pair BinNums.Z BinNums.Z BinNums.Z0 (BinNums.Zpos BinNums.xH))))
+         (@eq bool (jet_sx_expr.isk jet_sx_expr.KI (write_fe_condition bd base)) true)
+### C.jet_secp_write_fe_numeric.write_fe_true_bytes_checked
+write_fe_true_bytes_checked
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int),
+       @List.Forall jet_sx_expr.sx
+         (fun x : jet_sx_expr.sx =>
+          and
+            (@eq (option (prod BinNums.Z BinNums.Z)) (jet_sx_zval.zb write_bounds x)
+               (@Some (prod BinNums.Z BinNums.Z)
+                  (@pair BinNums.Z BinNums.Z BinNums.Z0
+                     (BinNums.Zpos
+                        (BinNums.xI
+                           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+            (@eq bool (jet_sx_expr.isk jet_sx_expr.KI x) true)) (write_fe_true_bytes bd base)
+### C.jet_secp_write_fe_numeric.write_fe_false_bytes_checked
+write_fe_false_bytes_checked
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int),
+       @List.Forall jet_sx_expr.sx
+         (fun x : jet_sx_expr.sx =>
+          and
+            (@eq (option (prod BinNums.Z BinNums.Z)) (jet_sx_zval.zb write_bounds x)
+               (@Some (prod BinNums.Z BinNums.Z)
+                  (@pair BinNums.Z BinNums.Z BinNums.Z0
+                     (BinNums.Zpos
+                        (BinNums.xI
+                           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+            (@eq bool (jet_sx_expr.isk jet_sx_expr.KI x) true)) (write_fe_false_bytes bd base)
+### C.jet_secp_write_fe_numeric.write_rho_bounds
+write_rho_bounds
+     : forall (value rc : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (n : nat),
+       and
+         (BinInt.Z.le (@fst BinNums.Z BinNums.Z (write_bounds n)) (Integers.Int64.unsigned (write_fe_rho value rc n)))
+         (BinInt.Z.le (Integers.Int64.unsigned (write_fe_rho value rc n)) (@snd BinNums.Z BinNums.Z (write_bounds n)))
+### C.jet_secp_write_fe_numeric.write_shifted_limb_value
+write_shifted_limb_value
+     : forall (value rc : BinNums.Z) (n : nat)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq BinNums.Z (jet_sx_zval.zval (jet_sx_zval.zrho (write_fe_rho value rc)) (write_limb_shift n))
+         (write_math_rho value n)
+### C.jet_secp_write_fe_numeric.write_normalized_values
+write_normalized_values
+     : forall (value rc : BinNums.Z) (state : jet_sx_eval.sstate)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq (list BinNums.Z)
+         (@List.map jet_sx_expr.sx BinNums.Z (jet_sx_zval.zval (jet_sx_zval.zrho (write_fe_rho value rc)))
+            (@List.map jet_sx_state.cell jet_sx_expr.sx
+               (fun c : jet_sx_state.cell =>
+                jet_secp_symbolic_substitution.sx_subst write_limb_shift (jet_secp_frame.cell_sx c))
+               (jet_secp_fe_nv.cells0 state)))
+         (jet_sx_zrep.zcells (write_math_rho value) (jet_secp_fe_nv.cells0 state))
+### C.jet_secp_write_fe_numeric.write_normalized_variable_value
+write_normalized_variable_value
+     : forall (value rc : BinNums.Z) (state : jet_sx_eval.sstate) (n : nat)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq BinNums.Z (jet_sx_zval.zval (jet_sx_zval.zrho (write_fe_rho value rc)) (write_normalized_variables state n))
+         (@List.nth BinNums.Z n (jet_sx_zrep.zcells (write_math_rho value) (jet_secp_fe_nv.cells0 state)) BinNums.Z0)
+### C.jet_secp_write_fe_numeric.write_fe_normalizer_condition
+write_fe_normalizer_condition
+     : forall (value rc : BinNums.Z) (bd : Values.block) (base : Integers.Ptrofs.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq bool (jet_sx_expr.truth (write_fe_rho value rc) layout (write_fe_condition bd base))
+         (negb (BinInt.Z.eqb (jet_sx_zval.zval (write_math_rho value) jet_secp_fe_nv.nv_c) BinNums.Z0))
+### C.jet_secp_write_fe_numeric.write_get_b32_substituted_value
+write_get_b32_substituted_value
+     : forall (value rc : BinNums.Z) (state : jet_sx_eval.sstate)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq (list BinNums.Z)
+         (@List.map jet_sx_expr.sx BinNums.Z (jet_sx_zval.zval (jet_sx_zval.zrho (write_fe_rho value rc)))
+            (@List.map jet_sx_expr.sx jet_sx_expr.sx
+               (jet_secp_symbolic_substitution.sx_subst (write_normalized_variables state))
+               (@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_frame.cell_sx
+                  (jet_secp_fe_nv.cells0 jet_secp_fe_b32.gb_leaf))))
+         (jet_sx_zrep.zcells
+            (fun n : nat =>
+             @List.nth BinNums.Z n (jet_sx_zrep.zcells (write_math_rho value) (jet_secp_fe_nv.cells0 state)) BinNums.Z0)
+            (jet_secp_fe_nv.cells0 jet_secp_fe_b32.gb_leaf))
+### C.jet_secp_write_fe_numeric.write_normalized_limbs_canonical
+write_normalized_limbs_canonical
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq (list BinNums.Z) (write_normalized_limbs value)
+         (jet_secp_fe_math.fe_limbs_of (BinInt.Z.modulo value jet_secp_fe_math.feP))
+### C.jet_secp_write_fe_numeric.write_get_b32_selected_value
+write_get_b32_selected_value
+     : forall (value rc : BinNums.Z) (bd : Values.block) (base : Integers.Ptrofs.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq (list BinNums.Z)
+         (@List.map jet_sx_expr.sx BinNums.Z (jet_sx_zval.zval (jet_sx_zval.zrho (write_fe_rho value rc)))
+            (write_fe_selected_bytes (write_fe_rho value rc) layout bd base))
+         (jet_sx_zrep.zcells (fun n : nat => @List.nth BinNums.Z n (write_normalized_limbs value) BinNums.Z0)
+            (jet_secp_fe_nv.cells0 jet_secp_fe_b32.gb_leaf))
+### C.jet_secp_write_fe_numeric.field_mod_256_range
+field_mod_256_range
+     : forall value : BinNums.Z,
+       and (BinInt.Z.le BinNums.Z0 (BinInt.Z.modulo value jet_secp_fe_math.feP))
+         (BinInt.Z.lt (BinInt.Z.modulo value jet_secp_fe_math.feP)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+### C.jet_secp_write_fe_numeric.write_fe_selected_bytes_numeric
+write_fe_selected_bytes_numeric
+     : forall (value rc : BinNums.Z) (bd : Values.block) (base : Integers.Ptrofs.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq (list BinNums.Z)
+         (@List.map jet_sx_expr.sx BinNums.Z (jet_sx_zval.zval (jet_sx_zval.zrho (write_fe_rho value rc)))
+            (write_fe_selected_bytes (write_fe_rho value rc) layout bd base))
+         (jet_secp_fe_b32.be_bytes (BinInt.Z.modulo value jet_secp_fe_math.feP))
+### C.jet_secp_write_fe_numeric.write_fe_selected_bytes_checked
+write_fe_selected_bytes_checked
+     : forall (rho : forall _ : nat, Integers.Int64.int) (bd : Values.block) (base : Integers.Ptrofs.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @List.Forall jet_sx_expr.sx
+         (fun x : jet_sx_expr.sx =>
+          and
+            (@eq (option (prod BinNums.Z BinNums.Z)) (jet_sx_zval.zb write_bounds x)
+               (@Some (prod BinNums.Z BinNums.Z)
+                  (@pair BinNums.Z BinNums.Z BinNums.Z0
+                     (BinNums.Zpos
+                        (BinNums.xI
+                           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+            (@eq bool (jet_sx_expr.isk jet_sx_expr.KI x) true)) (write_fe_selected_bytes rho layout bd base)
+### C.jet_secp_write_fe_numeric.write_fe_selected_machine_bytes
+write_fe_selected_machine_bytes
+     : forall (value rc : BinNums.Z) (bd : Values.block) (base : Integers.Ptrofs.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq (list Integers.Int.int)
+         (@List.map jet_sx_expr.sx Integers.Int.int
+            (fun x : jet_sx_expr.sx => jet_sx_expr.ii (jet_sx_expr.den (write_fe_rho value rc) layout x))
+            (write_fe_selected_bytes (write_fe_rho value rc) layout bd base))
+         (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+            (jet_secp_fe_b32.be_bytes (BinInt.Z.modulo value jet_secp_fe_math.feP)))
+### C.jet_secp_write_fe_numeric.selected_events_rsel
+selected_events_rsel
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (rr : jet_sx_exec.res),
+       @eq (list jet_sx_eval.event)
+         (jet_sx_eval.slog (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout rr)))
+         (selected_events rho layout rr)
+### C.jet_secp_write_fe_numeric.write_fe_selected_log
+write_fe_selected_log
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq (list jet_sx_eval.event)
+         (jet_sx_eval.slog
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout
+               (jet_sx_exec.rsel rho layout (jet_secp_write_fe_wrapper.write_fe_result bd base))))
+         match jet_sx_expr.truth rho layout (write_fe_condition bd base) return (list jet_sx_eval.event) with
+         | true => @cons jet_sx_eval.event (write_fe_true_event bd base) (@nil jet_sx_eval.event)
+         | false => @cons jet_sx_eval.event (write_fe_false_event bd base) (@nil jet_sx_eval.event)
+         end
+### C.jet_secp_write_fe_numeric.write_fe_written_count
+write_fe_written_count
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq BinNums.Z
+         (jet_secp_frame.written
+            (jet_sx_eval.slog
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel rho layout (jet_secp_write_fe_wrapper.write_fe_result bd base)))))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_write_fe_numeric.write_fe_has_written
+write_fe_has_written
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq bool
+         (jet_secp_frame.has_wr
+            (jet_sx_eval.slog
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel rho layout (jet_secp_write_fe_wrapper.write_fe_result bd base))))) true
+### C.jet_secp_write_fe_numeric.write_fe_selected_outs_bytes
+write_fe_selected_outs_bytes
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq (list BitMachine.Cell)
+         (jet_secp_frame.outsA rho
+            (jet_sx_eval.slog
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel rho layout (jet_secp_write_fe_wrapper.write_fe_result bd base)))))
+         (jet_write8_sequence.byte_sequence_cells
+            (@List.map jet_sx_expr.sx Integers.Int.int
+               (fun x : jet_sx_expr.sx => jet_sx_expr.ii (jet_sx_expr.den rho jet_secp_frame.β0 x))
+               (write_fe_selected_bytes rho layout bd base)))
+### C.jet_secp_write_fe_numeric.write_fe_selected_outs_numeric
+write_fe_selected_outs_numeric
+     : forall (value rc : BinNums.Z) (bd : Values.block) (base : Integers.Ptrofs.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq (list BitMachine.Cell)
+         (jet_secp_frame.outsA (write_fe_rho value rc)
+            (jet_sx_eval.slog
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel (write_fe_rho value rc) layout (jet_secp_write_fe_wrapper.write_fe_result bd base)))))
+         (jet_write8_sequence.byte_sequence_cells
+            (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+               (jet_secp_fe_b32.be_bytes (BinInt.Z.modulo value jet_secp_fe_math.feP))))
+### C.jet_secp_write_fe_numeric.write_fe_selected_outs_canonical
+write_fe_selected_outs_canonical
+     : forall (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (rc : BinNums.Z)
+         (bd : Values.block) (base : Integers.Ptrofs.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (list BitMachine.Cell)
+         (jet_secp_frame.outsA
+            (write_fe_rho (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value) rc)
+            (jet_sx_eval.slog
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel
+                     (write_fe_rho (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value) rc)
+                     layout (jet_secp_write_fe_wrapper.write_fe_result bd base)))))
+         (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+            (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value))
+### C.jet_secp_write_fe_numeric.eval_write_fe_against_canonical_program
+eval_write_fe_against_canonical_program
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (rc : BinNums.Z)
+         (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (w0 : bool) (outs0 : list BitMachine.Cell)
+         (m : Memory.Mem.mem) (layout : jet_sx_state.layout)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_sx_state.rep
+                (write_fe_rho (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value) rc) layout
+                jet_secp_write_fe_wrapper.write_fe_initial_regs m)
+         (_ : jet_sx_exec.xsep (jet_secp_write_fe_wrapper.write_ext m0 bd bw bi) layout)
+         (_ : jet_secp_write_fe_wrapper.write_inv m0 bd dbase bw outedge cursor N bi rc w0 outs0
+                (write_fe_rho (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value) rc)
+                (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_write_fe)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi mf true
+                  (@app BitMachine.Cell outs0
+                     (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                        (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value))))
+               (jet_sx_mem.lframe
+                  (jet_sx_exec.frame (jet_secp_write_fe_wrapper.write_ext m0 bd bw bi) layout
+                     jet_secp_write_fe_wrapper.write_fe_initial_regs m) m mf)))
+### C.jet_secp_write_fe_numeric.vars5_one_nth
+vars5_one_nth
+     : forall (i : nat) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx) (@List.nth_error jet_sx_expr.sx (jet_secp_fe_nv.vars5 (S O)) i)
+                (@Some jet_sx_expr.sx x)),
+       and (lt i (S (S (S (S (S O)))))) (@eq jet_sx_expr.sx x (jet_sx_expr.XLv (S i)))
+### C.jet_secp_write_fe_numeric.write_fe_region_from_field
+write_fe_region_from_field
+     : forall (value rc : BinNums.Z) (layout : jet_sx_state.layout) (m : Memory.Mem.mem) (r : nat)
+         (_ : jet_secp_fe_nv.fe_at m (jet_sx_state.blk layout r) (jet_sx_state.bas layout r)
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value))),
+       jet_sx_state.region_ok (write_fe_rho value rc) layout m r (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 (S O)))
+### C.jet_secp_write_fe_numeric.write_fe_initial_rep_from_field
+write_fe_initial_rep_from_field
+     : forall (value rc : BinNums.Z) (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (_ : jet_secp_fe_nv.fe_at m b ofs
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value))),
+       jet_sx_state.rep (write_fe_rho value rc)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b ofs) (@nil (prod Values.block BinNums.Z)))
+         jet_secp_write_fe_wrapper.write_fe_initial_regs m
+### C.jet_secp_write_fe_numeric.eval_write_fe_from_canonical_field
+eval_write_fe_from_canonical_field
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (rc : BinNums.Z)
+         (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (w0 : bool) (outs0 : list BitMachine.Cell)
+         (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_secp_fe_nv.fe_at m b ofs
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_fe_math.fe_limbs_of
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value))))
+         (_ : jet_sx_exec.xsep (jet_secp_write_fe_wrapper.write_ext m0 bd bw bi)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b ofs)
+                   (@nil (prod Values.block BinNums.Z))))
+         (_ : jet_secp_write_fe_wrapper.write_inv m0 bd dbase bw outedge cursor N bi rc w0 outs0
+                (write_fe_rho (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value) rc)
+                (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_write_fe)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi mf true
+                  (@app BitMachine.Cell outs0
+                     (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                        (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value))))
+               (jet_sx_mem.lframe
+                  (jet_sx_exec.frame (jet_secp_write_fe_wrapper.write_ext m0 bd bw bi)
+                     (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b ofs)
+                        (@nil (prod Values.block BinNums.Z))) jet_secp_write_fe_wrapper.write_fe_initial_regs m) m mf)))
+### C.jet_secp_write_fe_numeric.read_fe_final_inv_to_write_initial
+read_fe_final_inv_to_write_initial
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z)
+         (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (m : Memory.Mem.mem)
+         (_ : jet_secp_wrapper_run.read_inv m0 bd dbase bw outedge cursor N bi rc (@nil BitMachine.Cell)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                (jet_secp_wrapper_run.read_fe_rho
+                   (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc)
+                (jet_secp_wrapper_run.read_fe_log bi (Integers.Ptrofs.repr edge)) m),
+       jet_secp_write_fe_wrapper.write_inv m0 bd dbase bw outedge cursor N bi rc false (@nil BitMachine.Cell)
+         (write_fe_rho
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value)) rc)
+         (@nil jet_sx_eval.event) m
+### C.jet_secp_write_fe_numeric.eval_write_fe_after_read_field
+eval_write_fe_after_read_field
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z)
+         (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (m : Memory.Mem.mem)
+         (b : Values.block) (ofs : BinNums.Z) (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_secp_fe_nv.fe_at m b ofs
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_fe_math.fe_limbs_of
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                         (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value)))))
+         (_ : jet_sx_exec.xsep (jet_secp_write_fe_wrapper.write_ext m0 bd bw bi)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b ofs)
+                   (@nil (prod Values.block BinNums.Z))))
+         (_ : jet_secp_wrapper_run.read_inv m0 bd dbase bw outedge cursor N bi rc (@nil BitMachine.Cell)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                (jet_secp_wrapper_run.read_fe_rho
+                   (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc)
+                (jet_secp_wrapper_run.read_fe_log bi (Integers.Ptrofs.repr edge)) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_write_fe)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr ofs)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi mf true
+                  (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                     (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value)))
+               (jet_sx_mem.lframe
+                  (jet_sx_exec.frame (jet_secp_write_fe_wrapper.write_ext m0 bd bw bi)
+                     (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b ofs)
+                        (@nil (prod Values.block BinNums.Z))) jet_secp_write_fe_wrapper.write_fe_initial_regs m) m mf)))

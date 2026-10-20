@@ -1,0 +1,60 @@
+### C.jet_increment32_wide_word.increment32_values_denote_input
+increment32_values_denote_input
+     : forall (r : Integers.Int64.int) (x : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x)),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32)))
+            match increment32_carry r return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (jet_wide_spec.decode_wide jet_wide.W32
+               (Integers.Int64.zero_ext
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                  (increment32_payload r)))) (increment32_spec_value x)
+### C.jet_increment32_wide_word.increment32_spec
+increment32_spec =
+fun term : Alg.Core.Algebra => @jet_increment_spec.increment_word_spec term (S (S (S (S (S O)))))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S O))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+
+Arguments increment32_spec {term}
+### C.jet_increment32_wide_word.increment32_spec_value
+increment32_spec_value =
+@increment32_spec Alg.CoreFunSem
+     : forall _ : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+### C.jet_increment32_wide_word.increment32_carry
+increment32_carry =
+fun r : Integers.Int64.int =>
+Integers.Int64.ltu
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))))
+  r
+     : forall _ : Integers.Int64.int, bool
+
+Arguments increment32_carry r
+### C.jet_increment32_wide_word.increment32_payload
+increment32_payload =
+fun r : Integers.Int64.int => Integers.Int64.add r Integers.Int64.one
+     : forall _ : Integers.Int64.int, Integers.Int64.int
+
+Arguments increment32_payload r

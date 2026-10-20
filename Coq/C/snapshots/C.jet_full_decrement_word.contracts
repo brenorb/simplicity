@@ -1,0 +1,108 @@
+### C.jet_full_decrement_word.full_decrement_word_spec_numeric
+full_decrement_word_spec_numeric
+     : forall (n : nat) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (x : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z
+         (jet_subtract_spec.borrow_word_balance n
+            (@jet_subtract_spec.full_decrement_word_spec Alg.CoreFunSem n
+               (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word n)) c x)))
+         (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ Word.BitToZ c))
+### C.jet_full_decrement_word.full_decrement_representation_matches
+full_decrement_representation_matches
+     : forall (n : nat) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (x payload : Ty.tySem (Word.Word n))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ n) payload)
+                (BinInt.Z.modulo
+                   (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ Word.BitToZ c))
+                   (jet_predicate_spec.word_modulus n))),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word n)))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word n))
+            match
+              BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ Word.BitToZ c)
+              return (sum unit unit)
+            with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end payload)
+         (@jet_subtract_spec.full_decrement_word_spec Alg.CoreFunSem n
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word n)) c x))
+### C.jet_full_decrement_word.full_decrement8_borrow_numeric
+full_decrement8_borrow_numeric
+     : forall (cin : bool) (r : Integers.Int.int),
+       @eq bool (full_decrement8_borrow cin r)
+         (BinInt.Z.ltb (Integers.Int.unsigned (jet_add8.add8_u r))
+            (Integers.Int.unsigned (jet_readBit_layout.bit_int cin)))
+### C.jet_full_decrement_word.full_decrement8_payload_numeric
+full_decrement8_payload_numeric
+     : forall (cin : bool) (r : Integers.Int.int),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O))))
+            (jet_spec.decode_word8 (Integers.Int64.repr (Integers.Int.unsigned (full_decrement8_payload cin r)))))
+         (BinInt.Z.modulo
+            (BinInt.Z.sub (Integers.Int.unsigned (jet_add8.add8_u r))
+               (Integers.Int.unsigned (jet_readBit_layout.bit_int cin)))
+            (jet_predicate_spec.word_modulus (S (S (S O)))))
+### C.jet_full_decrement_word.full_decrement8_values_denote_spec
+full_decrement8_values_denote_spec
+     : forall (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (payload : Integers.Int64.int),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S O))))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S O)))))
+            match full_decrement8_borrow (Bit.toBool c) (jet_read8.read8_result payload) return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (jet_spec.decode_word8
+               (Integers.Int64.repr
+                  (Integers.Int.unsigned (full_decrement8_payload (Bit.toBool c) (jet_read8.read8_result payload))))))
+         (@jet_subtract_spec.full_decrement_word_spec Alg.CoreFunSem (S (S (S O)))
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word (S (S (S O))))) c
+               (jet_spec.decode_word8 payload)))
+### C.jet_full_decrement_word.wide_full_decrement_borrow_numeric
+wide_full_decrement_borrow_numeric
+     : forall (cin : bool) (r : Integers.Int64.int),
+       @eq bool (wide_full_decrement_borrow cin r)
+         (BinInt.Z.ltb (Integers.Int64.unsigned r) (Integers.Int64.unsigned (jet_readBit_layout.bit_long cin)))
+### C.jet_full_decrement_word.wide_full_decrement_values_denote_input
+wide_full_decrement_values_denote_input
+     : forall (s : jet_wide.wide_size) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (x : Ty.tySem (Word.Word (jet_wide.wide_log s))) (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x)),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log s))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+            match wide_full_decrement_borrow (Bit.toBool c) r return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (jet_wide_spec.decode_wide s
+               (Integers.Int64.zero_ext (jet_wide.wide_bits s) (wide_full_decrement_payload (Bit.toBool c) r))))
+         (@jet_subtract_spec.full_decrement_word_spec Alg.CoreFunSem (jet_wide.wide_log s)
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word (jet_wide.wide_log s))) c x))
+### C.jet_full_decrement_word.full_decrement8_borrow
+full_decrement8_borrow =
+fun (cin : bool) (r : Integers.Int.int) =>
+Integers.Int.ltu (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r)
+  (jet_readBit_layout.bit_int cin)
+     : forall (_ : bool) (_ : Integers.Int.int), bool
+
+Arguments full_decrement8_borrow cin%bool_scope r
+### C.jet_full_decrement_word.full_decrement8_payload
+full_decrement8_payload =
+fun (cin : bool) (r : Integers.Int.int) =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+  (Integers.Int.sub
+     (Integers.Int.mul Integers.Int.one
+        (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r))
+     (jet_readBit_layout.bit_int cin))
+     : forall (_ : bool) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments full_decrement8_payload cin%bool_scope r
+### C.jet_full_decrement_word.wide_full_decrement_borrow
+wide_full_decrement_borrow =
+fun (cin : bool) (r : Integers.Int64.int) => Integers.Int64.ltu r (jet_readBit_layout.bit_long cin)
+     : forall (_ : bool) (_ : Integers.Int64.int), bool
+
+Arguments wide_full_decrement_borrow cin%bool_scope r
+### C.jet_full_decrement_word.wide_full_decrement_payload
+wide_full_decrement_payload =
+fun (cin : bool) (r : Integers.Int64.int) => Integers.Int64.sub r (jet_readBit_layout.bit_long cin)
+     : forall (_ : bool) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments wide_full_decrement_payload cin%bool_scope r

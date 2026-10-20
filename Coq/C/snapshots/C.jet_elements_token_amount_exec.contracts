@@ -1,0 +1,219 @@
+### C.jet_elements_token_amount_exec.token_issuance_rep_pres
+token_issuance_rep_pres
+     : forall (m1 m2 : Memory.Mem.mem) (bi : Values.block) (ibase : BinNums.Z) (o : option jet_elements_prim.issuance)
+         (_ : token_issuance_rep m1 bi ibase o)
+         (_ : forall (chunk : AST.memory_chunk) (ofs : BinNums.Z) (v : Values.val) (_ : BinInt.Z.le ibase ofs)
+                (_ : BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                       (BinInt.Z.add ibase
+                          (BinNums.Zpos
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (_ : @eq (option Values.val) (Memory.Mem.load chunk m1 bi ofs) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load chunk m2 bi ofs) (@Some Values.val v)),
+       token_issuance_rep m2 bi ibase o
+### C.jet_elements_token_amount_exec.token_helper_shape
+token_helper_shape
+     : @eq Clight.statement (Clight.fn_body jets_elements.f_issuanceTokenAmt)
+         (Clight.Ssequence token_first_stmt
+            (Clight.Sifthenelse (Clight.Etempvar jets_elements._t'2 Ctypesdefs.tbool)
+               jet_elements_token_select.token_armed_stmt
+               (jet_elements_indexed_scalar.elements_skip_stmt
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xI
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+### C.jet_elements_token_amount_exec.token_helper_blocks
+token_helper_blocks
+     : forall bc : Values.block,
+       @eq (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (Clight.blocks_of_env jet_elements_linkage.elements_ge (token_helper_env bc))
+         (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+            (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bc BinNums.Z0)
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+            (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))
+### C.jet_elements_token_amount_exec.token_helper_entry
+token_helper_entry
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (bc bf : Values.block) (base : BinNums.Z)
+         (bi : Values.block) (ibase : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block ma bc)),
+       Clight.function_entry2 jet_elements_linkage.elements_ge jets_elements.f_issuanceTokenAmt
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr ibase)) (@nil Values.val))) m
+         (token_helper_env bc) (token_helper_temps bf base bi ibase) ma
+### C.jet_elements_token_amount_exec.exec_token_first
+exec_token_first
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (ma mb : Memory.Mem.mem) (bi : Values.block) (ibase : BinNums.Z) (bf : Values.block)
+         (base : BinNums.Z) (o : option jet_elements_prim.issuance)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._issuance le)
+                (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr ibase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)))) (_ : BinInt.Z.le BinNums.Z0 ibase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ibase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 ma bi
+                   (BinInt.Z.add ibase
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (@Some Values.val (Values.Vint (jet_elements_issuance_jets.issuance_tag o))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge ma
+                (@Ctypes.Internal Clight.function jets.f_writeBit)
+                (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                   (@cons Values.val
+                      (Values.Vint
+                         (jet_elements_asset_helper.conf_bit_int
+                            (@jet_elements_issuance_jets.opt_is_some jet_elements_prim.issuance o)))
+                      (@nil Values.val))) Events.E0 mb
+                (Values.Vint
+                   (jet_elements_asset_helper.conf_bit_int
+                      (@jet_elements_issuance_jets.opt_is_some jet_elements_prim.issuance o)))),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le ma token_first_stmt Events.E0
+         (token_first_temps le o) mb ClightBigstep.Out_normal
+### C.jet_elements_token_amount_exec.eval_elements_issuanceTokenAmt
+eval_elements_issuanceTokenAmt
+     : forall (m : Memory.Mem.mem) (bi : Values.block) (ibase : BinNums.Z) (bf : Values.block)
+         (base : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z) (o : option jet_elements_prim.issuance)
+         (_ : token_issuance_rep m bi ibase o) (_ : BinInt.Z.le BinNums.Z0 ibase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ibase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_application_sep.out_sep bf base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) bi
+                ibase
+                (BinInt.Z.add ibase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+               (@Ctypes.Internal Clight.function jets_elements.f_issuanceTokenAmt)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr ibase)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (jet_elements_effects.write_effect m mf bf base bw edge cursor
+               (BinNums.Zpos
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (token_issuance_cells o)))
+### C.jet_elements_token_amount_exec.token_issuance_rep
+token_issuance_rep =
+fun (m : Memory.Mem.mem) (bi : Values.block) (ibase : BinNums.Z) (o : option jet_elements_prim.issuance) =>
+and
+  (@eq (option Values.val)
+     (Memory.Mem.load AST.Mint32 m bi
+        (BinInt.Z.add ibase
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+     (@Some Values.val (Values.Vint (jet_elements_issuance_jets.issuance_tag o))))
+  (forall (new : jet_elements_prim.newIssuance)
+     (_ : @eq (option jet_elements_prim.issuance) o
+            (@Some (sum jet_elements_prim.newIssuance jet_elements_prim.reissuance)
+               (@inl jet_elements_prim.newIssuance jet_elements_prim.reissuance new))),
+   jet_elements_amount_jets.amount_rep m bi
+     (BinInt.Z.add ibase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+     (@jet_elements_prim.clearPrf (list Integers.Byte.int) Integers.Int64.int
+        (jet_elements_prim.newIssuanceTokenAmount new)))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : option jet_elements_prim.issuance), Prop
+
+Arguments token_issuance_rep m bi ibase%Z_scope o
+### C.jet_elements_token_amount_exec.token_issuance_tail
+token_issuance_tail =
+fun o : option jet_elements_prim.issuance =>
+match o return (list BitMachine.Cell) with
+| Some i => jet_elements_amount_jets.amount_pcells (jet_elements_token_select.token_selected_amount i)
+| None =>
+    @List.repeat (option bool) (@None bool)
+      (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))
+end
+     : forall _ : option jet_elements_prim.issuance, list BitMachine.Cell
+
+Arguments token_issuance_tail o
+### C.jet_elements_token_amount_exec.token_issuance_cells
+token_issuance_cells =
+fun o : option jet_elements_prim.issuance =>
+@app (option bool)
+  (@cons (option bool) (@Some bool (@jet_elements_issuance_jets.opt_is_some jet_elements_prim.issuance o))
+     (@nil (option bool))) (token_issuance_tail o)
+     : forall _ : option jet_elements_prim.issuance, list (option bool)
+
+Arguments token_issuance_cells o
+### C.jet_elements_token_amount_exec.token_first_stmt
+token_first_stmt =
+Clight.Ssequence
+  (Clight.Sset jets_elements._t'4
+     (Clight.Efield
+        (Clight.Ederef
+           (Clight.Etempvar jets_elements._issuance
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)))
+           (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)) jets_elements._type Ctypesdefs.tint))
+  (Clight.Scall (@Some AST.ident jets_elements._t'2)
+     (Clight.Evar jets_elements._writeBit
+        (Ctypes.Tfunction
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+              (Ctypes.Tcons Ctypesdefs.tbool Ctypes.Tnil)) Ctypesdefs.tbool AST.cc_default))
+     (@cons Clight.expr
+        (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+        (@cons Clight.expr
+           (Clight.Ebinop Cop.One (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+              (Clight.Etempvar jets_elements._t'4 Ctypesdefs.tint) Ctypesdefs.tint) (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_elements_token_amount_exec.token_helper_env
+token_helper_env =
+fun bc : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_elements.___compound
+  (@pair Values.block Ctypes.type bc (Ctypes.Tstruct jets_elements._confAmount Ctypes.noattr)) Clight.empty_env
+     : forall _ : Values.block, Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments token_helper_env bc
+### C.jet_elements_token_amount_exec.token_helper_temps
+token_helper_temps =
+fun (bf : Values.block) (base : BinNums.Z) (bi : Values.block) (ibase : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_elements._issuance (Values.Vptr bi (Integers.Ptrofs.repr ibase))
+  (@Maps.PTree.set Values.val jets_elements._dst (Values.Vptr bf (Integers.Ptrofs.repr base))
+     (Clight.create_undef_temps (Clight.fn_temps jets_elements.f_issuanceTokenAmt)))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments token_helper_temps bf base%Z_scope bi ibase%Z_scope
+### C.jet_elements_token_amount_exec.token_first_temps
+token_first_temps =
+fun (le : Maps.PTree.tree Values.val) (o : option jet_elements_prim.issuance) =>
+@Maps.PTree.set Values.val jets_elements._t'2
+  (Values.Vint
+     (jet_elements_asset_helper.conf_bit_int (@jet_elements_issuance_jets.opt_is_some jet_elements_prim.issuance o)))
+  (@Maps.PTree.set Values.val jets_elements._t'4 (Values.Vint (jet_elements_issuance_jets.issuance_tag o)) le)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : option jet_elements_prim.issuance), Maps.PTree.tree Values.val
+
+Arguments token_first_temps le o

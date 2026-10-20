@@ -1,0 +1,131 @@
+### C.jet_divmod96_init_exec.eval_divmod96_estimate_expr
+eval_divmod96_estimate_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ah bh : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._ah le) (@Some Values.val (Values.Vlong ah)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._bh le) (@Some Values.val (Values.Vlong bh)))
+         (_ : @eq bool (Integers.Int64.eq bh Integers.Int64.zero) false),
+       Clight.eval_expr jet_exec.ge0 e le m
+         (Clight.Ebinop Cop.Odiv (Clight.Etempvar jets._ah Ctypesdefs.tulong)
+            (Clight.Etempvar jets._bh Ctypesdefs.tulong) Ctypesdefs.tulong) (Values.Vlong (Integers.Int64.divu ah bh))
+### C.jet_divmod96_init_exec.exec_divmod96_clamp_stmt
+exec_divmod96_clamp_stmt
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ah bh : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._estQ le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.divu ah bh)))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m divmod96_clamp_stmt Events.E0
+         (@Maps.PTree.set Values.val jets._t'1 (Values.Vlong (jet_divmod96_init.divmod96_clamp ah bh)) le) m
+         ClightBigstep.Out_normal
+### C.jet_divmod96_init_exec.eval_divmod96_scaled_expr
+eval_divmod96_scaled_expr
+     : forall (idq idpart : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (q part : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val idq le) (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val idpart le) (@Some Values.val (Values.Vlong part))),
+       Clight.eval_expr jet_exec.ge0 e le m (divmod96_scaled_expr idq idpart)
+         (Values.Vlong (Integers.Int64.mul (Integers.Int64.mul Integers.Int64.one q) part))
+### C.jet_divmod96_init_exec.exec_divmod96_initialization
+exec_divmod96_initialization
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m mi mf : Memory.Mem.mem)
+         (lef : Clight.temp_env) (suffix : Clight.statement) (out : ClightBigstep.outcome)
+         (bq : Values.block) (ofs : Integers.Ptrofs.int) (ah b : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._q le) (@Some Values.val (Values.Vptr bq ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._ah le) (@Some Values.val (Values.Vlong ah)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._b le) (@Some Values.val (Values.Vlong b)))
+         (_ : @eq bool (Integers.Int64.eq (jet_divmod96_value.divmod96_high b) Integers.Int64.zero) false)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bq (Integers.Ptrofs.unsigned ofs)
+                   (Values.Vlong (jet_divmod96_init.divmod96_clamp ah (jet_divmod96_value.divmod96_high b))))
+                (@Some Memory.Mem.mem mi))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e (divmod96_init_env le ah b) mi suffix Events.E0 lef mf out),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (divmod96_work suffix) Events.E0 lef mf out
+### C.jet_divmod96_init_exec.divmod96_clamp_stmt
+divmod96_clamp_stmt =
+Clight.Sifthenelse
+  (Clight.Ebinop Cop.Ole (Clight.Etempvar jets._estQ Ctypesdefs.tulong)
+     (Clight.Econst_int Integers.Int.mone Ctypesdefs.tuint) Ctypesdefs.tint)
+  (Clight.Sset jets._t'1
+     (Clight.Ecast (Clight.Ecast (Clight.Etempvar jets._estQ Ctypesdefs.tulong) Ctypesdefs.tulong) Ctypesdefs.tulong))
+  (Clight.Sset jets._t'1 (Clight.Ecast (Clight.Econst_int Integers.Int.mone Ctypesdefs.tuint) Ctypesdefs.tulong))
+     : Clight.statement
+### C.jet_divmod96_init_exec.divmod96_scaled_expr
+divmod96_scaled_expr =
+fun idq idpart : AST.ident =>
+Clight.Ebinop Cop.Omul
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint) (Clight.Etempvar idq Ctypesdefs.tulong)
+     Ctypesdefs.tulong) (Clight.Etempvar idpart Ctypesdefs.tulong) Ctypesdefs.tulong
+     : forall (_ : AST.ident) (_ : AST.ident), Clight.expr
+
+Arguments divmod96_scaled_expr idq idpart
+### C.jet_divmod96_init_exec.divmod96_work
+divmod96_work =
+fun suffix : Clight.statement =>
+Clight.Ssequence
+  (Clight.Sset jets._bh
+     (Clight.Ebinop Cop.Oshr (Clight.Etempvar jets._b Ctypesdefs.tulong)
+        (Clight.Econst_int
+           (Integers.Int.repr
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+           Ctypesdefs.tint) Ctypesdefs.tulong))
+  (Clight.Ssequence
+     (Clight.Sset jets._bl
+        (Clight.Ebinop Cop.Oand (Clight.Etempvar jets._b Ctypesdefs.tulong)
+           (Clight.Econst_int Integers.Int.mone Ctypesdefs.tuint) Ctypesdefs.tulong))
+     (Clight.Ssequence
+        (Clight.Sset jets._estQ
+           (Clight.Ebinop Cop.Odiv (Clight.Etempvar jets._ah Ctypesdefs.tulong)
+              (Clight.Etempvar jets._bh Ctypesdefs.tulong) Ctypesdefs.tulong))
+        (Clight.Ssequence
+           (Clight.Ssequence divmod96_clamp_stmt
+              (Clight.Sassign
+                 (Clight.Ederef (Clight.Etempvar jets._q (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong)
+                 (Clight.Etempvar jets._t'1 Ctypesdefs.tulong)))
+           (Clight.Ssequence
+              (Clight.Ssequence
+                 (Clight.Sset jets._t'5
+                    (Clight.Ederef (Clight.Etempvar jets._q (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong))
+                 (Clight.Sset jets._rh
+                    (Clight.Ebinop Cop.Osub (Clight.Etempvar jets._ah Ctypesdefs.tulong)
+                       (divmod96_scaled_expr jets._t'5 jets._bh) Ctypesdefs.tulong)))
+              (Clight.Ssequence
+                 (Clight.Ssequence
+                    (Clight.Sset jets._t'4
+                       (Clight.Ederef (Clight.Etempvar jets._q (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong))
+                    (Clight.Sset jets._d (divmod96_scaled_expr jets._t'4 jets._bl))) suffix)))))
+     : forall _ : Clight.statement, Clight.statement
+
+Arguments divmod96_work suffix
+### C.jet_divmod96_init_exec.divmod96_initial_rh
+divmod96_initial_rh =
+fun ah b : Integers.Int64.int =>
+let q : Integers.Int64.int := jet_divmod96_init.divmod96_clamp ah (jet_divmod96_value.divmod96_high b) in
+Integers.Int64.sub ah
+  (Integers.Int64.mul (Integers.Int64.mul Integers.Int64.one q) (jet_divmod96_value.divmod96_high b))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments divmod96_initial_rh ah b
+### C.jet_divmod96_init_exec.divmod96_initial_d
+divmod96_initial_d =
+fun ah b : Integers.Int64.int =>
+let q : Integers.Int64.int := jet_divmod96_init.divmod96_clamp ah (jet_divmod96_value.divmod96_high b) in
+Integers.Int64.mul (Integers.Int64.mul Integers.Int64.one q) (jet_divmod96_value.divmod96_low b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments divmod96_initial_d ah b
+### C.jet_divmod96_init_exec.divmod96_init_env
+divmod96_init_env =
+fun (le : Maps.PTree.tree Values.val) (ah b : Integers.Int64.int) =>
+let bh : Integers.Int64.int := jet_divmod96_value.divmod96_high b in
+let bl : Integers.Int64.int := jet_divmod96_value.divmod96_low b in
+let q : Integers.Int64.int := jet_divmod96_init.divmod96_clamp ah bh in
+@Maps.PTree.set Values.val jets._d (Values.Vlong (divmod96_initial_d ah b))
+  (@Maps.PTree.set Values.val jets._t'4 (Values.Vlong q)
+     (@Maps.PTree.set Values.val jets._rh (Values.Vlong (divmod96_initial_rh ah b))
+        (@Maps.PTree.set Values.val jets._t'5 (Values.Vlong q)
+           (@Maps.PTree.set Values.val jets._t'1 (Values.Vlong q)
+              (@Maps.PTree.set Values.val jets._estQ (Values.Vlong (Integers.Int64.divu ah bh))
+                 (@Maps.PTree.set Values.val jets._bl (Values.Vlong bl)
+                    (@Maps.PTree.set Values.val jets._bh (Values.Vlong bh) le)))))))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments divmod96_init_env le ah b

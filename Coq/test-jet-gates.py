@@ -25,24 +25,24 @@ def main():
     source = Path(__file__).resolve().parent
     with tempfile.TemporaryDirectory(prefix="jet-gate-tests.") as work:
         project = Path(work) / "Coq"
-        # Preserve built dependencies; each changed fixture is compiled below.
-        shutil.copytree(source, project, ignore=shutil.ignore_patterns(
-            "__pycache__", "*Makefile*", ".lia.cache"))
-        run(["bash", "audit-jet-contracts.sh"], project)
-        # Use the real public guarantee as the fixture's proof term. Mutating
-        # a shared module would rebuild hundreds of unrelated consumers and
-        # could hit their bounded tactic timeouts before reaching the gate.
-        # This dedicated public module has no consumers; every mutation is
-        # compiled, with the same type and axioms as the real guarantee.
+        # A fresh, standalone kernel-checked fixture keeps scoped acceptance
+        # independent of unrelated compiled modules and snapshots.
+        project.mkdir()
+        (project / "C").mkdir()
+        (project / "Simplicity").mkdir()
+        for name in ("build-jets.sh", "jet-records.py", "audit-jet-contracts.sh",
+                     "audit-jet-assumptions.sh", "scan-jet-proofs.py"):
+            shutil.copy2(source / name, project / name)
         fixture = project / "C/jet_gate_fixture.v"
-        original = ("Require Import C.jet_guarantees.\n"
-                    "Definition fixture_guarantee := add64_guarantees.\n")
+        original = "Definition fixture_guarantee := @eq_refl nat 0.\n"
         fixture.write_text(original)
         (project / "C/jet_public_theorems.txt").write_text("C.jet_gate_fixture fixture_guarantee\n")
         (project / "C/jet_contract_definitions.txt").write_text("")
         run(["bash", "build-jets.sh", "--coqc", "C/jet_gate_fixture.v"], project)
         run(["bash", "audit-jet-contracts.sh", "--update"], project)
         run(["bash", "audit-jet-assumptions.sh", "--update"], project)
+        run(["bash", "audit-jet-contracts.sh"], project)
+        run(["bash", "audit-jet-assumptions.sh"], project)
         fixture.write_text(original.replace(
             "Definition fixture_guarantee :=",
             "Definition fixture_guarantee := fun (_ : (1 = 2)%nat) =>"))
@@ -56,8 +56,8 @@ def main():
         # Retain the original proof term (and thus its axioms) but weaken its
         # proposition to a disjunction with True. The kernel accepts this;
         # acceptance must fail on the changed public type.
-        before = "Definition fixture_guarantee := add64_guarantees."
-        after = "Definition fixture_guarantee := or_introl (B := True) add64_guarantees."
+        before = "Definition fixture_guarantee := @eq_refl nat 0."
+        after = "Definition fixture_guarantee := or_introl (B := True) (@eq_refl nat 0)."
         assert before in original
         fixture.write_text(original.replace(before, after))
         run(["bash", "build-jets.sh", "--coqc", "C/jet_gate_fixture.v"], project)
@@ -69,15 +69,13 @@ def main():
         # A transparent predicate can change while the named theorem's Check
         # output stays the same. Exercise definition pinning with a tiny,
         # fully proved fixture; never mutate the real checkout.
-        fixture.write_text("Require Import C.jet_guarantees.\n"
-                           "Definition fixture_post (n : nat) : Prop := n = 0.\n"
+        fixture.write_text("Definition fixture_post (n : nat) : Prop := n = 0.\n"
                            "Lemma fixture_contract : fixture_post 0. Proof. reflexivity. Qed.\n")
         (project / "C/jet_public_theorems.txt").write_text("C.jet_gate_fixture fixture_contract\n")
         (project / "C/jet_contract_definitions.txt").write_text("C.jet_gate_fixture fixture_post\n")
         run(["bash", "build-jets.sh", "--coqc", "C/jet_gate_fixture.v"], project)
         run(["bash", "audit-jet-contracts.sh", "--update"], project)
-        fixture.write_text("Require Import C.jet_guarantees.\n"
-                           "Definition fixture_post (n : nat) : Prop := True.\n"
+        fixture.write_text("Definition fixture_post (n : nat) : Prop := True.\n"
                            "Lemma fixture_contract : fixture_post 0. Proof. exact I. Qed.\n")
         run(["bash", "build-jets.sh", "--coqc", "C/jet_gate_fixture.v"], project)
         rejected = run(["bash", "audit-jet-contracts.sh"], project, succeeds=False)

@@ -1,0 +1,49 @@
+### C.jet_secp_gej_negate_owned_body.exec_gej_negate_body_owned
+exec_gej_negate_body_owned
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block) (value : BinNums.Z)
+         (flag : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr b Integers.Ptrofs.zero)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr b Integers.Ptrofs.zero)))
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : jet_secp_fe_nv.fe_at m b
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value)))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                (@Some Values.val (Values.Vint flag))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m
+               (Clight.fn_body jets_secp.f_secp256k1_gej_neg) Events.E0
+               (@Maps.PTree.set Values.val jets_secp._t'1 (Values.Vint flag) le) mf ClightBigstep.Out_normal)
+            (and
+               (jet_secp_fe_nv.fe_at mf b
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                  (jet_secp_field_negate_storage.negate_values
+                     (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0)))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint32 mf b
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+                     (@Some Values.val (Values.Vint flag))))))

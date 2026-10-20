@@ -1,0 +1,61 @@
+### C.jet_full_multiply64_spec.full_multiply64_machine_observation
+full_multiply64_machine_observation
+     : forall (a b u v : Integers.Int64.int)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add
+                   (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+                      (Integers.Int64.unsigned u)) (Integers.Int64.unsigned v))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z
+         (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned (full_multiply64_hi a b u v)) Integers.Int64.modulus)
+            (Integers.Int64.unsigned (full_multiply64_lo a b u v)))
+         (BinInt.Z.add
+            (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+               (Integers.Int64.unsigned u)) (Integers.Int64.unsigned v))
+### C.jet_full_multiply64_spec.full_multiply64_representation
+full_multiply64_representation
+     : forall (x y z w : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (a b u v : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned a)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned b)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) y))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned u)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) z))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned v)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) w)),
+       @eq
+         (prod (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O))))))))))
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+            (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+               (Integers.Int64.unsigned (full_multiply64_hi a b u v)))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+               (Integers.Int64.unsigned (full_multiply64_lo a b u v))))
+         (@Word.fullMultiplier (S (S (S (S (S (S O)))))) Alg.CoreFunSem
+            (@pair
+               (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+               (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                  x y)
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                  z w)))
+### C.jet_full_multiply64_spec.full_multiply64_lo
+full_multiply64_lo =
+fun a b u v : Integers.Int64.int =>
+jet_u128_accum_value.u128_accum_lo (jet_u128_accum_value.u128_accum_lo (jet_umul128_layout.umul128_result_lo a b) u) v
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Integers.Int64.int
+
+Arguments full_multiply64_lo a b u v
+### C.jet_full_multiply64_spec.full_multiply64_hi
+full_multiply64_hi =
+fun a b u v : Integers.Int64.int =>
+jet_u128_accum_value.u128_accum_hi
+  (jet_u128_accum_value.u128_accum_hi (jet_umul128_layout.umul128_result_hi a b)
+     (jet_umul128_layout.umul128_result_lo a b) u)
+  (jet_u128_accum_value.u128_accum_lo (jet_umul128_layout.umul128_result_lo a b) u) v
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Integers.Int64.int
+
+Arguments full_multiply64_hi a b u v

@@ -1,0 +1,72 @@
+### C.jet_u32_local_init.exec_u32_local_prefix
+exec_u32_local_prefix
+     : forall (ge : Clight.genv) (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (arr : Clight.expr) (b : Values.block) (base : BinNums.Z) (i : nat) (xs : list Integers.Int.int)
+         (_ : forall (m' : Memory.Mem.mem) (j : nat) (_ : lt j (Nat.add i (@length Integers.Int.int xs))),
+              Clight.eval_lvalue ge e le m' (u32_local_lhs arr j) b
+                (Integers.Ptrofs.repr
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat j))))
+                Ctypes.Full) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                      (BinInt.Z.add (BinInt.Z.of_nat i) (BinInt.Z.of_nat (@length Integers.Int.int xs)))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) base)
+         (_ : Memory.Mem.range_perm m b
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i)))
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                      (BinInt.Z.add (BinInt.Z.of_nat i) (BinInt.Z.of_nat (@length Integers.Int.int xs))))) Memtype.Cur
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mi : Memory.Mem.mem =>
+          and
+            (jet_uint32_array_init.uint32_array_at mi b
+               (BinInt.Z.add base
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i))) xs)
+            (and
+               (forall (chunk : AST.memory_chunk) (bb : Values.block) (ofs : BinNums.Z)
+                  (_ : or (not (@eq Values.block bb b))
+                         (or
+                            (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                               (BinInt.Z.add base
+                                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i))))
+                            (BinInt.Z.le
+                               (BinInt.Z.add base
+                                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                                     (BinInt.Z.add (BinInt.Z.of_nat i) (BinInt.Z.of_nat (@length Integers.Int.int xs)))))
+                               ofs))),
+                @eq (option Values.val) (Memory.Mem.load chunk mi bb ofs) (Memory.Mem.load chunk m bb ofs))
+               (and
+                  (forall (bb : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                     (p : Memtype.permission) (_ : Memory.Mem.perm m bb ofs kind p), Memory.Mem.perm mi bb ofs kind p)
+                  (and (forall (bb : Values.block) (_ : Memory.Mem.valid_block m bb), Memory.Mem.valid_block mi bb)
+                     (forall (tail : Clight.statement) (le' : Clight.temp_env) (mf : Memory.Mem.mem)
+                        (out : ClightBigstep.outcome)
+                        (_ : ClightBigstep.Clight2.exec_stmt ge e le mi tail Events.E0 le' mf out),
+                      ClightBigstep.Clight2.exec_stmt ge e le m (u32_local_prefix arr i xs tail) Events.E0 le' mf out)))))
+### C.jet_u32_local_init.u32_local_lhs
+u32_local_lhs =
+fun (arr : Clight.expr) (i : nat) =>
+Clight.Ederef
+  (Clight.Ebinop Cop.Oadd arr (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat i)) Ctypesdefs.tint)
+     (Ctypesdefs.tptr Ctypesdefs.tuint)) Ctypesdefs.tuint
+     : forall (_ : Clight.expr) (_ : nat), Clight.expr
+
+Arguments u32_local_lhs arr i%nat_scope
+### C.jet_u32_local_init.u32_local_prefix
+u32_local_prefix =
+fix u32_local_prefix (arr : Clight.expr) (i : nat) (xs : list Integers.Int.int) (tail : Clight.statement) {struct xs} :
+    Clight.statement :=
+  match xs return Clight.statement with
+  | nil => tail
+  | cons x rest =>
+      Clight.Ssequence (Clight.Sassign (u32_local_lhs arr i) (Clight.Econst_int x Ctypesdefs.tuint))
+        (u32_local_prefix arr (S i) rest tail)
+  end
+     : forall (_ : Clight.expr) (_ : nat) (_ : list Integers.Int.int) (_ : Clight.statement), Clight.statement
+
+Arguments u32_local_prefix arr i%nat_scope xs%list_scope tail

@@ -1,0 +1,103 @@
+### C.jet_secp_input_bytes.bits_val_app
+bits_val_app
+     : forall left_bits right_bits : list bool,
+       @eq BinNums.Z (jet_frame_bits.bits_val (@app bool left_bits right_bits))
+         (BinInt.Z.add
+            (BinInt.Z.mul (jet_frame_bits.bits_val left_bits)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat (@length bool right_bits))))
+            (jet_frame_bits.bits_val right_bits))
+### C.jet_secp_input_bytes.fold_be_linear
+fold_be_linear
+     : forall (bytes : list BinNums.Z) (acc : BinNums.Z),
+       @eq BinNums.Z
+         (@List.fold_left BinNums.Z BinNums.Z
+            (fun value byte : BinNums.Z =>
+             BinInt.Z.add
+               (BinInt.Z.mul value
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+               byte) bytes acc)
+         (BinInt.Z.add
+            (BinInt.Z.mul acc
+               (BinInt.Z.pow
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (BinInt.Z.of_nat (@length BinNums.Z bytes)))) (jet_secp_fe_math.be_val bytes))
+### C.jet_secp_input_bytes.be_val_cons
+be_val_cons
+     : forall (byte : BinNums.Z) (bytes : list BinNums.Z),
+       @eq BinNums.Z (jet_secp_fe_math.be_val (@cons BinNums.Z byte bytes))
+         (BinInt.Z.add
+            (BinInt.Z.mul byte
+               (BinInt.Z.pow
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (BinInt.Z.of_nat (@length BinNums.Z bytes)))) (jet_secp_fe_math.be_val bytes))
+### C.jet_secp_input_bytes.input_bytes_length
+input_bytes_length
+     : forall (count : nat) (bits : list bool), @eq nat (@length BinNums.Z (input_bytes count bits)) count
+### C.jet_secp_input_bytes.input_bytes_value
+input_bytes_value
+     : forall (count : nat) (bits : list bool)
+         (_ : @eq nat (@length bool bits) (Nat.mul (S (S (S (S (S (S (S (S O)))))))) count)),
+       @eq BinNums.Z (jet_secp_fe_math.be_val (input_bytes count bits)) (jet_frame_bits.bits_val bits)
+### C.jet_secp_input_bytes.input_bytes_nth
+input_bytes_nth
+     : forall (count : nat) (bits : list bool) (j : nat) (_ : lt j count),
+       @eq (option BinNums.Z) (@List.nth_error BinNums.Z (input_bytes count bits) j)
+         (@Some BinNums.Z
+            (jet_frame_bits.ifield bits (Nat.mul (S (S (S (S (S (S (S (S O)))))))) j) (S (S (S (S (S (S (S (S O))))))))))
+### C.jet_secp_input_bytes.input_bytes_bounds
+input_bytes_bounds
+     : forall (count : nat) (bits : list bool)
+         (_ : @eq nat (@length bool bits) (Nat.mul (S (S (S (S (S (S (S (S O)))))))) count)),
+       @List.Forall BinNums.Z
+         (fun byte : BinNums.Z =>
+          and (BinInt.Z.le BinNums.Z0 byte)
+            (BinInt.Z.le byte
+               (BinNums.Zpos
+                  (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (input_bytes count bits)
+### C.jet_secp_input_bytes.bits_val_canonical_word
+bits_val_canonical_word
+     : forall (n : nat) (value : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z (jet_frame_bits.bits_val (@jet_input_layout.frame_input_word_bits n value))
+         (@Word.ToZ.Theory.toZ (Word.WordToZ n) value)
+### C.jet_secp_input_bytes.input_bytes_word256_value
+input_bytes_word256_value
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (jet_secp_fe_math.be_val
+            (input_bytes (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))
+               (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value)))
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value)
+### C.jet_secp_input_bytes.input_bytes_word256_bounds
+input_bytes_word256_bounds
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @List.Forall BinNums.Z
+         (fun byte : BinNums.Z =>
+          and (BinInt.Z.le BinNums.Z0 byte)
+            (BinInt.Z.le byte
+               (BinNums.Zpos
+                  (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (input_bytes (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+            (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value))
+### C.jet_secp_input_bytes.ifield_byte_bounds
+ifield_byte_bounds
+     : forall (bits : list bool) (offset : nat),
+       and (BinInt.Z.le BinNums.Z0 (jet_frame_bits.ifield bits offset (S (S (S (S (S (S (S (S O))))))))))
+         (BinInt.Z.le (jet_frame_bits.ifield bits offset (S (S (S (S (S (S (S (S O)))))))))
+            (BinNums.Zpos
+               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_secp_input_bytes.input_bytes_nth_total
+input_bytes_nth_total
+     : forall (count : nat) (bits : list bool) (j : nat)
+         (_ : @eq nat (@length bool bits) (Nat.mul (S (S (S (S (S (S (S (S O)))))))) count)),
+       @eq BinNums.Z (@List.nth BinNums.Z j (input_bytes count bits) BinNums.Z0)
+         (jet_frame_bits.ifield bits (Nat.mul (S (S (S (S (S (S (S (S O)))))))) j) (S (S (S (S (S (S (S (S O)))))))))

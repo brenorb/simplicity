@@ -1,0 +1,212 @@
+### C.jet_bitcoin_lock_spec.lock_zero_parametric
+@lock_zero_parametric
+     : forall (A : Ty.Ty) (alg1 alg2 : Alg.Core.Algebra) (R : Alg.Core.Parametric.Rel alg1 alg2),
+       @Alg.Core.Parametric.rel alg1 alg2 R A (Word.Word (S (S (S (S (S O)))))) (@lock_zero A alg1) (@lock_zero A alg2)
+### C.jet_bitcoin_lock_spec.lock_tail_core_parametric
+lock_tail_core_parametric
+     : forall height : bool,
+       @Alg.Core.Parametric (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S (S O)))))) (fun term : Alg.Core.Algebra => @lock_tail height term)
+### C.jet_bitcoin_lock_spec.lock_program_parametric
+lock_program_parametric
+     : forall (height : bool) (alg1 alg2 : Alg.Core.Algebra) (R : Alg.Core.Parametric.Rel alg1 alg2)
+         (a1 : Alg.Core.domain alg1 Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+         (b1 : Alg.Core.domain alg1 Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+         (a2 : Alg.Core.domain alg2 Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+         (b2 : Alg.Core.domain alg2 Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+         (_ : @Alg.Core.Parametric.rel alg1 alg2 R Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) a1 a2)
+         (_ : @Alg.Core.Parametric.rel alg1 alg2 R Ty.Unit (Word.Word (S (S (S (S (S O)))))) b1 b2),
+       @Alg.Core.Parametric.rel alg1 alg2 R Ty.Unit (Word.Word (S (S (S (S (S O)))))) (@lock_program height alg1 a1 b1)
+         (@lock_program height alg2 a2 b2)
+### C.jet_bitcoin_lock_spec.lock_tail_reader_sem
+lock_tail_reader_sem
+     : forall (height : bool) (E : Type)
+         (x : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O))))))))
+         (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@lock_tail height (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) x environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (@lock_tail height Alg.CoreFunSem x))
+### C.jet_bitcoin_lock_spec.lock_program_reader_sem
+lock_program_reader_sem
+     : forall (height : bool) (E : Type)
+         (isfinal : Alg.Core.domain (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) Ty.Unit
+                      (Ty.Sum Ty.Unit Ty.Unit))
+         (locktime : Alg.Core.domain (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) Ty.Unit
+                       (Word.Word (S (S (S (S (S O))))))) (environment : E) (x : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (y : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (_ : @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)))
+                (isfinal tt environment) (@Some (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) x))
+         (_ : @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+                (locktime tt environment) (@Some (Ty.tySem (Word.Word (S (S (S (S (S O))))))) y)),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@lock_program height (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) isfinal locktime tt
+            environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+            (@lock_tail height Alg.CoreFunSem
+               (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (Ty.tySem (Word.Word (S (S (S (S (S O))))))) x y)))
+### C.jet_bitcoin_lock_spec.zero_fw5
+zero_fw5
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (@Word.zero (S (S (S (S (S O))))) Alg.CoreFunSem tt)
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) BinNums.Z0)
+### C.jet_bitcoin_lock_spec.lock_tail_value
+lock_tail_value
+     : forall (height final : bool) (w : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (@lock_tail height Alg.CoreFunSem
+            (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Bit.fromBool final) w))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+            (lock_value height final (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) w)))
+### C.jet_bitcoin_lock_spec.bitcoin_lock_program_parametric
+bitcoin_lock_program_parametric
+     : forall height : bool,
+       @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+          @lock_program height (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg)
+            (@jet_bitcoin_is_final_spec.bitcoin_tx_is_final_spec alg) (@bitcoin_lock_time_prim alg))
+### C.jet_bitcoin_lock_spec.bitcoin_tx_lock_height_spec_parametric
+bitcoin_tx_lock_height_spec_parametric
+     : @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@bitcoin_tx_lock_height_spec)
+### C.jet_bitcoin_lock_spec.bitcoin_tx_lock_time_spec_parametric
+bitcoin_tx_lock_time_spec_parametric
+     : @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@bitcoin_tx_lock_time_spec)
+### C.jet_bitcoin_lock_spec.bitcoin_lock_program_value
+bitcoin_lock_program_value
+     : forall (height : bool) (environment : Bitcoin.Bitcoin.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@lock_program height
+            (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore
+               (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))
+            (@jet_bitcoin_is_final_spec.bitcoin_tx_is_final_spec
+               (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))
+            (@bitcoin_lock_time_prim
+               (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)) tt environment)
+         (@Some (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) (bitcoin_lock_value height environment)))
+### C.jet_bitcoin_lock_spec.lock_zero
+lock_zero =
+fun (A : Ty.Ty) (alg : Alg.Core.Algebra) =>
+@Alg.Core.Combinators.comp A Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg (@Alg.Core.Combinators.unit A alg)
+  (@Word.zero (S (S (S (S (S O))))) alg)
+     : forall (A : Ty.Ty) (alg : Alg.Core.Algebra), Alg.Core.domain alg A (Word.Word (S (S (S (S (S O))))))
+
+Arguments lock_zero {A}%ty_scope {alg}
+### C.jet_bitcoin_lock_spec.lock_tail
+lock_tail =
+fun (height : bool) (alg : Alg.Core.Algebra) =>
+@Bit.cond (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) alg
+  (@lock_zero (Word.Word (S (S (S (S (S O)))))) alg)
+  (@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S O)))))) alg
+     (@jet_timelock_spec.parse_lock_spec alg)
+     match
+       height
+       return
+         (Alg.Core.domain alg (Ty.Sum (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+            (Word.Word (S (S (S (S (S O)))))))
+     with
+     | true =>
+         @Alg.Core.Combinators.copair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+           (Word.Word (S (S (S (S (S O)))))) alg (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) alg)
+           (@lock_zero (Word.Word (S (S (S (S (S O)))))) alg)
+     | false =>
+         @Alg.Core.Combinators.copair (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+           (Word.Word (S (S (S (S (S O)))))) alg (@lock_zero (Word.Word (S (S (S (S (S O)))))) alg)
+           (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S O)))))) alg)
+     end)
+     : forall (_ : bool) (alg : Alg.Core.Algebra),
+       Alg.Core.domain alg (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S (S O))))))
+
+Arguments lock_tail height%bool_scope {alg}
+### C.jet_bitcoin_lock_spec.lock_program
+lock_program =
+fun (height : bool) (alg : Alg.Core.Algebra) (isfinal : Alg.Core.domain alg Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+  (locktime : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))) =>
+@Alg.Core.Combinators.comp Ty.Unit (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+  (Word.Word (S (S (S (S (S O)))))) alg
+  (@Alg.Core.Combinators.pair Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))) alg isfinal locktime)
+  (@lock_tail height alg)
+     : forall (_ : bool) (alg : Alg.Core.Algebra) (_ : Alg.Core.domain alg Ty.Unit (Ty.Sum Ty.Unit Ty.Unit))
+         (_ : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))),
+       Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments lock_program height%bool_scope {alg} isfinal locktime
+### C.jet_bitcoin_lock_spec.lock_value
+lock_value =
+fun (height final : bool) (z : BinNums.Z) =>
+match final return BinNums.Z with
+| true => BinNums.Z0
+| false =>
+    match
+      BinInt.Z.ltb z
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO ...)))))))))))))))))))
+      return BinNums.Z
+    with
+    | true => match height return BinNums.Z with
+              | true => z
+              | false => BinNums.Z0
+              end
+    | false => match height return BinNums.Z with
+               | true => BinNums.Z0
+               | false => z
+               end
+    end
+end
+     : forall (_ : bool) (_ : bool) (_ : BinNums.Z), BinNums.Z
+
+Arguments lock_value (height final)%bool_scope z%Z_scope
+### C.jet_bitcoin_lock_spec.bitcoin_lock_time_prim
+bitcoin_lock_time_prim =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+  Bitcoin.Bitcoin.LockTime
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments bitcoin_lock_time_prim {alg}
+### C.jet_bitcoin_lock_spec.bitcoin_tx_lock_height_spec
+bitcoin_tx_lock_height_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@lock_program true (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg)
+  (@jet_bitcoin_is_final_spec.bitcoin_tx_is_final_spec alg) (@bitcoin_lock_time_prim alg)
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments bitcoin_tx_lock_height_spec {alg}
+### C.jet_bitcoin_lock_spec.bitcoin_tx_lock_time_spec
+bitcoin_tx_lock_time_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@lock_program false (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toCore alg)
+  (@jet_bitcoin_is_final_spec.bitcoin_tx_is_final_spec alg) (@bitcoin_lock_time_prim alg)
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments bitcoin_tx_lock_time_spec {alg}
+### C.jet_bitcoin_lock_spec.bitcoin_lock_value
+bitcoin_lock_value =
+fun (height : bool) (environment : Bitcoin.Bitcoin.env) =>
+lock_value height
+  (@List.forallb Bitcoin.sigTxInput jet_bitcoin_is_final_spec.sequence_final
+     (Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx environment)))
+  (Integers.Int.unsigned (Bitcoin.sigTxLock (Bitcoin.Bitcoin.envTx environment)))
+     : forall (_ : bool) (_ : Bitcoin.Bitcoin.env), BinNums.Z
+
+Arguments bitcoin_lock_value height%bool_scope environment

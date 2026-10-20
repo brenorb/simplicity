@@ -1,0 +1,79 @@
+### C.jet_eq256_array.eq256_words_equal_true
+eq256_words_equal_true
+     : forall xs ys : list Integers.Int.int,
+       iff (@eq bool (eq256_words_equal xs ys) true) (@eq (list Integers.Int.int) xs ys)
+### C.jet_eq256_array.eq256_array_map_injective
+eq256_array_map_injective
+     : forall (xs ys : list (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (_ : @eq (list Integers.Int.int)
+                (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                   jet_read32s_layout.word32_array_value xs)
+                (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int
+                   jet_read32s_layout.word32_array_value ys)),
+       @eq (list (Ty.tySem (Word.Word (S (S (S (S (S O)))))))) xs ys
+### C.jet_eq256_array.eq256_array_denotes
+eq256_array_denotes
+     : forall x y : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq bool (eq256_array_result x y)
+         (Bit.toBool
+            (@jet_equality_spec.equality_spec (Word.Word (S (S (S (S (S (S (S (S O))))))))) Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) x y)))
+### C.jet_eq256_array.eval_eq256_array_load
+eval_eq256_array_load
+     : forall (bl ba : Values.block) (le : Clight.temp_env) (m : Memory.Mem.mem) (index : BinNums.Z)
+         (index_expr : Clight.expr) (x : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 index)
+                (BinInt.Z.le index (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+         (_ : @eq Ctypes.type (Clight.typeof index_expr) Ctypesdefs.tint)
+         (_ : Clight.eval_expr jet_exec.ge0 (eq256_env bl ba) le m index_expr (Values.Vint (Integers.Int.repr index)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m ba
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) index))
+                (@Some Values.val (Values.Vint x))),
+       Clight.eval_expr jet_exec.ge0 (eq256_env bl ba) le m
+         (Clight.Ederef
+            (Clight.Ebinop Cop.Oadd
+               (Clight.Evar jets._arr
+                  (Ctypesdefs.tarray Ctypesdefs.tuint
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) index_expr
+               (Ctypesdefs.tptr Ctypesdefs.tuint)) Ctypesdefs.tuint) (Values.Vint x)
+### C.jet_eq256_array.eq256_words_equal
+eq256_words_equal =
+fix eq256_words_equal (xs ys : list Integers.Int.int) {struct xs} : bool :=
+  match xs return bool with
+  | nil => match ys return bool with
+           | nil => true
+           | cons _ _ => false
+           end
+  | cons x xs0 =>
+      match ys return bool with
+      | nil => false
+      | cons y ys0 => andb (Integers.Int.eq x y) (eq256_words_equal xs0 ys0)
+      end
+  end
+     : forall (_ : list Integers.Int.int) (_ : list Integers.Int.int), bool
+
+Arguments eq256_words_equal (xs ys)%list_scope
+### C.jet_eq256_array.eq256_array_result
+eq256_array_result =
+fun x y : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))) =>
+eq256_words_equal
+  (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int jet_read32s_layout.word32_array_value
+     (jet_word32_chunks.word32_chunks (S (S (S O))) x))
+  (@List.map (Ty.tySem (Word.Word (S (S (S (S (S O))))))) Integers.Int.int jet_read32s_layout.word32_array_value
+     (jet_word32_chunks.word32_chunks (S (S (S O))) y))
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))), bool
+
+Arguments eq256_array_result x y
+### C.jet_eq256_array.eq256_env
+eq256_env =
+fun bl ba : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets._arr
+  (@pair Values.block Ctypes.type ba
+     (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+  (jet_one8.e_one8 bl)
+     : forall (_ : Values.block) (_ : Values.block), Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments eq256_env bl ba

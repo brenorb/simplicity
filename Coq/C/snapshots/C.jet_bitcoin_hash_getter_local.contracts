@@ -1,0 +1,44 @@
+### C.jet_bitcoin_hash_getter_local.hash_getter_rep
+hash_getter_rep =
+fun (E : Set) (hash_of : forall _ : E, Digest.hash256) (pdelta hdelta psz : BinNums.Z) (m : Memory.Mem.mem)
+  (env : Values.val) (e : E) (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun tbase : BinNums.Z =>
+            and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+              (and (BinInt.Z.le BinNums.Z0 ebase)
+                 (and
+                    (BinInt.Z.le
+                       (BinInt.Z.add ebase
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                       Integers.Ptrofs.max_unsigned)
+                    (and (BinInt.Z.le BinNums.Z0 tbase)
+                       (and (BinInt.Z.le (BinInt.Z.add tbase psz) Integers.Ptrofs.max_unsigned)
+                          (and
+                             (@eq (option Values.val) (Memory.Mem.load AST.Mptr m be (BinInt.Z.add ebase pdelta))
+                                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
+                             (and
+                                (jet_uint32_array_init.uint32_array_at m bt (BinInt.Z.add tbase hdelta)
+                                   (Digest.hash256_reg (hash_of e)))
+                                (@eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) fp
+                                   (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                      (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                         (@pair Values.block BinNums.Z be (BinInt.Z.add ebase pdelta))
+                                         (BinInt.Z.add (BinInt.Z.add ebase pdelta)
+                                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                      (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                         (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                            (@pair Values.block BinNums.Z bt (BinInt.Z.add tbase hdelta))
+                                            (BinInt.Z.add (BinInt.Z.add tbase hdelta)
+                                               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))
+                                         (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))))))))))))))
+     : forall (E : Set) (_ : forall _ : E, Digest.hash256) (_ : BinNums.Z) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : Memory.Mem.mem) (_ : Values.val) (_ : E)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments hash_getter_rep {E}%type_scope hash_of%function_scope (pdelta hdelta psz)%Z_scope m env e fp%list_scope

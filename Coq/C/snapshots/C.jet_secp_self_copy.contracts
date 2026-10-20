@@ -1,0 +1,12 @@
+### C.jet_secp_self_copy.self_copy_setN_getN
+self_copy_setN_getN
+     : forall (n : nat) (p : BinNums.Z) (c : Maps.ZMap.t Memdata.memval) (q : Maps.ZIndexed.t),
+       @eq Memdata.memval (@Maps.ZMap.get Memdata.memval q (Memory.Mem.setN (Memory.Mem.getN n p c) p c))
+         (@Maps.ZMap.get Memdata.memval q c)
+### C.jet_secp_self_copy.self_copy_storebytes_unchanged
+self_copy_storebytes_unchanged
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs n : BinNums.Z) (bytes : list Memdata.memval)
+         (mf : Memory.Mem.mem)
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m b ofs n) (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes m b ofs bytes) (@Some Memory.Mem.mem mf)),
+       Memory.Mem.unchanged_on (fun (_ : Values.block) (_ : BinNums.Z) => True) m mf

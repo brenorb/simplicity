@@ -1,0 +1,105 @@
+### C.jet_elements_field_eval.eval_elements_deref_struct
+eval_elements_deref_struct
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (x : BinNums.positive)
+         (sid : AST.ident) (b : Values.block) (ofs : Integers.Ptrofs.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val x le) (@Some Values.val (Values.Vptr b ofs))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         (Clight.Ederef (Clight.Etempvar x (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+            (Ctypes.Tstruct sid Ctypes.noattr)) (Values.Vptr b ofs)
+### C.jet_elements_field_eval.eval_elements_field_lvalue
+eval_elements_field_lvalue
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (a : Clight.expr)
+         (sid field : AST.ident) (delta : BinNums.Z) (ty : Ctypes.type) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (_ : @eq Ctypes.type (Clight.typeof a) (Ctypes.Tstruct sid Ctypes.noattr))
+         (_ : elements_field_at sid field delta)
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m a (Values.Vptr b ofs)),
+       Clight.eval_lvalue jet_elements_linkage.elements_ge e le m (Clight.Efield a field ty) b
+         (Integers.Ptrofs.add ofs (Integers.Ptrofs.repr delta)) Ctypes.Full
+### C.jet_elements_field_eval.eval_elements_field_value
+eval_elements_field_value
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (a : Clight.expr)
+         (sid field : AST.ident) (delta : BinNums.Z) (ty : Ctypes.type) (chunk : AST.memory_chunk)
+         (b : Values.block) (ofs : Integers.Ptrofs.int) (v : Values.val)
+         (_ : @eq Ctypes.type (Clight.typeof a) (Ctypes.Tstruct sid Ctypes.noattr))
+         (_ : elements_field_at sid field delta) (_ : @eq Ctypes.mode (Ctypes.access_mode ty) (Ctypes.By_value chunk))
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m a (Values.Vptr b ofs))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.loadv chunk m (Values.Vptr b (Integers.Ptrofs.add ofs (Integers.Ptrofs.repr delta))))
+                (@Some Values.val v)),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m (Clight.Efield a field ty) v
+### C.jet_elements_field_eval.eval_elements_field_struct
+eval_elements_field_struct
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (a : Clight.expr)
+         (sid field : AST.ident) (delta : BinNums.Z) (sid' : AST.ident) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (_ : @eq Ctypes.type (Clight.typeof a) (Ctypes.Tstruct sid Ctypes.noattr))
+         (_ : elements_field_at sid field delta)
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m a (Values.Vptr b ofs)),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         (Clight.Efield a field (Ctypes.Tstruct sid' Ctypes.noattr))
+         (Values.Vptr b (Integers.Ptrofs.add ofs (Integers.Ptrofs.repr delta)))
+### C.jet_elements_field_eval.eval_elements_field_array
+eval_elements_field_array
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (a : Clight.expr)
+         (sid field : AST.ident) (delta : BinNums.Z) (ty : Ctypes.type) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (_ : @eq Ctypes.type (Clight.typeof a) (Ctypes.Tstruct sid Ctypes.noattr))
+         (_ : elements_field_at sid field delta)
+         (_ : forall chunk : AST.memory_chunk, not (@eq Ctypes.mode (Ctypes.access_mode ty) (Ctypes.By_value chunk)))
+         (_ : @eq Ctypes.mode (Ctypes.access_mode ty) Ctypes.By_reference)
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m a (Values.Vptr b ofs)),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m (Clight.Efield a field ty)
+         (Values.Vptr b (Integers.Ptrofs.add ofs (Integers.Ptrofs.repr delta)))
+### C.jet_elements_field_eval.elements_ptr_add_repr
+elements_ptr_add_repr
+     : forall (base delta : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 base) (_ : BinInt.Z.le BinNums.Z0 delta)
+         (_ : BinInt.Z.le (BinInt.Z.add base delta) Integers.Ptrofs.max_unsigned),
+       @eq Integers.Ptrofs.int (Integers.Ptrofs.add (Integers.Ptrofs.repr base) (Integers.Ptrofs.repr delta))
+         (Integers.Ptrofs.repr (BinInt.Z.add base delta))
+### C.jet_elements_field_eval.elements_loadv_repr
+elements_loadv_repr
+     : forall (chunk : AST.memory_chunk) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (v : Values.val) (_ : and (BinInt.Z.le BinNums.Z0 base) (BinInt.Z.le base Integers.Ptrofs.max_unsigned))
+         (_ : @eq (option Values.val) (Memory.Mem.load chunk m b base) (@Some Values.val v)),
+       @eq (option Values.val) (Memory.Mem.loadv chunk m (Values.Vptr b (Integers.Ptrofs.repr base)))
+         (@Some Values.val v)
+### C.jet_elements_field_eval.elements_txEnv_tx
+elements_txEnv_tx
+     : elements_field_at jets_elements._txEnv jets_elements._tx BinNums.Z0
+### C.jet_elements_field_eval.elements_txEnv_taproot
+elements_txEnv_taproot
+     : elements_field_at jets_elements._txEnv jets_elements._taproot
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+### C.jet_elements_field_eval.elements_txEnv_ix
+elements_txEnv_ix
+     : elements_field_at jets_elements._txEnv jets_elements._ix
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+### C.jet_elements_field_eval.elements_tapEnv_scriptCMR
+elements_tapEnv_scriptCMR
+     : elements_field_at jets_elements._elementsTapEnv jets_elements._scriptCMR
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_elements_field_eval.elements_tapEnv_internalKey
+elements_tapEnv_internalKey
+     : elements_field_at jets_elements._elementsTapEnv jets_elements._internalKey
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+### C.jet_elements_field_eval.elements_midstate_s
+elements_midstate_s
+     : elements_field_at jets_elements._sha256_midstate jets_elements._s BinNums.Z0
+### C.jet_elements_field_eval.elements_field_at
+elements_field_at =
+fun (sid field : AST.ident) (delta : BinNums.Z) =>
+match @Maps.PTree.get Ctypes.composite sid (Clight.genv_cenv jet_elements_linkage.elements_ge) return Prop with
+| Some co =>
+    @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+      (Ctypes.field_offset (Clight.genv_cenv jet_elements_linkage.elements_ge) field (Ctypes.co_members co))
+      (@Errors.OK (prod BinNums.Z Ctypes.bitfield) (@pair BinNums.Z Ctypes.bitfield delta Ctypes.Full))
+| None => False
+end
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : BinNums.Z), Prop
+
+Arguments elements_field_at sid field delta%Z_scope
+### C.jet_elements_field_eval.elements_struct
+elements_struct =
+fun (t : Ctypes.type) (sid : AST.ident) => @eq Ctypes.type t (Ctypes.Tstruct sid Ctypes.noattr)
+     : forall (_ : Ctypes.type) (_ : AST.ident), Prop
+
+Arguments elements_struct t sid

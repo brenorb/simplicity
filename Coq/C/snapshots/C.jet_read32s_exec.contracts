@@ -1,0 +1,146 @@
+### C.jet_read32s_exec.read32s_body_shape
+read32s_body_shape
+     : @eq Clight.statement (Clight.fn_body jets.f_read32s) (Clight.Sloop read32s_loop_body read32s_loop_step)
+### C.jet_read32s_exec.exec_read32s_body
+exec_read32s_body
+     : forall (m mi ms : Memory.Mem.mem) (le : Maps.PTree.tree Values.val) (bi : Values.block)
+         (input : BinNums.Z) (bf : Values.block) (base : BinNums.Z) (x : Integers.Int64.int)
+         (count : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 input)
+         (_ : BinInt.Z.le (BinInt.Z.add input (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : and (BinInt.Z.lt BinNums.Z0 count) (BinInt.Z.le count Integers.Int64.max_unsigned))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._frame le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._x le)
+                (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr input))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._n le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr count))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read32)
+                (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mi
+                (Values.Vlong x))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint32 mi bi input (Values.Vint (Integers.Int64.loword x)))
+                (@Some Memory.Mem.mem ms)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m read32s_loop_body Events.E0
+         (read32s_body_env le bi input x) ms ClightBigstep.Out_normal
+### C.jet_read32s_exec.exec_read32s_run
+exec_read32s_run
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bi : Values.block)
+         (input : BinNums.Z) (bf : Values.block) (base : BinNums.Z) (xs : list Integers.Int64.int)
+         (_ : BinInt.Z.le BinNums.Z0 input)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add input
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                      (BinInt.Z.of_nat (@length Integers.Int64.int xs)))) Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le (BinInt.Z.of_nat (@length Integers.Int64.int xs)) Integers.Int64.max_unsigned)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._frame le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._x le)
+                (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr input))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._n le)
+                (@Some Values.val
+                   (Values.Vlong (Integers.Int64.repr (BinInt.Z.of_nat (@length Integers.Int64.int xs))))))
+         (_ : read32s_run bi input bf base xs m mf),
+       @ex Clight.temp_env
+         (fun lef : Clight.temp_env =>
+          ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m (Clight.fn_body jets.f_read32s) Events.E0
+            lef mf ClightBigstep.Out_normal)
+### C.jet_read32s_exec.read32s_entry
+read32s_entry
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bi : Values.block) (input count : BinNums.Z),
+       Clight.function_entry2 jet_exec.ge0 jets.f_read32s
+         (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr input))
+            (@cons Values.val (Values.Vlong (Integers.Int64.repr count))
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)))) m Clight.empty_env
+         (read32s_env bf base bi input count) m
+### C.jet_read32s_exec.eval_read32s_from_run
+eval_read32s_from_run
+     : forall (m mf : Memory.Mem.mem) (bi : Values.block) (input : BinNums.Z) (bf : Values.block)
+         (base : BinNums.Z) (xs : list Integers.Int64.int) (_ : BinInt.Z.le BinNums.Z0 input)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add input
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                      (BinInt.Z.of_nat (@length Integers.Int64.int xs)))) Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le (BinInt.Z.of_nat (@length Integers.Int64.int xs)) Integers.Int64.max_unsigned)
+         (_ : read32s_run bi input bf base xs m mf),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_read32s)
+         (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr input))
+            (@cons Values.val (Values.Vlong (Integers.Int64.repr (BinInt.Z.of_nat (@length Integers.Int64.int xs))))
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)))) Events.E0 mf
+         Values.Vundef
+### C.jet_read32s_exec.read32s_run
+read32s_run =
+fix read32s_run
+  (bi : Values.block) (input : BinNums.Z) (bf : Values.block) (base : BinNums.Z) (xs : list Integers.Int64.int)
+  (m mf : Memory.Mem.mem) {struct xs} : Prop :=
+  match xs return Prop with
+  | nil => @eq Memory.Mem.mem m mf
+  | cons x rest =>
+      @ex Memory.Mem.mem
+        (fun mi : Memory.Mem.mem =>
+         @ex Memory.Mem.mem
+           (fun ms : Memory.Mem.mem =>
+            and
+              (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                 (@Ctypes.Internal Clight.function jets.f_simplicity_read32)
+                 (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mi
+                 (Values.Vlong x))
+              (and
+                 (@eq (option Memory.Mem.mem)
+                    (Memory.Mem.store AST.Mint32 mi bi input (Values.Vint (Integers.Int64.loword x)))
+                    (@Some Memory.Mem.mem ms))
+                 (read32s_run bi (BinInt.Z.add input (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))) bf base rest
+                    ms mf))))
+  end
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : list Integers.Int64.int)
+         (_ : Memory.Mem.mem) (_ : Memory.Mem.mem), Prop
+
+Arguments read32s_run bi input%Z_scope bf base%Z_scope xs%list_scope m mf
+### C.jet_read32s_exec.read32s_loop_body
+read32s_loop_body =
+match Clight.fn_body jets.f_read32s return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ _ => Clight.Sskip
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop body _ => body
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_read32s_exec.read32s_loop_step
+read32s_loop_step =
+Clight.Sset jets._n
+  (Clight.Ebinop Cop.Osub (Clight.Etempvar jets._n Ctypesdefs.tulong)
+     (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint) Ctypesdefs.tulong)
+     : Clight.statement
+### C.jet_read32s_exec.read32s_body_env
+read32s_body_env =
+fun (le : Maps.PTree.tree Values.val) (bi : Values.block) (input : BinNums.Z) (x : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets._t'2 (Values.Vlong x)
+  (@Maps.PTree.set Values.val jets._x
+     (Values.Vptr bi (Integers.Ptrofs.repr (BinInt.Z.add input (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))))
+     (@Maps.PTree.set Values.val jets._t'1 (Values.Vptr bi (Integers.Ptrofs.repr input)) le))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments read32s_body_env le bi input%Z_scope x
+### C.jet_read32s_exec.read32s_env
+read32s_env =
+fun (bf : Values.block) (base : BinNums.Z) (bi : Values.block) (input count : BinNums.Z) =>
+@Maps.PTree.set Values.val jets._n (Values.Vlong (Integers.Int64.repr count))
+  (@Maps.PTree.set Values.val jets._x (Values.Vptr bi (Integers.Ptrofs.repr input))
+     (@Maps.PTree.set Values.val jets._frame (Values.Vptr bf (Integers.Ptrofs.repr base))
+        (Clight.create_undef_temps (Clight.fn_temps jets.f_read32s))))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z),
+       Maps.PTree.tree Values.val
+
+Arguments read32s_env bf base%Z_scope bi (input count)%Z_scope

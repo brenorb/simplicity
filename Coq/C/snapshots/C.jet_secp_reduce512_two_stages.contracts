@@ -1,0 +1,155 @@
+### C.jet_secp_reduce512_two_stages.extract_stage_entry
+@extract_stage_entry
+     : forall (A B C R : Type) (alloc : option (prod A B)) (binding : option C)
+         (run : forall (_ : A) (_ : B) (_ : C), option R) (pair : prod A B) (args : C) (result : R)
+         (_ : @eq (option (prod A B)) alloc (@Some (prod A B) pair)) (_ : @eq (option C) binding (@Some C args))
+         (_ : @eq (option R)
+                match alloc return (option R) with
+                | Some p =>
+                    match p return (option R) with
+                    | pair locals ve =>
+                        match binding return (option R) with
+                        | Some ts => run locals ve ts
+                        | None => @None R
+                        end
+                    end
+                | None => @None R
+                end (@Some R result)), @eq (option R) (run (@fst A B pair) (@snd A B pair) args) (@Some R result)
+### C.jet_secp_reduce512_two_stages.reduce512_allocated_exact
+reduce512_allocated_exact
+     : @eq (option (prod (list jet_sx_state.region) jet_sx_eval.venv))
+         (jet_sx_mem.xalloc (jet_sx_mem.std_cells (Clight.genv_cenv jet_secp_linkage.secp_ge))
+            (Clight.genv_cenv jet_secp_linkage.secp_ge) (Clight.fn_vars jets_secp.f_secp256k1_scalar_reduce_512)
+            (S (S O)))
+         (@Some (prod (list jet_sx_state.region) jet_sx_eval.venv) jet_secp_reduce512_typed_stage.reduce512_allocated)
+### C.jet_secp_reduce512_two_stages.reduce512_bound_exact
+reduce512_bound_exact
+     : @eq (option (Maps.PTree.t jet_sx_expr.sx))
+         (jet_sx_mem.xbind (Clight.fn_params jets_secp.f_secp256k1_scalar_reduce_512)
+            (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+               (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0) (@nil jet_sx_expr.sx)))
+            (Maps.PTree.empty jet_sx_expr.sx)) (@Some (Maps.PTree.tree jet_sx_expr.sx) reduce512_initial_temps)
+### C.jet_secp_reduce512_two_stages.reduce512_first_compact_run
+reduce512_first_compact_run
+     : @eq (option jet_sx_exec.res)
+         (jet_sx_compact.compact_stmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+            (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_shift64_executor.secp_shift64_table
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated)
+            reduce512_first_initial jet_secp_reduce512_first_run.reduce512_first_prefix)
+         (@Some jet_sx_exec.res
+            (jet_sx_exec.RDone jet_secp_reduce512_first_run.reduce512_first_state jet_sx_exec.ONormal))
+### C.jet_secp_reduce512_two_stages.reduce512_first_forget_stack
+reduce512_first_forget_stack
+     : @eq (list jet_sx_state.region)
+         (jet_sx_forget_cells.forget_after (S (S O))
+            (jet_sx_eval.sregs jet_secp_reduce512_first_run.reduce512_first_state))
+         (@app jet_sx_state.region jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs
+            (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated))
+### C.jet_secp_reduce512_two_stages.exec_reduce512_first_two_stages
+exec_reduce512_first_two_stages
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs reduce512_first_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta reduce512_initial_temps le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  jet_secp_reduce512_second_run.reduce512_second_prefix Events.E0 le' mf ClightBigstep.Out_normal)
+               (and
+                  (jet_sx_state.rep rho beta
+                     (jet_sx_eval.sregs
+                        (jet_secp_reduce512_typed_stage.reduce512_typed_stage_state
+                           (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                           (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho))) mf)
+                  (and
+                     (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._p0 le')
+                        (@Some Values.val
+                           (Values.Vlong
+                              (jet_secp_reduce512_wide.wlo
+                                 (jet_secp_reduce512_typed_atomic.stage_ma0
+                                    (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho))))))
+                     (and
+                        (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._p1 le')
+                           (@Some Values.val
+                              (Values.Vlong
+                                 (jet_secp_reduce512_wide.wlo
+                                    (jet_secp_reduce512_typed_atomic.stage_ma1
+                                       (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho))))))
+                        (and
+                           (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._p2 le')
+                              (@Some Values.val
+                                 (Values.Vlong
+                                    (jet_secp_reduce512_wide.wlo
+                                       (jet_secp_reduce512_typed_atomic.stage_ma2
+                                          (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                                          (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho))))))
+                           (and
+                              (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._p3 le')
+                                 (@Some Values.val
+                                    (Values.Vlong
+                                       (jet_secp_reduce512_wide.wlo
+                                          (jet_secp_reduce512_typed_atomic.stage_ma3
+                                             (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                                             (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho))))))
+                              (and
+                                 (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._p4 le')
+                                    (@Some Values.val
+                                       (Values.Vint
+                                          (Integers.Int64.loword
+                                             (Integers.Int64.add
+                                                (jet_secp_reduce512_wide.whi
+                                                   (jet_secp_reduce512_typed_atomic.stage_ma3
+                                                      (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                                                      (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho)))
+                                                (jet_secp_reduce512_typed_atomic.stage_ma_m6
+                                                   (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho)))))))
+                                 (and
+                                    (@eq BinNums.Z
+                                       (jet_secp_scalar_mul512_accumulate.column_words_value
+                                          (jet_secp_reduce512_typed_atomic.stage_machine_outputs
+                                             (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                                             (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho)))
+                                       (jet_secp_reduce512_fold_bounds.second_fold_bridge_value rho))
+                                    (and
+                                       (and
+                                          (BinInt.Z.le BinNums.Z0
+                                             (jet_secp_reduce512_typed_value.stage_p4_integer
+                                                (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                                                (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho)))
+                                          (BinInt.Z.le
+                                             (jet_secp_reduce512_typed_value.stage_p4_integer
+                                                (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                                                (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho))
+                                             (BinNums.Zpos (BinNums.xO BinNums.xH))))
+                                       (and
+                                          (jet_sx_eval.tmatch rho beta
+                                             (jet_sx_eval.stemps
+                                                (jet_secp_reduce512_typed_stage.reduce512_typed_stage_state
+                                                   (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                                                   (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho))) le')
+                                          (jet_sx_mem.lframe
+                                             (fun (b : Values.block) (ofs : BinNums.Z) =>
+                                              not
+                                                (jet_sx_state.foot beta
+                                                   (@List.map jet_sx_state.region
+                                                      (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool)
+                                                         (option BinNums.Z)) jet_sx_state.rshape
+                                                      (jet_sx_eval.sregs reduce512_first_initial)) b ofs)) m mf))))))))))))
+### C.jet_secp_reduce512_two_stages.reduce512_initial_temps
+reduce512_initial_temps =
+@Maps.PTree.set jet_sx_expr.sx jets_secp._l (jet_sx_expr.XP (S O) BinNums.Z0)
+  (@Maps.PTree.set jet_sx_expr.sx jets_secp._r (jet_sx_expr.XP O BinNums.Z0) (Maps.PTree.empty jet_sx_expr.sx))
+     : Maps.PTree.tree jet_sx_expr.sx
+### C.jet_secp_reduce512_two_stages.reduce512_first_initial
+reduce512_first_initial =
+jet_sx_eval.mkst reduce512_initial_temps
+  (@app jet_sx_state.region jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs
+     (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated))
+  (@nil jet_sx_eval.event) (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+     : jet_sx_eval.sstate

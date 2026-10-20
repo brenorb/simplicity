@@ -1,0 +1,604 @@
+### C.jet_bitcoin_words_hash.prim_words_hash_spec_parametric
+prim_words_hash_spec_parametric
+     : forall (k w : nat)
+         (p : jet_bitcoin_full_prim.BitcoinFull.t (Word.Word w)
+                (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))),
+       @jet_bitcoin_full_prim.PF.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@prim_words_hash_spec k w p)
+### C.jet_bitcoin_words_hash.prim_words_hash_spec_sem
+prim_words_hash_spec_sem
+     : forall (k w : nat)
+         (p : jet_bitcoin_full_prim.BitcoinFull.t (Word.Word w)
+                (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (xs_of : forall _ : jet_bitcoin_ext_prim.ext_environment,
+                  list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (_ : forall (i : Ty.tySem (Word.Word w)) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+              @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))))
+                (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word w)
+                   (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) p i e)
+                (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   match
+                     @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) (xs_of e)
+                       (BinInt.Z.to_nat (jet_forWhile_seq.wz w i))
+                     return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   with
+                   | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) x
+                   | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) tt
+                   end))
+         (_ : BinInt.Z.lt
+                (BinInt.Z.div
+                   (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) k)) (jet_forWhile_seq.wsize w))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                jet_sha_ctx8_spec.ctx8_limit) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@prim_words_hash_spec k w p
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
+            e)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.from_hash256 (words_hash_of k w (xs_of e))))
+### C.jet_bitcoin_words_hash.tx_words_hash_jet
+tx_words_hash_jet
+     : forall (k w : nat)
+         (p : jet_bitcoin_full_prim.BitcoinFull.t (Word.Word w)
+                (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (xs_of : forall _ : jet_bitcoin_full_prim.BitcoinFull.env,
+                  list
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end) (Word.Vector (Word.Word (S (S (S O)))) k))) (f : Clight.function)
+         (field : AST.ident) (hdelta : BinNums.Z)
+         (_ : forall (i : Ty.tySem (Word.Word w)) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+              @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))))
+                (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word w)
+                   (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) p i e)
+                (@Some
+                   (sum unit
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end) (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   match
+                     @List.nth_error
+                       ((fix tySem (X : Ty.Ty) : Set :=
+                           match X return Set with
+                           | Ty.Unit => unit
+                           | Ty.Sum A B => sum (tySem A) (tySem B)
+                           | Ty.Prod A B => prod (tySem A) (tySem B)
+                           end) (Word.Vector (Word.Word (S (S (S O)))) k)) (xs_of e)
+                       (BinInt.Z.to_nat (jet_forWhile_seq.wz w i))
+                     return
+                       (sum unit
+                          ((fix tySem (X : Ty.Ty) : Set :=
+                              match X return Set with
+                              | Ty.Unit => unit
+                              | Ty.Sum A B => sum (tySem A) (tySem B)
+                              | Ty.Prod A B => prod (tySem A) (tySem B)
+                              end) (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   with
+                   | Some x =>
+                       @inr unit
+                         ((fix tySem (X : Ty.Ty) : Set :=
+                             match X return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A B => sum (tySem A) (tySem B)
+                             | Ty.Prod A B => prod (tySem A) (tySem B)
+                             end) (Word.Vector (Word.Word (S (S (S O)))) k)) x
+                   | None =>
+                       @inl unit
+                         ((fix tySem (X : Ty.Ty) : Set :=
+                             match X return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A B => sum (tySem A) (tySem B)
+                             | Ty.Prod A B => prod (tySem A) (tySem B)
+                             end) (Word.Vector (Word.Word (S (S (S O)))) k)) tt
+                   end))
+         (_ : BinInt.Z.lt
+                (BinInt.Z.div
+                   (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) k)) (jet_forWhile_seq.wsize w))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                jet_sha_ctx8_spec.ctx8_limit)
+         (_ : jet_bitcoin_wrapper.bitcoin_wrapper_shape f
+                (jet_bitcoin_wrapper.bitcoin_simple_rest
+                   (jet_bitcoin_hash_getters.bitcoin_hash_mid_writeHash jets_bitcoin._tx
+                      jets_bitcoin._bitcoinTransaction field)))
+         (_ : jet_bitcoin_field_eval.bitcoin_field_at jets_bitcoin._bitcoinTransaction field hdelta)
+         (_ : and (BinInt.Z.le BinNums.Z0 hdelta)
+                (BinInt.Z.le
+                   (BinInt.Z.add hdelta
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))),
+       jet_application_sep.application_jet_local_spec_sep f jet_bitcoin_linkage.bitcoin_ge
+         jet_bitcoin_ext_prim.ext_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_full_prim.BitcoinFull.env
+            (fun e : jet_bitcoin_full_prim.BitcoinFull.env => words_hash_of k w (xs_of e)) BinNums.Z0 hdelta
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @prim_words_hash_spec k w p
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_words_hash.words_bound_8
+words_bound_8
+     : BinInt.Z.lt
+         (BinInt.Z.div
+            (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) (S (S (S O)))))
+               (jet_forWhile_seq.wsize (S (S (S (S (S O)))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         jet_sha_ctx8_spec.ctx8_limit
+### C.jet_bitcoin_words_hash.words_bound_32
+words_bound_32
+     : BinInt.Z.lt
+         (BinInt.Z.div
+            (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) (S (S (S (S (S O)))))))
+               (jet_forWhile_seq.wsize (S (S (S (S (S O)))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         jet_sha_ctx8_spec.ctx8_limit
+### C.jet_bitcoin_words_hash.words_bound_4
+words_bound_4
+     : BinInt.Z.lt
+         (BinInt.Z.div
+            (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) (S (S O))))
+               (jet_forWhile_seq.wsize (S (S (S (S (S O)))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         jet_sha_ctx8_spec.ctx8_limit
+### C.jet_bitcoin_words_hash.output_values_sem
+output_values_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O)))))))
+         (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O)))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) Bitcoin.Bitcoin.OutputValue) i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O)))))
+                (output_values_of e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O))))) tt
+            end)
+### C.jet_bitcoin_words_hash.bitcoin_output_values_hash_local_spec
+bitcoin_output_values_hash_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_output_values_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_ext_prim.ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+            (fun e : jet_bitcoin_ext_prim.ext_environment =>
+             words_hash_of (S (S (S O))) (S (S (S (S (S O))))) (output_values_of e)) BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @prim_words_hash_spec (S (S (S O))) (S (S (S (S (S O)))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) Bitcoin.Bitcoin.OutputValue)
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_words_hash.output_scripts_sem
+output_scripts_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Bitcoin.Bitcoin.OutputScriptHash) i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (output_scripts_of e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_bitcoin_words_hash.bitcoin_output_scripts_hash_local_spec
+bitcoin_output_scripts_hash_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_output_scripts_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_ext_prim.ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+            (fun e : jet_bitcoin_ext_prim.ext_environment =>
+             words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (output_scripts_of e)) BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) Bitcoin.Bitcoin.OutputScriptHash)
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_words_hash.input_values_sem
+input_values_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O)))))))
+         (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O)))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) Bitcoin.Bitcoin.InputValue) i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O)))))
+                (input_values_of e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O))))) tt
+            end)
+### C.jet_bitcoin_words_hash.bitcoin_input_values_hash_local_spec
+bitcoin_input_values_hash_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_values_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_ext_prim.ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+            (fun e : jet_bitcoin_ext_prim.ext_environment =>
+             words_hash_of (S (S (S O))) (S (S (S (S (S O))))) (input_values_of e)) BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @prim_words_hash_spec (S (S (S O))) (S (S (S (S (S O)))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) Bitcoin.Bitcoin.InputValue)
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_words_hash.input_scripts_sem
+input_scripts_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Ext (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               jet_bitcoin_ext_prim.BitcoinExt.InputScriptHash) i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (input_scripts_of e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_bitcoin_words_hash.bitcoin_input_scripts_hash_local_spec
+bitcoin_input_scripts_hash_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_scripts_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_ext_prim.ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+            (fun e : jet_bitcoin_ext_prim.ext_environment =>
+             words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (input_scripts_of e)) BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Ext (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               jet_bitcoin_ext_prim.BitcoinExt.InputScriptHash)
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_words_hash.input_sequences_sem
+input_sequences_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S O))))))
+         (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S O))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) Bitcoin.Bitcoin.InputSequence) i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O)))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O))))
+                (input_sequences_of e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O)))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O)))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O)))) tt
+            end)
+### C.jet_bitcoin_words_hash.bitcoin_input_sequences_hash_local_spec
+bitcoin_input_sequences_hash_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_sequences_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_ext_prim.ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+            (fun e : jet_bitcoin_ext_prim.ext_environment =>
+             words_hash_of (S (S O)) (S (S (S (S (S O))))) (input_sequences_of e)) BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @prim_words_hash_spec (S (S O)) (S (S (S (S (S O)))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Base (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) Bitcoin.Bitcoin.InputSequence)
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_words_hash.input_script_sigs_sem
+input_script_sigs_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word (S (S (S (S (S O))))))
+            (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Ext (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               jet_bitcoin_ext_prim.BitcoinExt.InputScriptSigHash) i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (input_script_sigs_of e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_bitcoin_words_hash.bitcoin_input_script_sigs_hash_local_spec
+bitcoin_input_script_sigs_hash_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_input_script_sigs_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_ext_prim.ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+            (fun e : jet_bitcoin_ext_prim.ext_environment =>
+             words_hash_of (S (S (S (S (S O))))) (S (S (S (S (S O))))) (input_script_sigs_of e)) BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S (S (S O)))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Ext (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               jet_bitcoin_ext_prim.BitcoinExt.InputScriptSigHash)
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_words_hash.tap_words_hash_jet
+tap_words_hash_jet
+     : forall (k w : nat)
+         (p : jet_bitcoin_full_prim.BitcoinFull.t (Word.Word w)
+                (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+         (xs_of : forall _ : jet_bitcoin_full_prim.BitcoinFull.env,
+                  list
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end) (Word.Vector (Word.Word (S (S (S O)))) k))) (f : Clight.function)
+         (field : AST.ident) (hdelta : BinNums.Z)
+         (_ : forall (i : Ty.tySem (Word.Word w)) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+              @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))))
+                (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word w)
+                   (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) p i e)
+                (@Some
+                   (sum unit
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end) (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   match
+                     @List.nth_error
+                       ((fix tySem (X : Ty.Ty) : Set :=
+                           match X return Set with
+                           | Ty.Unit => unit
+                           | Ty.Sum A B => sum (tySem A) (tySem B)
+                           | Ty.Prod A B => prod (tySem A) (tySem B)
+                           end) (Word.Vector (Word.Word (S (S (S O)))) k)) (xs_of e)
+                       (BinInt.Z.to_nat (jet_forWhile_seq.wz w i))
+                     return
+                       (sum unit
+                          ((fix tySem (X : Ty.Ty) : Set :=
+                              match X return Set with
+                              | Ty.Unit => unit
+                              | Ty.Sum A B => sum (tySem A) (tySem B)
+                              | Ty.Prod A B => prod (tySem A) (tySem B)
+                              end) (Word.Vector (Word.Word (S (S (S O)))) k)))
+                   with
+                   | Some x =>
+                       @inr unit
+                         ((fix tySem (X : Ty.Ty) : Set :=
+                             match X return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A B => sum (tySem A) (tySem B)
+                             | Ty.Prod A B => prod (tySem A) (tySem B)
+                             end) (Word.Vector (Word.Word (S (S (S O)))) k)) x
+                   | None =>
+                       @inl unit
+                         ((fix tySem (X : Ty.Ty) : Set :=
+                             match X return Set with
+                             | Ty.Unit => unit
+                             | Ty.Sum A B => sum (tySem A) (tySem B)
+                             | Ty.Prod A B => prod (tySem A) (tySem B)
+                             end) (Word.Vector (Word.Word (S (S (S O)))) k)) tt
+                   end))
+         (_ : BinInt.Z.lt
+                (BinInt.Z.div
+                   (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) k)) (jet_forWhile_seq.wsize w))
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                jet_sha_ctx8_spec.ctx8_limit)
+         (_ : jet_bitcoin_wrapper.bitcoin_wrapper_shape f
+                (jet_bitcoin_wrapper.bitcoin_simple_rest
+                   (jet_bitcoin_hash_getters.bitcoin_hash_mid_writeHash jets_bitcoin._taproot
+                      jets_bitcoin._bitcoinTapEnv field)))
+         (_ : jet_bitcoin_field_eval.bitcoin_field_at jets_bitcoin._bitcoinTapEnv field hdelta)
+         (_ : and (BinInt.Z.le BinNums.Z0 hdelta)
+                (BinInt.Z.le
+                   (BinInt.Z.add hdelta
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))),
+       jet_application_sep.application_jet_local_spec_sep f jet_bitcoin_linkage.bitcoin_ge
+         jet_bitcoin_ext_prim.ext_environment Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_full_prim.BitcoinFull.env
+            (fun e : jet_bitcoin_full_prim.BitcoinFull.env => words_hash_of k w (xs_of e))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) hdelta
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @prim_words_hash_spec k w p
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_words_hash.words_bound_path
+words_bound_path
+     : BinInt.Z.lt
+         (BinInt.Z.div
+            (BinInt.Z.mul (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) (S (S (S (S (S O)))))))
+               (jet_forWhile_seq.wsize (S (S (S O)))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         jet_sha_ctx8_spec.ctx8_limit
+### C.jet_bitcoin_words_hash.tappath_sem
+tappath_sem
+     : forall (i : Ty.tySem (Word.Word (S (S (S O))))) (e : jet_bitcoin_full_prim.BitcoinFull.env),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_full_prim.BitcoinFull.sem (Word.Word (S (S (S O))))
+            (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+            (@jet_bitcoin_full_prim.BitcoinFull.Ext (Word.Word (S (S (S O))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_bitcoin_ext_prim.BitcoinExt.Tappath)
+            i e)
+         (@Some (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            match
+              @List.nth_error (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (tappath_of e) (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S O))) i))
+              return (sum unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+            with
+            | Some x => @inr unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) x
+            | None => @inl unit (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) tt
+            end)
+### C.jet_bitcoin_words_hash.bitcoin_tappath_hash_local_spec
+bitcoin_tappath_hash_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tappath_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_ext_prim.ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_bitcoin_hash_getter_local.hash_getter_rep jet_bitcoin_ext_prim.ext_environment
+            (fun e : jet_bitcoin_ext_prim.ext_environment =>
+             words_hash_of (S (S (S (S (S O))))) (S (S (S O))) (tappath_of e))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @prim_words_hash_spec (S (S (S (S (S O))))) (S (S (S O)))
+            (@jet_bitcoin_full_prim.BitcoinFull.Ext (Word.Word (S (S (S O))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) jet_bitcoin_ext_prim.BitcoinExt.Tappath)
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_words_hash.prim_words_hash_spec
+prim_words_hash_spec =
+fun (k w : nat)
+  (p : jet_bitcoin_full_prim.BitcoinFull.t (Word.Word w) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)))
+  (alg : jet_bitcoin_full_prim.PF.Algebra) =>
+let term : Alg.Assertion.Algebra := jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion alg in
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_sha_hash_words.hash_words_spec k w term Ty.Unit
+  (@jet_buffer_empty_spec.AC.drop Ty.Unit (Word.Word w) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) core
+     (@jet_bitcoin_full_prim.PF.Combinators.prim (Word.Word w)
+        (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k)) alg p))
+     : forall (k w : nat)
+         (_ : jet_bitcoin_full_prim.BitcoinFull.t (Word.Word w)
+                (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) k))) (alg : jet_bitcoin_full_prim.PF.Algebra),
+       jet_bitcoin_full_prim.PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments prim_words_hash_spec (k w)%nat_scope p {alg}
+### C.jet_bitcoin_words_hash.words_hash_of
+words_hash_of =
+fun (k w : nat) (xs : list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k))) =>
+jet_sha_hash_words.hash_words_of k
+  (@List.firstn (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k)) (BinInt.Z.to_nat (jet_forWhile_seq.wsize w)) xs)
+     : forall (k _ : nat) (_ : list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) k))), Digest.hash256
+
+Arguments words_hash_of (k w)%nat_scope xs%list_scope
+### C.jet_bitcoin_words_hash.output_values_of
+output_values_of =
+fun e : jet_bitcoin_ext_prim.ext_environment =>
+@List.map Bitcoin.txOutput (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+  (fun o : Bitcoin.txOutput =>
+   @Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.signed (Bitcoin.txoValue o)))
+  (Bitcoin.sigTxOut (Bitcoin.Bitcoin.envTx (jet_bitcoin_ext_prim.extBase e)))
+     : forall _ : jet_bitcoin_ext_prim.ext_environment,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O)))))
+
+Arguments output_values_of e
+### C.jet_bitcoin_words_hash.output_scripts_of
+output_scripts_of =
+fun e : jet_bitcoin_ext_prim.ext_environment =>
+@List.map Bitcoin.txOutput (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (fun x : Bitcoin.txOutput => Word.from_hash256 (Digest.byteStringHash (Bitcoin.txoScript x)))
+  (Bitcoin.sigTxOut (Bitcoin.Bitcoin.envTx (jet_bitcoin_ext_prim.extBase e)))
+     : forall _ : jet_bitcoin_ext_prim.ext_environment,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments output_scripts_of e
+### C.jet_bitcoin_words_hash.input_values_of
+input_values_of =
+fun e : jet_bitcoin_ext_prim.ext_environment =>
+@List.map Bitcoin.sigTxInput (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+  (fun x : Bitcoin.sigTxInput =>
+   @Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.signed (Bitcoin.sigTxiValue x)))
+  (Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx (jet_bitcoin_ext_prim.extBase e)))
+     : forall _ : jet_bitcoin_ext_prim.ext_environment,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S O)))))
+
+Arguments input_values_of e
+### C.jet_bitcoin_words_hash.input_scripts_of
+input_scripts_of =
+fun e : jet_bitcoin_ext_prim.ext_environment =>
+@List.map Digest.hash256 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (fun x : Digest.hash256 => Word.from_hash256 x) (jet_bitcoin_ext_prim.extInScriptHash e)
+     : forall _ : jet_bitcoin_ext_prim.ext_environment,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments input_scripts_of e
+### C.jet_bitcoin_words_hash.input_sequences_of
+input_sequences_of =
+fun e : jet_bitcoin_ext_prim.ext_environment =>
+@List.map Bitcoin.sigTxInput (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+  (fun x : Bitcoin.sigTxInput =>
+   @Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) (Integers.Int.unsigned (Bitcoin.sigTxiSequence x)))
+  (Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx (jet_bitcoin_ext_prim.extBase e)))
+     : forall _ : jet_bitcoin_ext_prim.ext_environment,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S O))))
+
+Arguments input_sequences_of e
+### C.jet_bitcoin_words_hash.input_script_sigs_of
+input_script_sigs_of =
+fun e : jet_bitcoin_ext_prim.ext_environment =>
+@List.map Digest.hash256 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (fun x : Digest.hash256 => Word.from_hash256 x) (jet_bitcoin_ext_prim.extInScriptSigHash e)
+     : forall _ : jet_bitcoin_ext_prim.ext_environment,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments input_script_sigs_of e
+### C.jet_bitcoin_words_hash.tappath_of
+tappath_of =
+fun e : jet_bitcoin_ext_prim.ext_environment =>
+@List.map Digest.hash256 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (fun x : Digest.hash256 => Word.from_hash256 x) (jet_bitcoin_ext_prim.extTappath e)
+     : forall _ : jet_bitcoin_ext_prim.ext_environment,
+       list (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+
+Arguments tappath_of e

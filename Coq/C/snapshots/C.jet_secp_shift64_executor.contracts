@@ -1,0 +1,82 @@
+### C.jet_secp_shift64_executor.secp_shift64_table_correct
+secp_shift64_table_correct
+     : forall (id : AST.ident) (ent : jet_sx_exec.fentry)
+         (_ : @eq (option jet_sx_exec.fentry) (jet_sx_exec.flookup secp_shift64_table id)
+                (@Some jet_sx_exec.fentry ent)),
+       and
+         (@ex Values.block
+            (fun b : Values.block =>
+             and
+               (@eq (option Values.block)
+                  (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+                     id) (@Some Values.block b))
+               (@eq (option Clight.fundef)
+                  (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                     (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+                  (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function (jet_sx_exec.fentry_fd ent))))))
+         match ent return Prop with
+         | jet_sx_exec.FInt _ => True
+         | jet_sx_exec.FOra fd o =>
+             jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge
+               (fun (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event) => True)
+               (fun (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem) => True)
+               (fun _ : Values.block => False) fd o
+         end
+### C.jet_secp_shift64_executor.xfun_shift64_sound
+xfun_shift64_sound
+     : forall (fuel : nat) (fd : Clight.function) (args : list jet_sx_expr.sx) (regs : list jet_sx_state.region)
+         (nv : nat) (result : jet_sx_exec.res)
+         (_ : @eq (option jet_sx_exec.res)
+                (jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge)
+                   (@nil (prod AST.ident (prod nat Ctypes.type))) secp_shift64_table fuel fd args regs
+                   (@nil jet_sx_eval.event) nv) (@Some jet_sx_exec.res result))
+         (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho layout regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Values.val
+            (fun vres : Values.val =>
+             and
+               (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m (@Ctypes.Internal Clight.function fd)
+                  (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay layout)) args) Events.E0
+                  mf vres)
+               (and
+                  (jet_sx_state.rep rho layout
+                     (jet_sx_eval.sregs
+                        (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                           (jet_sx_exec.rsel rho (jet_sx_state.lay layout) result))) mf)
+                  (and
+                     match
+                       @Maps.PTree.get jet_sx_expr.sx BinNums.xH
+                         (jet_sx_eval.stemps
+                            (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                               (jet_sx_exec.rsel rho (jet_sx_state.lay layout) result))) return Prop
+                     with
+                     | Some x => @eq Values.val vres (jet_sx_expr.den rho (jet_sx_state.lay layout) x)
+                     | None => @eq Values.val vres Values.Vundef
+                     end
+                     (and
+                        (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape
+                              (jet_sx_eval.sregs
+                                 (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                                    (jet_sx_exec.rsel rho (jet_sx_state.lay layout) result))))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape regs))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot layout
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape regs) b ofs)) m mf))))))
+### C.jet_secp_shift64_executor.secp_shift64_table
+secp_shift64_table =
+@cons (prod AST.ident jet_sx_exec.fentry)
+  (@pair AST.ident jet_sx_exec.fentry jets_secp._secp256k1_u128_rshift
+     (jet_sx_exec.FOra jets_secp.f_secp256k1_u128_rshift jet_secp_u128_shift64_oracle.u128_shift64_oracle))
+  (jet_sx_pure.int_table jet_secp_fns.secp_pure)
+     : list (prod AST.ident jet_sx_exec.fentry)

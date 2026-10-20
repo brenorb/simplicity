@@ -1,0 +1,52 @@
+### C.jet_secp_scalar_writer_word.scalar_writer_outs_word
+scalar_writer_outs_word
+     : forall (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (layout : forall _ : nat, prod Values.block BinNums.Z) (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq (list BitMachine.Cell)
+         (jet_secp_frame.outsA
+            (jet_secp_scalar_get_b32_numeric.scalar_limb_rho
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value))
+            (jet_sx_eval.slog
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel
+                     (jet_secp_scalar_get_b32_numeric.scalar_limb_rho
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value)) layout
+                     (jet_secp_scalar_writer_run.scalar_writer_result bd base)))))
+         (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) value)
+### C.jet_secp_scalar_writer_word.eval_write_scalar_word
+eval_write_scalar_word
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (rc : BinNums.Z)
+         (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (w0 : bool) (outs0 : list BitMachine.Cell)
+         (m : Memory.Mem.mem) (layout : jet_sx_state.layout)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_sx_state.rep
+                (jet_secp_scalar_get_b32_numeric.scalar_limb_rho
+                   (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value)) layout
+                jet_secp_scalar_writer_run.scalar_writer_initial_regs m)
+         (_ : jet_sx_exec.xsep (jet_secp_scalar_writer_exec.scalar_write_ext m0 bd bw bi) layout)
+         (_ : jet_secp_scalar_writer_exec.scalar_write_inv m0 bd dbase bw outedge cursor N bi rc w0 outs0
+                (jet_secp_scalar_get_b32_numeric.scalar_limb_rho
+                   (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value))
+                (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_write_scalar)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep
+                  (jet_secp_scalar_get_b32_numeric.scalar_limb_rho
+                     (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value)) layout
+                  jet_secp_scalar_writer_run.scalar_writer_initial_regs mf)
+               (and
+                  (jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi mf true
+                     (@app BitMachine.Cell outs0
+                        (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) value)))
+                  (jet_sx_mem.lframe
+                     (jet_sx_exec.frame (jet_secp_scalar_writer_exec.scalar_write_ext m0 bd bw bi) layout
+                        jet_secp_scalar_writer_run.scalar_writer_initial_regs m) m mf))))

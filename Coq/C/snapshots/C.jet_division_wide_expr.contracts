@@ -1,0 +1,60 @@
+### C.jet_division_wide_expr.eval_division_wide_zero_expr
+eval_division_wide_zero_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (t : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._y le) (@Some Values.val (Values.Vlong t))),
+       Clight.eval_expr jet_exec.ge0 e le m division_wide_zero_expr
+         (Values.Vint (jet_readBit_layout.bit_int (Integers.Int64.eq Integers.Int64.zero t)))
+### C.jet_division_wide_expr.eval_division_wide_nonzero_expr
+eval_division_wide_nonzero_expr
+     : forall (remainder : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (r t : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._x le) (@Some Values.val (Values.Vlong r)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._y le) (@Some Values.val (Values.Vlong t)))
+         (_ : @eq bool (Integers.Int64.eq Integers.Int64.zero t) false),
+       Clight.eval_expr jet_exec.ge0 e le m (division_wide_expr remainder)
+         (Values.Vlong (division_wide_nonzero remainder r t))
+### C.jet_division_wide_expr.exec_division_wide_choose
+exec_division_wide_choose
+     : forall (remainder : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (r t : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._x le) (@Some Values.val (Values.Vlong r)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._y le) (@Some Values.val (Values.Vlong t))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (division_wide_choose remainder) Events.E0
+         (@Maps.PTree.set Values.val jets._t'3 (Values.Vlong (jet_division_value.division_wide_raw remainder r t)) le)
+         m ClightBigstep.Out_normal
+### C.jet_division_wide_expr.division_wide_nonzero
+division_wide_nonzero =
+fun (remainder : bool) (r t : Integers.Int64.int) =>
+match remainder return Integers.Int64.int with
+| true => Integers.Int64.modu r t
+| false => Integers.Int64.divu r t
+end
+     : forall (_ : bool) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments division_wide_nonzero remainder%bool_scope r t
+### C.jet_division_wide_expr.division_wide_expr
+division_wide_expr =
+fun remainder : bool =>
+Clight.Ebinop (jet_division8_expr.division_binop remainder) (Clight.Etempvar jets._x Ctypesdefs.tulong)
+  (Clight.Etempvar jets._y Ctypesdefs.tulong) Ctypesdefs.tulong
+     : forall _ : bool, Clight.expr
+
+Arguments division_wide_expr remainder%bool_scope
+### C.jet_division_wide_expr.division_wide_zero_expr
+division_wide_zero_expr =
+Clight.Ebinop Cop.Oeq (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) (Clight.Etempvar jets._y Ctypesdefs.tulong)
+  Ctypesdefs.tint
+     : Clight.expr
+### C.jet_division_wide_expr.division_wide_choose
+division_wide_choose =
+fun remainder : bool =>
+Clight.Sifthenelse division_wide_zero_expr
+  (Clight.Sset jets._t'3
+     (Clight.Ecast
+        match remainder return Clight.expr with
+        | true => Clight.Etempvar jets._x Ctypesdefs.tulong
+        | false => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        end Ctypesdefs.tulong)) (Clight.Sset jets._t'3 (Clight.Ecast (division_wide_expr remainder) Ctypesdefs.tulong))
+     : forall _ : bool, Clight.statement
+
+Arguments division_wide_choose remainder%bool_scope

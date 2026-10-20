@@ -1,0 +1,68 @@
+### C.jet_secp_scalar_writer_exec.scalar_writer_events
+scalar_writer_events
+     : forall (bd : Values.block) (dbase : BinNums.Z) (bi : Values.block) (edge : BinNums.Z)
+         (ibits : list bool) (rho : forall _ : nat, Integers.Int64.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z),
+       jet_sx_exec.solves (jet_secp_frame.evokA bd dbase bi edge ibits) rho
+         (jet_sx_eval.slog
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout
+               (jet_sx_exec.rsel rho layout
+                  (jet_secp_scalar_writer_run.scalar_writer_result bd (Integers.Ptrofs.repr dbase)))))
+### C.jet_secp_scalar_writer_exec.eval_write_scalar_from_initial_regions
+eval_write_scalar_from_initial_regions
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (_ : BinNums.Z) (rc : BinNums.Z)
+         (_ : list bool) (w0 : bool) (outs0 : list BitMachine.Cell)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N) (m : Memory.Mem.mem)
+         (layout : jet_sx_state.layout) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_sx_state.rep rho layout jet_secp_scalar_writer_run.scalar_writer_initial_regs m)
+         (_ : jet_sx_exec.xsep (jet_secp_scalar_writer_exec.scalar_write_ext m0 bd bw bi) layout)
+         (_ : jet_secp_scalar_writer_exec.scalar_write_inv m0 bd dbase bw outedge cursor N bi rc w0 outs0 rho
+                (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_write_scalar)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho layout jet_secp_scalar_writer_run.scalar_writer_initial_regs mf)
+               (and
+                  (jet_secp_scalar_writer_exec.scalar_write_inv m0 bd dbase bw outedge cursor N bi rc w0 outs0 rho
+                     (jet_sx_eval.slog
+                        (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                           (jet_sx_exec.rsel rho (jet_sx_state.lay layout)
+                              (jet_secp_scalar_writer_run.scalar_writer_result bd (Integers.Ptrofs.repr dbase))))) mf)
+                  (jet_sx_mem.lframe
+                     (jet_sx_exec.frame (jet_secp_scalar_writer_exec.scalar_write_ext m0 bd bw bi) layout
+                        jet_secp_scalar_writer_run.scalar_writer_initial_regs m) m mf))))
+### C.jet_secp_scalar_writer_exec.scalar_write_evok
+jet_secp_scalar_writer_exec.scalar_write_evok =
+fun (bd : Values.block) (dbase : BinNums.Z) (bi : Values.block) (edge : BinNums.Z) (ibits : list bool) =>
+jet_secp_frame.evokA bd dbase bi edge ibits
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : list bool)
+         (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event), Prop
+
+Arguments jet_secp_scalar_writer_exec.scalar_write_evok bd dbase%Z_scope bi edge%Z_scope ibits%list_scope
+  ρ%function_scope ev
+### C.jet_secp_scalar_writer_exec.scalar_write_inv
+jet_secp_scalar_writer_exec.scalar_write_inv =
+fun (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (outedge cursor N : BinNums.Z)
+  (bi : Values.block) (rc : BinNums.Z) (w0 : bool) (outs0 : list BitMachine.Cell) =>
+jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc w0 outs0
+  (BinNums.Zpos
+     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : bool) (_ : list BitMachine.Cell)
+         (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem), Prop
+
+Arguments jet_secp_scalar_writer_exec.scalar_write_inv m0 bd dbase%Z_scope bw (outedge cursor N)%Z_scope
+  bi rc%Z_scope w0%bool_scope outs0%list_scope ρ%function_scope log%list_scope m
+### C.jet_secp_scalar_writer_exec.scalar_write_ext
+jet_secp_scalar_writer_exec.scalar_write_ext =
+fun (m0 : Memory.Mem.mem) (bd bw bi : Values.block) => jet_secp_frame.extA m0 bd bw bi
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block), Prop
+
+Arguments jet_secp_scalar_writer_exec.scalar_write_ext m0 bd bw bi _

@@ -1,0 +1,258 @@
+### C.jet_secp_local_regions.local_read_run_eq
+local_read_run_eq
+     : forall (bi : Values.block) (edge : Integers.Ptrofs.int),
+       @eq (option jet_sx_exec.res) (local_read_run bi edge) (@Some jet_sx_exec.res (local_read_result bi edge))
+### C.jet_secp_local_regions.local_write_run_eq
+local_write_run_eq
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq (option jet_sx_exec.res) (local_write_run bd base) (@Some jet_sx_exec.res (local_write_result bd base))
+### C.jet_secp_local_regions.local_read_selected_cells
+local_read_selected_cells
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bi : Values.block) (edge : Integers.Ptrofs.int),
+       @eq (list jet_sx_state.cell)
+         (jet_secp_fe_nv.cells0
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (local_read_result bi edge))))
+         (jet_secp_fe_nv.cells0
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout
+               (jet_sx_exec.rsel rho layout (jet_secp_wrapper_run.read_fe_result bi edge))))
+### C.jet_secp_local_regions.local_read_selected_log
+local_read_selected_log
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bi : Values.block) (edge : Integers.Ptrofs.int),
+       @eq (list jet_sx_eval.event)
+         (jet_sx_eval.slog
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (local_read_result bi edge))))
+         (jet_secp_wrapper_run.read_fe_log bi edge)
+### C.jet_secp_local_regions.local_write_selected_log
+local_write_selected_log
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq (list jet_sx_eval.event)
+         (jet_sx_eval.slog
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (local_write_result bd base))))
+         (jet_sx_eval.slog
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout
+               (jet_sx_exec.rsel rho layout (jet_secp_write_fe_wrapper.write_fe_result bd base))))
+### C.jet_secp_local_regions.all_leaf_property_selected
+all_leaf_property_selected
+     : forall (P : forall _ : jet_sx_eval.sstate, Prop) (rr : jet_sx_exec.res) (_ : all_leaf_property P rr)
+         (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       P (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout rr))
+### C.jet_secp_local_regions.local_read_leaf_storage
+local_read_leaf_storage
+     : forall (bi : Values.block) (edge : Integers.Ptrofs.int),
+       all_leaf_property local_read_storage_shape (local_read_result bi edge)
+### C.jet_secp_local_regions.local_read_selected_storage
+local_read_selected_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bi : Values.block) (edge : Integers.Ptrofs.int),
+       local_read_storage_shape
+         (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (local_read_result bi edge)))
+### C.jet_secp_local_regions.local_write_leaf_storage
+local_write_leaf_storage
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int),
+       all_leaf_property local_write_storage_shape (local_write_result bd base)
+### C.jet_secp_local_regions.local_write_selected_storage
+local_write_selected_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bd : Values.block) (base : Integers.Ptrofs.int),
+       local_write_storage_shape
+         (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (local_write_result bd base)))
+### C.jet_secp_local_regions.rep_free_region
+rep_free_region
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (regs : list jet_sx_state.region) (m : Memory.Mem.mem) (r : nat) (sz : BinNums.Z)
+         (_ : jet_sx_state.rep rho layout regs m) (_ : lt r (@length jet_sx_state.region regs))
+         (_ : @eq (option BinNums.Z)
+                (jet_sx_state.rfree
+                   (@List.nth jet_sx_state.region r regs
+                      (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))))
+                (@Some BinNums.Z sz)),
+       and (@eq BinNums.Z (jet_sx_state.bas layout r) BinNums.Z0)
+         (Memory.Mem.range_perm m (jet_sx_state.blk layout r) BinNums.Z0 sz Memtype.Cur Memtype.Freeable)
+### C.jet_secp_local_regions.local_read_selected_return
+local_read_selected_return
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bi : Values.block) (edge : Integers.Ptrofs.int),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH
+            (jet_sx_eval.stemps
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (local_read_result bi edge)))))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_local_regions.local_write_selected_return
+local_write_selected_return
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH
+            (jet_sx_eval.stemps
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (local_write_result bd base)))))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_local_regions.eval_local_read_fe
+eval_local_read_fe
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (ibits : list bool)
+         (outs0 : list BitMachine.Cell) (cap : BinNums.Z)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc (@List.map bool (option bool) (@Some bool) ibits))
+         (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le (BinInt.Z.add rc (BinInt.Z.of_nat (@length bool ibits))) Integers.Int64.max_unsigned)
+         (_ : @eq nat (@length bool ibits)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (m : Memory.Mem.mem) (layout : jet_sx_state.layout)
+         (_ : jet_sx_state.rep (jet_secp_wrapper_run.read_fe_rho ibits rc) layout
+                (local_read_initial_regs bi (Integers.Ptrofs.repr edge)) m)
+         (_ : jet_sx_exec.xsep (jet_secp_local_regions.rd_ext m0 bd bw bi) layout)
+         (_ : jet_secp_local_regions.rd_inv m0 bd dbase bw outedge cursor N bi rc outs0 cap
+                (jet_secp_wrapper_run.read_fe_rho ibits rc) (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (jet_sx_state.bas layout (S O)))) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_sx_state.rep (jet_secp_wrapper_run.read_fe_rho ibits rc) layout
+                  (jet_sx_eval.sregs
+                     (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                        (jet_sx_exec.rsel (jet_secp_wrapper_run.read_fe_rho ibits rc) (jet_sx_state.lay layout)
+                           (local_read_result bi (Integers.Ptrofs.repr edge))))) mf)
+               (and
+                  (jet_secp_local_regions.rd_inv m0 bd dbase bw outedge cursor N bi rc outs0 cap
+                     (jet_secp_wrapper_run.read_fe_rho ibits rc)
+                     (jet_secp_wrapper_run.read_fe_log bi (Integers.Ptrofs.repr edge)) mf)
+                  (jet_sx_mem.lframe
+                     (jet_sx_exec.frame (jet_secp_local_regions.rd_ext m0 bd bw bi) layout
+                        (local_read_initial_regs bi (Integers.Ptrofs.repr edge)) m) m mf))))
+### C.jet_secp_local_regions.eval_local_write_fe
+eval_local_write_fe
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (_ : BinNums.Z) (rc : BinNums.Z)
+         (_ : list bool) (w0 : bool) (outs0 : list BitMachine.Cell)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N) (m : Memory.Mem.mem)
+         (layout : jet_sx_state.layout) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_sx_state.rep rho layout local_write_initial_regs m)
+         (_ : jet_sx_exec.xsep (jet_secp_local_regions.wr_ext m0 bd bw bi) layout)
+         (_ : jet_secp_local_regions.wr_inv m0 bd dbase bw outedge cursor N bi rc w0 outs0 rho
+                (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_write_fe)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep rho layout
+                  (jet_sx_eval.sregs
+                     (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                        (jet_sx_exec.rsel rho (jet_sx_state.lay layout)
+                           (local_write_result bd (Integers.Ptrofs.repr dbase))))) mf)
+               (and
+                  (jet_secp_local_regions.wr_inv m0 bd dbase bw outedge cursor N bi rc w0 outs0 rho
+                     (jet_sx_eval.slog
+                        (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                           (jet_sx_exec.rsel rho (jet_sx_state.lay layout)
+                              (local_write_result bd (Integers.Ptrofs.repr dbase))))) mf)
+                  (jet_sx_mem.lframe
+                     (jet_sx_exec.frame (jet_secp_local_regions.wr_ext m0 bd bw bi) layout local_write_initial_regs m)
+                     m mf))))
+### C.jet_secp_local_regions.region_with_freeable
+region_with_freeable
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (reg : jet_sx_state.region) (sz : BinNums.Z) (_ : jet_sx_state.region_ok rho layout m r reg)
+         (_ : @eq BinNums.Z (jet_sx_state.bas layout r) BinNums.Z0) (_ : @eq bool (jet_sx_state.rw reg) true)
+         (_ : Memory.Mem.range_perm m (jet_sx_state.blk layout r) BinNums.Z0 sz Memtype.Cur Memtype.Freeable)
+         (_ : @List.Forall jet_sx_state.cell
+                (fun c : jet_sx_state.cell =>
+                 BinInt.Z.le (BinInt.Z.add (jet_sx_state.cofs c) (Memdata.size_chunk (jet_sx_state.cchunk c))) sz)
+                (jet_sx_state.rcells reg)), jet_sx_state.region_ok rho layout m r (free_region reg sz)
+### C.jet_secp_local_regions.freeable_range_writable
+freeable_range_writable
+     : forall (m : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z)
+         (_ : Memory.Mem.range_perm m b lo hi Memtype.Cur Memtype.Freeable),
+       Memory.Mem.range_perm m b lo hi Memtype.Cur Memtype.Writable
+### C.jet_secp_local_regions.fe_undef_storage_size
+fe_undef_storage_size
+     : @List.Forall jet_sx_state.cell
+         (fun c : jet_sx_state.cell =>
+          BinInt.Z.le (BinInt.Z.add (jet_sx_state.cofs c) (Memdata.size_chunk (jet_sx_state.cchunk c)))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+         (jet_sx_state.rcells jet_secp_fe_b32.fe_undef)
+### C.jet_secp_local_regions.frame_cells_storage_size
+frame_cells_storage_size
+     : forall (bi : Values.block) (edge : Integers.Ptrofs.int),
+       @List.Forall jet_sx_state.cell
+         (fun c : jet_sx_state.cell =>
+          BinInt.Z.le (BinInt.Z.add (jet_sx_state.cofs c) (Memdata.size_chunk (jet_sx_state.cchunk c)))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (jet_secp_frame.mk_frame_cells (jet_sx_expr.XA bi edge) Integers.Int64.zero)
+### C.jet_secp_local_regions.field_cells_storage_size
+field_cells_storage_size
+     : @List.Forall jet_sx_state.cell
+         (fun c : jet_sx_state.cell =>
+          BinInt.Z.le (BinInt.Z.add (jet_sx_state.cofs c) (Memdata.size_chunk (jet_sx_state.cchunk c)))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+         (jet_sx_state.rcells (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 (S O))))
+### C.jet_secp_local_regions.local_read_initial_rep_from_storage
+local_read_initial_rep_from_storage
+     : forall (bits : list bool) (rc : BinNums.Z) (m : Memory.Mem.mem) (ba bl bi : Values.block)
+         (edge : BinNums.Z)
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bl BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Cur
+                Memtype.Freeable) (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : not (@eq Values.block ba bl)),
+       jet_sx_state.rep (jet_secp_wrapper_run.read_fe_rho bits rc)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bl BinNums.Z0)
+               (@nil (prod Values.block BinNums.Z)))) (local_read_initial_regs bi (Integers.Ptrofs.repr edge)) m
+### C.jet_secp_local_regions.local_write_initial_rep_from_field
+local_write_initial_rep_from_field
+     : forall (value rc : BinNums.Z) (m : Memory.Mem.mem) (ba : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value)))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       jet_sx_state.rep (jet_secp_write_fe_numeric.write_fe_rho value rc)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+            (@nil (prod Values.block BinNums.Z))) local_write_initial_regs m
+### C.jet_secp_local_regions.free_region
+free_region =
+fun (reg : jet_sx_state.region) (sz : BinNums.Z) =>
+jet_sx_state.mkreg (jet_sx_state.rcells reg) (jet_sx_state.rw reg) (@Some BinNums.Z sz)
+     : forall (_ : jet_sx_state.region) (_ : BinNums.Z), jet_sx_state.region
+
+Arguments free_region reg sz%Z_scope
+### C.jet_secp_local_regions.local_read_initial_regs
+local_read_initial_regs =
+fun (bi : Values.block) (edge : Integers.Ptrofs.int) =>
+@cons jet_sx_state.region
+  (free_region jet_secp_fe_b32.fe_undef
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+  (@cons jet_sx_state.region
+     (free_region
+        (jet_sx_state.mkreg (jet_secp_frame.mk_frame_cells (jet_sx_expr.XA bi edge) Integers.Int64.zero) true
+           (@None BinNums.Z)) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+     (@nil jet_sx_state.region))
+     : forall (_ : Values.block) (_ : Integers.Ptrofs.int), list jet_sx_state.region
+
+Arguments local_read_initial_regs bi edge
+### C.jet_secp_local_regions.local_write_initial_regs
+local_write_initial_regs =
+@cons jet_sx_state.region
+  (free_region (jet_secp_fe_nv.fe_reg (jet_secp_fe_nv.vars5 (S O)))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+  (@nil jet_sx_state.region)
+     : list jet_sx_state.region

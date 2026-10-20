@@ -1,0 +1,45 @@
+### C.jet_minmax8_exec.minmax8
+minmax8 =
+fun maximum : bool =>
+match maximum return Clight.function with
+| true => jets.f_simplicity_max_8
+| false => jets.f_simplicity_min_8
+end
+     : forall _ : bool, Clight.function
+
+Arguments minmax8 maximum%bool_scope
+### C.jet_minmax8_exec.minmax8_raw
+minmax8_raw =
+fun (maximum : bool) (r t : Integers.Int.int) =>
+@jet_minmax_spec.minmax_select Integers.Int.int maximum (jet_order8_exec.order8_bit jet_order_spec.OLt r t)
+  (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r)
+  (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) t)
+     : forall (_ : bool) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments minmax8_raw maximum%bool_scope r t
+### C.jet_minmax8_exec.minmax8_payload
+minmax8_payload =
+fun (maximum : bool) (r t : Integers.Int.int) =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (minmax8_raw maximum r t)
+     : forall (_ : bool) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments minmax8_payload maximum%bool_scope r t
+### C.jet_minmax8_exec.minmax8_choose
+minmax8_choose =
+fun maximum : bool =>
+Clight.Sifthenelse (jet_order8_exec.order8_expr jet_order_spec.OLt)
+  (Clight.Sset jets._t'3
+     (Clight.Ecast
+        (Clight.Etempvar match maximum return AST.ident with
+                         | true => jets._y
+                         | false => jets._x
+                         end Ctypesdefs.tuchar) Ctypesdefs.tint))
+  (Clight.Sset jets._t'3
+     (Clight.Ecast
+        (Clight.Etempvar match maximum return AST.ident with
+                         | true => jets._x
+                         | false => jets._y
+                         end Ctypesdefs.tuchar) Ctypesdefs.tint))
+     : forall _ : bool, Clight.statement
+
+Arguments minmax8_choose maximum%bool_scope

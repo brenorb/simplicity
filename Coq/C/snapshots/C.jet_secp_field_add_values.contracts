@@ -1,0 +1,110 @@
+### C.jet_secp_field_add_values.add_cell_present
+add_cell_present
+     : forall (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @List.In jet_sx_state.cell
+         (jet_sx_state.mkcell
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat n))
+            AST.Mint64 (@Some jet_sx_expr.sx (add_limb_expr n)))
+         (jet_sx_state.rcells
+            (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))
+               (jet_sx_eval.sregs jet_secp_field_add.field_add_state)))
+### C.jet_secp_field_add_values.add_expr_value
+add_expr_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @eq Values.val (jet_sx_expr.den rho beta (add_limb_expr n)) (Values.Vlong (add_value rho n))
+### C.jet_secp_field_add_values.field_add_rep_loads
+field_add_rep_loads
+     : forall (m : Memory.Mem.mem) (layout : jet_sx_state.layout) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_sx_state.rep rho layout (jet_sx_eval.sregs jet_secp_field_add.field_add_state) m)
+         (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk layout O)
+            (BinInt.Z.add (jet_sx_state.bas layout O)
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat n))))
+         (@Some Values.val (Values.Vlong (add_value rho n)))
+### C.jet_secp_field_add_values.eval_field_add_with_values
+eval_field_add_with_values
+     : forall (m : Memory.Mem.mem) (layout : jet_sx_state.layout) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_sx_state.rep rho layout jet_secp_field_add.field_add_initial_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_add)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (jet_sx_state.bas layout (S O)))) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_sx_state.rep rho layout (jet_sx_eval.sregs jet_secp_field_add.field_add_state) mf)
+               (and
+                  (forall (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+                   @eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk layout O)
+                        (BinInt.Z.add (jet_sx_state.bas layout O)
+                           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                              (BinInt.Z.of_nat n)))) (@Some Values.val (Values.Vlong (add_value rho n))))
+                  (and
+                     (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape (jet_sx_eval.sregs jet_secp_field_add.field_add_state))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape jet_secp_field_add.field_add_initial_regs))
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (pos : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot layout
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape jet_secp_field_add.field_add_initial_regs) b pos)) m mf)))))
+### C.jet_secp_field_add_values.add_value_unsigned
+add_value_unsigned
+     : forall (rho : forall _ : nat, Integers.Int64.int) (n : nat)
+         (_ : BinInt.Z.le (Integers.Int64.unsigned (rho (S n)))
+                (BinInt.Z.sub
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                   (BinNums.Zpos BinNums.xH)))
+         (_ : BinInt.Z.le (Integers.Int64.unsigned (rho (Nat.add (S (S (S (S (S (S O)))))) n)))
+                (BinInt.Z.sub
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                   (BinNums.Zpos BinNums.xH))),
+       @eq BinNums.Z (Integers.Int64.unsigned (add_value rho n))
+         (BinInt.Z.add (Integers.Int64.unsigned (rho (S n)))
+            (Integers.Int64.unsigned (rho (Nat.add (S (S (S (S (S (S O)))))) n))))
+### C.jet_secp_field_add_values.add_value_wide_bound
+add_value_wide_bound
+     : forall (rho : forall _ : nat, Integers.Int64.int) (n : nat)
+         (_ : BinInt.Z.le (Integers.Int64.unsigned (rho (S n)))
+                (BinInt.Z.sub
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                   (BinNums.Zpos BinNums.xH)))
+         (_ : BinInt.Z.le (Integers.Int64.unsigned (rho (Nat.add (S (S (S (S (S (S O)))))) n)))
+                (BinInt.Z.sub
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+                   (BinNums.Zpos BinNums.xH))),
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned (add_value rho n)))
+         (BinInt.Z.lt (Integers.Int64.unsigned (add_value rho n))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_secp_field_add_values.add_limb_expr
+add_limb_expr =
+fun n : nat =>
+jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv (S n)) (jet_sx_expr.XLv (Nat.add (S (S (S (S (S (S O)))))) n))
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments add_limb_expr n%nat_scope
+### C.jet_secp_field_add_values.add_value
+add_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (n : nat) =>
+Integers.Int64.add (rho (S n)) (rho (Nat.add (S (S (S (S (S (S O)))))) n))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments add_value rho%function_scope n%nat_scope

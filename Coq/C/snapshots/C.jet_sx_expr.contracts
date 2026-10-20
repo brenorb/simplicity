@@ -1,0 +1,999 @@
+### C.jet_sx_expr.kind_eqb_eq
+kind_eqb_eq
+     : forall (a b : kind) (_ : @eq bool (kind_eqb a b) true), @eq kind a b
+### C.jet_sx_expr.den_KI
+den_KI
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (x : sx) (_ : @eq bool (isk KI x) true), @eq Values.val (den ρ β x) (Values.Vint (ii (den ρ β x)))
+### C.jet_sx_expr.den_KL
+den_KL
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (x : sx) (_ : @eq bool (isk KL x) true), @eq Values.val (den ρ β x) (Values.Vlong (il (den ρ β x)))
+### C.jet_sx_expr.den_KP
+den_KP
+     : forall (x : sx) (_ : @eq bool (isk KP x) true),
+       @ex nat (fun r : nat => @ex BinNums.Z (fun d : BinNums.Z => @eq sx x (XP r d)))
+### C.jet_sx_expr.den_KA
+den_KA
+     : forall (x : sx) (_ : @eq bool (isk KA x) true),
+       @ex Values.block
+         (fun b : Values.block => @ex Integers.Ptrofs.int (fun o : Integers.Ptrofs.int => @eq sx x (XA b o)))
+### C.jet_sx_expr.xcast_sound
+xcast_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (x : sx) (t1 t2 : Ctypes.type) (x' : sx) (m : Memory.Mem.mem)
+         (_ : @eq (option sx) (xcast x t1 t2) (@Some sx x')),
+       @eq (option Values.val) (Cop.sem_cast (den ρ β x) t1 t2 m) (@Some Values.val (den ρ β x'))
+### C.jet_sx_expr.xbinarith_sound
+xbinarith_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (fi : forall (_ : Ctypes.signedness) (_ : Integers.Int.int) (_ : Integers.Int.int), option Values.val)
+         (fl : forall (_ : Ctypes.signedness) (_ : Integers.Int64.int) (_ : Integers.Int64.int), option Values.val)
+         (ff : forall (_ : Floats.float) (_ : Floats.float), option Values.val)
+         (fs : forall (_ : Floats.float32) (_ : Floats.float32), option Values.val)
+         (mki mkl : forall (_ : Ctypes.signedness) (_ : sx) (_ : sx), sx)
+         (_ : forall (sg : Ctypes.signedness) (a b : sx),
+              @eq (option Values.val) (fi sg (ii (den ρ β a)) (ii (den ρ β b)))
+                (@Some Values.val (den ρ β (mki sg a b))))
+         (_ : forall (sg : Ctypes.signedness) (a b : sx),
+              @eq (option Values.val) (fl sg (il (den ρ β a)) (il (den ρ β b)))
+                (@Some Values.val (den ρ β (mkl sg a b)))) (xa : sx) (ta : Ctypes.type) (xb : sx)
+         (tb : Ctypes.type) (x : sx) (m : Memory.Mem.mem)
+         (_ : @eq (option sx) (xbinarith mki mkl xa ta xb tb) (@Some sx x)),
+       @eq (option Values.val) (Cop.sem_binarith fi fl ff fs (den ρ β xa) ta (den ρ β xb) tb m)
+         (@Some Values.val (den ρ β x))
+### C.jet_sx_expr.xbinarith_arith
+xbinarith_arith
+     : forall (mki mkl : forall (_ : Ctypes.signedness) (_ : sx) (_ : sx), sx) (xa : sx) (ta : Ctypes.type)
+         (xb : sx) (tb : Ctypes.type) (x : sx) (_ : @eq (option sx) (xbinarith mki mkl xa ta xb tb) (@Some sx x)),
+       or
+         (@ex Ctypes.intsize
+            (fun sz : Ctypes.intsize =>
+             @ex Ctypes.signedness
+               (fun sg : Ctypes.signedness =>
+                @ex Ctypes.attr (fun a : Ctypes.attr => @eq Ctypes.type ta (Ctypes.Tint sz sg a)))))
+         (@ex Ctypes.signedness
+            (fun sg : Ctypes.signedness =>
+             @ex Ctypes.attr (fun a : Ctypes.attr => @eq Ctypes.type ta (Ctypes.Tlong sg a))))
+### C.jet_sx_expr.xbinarith_arith_r
+xbinarith_arith_r
+     : forall (mki mkl : forall (_ : Ctypes.signedness) (_ : sx) (_ : sx), sx) (xa : sx) (ta : Ctypes.type)
+         (xb : sx) (tb : Ctypes.type) (x : sx) (_ : @eq (option sx) (xbinarith mki mkl xa ta xb tb) (@Some sx x)),
+       or
+         (@ex Ctypes.intsize
+            (fun sz : Ctypes.intsize =>
+             @ex Ctypes.signedness
+               (fun sg : Ctypes.signedness =>
+                @ex Ctypes.attr (fun a : Ctypes.attr => @eq Ctypes.type tb (Ctypes.Tint sz sg a)))))
+         (@ex Ctypes.signedness
+            (fun sg : Ctypes.signedness =>
+             @ex Ctypes.attr (fun a : Ctypes.attr => @eq Ctypes.type tb (Ctypes.Tlong sg a))))
+### C.jet_sx_expr.xshift_sound
+xshift_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (left : bool) (xa : sx) (ta : Ctypes.type) (xb : sx) (tb : Ctypes.type) (x : sx)
+         (_ : @eq (option sx) (xshift left xa ta xb tb) (@Some sx x)),
+       @eq (option Values.val)
+         (match
+            left
+            return (forall (_ : Values.val) (_ : Ctypes.type) (_ : Values.val) (_ : Ctypes.type), option Values.val)
+          with
+          | true => Cop.sem_shl
+          | false => Cop.sem_shr
+          end (den ρ β xa) ta (den ρ β xb) tb) (@Some Values.val (den ρ β x))
+### C.jet_sx_expr.of_bool_b2i
+of_bool_b2i
+     : forall b : bool, @eq Values.val (Values.Val.of_bool b) (Values.Vint (b2i b))
+### C.jet_sx_expr.xbin_sound
+xbin_sound
+     : forall (ce : Ctypes.composite_env) (ρ : forall _ : nat, Integers.Int64.int)
+         (β : forall _ : nat, prod Values.block BinNums.Z) (op : Cop.binary_operation) (xa : sx)
+         (ta : Ctypes.type) (xb : sx) (tb : Ctypes.type) (x : sx) (m : Memory.Mem.mem)
+         (_ : @eq (option sx) (xbin op xa ta xb tb) (@Some sx x)),
+       @eq (option Values.val) (Cop.sem_binary_operation ce op (den ρ β xa) ta (den ρ β xb) tb m)
+         (@Some Values.val (den ρ β x))
+### C.jet_sx_expr.xun_sound
+xun_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (op : Cop.unary_operation) (xa : sx) (ta : Ctypes.type) (x : sx) (m : Memory.Mem.mem)
+         (_ : @eq (option sx) (xun op xa ta) (@Some sx x)),
+       @eq (option Values.val) (Cop.sem_unary_operation op (den ρ β xa) ta m) (@Some Values.val (den ρ β x))
+### C.jet_sx_expr.xbool_sound
+xbool_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (xa : sx) (ta : Ctypes.type) (c : sx) (m : Memory.Mem.mem) (_ : @eq (option sx) (xbool xa ta) (@Some sx c)),
+       @eq (option bool) (Cop.bool_val (den ρ β xa) ta m) (@Some bool (truth ρ β c))
+### C.jet_sx_expr.xnorm_sound
+xnorm_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (chunk : AST.memory_chunk) (x x' : sx) (_ : @eq (option sx) (xnorm chunk x) (@Some sx x')),
+       @eq Values.val (Values.Val.load_result chunk (den ρ β x)) (den ρ β x')
+### C.jet_sx_expr.kind
+Inductive kind : Set :=  KI : kind | KL : kind | KP : kind | KA : kind | KV : kind.
+### C.jet_sx_expr.bop
+Inductive bop : Set :=  Badd : bop | Bsub : bop | Bmul : bop | Band : bop | Bor : bop | Bxor : bop.
+### C.jet_sx_expr.shop
+Inductive shop : Set :=  Hshl : shop | Hshr : shop | Hshru : shop.
+### C.jet_sx_expr.sx
+Inductive sx : Type :=
+    XI : forall _ : Integers.Int.int, sx
+  | XIc : forall _ : Integers.Int.int, sx
+  | XL : forall _ : Integers.Int64.int, sx
+  | XLc : forall _ : Integers.Int64.int, sx
+  | XLv : forall _ : nat, sx
+  | XV : forall _ : Values.val, sx
+  | XA : forall (_ : Values.block) (_ : Integers.Ptrofs.int), sx
+  | XP : forall (_ : nat) (_ : BinNums.Z), sx
+  | XIb : forall (_ : bop) (_ : sx) (_ : sx), sx
+  | XLb : forall (_ : bop) (_ : sx) (_ : sx), sx
+  | XIsh : forall (_ : shop) (_ : sx) (_ : BinNums.Z), sx
+  | XLsh : forall (_ : shop) (_ : sx) (_ : BinNums.Z), sx
+  | XIcmp : forall (_ : Integers.comparison) (_ : Ctypes.signedness) (_ : sx) (_ : sx), sx
+  | XLcmp : forall (_ : Integers.comparison) (_ : Ctypes.signedness) (_ : sx) (_ : sx), sx
+  | XI2L : forall (_ : Ctypes.signedness) (_ : sx), sx
+  | XL2I : forall _ : sx, sx
+  | XIcast : forall (_ : Ctypes.intsize) (_ : Ctypes.signedness) (_ : sx), sx
+  | XInz : forall _ : sx, sx
+  | XLnz : forall _ : sx, sx
+  | XIz : forall _ : sx, sx
+  | XLz : forall _ : sx, sx
+  | XIneg : forall _ : sx, sx
+  | XLneg : forall _ : sx, sx
+  | XInot : forall _ : sx, sx
+  | XLnot : forall _ : sx, sx.
+
+Arguments XI i
+Arguments XIc i
+Arguments XL l
+Arguments XLc l
+Arguments XLv n%nat_scope
+Arguments XV v
+Arguments XA b o
+Arguments XP r%nat_scope d%Z_scope
+Arguments XIb o a b
+Arguments XLb o a b
+Arguments XIsh o a k%Z_scope
+Arguments XLsh o a k%Z_scope
+Arguments XIcmp c sg a b
+Arguments XLcmp c sg a b
+Arguments XI2L sg a
+Arguments XL2I a
+Arguments XIcast sz sg a
+Arguments XInz a
+Arguments XLnz a
+Arguments XIz a
+Arguments XLz a
+Arguments XIneg a
+Arguments XLneg a
+Arguments XInot a
+Arguments XLnot a
+### C.jet_sx_expr.ii
+ii =
+fun v : Values.val =>
+match v return Integers.Int.int with
+| Values.Vundef => Integers.Int.zero
+| Values.Vint i => i
+| Values.Vlong _ => Integers.Int.zero
+| Values.Vfloat _ => Integers.Int.zero
+| Values.Vsingle _ => Integers.Int.zero
+| Values.Vptr _ _ => Integers.Int.zero
+end
+     : forall _ : Values.val, Integers.Int.int
+
+Arguments ii v
+### C.jet_sx_expr.il
+il =
+fun v : Values.val =>
+match v return Integers.Int64.int with
+| Values.Vundef => Integers.Int64.zero
+| Values.Vint _ => Integers.Int64.zero
+| Values.Vlong l => l
+| Values.Vfloat _ => Integers.Int64.zero
+| Values.Vsingle _ => Integers.Int64.zero
+| Values.Vptr _ _ => Integers.Int64.zero
+end
+     : forall _ : Values.val, Integers.Int64.int
+
+Arguments il v
+### C.jet_sx_expr.b2i
+b2i =
+fun b : bool => match b return Integers.Int.int with
+                | true => Integers.Int.one
+                | false => Integers.Int.zero
+                end
+     : forall _ : bool, Integers.Int.int
+
+Arguments b2i b%bool_scope
+### C.jet_sx_expr.iop
+iop =
+fun o : bop =>
+match o return (forall (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int) with
+| Badd => Integers.Int.add
+| Bsub => Integers.Int.sub
+| Bmul => Integers.Int.mul
+| Band => Integers.Int.and
+| Bor => Integers.Int.or
+| Bxor => Integers.Int.xor
+end
+     : forall (_ : bop) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments iop o _ _
+### C.jet_sx_expr.lop
+lop =
+fun o : bop =>
+match o return (forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int) with
+| Badd => Integers.Int64.add
+| Bsub => Integers.Int64.sub
+| Bmul => Integers.Int64.mul
+| Band => Integers.Int64.and
+| Bor => Integers.Int64.or
+| Bxor => Integers.Int64.xor
+end
+     : forall (_ : bop) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments lop o _ _
+### C.jet_sx_expr.ish
+ish =
+fun (o : shop) (a : Integers.Int.int) (k : BinNums.Z) =>
+match o return Integers.Int.int with
+| Hshl => Integers.Int.shl a (Integers.Int.repr k)
+| Hshr => Integers.Int.shr a (Integers.Int.repr k)
+| Hshru => Integers.Int.shru a (Integers.Int.repr k)
+end
+     : forall (_ : shop) (_ : Integers.Int.int) (_ : BinNums.Z), Integers.Int.int
+
+Arguments ish o a k%Z_scope
+### C.jet_sx_expr.lsh
+lsh =
+fun (o : shop) (a : Integers.Int64.int) (k : BinNums.Z) =>
+match o return Integers.Int64.int with
+| Hshl => Integers.Int64.shl a (Integers.Int64.repr k)
+| Hshr => Integers.Int64.shr a (Integers.Int64.repr k)
+| Hshru => Integers.Int64.shru a (Integers.Int64.repr k)
+end
+     : forall (_ : shop) (_ : Integers.Int64.int) (_ : BinNums.Z), Integers.Int64.int
+
+Arguments lsh o a k%Z_scope
+### C.jet_sx_expr.icmp
+icmp =
+fun (c : Integers.comparison) (sg : Ctypes.signedness) (a b : Integers.Int.int) =>
+match sg return bool with
+| Ctypes.Signed => Integers.Int.cmp c a b
+| Ctypes.Unsigned => Integers.Int.cmpu c a b
+end
+     : forall (_ : Integers.comparison) (_ : Ctypes.signedness) (_ : Integers.Int.int) (_ : Integers.Int.int), bool
+
+Arguments icmp c sg a b
+### C.jet_sx_expr.lcmp
+lcmp =
+fun (c : Integers.comparison) (sg : Ctypes.signedness) (a b : Integers.Int64.int) =>
+match sg return bool with
+| Ctypes.Signed => Integers.Int64.cmp c a b
+| Ctypes.Unsigned => Integers.Int64.cmpu c a b
+end
+     : forall (_ : Integers.comparison) (_ : Ctypes.signedness) (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments lcmp c sg a b
+### C.jet_sx_expr.i2l
+i2l =
+fun (sg : Ctypes.signedness) (a : Integers.Int.int) =>
+match sg return Integers.Int64.int with
+| Ctypes.Signed => Integers.Int64.repr (Integers.Int.signed a)
+| Ctypes.Unsigned => Integers.Int64.repr (Integers.Int.unsigned a)
+end
+     : forall (_ : Ctypes.signedness) (_ : Integers.Int.int), Integers.Int64.int
+
+Arguments i2l sg a
+### C.jet_sx_expr.den
+den =
+fix den
+  (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z) (x : sx) {struct x} :
+    Values.val :=
+  match x return Values.val with
+  | XI i => Values.Vint i
+  | XIc i => Values.Vint i
+  | XL l => Values.Vlong l
+  | XLc l => Values.Vlong l
+  | XLv n => Values.Vlong (ρ n)
+  | XV v => v
+  | XA b o => Values.Vptr b o
+  | XP r d =>
+      Values.Vptr (@fst Values.block BinNums.Z (β r))
+        (Integers.Ptrofs.repr (BinInt.Z.add (@snd Values.block BinNums.Z (β r)) d))
+  | XIb o a b => Values.Vint (iop o (ii (den ρ β a)) (ii (den ρ β b)))
+  | XLb o a b => Values.Vlong (lop o (il (den ρ β a)) (il (den ρ β b)))
+  | XIsh o a k => Values.Vint (ish o (ii (den ρ β a)) k)
+  | XLsh o a k => Values.Vlong (lsh o (il (den ρ β a)) k)
+  | XIcmp c sg a b => Values.Vint (b2i (icmp c sg (ii (den ρ β a)) (ii (den ρ β b))))
+  | XLcmp c sg a b => Values.Vint (b2i (lcmp c sg (il (den ρ β a)) (il (den ρ β b))))
+  | XI2L sg a => Values.Vlong (i2l sg (ii (den ρ β a)))
+  | XL2I a => Values.Vint (Integers.Int64.loword (il (den ρ β a)))
+  | XIcast sz sg a => Values.Vint (Cop.cast_int_int sz sg (ii (den ρ β a)))
+  | XInz a => Values.Vint (b2i (negb (Integers.Int.eq (ii (den ρ β a)) Integers.Int.zero)))
+  | XLnz a => Values.Vint (b2i (negb (Integers.Int64.eq (il (den ρ β a)) Integers.Int64.zero)))
+  | XIz a => Values.Vint (b2i (Integers.Int.eq (ii (den ρ β a)) Integers.Int.zero))
+  | XLz a => Values.Vint (b2i (Integers.Int64.eq (il (den ρ β a)) Integers.Int64.zero))
+  | XIneg a => Values.Vint (Integers.Int.neg (ii (den ρ β a)))
+  | XLneg a => Values.Vlong (Integers.Int64.neg (il (den ρ β a)))
+  | XInot a => Values.Vint (Integers.Int.not (ii (den ρ β a)))
+  | XLnot a => Values.Vlong (Integers.Int64.not (il (den ρ β a)))
+  end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z) (_ : sx),
+       Values.val
+
+Arguments den (ρ β)%function_scope x
+### C.jet_sx_expr.ktop
+ktop =
+fun x : sx =>
+match x return kind with
+| XI _ => KI
+| XIc _ => KI
+| XL _ => KL
+| XLc _ => KL
+| XLv _ => KL
+| XV _ => KV
+| XA _ _ => KA
+| XP _ _ => KP
+| XIb _ _ _ => KI
+| XLb _ _ _ => KL
+| XIsh _ _ _ => KI
+| XLsh _ _ _ => KL
+| XIcmp _ _ _ _ => KI
+| XLcmp _ _ _ _ => KI
+| XI2L _ _ => KL
+| XL2I _ => KI
+| XIcast _ _ _ => KI
+| XInz _ => KI
+| XLnz _ => KI
+| XIz _ => KI
+| XLz _ => KI
+| XIneg _ => KI
+| XLneg _ => KL
+| XInot _ => KI
+| XLnot _ => KL
+end
+     : forall _ : sx, kind
+
+Arguments ktop x
+### C.jet_sx_expr.kind_eqb
+kind_eqb =
+fun a b : kind =>
+match a return bool with
+| KI => match b return bool with
+        | KI => true
+        | KL => false
+        | KP => false
+        | KA => false
+        | KV => false
+        end
+| KL => match b return bool with
+        | KI => false
+        | KL => true
+        | KP => false
+        | KA => false
+        | KV => false
+        end
+| KP => match b return bool with
+        | KI => false
+        | KL => false
+        | KP => true
+        | KA => false
+        | KV => false
+        end
+| KA => match b return bool with
+        | KI => false
+        | KL => false
+        | KP => false
+        | KA => true
+        | KV => false
+        end
+| KV => match b return bool with
+        | KI => false
+        | KL => false
+        | KP => false
+        | KA => false
+        | KV => true
+        end
+end
+     : forall (_ : kind) (_ : kind), bool
+
+Arguments kind_eqb a b
+### C.jet_sx_expr.isk
+isk = fun (k : kind) (x : sx) => kind_eqb (ktop x) k
+     : forall (_ : kind) (_ : sx), bool
+
+Arguments isk k x
+### C.jet_sx_expr.xcast
+xcast =
+fun (x : sx) (t1 t2 : Ctypes.type) =>
+match t2 return (option sx) with
+| Ctypes.Tvoid => @None sx
+| Ctypes.Tint sz2 sg2 _ =>
+    match sz2 return (option sx) with
+    | Ctypes.I8 =>
+        match t1 return (option sx) with
+        | Ctypes.Tvoid => @None sx
+        | Ctypes.Tint _ _ _ =>
+            match isk KI x return (option sx) with
+            | true =>
+                @Some sx
+                  match sz2 return sx with
+                  | Ctypes.I8 => XIcast sz2 sg2 x
+                  | Ctypes.I16 => XIcast sz2 sg2 x
+                  | Ctypes.I32 => x
+                  | Ctypes.IBool => XIcast sz2 sg2 x
+                  end
+            | false => @None sx
+            end
+        | Ctypes.Tlong _ _ =>
+            match isk KL x return (option sx) with
+            | true =>
+                @Some sx
+                  match sz2 return sx with
+                  | Ctypes.I8 => XIcast sz2 sg2 (XL2I x)
+                  | Ctypes.I16 => XIcast sz2 sg2 (XL2I x)
+                  | Ctypes.I32 => XL2I x
+                  | Ctypes.IBool => XIcast sz2 sg2 (XL2I x)
+                  end
+            | false => @None sx
+            end
+        | Ctypes.Tfloat _ _ => @None sx
+        | Ctypes.Tpointer _ _ => @None sx
+        | Ctypes.Tarray _ _ _ => @None sx
+        | Ctypes.Tfunction _ _ _ => @None sx
+        | Ctypes.Tstruct _ _ => @None sx
+        | Ctypes.Tunion _ _ => @None sx
+        end
+    | Ctypes.I16 =>
+        match t1 return (option sx) with
+        | Ctypes.Tvoid => @None sx
+        | Ctypes.Tint _ _ _ =>
+            match isk KI x return (option sx) with
+            | true =>
+                @Some sx
+                  match sz2 return sx with
+                  | Ctypes.I8 => XIcast sz2 sg2 x
+                  | Ctypes.I16 => XIcast sz2 sg2 x
+                  | Ctypes.I32 => x
+                  | Ctypes.IBool => XIcast sz2 sg2 x
+                  end
+            | false => @None sx
+            end
+        | Ctypes.Tlong _ _ =>
+            match isk KL x return (option sx) with
+            | true =>
+                @Some sx
+                  match sz2 return sx with
+                  | Ctypes.I8 => XIcast sz2 sg2 (XL2I x)
+                  | Ctypes.I16 => XIcast sz2 sg2 (XL2I x)
+                  | Ctypes.I32 => XL2I x
+                  | Ctypes.IBool => XIcast sz2 sg2 (XL2I x)
+                  end
+            | false => @None sx
+            end
+        | Ctypes.Tfloat _ _ => @None sx
+        | Ctypes.Tpointer _ _ => @None sx
+        | Ctypes.Tarray _ _ _ => @None sx
+        | Ctypes.Tfunction _ _ _ => @None sx
+        | Ctypes.Tstruct _ _ => @None sx
+        | Ctypes.Tunion _ _ => @None sx
+        end
+    | Ctypes.I32 =>
+        match t1 return (option sx) with
+        | Ctypes.Tvoid => @None sx
+        | Ctypes.Tint _ _ _ =>
+            match isk KI x return (option sx) with
+            | true =>
+                @Some sx
+                  match sz2 return sx with
+                  | Ctypes.I8 => XIcast sz2 sg2 x
+                  | Ctypes.I16 => XIcast sz2 sg2 x
+                  | Ctypes.I32 => x
+                  | Ctypes.IBool => XIcast sz2 sg2 x
+                  end
+            | false => @None sx
+            end
+        | Ctypes.Tlong _ _ =>
+            match isk KL x return (option sx) with
+            | true =>
+                @Some sx
+                  match sz2 return sx with
+                  | Ctypes.I8 => XIcast sz2 sg2 (XL2I x)
+                  | Ctypes.I16 => XIcast sz2 sg2 (XL2I x)
+                  | Ctypes.I32 => XL2I x
+                  | Ctypes.IBool => XIcast sz2 sg2 (XL2I x)
+                  end
+            | false => @None sx
+            end
+        | Ctypes.Tfloat _ _ => @None sx
+        | Ctypes.Tpointer _ _ => @None sx
+        | Ctypes.Tarray _ _ _ => @None sx
+        | Ctypes.Tfunction _ _ _ => @None sx
+        | Ctypes.Tstruct _ _ => @None sx
+        | Ctypes.Tunion _ _ => @None sx
+        end
+    | Ctypes.IBool =>
+        match t1 return (option sx) with
+        | Ctypes.Tvoid => @None sx
+        | Ctypes.Tint _ _ _ =>
+            match isk KI x return (option sx) with
+            | true => @Some sx (XInz x)
+            | false => @None sx
+            end
+        | Ctypes.Tlong _ _ =>
+            match isk KL x return (option sx) with
+            | true => @Some sx (XLnz x)
+            | false => @None sx
+            end
+        | Ctypes.Tfloat _ _ => @None sx
+        | Ctypes.Tpointer _ _ => @None sx
+        | Ctypes.Tarray _ _ _ => @None sx
+        | Ctypes.Tfunction _ _ _ => @None sx
+        | Ctypes.Tstruct _ _ => @None sx
+        | Ctypes.Tunion _ _ => @None sx
+        end
+    end
+| Ctypes.Tlong _ _ =>
+    match t1 return (option sx) with
+    | Ctypes.Tvoid => @None sx
+    | Ctypes.Tint _ sg1 _ =>
+        match isk KI x return (option sx) with
+        | true => @Some sx (XI2L sg1 x)
+        | false => @None sx
+        end
+    | Ctypes.Tlong _ _ => match isk KL x return (option sx) with
+                          | true => @Some sx x
+                          | false => @None sx
+                          end
+    | Ctypes.Tfloat _ _ => @None sx
+    | Ctypes.Tpointer _ _ => @None sx
+    | Ctypes.Tarray _ _ _ => @None sx
+    | Ctypes.Tfunction _ _ _ => @None sx
+    | Ctypes.Tstruct _ _ => @None sx
+    | Ctypes.Tunion _ _ => @None sx
+    end
+| Ctypes.Tfloat _ _ => @None sx
+| Ctypes.Tpointer _ _ =>
+    match t1 return (option sx) with
+    | Ctypes.Tvoid => @None sx
+    | Ctypes.Tint _ _ _ => @None sx
+    | Ctypes.Tlong _ _ => @None sx
+    | Ctypes.Tfloat _ _ => @None sx
+    | Ctypes.Tpointer _ _ =>
+        match orb (isk KP x) (isk KA x) return (option sx) with
+        | true => @Some sx x
+        | false => @None sx
+        end
+    | Ctypes.Tarray _ _ _ =>
+        match orb (isk KP x) (isk KA x) return (option sx) with
+        | true => @Some sx x
+        | false => @None sx
+        end
+    | Ctypes.Tfunction _ _ _ => @None sx
+    | Ctypes.Tstruct _ _ => @None sx
+    | Ctypes.Tunion _ _ => @None sx
+    end
+| Ctypes.Tarray _ _ _ => @None sx
+| Ctypes.Tfunction _ _ _ => @None sx
+| Ctypes.Tstruct _ _ => @None sx
+| Ctypes.Tunion _ _ => @None sx
+end
+     : forall (_ : sx) (_ : Ctypes.type) (_ : Ctypes.type), option sx
+
+Arguments xcast x t1 t2
+### C.jet_sx_expr.isg
+isg =
+fun t : Ctypes.type =>
+match t return Ctypes.signedness with
+| Ctypes.Tvoid => Ctypes.Signed
+| Ctypes.Tint i s _ =>
+    match i return Ctypes.signedness with
+    | Ctypes.I8 => Ctypes.Signed
+    | Ctypes.I16 => Ctypes.Signed
+    | Ctypes.I32 =>
+        match s return Ctypes.signedness with
+        | Ctypes.Signed => Ctypes.Signed
+        | Ctypes.Unsigned => Ctypes.Unsigned
+        end
+    | Ctypes.IBool => Ctypes.Signed
+    end
+| Ctypes.Tlong _ _ => Ctypes.Signed
+| Ctypes.Tfloat _ _ => Ctypes.Signed
+| Ctypes.Tpointer _ _ => Ctypes.Signed
+| Ctypes.Tarray _ _ _ => Ctypes.Signed
+| Ctypes.Tfunction _ _ _ => Ctypes.Signed
+| Ctypes.Tstruct _ _ => Ctypes.Signed
+| Ctypes.Tunion _ _ => Ctypes.Signed
+end
+     : forall _ : Ctypes.type, Ctypes.signedness
+
+Arguments isg t
+### C.jet_sx_expr.sgjoin
+sgjoin =
+fun a b : Ctypes.signedness =>
+match a return Ctypes.signedness with
+| Ctypes.Signed =>
+    match b return Ctypes.signedness with
+    | Ctypes.Signed => Ctypes.Signed
+    | Ctypes.Unsigned => Ctypes.Unsigned
+    end
+| Ctypes.Unsigned => Ctypes.Unsigned
+end
+     : forall (_ : Ctypes.signedness) (_ : Ctypes.signedness), Ctypes.signedness
+
+Arguments sgjoin a b
+### C.jet_sx_expr.xbinarith
+xbinarith =
+fun (mki mkl : forall (_ : Ctypes.signedness) (_ : sx) (_ : sx), sx) (xa : sx) (ta : Ctypes.type)
+  (xb : sx) (tb : Ctypes.type) =>
+match ta return (option sx) with
+| Ctypes.Tvoid => @None sx
+| Ctypes.Tint _ sga _ =>
+    match tb return (option sx) with
+    | Ctypes.Tvoid => @None sx
+    | Ctypes.Tint _ _ _ =>
+        match andb (isk KI xa) (isk KI xb) return (option sx) with
+        | true => @Some sx (mki (sgjoin (isg ta) (isg tb)) xa xb)
+        | false => @None sx
+        end
+    | Ctypes.Tlong sgb _ =>
+        match andb (isk KI xa) (isk KL xb) return (option sx) with
+        | true => @Some sx (mkl sgb (XI2L sga xa) xb)
+        | false => @None sx
+        end
+    | Ctypes.Tfloat _ _ => @None sx
+    | Ctypes.Tpointer _ _ => @None sx
+    | Ctypes.Tarray _ _ _ => @None sx
+    | Ctypes.Tfunction _ _ _ => @None sx
+    | Ctypes.Tstruct _ _ => @None sx
+    | Ctypes.Tunion _ _ => @None sx
+    end
+| Ctypes.Tlong sga _ =>
+    match tb return (option sx) with
+    | Ctypes.Tvoid => @None sx
+    | Ctypes.Tint _ sgb _ =>
+        match andb (isk KL xa) (isk KI xb) return (option sx) with
+        | true => @Some sx (mkl sga xa (XI2L sgb xb))
+        | false => @None sx
+        end
+    | Ctypes.Tlong sgb _ =>
+        match andb (isk KL xa) (isk KL xb) return (option sx) with
+        | true => @Some sx (mkl (sgjoin sga sgb) xa xb)
+        | false => @None sx
+        end
+    | Ctypes.Tfloat _ _ => @None sx
+    | Ctypes.Tpointer _ _ => @None sx
+    | Ctypes.Tarray _ _ _ => @None sx
+    | Ctypes.Tfunction _ _ _ => @None sx
+    | Ctypes.Tstruct _ _ => @None sx
+    | Ctypes.Tunion _ _ => @None sx
+    end
+| Ctypes.Tfloat _ _ => @None sx
+| Ctypes.Tpointer _ _ => @None sx
+| Ctypes.Tarray _ _ _ => @None sx
+| Ctypes.Tfunction _ _ _ => @None sx
+| Ctypes.Tstruct _ _ => @None sx
+| Ctypes.Tunion _ _ => @None sx
+end
+     : forall (_ : forall (_ : Ctypes.signedness) (_ : sx) (_ : sx), sx)
+         (_ : forall (_ : Ctypes.signedness) (_ : sx) (_ : sx), sx) (_ : sx) (_ : Ctypes.type)
+         (_ : sx) (_ : Ctypes.type), option sx
+
+Arguments xbinarith (mki mkl)%function_scope xa ta xb tb
+### C.jet_sx_expr.xshift
+xshift =
+fun (left : bool) (xa : sx) (ta : Ctypes.type) (xb : sx) (tb : Ctypes.type) =>
+match xb return (option sx) with
+| XI _ => @None sx
+| XIc n =>
+    match ta return (option sx) with
+    | Ctypes.Tvoid => @None sx
+    | Ctypes.Tint _ _ _ =>
+        match tb return (option sx) with
+        | Ctypes.Tvoid => @None sx
+        | Ctypes.Tint _ _ _ =>
+            match andb (isk KI xa) (Integers.Int.ltu n Integers.Int.iwordsize) return (option sx) with
+            | true =>
+                @Some sx
+                  (XIsh
+                     match left return shop with
+                     | true => Hshl
+                     | false => match isg ta return shop with
+                                | Ctypes.Signed => Hshr
+                                | Ctypes.Unsigned => Hshru
+                                end
+                     end xa (Integers.Int.unsigned n))
+            | false => @None sx
+            end
+        | Ctypes.Tlong _ _ => @None sx
+        | Ctypes.Tfloat _ _ => @None sx
+        | Ctypes.Tpointer _ _ => @None sx
+        | Ctypes.Tarray _ _ _ => @None sx
+        | Ctypes.Tfunction _ _ _ => @None sx
+        | Ctypes.Tstruct _ _ => @None sx
+        | Ctypes.Tunion _ _ => @None sx
+        end
+    | Ctypes.Tlong sg _ =>
+        match tb return (option sx) with
+        | Ctypes.Tvoid => @None sx
+        | Ctypes.Tint _ _ _ =>
+            match andb (isk KL xa) (Integers.Int.ltu n Integers.Int64.iwordsize') return (option sx) with
+            | true =>
+                @Some sx
+                  (XLsh
+                     match left return shop with
+                     | true => Hshl
+                     | false => match sg return shop with
+                                | Ctypes.Signed => Hshr
+                                | Ctypes.Unsigned => Hshru
+                                end
+                     end xa (Integers.Int.unsigned n))
+            | false => @None sx
+            end
+        | Ctypes.Tlong _ _ => @None sx
+        | Ctypes.Tfloat _ _ => @None sx
+        | Ctypes.Tpointer _ _ => @None sx
+        | Ctypes.Tarray _ _ _ => @None sx
+        | Ctypes.Tfunction _ _ _ => @None sx
+        | Ctypes.Tstruct _ _ => @None sx
+        | Ctypes.Tunion _ _ => @None sx
+        end
+    | Ctypes.Tfloat _ _ => @None sx
+    | Ctypes.Tpointer _ _ => @None sx
+    | Ctypes.Tarray _ _ _ => @None sx
+    | Ctypes.Tfunction _ _ _ => @None sx
+    | Ctypes.Tstruct _ _ => @None sx
+    | Ctypes.Tunion _ _ => @None sx
+    end
+| XL _ => @None sx
+| XLc n =>
+    match ta return (option sx) with
+    | Ctypes.Tvoid => @None sx
+    | Ctypes.Tint _ _ _ =>
+        match tb return (option sx) with
+        | Ctypes.Tvoid => @None sx
+        | Ctypes.Tint _ _ _ => @None sx
+        | Ctypes.Tlong _ _ =>
+            match
+              andb (isk KI xa)
+                (Integers.Int64.ltu n
+                   (Integers.Int64.repr
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+              return (option sx)
+            with
+            | true =>
+                @Some sx
+                  (XIsh
+                     match left return shop with
+                     | true => Hshl
+                     | false => match isg ta return shop with
+                                | Ctypes.Signed => Hshr
+                                | Ctypes.Unsigned => Hshru
+                                end
+                     end xa (Integers.Int64.unsigned n))
+            | false => @None sx
+            end
+        | Ctypes.Tfloat _ _ => @None sx
+        | Ctypes.Tpointer _ _ => @None sx
+        | Ctypes.Tarray _ _ _ => @None sx
+        | Ctypes.Tfunction _ _ _ => @None sx
+        | Ctypes.Tstruct _ _ => @None sx
+        | Ctypes.Tunion _ _ => @None sx
+        end
+    | Ctypes.Tlong sg _ =>
+        match tb return (option sx) with
+        | Ctypes.Tvoid => @None sx
+        | Ctypes.Tint _ _ _ => @None sx
+        | Ctypes.Tlong _ _ =>
+            match andb (isk KL xa) (Integers.Int64.ltu n Integers.Int64.iwordsize) return (option sx) with
+            | true =>
+                @Some sx
+                  (XLsh
+                     match left return shop with
+                     | true => Hshl
+                     | false => match sg return shop with
+                                | Ctypes.Signed => Hshr
+                                | Ctypes.Unsigned => Hshru
+                                end
+                     end xa (Integers.Int64.unsigned n))
+            | false => @None sx
+            end
+        | Ctypes.Tfloat _ _ => @None sx
+        | Ctypes.Tpointer _ _ => @None sx
+        | Ctypes.Tarray _ _ _ => @None sx
+        | Ctypes.Tfunction _ _ _ => @None sx
+        | Ctypes.Tstruct _ _ => @None sx
+        | Ctypes.Tunion _ _ => @None sx
+        end
+    | Ctypes.Tfloat _ _ => @None sx
+    | Ctypes.Tpointer _ _ => @None sx
+    | Ctypes.Tarray _ _ _ => @None sx
+    | Ctypes.Tfunction _ _ _ => @None sx
+    | Ctypes.Tstruct _ _ => @None sx
+    | Ctypes.Tunion _ _ => @None sx
+    end
+| XLv _ => @None sx
+| XV _ => @None sx
+| XA _ _ => @None sx
+| XP _ _ => @None sx
+| XIb _ _ _ => @None sx
+| XLb _ _ _ => @None sx
+| XIsh _ _ _ => @None sx
+| XLsh _ _ _ => @None sx
+| XIcmp _ _ _ _ => @None sx
+| XLcmp _ _ _ _ => @None sx
+| XI2L _ _ => @None sx
+| XL2I _ => @None sx
+| XIcast _ _ _ => @None sx
+| XInz _ => @None sx
+| XLnz _ => @None sx
+| XIz _ => @None sx
+| XLz _ => @None sx
+| XIneg _ => @None sx
+| XLneg _ => @None sx
+| XInot _ => @None sx
+| XLnot _ => @None sx
+end
+     : forall (_ : bool) (_ : sx) (_ : Ctypes.type) (_ : sx) (_ : Ctypes.type), option sx
+
+Arguments xshift left%bool_scope xa ta xb tb
+### C.jet_sx_expr.xbin
+xbin =
+fun (op : Cop.binary_operation) (xa : sx) (ta : Ctypes.type) (xb : sx) (tb : Ctypes.type) =>
+match op return (option sx) with
+| Cop.Oadd => xbinarith (fun _ : Ctypes.signedness => XIb Badd) (fun _ : Ctypes.signedness => XLb Badd) xa ta xb tb
+| Cop.Osub => xbinarith (fun _ : Ctypes.signedness => XIb Bsub) (fun _ : Ctypes.signedness => XLb Bsub) xa ta xb tb
+| Cop.Omul => xbinarith (fun _ : Ctypes.signedness => XIb Bmul) (fun _ : Ctypes.signedness => XLb Bmul) xa ta xb tb
+| Cop.Odiv => @None sx
+| Cop.Omod => @None sx
+| Cop.Oand => xbinarith (fun _ : Ctypes.signedness => XIb Band) (fun _ : Ctypes.signedness => XLb Band) xa ta xb tb
+| Cop.Oor => xbinarith (fun _ : Ctypes.signedness => XIb Bor) (fun _ : Ctypes.signedness => XLb Bor) xa ta xb tb
+| Cop.Oxor => xbinarith (fun _ : Ctypes.signedness => XIb Bxor) (fun _ : Ctypes.signedness => XLb Bxor) xa ta xb tb
+| Cop.Oshl => xshift true xa ta xb tb
+| Cop.Oshr => xshift false xa ta xb tb
+| Cop.Oeq => xbinarith (XIcmp Integers.Ceq) (XLcmp Integers.Ceq) xa ta xb tb
+| Cop.One => xbinarith (XIcmp Integers.Cne) (XLcmp Integers.Cne) xa ta xb tb
+| Cop.Olt => xbinarith (XIcmp Integers.Clt) (XLcmp Integers.Clt) xa ta xb tb
+| Cop.Ogt => xbinarith (XIcmp Integers.Cgt) (XLcmp Integers.Cgt) xa ta xb tb
+| Cop.Ole => xbinarith (XIcmp Integers.Cle) (XLcmp Integers.Cle) xa ta xb tb
+| Cop.Oge => xbinarith (XIcmp Integers.Cge) (XLcmp Integers.Cge) xa ta xb tb
+end
+     : forall (_ : Cop.binary_operation) (_ : sx) (_ : Ctypes.type) (_ : sx) (_ : Ctypes.type), option sx
+
+Arguments xbin op xa ta xb tb
+### C.jet_sx_expr.xun
+xun =
+fun (op : Cop.unary_operation) (xa : sx) (ta : Ctypes.type) =>
+match op return (option sx) with
+| Cop.Onotbool =>
+    match ta return (option sx) with
+    | Ctypes.Tvoid => @None sx
+    | Ctypes.Tint _ _ _ => match isk KI xa return (option sx) with
+                           | true => @Some sx (XIz xa)
+                           | false => @None sx
+                           end
+    | Ctypes.Tlong _ _ => match isk KL xa return (option sx) with
+                          | true => @Some sx (XLz xa)
+                          | false => @None sx
+                          end
+    | Ctypes.Tfloat _ _ => @None sx
+    | Ctypes.Tpointer _ _ => @None sx
+    | Ctypes.Tarray _ _ _ => @None sx
+    | Ctypes.Tfunction _ _ _ => @None sx
+    | Ctypes.Tstruct _ _ => @None sx
+    | Ctypes.Tunion _ _ => @None sx
+    end
+| Cop.Onotint =>
+    match ta return (option sx) with
+    | Ctypes.Tvoid => @None sx
+    | Ctypes.Tint _ _ _ =>
+        match isk KI xa return (option sx) with
+        | true => @Some sx (XInot xa)
+        | false => @None sx
+        end
+    | Ctypes.Tlong _ _ => match isk KL xa return (option sx) with
+                          | true => @Some sx (XLnot xa)
+                          | false => @None sx
+                          end
+    | Ctypes.Tfloat _ _ => @None sx
+    | Ctypes.Tpointer _ _ => @None sx
+    | Ctypes.Tarray _ _ _ => @None sx
+    | Ctypes.Tfunction _ _ _ => @None sx
+    | Ctypes.Tstruct _ _ => @None sx
+    | Ctypes.Tunion _ _ => @None sx
+    end
+| Cop.Oneg =>
+    match ta return (option sx) with
+    | Ctypes.Tvoid => @None sx
+    | Ctypes.Tint _ _ _ =>
+        match isk KI xa return (option sx) with
+        | true => @Some sx (XIneg xa)
+        | false => @None sx
+        end
+    | Ctypes.Tlong _ _ => match isk KL xa return (option sx) with
+                          | true => @Some sx (XLneg xa)
+                          | false => @None sx
+                          end
+    | Ctypes.Tfloat _ _ => @None sx
+    | Ctypes.Tpointer _ _ => @None sx
+    | Ctypes.Tarray _ _ _ => @None sx
+    | Ctypes.Tfunction _ _ _ => @None sx
+    | Ctypes.Tstruct _ _ => @None sx
+    | Ctypes.Tunion _ _ => @None sx
+    end
+| Cop.Oabsfloat => @None sx
+end
+     : forall (_ : Cop.unary_operation) (_ : sx) (_ : Ctypes.type), option sx
+
+Arguments xun op xa ta
+### C.jet_sx_expr.xbool
+xbool =
+fun (xa : sx) (ta : Ctypes.type) =>
+match ta return (option sx) with
+| Ctypes.Tvoid => @None sx
+| Ctypes.Tint _ _ _ => match isk KI xa return (option sx) with
+                       | true => @Some sx xa
+                       | false => @None sx
+                       end
+| Ctypes.Tlong _ _ => match isk KL xa return (option sx) with
+                      | true => @Some sx (XLnz xa)
+                      | false => @None sx
+                      end
+| Ctypes.Tfloat _ _ => @None sx
+| Ctypes.Tpointer _ _ => @None sx
+| Ctypes.Tarray _ _ _ => @None sx
+| Ctypes.Tfunction _ _ _ => @None sx
+| Ctypes.Tstruct _ _ => @None sx
+| Ctypes.Tunion _ _ => @None sx
+end
+     : forall (_ : sx) (_ : Ctypes.type), option sx
+
+Arguments xbool xa ta
+### C.jet_sx_expr.truth
+truth =
+fun (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z) (c : sx) =>
+negb (Integers.Int.eq (ii (den ρ β c)) Integers.Int.zero)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z) (_ : sx), bool
+
+Arguments truth (ρ β)%function_scope c
+### C.jet_sx_expr.xnorm
+xnorm =
+fun (chunk : AST.memory_chunk) (x : sx) =>
+match chunk return (option sx) with
+| AST.Mint8signed =>
+    match isk KI x return (option sx) with
+    | true => @Some sx (XIcast Ctypes.I8 Ctypes.Signed x)
+    | false => @None sx
+    end
+| AST.Mint8unsigned =>
+    match isk KI x return (option sx) with
+    | true => @Some sx (XIcast Ctypes.I8 Ctypes.Unsigned x)
+    | false => @None sx
+    end
+| AST.Mint16signed =>
+    match isk KI x return (option sx) with
+    | true => @Some sx (XIcast Ctypes.I16 Ctypes.Signed x)
+    | false => @None sx
+    end
+| AST.Mint16unsigned =>
+    match isk KI x return (option sx) with
+    | true => @Some sx (XIcast Ctypes.I16 Ctypes.Unsigned x)
+    | false => @None sx
+    end
+| AST.Mint32 => match isk KI x return (option sx) with
+                | true => @Some sx x
+                | false => @None sx
+                end
+| AST.Mint64 =>
+    match orb (orb (isk KL x) (isk KP x)) (isk KA x) return (option sx) with
+    | true => @Some sx x
+    | false => @None sx
+    end
+| AST.Mfloat32 => @None sx
+| AST.Mfloat64 => @None sx
+| AST.Many32 => @None sx
+| AST.Many64 => @None sx
+end
+     : forall (_ : AST.memory_chunk) (_ : sx), option sx
+
+Arguments xnorm chunk x

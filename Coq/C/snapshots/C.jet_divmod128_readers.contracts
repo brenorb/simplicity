@@ -1,0 +1,91 @@
+### C.jet_divmod128_readers.divmod128_access_preserved
+divmod128_access_preserved
+     : forall (m mf : Memory.Mem.mem) (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+         (p : Memtype.permission)
+         (_ : forall (bb : Values.block) (addr : BinNums.Z) (kind : Memtype.perm_kind)
+                (permission : Memtype.permission) (_ : Memory.Mem.perm m bb addr kind permission),
+              Memory.Mem.perm mf bb addr kind permission) (_ : Memory.Mem.valid_access m chunk b ofs p),
+       Memory.Mem.valid_access mf chunk b ofs p
+### C.jet_divmod128_readers.eval_divmod128_readers
+eval_divmod128_readers
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bi : Values.block)
+         (edge rc : BinNums.Z) (xh : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (xm xl : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (y : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (_ : jet_frame_layout.frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))))
+         (_ : jet_frame_layout.frame_fields_at m bf base bi edge rc)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S (S (S (S O)))))) m bi edge rc xh)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi edge
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) xm)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi edge
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))) xl)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S (S (S (S O)))))) m bi edge
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) y)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable)
+         (_ : not (@eq Values.block bf bi)),
+       @ex Memory.Mem.mem
+         (fun m1 : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun m2 : Memory.Mem.mem =>
+             @ex Memory.Mem.mem
+               (fun m3 : Memory.Mem.mem =>
+                @ex Memory.Mem.mem
+                  (fun mf : Memory.Mem.mem =>
+                   @ex Integers.Int64.int
+                     (fun ah : Integers.Int64.int =>
+                      @ex Integers.Int64.int
+                        (fun am : Integers.Int64.int =>
+                         @ex Integers.Int64.int
+                           (fun al : Integers.Int64.int =>
+                            @ex Integers.Int64.int
+                              (fun b : Integers.Int64.int =>
+                               and
+                                 (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                                    (@Ctypes.Internal Clight.function jets.f_simplicity_read64)
+                                    (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val))
+                                    Events.E0 m1 (Values.Vlong ah))
+                                 (and
+                                    (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m1
+                                       (@Ctypes.Internal Clight.function jets.f_simplicity_read32)
+                                       (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val))
+                                       Events.E0 m2 (Values.Vlong am))
+                                    (and
+                                       (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m2
+                                          (@Ctypes.Internal Clight.function jets.f_simplicity_read32)
+                                          (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                                             (@nil Values.val)) Events.E0 m3 (Values.Vlong al))
+                                       (and
+                                          (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m3
+                                             (@Ctypes.Internal Clight.function jets.f_simplicity_read64)
+                                             (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                                                (@nil Values.val)) Events.E0 mf (Values.Vlong b))
+                                          (and
+                                             (@eq BinNums.Z (Integers.Int64.unsigned ah)
+                                                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (...))))) xh))
+                                             (and
+                                                (@eq BinNums.Z (Integers.Int64.unsigned am)
+                                                   (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (...)))) xm))
+                                                (and
+                                                   (@eq BinNums.Z (Integers.Int64.unsigned al)
+                                                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (...))) xl))
+                                                   (and
+                                                      (@eq BinNums.Z (Integers.Int64.unsigned b)
+                                                         (@Word.ToZ.Theory.toZ (Word.WordToZ (...)) y))
+                                                      (and
+                                                         (jet_frame_layout.frame_fields_at mf bf base bi edge
+                                                            (BinInt.Z.add rc (...)))
+                                                         (and (forall ... ... ... ..., @eq ... ... ...)
+                                                            (and (...) (...)))))))))))))))))))

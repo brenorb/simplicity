@@ -1,0 +1,203 @@
+### C.jet_elements_legacy_lock_local.legacy_lock_helper_shape
+legacy_lock_helper_shape
+     : forall distance : bool,
+       @eq Clight.function (legacy_lock_helper distance)
+         (jet_elements_legacy_lock_exec.legacy_lock_fn (legacy_lock_field distance))
+### C.jet_elements_legacy_lock_local.legacy_lock_linkage
+legacy_lock_linkage
+     : forall distance : bool,
+       and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (legacy_lock_id distance))
+            (@Some Values.block (jet_elements_linkage.elements_symbol_block (legacy_lock_id distance))))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block (legacy_lock_id distance)) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function (legacy_lock_helper distance))))
+### C.jet_elements_legacy_lock_local.legacy_lock_wrapper_shape
+legacy_lock_wrapper_shape
+     : forall distance : bool,
+       jet_elements_wrapper.elements_wrapper_shape (legacy_lock_jet distance)
+         (jet_elements_wrapper.elements_simple_rest
+            (jet_elements_legacy_lock_exec.elements_helper_write_mid jet_wide.W16 (legacy_lock_id distance)))
+### C.jet_elements_legacy_lock_local.legacy_ltu_two
+legacy_ltu_two
+     : forall ver : Integers.Int64.int,
+       @eq bool (Integers.Int64.ltu ver (Integers.Int64.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))
+         (negb (BinInt.Z.leb (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned ver)))
+### C.jet_elements_legacy_lock_local.legacy_lock_decode_result
+legacy_lock_decode_result
+     : forall (distance : bool) (environment : jet_elements_prim.Elements.environment)
+         (ver cached : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned ver)
+                (Integers.Int.unsigned (jet_elements_prim.sigTxVersion (jet_elements_prim.Elements.envTx environment))))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned cached)
+                (jet_elements_legacy_lock_spec.legacy_cache_value distance
+                   (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment)))),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W16)))
+         (jet_wide_spec.decode_wide jet_wide.W16
+            (Integers.Int64.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+               (jet_elements_legacy_lock_exec.legacy_lock_result ver cached)))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+            match
+              BinInt.Z.leb (BinNums.Zpos (BinNums.xO BinNums.xH))
+                (Integers.Int.unsigned (jet_elements_prim.sigTxVersion (jet_elements_prim.Elements.envTx environment)))
+              return BinNums.Z
+            with
+            | true =>
+                jet_elements_legacy_lock_spec.legacy_cache_value distance
+                  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment))
+            | false => BinNums.Z0
+            end)
+### C.jet_elements_legacy_lock_local.elements_legacy_lock_local_spec
+elements_legacy_lock_local_spec
+     : forall distance : bool,
+       jet_application_sep.application_jet_local_spec_sep (legacy_lock_jet distance) jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S O))))) (elements_legacy_lock_env_rep distance)
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env) =>
+          @jet_elements_legacy_lock_spec.elements_legacy_lock_spec distance
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_legacy_lock_local.elements_broken_tx_lock_distance_local_spec
+elements_broken_tx_lock_distance_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_broken_do_not_use_tx_lock_distance
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S O)))))
+         (elements_legacy_lock_env_rep true)
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @jet_elements_legacy_lock_spec.elements_legacy_lock_spec true
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_legacy_lock_local.elements_broken_tx_lock_duration_local_spec
+elements_broken_tx_lock_duration_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_broken_do_not_use_tx_lock_duration
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S O)))))
+         (elements_legacy_lock_env_rep false)
+         (fun (a : Ty.tySem Ty.Unit) (e : jet_elements_prim.Elements.env) =>
+          @jet_elements_legacy_lock_spec.elements_legacy_lock_spec false
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a e)
+### C.jet_elements_legacy_lock_local.legacy_lock_id
+legacy_lock_id =
+fun distance : bool =>
+match distance return AST.ident with
+| true => jets_elements._obsolete_lockDistance
+| false => jets_elements._obsolete_lockDuration
+end
+     : forall _ : bool, AST.ident
+
+Arguments legacy_lock_id distance%bool_scope
+### C.jet_elements_legacy_lock_local.legacy_lock_field
+legacy_lock_field =
+fun distance : bool =>
+match distance return AST.ident with
+| true => jets_elements._obsolete_lockDistance
+| false => jets_elements._obsolete_lockDuration
+end
+     : forall _ : bool, AST.ident
+
+Arguments legacy_lock_field distance%bool_scope
+### C.jet_elements_legacy_lock_local.legacy_lock_delta
+legacy_lock_delta =
+fun distance : bool =>
+match distance return BinNums.Z with
+| true =>
+    BinNums.Zpos
+      (BinNums.xO
+         (BinNums.xO
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+| false =>
+    BinNums.Zpos
+      (BinNums.xO
+         (BinNums.xO
+            (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+end
+     : forall _ : bool, BinNums.Z
+
+Arguments legacy_lock_delta distance%bool_scope
+### C.jet_elements_legacy_lock_local.legacy_lock_helper
+legacy_lock_helper =
+fun distance : bool =>
+match distance return Clight.function with
+| true => jets_elements.f_obsolete_lockDistance
+| false => jets_elements.f_obsolete_lockDuration
+end
+     : forall _ : bool, Clight.function
+
+Arguments legacy_lock_helper distance%bool_scope
+### C.jet_elements_legacy_lock_local.legacy_lock_jet
+legacy_lock_jet =
+fun distance : bool =>
+match distance return Clight.function with
+| true => jets_elements.f_simplicity_broken_do_not_use_tx_lock_distance
+| false => jets_elements.f_simplicity_broken_do_not_use_tx_lock_duration
+end
+     : forall _ : bool, Clight.function
+
+Arguments legacy_lock_jet distance%bool_scope
+### C.jet_elements_legacy_lock_local.elements_legacy_lock_env_rep
+elements_legacy_lock_env_rep =
+fun (distance : bool) (m : Memory.Mem.mem) (env : Values.val) (environment : jet_elements_prim.Elements.env)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun base : BinNums.Z =>
+            @ex Integers.Int64.int
+              (fun ver : Integers.Int64.int =>
+               @ex Integers.Int64.int
+                 (fun cached : Integers.Int64.int =>
+                  and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                    (and (BinInt.Z.le BinNums.Z0 ebase)
+                       (and
+                          (BinInt.Z.le
+                             (BinInt.Z.add ebase
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                             Integers.Ptrofs.max_unsigned)
+                          (and (BinInt.Z.le BinNums.Z0 base)
+                             (and
+                                (BinInt.Z.le
+                                   (BinInt.Z.add base
+                                      (BinNums.Zpos
+                                         (BinNums.xO
+                                            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))
+                                   Integers.Ptrofs.max_unsigned)
+                                (and
+                                   (@eq (option Values.val) (Memory.Mem.load AST.Mptr m be ebase)
+                                      (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+                                   (and
+                                      (@eq (option Values.val)
+                                         (Memory.Mem.load AST.Mint64 m bt
+                                            (BinInt.Z.add base
+                                               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...))))))
+                                         (@Some Values.val (Values.Vlong ver)))
+                                      (and
+                                         (@eq BinNums.Z (Integers.Int64.unsigned ver)
+                                            (Integers.Int.unsigned
+                                               (jet_elements_prim.sigTxVersion
+                                                  (jet_elements_prim.Elements.envTx environment))))
+                                         (and
+                                            (@eq (option Values.val)
+                                               (Memory.Mem.load AST.Mint64 m bt
+                                                  (BinInt.Z.add base (legacy_lock_delta distance)))
+                                               (@Some Values.val (Values.Vlong cached)))
+                                            (and
+                                               (@eq BinNums.Z (Integers.Int64.unsigned cached)
+                                                  (jet_elements_legacy_lock_spec.legacy_cache_value distance
+                                                     (jet_elements_prim.sigTxIn
+                                                        (jet_elements_prim.Elements.envTx environment))))
+                                               (@eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) fp
+                                                  (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                                     (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                                        (@pair Values.block BinNums.Z be ebase)
+                                                        (BinInt.Z.add ebase ...))
+                                                     (@cons (prod ... BinNums.Z) (@pair ... BinNums.Z ... ...)
+                                                        (@nil ...)))))))))))))))))))
+     : forall (_ : bool) (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments elements_legacy_lock_env_rep distance%bool_scope m env environment fp%list_scope

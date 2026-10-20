@@ -1,0 +1,79 @@
+### C.jet_secp_add_reader_environment.add_reader_rho_first
+add_reader_rho_first
+     : forall (va vb : BinNums.Z) (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int (add_reader_rho va vb (S n)) (jet_secp_b32_exec.limb_rho va n)
+### C.jet_secp_add_reader_environment.add_reader_rho_second
+add_reader_rho_second
+     : forall (va vb : BinNums.Z) (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int (add_reader_rho va vb (Nat.add (S (S (S (S (S (S O)))))) n))
+         (jet_secp_b32_exec.limb_rho vb n)
+### C.jet_secp_add_reader_environment.add_reader_field_first
+add_reader_field_first
+     : forall va vb : BinNums.Z,
+       @eq (list Integers.Int64.int) (jet_secp_field_add_initial.field_values (add_reader_rho va vb) (S O))
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of va))
+### C.jet_secp_add_reader_environment.add_reader_field_second
+add_reader_field_second
+     : forall va vb : BinNums.Z,
+       @eq (list Integers.Int64.int)
+         (jet_secp_field_add_initial.field_values (add_reader_rho va vb) (S (S (S (S (S (S O)))))))
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of vb))
+### C.jet_secp_add_reader_environment.add_reader_values
+add_reader_values
+     : forall (va vb : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 va)
+                (BinInt.Z.lt va
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 vb)
+                (BinInt.Z.lt vb
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       and (@eq BinNums.Z (jet_secp_field_add_numeric.field_input_value (add_reader_rho va vb) (S O)) va)
+         (@eq BinNums.Z (jet_secp_field_add_numeric.field_input_value (add_reader_rho va vb) (S (S (S (S (S (S O)))))))
+            vb)
+### C.jet_secp_add_reader_environment.add_reader_bounds
+add_reader_bounds
+     : forall (va vb : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 va)
+                (BinInt.Z.lt va
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 vb)
+                (BinInt.Z.lt vb
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       and
+         (BinInt.Z.le (Integers.Int64.unsigned (add_reader_rho va vb (S n)))
+            (BinInt.Z.sub
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+               (BinNums.Zpos BinNums.xH)))
+         (BinInt.Z.le (Integers.Int64.unsigned (add_reader_rho va vb (Nat.add (S (S (S (S (S (S O)))))) n)))
+            (BinInt.Z.sub
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+               (BinNums.Zpos BinNums.xH)))
+### C.jet_secp_add_reader_environment.add_reader_rho
+add_reader_rho =
+fun (va vb : BinNums.Z) (n : nat) =>
+match PeanoNat.Nat.ltb n (S (S (S (S (S (S O)))))) return Integers.Int64.int with
+| true => jet_secp_b32_exec.limb_rho va (Nat.sub n (S O))
+| false => jet_secp_b32_exec.limb_rho vb (Nat.sub n (S (S (S (S (S (S O)))))))
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : nat), Integers.Int64.int
+
+Arguments add_reader_rho (va vb)%Z_scope n%nat_scope

@@ -1,0 +1,61 @@
+### C.jet_memcpy_model.memcpy_builtin_witness
+memcpy_builtin_witness
+     : forall (ge : Globalenvs.Senv.t) (m : Memory.Mem.mem) (bd : Values.block) (od : Integers.Ptrofs.int)
+         (bs : Values.block) (os : Integers.Ptrofs.int) (n : BinNums.Z) (bytes : list Memdata.memval)
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m bs (Integers.Ptrofs.unsigned os) n)
+                (@Some (list Memdata.memval) bytes))
+         (_ : Memory.Mem.range_perm m bd (Integers.Ptrofs.unsigned od) (BinInt.Z.add (Integers.Ptrofs.unsigned od) n)
+                Memtype.Cur Memtype.Writable)
+         (_ : or (not (@eq Values.block bs bd))
+                (or (BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned os) n) (Integers.Ptrofs.unsigned od))
+                   (BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned od) n) (Integers.Ptrofs.unsigned os))))
+         (_ : BinInt.Z.le BinNums.Z0 n),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem) (Memory.Mem.storebytes m bd (Integers.Ptrofs.unsigned od) bytes)
+               (@Some Memory.Mem.mem m'))
+            (Events.extcall_memcpy_sem n (BinNums.Zpos BinNums.xH) ge
+               (@cons Values.val (Values.Vptr bd od) (@cons Values.val (Values.Vptr bs os) (@nil Values.val))) m
+               Events.E0 Values.Vundef m'))
+### C.jet_memcpy_model.memcpy_sig
+memcpy_sig =
+AST.mksignature (@cons AST.typ AST.Tlong (@cons AST.typ AST.Tlong (@cons AST.typ AST.Tlong (@nil AST.typ))))
+  (AST.Tret AST.Tlong) AST.cc_default
+     : AST.signature
+### C.jet_memcpy_model.memcpy_model
+memcpy_model =
+forall (ge : Globalenvs.Senv.t) (m : Memory.Mem.mem) (bd : Values.block) (od : Integers.Ptrofs.int)
+  (bs : Values.block) (os : Integers.Ptrofs.int) (n : BinNums.Z) (bytes : list Memdata.memval)
+  (_ : Memory.Mem.valid_block m bs) (_ : Memory.Mem.valid_block m bd)
+  (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m bs (Integers.Ptrofs.unsigned os) n)
+         (@Some (list Memdata.memval) bytes))
+  (_ : Memory.Mem.range_perm m bd (Integers.Ptrofs.unsigned od) (BinInt.Z.add (Integers.Ptrofs.unsigned od) n)
+         Memtype.Cur Memtype.Writable)
+  (_ : or (not (@eq Values.block bs bd))
+         (or (BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned os) n) (Integers.Ptrofs.unsigned od))
+            (BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned od) n) (Integers.Ptrofs.unsigned os))))
+  (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n Integers.Int64.max_unsigned))
+  (_ : BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned os) n)
+         (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+  (_ : BinInt.Z.le (BinInt.Z.add (Integers.Ptrofs.unsigned od) n)
+         (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH))),
+@ex Memory.Mem.mem
+  (fun m' : Memory.Mem.mem =>
+   and
+     (@eq (option Memory.Mem.mem) (Memory.Mem.storebytes m bd (Integers.Ptrofs.unsigned od) bytes)
+        (@Some Memory.Mem.mem m'))
+     (Events.external_call
+        (AST.EF_external
+           (String.String (Ascii.Ascii true false true true false true true false)
+              (String.String (Ascii.Ascii true false true false false true true false)
+                 (String.String (Ascii.Ascii true false true true false true true false)
+                    (String.String (Ascii.Ascii true true false false false true true false)
+                       (String.String (Ascii.Ascii false false false false true true true false)
+                          (String.String (Ascii.Ascii true false false true true true true false) String.EmptyString))))))
+           memcpy_sig) ge
+        (@cons Values.val (Values.Vptr bd od)
+           (@cons Values.val (Values.Vptr bs os)
+              (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) m Events.E0
+        (Values.Vptr bd od) m'))
+     : Prop

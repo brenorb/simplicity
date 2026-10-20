@@ -1,0 +1,110 @@
+### C.jet_sx_rep.rep_nil
+rep_nil
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem),
+       jet_sx_state.rep ρ (@nil (prod Values.block BinNums.Z)) (@nil jet_sx_state.region) m
+### C.jet_sx_rep.lay_app_new
+lay_app_new
+     : forall (β : list (prod Values.block BinNums.Z)) (p : prod Values.block BinNums.Z),
+       @eq (prod Values.block BinNums.Z)
+         (jet_sx_state.lay
+            (@app (prod Values.block BinNums.Z) β
+               (@cons (prod Values.block BinNums.Z) p (@nil (prod Values.block BinNums.Z))))
+            (@length (prod Values.block BinNums.Z) β)) p
+### C.jet_sx_rep.rep_add
+rep_add
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout) (regs : list jet_sx_state.region)
+         (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (reg : jet_sx_state.region)
+         (_ : jet_sx_state.rep ρ β regs m)
+         (_ : not
+                (@List.In Values.block b
+                   (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) β)))
+         (_ : jet_sx_state.region_ok ρ
+                (@app (prod Values.block BinNums.Z) β
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b base)
+                      (@nil (prod Values.block BinNums.Z)))) m (@length jet_sx_state.region regs) reg),
+       jet_sx_state.rep ρ
+         (@app (prod Values.block BinNums.Z) β
+            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b base)
+               (@nil (prod Values.block BinNums.Z))))
+         (@app jet_sx_state.region regs (@cons jet_sx_state.region reg (@nil jet_sx_state.region))) m
+### C.jet_sx_rep.rep_region
+rep_region
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout) (regs : list jet_sx_state.region)
+         (m : Memory.Mem.mem) (r : nat) (reg : jet_sx_state.region) (_ : jet_sx_state.rep ρ β regs m)
+         (_ : @eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region regs r)
+                (@Some jet_sx_state.region reg)), jet_sx_state.region_ok ρ β m r reg
+### C.jet_sx_rep.region_load
+region_load
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (reg : jet_sx_state.region) (d : BinNums.Z) (ch : AST.memory_chunk) (x : jet_sx_expr.sx)
+         (_ : jet_sx_state.region_ok ρ β m r reg)
+         (_ : @List.In jet_sx_state.cell (jet_sx_state.mkcell d ch (@Some jet_sx_expr.sx x)) (jet_sx_state.rcells reg)),
+       @eq (option Values.val) (Memory.Mem.load ch m (jet_sx_state.blk β r) (BinInt.Z.add (jet_sx_state.bas β r) d))
+         (@Some Values.val (jet_sx_expr.den ρ (jet_sx_state.lay β) x))
+### C.jet_sx_rep.u64_cells_sorted
+u64_cells_sorted
+     : forall (xs : list jet_sx_expr.sx) (ofs lo : BinNums.Z) (_ : BinInt.Z.le lo ofs),
+       @eq bool (jet_sx_state.cells_sorted lo (u64_cells ofs xs)) true
+### C.jet_sx_rep.u64_cells_In
+u64_cells_In
+     : forall (xs : list jet_sx_expr.sx) (ofs : BinNums.Z) (c : jet_sx_state.cell)
+         (_ : @List.In jet_sx_state.cell c (u64_cells ofs xs)),
+       @ex nat
+         (fun i : nat =>
+          @ex jet_sx_expr.sx
+            (fun x : jet_sx_expr.sx =>
+             and (@eq (option jet_sx_expr.sx) (@List.nth_error jet_sx_expr.sx xs i) (@Some jet_sx_expr.sx x))
+               (@eq jet_sx_state.cell c
+                  (jet_sx_state.mkcell
+                     (BinInt.Z.add ofs
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.of_nat i))) AST.Mint64 (@Some jet_sx_expr.sx x)))))
+### C.jet_sx_rep.u64_cells_nth
+u64_cells_nth
+     : forall (xs : list jet_sx_expr.sx) (ofs : BinNums.Z) (i : nat) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx) (@List.nth_error jet_sx_expr.sx xs i) (@Some jet_sx_expr.sx x)),
+       @List.In jet_sx_state.cell
+         (jet_sx_state.mkcell
+            (BinInt.Z.add ofs
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i)))
+            AST.Mint64 (@Some jet_sx_expr.sx x)) (u64_cells ofs xs)
+### C.jet_sx_rep.region_u64
+region_u64
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (xs : list jet_sx_expr.sx) (w : bool) (_ : BinInt.Z.le BinNums.Z0 (jet_sx_state.bas β r))
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (jet_sx_state.bas β r))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (jet_sx_state.bas β r)
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.of_nat (@length jet_sx_expr.sx xs)))) Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.valid_block m (jet_sx_state.blk β r))
+         (_ : Memory.Mem.range_perm m (jet_sx_state.blk β r) (jet_sx_state.bas β r)
+                (BinInt.Z.add (jet_sx_state.bas β r)
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.of_nat (@length jet_sx_expr.sx xs)))) Memtype.Cur
+                match w return Memtype.permission with
+                | true => Memtype.Writable
+                | false => Memtype.Readable
+                end)
+         (_ : forall (i : nat) (x : jet_sx_expr.sx)
+                (_ : @eq (option jet_sx_expr.sx) (@List.nth_error jet_sx_expr.sx xs i) (@Some jet_sx_expr.sx x)),
+              and
+                (@eq (option Values.val)
+                   (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk β r)
+                      (BinInt.Z.add (jet_sx_state.bas β r)
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.of_nat i)))) (@Some Values.val (jet_sx_expr.den ρ (jet_sx_state.lay β) x)))
+                (@eq bool (jet_sx_state.xp_le r x) true)),
+       jet_sx_state.region_ok ρ β m r (jet_sx_state.mkreg (u64_cells BinNums.Z0 xs) w (@None BinNums.Z))
+### C.jet_sx_rep.u64_cells
+u64_cells =
+fix u64_cells (ofs : BinNums.Z) (xs : list jet_sx_expr.sx) {struct xs} : list jet_sx_state.cell :=
+  match xs return (list jet_sx_state.cell) with
+  | nil => @nil jet_sx_state.cell
+  | cons x t =>
+      @cons jet_sx_state.cell (jet_sx_state.mkcell ofs AST.Mint64 (@Some jet_sx_expr.sx x))
+        (u64_cells (BinInt.Z.add ofs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) t)
+  end
+     : forall (_ : BinNums.Z) (_ : list jet_sx_expr.sx), list jet_sx_state.cell
+
+Arguments u64_cells ofs%Z_scope xs%list_scope

@@ -1,0 +1,153 @@
+### C.jet_bitcoin_is_final_local.bitcoin_tx_isFinal
+bitcoin_tx_isFinal
+     : jet_bitcoin_field_eval.bitcoin_field_at jets_bitcoin._bitcoinTransaction jets_bitcoin._isFinal
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_bitcoin_is_final_local.exec_bitcoin_tx_is_final_mid
+exec_bitcoin_tx_is_final_mid
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (mc me : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (be : Values.block)
+         (ebase : BinNums.Z) (bt : Values.block) (tbase : BinNums.Z) (b : bool)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_bitcoin._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase)))) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 tbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add tbase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mc be ebase)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned mc bt
+                   (BinInt.Z.add tbase
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+                (@Some Values.val (Values.Vint (bool_int b))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_bitcoin_linkage.bitcoin_ge mc
+                (@Ctypes.Internal Clight.function jets.f_writeBit)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vint (bool_int b)) (@nil Values.val))) Events.E0 me
+                (Values.Vint (bool_int b))),
+       ClightBigstep.Clight2.exec_stmt jet_bitcoin_linkage.bitcoin_ge e le mc bitcoin_tx_is_final_mid Events.E0
+         (@Maps.PTree.set Values.val jets_bitcoin._t'2 (Values.Vint (bool_int b))
+            (@Maps.PTree.set Values.val jets_bitcoin._t'1 (Values.Vptr bt (Integers.Ptrofs.repr tbase)) le)) me
+         ClightBigstep.Out_normal
+### C.jet_bitcoin_is_final_local.bitcoin_tx_is_final_getter_body
+bitcoin_tx_is_final_getter_body
+     : jet_bitcoin_wrapper.bitcoin_wrapper_shape jets_bitcoin.f_simplicity_bitcoin_tx_is_final
+         (jet_bitcoin_wrapper.bitcoin_simple_rest bitcoin_tx_is_final_mid)
+### C.jet_bitcoin_is_final_local.encode_fromBool
+encode_fromBool
+     : forall b : bool,
+       @eq (list BitMachine.Cell) (@Translate.encode (Ty.Sum Ty.Unit Ty.Unit) (Bit.fromBool b))
+         (@cons (option bool) (@Some bool b) (@nil (option bool)))
+### C.jet_bitcoin_is_final_local.bitcoin_tx_is_final_local_spec
+bitcoin_tx_is_final_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_tx_is_final
+         jet_bitcoin_linkage.bitcoin_ge Bitcoin.Bitcoin.env Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)
+         bitcoin_tx_is_final_env_rep
+         (fun (a : Ty.tySem Ty.Unit) (environment : Bitcoin.Bitcoin.env) =>
+          @jet_bitcoin_is_final_spec.bitcoin_tx_is_final_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a environment)
+### C.jet_bitcoin_is_final_local.bool_int
+bool_int =
+fun b : bool => match b return Integers.Int.int with
+                | true => Integers.Int.one
+                | false => Integers.Int.zero
+                end
+     : forall _ : bool, Integers.Int.int
+
+Arguments bool_int b%bool_scope
+### C.jet_bitcoin_is_final_local.bitcoin_tx_is_final_mid
+bitcoin_tx_is_final_mid =
+Clight.Ssequence (jet_bitcoin_fee_local.bitcoin_env_tx_set jets_bitcoin._t'1)
+  (Clight.Ssequence
+     (Clight.Sset jets_bitcoin._t'2
+        (Clight.Efield
+           (Clight.Ederef
+              (Clight.Etempvar jets_bitcoin._t'1
+                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)))
+              (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)) jets_bitcoin._isFinal Ctypesdefs.tbool))
+     (Clight.Scall (@None AST.ident)
+        (Clight.Evar jets_bitcoin._writeBit
+           (Ctypes.Tfunction
+              (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr))
+                 (Ctypes.Tcons Ctypesdefs.tbool Ctypes.Tnil)) Ctypesdefs.tbool AST.cc_default))
+        (@cons Clight.expr
+           (Clight.Etempvar jets_bitcoin._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr)))
+           (@cons Clight.expr (Clight.Etempvar jets_bitcoin._t'2 Ctypesdefs.tbool) (@nil Clight.expr)))))
+     : Clight.statement
+### C.jet_bitcoin_is_final_local.bitcoin_tx_is_final_env_rep
+bitcoin_tx_is_final_env_rep =
+fun (m : Memory.Mem.mem) (env : Values.val) (environment : Bitcoin.Bitcoin.env)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun tbase : BinNums.Z =>
+            and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+              (and (BinInt.Z.le BinNums.Z0 ebase)
+                 (and
+                    (BinInt.Z.le
+                       (BinInt.Z.add ebase
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                       Integers.Ptrofs.max_unsigned)
+                    (and (BinInt.Z.le BinNums.Z0 tbase)
+                       (and
+                          (BinInt.Z.le
+                             (BinInt.Z.add tbase
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                             Integers.Ptrofs.max_unsigned)
+                          (and
+                             (@eq (option Values.val) (Memory.Mem.load AST.Mptr m be ebase)
+                                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
+                             (and
+                                (@eq (option Values.val)
+                                   (Memory.Mem.load AST.Mint8unsigned m bt
+                                      (BinInt.Z.add tbase
+                                         (BinNums.Zpos
+                                            (BinNums.xO
+                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))))
+                                   (@Some Values.val
+                                      (Values.Vint
+                                         (bool_int
+                                            (@List.forallb Bitcoin.sigTxInput jet_bitcoin_is_final_spec.sequence_final
+                                               (Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx environment)))))))
+                                (@eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) fp
+                                   (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                      (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                         (@pair Values.block BinNums.Z be ebase)
+                                         (BinInt.Z.add ebase
+                                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                      (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                         (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                            (@pair Values.block BinNums.Z bt
+                                               (BinInt.Z.add tbase
+                                                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...))))))
+                                            (BinInt.Z.add tbase
+                                               (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))
+                                         (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : Bitcoin.Bitcoin.env)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments bitcoin_tx_is_final_env_rep m env environment fp%list_scope

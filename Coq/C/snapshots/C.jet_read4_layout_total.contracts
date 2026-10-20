@@ -1,0 +1,102 @@
+### C.jet_read4_layout_total.eval_read4_layout
+eval_read4_layout
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (high low : Integers.Int64.int) (_ : jet_frame_layout.frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 cursor)
+                (BinInt.Z.le cursor
+                   (BinInt.Z.sub Integers.Int64.max_unsigned (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                         (BinInt.Z.div cursor
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned))
+         (_ : jet_frame_layout.frame_fields_at m bf base bw edge cursor)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bw
+                   (BinInt.Z.sub edge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                            (BinInt.Z.div cursor
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong high)))
+         (_ : forall
+                _ : BinInt.Z.lt
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                      (BinInt.Z.modulo cursor
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+              and
+                (BinInt.Z.le
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos (BinNums.xO BinNums.xH))
+                         (BinInt.Z.div cursor
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                   edge)
+                (@eq (option Values.val)
+                   (Memory.Mem.load AST.Mint64 m bw
+                      (BinInt.Z.sub edge
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.add (BinNums.Zpos (BinNums.xO BinNums.xH))
+                               (BinInt.Z.div cursor
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                   (@Some Values.val (Values.Vlong low))))
+         (_ : Memory.Mem.valid_access m AST.Mint64 bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable)
+         (_ : not (@eq Values.block bf bw)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+               (@Ctypes.Internal Clight.function jets.f_simplicity_read4)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mf
+               (Values.Vint (read4_layout_result cursor high low)))
+            (and
+               (jet_frame_layout.frame_fields_at mf bf base bw edge
+                  (BinInt.Z.add cursor (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bf))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))
+### C.jet_read4_layout_total.read4_layout_result
+read4_layout_result =
+fun (cursor : BinNums.Z) (high low : Integers.Int64.int) =>
+match
+  ZArith_dec.Z_le_dec
+    (BinInt.Z.modulo cursor
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+  return Integers.Int.int
+with
+| left _ =>
+    jet_read4_layout.read4_at
+      (BinInt.Z.modulo cursor
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) high
+| right _ =>
+    jet_read4_crossing_layout.read4_crossing_result
+      (BinInt.Z.sub
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (BinInt.Z.modulo cursor
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+      high low
+end
+     : forall (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int.int
+
+Arguments read4_layout_result cursor%Z_scope high low

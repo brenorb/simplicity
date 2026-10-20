@@ -1,0 +1,39 @@
+### C.jet_u128_accum_value.u128_accum_low_balance
+u128_accum_low_balance
+     : forall lo a : Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.add (Integers.Int64.unsigned (u128_accum_lo lo a))
+            (BinInt.Z.mul (Integers.Int64.unsigned (jet_readBit_layout.bit_long (u128_accum_carry lo a)))
+               Integers.Int64.modulus)) (BinInt.Z.add (Integers.Int64.unsigned lo) (Integers.Int64.unsigned a))
+### C.jet_u128_accum_value.u128_accum_machine_observation
+u128_accum_machine_observation
+     : forall (hi lo a : Integers.Int64.int)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add
+                   (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned hi) Integers.Int64.modulus)
+                      (Integers.Int64.unsigned lo)) (Integers.Int64.unsigned a))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z
+         (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned (u128_accum_hi hi lo a)) Integers.Int64.modulus)
+            (Integers.Int64.unsigned (u128_accum_lo lo a)))
+         (BinInt.Z.add
+            (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned hi) Integers.Int64.modulus)
+               (Integers.Int64.unsigned lo)) (Integers.Int64.unsigned a))
+### C.jet_u128_accum_value.u128_accum_lo
+u128_accum_lo =
+fun lo a : Integers.Int64.int => Integers.Int64.add lo a
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments u128_accum_lo lo a
+### C.jet_u128_accum_value.u128_accum_carry
+u128_accum_carry =
+fun lo a : Integers.Int64.int => Integers.Int64.ltu (u128_accum_lo lo a) a
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments u128_accum_carry lo a
+### C.jet_u128_accum_value.u128_accum_hi
+u128_accum_hi =
+fun hi lo a : Integers.Int64.int => Integers.Int64.add hi (jet_readBit_layout.bit_long (u128_accum_carry lo a))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments u128_accum_hi hi lo a

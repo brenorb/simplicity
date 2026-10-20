@@ -1,0 +1,140 @@
+### C.jet_binary_spec.binary_word_spec_parametric
+binary_word_spec_parametric
+     : forall (n : nat) (k : binary_op),
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) (@binary_word_spec n k)
+### C.jet_binary_spec.binary_int_denotes
+binary_int_denotes
+     : forall (n : nat) (k : binary_op) (x y : Ty.tySem (Word.Word n)) (r s : Integers.Int.int)
+         (_ : BinInt.Z.le (Zpower.two_power_nat n)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (_ : @eq BinNums.Z (Integers.Int.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+         (_ : @eq BinNums.Z (Integers.Int.unsigned s) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)),
+       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ n)))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ n) (Integers.Int.unsigned (binary_int k r s)))
+         (@binary_word_spec n k Alg.CoreFunSem (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))
+### C.jet_binary_spec.binary_int64_denotes
+binary_int64_denotes
+     : forall (n : nat) (k : binary_op) (x y : Ty.tySem (Word.Word n)) (r s : Integers.Int64.int)
+         (_ : BinInt.Z.le (Zpower.two_power_nat n)
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned s) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)),
+       @eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ n)))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ n) (Integers.Int64.unsigned (binary_int64 k r s)))
+         (@binary_word_spec n k Alg.CoreFunSem (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))
+### C.jet_binary_spec.binary_op
+Inductive binary_op : Set :=  BAnd : binary_op | BOr : binary_op | BXor : binary_op.
+### C.jet_binary_spec.binary_bool
+binary_bool =
+fun k : binary_op =>
+match k return (forall (_ : bool) (_ : bool), bool) with
+| BAnd => andb
+| BOr => orb
+| BXor => xorb
+end
+     : forall (_ : binary_op) (_ : bool) (_ : bool), bool
+
+Arguments binary_bool k (b1 b2)%bool_scope
+### C.jet_binary_spec.binary_int64
+binary_int64 =
+fun k : binary_op =>
+match k return (forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int) with
+| BAnd => Integers.Int64.and
+| BOr => Integers.Int64.or
+| BXor => Integers.Int64.xor
+end
+     : forall (_ : binary_op) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments binary_int64 k x y
+### C.jet_binary_spec.binary_int
+binary_int =
+fun k : binary_op =>
+match k return (forall (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int) with
+| BAnd => Integers.Int.and
+| BOr => Integers.Int.or
+| BXor => Integers.Int.xor
+end
+     : forall (_ : binary_op) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments binary_int k x y
+### C.jet_binary_spec.binary_bit_spec
+binary_bit_spec =
+fun (k : binary_op) (term : Alg.Core.Algebra) =>
+match
+  k return (Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) (Ty.Sum Ty.Unit Ty.Unit))
+with
+| BAnd =>
+    @Bit.and (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term
+      (@Alg.Core.Combinators.take (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+      (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+| BOr =>
+    @Bit.or (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term
+      (@Alg.Core.Combinators.take (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+      (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+| BXor =>
+    @Alg.Core.Combinators.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+      (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)))
+      (Ty.Sum Ty.Unit Ty.Unit) term
+      (@Alg.Core.Combinators.pair (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+         (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term
+         (@Alg.Core.Combinators.take (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+            (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+         (@Alg.Core.Combinators.iden (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term))
+      (@Bit.cond (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) (Ty.Sum Ty.Unit Ty.Unit) term
+         (@Bit.not (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) term
+            (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+               (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term)))
+         (@Alg.Core.Combinators.drop (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) term
+            (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term)))
+end
+     : forall (_ : binary_op) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments binary_bit_spec k {term}
+### C.jet_binary_spec.binary_word_spec
+binary_word_spec =
+fix binary_word_spec (n : nat) (k : binary_op) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) :=
+  match n as n0 return (Alg.Core.domain term (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0)) with
+  | O => @binary_bit_spec k term
+  | S n0 =>
+      @Alg.Core.Combinators.pair
+        (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+        (Word.Word n0) (Word.Word n0) term
+        (@Alg.Core.Combinators.comp
+           (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+           (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+           (@Alg.Core.Combinators.pair
+              (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+              (Word.Word n0) (Word.Word n0) term
+              (@Alg.Core.Combinators.take (Ty.Prod (Word.Word n0) (Word.Word n0))
+                 (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+                 (@Alg.Core.Combinators.take (Word.Word n0) (Word.Word n0) (Word.Word n0) term
+                    (@Alg.Core.Combinators.iden (Word.Word n0) term)))
+              (@Alg.Core.Combinators.drop (Ty.Prod (Word.Word n0) (Word.Word n0))
+                 (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+                 (@Alg.Core.Combinators.take (Word.Word n0) (Word.Word n0) (Word.Word n0) term
+                    (@Alg.Core.Combinators.iden (Word.Word n0) term)))) (binary_word_spec n0 k term))
+        (@Alg.Core.Combinators.comp
+           (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+           (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+           (@Alg.Core.Combinators.pair
+              (Ty.Prod (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Prod (Word.Word n0) (Word.Word n0)))
+              (Word.Word n0) (Word.Word n0) term
+              (@Alg.Core.Combinators.take (Ty.Prod (Word.Word n0) (Word.Word n0))
+                 (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+                 (@Alg.Core.Combinators.drop (Word.Word n0) (Word.Word n0) (Word.Word n0) term
+                    (@Alg.Core.Combinators.iden (Word.Word n0) term)))
+              (@Alg.Core.Combinators.drop (Ty.Prod (Word.Word n0) (Word.Word n0))
+                 (Ty.Prod (Word.Word n0) (Word.Word n0)) (Word.Word n0) term
+                 (@Alg.Core.Combinators.drop (Word.Word n0) (Word.Word n0) (Word.Word n0) term
+                    (@Alg.Core.Combinators.iden (Word.Word n0) term)))) (binary_word_spec n0 k term))
+  end
+     : forall (n : nat) (_ : binary_op) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n)
+
+Arguments binary_word_spec n%nat_scope k {term}

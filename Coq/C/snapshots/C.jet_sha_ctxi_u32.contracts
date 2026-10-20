@@ -1,0 +1,35 @@
+### C.jet_sha_ctxi_u32.ctxi_u32be
+ctxi_u32be
+     : forall (bx bm : Values.block) (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (_ : jet_memcpy_model.memcpy_model) (m : Memory.Mem.mem) (l regs : list Integers.Int.int)
+         (x c : Integers.Int64.int) (ovf : bool) (_ : jet_sha_ctxi.ctxi m bx bm l regs c ovf),
+       let vn : Integers.Int64.int := Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) in
+       let ovf' : bool := jet_sha_uchars_exec.uc_overflow ovf c vn in
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge m
+               (@Ctypes.Internal Clight.function jets_sha.f_sha256_u32be)
+               (@cons Values.val (Values.Vptr bx (Integers.Ptrofs.repr BinNums.Z0))
+                  (@cons Values.val (Values.Vlong x) (@nil Values.val))) Events.E0 m'
+               (Values.Vint (jet_readBit_layout.bit_int (negb ovf'))))
+            (and
+               (jet_sha_ctxi.ctxi m' bx bm
+                  (@fst (list Integers.Int.int) (list Integers.Int.int)
+                     (jet_sha_uchars_prep.absorb_i l regs (jet_sha_be32_write.c_be32_bytes x)))
+                  (@snd (list Integers.Int.int) (list Integers.Int.int)
+                     (jet_sha_uchars_prep.absorb_i l regs (jet_sha_be32_write.c_be32_bytes x)))
+                  (Integers.Int64.add c vn) ovf')
+               (and
+                  (forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+                     (_ : not (@eq Values.block b bx)) (_ : not (@eq Values.block b bm)),
+                   @eq (option Values.val) (Memory.Mem.load ch m' b ofs) (Memory.Mem.load ch m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                        (_ : Memory.Mem.valid_block m b) (_ : Memory.Mem.perm m b ofs k p),
+                      Memory.Mem.perm m' b ofs k p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block m' b)))))

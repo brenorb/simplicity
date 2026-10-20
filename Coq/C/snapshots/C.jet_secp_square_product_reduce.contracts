@@ -1,0 +1,106 @@
+### C.jet_secp_square_product_reduce.scalar_square512_limbs_length
+scalar_square512_limbs_length
+     : @eq nat (@length jet_sx_expr.sx jet_secp_scalar_square512_run.scalar_square512_limbs)
+         (S (S (S (S (S (S (S (S O))))))))
+### C.jet_secp_square_product_reduce.scalar_square512_outputs_machine
+scalar_square512_outputs_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (list Values.val)
+         (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho beta)
+            jet_secp_scalar_square512_run.scalar_square512_limbs)
+         (@List.map Integers.Int64.int Values.val Values.Vlong
+            (jet_secp_scalar_square512_product.scalar_square512_machine_outputs rho))
+### C.jet_secp_square_product_reduce.square_product_reduce_entry_rep
+square_product_reduce_entry_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_square512_run.scalar_square512_output_regs m),
+       jet_sx_state.rep
+         (jet_secp_product_reduce_bridge.product_reduce_rho (jet_secp_scalar_square512_product.square512_rho rho))
+         (jet_secp_product_reduce_bridge.product_reduce_layout beta)
+         jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs m
+### C.jet_secp_square_product_reduce.square_product_reduce_integer
+square_product_reduce_integer
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (jet_secp_reduce512_body_numeric.reduce512_input_integer
+            (jet_secp_product_reduce_bridge.product_reduce_rho (jet_secp_scalar_square512_product.square512_rho rho)))
+         (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+            (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O))
+### C.jet_secp_square_product_reduce.square_product_reduce_foot_embed
+square_product_reduce_foot_embed
+     : forall (beta : jet_sx_state.layout) (b : Values.block) (ofs : BinNums.Z)
+         (_ : jet_sx_state.foot (jet_secp_product_reduce_bridge.product_reduce_layout beta)
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs) b ofs),
+       jet_sx_state.foot beta
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape jet_secp_scalar_square512_run.scalar_square512_regs) b ofs
+### C.jet_secp_square_product_reduce.eval_square_product_then_reduce
+eval_square_product_then_reduce
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_square512_run.scalar_square512_regs m),
+       @ex Memory.Mem.mem
+         (fun mp : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                  (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul_512)
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                        (@cons Values.val
+                           (Values.Vptr (jet_sx_state.blk beta (S O))
+                              (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O)))) (@nil Values.val)))) Events.E0 mp
+                  Values.Vundef)
+               (and
+                  (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mp
+                     (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_reduce_512)
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                        (@cons Values.val
+                           (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                           (@nil Values.val))) Events.E0 mf Values.Vundef)
+                  (and
+                     (jet_sx_state.rep
+                        (jet_secp_product_reduce_bridge.product_reduce_rho
+                           (jet_secp_scalar_square512_product.square512_rho rho))
+                        (jet_secp_product_reduce_bridge.product_reduce_layout beta)
+                        (jet_secp_reduce512_function_numeric.reduce512_numeric_owned_regs
+                           (jet_secp_product_reduce_bridge.product_reduce_rho
+                              (jet_secp_scalar_square512_product.square512_rho rho))) mf)
+                     (and
+                        (@eq BinNums.Z
+                           (jet_secp_reduce512_final_atomic.final_output_value
+                              (jet_secp_reduce512_body_numeric.reduce512_body_digits
+                                 (jet_secp_product_reduce_bridge.product_reduce_rho
+                                    (jet_secp_scalar_square512_product.square512_rho rho)))
+                              (jet_secp_reduce512_body_numeric.reduce512_body_carry
+                                 (jet_secp_product_reduce_bridge.product_reduce_rho
+                                    (jet_secp_scalar_square512_product.square512_rho rho)))
+                              (jet_secp_product_reduce_bridge.product_reduce_rho
+                                 (jet_secp_scalar_square512_product.square512_rho rho))
+                              (jet_sx_state.lay (jet_secp_product_reduce_bridge.product_reduce_layout beta)))
+                           (BinInt.Z.modulo
+                              (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+                                 (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O))
+                              jet_secp_canonical_scalar.canonical_group_order))
+                        (and
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot beta
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape jet_secp_scalar_square512_run.scalar_square512_regs) b ofs))
+                              m mp)
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot (jet_secp_product_reduce_bridge.product_reduce_layout beta)
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs)
+                                    b ofs)) mp mf)))))))

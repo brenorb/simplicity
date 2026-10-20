@@ -1,0 +1,47 @@
+### C.jet_minmax_wide_exec.wide_minmax
+wide_minmax =
+fun (maximum : bool) (s : jet_wide.wide_size) =>
+match maximum return Clight.function with
+| true =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_max_16
+    | jet_wide.W32 => jets.f_simplicity_max_32
+    | jet_wide.W64 => jets.f_simplicity_max_64
+    end
+| false =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_min_16
+    | jet_wide.W32 => jets.f_simplicity_min_32
+    | jet_wide.W64 => jets.f_simplicity_min_64
+    end
+end
+     : forall (_ : bool) (_ : jet_wide.wide_size), Clight.function
+
+Arguments wide_minmax maximum%bool_scope s
+### C.jet_minmax_wide_exec.minmax_int64
+minmax_int64 =
+fun (maximum : bool) (r t : Integers.Int64.int) =>
+@jet_minmax_spec.minmax_select Integers.Int64.int maximum (jet_order_wide_exec.wide_order_bit jet_order_spec.OLt r t) r
+  t
+     : forall (_ : bool) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments minmax_int64 maximum%bool_scope r t
+### C.jet_minmax_wide_exec.wide_minmax_choose
+wide_minmax_choose =
+fun maximum : bool =>
+Clight.Sifthenelse (jet_order_wide_exec.wide_order_expr jet_order_spec.OLt)
+  (Clight.Sset jets._t'3
+     (Clight.Ecast
+        (Clight.Etempvar match maximum return AST.ident with
+                         | true => jets._y
+                         | false => jets._x
+                         end Ctypesdefs.tulong) Ctypesdefs.tulong))
+  (Clight.Sset jets._t'3
+     (Clight.Ecast
+        (Clight.Etempvar match maximum return AST.ident with
+                         | true => jets._x
+                         | false => jets._y
+                         end Ctypesdefs.tulong) Ctypesdefs.tulong))
+     : forall _ : bool, Clight.statement
+
+Arguments wide_minmax_choose maximum%bool_scope

@@ -1,0 +1,59 @@
+### C.jet_readBit_layout.peekBit_extract
+peekBit_extract
+     : forall (w : Integers.Int64.int) (shift : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 shift)
+                (BinInt.Z.lt shift
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq Integers.Int64.int
+         (Integers.Int64.and Integers.Int64.one (Integers.Int64.shru w (Integers.Int64.repr shift)))
+         (bit_long (Integers.Int64.testbit w shift))
+### C.jet_readBit_layout.eval_readBit_layout
+eval_readBit_layout
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (bit : bool) (_ : jet_frame_layout.frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 cursor)
+                (BinInt.Z.le cursor (BinInt.Z.sub Integers.Int64.max_unsigned (BinNums.Zpos BinNums.xH))))
+         (_ : jet_frame_layout.frame_fields_at m bf base bw edge cursor)
+         (_ : jet_input_layout.frame_input_bit_at m bw edge cursor bit)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_readBit)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mf
+               (Values.Vint (bit_int bit)))
+            (and (jet_frame_layout.frame_fields_at mf bf base bw edge (BinInt.Z.add cursor (BinNums.Zpos BinNums.xH)))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bf))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))
+### C.jet_readBit_layout.bit_int
+bit_int =
+fun b : bool => match b return Integers.Int.int with
+                | true => Integers.Int.one
+                | false => Integers.Int.zero
+                end
+     : forall _ : bool, Integers.Int.int
+
+Arguments bit_int b%bool_scope
+### C.jet_readBit_layout.bit_long
+bit_long =
+fun b : bool => match b return Integers.Int64.int with
+                | true => Integers.Int64.one
+                | false => Integers.Int64.zero
+                end
+     : forall _ : bool, Integers.Int64.int
+
+Arguments bit_long b%bool_scope

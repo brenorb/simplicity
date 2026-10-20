@@ -1,0 +1,74 @@
+### C.jet_elements_current_index_local.elements_transaction_current_index_spec_parametric
+elements_transaction_current_index_spec_parametric
+     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@elements_transaction_current_index_spec)
+### C.jet_elements_current_index_local.elements_transaction_current_index_spec_sem
+elements_transaction_current_index_spec_sem
+     : forall environment : jet_elements_prim.Elements.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@elements_transaction_current_index_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
+            environment)
+         (@jet_elements_prim.Elements.sem Ty.Unit (Word.Word (S (S (S (S (S O))))))
+            jet_elements_prim.Elements.CurrentIndex tt environment)
+### C.jet_elements_current_index_local.elements_current_index_carrier_matches_primitive
+elements_current_index_carrier_matches_primitive
+     : forall (r : Integers.Int64.int) (environment : jet_elements_prim.Elements.env)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r)
+                (BinInt.Z.of_nat (jet_elements_prim.Elements.envIx environment))),
+       @eq (option (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32))))
+         (@Some (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W32)))
+            (jet_wide_spec.decode_wide jet_wide.W32
+               (Integers.Int64.zero_ext
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) r)))
+         (@jet_elements_prim.Elements.sem Ty.Unit (Word.Word (S (S (S (S (S O))))))
+            jet_elements_prim.Elements.CurrentIndex tt environment)
+### C.jet_elements_current_index_local.elements_current_index_local_spec
+elements_current_index_local_spec
+     : jet_application_contract.application_jet_local_spec jets_elements.f_simplicity_current_index
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         elements_current_index_env_rep
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env) =>
+          @elements_transaction_current_index_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_current_index_local.elements_transaction_current_index_spec
+elements_transaction_current_index_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+  jet_elements_prim.Elements.CurrentIndex
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments elements_transaction_current_index_spec {alg}
+### C.jet_elements_current_index_local.elements_current_index_env_rep
+elements_current_index_env_rep =
+fun (m : Memory.Mem.mem) (env : Values.val) (environment : jet_elements_prim.Elements.env) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Integers.Int64.int
+        (fun index : Integers.Int64.int =>
+         and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+           (and (BinInt.Z.le BinNums.Z0 ebase)
+              (and
+                 (BinInt.Z.le
+                    (BinInt.Z.add ebase
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                    Integers.Ptrofs.max_unsigned)
+                 (and
+                    (@eq (option Values.val)
+                       (Memory.Mem.load AST.Mint64 m be
+                          (BinInt.Z.add ebase
+                             (BinNums.Zpos
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                       (@Some Values.val (Values.Vlong index)))
+                    (@eq BinNums.Z (Integers.Int64.unsigned index)
+                       (BinInt.Z.of_nat (jet_elements_prim.Elements.envIx environment)))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env), Prop
+
+Arguments elements_current_index_env_rep m env environment

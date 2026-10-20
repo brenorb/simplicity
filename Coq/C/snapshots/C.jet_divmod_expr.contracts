@@ -1,0 +1,52 @@
+### C.jet_divmod_expr.exec_divmod8_choose
+exec_divmod8_choose
+     : forall (target : AST.ident) (remainder : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (r t : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._x le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._y le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) t)))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (divmod8_choose target remainder) Events.E0
+         (@Maps.PTree.set Values.val target (Values.Vint (jet_division_value.division8_raw remainder r t)) le) m
+         ClightBigstep.Out_normal
+### C.jet_divmod_expr.exec_divmod_wide_choose
+exec_divmod_wide_choose
+     : forall (target : AST.ident) (remainder : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (r t : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._x le) (@Some Values.val (Values.Vlong r)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._y le) (@Some Values.val (Values.Vlong t))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (divmod_wide_choose target remainder) Events.E0
+         (@Maps.PTree.set Values.val target (Values.Vlong (jet_division_value.division_wide_raw remainder r t)) le) m
+         ClightBigstep.Out_normal
+### C.jet_divmod_expr.divmod8_choose
+divmod8_choose =
+fun (target : AST.ident) (remainder : bool) =>
+Clight.Sifthenelse jet_division8_expr.division8_zero_expr
+  (Clight.Sset target
+     (Clight.Ecast
+        match remainder return Clight.expr with
+        | true => Clight.Etempvar jets._x Ctypesdefs.tuchar
+        | false => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        end Ctypesdefs.tint))
+  (Clight.Sset target (Clight.Ecast (jet_division8_expr.division8_expr remainder) Ctypesdefs.tint))
+     : forall (_ : AST.ident) (_ : bool), Clight.statement
+
+Arguments divmod8_choose target remainder%bool_scope
+### C.jet_divmod_expr.divmod_wide_choose
+divmod_wide_choose =
+fun (target : AST.ident) (remainder : bool) =>
+Clight.Sifthenelse jet_division_wide_expr.division_wide_zero_expr
+  (Clight.Sset target
+     (Clight.Ecast
+        match remainder return Clight.expr with
+        | true => Clight.Etempvar jets._x Ctypesdefs.tulong
+        | false => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+        end Ctypesdefs.tulong))
+  (Clight.Sset target (Clight.Ecast (jet_division_wide_expr.division_wide_expr remainder) Ctypesdefs.tulong))
+     : forall (_ : AST.ident) (_ : bool), Clight.statement
+
+Arguments divmod_wide_choose target remainder%bool_scope

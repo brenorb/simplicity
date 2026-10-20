@@ -1,0 +1,116 @@
+### C.jet_umul128_value.umul128_low_unsigned
+umul128_low_unsigned
+     : forall w : Integers.Int64.int,
+       @eq BinNums.Z (Integers.Int64.unsigned (umul128_low w))
+         (BinInt.Z.modulo (Integers.Int64.unsigned w) jet_divmod96_value.divmod96_radix)
+### C.jet_umul128_value.umul128_mul_unsigned
+umul128_mul_unsigned
+     : forall (x y : Integers.Int64.int)
+         (_ : BinInt.Z.lt (BinInt.Z.mul (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)) Integers.Int64.modulus),
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.mul x y))
+         (BinInt.Z.mul (Integers.Int64.unsigned x) (Integers.Int64.unsigned y))
+### C.jet_umul128_value.umul128_add_unsigned
+umul128_add_unsigned
+     : forall (x y : Integers.Int64.int)
+         (_ : BinInt.Z.lt (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)) Integers.Int64.modulus),
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.add x y))
+         (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y))
+### C.jet_umul128_value.umul128_sum3_unsigned
+umul128_sum3_unsigned
+     : forall (x y z : Integers.Int64.int)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y))
+                   (Integers.Int64.unsigned z)) Integers.Int64.modulus),
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.add (Integers.Int64.add x y) z))
+         (BinInt.Z.add (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y))
+            (Integers.Int64.unsigned z))
+### C.jet_umul128_value.umul128_sum4_unsigned
+umul128_sum4_unsigned
+     : forall (x y z w : Integers.Int64.int)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add
+                   (BinInt.Z.add (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y))
+                      (Integers.Int64.unsigned z)) (Integers.Int64.unsigned w)) Integers.Int64.modulus),
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.add (Integers.Int64.add (Integers.Int64.add x y) z) w))
+         (BinInt.Z.add
+            (BinInt.Z.add (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y))
+               (Integers.Int64.unsigned z)) (Integers.Int64.unsigned w))
+### C.jet_umul128_value.umul128_lo_modular
+umul128_lo_modular
+     : forall ll mid : Integers.Int64.int,
+       @eq Integers.Int64.int (umul128_lo ll mid)
+         (Integers.Int64.repr
+            (BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned mid) jet_divmod96_value.divmod96_radix)
+               (Integers.Int64.unsigned (umul128_low ll))))
+### C.jet_umul128_value.umul128_machine_observation
+umul128_machine_observation
+     : forall a b : Integers.Int64.int,
+       let ll : Integers.Int64.int := umul128_ll a b in
+       let lh : Integers.Int64.int := umul128_lh a b in
+       let hl : Integers.Int64.int := umul128_hl a b in
+       let hh : Integers.Int64.int := umul128_hh a b in
+       let mid : Integers.Int64.int := umul128_mid ll lh hl in
+       and
+         (@eq BinNums.Z (Integers.Int64.unsigned (umul128_hi hh lh hl mid))
+            (BinInt.Z.div (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)) Integers.Int64.modulus))
+         (@eq BinNums.Z (Integers.Int64.unsigned (umul128_lo ll mid))
+            (BinInt.Z.modulo (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+               Integers.Int64.modulus))
+### C.jet_umul128_value.umul128_low
+umul128_low =
+fun w : Integers.Int64.int => Integers.Int64.repr (Integers.Int.unsigned (Integers.Int64.loword w))
+     : forall _ : Integers.Int64.int, Integers.Int64.int
+
+Arguments umul128_low w
+### C.jet_umul128_value.umul128_ll
+umul128_ll =
+fun a b : Integers.Int64.int => Integers.Int64.mul (umul128_low a) (umul128_low b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_ll a b
+### C.jet_umul128_value.umul128_lh
+umul128_lh =
+fun a b : Integers.Int64.int => Integers.Int64.mul (umul128_low a) (jet_divmod96_value.divmod96_high b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_lh a b
+### C.jet_umul128_value.umul128_hl
+umul128_hl =
+fun a b : Integers.Int64.int => Integers.Int64.mul (jet_divmod96_value.divmod96_high a) (umul128_low b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_hl a b
+### C.jet_umul128_value.umul128_hh
+umul128_hh =
+fun a b : Integers.Int64.int =>
+Integers.Int64.mul (jet_divmod96_value.divmod96_high a) (jet_divmod96_value.divmod96_high b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_hh a b
+### C.jet_umul128_value.umul128_mid
+umul128_mid =
+fun ll lh hl : Integers.Int64.int =>
+Integers.Int64.add (Integers.Int64.add (jet_divmod96_value.divmod96_high ll) (umul128_low lh)) (umul128_low hl)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_mid ll lh hl
+### C.jet_umul128_value.umul128_hi
+umul128_hi =
+fun hh lh hl mid : Integers.Int64.int =>
+Integers.Int64.add
+  (Integers.Int64.add (Integers.Int64.add hh (jet_divmod96_value.divmod96_high lh))
+     (jet_divmod96_value.divmod96_high hl)) (jet_divmod96_value.divmod96_high mid)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Integers.Int64.int
+
+Arguments umul128_hi hh lh hl mid
+### C.jet_umul128_value.umul128_lo
+umul128_lo =
+fun ll mid : Integers.Int64.int =>
+Integers.Int64.add
+  (Integers.Int64.shl mid
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+  (umul128_low ll)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_lo ll mid

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Regression tests for canonical identity and audit input changes."""
 import importlib.util
+import os
 import subprocess
 import sys
 import tempfile
@@ -47,8 +48,10 @@ def main():
         model.write_text(original)
         assert identity.check(model, canonical) == 8
         baseline = inputs.fingerprint(coq, root)
-        for name in ("translation_unit.c", "clightgen-linux.ini.in"):
+        for name in ("translation_unit.c", "clightgen-linux.ini.in", "review.json",
+                     "C/JET_BITCOIN_MODEL_MISMATCHES.md"):
             path = coq / name
+            path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("generation input changed during audit\n")
             assert inputs.fingerprint(coq, root) != baseline
             path.unlink()
@@ -77,6 +80,19 @@ def main():
     for flags in (("--accept", "--no-build"), ("--accept", "--update-expected")):
         result = subprocess.run(["bash", str(SOURCE / "check-jets.sh"), *flags], capture_output=True, text=True)
         assert result.returncode == 2 and "--accept requires" in result.stderr
+    # A stale scoped shell must not turn a nominal full acceptance into a subset.
+    with tempfile.TemporaryDirectory(prefix="jet-selection-test.") as work:
+        bindir = Path(work)
+        shim = bindir / "python3"
+        shim.write_text("#!/bin/sh\n"
+                        'if [ "${JET_ONLY_MODULES+x}" = x ] || [ "${JET_TARGETS+x}" = x ]; then exit 76; fi\n'
+                        "echo selection-environment-cleared >&2\nexit 75\n")
+        shim.chmod(0o755)
+        env = dict(os.environ, PATH=str(bindir) + os.pathsep + os.environ["PATH"],
+                   JET_ONLY_MODULES="stale-scope.txt", JET_TARGETS="C/only_one.vo")
+        result = subprocess.run(["bash", str(SOURCE / "check-jets.sh"), "--accept"],
+                                capture_output=True, text=True, env=env)
+        assert result.returncode == 75 and "selection-environment-cleared" in result.stderr
     print("audit input tests passed: identity drift, source changes and invalid acceptance modes rejected")
 
 

@@ -1,0 +1,47 @@
+### C.jet_binary8_exec.binary8
+binary8 =
+fun k : jet_binary_spec.binary_op =>
+match k return Clight.function with
+| jet_binary_spec.BAnd => jets.f_simplicity_and_8
+| jet_binary_spec.BOr => jets.f_simplicity_or_8
+| jet_binary_spec.BXor => jets.f_simplicity_xor_8
+end
+     : forall _ : jet_binary_spec.binary_op, Clight.function
+
+Arguments binary8 k
+### C.jet_binary8_exec.binary8_raw
+binary8_raw =
+fun (k : jet_binary_spec.binary_op) (r t : Integers.Int.int) =>
+jet_binary_spec.binary_int k (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r)
+  (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) t)
+     : forall (_ : jet_binary_spec.binary_op) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments binary8_raw k r t
+### C.jet_binary8_exec.binary8_payload
+binary8_payload =
+fun (k : jet_binary_spec.binary_op) (r t : Integers.Int.int) =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (binary8_raw k r t)
+     : forall (_ : jet_binary_spec.binary_op) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments binary8_payload k r t
+### C.jet_binary8_exec.binary8_expr
+binary8_expr =
+fun k : jet_binary_spec.binary_op =>
+Clight.Ebinop (jet_binary_wide_exec.binary_clight_op k) (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+  (Clight.Etempvar jets._y Ctypesdefs.tuchar) Ctypesdefs.tint
+     : forall _ : jet_binary_spec.binary_op, Clight.expr
+
+Arguments binary8_expr k
+### C.jet_binary8_exec.binary8_read
+binary8_read =
+fun result : AST.ident =>
+Clight.Scall (@Some AST.ident result)
+  (Clight.Evar jets._simplicity_read8
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tuchar AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr))) (@nil Clight.expr))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments binary8_read result

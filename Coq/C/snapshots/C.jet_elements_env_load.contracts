@@ -1,0 +1,11 @@
+### C.jet_elements_env_load.write_effect_env_load
+write_effect_env_load
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor n : BinNums.Z) (cells : list BitMachine.Cell) (cursor0 count0 : BinNums.Z)
+         (b : Values.block) (lo hi : BinNums.Z) (chunk : AST.memory_chunk) (ofs : BinNums.Z)
+         (_ : BinInt.Z.lt BinNums.Z0 n) (_ : BinInt.Z.le n cursor) (_ : BinInt.Z.le cursor cursor0)
+         (_ : BinInt.Z.le (BinInt.Z.sub cursor0 count0) (BinInt.Z.sub cursor n))
+         (_ : jet_elements_effects.write_effect m mf bf base bw edge cursor n cells)
+         (_ : jet_application_sep.out_sep bf base bw edge cursor0 count0 b lo hi) (_ : BinInt.Z.le lo ofs)
+         (_ : BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) hi),
+       @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs)

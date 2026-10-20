@@ -1,0 +1,77 @@
+### C.jet_predicate_wide_exec.wide_predicate_denotes
+wide_predicate_denotes
+     : forall (s : jet_wide.wide_size) (all : bool) (x : Ty.tySem (Word.Word (jet_wide.wide_log s)))
+         (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x)),
+       @eq bool (wide_predicate_bit s all r)
+         (Bit.toBool (@jet_predicate_spec.predicate_spec (jet_wide.wide_log s) all Alg.CoreFunSem x))
+### C.jet_predicate_wide_exec.wide_predicate
+wide_predicate =
+fun (s : jet_wide.wide_size) (all : bool) =>
+match s return Clight.function with
+| jet_wide.W16 =>
+    match all return Clight.function with
+    | true => jets.f_simplicity_all_16
+    | false => jets.f_simplicity_some_16
+    end
+| jet_wide.W32 =>
+    match all return Clight.function with
+    | true => jets.f_simplicity_all_32
+    | false => jets.f_simplicity_some_32
+    end
+| jet_wide.W64 =>
+    match all return Clight.function with
+    | true => jets.f_simplicity_all_64
+    | false => jets.f_simplicity_some_64
+    end
+end
+     : forall (_ : jet_wide.wide_size) (_ : bool), Clight.function
+
+Arguments wide_predicate s all%bool_scope
+### C.jet_predicate_wide_exec.wide_predicate_expr
+wide_predicate_expr =
+fun (s : jet_wide.wide_size) (all : bool) =>
+match all return Clight.expr with
+| true =>
+    Clight.Ebinop Cop.Oeq (Clight.Etempvar jets._x Ctypesdefs.tulong)
+      match s return Clight.expr with
+      | jet_wide.W16 =>
+          Clight.Econst_int
+            (Integers.Int.repr
+               (BinNums.Zpos
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+            Ctypesdefs.tint
+      | jet_wide.W32 => Clight.Econst_int (Integers.Int.repr (BinNums.Zneg BinNums.xH)) Ctypesdefs.tuint
+      | jet_wide.W64 => Clight.Econst_long (Integers.Int64.repr (BinNums.Zneg BinNums.xH)) Ctypesdefs.tulong
+      end Ctypesdefs.tint
+| false =>
+    Clight.Ebinop Cop.One (Clight.Etempvar jets._x Ctypesdefs.tulong)
+      (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint
+end
+     : forall (_ : jet_wide.wide_size) (_ : bool), Clight.expr
+
+Arguments wide_predicate_expr s all%bool_scope
+### C.jet_predicate_wide_exec.wide_predicate_bit
+wide_predicate_bit =
+fun (s : jet_wide.wide_size) (all : bool) (r : Integers.Int64.int) =>
+match all return bool with
+| true =>
+    Integers.Int64.eq r
+      (Integers.Int64.repr
+         (BinInt.Z.sub (jet_predicate_spec.word_modulus (jet_wide.wide_log s)) (BinNums.Zpos BinNums.xH)))
+| false => negb (Integers.Int64.eq r Integers.Int64.zero)
+end
+     : forall (_ : jet_wide.wide_size) (_ : bool) (_ : Integers.Int64.int), bool
+
+Arguments wide_predicate_bit s all%bool_scope r

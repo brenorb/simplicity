@@ -1,0 +1,91 @@
+### C.jet_divmod96_arith.divmod96_initial_bounds
+divmod96_initial_bounds
+     : forall (B ah al D bh bl : BinNums.Z) (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) B)
+         (_ : and (BinInt.Z.le BinNums.Z0 ah) (BinInt.Z.lt ah D))
+         (_ : and (BinInt.Z.le BinNums.Z0 al) (BinInt.Z.lt al B))
+         (_ : and (BinInt.Z.lt BinNums.Z0 bh) (BinInt.Z.lt bh B))
+         (_ : and (BinInt.Z.le BinNums.Z0 bl) (BinInt.Z.lt bl B))
+         (_ : @eq BinNums.Z D (BinInt.Z.add (BinInt.Z.mul bh B) bl))
+         (_ : BinInt.Z.le (BinInt.Z.mul B B) (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) D)),
+       let q : BinNums.Z := divmod96_estimate B ah bh in
+       and (and (BinInt.Z.le BinNums.Z0 q) (BinInt.Z.lt q B))
+         (and
+            (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.sub ah (BinInt.Z.mul q bh)))
+               (BinInt.Z.le (BinInt.Z.sub ah (BinInt.Z.mul q bh)) ah))
+            (and
+               (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.mul q bl)) (BinInt.Z.lt (BinInt.Z.mul q bl) (BinInt.Z.mul B B)))
+               (and
+                  (BinInt.Z.le (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) D)
+                     (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul ah B) al) (BinInt.Z.mul q D)))
+                  (BinInt.Z.lt (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul ah B) al) (BinInt.Z.mul q D)) D))))
+### C.jet_divmod96_arith.divmod96_guard_exact
+divmod96_guard_exact
+     : forall (B rh al d : BinNums.Z) (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) B)
+         (_ : BinInt.Z.le BinNums.Z0 rh) (_ : and (BinInt.Z.le BinNums.Z0 al) (BinInt.Z.lt al B))
+         (_ : and (BinInt.Z.le BinNums.Z0 d) (BinInt.Z.lt d (BinInt.Z.mul B B))),
+       iff
+         (and (BinInt.Z.le rh (BinInt.Z.sub B (BinNums.Zpos BinNums.xH)))
+            (BinInt.Z.lt (BinInt.Z.add (BinInt.Z.mul B rh) al) d))
+         (BinInt.Z.lt (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul B rh) al) d) BinNums.Z0)
+### C.jet_divmod96_arith.divmod96_compare_no_wrap
+divmod96_compare_no_wrap
+     : forall (B rh al : BinNums.Z) (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) B)
+         (_ : and (BinInt.Z.le BinNums.Z0 rh) (BinInt.Z.le rh (BinInt.Z.sub B (BinNums.Zpos BinNums.xH))))
+         (_ : and (BinInt.Z.le BinNums.Z0 al) (BinInt.Z.lt al B)),
+       and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add (BinInt.Z.mul B rh) al))
+         (BinInt.Z.lt (BinInt.Z.add (BinInt.Z.mul B rh) al) (BinInt.Z.mul B B))
+### C.jet_divmod96_arith.divmod96_correction_step
+divmod96_correction_step
+     : forall (B ah al D bh bl q rh d delta : BinNums.Z) (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) B)
+         (_ : BinInt.Z.le BinNums.Z0 ah) (_ : and (BinInt.Z.le BinNums.Z0 al) (BinInt.Z.lt al B))
+         (_ : and (BinInt.Z.lt BinNums.Z0 bh) (BinInt.Z.lt bh B))
+         (_ : and (BinInt.Z.le BinNums.Z0 bl) (BinInt.Z.lt bl B))
+         (_ : @eq BinNums.Z D (BinInt.Z.add (BinInt.Z.mul bh B) bl))
+         (_ : and (BinInt.Z.le BinNums.Z0 q) (BinInt.Z.lt q B)) (_ : BinInt.Z.le BinNums.Z0 rh)
+         (_ : @eq BinNums.Z ah (BinInt.Z.add (BinInt.Z.mul q bh) rh)) (_ : @eq BinNums.Z d (BinInt.Z.mul q bl))
+         (_ : @eq BinNums.Z delta (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul B rh) al) d))
+         (_ : BinInt.Z.lt delta BinNums.Z0),
+       and
+         (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.sub q (BinNums.Zpos BinNums.xH)))
+            (BinInt.Z.lt (BinInt.Z.sub q (BinNums.Zpos BinNums.xH)) B))
+         (and (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add rh bh)) (BinInt.Z.le (BinInt.Z.add rh bh) ah))
+            (and
+               (@eq BinNums.Z ah
+                  (BinInt.Z.add (BinInt.Z.mul (BinInt.Z.sub q (BinNums.Zpos BinNums.xH)) bh) (BinInt.Z.add rh bh)))
+               (and
+                  (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.sub d bl))
+                     (BinInt.Z.lt (BinInt.Z.sub d bl) (BinInt.Z.mul B B)))
+                  (and (@eq BinNums.Z (BinInt.Z.sub d bl) (BinInt.Z.mul (BinInt.Z.sub q (BinNums.Zpos BinNums.xH)) bl))
+                     (and
+                        (@eq BinNums.Z
+                           (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul B (BinInt.Z.add rh bh)) al) (BinInt.Z.sub d bl))
+                           (BinInt.Z.add delta D)) (BinInt.Z.lt (BinInt.Z.add delta D) D))))))
+### C.jet_divmod96_arith.divmod96_two_corrections_suffice
+divmod96_two_corrections_suffice
+     : forall (D delta0 i : BinNums.Z) (_ : BinInt.Z.lt BinNums.Z0 D)
+         (_ : BinInt.Z.le (BinInt.Z.mul (BinNums.Zneg (BinNums.xO BinNums.xH)) D) delta0)
+         (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) i),
+       BinInt.Z.le BinNums.Z0 (BinInt.Z.add delta0 (BinInt.Z.mul i D))
+### C.jet_divmod96_arith.divmod96_exit_balance
+divmod96_exit_balance
+     : forall (B ah al D q rh d : BinNums.Z) (_ : BinInt.Z.lt BinNums.Z0 D)
+         (_ : @eq BinNums.Z (BinInt.Z.add (BinInt.Z.mul ah B) al)
+                (BinInt.Z.add (BinInt.Z.mul q D) (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul B rh) al) d)))
+         (_ : BinInt.Z.lt (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul B rh) al) d) D)
+         (_ : not
+                (and (BinInt.Z.le rh (BinInt.Z.sub B (BinNums.Zpos BinNums.xH)))
+                   (BinInt.Z.lt (BinInt.Z.add (BinInt.Z.mul B rh) al) d)))
+         (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO BinNums.xH)) B) (_ : BinInt.Z.le BinNums.Z0 rh)
+         (_ : and (BinInt.Z.le BinNums.Z0 al) (BinInt.Z.lt al B))
+         (_ : and (BinInt.Z.le BinNums.Z0 d) (BinInt.Z.lt d (BinInt.Z.mul B B))),
+       and
+         (@eq BinNums.Z (BinInt.Z.add (BinInt.Z.mul q D) (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul B rh) al) d))
+            (BinInt.Z.add (BinInt.Z.mul ah B) al))
+         (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul B rh) al) d))
+            (BinInt.Z.lt (BinInt.Z.sub (BinInt.Z.add (BinInt.Z.mul B rh) al) d) D))
+### C.jet_divmod96_arith.divmod96_estimate
+divmod96_estimate =
+fun B ah bh : BinNums.Z => BinInt.Z.min (BinInt.Z.div ah bh) (BinInt.Z.sub B (BinNums.Zpos BinNums.xH))
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z), BinNums.Z
+
+Arguments divmod96_estimate (B ah bh)%Z_scope

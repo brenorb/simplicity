@@ -1,0 +1,148 @@
+### C.jet_uint32_array_init.exec_uint32_init_store
+exec_uint32_init_store
+     : forall (m mf : Memory.Mem.mem) (le : Maps.PTree.tree Values.val) (b : Values.block)
+         (base : BinNums.Z) (i : nat) (z : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._iv le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base)))) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i)))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le (BinInt.Z.of_nat i)
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI
+                                                       (BinNums.xI
+                                                          (BinNums.xI
+                                                             (BinNums.xI
+                                                                (BinNums.xI
+                                                                   (BinNums.xI
+                                                                      (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint32 m b
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i)))
+                   (Values.Vint (uint32_init_value z))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m (uint32_init_stmt i z) Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_uint32_array_init.exec_uint32_init_array
+exec_uint32_init_array
+     : forall (m : Memory.Mem.mem) (le : Maps.PTree.tree Values.val) (b : Values.block) (base : BinNums.Z)
+         (i : nat) (zs : list BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._iv le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base)))) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                      (BinInt.Z.add (BinInt.Z.of_nat i) (BinInt.Z.of_nat (@length BinNums.Z zs)))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le (BinInt.Z.add (BinInt.Z.of_nat i) (BinInt.Z.of_nat (@length BinNums.Z zs)))
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI
+                                                       (BinNums.xI
+                                                          (BinNums.xI
+                                                             (BinNums.xI
+                                                                (BinNums.xI
+                                                                   (BinNums.xI
+                                                                      (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) base)
+         (_ : Memory.Mem.range_perm m b
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i)))
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                      (BinInt.Z.add (BinInt.Z.of_nat i) (BinInt.Z.of_nat (@length BinNums.Z zs))))) Memtype.Cur
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m (uint32_init_stmts i zs) Events.E0 le
+               mf ClightBigstep.Out_normal)
+            (and
+               (uint32_array_at mf b
+                  (BinInt.Z.add base
+                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i)))
+                  (@List.map BinNums.Z Integers.Int.int uint32_init_value zs))
+               (and
+                  (forall (chunk : AST.memory_chunk) (bb : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block bb b))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base
+                                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                                        (BinInt.Z.of_nat i))))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                                        (BinInt.Z.add (BinInt.Z.of_nat i) (BinInt.Z.of_nat (@length BinNums.Z zs)))))
+                                  ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf bb ofs) (Memory.Mem.load chunk m bb ofs))
+                  (and
+                     (forall (bb : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm m bb ofs kind p),
+                      Memory.Mem.perm mf bb ofs kind p)
+                     (forall (bb : Values.block) (_ : Memory.Mem.valid_block m bb), Memory.Mem.valid_block mf bb)))))
+### C.jet_uint32_array_init.uint32_init_value
+uint32_init_value =
+fun z : BinNums.Z => Integers.Int64.loword (Integers.Int64.repr z)
+     : forall _ : BinNums.Z, Integers.Int.int
+
+Arguments uint32_init_value z%Z_scope
+### C.jet_uint32_array_init.uint32_init_stmt
+uint32_init_stmt =
+fun (i : nat) (z : BinNums.Z) =>
+Clight.Sassign
+  (Clight.Ederef
+     (Clight.Ebinop Cop.Oadd (Clight.Etempvar jets._iv (Ctypesdefs.tptr Ctypesdefs.tuint))
+        (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat i)) Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuint))
+     Ctypesdefs.tuint) (Clight.Econst_long (Integers.Int64.repr z) Ctypesdefs.tulong)
+     : forall (_ : nat) (_ : BinNums.Z), Clight.statement
+
+Arguments uint32_init_stmt i%nat_scope z%Z_scope
+### C.jet_uint32_array_init.uint32_init_stmts
+uint32_init_stmts =
+fix uint32_init_stmts (i : nat) (zs : list BinNums.Z) {struct zs} : Clight.statement :=
+  match zs return Clight.statement with
+  | nil => Clight.Sskip
+  | cons z rest =>
+      match rest return Clight.statement with
+      | nil => uint32_init_stmt i z
+      | cons _ _ => Clight.Ssequence (uint32_init_stmt i z) (uint32_init_stmts (S i) rest)
+      end
+  end
+     : forall (_ : nat) (_ : list BinNums.Z), Clight.statement
+
+Arguments uint32_init_stmts i%nat_scope zs%list_scope
+### C.jet_uint32_array_init.uint32_array_at
+uint32_array_at =
+fun (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (xs : list Integers.Int.int) =>
+forall (i : nat) (x : Integers.Int.int)
+  (_ : @eq (option Integers.Int.int) (@List.nth_error Integers.Int.int xs i) (@Some Integers.Int.int x)),
+@eq (option Values.val)
+  (Memory.Mem.load AST.Mint32 m b
+     (BinInt.Z.add base (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i))))
+  (@Some Values.val (Values.Vint x))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : list Integers.Int.int), Prop
+
+Arguments uint32_array_at m b base%Z_scope xs%list_scope

@@ -1,0 +1,107 @@
+### C.jet_sha_init_transport.init_map_eq_in
+@init_map_eq_in
+     : forall (A B : Type) (F G : forall _ : A, B) (l : list A)
+         (_ : @eq (list B) (@List.map A B F l) (@List.map A B G l)) (x : A) (_ : @List.In A x l),
+       @eq B (F x) (G x)
+### C.jet_sha_init_transport.init_helper_lookup_core
+init_helper_lookup_core
+     : @eq (list (option Clight.fundef))
+         (@List.map (prod AST.ident Clight.function) (option Clight.fundef) (init_helper_lookup jet_exec.ge0)
+            sha_init_helpers)
+         (@List.map (prod AST.ident Clight.function) (option (Ctypes.fundef Clight.function))
+            (fun p : prod AST.ident Clight.function =>
+             @Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p))) sha_init_helpers)
+### C.jet_sha_init_transport.init_helper_lookup_sha
+init_helper_lookup_sha
+     : @eq (list (option Clight.fundef))
+         (@List.map (prod AST.ident Clight.function) (option Clight.fundef) (init_helper_lookup jet_sha_linkage.sha_ge)
+            sha_init_helpers)
+         (@List.map (prod AST.ident Clight.function) (option (Ctypes.fundef Clight.function))
+            (fun p : prod AST.ident Clight.function =>
+             @Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p))) sha_init_helpers)
+### C.jet_sha_init_transport.init_helper_lookup_exists
+init_helper_lookup_exists
+     : forall (ge : Clight.genv) (id : AST.ident) (f : Clight.function)
+         (_ : @eq (option Clight.fundef) (init_helper_lookup ge (@pair AST.ident Clight.function id f))
+                (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f))),
+       @ex Values.block
+         (fun b : Values.block =>
+          and
+            (@eq (option Values.block)
+               (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+               (@Some Values.block b))
+            (@eq (option Clight.fundef)
+               (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b)
+               (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f))))
+### C.jet_sha_init_transport.sha_init_helpers_entries
+sha_init_helpers_entries
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) sha_init_helpers),
+       @ex Values.block
+         (fun b1 : Values.block =>
+          @ex Values.block
+            (fun b2 : Values.block =>
+             and
+               (@eq (option Values.block)
+                  (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0) id)
+                  (@Some Values.block b1))
+               (and
+                  (@eq (option Clight.fundef)
+                     (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0) b1)
+                     (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+                  (and
+                     (@eq (option Values.block)
+                        (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                           (Clight.genv_genv jet_sha_linkage.sha_ge) id) (@Some Values.block b2))
+                     (@eq (option Clight.fundef)
+                        (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type
+                           (Clight.genv_genv jet_sha_linkage.sha_ge) b2)
+                        (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))))))
+### C.jet_sha_init_transport.init_helpers_okb_true
+init_helpers_okb_true
+     : @eq bool init_helpers_okb true
+### C.jet_sha_init_transport.sha_init_helpers_ok
+sha_init_helpers_ok
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) sha_init_helpers),
+       @eq bool
+         (jet_transport.fundef_okb jet_exec.ge0 jet_sha_linkage.sha_ge
+            (@List.map (prod AST.ident Clight.function) AST.ident (@fst AST.ident Clight.function) sha_init_helpers)
+            (@Ctypes.Internal Clight.function f)) true
+### C.jet_sha_init_transport.init_sha_transport_call
+init_sha_transport_call
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) sha_init_helpers)
+         (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (m' : Memory.Mem.mem)
+         (res : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function f) args t m' res),
+       ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge m (@Ctypes.Internal Clight.function f) args t m' res
+### C.jet_sha_init_transport.sha_init_helpers
+sha_init_helpers =
+@cons (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets._sha256_iv jets.f_sha256_iv)
+  (@cons (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets._sha256_init jets.f_sha256_init)
+     (@nil (prod AST.ident Clight.function)))
+     : list (prod AST.ident Clight.function)
+### C.jet_sha_init_transport.init_helper_lookup
+init_helper_lookup =
+fun (ge : Clight.genv) (p : prod AST.ident Clight.function) =>
+match
+  @Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) (@fst AST.ident Clight.function p)
+  return (option Clight.fundef)
+with
+| Some b => @Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b
+| None => @None Clight.fundef
+end
+     : forall (_ : Clight.genv) (_ : prod AST.ident Clight.function), option Clight.fundef
+
+Arguments init_helper_lookup ge p
+### C.jet_sha_init_transport.init_helpers_okb
+init_helpers_okb =
+@List.forallb (prod AST.ident Clight.function)
+  (fun p : prod AST.ident Clight.function =>
+   jet_transport.fundef_okb jet_exec.ge0 jet_sha_linkage.sha_ge
+     (@List.map (prod AST.ident Clight.function) AST.ident (@fst AST.ident Clight.function) sha_init_helpers)
+     (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p))) sha_init_helpers
+     : bool

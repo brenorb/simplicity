@@ -1,0 +1,94 @@
+### C.jet_right_rotate_spec.right_rotate_control_step_parametric
+right_rotate_control_step_parametric
+     : forall (m : nat) (X : Ty.Ty) (n i : nat),
+       @Alg.Core.Parametric (Ty.Prod (Word.Word m) (Word.Vector X n)) (Ty.Prod (Word.Word m) (Word.Vector X n))
+         (@right_rotate_control_step m X n i)
+### C.jet_right_rotate_spec.right_rotate_controls_spec_parametric
+right_rotate_controls_spec_parametric
+     : forall (m : nat) (X : Ty.Ty) (n : nat) (indices : list nat),
+       @Alg.Core.Parametric (Ty.Prod (Word.Word m) (Word.Vector X n)) (Word.Vector X n)
+         (@right_rotate_controls_spec m X n indices)
+### C.jet_right_rotate_spec.right_rotate_word_spec_parametric
+right_rotate_word_spec_parametric
+     : forall m n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Word.Word m) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n) (@right_rotate_word_spec m n)
+### C.jet_right_rotate_spec.right_rotate_byte_spec_parametric
+right_rotate_byte_spec_parametric
+     : forall s : jet_left_rotate_wide_exec.byte_rotate_size,
+       @Alg.Core.Parametric
+         (Ty.Prod (Word.Word (S (S (S O))))
+            (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s))))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)))
+         (@right_rotate_byte_spec s)
+### C.jet_right_rotate_spec.right_rotate_control_step
+right_rotate_control_step =
+fun (m : nat) (X : Ty.Ty) (n i : nat) (term : Alg.Core.Algebra) =>
+@RVC.pair (Ty.Prod (Word.Word m) (Word.Vector X n)) (Word.Word m) (Word.Vector X n) term
+  (@RVC.take (Word.Word m) (Word.Vector X n) (Word.Word m) term (@RVC.iden (Word.Word m) term))
+  (@RVC.comp (Ty.Prod (Word.Word m) (Word.Vector X n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Vector X n))
+     (Word.Vector X n) term
+     (@RVC.pair (Ty.Prod (Word.Word m) (Word.Vector X n)) (Ty.Sum Ty.Unit Ty.Unit) (Word.Vector X n) term
+        (@RVC.take (Word.Word m) (Word.Vector X n) (Ty.Sum Ty.Unit Ty.Unit) term
+           (@jet_word_bit_spec.word_bit_spec m i term))
+        (@RVC.drop (Word.Word m) (Word.Vector X n) (Word.Vector X n) term (@RVC.iden (Word.Vector X n) term)))
+     (@Bit.cond (Word.Vector X n) (Word.Vector X n) term (@Word.right_rotate1 X n term)
+        (@RVC.iden (Word.Vector X n) term)))
+     : forall (m : nat) (X : Ty.Ty) (n _ : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word m) (Word.Vector X n)) (Ty.Prod (Word.Word m) (Word.Vector X n))
+
+Arguments right_rotate_control_step m%nat_scope X%ty_scope (n i)%nat_scope {term}
+### C.jet_right_rotate_spec.right_rotate_controls_spec
+right_rotate_controls_spec =
+fix right_rotate_controls_spec
+  (m : nat) (X : Ty.Ty) (n : nat) (indices : list nat) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Ty.Prod (Word.Word m) (Word.Vector X n)) (Word.Vector X n) :=
+  match n as n0 return (Alg.Core.domain term (Ty.Prod (Word.Word m) (Word.Vector X n0)) (Word.Vector X n0)) with
+  | O =>
+      match indices return (Alg.Core.domain term (Ty.Prod (Word.Word m) (Word.Vector X O)) (Word.Vector X O)) with
+      | nil => @RVC.drop (Word.Word m) (Word.Vector X O) (Word.Vector X O) term (@RVC.iden (Word.Vector X O) term)
+      | cons i _ =>
+          @RVC.comp (Ty.Prod (Word.Word m) (Word.Vector X O)) (Ty.Prod (Word.Word m) (Word.Vector X O))
+            (Word.Vector X O) term (@right_rotate_control_step m X O i term)
+            (@RVC.drop (Word.Word m) (Word.Vector X O) (Word.Vector X O) term (@RVC.iden (Word.Vector X O) term))
+      end
+  | S n0 =>
+      match
+        indices return (Alg.Core.domain term (Ty.Prod (Word.Word m) (Word.Vector X (S n0))) (Word.Vector X (S n0)))
+      with
+      | nil =>
+          @RVC.drop (Word.Word m) (Word.Vector X (S n0)) (Word.Vector X (S n0)) term
+            (@RVC.iden (Word.Vector X (S n0)) term)
+      | cons i rest =>
+          @RVC.comp (Ty.Prod (Word.Word m) (Word.Vector X (S n0))) (Ty.Prod (Word.Word m) (Word.Vector X (S n0)))
+            (Word.Vector X (S n0)) term (@right_rotate_control_step m X (S n0) i term)
+            (@eq_rect Ty.Ty (Word.Vector (Ty.Prod X X) n0)
+               (fun V : Ty.Ty => Alg.Core.domain term (Ty.Prod (Word.Word m) V) V)
+               (right_rotate_controls_spec m (Ty.Prod X X) n0 rest term) (Word.Vector X (S n0))
+               (@eq_sym Ty.Ty (Word.Vector X (S n0)) (Word.Vector (Ty.Prod X X) n0) (@Word.VectorPromote X n0)))
+      end
+  end
+     : forall (m : nat) (X : Ty.Ty) (n : nat) (_ : list nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word m) (Word.Vector X n)) (Word.Vector X n)
+
+Arguments right_rotate_controls_spec m%nat_scope X%ty_scope n%nat_scope indices%list_scope {term}
+### C.jet_right_rotate_spec.right_rotate_word_spec
+right_rotate_word_spec =
+fun (m n : nat) (term : Alg.Core.Algebra) =>
+@right_rotate_controls_spec m (Ty.Sum Ty.Unit Ty.Unit) n (List.seq O (PeanoNat.Nat.pow (S (S O)) m)) term
+     : forall (m n : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word m) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)
+
+Arguments right_rotate_word_spec (m n)%nat_scope {term}
+### C.jet_right_rotate_spec.right_rotate_byte_spec
+right_rotate_byte_spec =
+fun (s : jet_left_rotate_wide_exec.byte_rotate_size) (term : Alg.Core.Algebra) =>
+@right_rotate_word_spec (S (S (S O))) (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)) term
+     : forall (s : jet_left_rotate_wide_exec.byte_rotate_size) (term : Alg.Core.Algebra),
+       Alg.Core.domain term
+         (Ty.Prod (Word.Word (S (S (S O))))
+            (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s))))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)))
+
+Arguments right_rotate_byte_spec s {term}

@@ -1,0 +1,131 @@
+### C.jet_read_after_write.write_effect_input_bits_preserved
+write_effect_input_bits_preserved
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (edge cur count : BinNums.Z) (cells : list BitMachine.Cell) (bi : Values.block) (inedge rc : BinNums.Z)
+         (bits : list bool) (_ : BinInt.Z.lt BinNums.Z0 count) (_ : BinInt.Z.le count cur)
+         (_ : jet_elements_effects.write_effect m mf bd dbase bw edge cur count cells)
+         (_ : forall (k : BinNums.Z)
+                (_ : and (BinInt.Z.le BinNums.Z0 k) (BinInt.Z.lt k (BinInt.Z.of_nat (@length bool bits)))),
+              jet_application_sep.out_sep bd dbase bw edge cur count bi
+                (BinInt.Z.sub inedge
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                      (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                         (BinInt.Z.div (BinInt.Z.add rc k)
+                            (BinNums.Zpos
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (BinInt.Z.add
+                   (BinInt.Z.sub inedge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                            (BinInt.Z.div (BinInt.Z.add rc k)
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : jet_input_layout.frame_input_bits_at m bi inedge rc bits),
+       jet_input_layout.frame_input_bits_at mf bi inedge rc bits
+### C.jet_read_after_write.read_frame_word_bounds
+read_frame_word_bounds
+     : forall (l : jet_bitmachine_rep.frame_loc) (rf : BitMachine.ReadFrame) (q : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 q) (BinInt.Z.lt q (jet_bitmachine_rep.read_size rf))),
+       and
+         (BinInt.Z.le (jet_bitmachine_rep.read_region_lo l rf)
+            (BinInt.Z.sub (jet_bitmachine_rep.edge_ofs l)
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                  (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                     (BinInt.Z.div (BinInt.Z.add (jet_bitmachine_rep.read_padding (jet_bitmachine_rep.read_size rf)) q)
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (BinInt.Z.le
+            (BinInt.Z.add
+               (BinInt.Z.sub (jet_bitmachine_rep.edge_ofs l)
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                     (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                        (BinInt.Z.div
+                           (BinInt.Z.add (jet_bitmachine_rep.read_padding (jet_bitmachine_rep.read_size rf)) q)
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) (jet_bitmachine_rep.edge_ofs l))
+### C.jet_read_after_write.write_effect_region_bounds
+write_effect_region_bounds
+     : forall (l : jet_bitmachine_rep.frame_loc) (wf : BitMachine.WriteFrame) (count : BinNums.Z)
+         (_ : and (BinInt.Z.lt BinNums.Z0 count) (BinInt.Z.le count (BinInt.Z.of_nat (BitMachine.writeEmpty wf)))),
+       and
+         (BinInt.Z.le (jet_bitmachine_rep.edge_ofs l)
+            (jet_application_sep.out_low (jet_bitmachine_rep.edge_ofs l) (BinInt.Z.of_nat (BitMachine.writeEmpty wf))
+               count))
+         (BinInt.Z.le
+            (jet_application_sep.out_high (jet_bitmachine_rep.edge_ofs l) (BinInt.Z.of_nat (BitMachine.writeEmpty wf)))
+            (jet_bitmachine_rep.write_region_hi l wf))
+### C.jet_read_after_write.bm_active_read_word_out_sep
+bm_active_read_word_out_sep
+     : forall (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (s : BitMachine.RunState)
+         (count q : BinNums.Z) (_ : jet_bitmachine_rep.bm_rep m L s) (_ : jet_bitmachine_rep.bm_separated L s)
+         (_ : and (BinInt.Z.lt BinNums.Z0 count)
+                (BinInt.Z.le count (BinInt.Z.of_nat (BitMachine.writeEmpty (BitMachine.activeWriteFrame s)))))
+         (_ : and (BinInt.Z.le BinNums.Z0 q)
+                (BinInt.Z.lt q (jet_bitmachine_rep.read_size (BitMachine.activeReadFrame s)))),
+       jet_application_sep.out_sep (jet_bitmachine_rep.frames_blk L)
+         (jet_bitmachine_rep.item_ofs (jet_bitmachine_rep.active_write_loc L)) (jet_bitmachine_rep.cells_blk L)
+         (jet_bitmachine_rep.edge_ofs (jet_bitmachine_rep.active_write_loc L))
+         (BinInt.Z.of_nat (BitMachine.writeEmpty (BitMachine.activeWriteFrame s))) count
+         (jet_bitmachine_rep.cells_blk L)
+         (BinInt.Z.sub (jet_bitmachine_rep.edge_ofs (jet_bitmachine_rep.active_read_loc L))
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+               (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                  (BinInt.Z.div
+                     (BinInt.Z.add
+                        (jet_bitmachine_rep.read_padding (jet_bitmachine_rep.read_size (BitMachine.activeReadFrame s)))
+                        q)
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (BinInt.Z.add
+            (BinInt.Z.sub (jet_bitmachine_rep.edge_ofs (jet_bitmachine_rep.active_read_loc L))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                  (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                     (BinInt.Z.div
+                        (BinInt.Z.add
+                           (jet_bitmachine_rep.read_padding
+                              (jet_bitmachine_rep.read_size (BitMachine.activeReadFrame s))) q)
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+### C.jet_read_after_write.write_effect_keeps_active_read_suffix
+write_effect_keeps_active_read_suffix
+     : forall (m mf : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (s : BitMachine.RunState)
+         (count : BinNums.Z) (cells : list BitMachine.Cell) (start : BinNums.Z) (bits : list bool)
+         (_ : jet_bitmachine_rep.bm_rep m L s) (_ : jet_bitmachine_rep.bm_separated L s)
+         (_ : and (BinInt.Z.lt BinNums.Z0 count)
+                (BinInt.Z.le count (BinInt.Z.of_nat (BitMachine.writeEmpty (BitMachine.activeWriteFrame s)))))
+         (_ : BinInt.Z.le BinNums.Z0 start)
+         (_ : BinInt.Z.le (BinInt.Z.add start (BinInt.Z.of_nat (@length bool bits)))
+                (jet_bitmachine_rep.read_size (BitMachine.activeReadFrame s)))
+         (_ : jet_elements_effects.write_effect m mf (jet_bitmachine_rep.frames_blk L)
+                (jet_bitmachine_rep.item_ofs (jet_bitmachine_rep.active_write_loc L)) (jet_bitmachine_rep.cells_blk L)
+                (jet_bitmachine_rep.edge_ofs (jet_bitmachine_rep.active_write_loc L))
+                (BinInt.Z.of_nat (BitMachine.writeEmpty (BitMachine.activeWriteFrame s))) count cells)
+         (_ : jet_input_layout.frame_input_bits_at m (jet_bitmachine_rep.cells_blk L)
+                (jet_bitmachine_rep.edge_ofs (jet_bitmachine_rep.active_read_loc L))
+                (BinInt.Z.add
+                   (jet_bitmachine_rep.read_padding (jet_bitmachine_rep.read_size (BitMachine.activeReadFrame s)))
+                   start) bits),
+       jet_input_layout.frame_input_bits_at mf (jet_bitmachine_rep.cells_blk L)
+         (jet_bitmachine_rep.edge_ofs (jet_bitmachine_rep.active_read_loc L))
+         (BinInt.Z.add (jet_bitmachine_rep.read_padding (jet_bitmachine_rep.read_size (BitMachine.activeReadFrame s)))
+            start) bits
+### C.jet_read_after_write.write_effect_keeps_private_read_frame
+write_effect_keeps_private_read_frame
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (edge cur count : BinNums.Z) (cells : list BitMachine.Cell) (bl : Values.block) (base : BinNums.Z)
+         (bi : Values.block) (inedge rc : BinNums.Z) (_ : not (@eq Values.block bl bd))
+         (_ : not (@eq Values.block bl bw))
+         (_ : jet_elements_effects.write_effect m mf bd dbase bw edge cur count cells)
+         (_ : jet_frame_layout.frame_fields_at m bl base bi inedge rc),
+       jet_frame_layout.frame_fields_at mf bl base bi inedge rc
+### C.jet_read_after_write.write_effect_keeps_valid_access
+write_effect_keeps_valid_access
+     : forall (m mf : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (edge cur count : BinNums.Z) (cells : list BitMachine.Cell) (chunk : AST.memory_chunk)
+         (b : Values.block) (ofs : BinNums.Z) (p : Memtype.permission)
+         (_ : jet_elements_effects.write_effect m mf bd dbase bw edge cur count cells)
+         (_ : Memory.Mem.valid_access m chunk b ofs p), Memory.Mem.valid_access mf chunk b ofs p

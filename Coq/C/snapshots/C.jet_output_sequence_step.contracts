@@ -1,0 +1,98 @@
+### C.jet_output_sequence_step.write_frame_at_after_slice
+write_frame_at_after_slice
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor n count : BinNums.Z) (x : Integers.Int64.int) (_ : BinInt.Z.le BinNums.Z0 count)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor (BinInt.Z.add n count))
+         (_ : jet_frame_layout.frame_fields_at mf bf base bw edge (BinInt.Z.sub cursor n))
+         (_ : jet_output_slice.slice_output_at n mf bw edge cursor x)
+         (_ : jet_output_layout.loads_outside_ranges m mf bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) bw
+                (jet_output_slice.slice_write_low n edge cursor)
+                (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind) (p : Memtype.permission)
+                (_ : Memory.Mem.perm m b ofs kind p), Memory.Mem.perm mf b ofs kind p),
+       jet_output_layout.write_frame_at mf bf base bw edge (BinInt.Z.sub cursor n) count
+### C.jet_output_sequence_step.write_prefix_at_chain
+write_prefix_at_chain
+     : forall (m mi mf : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor next low : BinNums.Z)
+         (_ : or (not (@eq Values.block bf bw))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) base)
+                   (BinInt.Z.le
+                      (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                      (jet_write_layout.write_word_address edge cursor))))
+         (_ : and (BinInt.Z.le BinNums.Z0 next) (BinInt.Z.le next cursor))
+         (_ : jet_output_layout.write_prefix_at m mi bw edge cursor)
+         (_ : jet_output_layout.write_prefix_at mi mf bw edge next)
+         (_ : jet_output_layout.loads_outside_ranges mi mf bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) bw
+                low
+                (BinInt.Z.add (jet_write_layout.write_word_address edge next)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))),
+       jet_output_layout.write_prefix_at m mf bw edge cursor
+### C.jet_output_sequence_step.frame_output_bit_prefix_preserved
+frame_output_bit_prefix_preserved
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor low q : BinNums.Z) (bit : bool)
+         (_ : or (not (@eq Values.block bf bw))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add
+                         (BinInt.Z.add edge
+                            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                               (BinInt.Z.div q
+                                  (BinNums.Zpos
+                                     (BinNums.xO
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) base)
+                   (BinInt.Z.le
+                      (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                      (BinInt.Z.add edge
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.div q
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 cursor) (BinInt.Z.le cursor q))
+         (_ : jet_output_layout.write_prefix_at m mf bw edge cursor)
+         (_ : jet_output_layout.loads_outside_ranges m mf bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) bw
+                low
+                (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : jet_encoding.frame_output_bit_at m bw edge q bit), jet_encoding.frame_output_bit_at mf bw edge q bit
+### C.jet_output_sequence_step.frame_output_cells_prefix_preserved
+frame_output_cells_prefix_preserved
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor low original : BinNums.Z) (cells : list BitMachine.Cell)
+         (_ : forall (i : nat) (_ : lt i (@length BitMachine.Cell cells)),
+              or (not (@eq Values.block bf bw))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (jet_frame_spec.write_cell_address edge original (BinInt.Z.of_nat i))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) base)
+                   (BinInt.Z.le
+                      (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                      (jet_frame_spec.write_cell_address edge original (BinInt.Z.of_nat i)))))
+         (_ : and (BinInt.Z.le BinNums.Z0 cursor)
+                (BinInt.Z.le cursor (BinInt.Z.sub original (BinInt.Z.of_nat (@length BitMachine.Cell cells)))))
+         (_ : jet_output_layout.write_prefix_at m mf bw edge cursor)
+         (_ : jet_output_layout.loads_outside_ranges m mf bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) bw
+                low
+                (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : jet_encoding.frame_output_cells_at m bw edge original cells),
+       jet_encoding.frame_output_cells_at mf bw edge original cells

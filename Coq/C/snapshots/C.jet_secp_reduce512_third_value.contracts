@@ -1,0 +1,98 @@
+### C.jet_secp_reduce512_third_value.third_carry_bound
+third_carry_bound
+     : forall (s : jet_secp_reduce512_wide.wide_column) (k : BinNums.Z)
+         (_ : BinInt.Z.lt (jet_secp_reduce512_wide.wide_value s) (BinInt.Z.mul k Integers.Int64.modulus)),
+       BinInt.Z.lt (Integers.Int64.unsigned (jet_secp_reduce512_wide.whi s)) k
+### C.jet_secp_reduce512_third_value.third_lower_split
+third_lower_split
+     : forall (s : jet_secp_reduce512_wide.wide_column)
+         (_ : @eq Integers.Int64.int (jet_secp_reduce512_wide.wtop s) Integers.Int64.zero),
+       @eq BinNums.Z (jet_secp_reduce512_wide.wide_value s)
+         (BinInt.Z.add (Integers.Int64.unsigned (jet_secp_reduce512_wide.wlo s))
+            (BinInt.Z.mul Integers.Int64.modulus (Integers.Int64.unsigned (jet_secp_reduce512_wide.whi s))))
+### C.jet_secp_reduce512_third_value.third_p4_unsigned
+third_p4_unsigned
+     : forall p4 : Integers.Int.int,
+       @eq BinNums.Z (Integers.Int64.unsigned (jet_secp_reduce512_third_atomic.third_ma_p4 p4))
+         (Integers.Int.unsigned p4)
+### C.jet_secp_reduce512_third_value.third_column_values
+third_column_values
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int)
+         (_ : BinInt.Z.le (Integers.Int.unsigned p4) (BinNums.Zpos (BinNums.xO BinNums.xH))),
+       and
+         (@eq BinNums.Z (jet_secp_reduce512_wide.wide_value (jet_secp_reduce512_third_atomic.third_ma0 digits p4))
+            (BinInt.Z.add (Integers.Int64.unsigned (digits O))
+               (BinInt.Z.mul (Integers.Int64.unsigned jet_secp_reduce512_symbolic.wide_C0) (Integers.Int.unsigned p4))))
+         (and
+            (@eq BinNums.Z (jet_secp_reduce512_wide.wide_value (jet_secp_reduce512_third_atomic.third_ma1 digits p4))
+               (BinInt.Z.add
+                  (BinInt.Z.add
+                     (Integers.Int64.unsigned
+                        (jet_secp_reduce512_wide.whi (jet_secp_reduce512_third_atomic.third_ma0 digits p4)))
+                     (Integers.Int64.unsigned (digits (S O))))
+                  (BinInt.Z.mul (Integers.Int64.unsigned jet_secp_reduce512_symbolic.wide_C1)
+                     (Integers.Int.unsigned p4))))
+            (and
+               (@eq BinNums.Z
+                  (jet_secp_reduce512_wide.wide_value (jet_secp_reduce512_third_atomic.third_ma2 digits p4))
+                  (BinInt.Z.add
+                     (BinInt.Z.add
+                        (Integers.Int64.unsigned
+                           (jet_secp_reduce512_wide.whi (jet_secp_reduce512_third_atomic.third_ma1 digits p4)))
+                        (Integers.Int64.unsigned (digits (S (S O))))) (Integers.Int.unsigned p4)))
+               (@eq BinNums.Z
+                  (jet_secp_reduce512_wide.wide_value (jet_secp_reduce512_third_atomic.third_ma3 digits p4))
+                  (BinInt.Z.add
+                     (Integers.Int64.unsigned
+                        (jet_secp_reduce512_wide.whi (jet_secp_reduce512_third_atomic.third_ma2 digits p4)))
+                     (Integers.Int64.unsigned (digits (S (S (S O)))))))))
+### C.jet_secp_reduce512_third_value.third_reconstruction
+third_reconstruction
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int)
+         (_ : BinInt.Z.le (Integers.Int.unsigned p4) (BinNums.Zpos (BinNums.xO BinNums.xH))),
+       @eq BinNums.Z
+         (BinInt.Z.add
+            (jet_secp_scalar_mul512_accumulate.column_words_value
+               (jet_secp_reduce512_third_atomic.third_machine_outputs digits p4))
+            (BinInt.Z.mul jet_secp_reduce512_fold_bounds.reduce512_radix
+               (Integers.Int64.unsigned
+                  (jet_secp_reduce512_wide.whi (jet_secp_reduce512_third_atomic.third_ma3 digits p4)))))
+         (third_fold_value digits p4)
+### C.jet_secp_reduce512_third_value.third_fold_bound
+third_fold_bound
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int)
+         (_ : BinInt.Z.le (Integers.Int.unsigned p4) (BinNums.Zpos (BinNums.xO BinNums.xH))),
+       and (BinInt.Z.le BinNums.Z0 (third_fold_value digits p4))
+         (BinInt.Z.lt (third_fold_value digits p4)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) jet_secp_canonical_scalar.canonical_group_order))
+### C.jet_secp_reduce512_third_value.third_c_bound
+third_c_bound
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int)
+         (_ : BinInt.Z.le (Integers.Int.unsigned p4) (BinNums.Zpos (BinNums.xO BinNums.xH))),
+       and
+         (BinInt.Z.le BinNums.Z0
+            (Integers.Int64.unsigned
+               (jet_secp_reduce512_wide.whi (jet_secp_reduce512_third_atomic.third_ma3 digits p4))))
+         (BinInt.Z.le
+            (Integers.Int64.unsigned
+               (jet_secp_reduce512_wide.whi (jet_secp_reduce512_third_atomic.third_ma3 digits p4)))
+            (BinNums.Zpos BinNums.xH))
+### C.jet_secp_reduce512_third_value.third_input_low
+third_input_low =
+fun digits : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_accumulate.column_words_value
+  (@cons Integers.Int64.int (digits O)
+     (@cons Integers.Int64.int (digits (S O))
+        (@cons Integers.Int64.int (digits (S (S O)))
+           (@cons Integers.Int64.int (digits (S (S (S O)))) (@nil Integers.Int64.int)))))
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments third_input_low digits%function_scope
+### C.jet_secp_reduce512_third_value.third_fold_value
+third_fold_value =
+fun (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int) =>
+BinInt.Z.add (third_input_low digits)
+  (BinInt.Z.mul (Integers.Int.unsigned p4) jet_secp_reduce512_first_value.first_delta)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), BinNums.Z
+
+Arguments third_fold_value digits%function_scope p4

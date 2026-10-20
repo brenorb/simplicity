@@ -1,0 +1,39 @@
+### C.jet_haskell_word_conversion.haskell_word_state_matches
+haskell_word_state_matches
+     : forall (n : nat) (z : BinNums.Z),
+       @eq (prod (Ty.tySem (Word.Word n)) BinNums.Z) (haskell_word_state n z)
+         (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ n))) BinNums.Z (@Word.ToZ.Theory.fromZ (Word.WordToZ n) z)
+            (BinInt.Z.div z (jet_predicate_spec.word_modulus n)))
+### C.jet_haskell_word_conversion.haskell_to_word_matches
+haskell_to_word_matches
+     : forall (n : nat) (z : BinNums.Z),
+       @eq (Ty.tySem (Word.Word n)) (haskell_to_word n z) (@Word.ToZ.Theory.fromZ (Word.WordToZ n) z)
+### C.jet_haskell_word_conversion.haskell_word_state
+haskell_word_state =
+fix haskell_word_state (n : nat) (z : BinNums.Z) {struct n} : prod (Ty.tySem (Word.Word n)) BinNums.Z :=
+  match n as n0 return (prod (Ty.tySem (Word.Word n0)) BinNums.Z) with
+  | O =>
+      @pair (sum unit unit) BinNums.Z
+        match BinInt.Z.odd z return (sum unit unit) with
+        | true => @inr unit unit tt
+        | false => @inl unit unit tt
+        end (BinInt.Z.div z (BinNums.Zpos (BinNums.xO BinNums.xH)))
+  | S n0 =>
+      match haskell_word_state n0 z return (prod (Ty.tySem (Word.Word (S n0))) BinNums.Z) with
+      | pair lo rest =>
+          match haskell_word_state n0 rest return (prod (Ty.tySem (Word.Word (S n0))) BinNums.Z) with
+          | pair hi final =>
+              @pair (prod (Ty.tySem (Word.Word n0)) (Ty.tySem (Word.Word n0))) BinNums.Z
+                (@pair (Ty.tySem (Word.Word n0)) (Ty.tySem (Word.Word n0)) hi lo) final
+          end
+      end
+  end
+     : forall (n : nat) (_ : BinNums.Z), prod (Ty.tySem (Word.Word n)) BinNums.Z
+
+Arguments haskell_word_state n%nat_scope z%Z_scope
+### C.jet_haskell_word_conversion.haskell_to_word
+haskell_to_word =
+fun (n : nat) (z : BinNums.Z) => @fst (Ty.tySem (Word.Word n)) BinNums.Z (haskell_word_state n z)
+     : forall (n : nat) (_ : BinNums.Z), Ty.tySem (Word.Word n)
+
+Arguments haskell_to_word n%nat_scope z%Z_scope

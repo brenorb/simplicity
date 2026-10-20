@@ -1,0 +1,19 @@
+### C.jet_sx_rename.den_sx_rename
+den_sx_rename
+     : forall (f : forall _ : nat, nat) (rho : forall _ : nat, Integers.Int64.int)
+         (beta : forall _ : nat, prod Values.block BinNums.Z) (x : jet_sx_expr.sx),
+       @eq Values.val (jet_sx_expr.den rho beta (sx_rename f x)) (jet_sx_expr.den (fun n : nat => rho (f n)) beta x)
+### C.jet_sx_rename.u64_cells_rename
+u64_cells_rename
+     : forall (f : forall _ : nat, nat) (xs : list jet_sx_expr.sx) (ofs : BinNums.Z),
+       @eq (list jet_sx_state.cell)
+         (@List.map jet_sx_state.cell jet_sx_state.cell
+            (jet_secp_symbolic_substitution.cell_subst (fun n : nat => jet_sx_expr.XLv (f n)))
+            (jet_sx_rep.u64_cells ofs xs))
+         (jet_sx_rep.u64_cells ofs (@List.map jet_sx_expr.sx jet_sx_expr.sx (sx_rename f) xs))
+### C.jet_sx_rename.sx_rename
+sx_rename =
+fun f : forall _ : nat, nat => jet_secp_symbolic_substitution.sx_subst (fun n : nat => jet_sx_expr.XLv (f n))
+     : forall (_ : forall _ : nat, nat) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments sx_rename f%function_scope x

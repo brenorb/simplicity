@@ -1,0 +1,56 @@
+### C.jet_assertion_spec.verify_spec_parametric
+verify_spec_parametric
+     : @Alg.Assertion.Parametric (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (@verify_spec)
+### C.jet_assertion_spec.verify_spec_option
+verify_spec_option
+     : forall x : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         (@verify_spec (Alg.AssertionSem Option.option_Monad_Zero) x)
+         match
+           Bit.toBool x
+           return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         with
+         | true => @Some unit tt
+         | false => @None (Ty.tySem Ty.Unit)
+         end
+### C.jet_assertion_spec.assertion_hash0
+assertion_hash0 =
+Digest.Hash256
+  (@cons Integers.Int.int Integers.Int.zero
+     (@cons Integers.Int.int Integers.Int.zero
+        (@cons Integers.Int.int Integers.Int.zero
+           (@cons Integers.Int.int Integers.Int.zero
+              (@cons Integers.Int.int Integers.Int.zero
+                 (@cons Integers.Int.int Integers.Int.zero
+                    (@cons Integers.Int.int Integers.Int.zero
+                       (@cons Integers.Int.int Integers.Int.zero (@nil Integers.Int.int)))))))))
+  (@eq_refl nat
+     (@length Integers.Int.int
+        (@cons Integers.Int.int Integers.Int.zero
+           (@cons Integers.Int.int Integers.Int.zero
+              (@cons Integers.Int.int Integers.Int.zero
+                 (@cons Integers.Int.int Integers.Int.zero
+                    (@cons Integers.Int.int Integers.Int.zero
+                       (@cons Integers.Int.int Integers.Int.zero
+                          (@cons Integers.Int.int Integers.Int.zero
+                             (@cons Integers.Int.int Integers.Int.zero (@nil Integers.Int.int)))))))))))
+     : Digest.hash256
+### C.jet_assertion_spec.assertion_cmr_fail0
+assertion_cmr_fail0 =
+@Alg.Assertion.Combinators.fail Ty.Unit Ty.Unit MerkleRoot.CommitmentRoot_Assertion_alg
+  (@pair Digest.hash256 Digest.hash256 assertion_hash0 assertion_hash0)
+     : Digest.hash256
+### C.jet_assertion_spec.verify_spec
+verify_spec =
+fun term : Alg.Assertion.Algebra =>
+@Alg.Core.Combinators.comp (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit) Ty.Unit
+  (Alg.Assertion.toCore term)
+  (@Alg.Core.Combinators.pair (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (Alg.Assertion.toCore term)
+     (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) (Alg.Assertion.toCore term))
+     (@Alg.Core.Combinators.unit (Ty.Sum Ty.Unit Ty.Unit) (Alg.Assertion.toCore term)))
+  (@Alg.Assertion.Combinators.assertr Ty.Unit Ty.Unit Ty.Unit Ty.Unit term assertion_cmr_fail0
+     (@Alg.Core.Combinators.take Ty.Unit Ty.Unit Ty.Unit (Alg.Assertion.toCore term)
+        (@Alg.Core.Combinators.iden Ty.Unit (Alg.Assertion.toCore term))))
+     : forall term : Alg.Assertion.Algebra, Alg.Assertion.domain term (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit
+
+Arguments verify_spec {term}

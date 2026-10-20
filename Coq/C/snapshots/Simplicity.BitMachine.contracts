@@ -1,0 +1,42 @@
+### Simplicity.BitMachine.fillContext
+fillContext =
+fun (ctx : Context) (h : LocalState) =>
+Build_RunState (inactiveReadFrames ctx)
+  (Build_ReadFrame (prevData (activeReadFrame ctx)) (@app Cell (readLocalState h) (nextData (activeReadFrame ctx))))
+  (Build_WriteFrame (@app Cell (writeData (writeLocalState h)) (writeData (activeWriteFrame ctx)))
+     (Nat.add (writeEmpty (writeLocalState h)) (writeEmpty (activeWriteFrame ctx)))) (inactiveWriteFrames ctx)
+     : forall (_ : Context) (_ : LocalState), RunState
+
+Arguments fillContext ctx h
+### Simplicity.BitMachine.ReadFrame
+Record ReadFrame : Set := Build_ReadFrame { prevData : list Cell;  nextData : list Cell }.
+
+ReadFrame has primitive projections with eta conversion.
+Arguments Build_ReadFrame (prevData nextData)%list_scope
+### Simplicity.BitMachine.WriteFrame
+Record WriteFrame : Set := Build_WriteFrame { writeData : list Cell;  writeEmpty : nat }.
+
+WriteFrame has primitive projections with eta conversion.
+Arguments Build_WriteFrame writeData%list_scope writeEmpty%nat_scope
+### Simplicity.BitMachine.RunState
+Record RunState : Set := Build_RunState
+  { inactiveReadFrames : list ReadFrame;
+    activeReadFrame : ReadFrame;
+    activeWriteFrame : WriteFrame;
+    inactiveWriteFrames : list WriteFrame }.
+
+RunState has primitive projections with eta conversion.
+Arguments Build_RunState inactiveReadFrames%list_scope activeReadFrame activeWriteFrame inactiveWriteFrames%list_scope
+### Simplicity.BitMachine.Context
+Context = RunState
+     : Set
+### Simplicity.BitMachine.newWriteFrame
+newWriteFrame = fun n : nat => Build_WriteFrame (@nil Cell) n
+     : forall _ : nat, WriteFrame
+
+Arguments newWriteFrame n%nat_scope
+### Simplicity.BitMachine.fullWriteFrame
+fullWriteFrame = fun l : list Cell => Build_WriteFrame (@List.rev Cell l) O
+     : forall _ : list Cell, WriteFrame
+
+Arguments fullWriteFrame l%list_scope

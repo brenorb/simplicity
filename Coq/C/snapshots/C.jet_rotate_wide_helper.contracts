@@ -1,0 +1,91 @@
+### C.jet_rotate_wide_helper.wide_rotate_helper_body
+wide_rotate_helper_body
+     : forall s : jet_wide.wide_size,
+       @eq Clight.statement (Clight.fn_body (wide_rotate_helper s))
+         (Clight.Sifthenelse (Clight.Etempvar jets._amt Ctypesdefs.tuchar)
+            (Clight.Sreturn (@Some Clight.expr (wide_rotate_expr s)))
+            (Clight.Sreturn (@Some Clight.expr (Clight.Etempvar jets._value Ctypesdefs.tulong))))
+### C.jet_rotate_wide_helper.long_int_shift_guard
+long_int_shift_guard
+     : forall (a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int.ltu a Integers.Int64.iwordsize') true
+### C.jet_rotate_wide_helper.eval_wide_rotate_expr
+eval_wide_rotate_expr
+     : forall (s : jet_wide.wide_size) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (r : Integers.Int64.int) (a : Integers.Int.int)
+         (_ : and (BinInt.Z.lt BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (jet_wide.wide_bits s)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._value le) (@Some Values.val (Values.Vlong r)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._amt le) (@Some Values.val (Values.Vint a))),
+       Clight.eval_expr jet_exec.ge0 e le m (wide_rotate_expr s) (Values.Vlong (wide_rotate_nonzero s r a))
+### C.jet_rotate_wide_helper.entry_wide_rotate
+entry_wide_rotate
+     : forall (s : jet_wide.wide_size) (m : Memory.Mem.mem) (r : Integers.Int64.int) (a : Integers.Int.int),
+       Clight.function_entry2 jet_exec.ge0 (wide_rotate_helper s)
+         (@cons Values.val (Values.Vlong r) (@cons Values.val (Values.Vint a) (@nil Values.val))) m Clight.empty_env
+         (le_wide_rotate r a) m
+### C.jet_rotate_wide_helper.eval_wide_rotate_helper
+eval_wide_rotate_helper
+     : forall (s : jet_wide.wide_size) (m : Memory.Mem.mem) (r : Integers.Int64.int) (a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (jet_wide.wide_bits s))),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function (wide_rotate_helper s))
+         (@cons Values.val (Values.Vlong r) (@cons Values.val (Values.Vint a) (@nil Values.val))) Events.E0 m
+         (Values.Vlong (wide_rotate_result s r a))
+### C.jet_rotate_wide_helper.wide_rotate_helper
+wide_rotate_helper =
+fun s : jet_wide.wide_size =>
+match s return Clight.function with
+| jet_wide.W16 => jets.f_rotate_16
+| jet_wide.W32 => jets.f_rotate_32
+| jet_wide.W64 => jets.f_rotate_64
+end
+     : forall _ : jet_wide.wide_size, Clight.function
+
+Arguments wide_rotate_helper s
+### C.jet_rotate_wide_helper.wide_rotate_expr
+wide_rotate_expr =
+fun s : jet_wide.wide_size =>
+Clight.Ecast
+  (Clight.Ebinop Cop.Oor
+     (Clight.Ebinop Cop.Oshl
+        (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+           (Clight.Etempvar jets._value Ctypesdefs.tulong) Ctypesdefs.tulong)
+        (Clight.Etempvar jets._amt Ctypesdefs.tuchar) Ctypesdefs.tulong)
+     (Clight.Ebinop Cop.Oshr (Clight.Etempvar jets._value Ctypesdefs.tulong)
+        (Clight.Ebinop Cop.Osub (Clight.Econst_int (Integers.Int.repr (jet_wide.wide_bits s)) Ctypesdefs.tint)
+           (Clight.Etempvar jets._amt Ctypesdefs.tuchar) Ctypesdefs.tint) Ctypesdefs.tulong) Ctypesdefs.tulong)
+  Ctypesdefs.tulong
+     : forall _ : jet_wide.wide_size, Clight.expr
+
+Arguments wide_rotate_expr s
+### C.jet_rotate_wide_helper.wide_rotate_nonzero
+wide_rotate_nonzero =
+fun (s : jet_wide.wide_size) (r : Integers.Int64.int) (a : Integers.Int.int) =>
+Integers.Int64.or (Integers.Int64.shl r (Integers.Int64.repr (Integers.Int.unsigned a)))
+  (Integers.Int64.shru r (Integers.Int64.repr (BinInt.Z.sub (jet_wide.wide_bits s) (Integers.Int.unsigned a))))
+     : forall (_ : jet_wide.wide_size) (_ : Integers.Int64.int) (_ : Integers.Int.int), Integers.Int64.int
+
+Arguments wide_rotate_nonzero s r a
+### C.jet_rotate_wide_helper.wide_rotate_result
+wide_rotate_result =
+fun (s : jet_wide.wide_size) (r : Integers.Int64.int) (a : Integers.Int.int) =>
+match Integers.Int.eq a Integers.Int.zero return Integers.Int64.int with
+| true => r
+| false => wide_rotate_nonzero s r a
+end
+     : forall (_ : jet_wide.wide_size) (_ : Integers.Int64.int) (_ : Integers.Int.int), Integers.Int64.int
+
+Arguments wide_rotate_result s r a
+### C.jet_rotate_wide_helper.le_wide_rotate
+le_wide_rotate =
+fun (r : Integers.Int64.int) (a : Integers.Int.int) =>
+@Maps.PTree.set Values.val jets._amt (Values.Vint a)
+  (@Maps.PTree.set Values.val jets._value (Values.Vlong r) (Maps.PTree.empty Values.val))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int.int), Clight.temp_env
+
+Arguments le_wide_rotate r a

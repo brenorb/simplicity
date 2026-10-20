@@ -1,0 +1,68 @@
+### C.jet_umul128_layout.eval_umul128_layout
+eval_umul128_layout
+     : forall (m : Memory.Mem.mem) (bh : Values.block) (ofs : Integers.Ptrofs.int) (a b : Integers.Int64.int)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bh (Integers.Ptrofs.unsigned ofs) Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+               (@Ctypes.Internal Clight.function jets.f_secp256k1_umul128)
+               (@cons Values.val (Values.Vlong a)
+                  (@cons Values.val (Values.Vlong b) (@cons Values.val (Values.Vptr bh ofs) (@nil Values.val))))
+               Events.E0 mf (Values.Vlong (umul128_result_lo a b)))
+            (and
+               (@eq (option Values.val) (Memory.Mem.load AST.Mint64 mf bh (Integers.Ptrofs.unsigned ofs))
+                  (@Some Values.val (Values.Vlong (umul128_result_hi a b))))
+               (and
+                  (@eq BinNums.Z (Integers.Int64.unsigned (umul128_result_hi a b))
+                     (BinInt.Z.div (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+                        Integers.Int64.modulus))
+                  (and
+                     (@eq BinNums.Z (Integers.Int64.unsigned (umul128_result_lo a b))
+                        (BinInt.Z.modulo (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+                           Integers.Int64.modulus))
+                     (and
+                        (forall (chunk : AST.memory_chunk) (bb : Values.block) (addr : BinNums.Z)
+                           (_ : or (not (@eq Values.block bb bh))
+                                  (or
+                                     (BinInt.Z.le (BinInt.Z.add addr (Memdata.size_chunk chunk))
+                                        (Integers.Ptrofs.unsigned ofs))
+                                     (BinInt.Z.le
+                                        (BinInt.Z.add (Integers.Ptrofs.unsigned ofs)
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) addr))),
+                         @eq (option Values.val) (Memory.Mem.load chunk mf bb addr) (Memory.Mem.load chunk m bb addr))
+                        (and
+                           (forall (bb : Values.block) (addr : BinNums.Z) (kind : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : Memory.Mem.perm m bb addr kind p),
+                            Memory.Mem.perm mf bb addr kind p)
+                           (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock m))))))))
+### C.jet_umul128_layout.umul128_result_hi
+umul128_result_hi =
+fun a b : Integers.Int64.int =>
+jet_umul128_value.umul128_hi (jet_umul128_value.umul128_hh a b) (jet_umul128_value.umul128_lh a b)
+  (jet_umul128_value.umul128_hl a b)
+  (jet_umul128_value.umul128_mid (jet_umul128_value.umul128_ll a b) (jet_umul128_value.umul128_lh a b)
+     (jet_umul128_value.umul128_hl a b))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_result_hi a b
+### C.jet_umul128_layout.umul128_result_lo
+umul128_result_lo =
+fun a b : Integers.Int64.int =>
+jet_umul128_value.umul128_lo (jet_umul128_value.umul128_ll a b)
+  (jet_umul128_value.umul128_mid (jet_umul128_value.umul128_ll a b) (jet_umul128_value.umul128_lh a b)
+     (jet_umul128_value.umul128_hl a b))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_result_lo a b
+### C.jet_umul128_layout.umul128_temps
+umul128_temps =
+fun (a b : Integers.Int64.int) (bh : Values.block) (ofs : Integers.Ptrofs.int) =>
+@Maps.PTree.set Values.val jets._hi (Values.Vptr bh ofs)
+  (@Maps.PTree.set Values.val jets._b (Values.Vlong b)
+     (@Maps.PTree.set Values.val jets._a (Values.Vlong a)
+        (Clight.create_undef_temps (Clight.fn_temps jets.f_secp256k1_umul128))))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Values.block) (_ : Integers.Ptrofs.int),
+       Maps.PTree.tree Values.val
+
+Arguments umul128_temps a b bh ofs

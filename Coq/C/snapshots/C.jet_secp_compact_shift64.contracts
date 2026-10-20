@@ -1,0 +1,51 @@
+### C.jet_secp_compact_shift64.compact_fun_shift64_sound
+compact_fun_shift64_sound
+     : forall (fuel : nat) (fd : Clight.function) (args : list jet_sx_expr.sx) (regs : list jet_sx_state.region)
+         (nv : nat) (result : jet_sx_exec.res)
+         (_ : @eq (option jet_sx_exec.res)
+                (jet_sx_compact.compact_fun (Clight.genv_cenv jet_secp_linkage.secp_ge)
+                   (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_shift64_executor.secp_shift64_table fuel fd
+                   args regs (@nil jet_sx_eval.event) nv) (@Some jet_sx_exec.res result))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Values.val
+            (fun vres : Values.val =>
+             and
+               (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m (@Ctypes.Internal Clight.function fd)
+                  (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) args) Events.E0 mf
+                  vres)
+               (and
+                  (jet_sx_state.rep rho beta
+                     (jet_sx_eval.sregs
+                        (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho (jet_sx_state.lay beta) result)))
+                     mf)
+                  (and
+                     match
+                       @Maps.PTree.get jet_sx_expr.sx BinNums.xH
+                         (jet_sx_eval.stemps
+                            (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                               (jet_sx_exec.rsel rho (jet_sx_state.lay beta) result))) return Prop
+                     with
+                     | Some x => @eq Values.val vres (jet_sx_expr.den rho (jet_sx_state.lay beta) x)
+                     | None => @eq Values.val vres Values.Vundef
+                     end
+                     (and
+                        (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape
+                              (jet_sx_eval.sregs
+                                 (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                                    (jet_sx_exec.rsel rho (jet_sx_state.lay beta) result))))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape regs))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape regs) b ofs)) m mf))))))

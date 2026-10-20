@@ -1,0 +1,183 @@
+### C.jet_full_subtract_word.full_subtract_representation_matches
+full_subtract_representation_matches
+     : forall (n : nat) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (x y payload : Ty.tySem (Word.Word n))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ n) payload)
+                (BinInt.Z.modulo
+                   (BinInt.Z.sub
+                      (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+                      (@Word.ToZ.Theory.toZ Word.BitToZ c)) (jet_predicate_spec.word_modulus n))),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word n)))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word n))
+            match
+              BinInt.Z.ltb
+                (BinInt.Z.sub
+                   (BinInt.Z.sub (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+                   (@Word.ToZ.Theory.toZ Word.BitToZ c)) BinNums.Z0 return (sum unit unit)
+            with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end payload)
+         (@jet_subtract_spec.full_subtract_word_spec Alg.CoreFunSem n
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) c
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+### C.jet_full_subtract_word.borrow_short_circuit
+borrow_short_circuit
+     : forall (a b c : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 c),
+       @eq bool (orb (BinInt.Z.ltb a b) (BinInt.Z.ltb (BinInt.Z.sub a b) c))
+         (BinInt.Z.ltb (BinInt.Z.sub (BinInt.Z.sub a b) c) BinNums.Z0)
+### C.jet_full_subtract_word.carrier_mod_difference_word
+carrier_mod_difference_word
+     : forall (n : nat) (carrier a b : BinNums.Z) (_ : BinInt.Z.lt BinNums.Z0 carrier)
+         (_ : BinInt.Z.divide (jet_predicate_spec.word_modulus n) carrier),
+       @eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.sub (BinInt.Z.modulo a carrier) b) (jet_predicate_spec.word_modulus n))
+         (BinInt.Z.modulo (BinInt.Z.sub a b) (jet_predicate_spec.word_modulus n))
+### C.jet_full_subtract_word.full_subtract8_first_borrow_numeric
+full_subtract8_first_borrow_numeric
+     : forall r t : Integers.Int.int,
+       @eq bool (full_subtract8_first_borrow r t)
+         (BinInt.Z.ltb (Integers.Int.unsigned (jet_add8.add8_u r)) (Integers.Int.unsigned (jet_add8.add8_u t)))
+### C.jet_full_subtract_word.full_subtract8_borrow_numeric
+full_subtract8_borrow_numeric
+     : forall (cin : bool) (r t : Integers.Int.int),
+       @eq bool (full_subtract8_borrow cin r t)
+         (BinInt.Z.ltb
+            (BinInt.Z.sub
+               (BinInt.Z.sub (Integers.Int.unsigned (jet_add8.add8_u r)) (Integers.Int.unsigned (jet_add8.add8_u t)))
+               (Integers.Int.unsigned (jet_readBit_layout.bit_int cin))) BinNums.Z0)
+### C.jet_full_subtract_word.full_subtract8_payload_numeric
+full_subtract8_payload_numeric
+     : forall (cin : bool) (r t : Integers.Int.int),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O))))
+            (jet_spec.decode_word8 (Integers.Int64.repr (Integers.Int.unsigned (full_subtract8_payload cin r t)))))
+         (BinInt.Z.modulo
+            (BinInt.Z.sub
+               (BinInt.Z.sub (Integers.Int.unsigned (jet_add8.add8_u r)) (Integers.Int.unsigned (jet_add8.add8_u t)))
+               (Integers.Int.unsigned (jet_readBit_layout.bit_int cin)))
+            (jet_predicate_spec.word_modulus (S (S (S O)))))
+### C.jet_full_subtract_word.full_subtract8_values_denote_spec
+full_subtract8_values_denote_spec
+     : forall (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) (left right : Integers.Int64.int),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S O))))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S O)))))
+            match
+              full_subtract8_borrow (Bit.toBool c) (jet_read8.read8_result left) (jet_read8.read8_result right)
+              return (sum unit unit)
+            with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (jet_spec.decode_word8
+               (Integers.Int64.repr
+                  (Integers.Int.unsigned
+                     (full_subtract8_payload (Bit.toBool c) (jet_read8.read8_result left)
+                        (jet_read8.read8_result right))))))
+         (@jet_subtract_spec.full_subtract_word_spec Alg.CoreFunSem (S (S (S O)))
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+               (prod (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Word (S (S (S O)))))) c
+               (@pair (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Word (S (S (S O)))))
+                  (jet_spec.decode_word8 left) (jet_spec.decode_word8 right))))
+### C.jet_full_subtract_word.wide_full_subtract_borrow_numeric
+wide_full_subtract_borrow_numeric
+     : forall (cin : bool) (r t : Integers.Int64.int),
+       @eq bool (wide_full_subtract_borrow cin r t)
+         (BinInt.Z.ltb
+            (BinInt.Z.sub (BinInt.Z.sub (Integers.Int64.unsigned r) (Integers.Int64.unsigned t))
+               (Integers.Int64.unsigned (jet_readBit_layout.bit_long cin))) BinNums.Z0)
+### C.jet_full_subtract_word.wide_full_subtract_payload_numeric
+wide_full_subtract_payload_numeric
+     : forall (s : jet_wide.wide_size) (cin : bool) (r t : Integers.Int64.int),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s))
+            (jet_wide_spec.decode_wide s
+               (Integers.Int64.zero_ext (jet_wide.wide_bits s) (wide_full_subtract_payload cin r t))))
+         (BinInt.Z.modulo
+            (BinInt.Z.sub (BinInt.Z.sub (Integers.Int64.unsigned r) (Integers.Int64.unsigned t))
+               (Integers.Int64.unsigned (jet_readBit_layout.bit_long cin)))
+            (jet_predicate_spec.word_modulus (jet_wide.wide_log s)))
+### C.jet_full_subtract_word.wide_full_subtract_values_denote_input
+wide_full_subtract_values_denote_input
+     : forall (s : jet_wide.wide_size) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (x y : Ty.tySem (Word.Word (jet_wide.wide_log s))) (r t : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned t) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) y)),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log s))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+            match wide_full_subtract_borrow (Bit.toBool c) r t return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (jet_wide_spec.decode_wide s
+               (Integers.Int64.zero_ext (jet_wide.wide_bits s) (wide_full_subtract_payload (Bit.toBool c) r t))))
+         (@jet_subtract_spec.full_subtract_word_spec Alg.CoreFunSem (jet_wide.wide_log s)
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+               (prod (Ty.tySem (Word.Word (jet_wide.wide_log s))) (Ty.tySem (Word.Word (jet_wide.wide_log s)))) c
+               (@pair (Ty.tySem (Word.Word (jet_wide.wide_log s))) (Ty.tySem (Word.Word (jet_wide.wide_log s))) x y)))
+### C.jet_full_subtract_word.full_subtract8_first_borrow
+full_subtract8_first_borrow =
+fun r t : Integers.Int.int => Integers.Int.ltu (jet_add8.add8_u r) (jet_add8.add8_u t)
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int), bool
+
+Arguments full_subtract8_first_borrow r t
+### C.jet_full_subtract_word.full_subtract8_diff
+full_subtract8_diff =
+fun r t : Integers.Int.int =>
+Integers.Int.sub (Integers.Int.mul Integers.Int.one (jet_add8.add8_u r)) (jet_add8.add8_u t)
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments full_subtract8_diff r t
+### C.jet_full_subtract_word.full_subtract8_second_borrow
+full_subtract8_second_borrow =
+fun (cin : bool) (r t : Integers.Int.int) =>
+Integers.Int.ltu (full_subtract8_diff r t) (jet_readBit_layout.bit_int cin)
+     : forall (_ : bool) (_ : Integers.Int.int) (_ : Integers.Int.int), bool
+
+Arguments full_subtract8_second_borrow cin%bool_scope r t
+### C.jet_full_subtract_word.full_subtract8_borrow
+full_subtract8_borrow =
+fun (cin : bool) (r t : Integers.Int.int) =>
+orb (full_subtract8_first_borrow r t) (full_subtract8_second_borrow cin r t)
+     : forall (_ : bool) (_ : Integers.Int.int) (_ : Integers.Int.int), bool
+
+Arguments full_subtract8_borrow cin%bool_scope r t
+### C.jet_full_subtract_word.full_subtract8_raw
+full_subtract8_raw =
+fun (cin : bool) (r t : Integers.Int.int) =>
+Integers.Int.sub (full_subtract8_diff r t) (jet_readBit_layout.bit_int cin)
+     : forall (_ : bool) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments full_subtract8_raw cin%bool_scope r t
+### C.jet_full_subtract_word.full_subtract8_payload
+full_subtract8_payload =
+fun (cin : bool) (r t : Integers.Int.int) =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (full_subtract8_raw cin r t)
+     : forall (_ : bool) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments full_subtract8_payload cin%bool_scope r t
+### C.jet_full_subtract_word.wide_full_subtract_first_borrow
+wide_full_subtract_first_borrow =
+fun r t : Integers.Int64.int => Integers.Int64.ltu r t
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments wide_full_subtract_first_borrow r t
+### C.jet_full_subtract_word.wide_full_subtract_second_borrow
+wide_full_subtract_second_borrow =
+fun (cin : bool) (r t : Integers.Int64.int) =>
+Integers.Int64.ltu (Integers.Int64.sub r t) (jet_readBit_layout.bit_long cin)
+     : forall (_ : bool) (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments wide_full_subtract_second_borrow cin%bool_scope r t
+### C.jet_full_subtract_word.wide_full_subtract_borrow
+wide_full_subtract_borrow =
+fun (cin : bool) (r t : Integers.Int64.int) =>
+orb (wide_full_subtract_first_borrow r t) (wide_full_subtract_second_borrow cin r t)
+     : forall (_ : bool) (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments wide_full_subtract_borrow cin%bool_scope r t
+### C.jet_full_subtract_word.wide_full_subtract_payload
+wide_full_subtract_payload =
+fun (cin : bool) (r t : Integers.Int64.int) =>
+Integers.Int64.sub (Integers.Int64.sub r t) (jet_readBit_layout.bit_long cin)
+     : forall (_ : bool) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments wide_full_subtract_payload cin%bool_scope r t

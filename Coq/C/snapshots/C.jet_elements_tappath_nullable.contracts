@@ -1,0 +1,192 @@
+### C.jet_elements_tappath_nullable.elements_tappath_nullable_128_unchanged
+elements_tappath_nullable_128_unchanged
+     : forall (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
+         (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)),
+       iff (elements_tappath_env_rep_nullable m env e fp)
+         (@ex Values.block
+            (fun be : Values.block =>
+             @ex BinNums.Z
+               (fun ebase : BinNums.Z =>
+                @ex Values.block
+                  (fun bt : Values.block =>
+                   @ex BinNums.Z
+                     (fun tbase : BinNums.Z =>
+                      @ex Values.block
+                        (fun bp : Values.block =>
+                         @ex BinNums.Z
+                           (fun pbase : BinNums.Z =>
+                            and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                              (and
+                                 (le
+                                    (@length Digest.hash256
+                                       (jet_elements_prim.tappath (jet_elements_prim.Elements.envTap e)))
+                                    (S (S (S (S (S (S (S (S (S (S (...))))))))))))
+                                 (and (BinInt.Z.le BinNums.Z0 ebase)
+                                    (and
+                                       (BinInt.Z.le
+                                          (BinInt.Z.add ebase
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                                          Integers.Ptrofs.max_unsigned)
+                                       (and (BinInt.Z.le BinNums.Z0 tbase)
+                                          (and
+                                             (BinInt.Z.le
+                                                (BinInt.Z.add tbase
+                                                   (BinNums.Zpos
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))
+                                                Integers.Ptrofs.max_unsigned)
+                                             (and (BinInt.Z.le BinNums.Z0 pbase)
+                                                (and
+                                                   (BinInt.Z.le
+                                                      (BinInt.Z.add pbase
+                                                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (...)))
+                                                            (BinInt.Z.of_nat (@length Digest.hash256 (...)))))
+                                                      Integers.Ptrofs.max_unsigned)
+                                                   (and
+                                                      (@eq (option Values.val)
+                                                         (Memory.Mem.load AST.Mptr m be
+                                                            (BinInt.Z.add ebase (BinNums.Zpos (...))))
+                                                         (@Some Values.val
+                                                            (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
+                                                      (and
+                                                         (forall _ : BinInt.Z.lt BinNums.Z0 (BinInt.Z.of_nat ...),
+                                                          @eq (option Values.val)
+                                                            (Memory.Mem.load AST.Mptr m bt
+                                                               (BinInt.Z.add tbase BinNums.Z0))
+                                                            (@Some Values.val (Values.Vptr bp ...)))
+                                                         (and
+                                                            (@eq (option Values.val)
+                                                               (Memory.Mem.load AST.Mint8unsigned m bt (...))
+                                                               (@Some Values.val (...)))
+                                                            (and
+                                                               (forall ... ... ...,
+                                                                jet_elements_hash_elem.hash_elem_rep m bp ... h)
+                                                               (@eq (...) fp (...))))))))))))))))))))
+### C.jet_elements_tappath_nullable.elements_tappath_rep_bounded_mono
+elements_tappath_rep_bounded_mono
+     : forall (small large : nat) (_ : le small large) (m : Memory.Mem.mem) (env : Values.val)
+         (e : jet_elements_prim.Elements.env) (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (_ : elements_tappath_env_rep_bounded small m env e fp), elements_tappath_env_rep_bounded large m env e fp
+### C.jet_elements_tappath_nullable.elements_tappath_nullable_in_u8
+elements_tappath_nullable_in_u8
+     : forall (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
+         (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (_ : elements_tappath_env_rep_nullable m env e fp),
+       elements_tappath_env_rep_u8 m env e fp
+### C.jet_elements_tappath_nullable.elements_tappath_env_rep_weaken
+elements_tappath_env_rep_weaken
+     : forall (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
+         (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (_ : jet_elements_tappath_local.elements_tappath_env_rep m env e fp),
+       elements_tappath_env_rep_nullable m env e fp
+### C.jet_elements_tappath_nullable.elements_tappath_bounded_local_spec
+elements_tappath_bounded_local_spec
+     : forall (limit : nat)
+         (_ : le limit (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_tappath
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (elements_tappath_env_rep_bounded limit)
+         (fun (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env) =>
+          @jet_elements_tappath_local.elements_tappath_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_tappath_nullable.elements_tappath_nullable_local_spec
+elements_tappath_nullable_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_tappath
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) elements_tappath_env_rep_nullable
+         (fun (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env) =>
+          @jet_elements_tappath_local.elements_tappath_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_tappath_nullable.elements_tappath_u8_local_spec
+elements_tappath_u8_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_tappath
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))) elements_tappath_env_rep_u8
+         (fun (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env) =>
+          @jet_elements_tappath_local.elements_tappath_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_tappath_nullable.elements_tappath_env_rep_bounded
+elements_tappath_env_rep_bounded =
+fun (limit : nat) (m : Memory.Mem.mem) (env : Values.val) (e : jet_elements_prim.Elements.env)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun tbase : BinNums.Z =>
+            @ex Values.block
+              (fun bp : Values.block =>
+               @ex BinNums.Z
+                 (fun pbase : BinNums.Z =>
+                  and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                    (and
+                       (le (@length Digest.hash256 (jet_elements_prim.tappath (jet_elements_prim.Elements.envTap e)))
+                          limit)
+                       (and (BinInt.Z.le BinNums.Z0 ebase)
+                          (and
+                             (BinInt.Z.le
+                                (BinInt.Z.add ebase
+                                   (BinNums.Zpos
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                                Integers.Ptrofs.max_unsigned)
+                             (and (BinInt.Z.le BinNums.Z0 tbase)
+                                (and
+                                   (BinInt.Z.le
+                                      (BinInt.Z.add tbase
+                                         (BinNums.Zpos
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))
+                                      Integers.Ptrofs.max_unsigned)
+                                   (and (BinInt.Z.le BinNums.Z0 pbase)
+                                      (and
+                                         (BinInt.Z.le
+                                            (BinInt.Z.add pbase
+                                               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO ...)))
+                                                  (BinInt.Z.of_nat
+                                                     (@length Digest.hash256 (jet_elements_prim.tappath ...)))))
+                                            Integers.Ptrofs.max_unsigned)
+                                         (and
+                                            (@eq (option Values.val)
+                                               (Memory.Mem.load AST.Mptr m be
+                                                  (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO ...))))
+                                               (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
+                                            (and
+                                               (forall _ : BinInt.Z.lt BinNums.Z0 (BinInt.Z.of_nat (...)),
+                                                @eq (option Values.val)
+                                                  (Memory.Mem.load AST.Mptr m bt (BinInt.Z.add tbase BinNums.Z0))
+                                                  (@Some Values.val (Values.Vptr bp (...))))
+                                               (and
+                                                  (@eq (option Values.val)
+                                                     (Memory.Mem.load AST.Mint8unsigned m bt (BinInt.Z.add tbase ...))
+                                                     (@Some Values.val (Values.Vint ...)))
+                                                  (and
+                                                     (forall (j : nat) (h : Digest.hash256) (_ : ...),
+                                                      jet_elements_hash_elem.hash_elem_rep m bp (...) h)
+                                                     (@eq (list ...) fp (@cons ... ... ...)))))))))))))))))))
+     : forall (_ : nat) (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments elements_tappath_env_rep_bounded limit%nat_scope m env e fp%list_scope
+### C.jet_elements_tappath_nullable.elements_tappath_env_rep_nullable
+elements_tappath_env_rep_nullable =
+elements_tappath_env_rep_bounded
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments elements_tappath_env_rep_nullable m env e fp%list_scope
+### C.jet_elements_tappath_nullable.elements_tappath_env_rep_u8
+elements_tappath_env_rep_u8 =
+elements_tappath_env_rep_bounded
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments elements_tappath_env_rep_u8 m env e fp%list_scope

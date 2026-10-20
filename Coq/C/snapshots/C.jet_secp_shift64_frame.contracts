@@ -1,0 +1,35 @@
+### C.jet_secp_shift64_frame.shift64_event_tag
+shift64_event_tag
+     : forall (base : nat) (xs : list jet_sx_expr.sx) (regs regs' : list jet_sx_state.region)
+         (v : option jet_sx_expr.sx) (tag cnt : nat) (args : list jet_sx_expr.sx) (log : list jet_sx_eval.event)
+         (_ : @eq
+                (option
+                   (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                      (list jet_sx_expr.sx))) (jet_secp_u128_shift64_oracle.u128_shift64_oracle base log xs regs)
+                (@Some
+                   (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                      (list jet_sx_expr.sx))
+                   (@pair (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                      (list jet_sx_expr.sx)
+                      (@pair (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat
+                         (@pair (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat
+                            (@pair (list jet_sx_state.region) (option jet_sx_expr.sx) regs' v) tag) cnt) args))),
+       @eq nat tag O
+### C.jet_secp_shift64_frame.invA_append_nonwrite
+invA_append_nonwrite
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (rc : BinNums.Z) (w0 : bool) (outs0 : list BitMachine.Cell)
+         (cap : BinNums.Z) (rho : forall _ : nat, Integers.Int64.int) (log : list jet_sx_eval.event)
+         (m : Memory.Mem.mem) (ev : jet_sx_eval.event) (_ : @eq bool (jet_secp_frame.is_wr ev) false)
+         (_ : jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc w0 outs0 cap rho log m),
+       jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc w0 outs0 cap rho
+         (@app jet_sx_eval.event log (@cons jet_sx_eval.event ev (@nil jet_sx_eval.event))) m
+### C.jet_secp_shift64_frame.shift64_frame_oracle
+shift64_frame_oracle
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (rc : BinNums.Z) (w0 : bool) (outs0 : list BitMachine.Cell)
+         (cap : BinNums.Z) (evok : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event), Prop)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N),
+       jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge evok
+         (jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc w0 outs0 cap) (jet_secp_frame.extA m0 bd bw bi)
+         jets_secp.f_secp256k1_u128_rshift jet_secp_u128_shift64_oracle.u128_shift64_oracle

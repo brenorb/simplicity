@@ -1,0 +1,424 @@
+### C.jet_sx_state.chunk_eqb_eq
+chunk_eqb_eq
+     : forall (a b : AST.memory_chunk) (_ : @eq bool (chunk_eqb a b) true), @eq AST.memory_chunk a b
+### C.jet_sx_state.size_chunk_pos'
+size_chunk_pos'
+     : forall ch : AST.memory_chunk, BinInt.Z.lt BinNums.Z0 (Memdata.size_chunk ch)
+### C.jet_sx_state.cell_at_true
+cell_at_true
+     : forall (c : cell) (d : BinNums.Z) (ch : AST.memory_chunk) (_ : @eq bool (cell_at c d ch) true),
+       and (@eq BinNums.Z (cofs c) d) (@eq AST.memory_chunk (cchunk c) ch)
+### C.jet_sx_state.find_cell_In
+find_cell_In
+     : forall (cs : list cell) (d : BinNums.Z) (ch : AST.memory_chunk) (c : cell)
+         (_ : @eq (option cell) (find_cell cs d ch) (@Some cell c)),
+       and (@List.In cell c cs) (and (@eq BinNums.Z (cofs c) d) (@eq AST.memory_chunk (cchunk c) ch))
+### C.jet_sx_state.sorted_lower
+sorted_lower
+     : forall (lo : BinNums.Z) (cs : list cell) (c : cell) (_ : @eq bool (cells_sorted lo cs) true)
+         (_ : @List.In cell c cs), BinInt.Z.le lo (cofs c)
+### C.jet_sx_state.sorted_disj
+sorted_disj
+     : forall (lo : BinNums.Z) (cs : list cell) (c1 c2 : cell) (_ : @eq bool (cells_sorted lo cs) true)
+         (_ : @List.In cell c1 cs) (_ : @List.In cell c2 cs),
+       or (@eq cell c1 c2)
+         (or (BinInt.Z.le (BinInt.Z.add (cofs c1) (Memdata.size_chunk (cchunk c1))) (cofs c2))
+            (BinInt.Z.le (BinInt.Z.add (cofs c2) (Memdata.size_chunk (cchunk c2))) (cofs c1)))
+### C.jet_sx_state.sorted_unique
+sorted_unique
+     : forall (lo : BinNums.Z) (cs : list cell) (c1 c2 : cell) (_ : @eq bool (cells_sorted lo cs) true)
+         (_ : @List.In cell c1 cs) (_ : @List.In cell c2 cs) (_ : @eq BinNums.Z (cofs c1) (cofs c2)),
+       @eq cell c1 c2
+### C.jet_sx_state.set_cell_sorted
+set_cell_sorted
+     : forall (lo : BinNums.Z) (cs : list cell) (d : BinNums.Z) (ch : AST.memory_chunk) (v : option jet_sx_expr.sx)
+         (_ : @eq bool (cells_sorted lo cs) true), @eq bool (cells_sorted lo (set_cell cs d ch v)) true
+### C.jet_sx_state.set_cell_In
+set_cell_In
+     : forall (cs : list cell) (d : BinNums.Z) (ch : AST.memory_chunk) (v : option jet_sx_expr.sx)
+         (c : cell) (_ : @List.In cell c (set_cell cs d ch v)), or (@eq cell c (mkcell d ch v)) (@List.In cell c cs)
+### C.jet_sx_state.set_cell_new
+set_cell_new
+     : forall (cs : list cell) (d : BinNums.Z) (ch : AST.memory_chunk) (v : option jet_sx_expr.sx)
+         (c : cell) (_ : @eq (option cell) (find_cell cs d ch) (@Some cell c)),
+       @List.In cell (mkcell d ch v) (set_cell cs d ch v)
+### C.jet_sx_state.set_cell_shape
+set_cell_shape
+     : forall (cs : list cell) (d : BinNums.Z) (ch : AST.memory_chunk) (v : option jet_sx_expr.sx),
+       @eq (list (prod BinNums.Z AST.memory_chunk))
+         (@List.map cell (prod BinNums.Z AST.memory_chunk) cshape (set_cell cs d ch v))
+         (@List.map cell (prod BinNums.Z AST.memory_chunk) cshape cs)
+### C.jet_sx_state.shape_In
+shape_In
+     : forall (cs cs' : list cell) (c' : cell)
+         (_ : @eq (list (prod BinNums.Z AST.memory_chunk))
+                (@List.map cell (prod BinNums.Z AST.memory_chunk) cshape cs')
+                (@List.map cell (prod BinNums.Z AST.memory_chunk) cshape cs)) (_ : @List.In cell c' cs'),
+       @ex cell
+         (fun c : cell =>
+          and (@List.In cell c cs)
+            (and (@eq BinNums.Z (cofs c) (cofs c')) (@eq AST.memory_chunk (cchunk c) (cchunk c'))))
+### C.jet_sx_state.rsep_shape
+rsep_shape
+     : forall (β : layout) (regs regs' : list region)
+         (_ : @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                (@List.map region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) rshape
+                   regs')
+                (@List.map region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) rshape
+                   regs)) (_ : rsep β regs), rsep β regs'
+### C.jet_sx_state.upd_length
+@upd_length
+     : forall (A : Type) (l : list A) (i : nat) (v : A), @eq nat (@length A (@upd A l i v)) (@length A l)
+### C.jet_sx_state.upd_same
+@upd_same
+     : forall (A : Type) (l : list A) (i : nat) (v x : A) (_ : @eq (option A) (@List.nth_error A l i) (@Some A x)),
+       @eq (option A) (@List.nth_error A (@upd A l i v) i) (@Some A v)
+### C.jet_sx_state.upd_other
+@upd_other
+     : forall (A : Type) (l : list A) (i j : nat) (v : A) (_ : not (@eq nat i j)),
+       @eq (option A) (@List.nth_error A (@upd A l i v) j) (@List.nth_error A l j)
+### C.jet_sx_state.upd_map_id
+@upd_map_id
+     : forall (A B : Type) (f : forall _ : A, B) (l : list A) (i : nat) (v x : A)
+         (_ : @eq (option A) (@List.nth_error A l i) (@Some A x)) (_ : @eq B (f v) (f x)),
+       @eq (list B) (@List.map A B f (@upd A l i v)) (@List.map A B f l)
+### C.jet_sx_state.blk_inj
+blk_inj
+     : forall (β : list (prod Values.block BinNums.Z)) (r1 r2 : nat)
+         (_ : @Coqlib.list_norepet Values.block
+                (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) β))
+         (_ : lt r1 (@length (prod Values.block BinNums.Z) β)) (_ : lt r2 (@length (prod Values.block BinNums.Z) β))
+         (_ : @eq Values.block (blk β r1) (blk β r2)), @eq nat r1 r2
+### C.jet_sx_state.xstore_shape
+xstore_shape
+     : forall (regs : list region) (r : nat) (d : BinNums.Z) (ch : AST.memory_chunk) (x : jet_sx_expr.sx)
+         (regs' : list region) (_ : @eq (option (list region)) (xstore regs r d ch x) (@Some (list region) regs')),
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) rshape regs')
+         (@List.map region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) rshape regs)
+### C.jet_sx_state.xstore_sound
+xstore_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : layout) (regs : list region) (m : Memory.Mem.mem)
+         (r : nat) (d : BinNums.Z) (ch : AST.memory_chunk) (x : jet_sx_expr.sx) (regs' : list region)
+         (_ : rep ρ β regs m) (_ : @eq (option (list region)) (xstore regs r d ch x) (@Some (list region) regs')),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (Memory.Mem.store ch m (blk β r) (BinInt.Z.add (bas β r) d) (jet_sx_expr.den ρ (lay β) x))
+               (@Some Memory.Mem.mem m'))
+            (and
+               (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add (bas β r) d))
+                  (BinInt.Z.le (BinInt.Z.add (bas β r) d) Integers.Ptrofs.max_unsigned))
+               (and (rep ρ β regs' m')
+                  (Memory.Mem.unchanged_on
+                     (fun (b : Values.block) (o : BinNums.Z) =>
+                      not
+                        (foot β
+                           (@List.map region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) rshape
+                              regs) b o)) m m'))))
+### C.jet_sx_state.xload_sound
+xload_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : layout) (regs : list region) (m : Memory.Mem.mem)
+         (r : nat) (d : BinNums.Z) (ch : AST.memory_chunk) (c : cell) (reg : region) (x : jet_sx_expr.sx)
+         (_ : rep ρ β regs m) (_ : @eq (option region) (@List.nth_error region regs r) (@Some region reg))
+         (_ : @eq (option cell) (find_cell (rcells reg) d ch) (@Some cell c))
+         (_ : @eq (option jet_sx_expr.sx) (cval c) (@Some jet_sx_expr.sx x)),
+       and
+         (@eq (option Values.val) (Memory.Mem.load ch m (blk β r) (BinInt.Z.add (bas β r) d))
+            (@Some Values.val (jet_sx_expr.den ρ (lay β) x)))
+         (and (BinInt.Z.le BinNums.Z0 (BinInt.Z.add (bas β r) d))
+            (BinInt.Z.le (BinInt.Z.add (bas β r) d) Integers.Ptrofs.max_unsigned))
+### C.jet_sx_state.cell
+Variant cell : Type :=  mkcell : forall (_ : BinNums.Z) (_ : AST.memory_chunk) (_ : option jet_sx_expr.sx), cell.
+
+Arguments mkcell cofs%Z_scope cchunk cval
+### C.jet_sx_state.region
+Variant region : Type :=  mkreg : forall (_ : list cell) (_ : bool) (_ : option BinNums.Z), region.
+
+Arguments mkreg rcells%list_scope rw%bool_scope rfree
+### C.jet_sx_state.layout
+layout = list (prod Values.block BinNums.Z)
+     : Type
+### C.jet_sx_state.lay
+lay =
+fun (β : layout) (r : nat) =>
+@List.nth (prod Values.block BinNums.Z) r β (@pair BinNums.positive BinNums.Z BinNums.xH BinNums.Z0)
+     : forall (_ : layout) (_ : nat), prod Values.block BinNums.Z
+
+Arguments lay β r%nat_scope
+### C.jet_sx_state.blk
+blk =
+fun (β : layout) (r : nat) => @fst Values.block BinNums.Z (lay β r)
+     : forall (_ : layout) (_ : nat), Values.block
+
+Arguments blk β r%nat_scope
+### C.jet_sx_state.bas
+bas =
+fun (β : layout) (r : nat) => @snd Values.block BinNums.Z (lay β r)
+     : forall (_ : layout) (_ : nat), BinNums.Z
+
+Arguments bas β r%nat_scope
+### C.jet_sx_state.chunk_eqb
+chunk_eqb =
+fun a b : AST.memory_chunk => match AST.chunk_eq a b return bool with
+                              | left _ => true
+                              | right _ => false
+                              end
+     : forall (_ : AST.memory_chunk) (_ : AST.memory_chunk), bool
+
+Arguments chunk_eqb a b
+### C.jet_sx_state.cell_at
+cell_at =
+fun (c : cell) (d : BinNums.Z) (ch : AST.memory_chunk) => andb (BinInt.Z.eqb (cofs c) d) (chunk_eqb (cchunk c) ch)
+     : forall (_ : cell) (_ : BinNums.Z) (_ : AST.memory_chunk), bool
+
+Arguments cell_at c d%Z_scope ch
+### C.jet_sx_state.find_cell
+find_cell =
+fix find_cell (cs : list cell) (d : BinNums.Z) (ch : AST.memory_chunk) {struct cs} : option cell :=
+  match cs return (option cell) with
+  | nil => @None cell
+  | cons c t => match cell_at c d ch return (option cell) with
+                | true => @Some cell c
+                | false => find_cell t d ch
+                end
+  end
+     : forall (_ : list cell) (_ : BinNums.Z) (_ : AST.memory_chunk), option cell
+
+Arguments find_cell cs%list_scope d%Z_scope ch
+### C.jet_sx_state.set_cell
+set_cell =
+fix set_cell (cs : list cell) (d : BinNums.Z) (ch : AST.memory_chunk) (v : option jet_sx_expr.sx) {struct cs} :
+    list cell :=
+  match cs return (list cell) with
+  | nil => @nil cell
+  | cons c t =>
+      match cell_at c d ch return (list cell) with
+      | true => @cons cell (mkcell d ch v) t
+      | false => @cons cell c (set_cell t d ch v)
+      end
+  end
+     : forall (_ : list cell) (_ : BinNums.Z) (_ : AST.memory_chunk) (_ : option jet_sx_expr.sx), list cell
+
+Arguments set_cell cs%list_scope d%Z_scope ch v
+### C.jet_sx_state.cells_sorted
+cells_sorted =
+fix cells_sorted (lo : BinNums.Z) (cs : list cell) {struct cs} : bool :=
+  match cs return bool with
+  | nil => true
+  | cons c t =>
+      andb (BinInt.Z.leb lo (cofs c)) (cells_sorted (BinInt.Z.add (cofs c) (Memdata.size_chunk (cchunk c))) t)
+  end
+     : forall (_ : BinNums.Z) (_ : list cell), bool
+
+Arguments cells_sorted lo%Z_scope cs%list_scope
+### C.jet_sx_state.cshape
+cshape =
+fun c : cell => @pair BinNums.Z AST.memory_chunk (cofs c) (cchunk c)
+     : forall _ : cell, prod BinNums.Z AST.memory_chunk
+
+Arguments cshape c
+### C.jet_sx_state.rshape
+rshape =
+fun reg : region =>
+@pair (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)
+  (@pair (list (prod BinNums.Z AST.memory_chunk)) bool
+     (@List.map cell (prod BinNums.Z AST.memory_chunk) cshape (rcells reg)) (rw reg)) (rfree reg)
+     : forall _ : region, prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)
+
+Arguments rshape reg
+### C.jet_sx_state.xp_le
+xp_le =
+fun (r : nat) (x : jet_sx_expr.sx) =>
+match x return bool with
+| jet_sx_expr.XI _ => true
+| jet_sx_expr.XIc _ => true
+| jet_sx_expr.XL _ => true
+| jet_sx_expr.XLc _ => true
+| jet_sx_expr.XLv _ => true
+| jet_sx_expr.XV _ => true
+| jet_sx_expr.XA _ _ => true
+| jet_sx_expr.XP r' _ => PeanoNat.Nat.leb r' r
+| jet_sx_expr.XIb _ _ _ => true
+| jet_sx_expr.XLb _ _ _ => true
+| jet_sx_expr.XIsh _ _ _ => true
+| jet_sx_expr.XLsh _ _ _ => true
+| jet_sx_expr.XIcmp _ _ _ _ => true
+| jet_sx_expr.XLcmp _ _ _ _ => true
+| jet_sx_expr.XI2L _ _ => true
+| jet_sx_expr.XL2I _ => true
+| jet_sx_expr.XIcast _ _ _ => true
+| jet_sx_expr.XInz _ => true
+| jet_sx_expr.XLnz _ => true
+| jet_sx_expr.XIz _ => true
+| jet_sx_expr.XLz _ => true
+| jet_sx_expr.XIneg _ => true
+| jet_sx_expr.XLneg _ => true
+| jet_sx_expr.XInot _ => true
+| jet_sx_expr.XLnot _ => true
+end
+     : forall (_ : nat) (_ : jet_sx_expr.sx), bool
+
+Arguments xp_le r%nat_scope x
+### C.jet_sx_state.cell_ok
+cell_ok =
+fun (ρ : forall _ : nat, Integers.Int64.int) (β : layout) (m : Memory.Mem.mem) (r : nat) (w : bool) (c : cell) =>
+and
+  (BinInt.Z.le (BinInt.Z.add (BinInt.Z.add (bas β r) (cofs c)) (Memdata.size_chunk (cchunk c)))
+     Integers.Ptrofs.max_unsigned)
+  (and (BinInt.Z.divide (Memdata.align_chunk (cchunk c)) (BinInt.Z.add (bas β r) (cofs c)))
+     (and
+        (Memory.Mem.range_perm m (blk β r) (BinInt.Z.add (bas β r) (cofs c))
+           (BinInt.Z.add (BinInt.Z.add (bas β r) (cofs c)) (Memdata.size_chunk (cchunk c))) Memtype.Cur
+           match w return Memtype.permission with
+           | true => Memtype.Writable
+           | false => Memtype.Readable
+           end)
+        (forall (x : jet_sx_expr.sx) (_ : @eq (option jet_sx_expr.sx) (cval c) (@Some jet_sx_expr.sx x)),
+         and
+           (@eq (option Values.val) (Memory.Mem.load (cchunk c) m (blk β r) (BinInt.Z.add (bas β r) (cofs c)))
+              (@Some Values.val (jet_sx_expr.den ρ (lay β) x))) (@eq bool (xp_le r x) true))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : layout) (_ : Memory.Mem.mem) (_ : nat)
+         (_ : bool) (_ : cell), Prop
+
+Arguments cell_ok ρ%function_scope β m r%nat_scope w%bool_scope c
+### C.jet_sx_state.region_ok
+region_ok =
+fun (ρ : forall _ : nat, Integers.Int64.int) (β : layout) (m : Memory.Mem.mem) (r : nat) (reg : region) =>
+and (BinInt.Z.le BinNums.Z0 (bas β r))
+  (and (Memory.Mem.valid_block m (blk β r))
+     (and (@eq bool (cells_sorted BinNums.Z0 (rcells reg)) true)
+        (and (@List.Forall cell (cell_ok ρ β m r (rw reg)) (rcells reg))
+           match rfree reg return Prop with
+           | Some sz =>
+               and (@eq BinNums.Z (bas β r) BinNums.Z0)
+                 (and (@eq bool (rw reg) true)
+                    (and (Memory.Mem.range_perm m (blk β r) BinNums.Z0 sz Memtype.Cur Memtype.Freeable)
+                       (@List.Forall cell
+                          (fun c : cell => BinInt.Z.le (BinInt.Z.add (cofs c) (Memdata.size_chunk (cchunk c))) sz)
+                          (rcells reg))))
+           | None => True
+           end)))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : layout) (_ : Memory.Mem.mem) (_ : nat) (_ : region), Prop
+
+Arguments region_ok ρ%function_scope β m r%nat_scope reg
+### C.jet_sx_state.rsep
+rsep =
+fun (β : layout) (regs : list region) =>
+forall (r1 r2 : nat) (reg1 reg2 : region) (_ : not (@eq nat r1 r2))
+  (_ : @eq (option region) (@List.nth_error region regs r1) (@Some region reg1))
+  (_ : @eq (option region) (@List.nth_error region regs r2) (@Some region reg2)),
+or (not (@eq Values.block (blk β r1) (blk β r2)))
+  (and (@eq (option BinNums.Z) (rfree reg1) (@None BinNums.Z))
+     (and (@eq (option BinNums.Z) (rfree reg2) (@None BinNums.Z))
+        (forall (c1 c2 : cell) (_ : @List.In cell c1 (rcells reg1)) (_ : @List.In cell c2 (rcells reg2)),
+         or
+           (BinInt.Z.le (BinInt.Z.add (BinInt.Z.add (bas β r1) (cofs c1)) (Memdata.size_chunk (cchunk c1)))
+              (BinInt.Z.add (bas β r2) (cofs c2)))
+           (BinInt.Z.le (BinInt.Z.add (BinInt.Z.add (bas β r2) (cofs c2)) (Memdata.size_chunk (cchunk c2)))
+              (BinInt.Z.add (bas β r1) (cofs c1))))))
+     : forall (_ : layout) (_ : list region), Prop
+
+Arguments rsep β regs%list_scope
+### C.jet_sx_state.rep
+rep =
+fun (ρ : forall _ : nat, Integers.Int64.int) (β : layout) (regs : list region) (m : Memory.Mem.mem) =>
+and (@eq nat (@length (prod Values.block BinNums.Z) β) (@length region regs))
+  (and (rsep β regs)
+     (forall (r : nat) (reg : region) (_ : @eq (option region) (@List.nth_error region regs r) (@Some region reg)),
+      region_ok ρ β m r reg))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : layout) (_ : list region) (_ : Memory.Mem.mem), Prop
+
+Arguments rep ρ%function_scope β regs%list_scope m
+### C.jet_sx_state.foot
+foot =
+fun (β : layout) (sh : list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+  (b : Values.block) (o : BinNums.Z) =>
+@ex nat
+  (fun r : nat =>
+   @ex (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+     (fun s : prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z) =>
+      @ex BinNums.Z
+        (fun d : BinNums.Z =>
+         @ex AST.memory_chunk
+           (fun ch : AST.memory_chunk =>
+            and
+              (@eq (option (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                 (@List.nth_error (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) sh r)
+                 (@Some (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) s))
+              (and
+                 (@List.In (prod BinNums.Z AST.memory_chunk) (@pair BinNums.Z AST.memory_chunk d ch)
+                    (@fst (list (prod BinNums.Z AST.memory_chunk)) bool
+                       (@fst (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z) s)))
+                 (and (@eq Values.block b (blk β r))
+                    (and (BinInt.Z.le (BinInt.Z.add (bas β r) d) o)
+                       (BinInt.Z.lt o (BinInt.Z.add (BinInt.Z.add (bas β r) d) (Memdata.size_chunk ch))))))))))
+     : forall (_ : layout) (_ : list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments foot β sh%list_scope b o%Z_scope
+### C.jet_sx_state.upd
+upd =
+fix upd (A : Type) (l : list A) (i : nat) (v : A) {struct l} : list A :=
+  match l return (list A) with
+  | nil => @nil A
+  | cons x t => match i return (list A) with
+                | O => @cons A v t
+                | S i0 => @cons A x (upd A t i0 v)
+                end
+  end
+     : forall (A : Type) (_ : list A) (_ : nat) (_ : A), list A
+
+Arguments upd {A}%type_scope l%list_scope i%nat_scope v
+### C.jet_sx_state.xstore
+xstore =
+fun (regs : list region) (r : nat) (d : BinNums.Z) (ch : AST.memory_chunk) (x : jet_sx_expr.sx) =>
+match @List.nth_error region regs r return (option (list region)) with
+| Some reg =>
+    match rw reg return (option (list region)) with
+    | true =>
+        match find_cell (rcells reg) d ch return (option (list region)) with
+        | Some _ =>
+            match jet_sx_expr.xnorm ch x return (option (list region)) with
+            | Some x' =>
+                match xp_le r x' return (option (list region)) with
+                | true =>
+                    @Some (list region)
+                      (@upd region regs r
+                         (mkreg (set_cell (rcells reg) d ch (@Some jet_sx_expr.sx x')) (rw reg) (rfree reg)))
+                | false => @None (list region)
+                end
+            | None => @None (list region)
+            end
+        | None => @None (list region)
+        end
+    | false => @None (list region)
+    end
+| None => @None (list region)
+end
+     : forall (_ : list region) (_ : nat) (_ : BinNums.Z) (_ : AST.memory_chunk) (_ : jet_sx_expr.sx),
+       option (list region)
+
+Arguments xstore regs%list_scope r%nat_scope d%Z_scope ch x
+### C.jet_sx_state.xload
+xload =
+fun (regs : list region) (r : nat) (d : BinNums.Z) (ty : Ctypes.type) =>
+match Ctypes.access_mode ty return (option jet_sx_expr.sx) with
+| Ctypes.By_value ch =>
+    match @List.nth_error region regs r return (option jet_sx_expr.sx) with
+    | Some reg =>
+        match find_cell (rcells reg) d ch return (option jet_sx_expr.sx) with
+        | Some c => cval c
+        | None => @None jet_sx_expr.sx
+        end
+    | None => @None jet_sx_expr.sx
+    end
+| Ctypes.By_reference => @Some jet_sx_expr.sx (jet_sx_expr.XP r d)
+| Ctypes.By_copy => @Some jet_sx_expr.sx (jet_sx_expr.XP r d)
+| Ctypes.By_nothing => @None jet_sx_expr.sx
+end
+     : forall (_ : list region) (_ : nat) (_ : BinNums.Z) (_ : Ctypes.type), option jet_sx_expr.sx
+
+Arguments xload regs%list_scope r%nat_scope d%Z_scope ty

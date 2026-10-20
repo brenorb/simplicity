@@ -1,0 +1,50 @@
+### C.jet_secp_statement_prefix.split_statement_last_exact
+split_statement_last_exact
+     : forall s : Clight.statement,
+       @eq Clight.statement
+         (statement_sequence (@fst (list Clight.statement) Clight.statement (split_statement_last s))
+            (@snd (list Clight.statement) Clight.statement (split_statement_last s))) s
+### C.jet_secp_statement_prefix.exec_statement_prefix_then_last
+exec_statement_prefix_then_last
+     : forall (ge : Clight.genv) (e : Clight.env) (prefix : list Clight.statement) (last : Clight.statement)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (le1 : Clight.temp_env) (m1 : Memory.Mem.mem)
+         (le2 : Clight.temp_env) (m2 : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m (statement_sequence prefix Clight.Sskip) Events.E0 le1 m1
+                ClightBigstep.Out_normal) (_ : ClightBigstep.Clight2.exec_stmt ge e le1 m1 last Events.E0 le2 m2 out),
+       ClightBigstep.Clight2.exec_stmt ge e le m (statement_sequence prefix last) Events.E0 le2 m2 out
+### C.jet_secp_statement_prefix.split_statement_last
+split_statement_last =
+fix split_statement_last (s : Clight.statement) : prod (list Clight.statement) Clight.statement :=
+  match s return (prod (list Clight.statement) Clight.statement) with
+  | Clight.Sskip => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Sassign _ _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Sset _ _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Scall _ _ _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Sbuiltin _ _ _ _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Ssequence first_stmt rest_stmt =>
+      match split_statement_last rest_stmt return (prod (list Clight.statement) Clight.statement) with
+      | pair prefix last =>
+          @pair (list Clight.statement) Clight.statement (@cons Clight.statement first_stmt prefix) last
+      end
+  | Clight.Sifthenelse _ _ _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Sloop _ _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Sbreak => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Scontinue => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Sreturn _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Sswitch _ _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Slabel _ _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  | Clight.Sgoto _ => @pair (list Clight.statement) Clight.statement (@nil Clight.statement) s
+  end
+     : forall _ : Clight.statement, prod (list Clight.statement) Clight.statement
+
+Arguments split_statement_last s
+### C.jet_secp_statement_prefix.statement_sequence
+statement_sequence =
+fix statement_sequence (prefix : list Clight.statement) (last : Clight.statement) {struct prefix} : Clight.statement :=
+  match prefix return Clight.statement with
+  | nil => last
+  | cons head tail => Clight.Ssequence head (statement_sequence tail last)
+  end
+     : forall (_ : list Clight.statement) (_ : Clight.statement), Clight.statement
+
+Arguments statement_sequence prefix%list_scope last

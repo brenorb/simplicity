@@ -1,0 +1,152 @@
+### C.jet_secp_scalar_add_values.scalar_add_raw_length
+scalar_add_raw_length
+     : @eq nat (@length jet_sx_expr.sx scalar_add_raw) (S (S (S (S O))))
+### C.jet_secp_scalar_add_values.scalar_add_raw_sigma_kind
+scalar_add_raw_sigma_kind
+     : forall n : nat, @eq bool (jet_sx_expr.isk jet_sx_expr.KL (scalar_add_raw_sigma n)) true
+### C.jet_secp_scalar_add_values.scalar_add_overflow_kind
+scalar_add_overflow_kind
+     : @eq bool (jet_sx_expr.isk jet_sx_expr.KI scalar_add_overflow_sx) true
+### C.jet_secp_scalar_add_values.scalar_add_flag_exact
+scalar_add_flag_exact
+     : @eq jet_sx_expr.sx jet_secp_scalar_add_run.scalar_add_return_sx scalar_add_flag
+### C.jet_secp_scalar_add_values.scalar_add_reduction_exact
+scalar_add_reduction_exact
+     : @eq (list jet_sx_expr.sx) jet_secp_scalar_add_exec.scalar_add_limbs
+         (@List.map jet_sx_expr.sx jet_sx_expr.sx scalar_add_instantiate
+            (@cons jet_sx_expr.sx jet_secp_scalar_reduce_numeric.scalar_reduce_low0
+               (@cons jet_sx_expr.sx jet_secp_scalar_reduce_numeric.scalar_reduce_low1
+                  (@cons jet_sx_expr.sx jet_secp_scalar_reduce_numeric.scalar_reduce_low2
+                     (@cons jet_sx_expr.sx jet_secp_scalar_reduce_numeric.scalar_reduce_low3 (@nil jet_sx_expr.sx))))))
+### C.jet_secp_scalar_add_values.scalar_add_raw_sigma_value
+scalar_add_raw_sigma_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (n : nat),
+       @eq Values.val (jet_sx_expr.den rho layout (scalar_add_raw_sigma n))
+         (Values.Vlong (scalar_add_raw_rho rho layout n))
+### C.jet_secp_scalar_add_values.scalar_add_reduction_sigma_kind
+scalar_add_reduction_sigma_kind
+     : forall n : nat, @eq bool (jet_sx_expr.isk jet_sx_expr.KL (scalar_add_reduction_sigma n)) true
+### C.jet_secp_scalar_add_values.scalar_add_reduction_sigma_value
+scalar_add_reduction_sigma_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (n : nat),
+       @eq Values.val (jet_sx_expr.den rho layout (scalar_add_reduction_sigma n))
+         (Values.Vlong (scalar_add_reduction_rho rho layout n))
+### C.jet_secp_scalar_add_values.scalar_add_bound_flag
+scalar_add_bound_flag
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout scalar_add_flag)
+         (Values.Vint (Integers.Int64.loword (scalar_add_reduction_rho rho layout (S (S (S (S O)))))))
+### C.jet_secp_scalar_add_values.scalar_add_bound_value
+scalar_add_bound_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (x : jet_sx_expr.sx),
+       @eq Values.val (jet_sx_expr.den rho layout (scalar_add_instantiate x))
+         (jet_sx_expr.den (scalar_add_reduction_rho rho layout) layout x)
+### C.jet_secp_scalar_add_values.scalar_add_actual_overflow
+scalar_add_actual_overflow
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout scalar_add_overflow_sx)
+         (Values.Vint
+            (jet_sx_expr.b2i
+               (BinInt.Z.leb jet_secp_canonical_scalar.canonical_group_order
+                  (jet_secp_scalar_overflow_numeric.scalar_limb_value (scalar_add_raw_rho rho layout)))))
+### C.jet_secp_scalar_add_values.scalar_add_reduction_input_value
+scalar_add_reduction_input_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq BinNums.Z (jet_secp_scalar_overflow_numeric.scalar_limb_value (scalar_add_reduction_rho rho layout))
+         (jet_secp_scalar_overflow_numeric.scalar_limb_value (scalar_add_raw_rho rho layout))
+### C.jet_secp_scalar_add_values.scalar_add_low0
+scalar_add_low0 =
+jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv O) (jet_sx_expr.XLv (S (S (S (S O)))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_high0
+scalar_add_high0 =
+jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.zero))
+  (jet_secp_scalar_reduce_numeric.scalar_carry_sx (jet_sx_expr.XLv O) (jet_sx_expr.XLv (S (S (S (S O))))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_low1
+scalar_add_low1 =
+jet_secp_scalar_reduce_numeric.scalar_sum_low scalar_add_high0 (jet_sx_expr.XLv (S O))
+  (jet_sx_expr.XLv (S (S (S (S (S O))))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_high1
+scalar_add_high1 =
+jet_secp_scalar_reduce_numeric.scalar_sum_high scalar_add_high0 (jet_sx_expr.XLv (S O))
+  (jet_sx_expr.XLv (S (S (S (S (S O))))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_low2
+scalar_add_low2 =
+jet_secp_scalar_reduce_numeric.scalar_sum_low scalar_add_high1 (jet_sx_expr.XLv (S (S O)))
+  (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_high2
+scalar_add_high2 =
+jet_secp_scalar_reduce_numeric.scalar_sum_high scalar_add_high1 (jet_sx_expr.XLv (S (S O)))
+  (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_low3
+scalar_add_low3 =
+jet_secp_scalar_reduce_numeric.scalar_sum_low scalar_add_high2 (jet_sx_expr.XLv (S (S (S O))))
+  (jet_sx_expr.XLv (S (S (S (S (S (S (S O))))))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_high3
+scalar_add_high3 =
+jet_secp_scalar_reduce_numeric.scalar_sum_high scalar_add_high2 (jet_sx_expr.XLv (S (S (S O))))
+  (jet_sx_expr.XLv (S (S (S (S (S (S (S O))))))))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_raw
+scalar_add_raw =
+@cons jet_sx_expr.sx scalar_add_low0
+  (@cons jet_sx_expr.sx scalar_add_low1
+     (@cons jet_sx_expr.sx scalar_add_low2 (@cons jet_sx_expr.sx scalar_add_low3 (@nil jet_sx_expr.sx))))
+     : list jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_raw_sigma
+scalar_add_raw_sigma =
+fun n : nat => @List.nth jet_sx_expr.sx n scalar_add_raw (jet_sx_expr.XLc Integers.Int64.zero)
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments scalar_add_raw_sigma n%nat_scope
+### C.jet_secp_scalar_add_values.scalar_add_overflow_sx
+scalar_add_overflow_sx =
+jet_secp_scalar_bind.scalar_bind scalar_add_raw_sigma (jet_sx_expr.XIc Integers.Int.zero)
+  jet_secp_scalar_overflow_exec.scalar_overflow_return
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_flag
+scalar_add_flag =
+jet_sx_expr.XL2I
+  (jet_sx_expr.XLb jet_sx_expr.Badd scalar_add_high3 (jet_sx_expr.XI2L Ctypes.Signed scalar_add_overflow_sx))
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_add_values.scalar_add_reduction_sigma
+scalar_add_reduction_sigma =
+fun n : nat =>
+match PeanoNat.Nat.eqb n (S (S (S (S O)))) return jet_sx_expr.sx with
+| true => jet_sx_expr.XI2L Ctypes.Signed scalar_add_flag
+| false => scalar_add_raw_sigma n
+end
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments scalar_add_reduction_sigma n%nat_scope
+### C.jet_secp_scalar_add_values.scalar_add_instantiate
+scalar_add_instantiate =
+jet_secp_scalar_bind.scalar_bind scalar_add_reduction_sigma scalar_add_flag
+     : forall _ : jet_sx_expr.sx, jet_sx_expr.sx
+
+Arguments scalar_add_instantiate x
+### C.jet_secp_scalar_add_values.scalar_add_raw_rho
+scalar_add_raw_rho =
+fun (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z) (n : nat) =>
+jet_sx_expr.il (jet_sx_expr.den rho layout (scalar_add_raw_sigma n))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z) (_ : nat),
+       Integers.Int64.int
+
+Arguments scalar_add_raw_rho (rho layout)%function_scope n%nat_scope
+### C.jet_secp_scalar_add_values.scalar_add_reduction_rho
+scalar_add_reduction_rho =
+fun (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z) (n : nat) =>
+jet_sx_expr.il (jet_sx_expr.den rho layout (scalar_add_reduction_sigma n))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z) (_ : nat),
+       Integers.Int64.int
+
+Arguments scalar_add_reduction_rho (rho layout)%function_scope n%nat_scope

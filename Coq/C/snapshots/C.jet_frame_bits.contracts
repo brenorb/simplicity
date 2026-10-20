@@ -1,0 +1,60 @@
+### C.jet_frame_bits.bits_val_range
+bits_val_range
+     : forall l : list bool,
+       and (BinInt.Z.le BinNums.Z0 (bits_val l))
+         (BinInt.Z.lt (bits_val l)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat (@length bool l))))
+### C.jet_frame_bits.bits_val_testbit
+bits_val_testbit
+     : forall (l : list bool) (i : nat) (_ : lt i (@length bool l)),
+       @eq bool (BinInt.Z.testbit (bits_val l) (BinInt.Z.of_nat (Nat.sub (Nat.sub (@length bool l) (S O)) i)))
+         (@List.nth bool i l false)
+### C.jet_frame_bits.nth_firstn_lt
+@nth_firstn_lt
+     : forall (A : Type) (l : list A) (d : A) (n i : nat) (_ : lt i n),
+       @eq A (@List.nth A i (@List.firstn A n l) d) (@List.nth A i l d)
+### C.jet_frame_bits.nth_skipn_add
+@nth_skipn_add
+     : forall (A : Type) (l : list A) (d : A) (k i : nat),
+       @eq A (@List.nth A i (@List.skipn A k l) d) (@List.nth A (Nat.add k i) l d)
+### C.jet_frame_bits.ifield_range
+ifield_range
+     : forall (ibits : list bool) (k n : nat) (_ : le (Nat.add k n) (@length bool ibits)),
+       and (BinInt.Z.le BinNums.Z0 (ifield ibits k n))
+         (BinInt.Z.lt (ifield ibits k n) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat n)))
+### C.jet_frame_bits.input_bi_valid
+input_bi_valid
+     : forall (m0 : Memory.Mem.mem) (bi : Values.block) (edge rc : BinNums.Z) (ibits : list bool)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc (@List.map bool (option bool) (@Some bool) ibits))
+         (_ : not (@eq (list bool) ibits (@nil bool))), Memory.Mem.valid_block m0 bi
+### C.jet_frame_bits.input_byte_word
+input_byte_word
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (ibits : list bool)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc (@List.map bool (option bool) (@Some bool) ibits))
+         (m : Memory.Mem.mem) (outs : list BitMachine.Cell) (p : nat)
+         (_ : jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi m false outs)
+         (_ : le (Nat.add p (S (S (S (S (S (S (S (S O))))))))) (@length bool ibits)),
+       @jet_input_layout.frame_input_word_at (S (S (S O))) m bi edge (BinInt.Z.add rc (BinInt.Z.of_nat p))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S O)))) (ifield ibits p (S (S (S (S (S (S (S (S O))))))))))
+### C.jet_frame_bits.bits_val
+bits_val =
+fix bits_val (l : list bool) : BinNums.Z :=
+  match l return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons b t =>
+      BinInt.Z.add
+        match b return BinNums.Z with
+        | true => BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat (@length bool t))
+        | false => BinNums.Z0
+        end (bits_val t)
+  end
+     : forall _ : list bool, BinNums.Z
+
+Arguments bits_val l%list_scope
+### C.jet_frame_bits.ifield
+ifield =
+fun (ibits : list bool) (k n : nat) => bits_val (@List.firstn bool n (@List.skipn bool k ibits))
+     : forall (_ : list bool) (_ : nat) (_ : nat), BinNums.Z
+
+Arguments ifield ibits%list_scope (k n)%nat_scope

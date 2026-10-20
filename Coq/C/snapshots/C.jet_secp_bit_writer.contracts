@@ -1,0 +1,57 @@
+### C.jet_secp_bit_writer.secp_writeBit_step
+secp_writeBit_step
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (bit : bool)
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor (BinNums.Zpos BinNums.xH)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets.f_writeBit)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val
+                     (Values.Vint
+                        match bit return Integers.Int.int with
+                        | true => Integers.Int.one
+                        | false => Integers.Int.zero
+                        end) (@nil Values.val))) Events.E0 mf
+               (Values.Vint
+                  match bit return Integers.Int.int with
+                  | true => Integers.Int.one
+                  | false => Integers.Int.zero
+                  end))
+            (jet_bitcoin_effects.write_effect m mf bf base bw edge cursor (BinNums.Zpos BinNums.xH)
+               (@cons (option bool) (@Some bool bit) (@nil (option bool)))))
+### C.jet_secp_bit_writer.eval_secp_writeBit_from_invariant
+eval_secp_writeBit_from_invariant
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor N : BinNums.Z) (bi : Values.block) (m : Memory.Mem.mem) (bit : bool)
+         (_ : jet_output_layout.write_frame_at m0 bd base bw edge cursor N)
+         (_ : BinInt.Z.le (BinNums.Zpos BinNums.xH) N)
+         (_ : jet_frame_inv.finv m0 bd base bw edge cursor N bi m false (@nil BitMachine.Cell)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets.f_writeBit)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val
+                     (Values.Vint
+                        match bit return Integers.Int.int with
+                        | true => Integers.Int.one
+                        | false => Integers.Int.zero
+                        end) (@nil Values.val))) Events.E0 mf
+               (Values.Vint
+                  match bit return Integers.Int.int with
+                  | true => Integers.Int.one
+                  | false => Integers.Int.zero
+                  end))
+            (and
+               (jet_frame_inv.finv m0 bd base bw edge cursor N bi mf true
+                  (@cons (option bool) (@Some bool bit) (@nil (option bool))))
+               (and
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (_ : BinNums.Z) =>
+                      and (not (@eq Values.block b bd)) (not (@eq Values.block b bw))) m mf)
+                  (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                     (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm mf b ofs k p))))

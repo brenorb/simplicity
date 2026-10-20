@@ -1,0 +1,244 @@
+### C.jet_sha_ctx_abs.ctx_abs_fst
+ctx_abs_fst
+     : forall (A B : Type) (a : A) (b : B), @eq A (@fst A B (@pair A B a b)) a
+### C.jet_sha_ctx_abs.ctx_abs_snd
+ctx_abs_snd
+     : forall (A B : Type) (a : A) (b : B), @eq B (@snd A B (@pair A B a b)) b
+### C.jet_sha_ctx_abs.absorb_i_fst
+absorb_i_fst
+     : forall (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int)
+         (bs : list (Ty.tySem (Word.Word (S (S (S O)))))),
+       @eq (list Integers.Int.int)
+         (@fst (list Integers.Int.int) (list Integers.Int.int)
+            (jet_sha_uchars_prep.absorb_i
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value l)
+               regs
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value bs)))
+         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value
+            (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+               (jet_sha_ctx8_model.absorb l regs bs)))
+### C.jet_sha_ctx_abs.absorb_i_snd
+absorb_i_snd
+     : forall (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int)
+         (bs : list (Ty.tySem (Word.Word (S (S (S O)))))),
+       @eq (list Integers.Int.int)
+         (@snd (list Integers.Int.int) (list Integers.Int.int)
+            (jet_sha_uchars_prep.absorb_i
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value l)
+               regs
+               (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value bs)))
+         (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+            (jet_sha_ctx8_model.absorb l regs bs))
+### C.jet_sha_ctx_abs.absorb_app
+absorb_app
+     : forall (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int)
+         (bs1 bs2 : list (Ty.tySem (Word.Word (S (S (S O)))))),
+       @eq (prod (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int))
+         (jet_sha_ctx8_model.absorb
+            (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+               (jet_sha_ctx8_model.absorb l regs bs1))
+            (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+               (jet_sha_ctx8_model.absorb l regs bs1)) bs2)
+         (jet_sha_ctx8_model.absorb l regs (@app (Ty.tySem (Word.Word (S (S (S O))))) bs1 bs2))
+### C.jet_sha_ctx_abs.counter_mod_add
+counter_mod_add
+     : forall (c : Integers.Int64.int) (n len : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 n) (BinInt.Z.le n Integers.Int64.max_unsigned))
+         (_ : @eq BinNums.Z
+                (BinInt.Z.modulo (Integers.Int64.unsigned c)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) len),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (Integers.Int64.unsigned (Integers.Int64.add c (Integers.Int64.repr n)))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (BinInt.Z.modulo (BinInt.Z.add len n)
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_sha_ctx_abs.ctx_abs_frame
+ctx_abs_frame
+     : forall (bx bm : Values.block) (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (m m' : Memory.Mem.mem) (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int)
+         (c : Integers.Int64.int) (ovf : bool) (_ : ctx_abs m bx bm l regs c ovf)
+         (_ : forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+                (_ : not (@eq Values.block b bx)) (_ : not (@eq Values.block b bm)),
+              @eq (option Values.val) (Memory.Mem.load ch m' b ofs) (Memory.Mem.load ch m b ofs))
+         (_ : forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                (_ : Memory.Mem.valid_block m b) (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm m' b ofs k p),
+       and
+         (Memory.Mem.range_perm m' bx BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+            Memtype.Cur Memtype.Freeable)
+         (and
+            (Memory.Mem.range_perm m' bm BinNums.Z0
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+               Memtype.Freeable)
+            (and (jet_sha_block_local.sha_dispatch_ok m')
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 m' (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter)
+                     BinNums.Z0) (@Some Values.val (Values.Vlong jet_sha_uchars_exec.sha_max_counter)))))
+### C.jet_sha_ctx_abs.ctx_abs_uchars
+ctx_abs_uchars
+     : forall (bx bm : Values.block) (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (_ : jet_memcpy_model.memcpy_model) (m : Memory.Mem.mem) (ba : Values.block) (oa : Integers.Ptrofs.int)
+         (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int)
+         (bs : list (Ty.tySem (Word.Word (S (S (S O)))))) (c : Integers.Int64.int) (ovf : bool)
+         (_ : ctx_abs m bx bm l regs c ovf) (_ : not (@eq Values.block ba bx)) (_ : not (@eq Values.block ba bm))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oa)
+                   (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) bs))) Integers.Ptrofs.max_unsigned)
+         (_ : forall (i : nat)
+                (_ : lt i
+                       (@length Integers.Int.int
+                          (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int
+                             jet_read8s_layout.word8_array_value bs))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m ba
+                   (BinInt.Z.add (Integers.Ptrofs.unsigned oa) (BinInt.Z.of_nat i)))
+                (@Some Values.val
+                   (Values.Vint
+                      (@List.nth Integers.Int.int i
+                         (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int
+                            jet_read8s_layout.word8_array_value bs) Integers.Int.zero)))),
+       let vn : Integers.Int64.int :=
+         Integers.Int64.repr (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) bs)) in
+       let ovf' : bool := jet_sha_uchars_exec.uc_overflow ovf c vn in
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge m
+               (@Ctypes.Internal Clight.function jets_sha.f_sha256_uchars)
+               (@cons Values.val (Values.Vptr bx (Integers.Ptrofs.repr BinNums.Z0))
+                  (@cons Values.val (Values.Vptr ba oa) (@cons Values.val (Values.Vlong vn) (@nil Values.val))))
+               Events.E0 m' (Values.Vint (jet_readBit_layout.bit_int (negb ovf'))))
+            (and
+               (ctx_abs m' bx bm
+                  (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs bs))
+                  (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs bs)) (Integers.Int64.add c vn) ovf')
+               (and
+                  (forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+                     (_ : not (@eq Values.block b bx)) (_ : not (@eq Values.block b bm)),
+                   @eq (option Values.val) (Memory.Mem.load ch m' b ofs) (Memory.Mem.load ch m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                        (_ : Memory.Mem.valid_block m b) (_ : Memory.Mem.perm m b ofs k p),
+                      Memory.Mem.perm m' b ofs k p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block m' b)))))
+### C.jet_sha_ctx_abs.ctx_abs_uchar
+ctx_abs_uchar
+     : forall (bx bm : Values.block) (_ : not (@eq Values.block bm bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._simplicity_sha256_compression) bm))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bx))
+         (_ : not (@eq Values.block (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) bm))
+         (_ : jet_memcpy_model.memcpy_model) (m : Memory.Mem.mem) (l : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (regs : list Integers.Int.int) (x : Ty.tySem (Word.Word (S (S (S O))))) (c : Integers.Int64.int)
+         (ovf : bool) (_ : ctx_abs m bx bm l regs c ovf),
+       let vn : Integers.Int64.int := Integers.Int64.repr (BinNums.Zpos BinNums.xH) in
+       let ovf' : bool := jet_sha_uchars_exec.uc_overflow ovf c vn in
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge m
+               (@Ctypes.Internal Clight.function jets_sha.f_sha256_uchar)
+               (@cons Values.val (Values.Vptr bx (Integers.Ptrofs.repr BinNums.Z0))
+                  (@cons Values.val (Values.Vint (jet_read8s_layout.word8_array_value x)) (@nil Values.val))) Events.E0
+               m' (Values.Vint (jet_readBit_layout.bit_int (negb ovf'))))
+            (and
+               (ctx_abs m' bx bm
+                  (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs
+                        (@cons (Ty.tySem (Word.Word (S (S (S O))))) x (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                  (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs
+                        (@cons (Ty.tySem (Word.Word (S (S (S O))))) x (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                  (Integers.Int64.add c vn) ovf')
+               (and
+                  (forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+                     (_ : not (@eq Values.block b bx)) (_ : not (@eq Values.block b bm)),
+                   @eq (option Values.val) (Memory.Mem.load ch m' b ofs) (Memory.Mem.load ch m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                        (_ : Memory.Mem.valid_block m b) (_ : Memory.Mem.perm m b ofs k p),
+                      Memory.Mem.perm m' b ofs k p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block m' b)))))
+### C.jet_sha_ctx_abs.ctx_abs
+ctx_abs =
+fun (m : Memory.Mem.mem) (bx bm : Values.block) (l : list (Ty.tySem (Word.Word (S (S (S O))))))
+  (regs : list Integers.Int.int) (c : Integers.Int64.int) (ovf : bool) =>
+and
+  (@eq (option Values.val) (Memory.Mem.load AST.Mptr m bx BinNums.Z0)
+     (@Some Values.val (Values.Vptr bm (Integers.Ptrofs.repr BinNums.Z0))))
+  (and
+     (@eq (option Values.val)
+        (Memory.Mem.load AST.Mint64 m bx
+           (BinInt.Z.add BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+        (@Some Values.val (Values.Vlong c)))
+     (and
+        (@eq (option Values.val)
+           (Memory.Mem.load AST.Mint8unsigned m bx
+              (BinInt.Z.add BinNums.Z0
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+           (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int ovf))))
+        (and
+           (forall (i : nat)
+              (_ : lt i
+                     (@length Integers.Int.int
+                        (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int
+                           jet_read8s_layout.word8_array_value l))),
+            @eq (option Values.val)
+              (Memory.Mem.load AST.Mint8unsigned m bx
+                 (BinInt.Z.add
+                    (BinInt.Z.add BinNums.Z0
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                    (BinInt.Z.of_nat i)))
+              (@Some Values.val
+                 (Values.Vint
+                    (@List.nth Integers.Int.int i
+                       (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int
+                          jet_read8s_layout.word8_array_value l) Integers.Int.zero))))
+           (and
+              (forall (i : nat) (_ : lt i (S (S (S (S (S (S (S (S O))))))))),
+               @eq (option Values.val)
+                 (Memory.Mem.load AST.Mint32 m bm
+                    (BinInt.Z.add BinNums.Z0
+                       (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i))))
+                 (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i regs Integers.Int.zero))))
+              (and
+                 (@eq BinNums.Z
+                    (BinInt.Z.modulo (Integers.Int64.unsigned c)
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                    (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) l)))
+                 (and
+                    (lt (@length (Ty.tySem (Word.Word (S (S (S O))))) l)
+                       (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))
+                    (and (@eq nat (@length Integers.Int.int regs) (S (S (S (S (S (S (S (S O)))))))))
+                       (and
+                          (Memory.Mem.range_perm m bx BinNums.Z0
+                             (BinNums.Zpos
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                             Memtype.Cur Memtype.Freeable)
+                          (and
+                             (Memory.Mem.range_perm m bm BinNums.Z0
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                Memtype.Cur Memtype.Freeable)
+                             (and (jet_sha_block_local.sha_dispatch_ok m)
+                                (@eq (option Values.val)
+                                   (Memory.Mem.load AST.Mint64 m
+                                      (jet_sha_linkage.sha_symbol_block jets_sha._sha256_max_counter) BinNums.Z0)
+                                   (@Some Values.val (Values.Vlong jet_sha_uchars_exec.sha_max_counter)))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : Values.block)
+         (_ : list (Ty.tySem (Word.Word (S (S (S O)))))) (_ : list Integers.Int.int) (_ : Integers.Int64.int)
+         (_ : bool), Prop
+
+Arguments ctx_abs m bx bm (l regs)%list_scope c ovf%bool_scope

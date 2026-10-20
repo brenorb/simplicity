@@ -1,0 +1,98 @@
+### C.jet_division_wide_exec.wide_division_body
+wide_division_body
+     : forall (remainder : bool) (s : jet_wide.wide_size),
+       @eq Clight.statement (Clight.fn_body (wide_division remainder s))
+         (Clight.Ssequence
+            (Clight.Sassign (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+               (Clight.Etempvar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr)))
+            (Clight.Ssequence
+               (Clight.Ssequence (jet_binary_wide_exec.wide_binary_read s jets._t'1)
+                  (Clight.Sset jets._x (Clight.Etempvar jets._t'1 Ctypesdefs.tulong)))
+               (Clight.Ssequence
+                  (Clight.Ssequence (jet_binary_wide_exec.wide_binary_read s jets._t'2)
+                     (Clight.Sset jets._y (Clight.Etempvar jets._t'2 Ctypesdefs.tulong)))
+                  (Clight.Ssequence
+                     (Clight.Ssequence (jet_division_wide_expr.division_wide_choose remainder)
+                        (jet_arith8_layout_exec.frame_writer_call (jet_wide.wide_writer_id s) Ctypesdefs.tulong
+                           Ctypesdefs.tvoid (Clight.Etempvar jets._t'3 Ctypesdefs.tulong)))
+                     (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint)))))))
+### C.jet_division_wide_exec.eval_wide_division_composes
+eval_wide_division_composes
+     : forall (env : Values.val) (remainder : bool) (s : jet_wide.wide_size) (m : Memory.Mem.mem)
+         (ma : Memory.Mem.mem') (mc mr mr2 me mf : Memory.Mem.mem) (bl bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bytes : list Memdata.memval) (r t : Integers.Int64.int)
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes ma bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes ma bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mc
+                (@Ctypes.Internal Clight.function (jet_wide.wide_reader s))
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr
+                (Values.Vlong r))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr
+                (@Ctypes.Internal Clight.function (jet_wide.wide_reader s))
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr2
+                (Values.Vlong t))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr2
+                (@Ctypes.Internal Clight.function (jet_wide.wide_writer s))
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong (jet_division_value.division_wide_raw remainder r t))
+                      (@nil Values.val))) Events.E0 me Values.Vundef)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free me bl BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function (wide_division remainder s))
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         Events.E0 mf (Values.Vint Integers.Int.one)
+### C.jet_division_wide_exec.wide_division
+wide_division =
+fun (remainder : bool) (s : jet_wide.wide_size) =>
+match remainder return Clight.function with
+| true =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_modulo_16
+    | jet_wide.W32 => jets.f_simplicity_modulo_32
+    | jet_wide.W64 => jets.f_simplicity_modulo_64
+    end
+| false =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_divide_16
+    | jet_wide.W32 => jets.f_simplicity_divide_32
+    | jet_wide.W64 => jets.f_simplicity_divide_64
+    end
+end
+     : forall (_ : bool) (_ : jet_wide.wide_size), Clight.function
+
+Arguments wide_division remainder%bool_scope s
+### C.jet_division_wide_exec.le_wide_division_x
+le_wide_division_x =
+fun (env : Values.val) (remainder : bool) (s : jet_wide.wide_size) (bd : Values.block) (dofs : Integers.Ptrofs.int)
+  (bs : Values.block) (sofs : Integers.Ptrofs.int) (r : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets._x (Values.Vlong r)
+  (@Maps.PTree.set Values.val jets._t'1 (Values.Vlong r)
+     (jet_arith8_layout_exec.le_arith8_layout env (wide_division remainder s) bd dofs bs sofs))
+     : forall (_ : Values.val) (_ : bool) (_ : jet_wide.wide_size) (_ : Values.block) (_ : Integers.Ptrofs.int)
+         (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments le_wide_division_x env remainder%bool_scope s bd dofs bs sofs r
+### C.jet_division_wide_exec.le_wide_division_y
+le_wide_division_y =
+fun (env : Values.val) (remainder : bool) (s : jet_wide.wide_size) (bd : Values.block) (dofs : Integers.Ptrofs.int)
+  (bs : Values.block) (sofs : Integers.Ptrofs.int) (r t : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets._y (Values.Vlong t)
+  (@Maps.PTree.set Values.val jets._t'2 (Values.Vlong t) (le_wide_division_x env remainder s bd dofs bs sofs r))
+     : forall (_ : Values.val) (_ : bool) (_ : jet_wide.wide_size) (_ : Values.block) (_ : Integers.Ptrofs.int)
+         (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments le_wide_division_y env remainder%bool_scope s bd dofs bs sofs r t

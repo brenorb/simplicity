@@ -1,0 +1,314 @@
+### C.jet_secp_field_negate_values.negate_cell_present
+negate_cell_present
+     : forall (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @List.In jet_sx_state.cell
+         (jet_sx_state.mkcell
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat n))
+            AST.Mint64 (@Some jet_sx_expr.sx (negate_limb_expr n)))
+         (jet_sx_state.rcells
+            (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))
+               (jet_sx_eval.sregs jet_secp_field_negate.field_negate_state)))
+### C.jet_secp_field_negate_values.negate_expr_value
+negate_expr_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @eq Values.val (jet_sx_expr.den rho beta (negate_limb_expr n)) (Values.Vlong (negate_value rho n))
+### C.jet_secp_field_negate_values.field_negate_rep_loads
+field_negate_rep_loads
+     : forall (m : Memory.Mem.mem) (layout : jet_sx_state.layout) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_sx_state.rep rho layout (jet_sx_eval.sregs jet_secp_field_negate.field_negate_state) m)
+         (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk layout O)
+            (BinInt.Z.add (jet_sx_state.bas layout O)
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat n))))
+         (@Some Values.val (Values.Vlong (negate_value rho n)))
+### C.jet_secp_field_negate_values.eval_field_negate_with_values
+eval_field_negate_with_values
+     : forall (m : Memory.Mem.mem) (layout : jet_sx_state.layout) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_sx_state.rep rho layout jet_secp_local_regions.local_write_initial_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_negate)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                     (@cons Values.val (Values.Vint Integers.Int.one) (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and (jet_sx_state.rep rho layout (jet_sx_eval.sregs jet_secp_field_negate.field_negate_state) mf)
+               (and
+                  (forall (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+                   @eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk layout O)
+                        (BinInt.Z.add (jet_sx_state.bas layout O)
+                           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                              (BinInt.Z.of_nat n)))) (@Some Values.val (Values.Vlong (negate_value rho n))))
+                  (and
+                     (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape (jet_sx_eval.sregs jet_secp_field_negate.field_negate_state))
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape jet_secp_local_regions.local_write_initial_regs))
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (pos : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot layout
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape jet_secp_local_regions.local_write_initial_regs) b pos)) m mf)))))
+### C.jet_secp_field_negate_values.unsigned_sub_constant
+unsigned_sub_constant
+     : forall (c : BinNums.Z) (x : Integers.Int64.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 c) (BinInt.Z.le c Integers.Int64.max_unsigned))
+         (_ : BinInt.Z.le (Integers.Int64.unsigned x) c),
+       @eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.sub (Integers.Int64.repr c) x))
+         (BinInt.Z.sub c (Integers.Int64.unsigned x))
+### C.jet_secp_field_negate_values.negate_mask_range
+negate_mask_range
+     : forall (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       or
+         (and
+            (BinInt.Z.le
+               (BinNums.Zpos
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI
+                                                            (BinNums.xI
+                                                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (negate_mask n)))
+            (BinInt.Z.le (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (negate_mask n))
+               Integers.Int64.max_unsigned))
+         (and (@eq nat n (S (S (S (S O)))))
+            (and
+               (BinInt.Z.le
+                  (BinNums.Zpos
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI
+                                                            (BinNums.xI
+                                                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))))))))))
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (negate_mask n)))
+               (BinInt.Z.le (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (negate_mask n))
+                  Integers.Int64.max_unsigned)))
+### C.jet_secp_field_negate_values.negate_value_unsigned
+negate_value_unsigned
+     : forall (rho : forall _ : nat, Integers.Int64.int) (n : nat) (_ : lt n (S (S (S (S (S O))))))
+         (_ : BinInt.Z.le (Integers.Int64.unsigned (rho (S n)))
+                match PeanoNat.Nat.eqb n (S (S (S (S O)))) return BinNums.Z with
+                | true =>
+                    BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI
+                                                       (BinNums.xI
+                                                          (BinNums.xI
+                                                             (BinNums.xI
+                                                                (BinNums.xI
+                                                                   (BinNums.xI
+                                                                      (BinNums.xI
+                                                                         (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))
+                | false =>
+                    BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI
+                                                       (BinNums.xI
+                                                          (BinNums.xI
+                                                             (BinNums.xI
+                                                                (BinNums.xI
+                                                                   (BinNums.xI
+                                                                      (BinNums.xI
+                                                                         (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))
+                end),
+       @eq BinNums.Z (Integers.Int64.unsigned (negate_value rho n))
+         (BinInt.Z.sub (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (negate_mask n))
+            (Integers.Int64.unsigned (rho (S n))))
+### C.jet_secp_field_negate_values.negate_mask
+negate_mask =
+fun n : nat =>
+match n return BinNums.Z with
+| O =>
+    BinNums.Zpos
+      (BinNums.xI
+         (BinNums.xI
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xO
+                     (BinNums.xI
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))))
+| S n0 =>
+    match n0 return BinNums.Z with
+    | O =>
+        BinNums.Zpos
+          (BinNums.xI
+             (BinNums.xI
+                (BinNums.xI
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI
+                                                       (BinNums.xI
+                                                          (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))
+    | S n1 =>
+        match n1 return BinNums.Z with
+        | O =>
+            BinNums.Zpos
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI
+                                                           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))
+        | S n2 =>
+            match n2 return BinNums.Z with
+            | O =>
+                BinNums.Zpos
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI
+                                                            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))
+            | S n3 =>
+                match n3 return BinNums.Z with
+                | O =>
+                    BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI
+                                                       (BinNums.xI
+                                                          (BinNums.xI
+                                                             (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))
+                | S _ =>
+                    BinNums.Zpos
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI
+                                                    (BinNums.xI
+                                                       (BinNums.xI
+                                                          (BinNums.xI
+                                                             (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))
+                end
+            end
+        end
+    end
+end
+     : forall _ : nat, BinNums.Z
+
+Arguments negate_mask n%nat_scope
+### C.jet_secp_field_negate_values.negate_limb_expr
+negate_limb_expr =
+fun n : nat =>
+jet_sx_expr.XLb jet_sx_expr.Bsub
+  (jet_sx_expr.XLb jet_sx_expr.Bmul
+     (jet_sx_expr.XLb jet_sx_expr.Bmul (jet_sx_expr.XLc (Integers.Int64.repr (negate_mask n)))
+        (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH))))))
+     (jet_sx_expr.XI2L Ctypes.Signed
+        (jet_sx_expr.XIb jet_sx_expr.Badd (jet_sx_expr.XIc Integers.Int.one) (jet_sx_expr.XIc Integers.Int.one))))
+  (jet_sx_expr.XLv (S n))
+     : forall _ : nat, jet_sx_expr.sx
+
+Arguments negate_limb_expr n%nat_scope
+### C.jet_secp_field_negate_values.negate_value
+negate_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (n : nat) =>
+Integers.Int64.sub
+  (Integers.Int64.repr (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (negate_mask n)))
+  (rho (S n))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments negate_value rho%function_scope n%nat_scope

@@ -1,0 +1,60 @@
+### C.jet_secp_scalar_zero_numeric.scalar_or_zero_numeric
+scalar_or_zero_numeric
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq bool (Integers.Int64.eq (jet_secp_scalar_zero_exec.scalar_or_value rho) Integers.Int64.zero)
+         (BinInt.Z.eqb (scalar_value rho) BinNums.Z0)
+### C.jet_secp_scalar_zero_numeric.eval_scalar_zero_canonical
+eval_scalar_zero_canonical
+     : forall (m : Memory.Mem.mem) (layout : jet_sx_state.layout) (rho : forall _ : nat, Integers.Int64.int)
+         (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_sx_state.rep rho layout jet_secp_scalar_zero_exec.scalar_initial_regs m)
+         (_ : @eq BinNums.Z (scalar_value rho)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                   (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem value))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_is_zero)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@nil Values.val)) Events.E0 mf
+               (Values.Vint
+                  (jet_readBit_layout.bit_int
+                     (Bit.toBool (@jet_secp_canonical_scalar_zero.canonical_scalar_is_zero Alg.CoreFunSem value)))))
+            (and (jet_sx_state.rep rho layout jet_secp_scalar_zero_exec.scalar_initial_regs mf)
+               (and
+                  (Memory.Mem.range_perm mf (jet_sx_state.blk layout O) (jet_sx_state.bas layout O)
+                     (BinInt.Z.add (jet_sx_state.bas layout O)
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (pos : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot layout
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape jet_secp_scalar_zero_exec.scalar_initial_regs) b pos)) m mf))))
+### C.jet_secp_scalar_zero_numeric.scalar_value
+scalar_value =
+fun rho : forall _ : nat, Integers.Int64.int =>
+BinInt.Z.add
+  (BinInt.Z.add
+     (BinInt.Z.add (Integers.Int64.unsigned (rho (S O)))
+        (BinInt.Z.mul
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+           (Integers.Int64.unsigned (rho (S (S O))))))
+     (BinInt.Z.mul
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos
+              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (Integers.Int64.unsigned (rho (S (S (S O)))))))
+  (BinInt.Z.mul
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+     (Integers.Int64.unsigned (rho (S (S (S (S O)))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments scalar_value rho%function_scope

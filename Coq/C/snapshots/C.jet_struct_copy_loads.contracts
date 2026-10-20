@@ -1,0 +1,35 @@
+### C.jet_struct_copy_loads.equal_loadbytes_parts
+equal_loadbytes_parts
+     : forall (m1 m2 : Memory.Mem.mem) (b1 b2 : Values.block) (base1 base2 n1 n2 : BinNums.Z)
+         (bytes : list Memdata.memval) (_ : BinInt.Z.le BinNums.Z0 n1) (_ : BinInt.Z.le BinNums.Z0 n2)
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m1 b1 base1 (BinInt.Z.add n1 n2))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m2 b2 base2 (BinInt.Z.add n1 n2))
+                (@Some (list Memdata.memval) bytes)),
+       @ex (list Memdata.memval)
+         (fun front : list Memdata.memval =>
+          @ex (list Memdata.memval)
+            (fun tail : list Memdata.memval =>
+             and
+               (@eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m1 b1 base1 n1)
+                  (@Some (list Memdata.memval) front))
+               (and
+                  (@eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m2 b2 base2 n1)
+                     (@Some (list Memdata.memval) front))
+                  (and
+                     (@eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m1 b1 (BinInt.Z.add base1 n1) n2)
+                        (@Some (list Memdata.memval) tail))
+                     (@eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m2 b2 (BinInt.Z.add base2 n1) n2)
+                        (@Some (list Memdata.memval) tail))))))
+### C.jet_struct_copy_loads.equal_loadbytes_field
+equal_loadbytes_field
+     : forall (chunk : AST.memory_chunk) (m1 m2 : Memory.Mem.mem) (b1 b2 : Values.block)
+         (base1 base2 n delta : BinNums.Z) (bytes : list Memdata.memval) (v : Values.val)
+         (_ : BinInt.Z.le BinNums.Z0 delta) (_ : BinInt.Z.le (BinInt.Z.add delta (Memdata.size_chunk chunk)) n)
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m1 b1 base1 n)
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m2 b2 base2 n)
+                (@Some (list Memdata.memval) bytes))
+         (_ : BinInt.Z.divide (Memdata.align_chunk chunk) (BinInt.Z.add base2 delta))
+         (_ : @eq (option Values.val) (Memory.Mem.load chunk m1 b1 (BinInt.Z.add base1 delta)) (@Some Values.val v)),
+       @eq (option Values.val) (Memory.Mem.load chunk m2 b2 (BinInt.Z.add base2 delta)) (@Some Values.val v)

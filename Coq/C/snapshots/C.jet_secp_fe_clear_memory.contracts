@@ -1,0 +1,76 @@
+### C.jet_secp_fe_clear_memory.construct_fe_clear_stores
+construct_fe_clear_stores
+     : forall (n : nat) (m : Memory.Mem.mem) (b : Values.block) (base i : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 i)
+         (_ : BinInt.Z.le (BinInt.Z.add i (BinInt.Z.of_nat n)) (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))))
+         (_ : Memory.Mem.range_perm m b base
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and (jet_secp_fe_clear_loop.fe_clear_stores n b base i m mf)
+            (and
+               (forall (j : nat) (_ : lt j n),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf b
+                     (BinInt.Z.add base
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.add i (BinInt.Z.of_nat j)))))
+                  (@Some Values.val (Values.Vlong Integers.Int64.zero)))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b' : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b' b))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base
+                                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) i)))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                        (BinInt.Z.add i (BinInt.Z.of_nat n)))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b' ofs) (Memory.Mem.load chunk m b' ofs))
+                  (and
+                     (forall (b' : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission),
+                      iff (Memory.Mem.perm mf b' ofs k p) (Memory.Mem.perm m b' ofs k p))
+                     (forall (b' : Values.block) (_ : Memory.Mem.valid_block m b'), Memory.Mem.valid_block mf b')))))
+### C.jet_secp_fe_clear_memory.eval_fe_clear_owned
+eval_fe_clear_owned
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m b base
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_clear)
+               (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf b base
+                  (@List.repeat Integers.Int64.int Integers.Int64.zero (S (S (S (S (S O)))))))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b' : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b' b))
+                            (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) base)
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                                  ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b' ofs) (Memory.Mem.load chunk m b' ofs))
+                  (and
+                     (forall (b' : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission),
+                      iff (Memory.Mem.perm mf b' ofs k p) (Memory.Mem.perm m b' ofs k p))
+                     (forall (b' : Values.block) (_ : Memory.Mem.valid_block m b'), Memory.Mem.valid_block mf b')))))

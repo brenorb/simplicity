@@ -1,0 +1,344 @@
+### C.jet_elements_current_gen.exec_elements_return_one
+exec_elements_return_one
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m elements_return_one Events.E0 le m
+         jet_elements_wrapper.elements_returned_one
+### C.jet_elements_current_gen.exec_elements_current_guard
+exec_elements_current_guard
+     : forall (e : Clight.env) (le0 : Maps.PTree.tree Values.val) (ta tb tc countfield : AST.ident)
+         (cdelta : BinNums.Z) (mc : Memory.Mem.mem) (be : Values.block) (ebase : BinNums.Z)
+         (bt : Values.block) (txbase : BinNums.Z) (nI ixv : Integers.Int64.int)
+         (_ : not (@eq AST.ident ta jets_elements._env)) (_ : not (@eq AST.ident tb jets_elements._env))
+         (_ : not (@eq AST.ident tc tb))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le0)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)))) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ebase
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 txbase) (_ : BinInt.Z.le BinNums.Z0 cdelta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (BinInt.Z.add txbase cdelta)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction countfield cdelta)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mc be (BinInt.Z.add ebase BinNums.Z0))
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mc bt (BinInt.Z.add txbase cdelta))
+                (@Some Values.val (Values.Vlong nI)))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mc be
+                   (BinInt.Z.add ebase
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                (@Some Values.val (Values.Vlong ixv))) (_ : @eq bool (Integers.Int64.ltu ixv nI) true),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le0 mc
+         (elements_current_guard ta tb tc countfield) Events.E0
+         (@Maps.PTree.set Values.val tc (Values.Vlong ixv)
+            (@Maps.PTree.set Values.val tb (Values.Vlong nI)
+               (@Maps.PTree.set Values.val ta (Values.Vptr bt (Integers.Ptrofs.repr txbase)) le0))) mc
+         ClightBigstep.Out_normal
+### C.jet_elements_current_gen.exec_elements_current_load3
+exec_elements_current_load3
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (t1 t2 : AST.ident) (t3 : BinNums.positive)
+         (arrfield : AST.ident) (adelta : BinNums.Z) (sid : AST.ident) (s : Clight.statement)
+         (m : Memory.Mem.mem) (le' : Clight.temp_env) (m' : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (be : Values.block) (ebase : BinNums.Z) (bt : Values.block) (txbase : BinNums.Z) (bin : Values.block)
+         (inbase : BinNums.Z) (ixv : Integers.Int64.int) (_ : not (@eq AST.ident t1 jets_elements._env))
+         (_ : not (@eq AST.ident t2 jets_elements._env))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)))) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ebase
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 txbase) (_ : BinInt.Z.le BinNums.Z0 adelta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (BinInt.Z.add txbase adelta)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction arrfield adelta)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m be (BinInt.Z.add ebase BinNums.Z0))
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bt (BinInt.Z.add txbase adelta))
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr inbase))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m be
+                   (BinInt.Z.add ebase
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                (@Some Values.val (Values.Vlong ixv)))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e
+                (@Maps.PTree.set Values.val t3 (Values.Vlong ixv)
+                   (@Maps.PTree.set Values.val t2 (Values.Vptr bin (Integers.Ptrofs.repr inbase))
+                      (@Maps.PTree.set Values.val t1 (Values.Vptr bt (Integers.Ptrofs.repr txbase)) le))) m s Events.E0
+                le' m' out),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+         (elements_current_load3 t1 t2 t3 arrfield sid s) Events.E0 le' m' out
+### C.jet_elements_current_gen.exec_elements_ptr_call
+exec_elements_ptr_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (cid : BinNums.positive) (pt : Ctypes.type) (cf : Clight.function)
+         (pexpr : Clight.expr) (pofs : BinNums.Z) (bd : Values.block) (dbase : BinNums.Z) (bin : Values.block)
+         (me : Memory.Mem.mem) (_ : @eq Ctypes.type (Clight.typeof pexpr) (Ctypesdefs.tptr pt))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) cid e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.block)
+                (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                   (Clight.genv_genv jet_elements_linkage.elements_ge) cid)
+                (@Some Values.block (jet_elements_linkage.elements_symbol_block cid)))
+         (_ : @eq (option Clight.fundef)
+                (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type
+                   (Clight.genv_genv jet_elements_linkage.elements_ge)
+                   (Values.Vptr (jet_elements_linkage.elements_symbol_block cid) Integers.Ptrofs.zero))
+                (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function cf)))
+         (_ : @eq Ctypes.type (Clight.type_of_fundef (@Ctypes.Internal Clight.function cf))
+                (Ctypes.Tfunction
+                   (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+                      (Ctypes.Tcons (Ctypesdefs.tptr pt) Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m pexpr
+                (Values.Vptr bin (Integers.Ptrofs.repr pofs)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+                (@Ctypes.Internal Clight.function cf)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr bin (Integers.Ptrofs.repr pofs)) (@nil Values.val))) Events.E0 me
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m (elements_ptr_call cid pt pexpr)
+         Events.E0 le me ClightBigstep.Out_normal
+### C.jet_elements_current_gen.elements_current_gen_local
+@elements_current_gen_local
+     : forall (A : Type) (elems_of : forall _ : jet_elements_prim.Elements.env, list A) (nbits : BinNums.Z)
+         (pcells : forall _ : A, list BitMachine.Cell)
+         (elemrep : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : A), Prop)
+         (Bpay : Ty.Ty) (ta tb tc countfield : AST.ident) (cdelta adelta sz : BinNums.Z) (body : Clight.statement)
+         (f : Clight.function) (_ : not (@eq AST.ident ta jets_elements._env))
+         (_ : not (@eq AST.ident tb jets_elements._env)) (_ : not (@eq AST.ident tc jets_elements._env))
+         (_ : not (@eq AST.ident ta jets_elements._dst)) (_ : not (@eq AST.ident tb jets_elements._dst))
+         (_ : not (@eq AST.ident tc jets_elements._dst)) (_ : not (@eq AST.ident tc tb))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) nbits)
+                (BinInt.Z.le nbits
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction countfield cdelta)
+         (_ : and (BinInt.Z.le BinNums.Z0 cdelta)
+                (BinInt.Z.le (BinInt.Z.add cdelta (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 adelta)
+                (BinInt.Z.le (BinInt.Z.add adelta (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 sz)
+                (BinInt.Z.le sz
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))
+         (_ : forall (m1 m2 : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (x : A)
+                (_ : elemrep m1 b ofs x)
+                (_ : forall (chunk : AST.memory_chunk) (o : BinNums.Z) (v : Values.val) (_ : BinInt.Z.le ofs o)
+                       (_ : BinInt.Z.le (BinInt.Z.add o (Memdata.size_chunk chunk)) (BinInt.Z.add ofs sz))
+                       (_ : @eq (option Values.val) (Memory.Mem.load chunk m1 b o) (@Some Values.val v)),
+                     @eq (option Values.val) (Memory.Mem.load chunk m2 b o) (@Some Values.val v)),
+              elemrep m2 b ofs x)
+         (_ : forall (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (outedge : BinNums.Z)
+                (bl : Values.block) (le : Maps.PTree.tree Values.val) (mc : Memory.Mem.mem)
+                (x : A) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block) (txbase : BinNums.Z)
+                (bin : Values.block) (inbase : BinNums.Z) (ixv : Integers.Int64.int) (cur : BinNums.Z)
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                       (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                       (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+                (_ : BinInt.Z.le BinNums.Z0 ebase)
+                (_ : BinInt.Z.le
+                       (BinInt.Z.add ebase
+                          (BinNums.Zpos
+                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                       Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 txbase)
+                (_ : BinInt.Z.le
+                       (BinInt.Z.add txbase
+                          (BinNums.Zpos
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))))
+                       Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 inbase)
+                (_ : BinInt.Z.le
+                       (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned ixv))) sz)
+                       Integers.Ptrofs.max_unsigned)
+                (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mc be (BinInt.Z.add ebase BinNums.Z0))
+                       (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+                (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mc bt (BinInt.Z.add txbase adelta))
+                       (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr inbase))))
+                (_ : @eq (option Values.val)
+                       (Memory.Mem.load AST.Mint64 mc be
+                          (BinInt.Z.add ebase
+                             (BinNums.Zpos
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                       (@Some Values.val (Values.Vlong ixv)))
+                (_ : elemrep mc bin (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned ixv))) x)
+                (_ : jet_application_sep.out_sep bd dbase bw outedge cur nbits be ebase
+                       (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (_ : jet_application_sep.out_sep bd dbase bw outedge cur nbits be
+                       (BinInt.Z.add ebase
+                          (BinNums.Zpos
+                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                       (BinInt.Z.add ebase
+                          (BinNums.Zpos
+                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                (_ : jet_application_sep.out_sep bd dbase bw outedge cur nbits bt (BinInt.Z.add txbase adelta)
+                       (BinInt.Z.add (BinInt.Z.add txbase adelta)
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (_ : jet_application_sep.out_sep bd dbase bw outedge cur nbits bin
+                       (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned ixv)))
+                       (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned ixv))) sz))
+                (_ : jet_output_layout.write_frame_at mc bd dbase bw outedge cur nbits),
+              @ex Clight.temp_env
+                (fun le' : Clight.temp_env =>
+                 @ex Memory.Mem.mem
+                   (fun me : Memory.Mem.mem =>
+                    and
+                      (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge
+                         (jet_elements_version_exec.elements_version_locals bl) le mc body Events.E0 le' me
+                         jet_elements_wrapper.elements_returned_one)
+                      (jet_elements_effects.write_effect mc me bd dbase bw outedge cur nbits (pcells x)))))
+         (_ : jet_elements_wrapper.elements_wrapper_shape f (elements_current_gen_rest ta tb tc countfield body))
+         (_ : @eq BinNums.Z (BinInt.Z.of_nat (Translate.bitSize Bpay)) nbits)
+         (spec : forall (_ : Ty.tySem Ty.Unit) (_ : jet_elements_prim.Elements.env), option (Ty.tySem Bpay))
+         (_ : forall environment : jet_elements_prim.Elements.env,
+              @ex A
+                (fun x : A =>
+                 @ex (Ty.tySem Bpay)
+                   (fun V : Ty.tySem Bpay =>
+                    and
+                      (@eq (option A)
+                         (@List.nth_error A (elems_of environment) (jet_elements_prim.Elements.envIx environment))
+                         (@Some A x))
+                      (and (@eq (option (Ty.tySem Bpay)) (spec tt environment) (@Some (Ty.tySem Bpay) V))
+                         (@eq (list BitMachine.Cell) (@Translate.encode Bpay V) (pcells x)))))),
+       jet_application_sep.application_jet_local_spec_sep f jet_elements_linkage.elements_ge
+         jet_elements_prim.Elements.env Ty.Unit Bpay (@current_gen_rep A elems_of elemrep sz adelta cdelta) spec
+### C.jet_elements_current_gen.elements_current_guard
+elements_current_guard =
+fun ta tb tc countfield : AST.ident =>
+Clight.Ssequence (Clight.Sset ta jet_elements_current_exec.elements_env_tx_expr)
+  (Clight.Ssequence
+     (Clight.Sset tb
+        (Clight.Efield
+           (Clight.Ederef
+              (Clight.Etempvar ta (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr)))
+              (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr)) countfield Ctypesdefs.tulong))
+     (Clight.Ssequence (Clight.Sset tc jet_elements_current_exec.elements_env_ix_expr)
+        (Clight.Sifthenelse
+           (Clight.Ebinop Cop.Ole (Clight.Etempvar tb Ctypesdefs.tulong) (Clight.Etempvar tc Ctypesdefs.tulong)
+              Ctypesdefs.tint)
+           (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int (Integers.Int.repr BinNums.Z0) Ctypesdefs.tint)))
+           Clight.Sskip)))
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : AST.ident), Clight.statement
+
+Arguments elements_current_guard ta tb tc countfield
+### C.jet_elements_current_gen.elements_current_gen_rest
+elements_current_gen_rest =
+fun (ta tb tc countfield : AST.ident) (tail : Clight.statement) =>
+Clight.Ssequence (elements_current_guard ta tb tc countfield) tail
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : Clight.statement), Clight.statement
+
+Arguments elements_current_gen_rest ta tb tc countfield tail
+### C.jet_elements_current_gen.elements_return_one
+elements_return_one =
+Clight.Sreturn (@Some Clight.expr (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint))
+     : Clight.statement
+### C.jet_elements_current_gen.elements_current_load3
+elements_current_load3 =
+fun (t1 t2 t3 arrfield sid : AST.ident) (s : Clight.statement) =>
+Clight.Ssequence (Clight.Sset t1 jet_elements_current_exec.elements_env_tx_expr)
+  (Clight.Ssequence
+     (Clight.Sset t2
+        (Clight.Efield
+           (Clight.Ederef
+              (Clight.Etempvar t1 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr)))
+              (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr)) arrfield
+           (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr))))
+     (Clight.Ssequence (Clight.Sset t3 jet_elements_current_exec.elements_env_ix_expr) s))
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : Clight.statement),
+       Clight.statement
+
+Arguments elements_current_load3 t1 t2 t3 arrfield sid s
+### C.jet_elements_current_gen.elements_ptr_call
+elements_ptr_call =
+fun (cid : AST.ident) (pt : Ctypes.type) (pexpr : Clight.expr) =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar cid
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypes.Tcons (Ctypesdefs.tptr pt) Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons Clight.expr pexpr (@nil Clight.expr)))
+     : forall (_ : AST.ident) (_ : Ctypes.type) (_ : Clight.expr), Clight.statement
+
+Arguments elements_ptr_call cid pt pexpr
+### C.jet_elements_current_gen.current_gen_rep
+current_gen_rep =
+fun (A : Type) (elems_of : forall _ : jet_elements_prim.Elements.env, list A)
+  (elemrep : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : A), Prop)
+  (sz adelta cdelta : BinNums.Z) (m : Memory.Mem.mem) (env : Values.val) (environment : jet_elements_prim.Elements.env)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun txbase : BinNums.Z =>
+            @ex Values.block
+              (fun bin : Values.block =>
+               @ex BinNums.Z
+                 (fun inbase : BinNums.Z =>
+                  @ex Integers.Int64.int
+                    (fun nI : Integers.Int64.int =>
+                     @ex Integers.Int64.int
+                       (fun ixv : Integers.Int64.int =>
+                        and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                          (and (BinInt.Z.le BinNums.Z0 ebase)
+                             (and
+                                (BinInt.Z.le
+                                   (BinInt.Z.add ebase
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI ...)))))))
+                                   Integers.Ptrofs.max_unsigned)
+                                (and (BinInt.Z.le BinNums.Z0 txbase)
+                                   (and
+                                      (BinInt.Z.le
+                                         (BinInt.Z.add txbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...)))))
+                                         Integers.Ptrofs.max_unsigned)
+                                      (and (BinInt.Z.le BinNums.Z0 inbase)
+                                         (and
+                                            (BinInt.Z.le (BinInt.Z.add inbase (BinInt.Z.mul sz (BinInt.Z.of_nat ...)))
+                                               Integers.Ptrofs.max_unsigned)
+                                            (and
+                                               (@eq (option Values.val)
+                                                  (Memory.Mem.load AST.Mptr m be (BinInt.Z.add ebase BinNums.Z0))
+                                                  (@Some Values.val (Values.Vptr bt ...)))
+                                               (and
+                                                  (@eq (option Values.val) (Memory.Mem.load AST.Mptr m bt ...)
+                                                     (@Some Values.val ...)) (and (@eq ... ... ...) (and ... ...))))))))))))))))))
+     : forall (A : Type) (_ : forall _ : jet_elements_prim.Elements.env, list A)
+         (_ : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : A), Prop)
+         (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Memory.Mem.mem) (_ : Values.val)
+         (_ : jet_elements_prim.Elements.env) (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments current_gen_rep {A}%type_scope (elems_of elemrep)%function_scope (sz adelta cdelta)%Z_scope
+  m env environment fp%list_scope

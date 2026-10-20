@@ -1,0 +1,52 @@
+### C.jet_test_value_wide_exec.wide_test_value_denotes
+wide_test_value_denotes
+     : forall (s : jet_wide.wide_size) (one : bool) (x : Ty.tySem (Word.Word (jet_wide.wide_log s)))
+         (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x)),
+       @eq bool (wide_test_value_bit s one r)
+         (Bit.toBool (@jet_test_value_spec.test_value_spec (jet_wide.wide_log s) one Alg.CoreFunSem x))
+### C.jet_test_value_wide_exec.wide_test_value
+wide_test_value =
+fun (s : jet_wide.wide_size) (one : bool) =>
+match s return Clight.function with
+| jet_wide.W16 =>
+    match one return Clight.function with
+    | true => jets.f_simplicity_is_one_16
+    | false => jets.f_simplicity_is_zero_16
+    end
+| jet_wide.W32 =>
+    match one return Clight.function with
+    | true => jets.f_simplicity_is_one_32
+    | false => jets.f_simplicity_is_zero_32
+    end
+| jet_wide.W64 =>
+    match one return Clight.function with
+    | true => jets.f_simplicity_is_one_64
+    | false => jets.f_simplicity_is_zero_64
+    end
+end
+     : forall (_ : jet_wide.wide_size) (_ : bool), Clight.function
+
+Arguments wide_test_value s one%bool_scope
+### C.jet_test_value_wide_exec.wide_test_value_expr
+wide_test_value_expr =
+fun (_ : jet_wide.wide_size) (one : bool) =>
+Clight.Ebinop Cop.Oeq (Clight.Etempvar jets._x Ctypesdefs.tulong)
+  (Clight.Econst_int match one return Integers.Int.int with
+                     | true => Integers.Int.one
+                     | false => Integers.Int.zero
+                     end Ctypesdefs.tint) Ctypesdefs.tint
+     : forall (_ : jet_wide.wide_size) (_ : bool), Clight.expr
+
+Arguments wide_test_value_expr s one%bool_scope
+### C.jet_test_value_wide_exec.wide_test_value_bit
+wide_test_value_bit =
+fun (_ : jet_wide.wide_size) (one : bool) (r : Integers.Int64.int) =>
+Integers.Int64.eq r
+  match one return Integers.Int64.int with
+  | true => Integers.Int64.one
+  | false => Integers.Int64.zero
+  end
+     : forall (_ : jet_wide.wide_size) (_ : bool) (_ : Integers.Int64.int), bool
+
+Arguments wide_test_value_bit s one%bool_scope r

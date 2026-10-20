@@ -1,0 +1,48 @@
+### C.jet_write_buffer8_empty_cells.buffer8_empty_bits_nonnegative
+buffer8_empty_bits_nonnegative
+     : forall (xs : list BinNums.Z) (_ : jet_write_buffer8_empty_run.buffer8_empty_chain xs),
+       BinInt.Z.le BinNums.Z0 (buffer8_empty_bits xs)
+### C.jet_write_buffer8_empty_cells.buffer8_empty_output_length
+buffer8_empty_output_length
+     : forall (xs : list BinNums.Z) (_ : jet_write_buffer8_empty_run.buffer8_empty_chain xs),
+       @eq BinNums.Z (BinInt.Z.of_nat (@length BitMachine.Cell (buffer8_empty_output_cells xs)))
+         (buffer8_empty_bits xs)
+### C.jet_write_buffer8_empty_cells.buffer63_empty_bits
+buffer63_empty_bits
+     : @eq BinNums.Z (buffer8_empty_bits jet_write_buffer8_empty_run.buffer63_empty_counts)
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+### C.jet_write_buffer8_empty_cells.buffer63_empty_output_canonical
+buffer63_empty_output_canonical
+     : @eq (list BitMachine.Cell) (buffer8_empty_output_cells jet_write_buffer8_empty_run.buffer63_empty_counts)
+         (jet_buffer_empty_spec.buffer_empty_cells (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+### C.jet_write_buffer8_empty_cells.buffer8_empty_bits
+buffer8_empty_bits =
+fix buffer8_empty_bits (xs : list BinNums.Z) : BinNums.Z :=
+  match xs return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons j xs0 =>
+      BinInt.Z.add
+        (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) j))
+        (buffer8_empty_bits xs0)
+  end
+     : forall _ : list BinNums.Z, BinNums.Z
+
+Arguments buffer8_empty_bits xs%list_scope
+### C.jet_write_buffer8_empty_cells.buffer8_empty_output_cells
+buffer8_empty_output_cells =
+fix buffer8_empty_output_cells (xs : list BinNums.Z) : list BitMachine.Cell :=
+  match xs return (list BitMachine.Cell) with
+  | nil => @nil BitMachine.Cell
+  | cons j xs0 =>
+      @app (option bool)
+        (@cons (option bool) (@Some bool false)
+           (@List.repeat (option bool) (@None bool)
+              (BinInt.Z.to_nat (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) j))))
+        (buffer8_empty_output_cells xs0)
+  end
+     : forall _ : list BinNums.Z, list BitMachine.Cell
+
+Arguments buffer8_empty_output_cells xs%list_scope

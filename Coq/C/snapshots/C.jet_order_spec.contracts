@@ -1,0 +1,95 @@
+### C.jet_order_spec.lt_word_spec_parametric
+lt_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)
+         (fun term : Alg.Core.Algebra => @lt_word_spec term n)
+### C.jet_order_spec.le_word_spec_parametric
+le_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)
+         (fun term : Alg.Core.Algebra => @le_word_spec term n)
+### C.jet_order_spec.order_word_spec_parametric
+order_word_spec_parametric
+     : forall (k : order_op) (n : nat),
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)
+         (fun term : Alg.Core.Algebra => @order_word_spec k n term)
+### C.jet_order_spec.borrow_word_balance_sign
+borrow_word_balance_sign
+     : forall (n : nat) (z : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))),
+       @eq bool
+         (Bit.toBool
+            (@fst (sum unit unit)
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) (Word.Word n)) z)) (BinInt.Z.ltb (jet_subtract_spec.borrow_word_balance n z) BinNums.Z0)
+### C.jet_order_spec.lt_word_spec_numeric
+lt_word_spec_numeric
+     : forall (n : nat) (x y : Ty.tySem (Word.Word n)),
+       @eq bool
+         (Bit.toBool (@lt_word_spec Alg.CoreFunSem n (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+         (BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+### C.jet_order_spec.le_word_spec_numeric
+le_word_spec_numeric
+     : forall (n : nat) (x y : Ty.tySem (Word.Word n)),
+       @eq bool
+         (Bit.toBool (@le_word_spec Alg.CoreFunSem n (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+         (BinInt.Z.leb (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+### C.jet_order_spec.order_word_spec_numeric
+order_word_spec_numeric
+     : forall (k : order_op) (n : nat) (x y : Ty.tySem (Word.Word n)),
+       @eq bool
+         (Bit.toBool
+            (@order_word_spec k n Alg.CoreFunSem (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+         (order_numeric k (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y))
+### C.jet_order_spec.order_op
+Inductive order_op : Set :=  OLt : order_op | OLe : order_op.
+### C.jet_order_spec.lt_word_spec
+lt_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@jet_subtract_spec.AC.comp (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+  (Ty.Sum Ty.Unit Ty.Unit) term (@jet_subtract_spec.subtract_word_spec term n)
+  (@jet_subtract_spec.AC.take (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) term
+     (@jet_subtract_spec.AC.iden (Ty.Sum Ty.Unit Ty.Unit) term))
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments lt_word_spec {term} n%nat_scope
+### C.jet_order_spec.le_word_spec
+le_word_spec =
+fun (term : Alg.Core.Algebra) (n : nat) =>
+@Bit.not (Ty.Prod (Word.Word n) (Word.Word n)) term
+  (@jet_subtract_spec.AC.comp (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Word.Word n) (Word.Word n))
+     (Ty.Sum Ty.Unit Ty.Unit) term
+     (@jet_subtract_spec.AC.pair (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) (Word.Word n) term
+        (@jet_subtract_spec.AC.drop (Word.Word n) (Word.Word n) (Word.Word n) term
+           (@jet_subtract_spec.AC.iden (Word.Word n) term))
+        (@jet_subtract_spec.AC.take (Word.Word n) (Word.Word n) (Word.Word n) term
+           (@jet_subtract_spec.AC.iden (Word.Word n) term))) (@lt_word_spec term n))
+     : forall (term : Alg.Core.Algebra) (n : nat),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments le_word_spec {term} n%nat_scope
+### C.jet_order_spec.order_word_spec
+order_word_spec =
+fun (k : order_op) (n : nat) (term : Alg.Core.Algebra) =>
+match k return (Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)) with
+| OLt => @lt_word_spec term n
+| OLe => @le_word_spec term n
+end
+     : forall (_ : order_op) (n : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments order_word_spec k n%nat_scope {term}
+### C.jet_order_spec.order_numeric
+order_numeric =
+fun (k : order_op) (a b : BinNums.Z) =>
+match k return bool with
+| OLt => BinInt.Z.ltb a b
+| OLe => BinInt.Z.leb a b
+end
+     : forall (_ : order_op) (_ : BinNums.Z) (_ : BinNums.Z), bool
+
+Arguments order_numeric k (a b)%Z_scope

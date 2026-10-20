@@ -1,0 +1,84 @@
+### C.jet_rotate8_helper.rotate8_body
+rotate8_body
+     : @eq Clight.statement (Clight.fn_body jets.f_rotate_8)
+         (Clight.Sifthenelse (Clight.Etempvar jets._amt Ctypesdefs.tuchar)
+            (Clight.Sreturn (@Some Clight.expr rotate8_expr))
+            (Clight.Sreturn (@Some Clight.expr (Clight.Etempvar jets._value Ctypesdefs.tuchar))))
+### C.jet_rotate8_helper.int_shift_guard
+int_shift_guard
+     : forall (a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+       @eq bool (Integers.Int.ltu a Integers.Int.iwordsize) true
+### C.jet_rotate8_helper.eval_rotate8_expr
+eval_rotate8_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (r a : Integers.Int.int)
+         (_ : and (BinInt.Z.lt BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._value le) (@Some Values.val (Values.Vint r)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._amt le) (@Some Values.val (Values.Vint a))),
+       Clight.eval_expr jet_exec.ge0 e le m rotate8_expr (Values.Vint (rotate8_nonzero r a))
+### C.jet_rotate8_helper.entry_rotate8
+entry_rotate8
+     : forall (m : Memory.Mem.mem) (r a : Integers.Int.int),
+       Clight.function_entry2 jet_exec.ge0 jets.f_rotate_8
+         (@cons Values.val (Values.Vint r) (@cons Values.val (Values.Vint a) (@nil Values.val))) m Clight.empty_env
+         (le_rotate8 r a) m
+### C.jet_rotate8_helper.eval_rotate8_helper
+eval_rotate8_helper
+     : forall (m : Memory.Mem.mem) (r a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned r))
+                (BinInt.Z.lt (Integers.Int.unsigned r)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_rotate_8)
+         (@cons Values.val (Values.Vint r) (@cons Values.val (Values.Vint a) (@nil Values.val))) Events.E0 m
+         (Values.Vint (rotate8_result r a))
+### C.jet_rotate8_helper.rotate8_expr
+rotate8_expr =
+Clight.Ecast
+  (Clight.Ebinop Cop.Oor
+     (Clight.Ebinop Cop.Oshl
+        (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+           (Clight.Etempvar jets._value Ctypesdefs.tuchar) Ctypesdefs.tuint)
+        (Clight.Etempvar jets._amt Ctypesdefs.tuchar) Ctypesdefs.tuint)
+     (Clight.Ebinop Cop.Oshr (Clight.Etempvar jets._value Ctypesdefs.tuchar)
+        (Clight.Ebinop Cop.Osub
+           (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+              Ctypesdefs.tint) (Clight.Etempvar jets._amt Ctypesdefs.tuchar) Ctypesdefs.tint) Ctypesdefs.tint)
+     Ctypesdefs.tuint) Ctypesdefs.tuchar
+     : Clight.expr
+### C.jet_rotate8_helper.rotate8_nonzero
+rotate8_nonzero =
+fun r a : Integers.Int.int =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+  (Integers.Int.or (Integers.Int.shl r a)
+     (Integers.Int.shr r
+        (Integers.Int.repr
+           (BinInt.Z.sub (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (Integers.Int.unsigned a)))))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments rotate8_nonzero r a
+### C.jet_rotate8_helper.rotate8_result
+rotate8_result =
+fun r a : Integers.Int.int =>
+match Integers.Int.eq a Integers.Int.zero return Integers.Int.int with
+| true => r
+| false => rotate8_nonzero r a
+end
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments rotate8_result r a
+### C.jet_rotate8_helper.le_rotate8
+le_rotate8 =
+fun r a : Integers.Int.int =>
+@Maps.PTree.set Values.val jets._amt (Values.Vint a)
+  (@Maps.PTree.set Values.val jets._value (Values.Vint r) (Maps.PTree.empty Values.val))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int), Maps.PTree.tree Values.val
+
+Arguments le_rotate8 r a

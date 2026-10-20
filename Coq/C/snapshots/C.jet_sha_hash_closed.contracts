@@ -1,0 +1,258 @@
+### C.jet_sha_hash_closed.hash256_ext
+hash256_ext
+     : forall (a b : Digest.hash256) (_ : @eq SHA256.registers (Digest.hash256_reg a) (Digest.hash256_reg b)),
+       @eq Digest.hash256 a b
+### C.jet_sha_hash_closed.mk_hash256_word
+mk_hash256_word
+     : forall (w : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (rs : list Integers.Int.int)
+         (_ : @eq (list Integers.Int.int) (jet_sha_ctx8_model.state_regs w) rs),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.from_hash256 (mk_hash256 rs)) w
+### C.jet_sha_hash_closed.ctx8_hash_closed
+ctx8_hash_closed
+     : forall (bs : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (buf : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+         (count : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : not (@eq (list (Ty.tySem (Word.Word (S (S (S O)))))) bs (@nil (Ty.tySem (Word.Word (S (S (S O)))))))),
+       let l : list (Ty.tySem (Word.Word (S (S (S O))))) :=
+         jet_sha_ctx8_spec.buffer_list (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) buf in
+       forall
+         _ : BinInt.Z.lt
+               (BinInt.Z.add (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count)
+                  (BinInt.Z.div
+                     (BinInt.Z.add (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) l))
+                        (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) bs)))
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               jet_sha_ctx8_spec.ctx8_limit,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         match
+           jet_sha_ctx8_spec.ctx8_add_list
+             (@pair (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                   (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) buf
+                (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                   (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) count h)) bs
+           return
+             (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         with
+         | Some c' => @jet_sha_finalize_spec.ctx8_finalize_spec (Alg.AssertionSem Option.option_Monad_Zero) c'
+         | None => @None (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         end
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.from_hash256
+               (mk_hash256
+                  (sha_stream l (jet_sha_ctx8_model.state_regs h)
+                     (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count) bs))))
+### C.jet_sha_hash_closed.sha_stream
+sha_stream =
+fun (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int) (c : BinNums.Z)
+  (bs : list (Ty.tySem (Word.Word (S (S (S O)))))) =>
+let l' : list (Ty.tySem (Word.Word (S (S (S O))))) :=
+  @fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int) (jet_sha_ctx8_model.absorb l regs bs) in
+let total : BinNums.Z :=
+  BinInt.Z.add c
+    (BinInt.Z.div
+       (BinInt.Z.add (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) l))
+          (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) bs)))
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))) in
+@snd (list Integers.Int.int) (list Integers.Int.int)
+  (jet_sha_uchars_prep.absorb_i
+     (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value l')
+     (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int) (jet_sha_ctx8_model.absorb l regs bs))
+     (jet_sha_finalize_exec.sha_pad
+        (Integers.Int64.repr
+           (BinInt.Z.add
+              (BinInt.Z.mul
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                 total) (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) l'))))))
+     : forall (_ : list (Ty.tySem (Word.Word (S (S (S O)))))) (_ : list Integers.Int.int) (_ : BinNums.Z)
+         (_ : list (Ty.tySem (Word.Word (S (S (S O)))))), list Integers.Int.int
+
+Arguments sha_stream (l regs)%list_scope c%Z_scope bs%list_scope
+### C.jet_sha_hash_closed.mk_hash256
+mk_hash256 =
+fun rs : list Integers.Int.int =>
+Digest.Hash256
+  (@List.firstn Integers.Int.int (S (S (S (S (S (S (S (S O))))))))
+     (@app Integers.Int.int rs (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S (S (S O)))))))))))
+  (@eq_ind_r nat
+     (Nat.min (S (S (S (S (S (S (S (S O))))))))
+        (@length Integers.Int.int
+           (@app Integers.Int.int rs
+              (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S (S (S O))))))))))))
+     (fun n : nat => @eq nat n (S (S (S (S (S (S (S (S O)))))))))
+     (@eq_ind_r nat
+        (Nat.add (@length Integers.Int.int rs)
+           (@length Integers.Int.int
+              (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S (S (S O)))))))))))
+        (fun n : nat => @eq nat (Nat.min (S (S (S (S (S (S (S (S O)))))))) n) (S (S (S (S (S (S (S (S O)))))))))
+        (@eq_ind_r nat (S (S (S (S (S (S (S (S O))))))))
+           (fun n : nat =>
+            @eq nat (Nat.min (S (S (S (S (S (S (S (S O)))))))) (Nat.add (@length Integers.Int.int rs) n))
+              (S (S (S (S (S (S (S (S O)))))))))
+           (ZifyClasses.rew_iff_rev
+              (@eq nat
+                 (Nat.min (S (S (S (S (S (S (S (S O))))))))
+                    (Nat.add (@length Integers.Int.int rs) (S (S (S (S (S (S (S (S O))))))))))
+                 (S (S (S (S (S (S (S (S O)))))))))
+              (@eq BinNums.Z
+                 (BinInt.Z.min (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                    (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+              (ZifyClasses.mkrel nat BinNums.Z (@eq nat) BinInt.Z.of_nat (@eq BinNums.Z)
+                 (fun x y : nat =>
+                  @iff_sym (@eq BinNums.Z (BinInt.Z.of_nat x) (BinInt.Z.of_nat y)) (@eq nat x y)
+                    (Znat.Nat2Z.inj_iff x y))
+                 (Nat.min (S (S (S (S (S (S (S (S O))))))))
+                    (Nat.add (@length Integers.Int.int rs) (S (S (S (S (S (S (S (S O))))))))))
+                 (BinInt.Z.min (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                    (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                 (ZifyClasses.mkapp2 nat nat nat BinNums.Z BinNums.Z BinNums.Z PeanoNat.Nat.min BinInt.Z.of_nat
+                    BinInt.Z.of_nat BinInt.Z.of_nat BinInt.Z.min Znat.Nat2Z.inj_min (S (S (S (S (S (S (S (S O))))))))
+                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                    (@eq_refl BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                    (Nat.add (@length Integers.Int.int rs) (S (S (S (S (S (S (S (S O)))))))))
+                    (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                    (ZifyClasses.mkapp2 nat nat nat BinNums.Z BinNums.Z BinNums.Z PeanoNat.Nat.add BinInt.Z.of_nat
+                       BinInt.Z.of_nat BinInt.Z.of_nat BinInt.Z.add Znat.Nat2Z.inj_add (@length Integers.Int.int rs)
+                       (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                       (@eq_refl BinNums.Z (BinInt.Z.of_nat (@length Integers.Int.int rs)))
+                       (S (S (S (S (S (S (S (S O))))))))
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                       (@eq_refl BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                 (S (S (S (S (S (S (S (S O)))))))) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                 (@eq_refl BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+              (let cstr : BinInt.Z.le BinNums.Z0 (BinInt.Z.of_nat (@length Integers.Int.int rs)) :=
+                 Znat.Nat2Z.is_nonneg (@length Integers.Int.int rs) in
+               let H0 :
+                 or
+                   (and
+                      (BinInt.Z.lt (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                      (@eq BinNums.Z
+                         (BinInt.Z.min (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                   (and
+                      (BinInt.Z.le
+                         (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (@eq BinNums.Z
+                         (BinInt.Z.min (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                         (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) :=
+                 BinInt.Z.min_spec (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                   (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) in
+               let z0 : BinNums.Z :=
+                 BinInt.Z.min (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                   (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) in
+               let __arith :
+                 forall (__p1 : Prop) (__x2 __x1 : BinNums.Z)
+                   (_ : or
+                          (and __p1
+                             (@eq BinNums.Z __x1 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                          (and
+                             (BinInt.Z.le
+                                (BinInt.Z.add __x2 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                             (@eq BinNums.Z __x1
+                                (BinInt.Z.add __x2 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                   (_ : BinInt.Z.le BinNums.Z0 __x2),
+                 @eq BinNums.Z __x1 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) :=
+                 fun (__p1 : Prop) (__x2 __x1 : BinNums.Z) =>
+                 let __wit : list ZMicromega.ZArithProof :=
+                   @cons ZMicromega.ZArithProof
+                     (ZMicromega.RatProof
+                        (@RingMicromega.PsatzAdd BinNums.Z (RingMicromega.PsatzIn BinNums.Z (S (S (S O))))
+                           (@RingMicromega.PsatzAdd BinNums.Z (RingMicromega.PsatzIn BinNums.Z (S (S O)))
+                              (RingMicromega.PsatzIn BinNums.Z O))) ZMicromega.DoneProof)
+                     (@cons ZMicromega.ZArithProof
+                        (ZMicromega.RatProof
+                           (@RingMicromega.PsatzAdd BinNums.Z
+                              (@RingMicromega.PsatzMulC BinNums.Z (@EnvRing.Pc BinNums.Z (BinNums.Zneg BinNums.xH))
+                                 (RingMicromega.PsatzIn BinNums.Z (S (S O))))
+                              (@RingMicromega.PsatzAdd BinNums.Z (RingMicromega.PsatzIn BinNums.Z (S O))
+                                 (RingMicromega.PsatzIn BinNums.Z O))) ZMicromega.DoneProof)
+                        (@cons ZMicromega.ZArithProof
+                           (ZMicromega.RatProof
+                              (@RingMicromega.PsatzAdd BinNums.Z
+                                 (@RingMicromega.PsatzMulC BinNums.Z (@EnvRing.Pc BinNums.Z (BinNums.Zneg BinNums.xH))
+                                    (RingMicromega.PsatzIn BinNums.Z (S (S O)))) (RingMicromega.PsatzIn BinNums.Z O))
+                              ZMicromega.DoneProof) (@nil ZMicromega.ZArithProof))) in
+                 let __varmap : VarMap.t BinNums.Z :=
+                   @VarMap.Branch BinNums.Z (@VarMap.Elt BinNums.Z __x2) __x1 (@VarMap.Empty BinNums.Z) in
+                 let __ff : Tauto.BFormula (RingMicromega.Formula BinNums.Z) Tauto.isProp :=
+                   @Tauto.IMPL (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                     (@Tauto.OR (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                        (@Tauto.AND (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                           (@Tauto.X (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp __p1)
+                           (@Tauto.A (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                              (@RingMicromega.Build_Formula BinNums.Z (@EnvRing.PEX BinNums.Z BinNums.xH)
+                                 RingMicromega.OpEq
+                                 (@EnvRing.PEc BinNums.Z
+                                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) tt))
+                        (@Tauto.AND (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                           (@Tauto.A (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                              (@RingMicromega.Build_Formula BinNums.Z
+                                 (@EnvRing.PEadd BinNums.Z (@EnvRing.PEX BinNums.Z (BinNums.xO BinNums.xH))
+                                    (@EnvRing.PEc BinNums.Z
+                                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                 RingMicromega.OpLe
+                                 (@EnvRing.PEc BinNums.Z
+                                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) tt)
+                           (@Tauto.A (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                              (@RingMicromega.Build_Formula BinNums.Z (@EnvRing.PEX BinNums.Z BinNums.xH)
+                                 RingMicromega.OpEq
+                                 (@EnvRing.PEadd BinNums.Z (@EnvRing.PEX BinNums.Z (BinNums.xO BinNums.xH))
+                                    (@EnvRing.PEc BinNums.Z
+                                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) tt)))
+                     (@None unit)
+                     (@Tauto.IMPL (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                        (@Tauto.A (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                           (@RingMicromega.Build_Formula BinNums.Z (@EnvRing.PEc BinNums.Z BinNums.Z0)
+                              RingMicromega.OpLe (@EnvRing.PEX BinNums.Z (BinNums.xO BinNums.xH))) tt)
+                        (@None unit)
+                        (@Tauto.A (RingMicromega.Formula BinNums.Z) Tauto.eKind unit unit Tauto.isProp
+                           (@RingMicromega.Build_Formula BinNums.Z (@EnvRing.PEX BinNums.Z BinNums.xH)
+                              RingMicromega.OpEq
+                              (@EnvRing.PEc BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                           tt)) in
+                 ZMicromega.ZTautoChecker_sound __ff __wit
+                   (@eq_refl bool true <: @eq bool (ZMicromega.ZTautoChecker __ff __wit) true)
+                   (@VarMap.find BinNums.Z BinNums.Z0 __varmap) in
+               __arith
+                 (BinInt.Z.lt (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                    (BinInt.Z.add (BinInt.Z.of_nat (@length Integers.Int.int rs))
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                 (BinInt.Z.of_nat (@length Integers.Int.int rs)) z0 H0 cstr))
+           (@length Integers.Int.int
+              (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S (S (S O))))))))))
+           (@List.repeat_length Integers.Int.int Integers.Int.zero (S (S (S (S (S (S (S (S O))))))))))
+        (@length Integers.Int.int
+           (@app Integers.Int.int rs
+              (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S (S (S O)))))))))))
+        (@List.app_length Integers.Int.int rs
+           (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S (S (S O)))))))))))
+     (@length Integers.Int.int
+        (@List.firstn Integers.Int.int (S (S (S (S (S (S (S (S O))))))))
+           (@app Integers.Int.int rs
+              (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S (S (S O))))))))))))
+     (@List.firstn_length Integers.Int.int (S (S (S (S (S (S (S (S O))))))))
+        (@app Integers.Int.int rs (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S (S (S O))))))))))))
+     : forall _ : list Integers.Int.int, Digest.hash256
+
+Arguments mk_hash256 rs%list_scope

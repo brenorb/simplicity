@@ -1,0 +1,152 @@
+### C.jet_secp_scalar_mul512_machine.column_carry64_value
+column_carry64_value
+     : forall x y : Integers.Int64.int,
+       @eq BinNums.Z (Integers.Int64.unsigned (column_carry64 x y))
+         (BinInt.Z.div (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)) Integers.Int64.modulus)
+### C.jet_secp_scalar_mul512_machine.column_carry64_bound
+column_carry64_bound
+     : forall x y : Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned (column_carry64 x y)))
+         (BinInt.Z.le (Integers.Int64.unsigned (column_carry64 x y)) (BinNums.Zpos BinNums.xH))
+### C.jet_secp_scalar_mul512_machine.column_carry32_value
+column_carry32_value
+     : forall x y : Integers.Int64.int,
+       @eq BinNums.Z (Integers.Int.unsigned (column_carry32 x y))
+         (BinInt.Z.div (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)) Integers.Int64.modulus)
+### C.jet_secp_scalar_mul512_machine.column_carry32_bound
+column_carry32_bound
+     : forall x y : Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned (column_carry32 x y)))
+         (BinInt.Z.le (Integers.Int.unsigned (column_carry32 x y)) (BinNums.Zpos BinNums.xH))
+### C.jet_secp_scalar_mul512_machine.column_product_hi_bound
+column_product_hi_bound
+     : forall a b : Integers.Int64.int,
+       BinInt.Z.lt (Integers.Int64.unsigned (jet_secp_umul128_numeric.umul128_hi_machine a b))
+         (BinInt.Z.sub Integers.Int64.modulus (BinNums.Zpos BinNums.xH))
+### C.jet_secp_scalar_mul512_machine.column_product_hi_add_value
+column_product_hi_add_value
+     : forall (a b : Integers.Int64.int) (s : mul_column),
+       @eq BinNums.Z (Integers.Int64.unsigned (column_product_hi_add a b s))
+         (BinInt.Z.add
+            (BinInt.Z.div (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)) Integers.Int64.modulus)
+            (BinInt.Z.div
+               (BinInt.Z.add (Integers.Int64.unsigned (col_lo s))
+                  (BinInt.Z.modulo (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+                     Integers.Int64.modulus)) Integers.Int64.modulus))
+### C.jet_secp_scalar_mul512_machine.mul_column
+Variant mul_column : Set :=
+    column : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int.int), mul_column.
+
+Arguments column col_lo col_hi col_top
+### C.jet_secp_scalar_mul512_machine.column_value
+column_value =
+fun s : mul_column =>
+BinInt.Z.add (Integers.Int64.unsigned (col_lo s))
+  (BinInt.Z.mul Integers.Int64.modulus
+     (BinInt.Z.add (Integers.Int64.unsigned (col_hi s))
+        (BinInt.Z.mul Integers.Int64.modulus (Integers.Int.unsigned (col_top s)))))
+     : forall _ : mul_column, BinNums.Z
+
+Arguments column_value s
+### C.jet_secp_scalar_mul512_machine.column_zero
+column_zero = column Integers.Int64.zero Integers.Int64.zero Integers.Int.zero
+     : mul_column
+### C.jet_secp_scalar_mul512_machine.column_carry64
+column_carry64 =
+fun x y : Integers.Int64.int =>
+Integers.Int64.repr
+  (Integers.Int.signed
+     match Integers.Int64.ltu (Integers.Int64.add x y) y return Integers.Int.int with
+     | true => Integers.Int.one
+     | false => Integers.Int.zero
+     end)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments column_carry64 x y
+### C.jet_secp_scalar_mul512_machine.column_carry32
+column_carry32 =
+fun x y : Integers.Int64.int =>
+match Integers.Int64.ltu (Integers.Int64.add x y) y return Integers.Int.int with
+| true => Integers.Int.one
+| false => Integers.Int.zero
+end
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int.int
+
+Arguments column_carry32 x y
+### C.jet_secp_scalar_mul512_machine.column_product_lo
+column_product_lo =
+fun (a b : Integers.Int64.int) (s : mul_column) =>
+Integers.Int64.add (col_lo s) (jet_secp_umul128_numeric.umul128_lo_machine a b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : mul_column), Integers.Int64.int
+
+Arguments column_product_lo a b s
+### C.jet_secp_scalar_mul512_machine.column_product_hi_add
+column_product_hi_add =
+fun (a b : Integers.Int64.int) (s : mul_column) =>
+Integers.Int64.add (jet_secp_umul128_numeric.umul128_hi_machine a b)
+  (column_carry64 (col_lo s) (jet_secp_umul128_numeric.umul128_lo_machine a b))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : mul_column), Integers.Int64.int
+
+Arguments column_product_hi_add a b s
+### C.jet_secp_scalar_mul512_machine.column_muladd
+column_muladd =
+fun (a b : Integers.Int64.int) (s : mul_column) =>
+column (column_product_lo a b s) (Integers.Int64.add (col_hi s) (column_product_hi_add a b s))
+  (Integers.Int.add (col_top s) (column_carry32 (col_hi s) (column_product_hi_add a b s)))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : mul_column), mul_column
+
+Arguments column_muladd a b s
+### C.jet_secp_scalar_mul512_machine.column_muladd_fast
+column_muladd_fast =
+fun (a b : Integers.Int64.int) (s : mul_column) =>
+column (column_product_lo a b s) (Integers.Int64.add (col_hi s) (column_product_hi_add a b s)) (col_top s)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : mul_column), mul_column
+
+Arguments column_muladd_fast a b s
+### C.jet_secp_scalar_mul512_machine.column_extract
+column_extract =
+fun s : mul_column => column (col_hi s) (Integers.Int64.repr (Integers.Int.unsigned (col_top s))) Integers.Int.zero
+     : forall _ : mul_column, mul_column
+
+Arguments column_extract s
+### C.jet_secp_scalar_mul512_machine.column_extract_fast
+column_extract_fast =
+fun s : mul_column => column (col_hi s) Integers.Int64.zero (col_top s)
+     : forall _ : mul_column, mul_column
+
+Arguments column_extract_fast s
+### C.jet_secp_scalar_mul512_machine.scalar_mul512_machine_outputs
+scalar_mul512_machine_outputs =
+fun rho : forall _ : nat, Integers.Int64.int =>
+let c0 : mul_column := column_muladd_fast (rho O) (rho (S (S (S (S O))))) column_zero in
+let c1 : mul_column :=
+  column_muladd (rho (S O)) (rho (S (S (S (S O)))))
+    (column_muladd (rho O) (rho (S (S (S (S (S O)))))) (column_extract_fast c0)) in
+let c2 : mul_column :=
+  column_muladd (rho (S (S O))) (rho (S (S (S (S O)))))
+    (column_muladd (rho (S O)) (rho (S (S (S (S (S O))))))
+       (column_muladd (rho O) (rho (S (S (S (S (S (S O))))))) (column_extract c1))) in
+let c3 : mul_column :=
+  column_muladd (rho (S (S (S O)))) (rho (S (S (S (S O)))))
+    (column_muladd (rho (S (S O))) (rho (S (S (S (S (S O))))))
+       (column_muladd (rho (S O)) (rho (S (S (S (S (S (S O)))))))
+          (column_muladd (rho O) (rho (S (S (S (S (S (S (S O)))))))) (column_extract c2)))) in
+let c4 : mul_column :=
+  column_muladd (rho (S (S (S O)))) (rho (S (S (S (S (S O))))))
+    (column_muladd (rho (S (S O))) (rho (S (S (S (S (S (S O)))))))
+       (column_muladd (rho (S O)) (rho (S (S (S (S (S (S (S O)))))))) (column_extract c3))) in
+let c5 : mul_column :=
+  column_muladd (rho (S (S (S O)))) (rho (S (S (S (S (S (S O)))))))
+    (column_muladd (rho (S (S O))) (rho (S (S (S (S (S (S (S O)))))))) (column_extract c4)) in
+let c6 : mul_column := column_muladd_fast (rho (S (S (S O)))) (rho (S (S (S (S (S (S (S O)))))))) (column_extract c5)
+  in
+@cons Integers.Int64.int (col_lo c0)
+  (@cons Integers.Int64.int (col_lo c1)
+     (@cons Integers.Int64.int (col_lo c2)
+        (@cons Integers.Int64.int (col_lo c3)
+           (@cons Integers.Int64.int (col_lo c4)
+              (@cons Integers.Int64.int (col_lo c5)
+                 (@cons Integers.Int64.int (col_lo c6) (@cons Integers.Int64.int (col_hi c6) (@nil Integers.Int64.int))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list Integers.Int64.int
+
+Arguments scalar_mul512_machine_outputs rho%function_scope

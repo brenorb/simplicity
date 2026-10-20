@@ -1,0 +1,107 @@
+### C.jet_secp_reduce512_body_numeric.reduce512_body_numeric
+reduce512_body_numeric
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq BinNums.Z
+         (jet_secp_reduce512_final_atomic.final_output_value (reduce512_body_digits rho) (reduce512_body_carry rho) rho
+            beta) (BinInt.Z.modulo (reduce512_input_integer rho) jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_reduce512_body_numeric.final_shape_same_entry
+final_shape_same_entry
+     : forall digits : forall _ : nat, Integers.Int64.int,
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_secp_reduce512_final_stage.reduce512_final_regs digits))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs jet_secp_reduce512_two_stages.reduce512_first_initial))
+### C.jet_secp_reduce512_body_numeric.final_state_output_exact
+final_state_output_exact
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int),
+       @eq (list jet_sx_state.region)
+         (jet_sx_eval.sregs (jet_secp_reduce512_final_stage.reduce512_final_state digits carry))
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg
+               (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_reduce512_final_stage.reduce512_final_limbs digits carry))
+               true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+            (@app jet_sx_state.region
+               (@List.tl jet_sx_state.region jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs)
+               (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated)))
+### C.jet_secp_reduce512_body_numeric.exec_reduce512_body_numeric
+exec_reduce512_body_numeric
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_reduce512_two_stages.reduce512_first_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta jet_secp_reduce512_two_stages.reduce512_initial_temps le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  (Clight.fn_body jets_secp.f_secp256k1_scalar_reduce_512) Events.E0 le' mf ClightBigstep.Out_normal)
+               (and
+                  (jet_sx_state.rep rho beta
+                     (jet_sx_eval.sregs
+                        (jet_secp_reduce512_final_stage.reduce512_final_state (reduce512_body_digits rho)
+                           (reduce512_body_carry rho))) mf)
+                  (and
+                     (forall (i : nat) (sy : jet_sx_expr.sx)
+                        (_ : @eq (option jet_sx_expr.sx)
+                               (@List.nth_error jet_sx_expr.sx
+                                  (jet_secp_reduce512_final_stage.reduce512_final_limbs (reduce512_body_digits rho)
+                                     (reduce512_body_carry rho)) i) (@Some jet_sx_expr.sx sy)),
+                      @eq (option Values.val)
+                        (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk beta O)
+                           (BinInt.Z.add (jet_sx_state.bas beta O)
+                              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                 (BinInt.Z.of_nat i))))
+                        (@Some Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) sy)))
+                     (and
+                        (@eq BinNums.Z
+                           (jet_secp_reduce512_final_atomic.final_output_value (reduce512_body_digits rho)
+                              (reduce512_body_carry rho) rho (jet_sx_state.lay beta))
+                           (BinInt.Z.modulo (reduce512_input_integer rho)
+                              jet_secp_canonical_scalar.canonical_group_order))
+                        (and
+                           (jet_sx_eval.tmatch rho beta
+                              (jet_sx_eval.stemps
+                                 (jet_secp_reduce512_final_stage.reduce512_final_state (reduce512_body_digits rho)
+                                    (reduce512_body_carry rho))) le')
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot beta
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape
+                                       (jet_sx_eval.sregs jet_secp_reduce512_two_stages.reduce512_first_initial)) b ofs))
+                              m mf)))))))
+### C.jet_secp_reduce512_body_numeric.reduce512_body_digits
+reduce512_body_digits =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_reduce512_final_checkpoint.third_checkpoint_digits
+  (jet_secp_reduce512_third_checkpoint.second_checkpoint_digits rho)
+  (jet_secp_reduce512_third_checkpoint.second_checkpoint_p4 rho)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments reduce512_body_digits rho%function_scope n%nat_scope
+### C.jet_secp_reduce512_body_numeric.reduce512_body_carry
+reduce512_body_carry =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_reduce512_final_checkpoint.third_checkpoint_c
+  (jet_secp_reduce512_third_checkpoint.second_checkpoint_digits rho)
+  (jet_secp_reduce512_third_checkpoint.second_checkpoint_p4 rho)
+     : forall _ : forall _ : nat, Integers.Int64.int, Integers.Int64.int
+
+Arguments reduce512_body_carry rho%function_scope
+### C.jet_secp_reduce512_body_numeric.reduce512_input_integer
+reduce512_input_integer =
+fun rho : forall _ : nat, Integers.Int64.int =>
+BinInt.Z.add (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+  (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O)))))
+     jet_secp_reduce512_fold_bounds.reduce512_radix)
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments reduce512_input_integer rho%function_scope

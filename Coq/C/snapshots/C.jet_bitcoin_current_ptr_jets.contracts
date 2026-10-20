@@ -1,0 +1,71 @@
+### C.jet_bitcoin_current_ptr_jets.bitcoin_current_prev_outpoint_local_spec
+bitcoin_current_prev_outpoint_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_current_prev_outpoint
+         jet_bitcoin_linkage.bitcoin_ge Bitcoin.Bitcoin.env Ty.Unit
+         (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))
+         (@current_ptr_rep Bitcoin.Bitcoin.environment Bitcoin.sigTxInput
+            (fun e : Bitcoin.Bitcoin.environment => Bitcoin.sigTxIn (Bitcoin.Bitcoin.envTx e)) Bitcoin.Bitcoin.envIx
+            jet_bitcoin_indexed_ptr_jets.outpoint_rep
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+            BinNums.Z0
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : Bitcoin.Bitcoin.env) =>
+          @jet_bitcoin_current_spec.bitcoin_current_prev_outpoint_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a environment)
+### C.jet_bitcoin_current_ptr_jets.current_ptr_rep
+current_ptr_rep =
+fun (EE : Set) (A : Type) (elems_of : forall _ : EE, list A) (ix_of : forall _ : EE, nat)
+  (elemrep : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : A), Prop)
+  (sz poff adelta cdelta : BinNums.Z) (m : Memory.Mem.mem) (env : Values.val) (environment : EE)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun txbase : BinNums.Z =>
+            @ex Values.block
+              (fun bin : Values.block =>
+               @ex BinNums.Z
+                 (fun inbase : BinNums.Z =>
+                  @ex Integers.Int64.int
+                    (fun nI : Integers.Int64.int =>
+                     @ex Integers.Int64.int
+                       (fun ixv : Integers.Int64.int =>
+                        and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+                          (and (BinInt.Z.le BinNums.Z0 ebase)
+                             (and
+                                (BinInt.Z.le
+                                   (BinInt.Z.add ebase
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                                   Integers.Ptrofs.max_unsigned)
+                                (and (BinInt.Z.le BinNums.Z0 txbase)
+                                   (and
+                                      (BinInt.Z.le
+                                         (BinInt.Z.add txbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...)))))
+                                         Integers.Ptrofs.max_unsigned)
+                                      (and (BinInt.Z.le BinNums.Z0 inbase)
+                                         (and
+                                            (BinInt.Z.le (BinInt.Z.add inbase (BinInt.Z.mul sz (BinInt.Z.of_nat ...)))
+                                               Integers.Ptrofs.max_unsigned)
+                                            (and
+                                               (@eq (option Values.val)
+                                                  (Memory.Mem.load AST.Mptr m be (BinInt.Z.add ebase BinNums.Z0))
+                                                  (@Some Values.val (Values.Vptr bt ...)))
+                                               (and
+                                                  (@eq (option Values.val) (Memory.Mem.load AST.Mptr m bt ...)
+                                                     (@Some Values.val ...)) (and (@eq ... ... ...) (and ... ...))))))))))))))))))
+     : forall (EE : Set) (A : Type) (_ : forall _ : EE, list A) (_ : forall _ : EE, nat)
+         (_ : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : A), Prop)
+         (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Memory.Mem.mem)
+         (_ : Values.val) (_ : EE) (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments current_ptr_rep {EE A}%type_scope (elems_of ix_of elemrep)%function_scope (sz poff adelta cdelta)%Z_scope
+  m env environment fp%list_scope

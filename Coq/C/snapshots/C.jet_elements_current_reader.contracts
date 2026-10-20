@@ -1,0 +1,243 @@
+### C.jet_elements_current_reader.eval_elements_current_reader
+eval_elements_current_reader
+     : forall (s : jet_wide.wide_size) (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z)
+         (bi : Values.block) (edge rc : BinNums.Z) (x : Ty.tySem (Word.Word (jet_wide.wide_log s)))
+         (_ : jet_frame_layout.frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc (BinInt.Z.sub Integers.Int64.max_unsigned (jet_wide.wide_bits s))))
+         (_ : jet_frame_layout.frame_fields_at m bf base bi edge rc)
+         (_ : @jet_input_layout.frame_input_word_at (jet_wide.wide_log s) m bi edge rc x)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable)
+         (_ : not (@eq Values.block bf bi)),
+       @ex Memory.Mem.mem
+         (fun mr : Memory.Mem.mem =>
+          @ex Integers.Int64.int
+            (fun r : Integers.Int64.int =>
+             and
+               (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+                  (@Ctypes.Internal Clight.function (jet_wide.wide_reader s))
+                  (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mr
+                  (Values.Vlong r))
+               (and
+                  (@eq BinNums.Z (Integers.Int64.unsigned r)
+                     (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x))
+                  (and (jet_frame_layout.frame_fields_at mr bf base bi edge (BinInt.Z.add rc (jet_wide.wide_bits s)))
+                     (and
+                        (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                           (_ : or (not (@eq Values.block b bf))
+                                  (or
+                                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                        (BinInt.Z.add base
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     (BinInt.Z.le
+                                        (BinInt.Z.add base
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                        ofs))),
+                         @eq (option Values.val) (Memory.Mem.load chunk mr b ofs) (Memory.Mem.load chunk m b ofs))
+                        (and
+                           (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                            Memory.Mem.perm mr b ofs kind p)
+                           (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mr b)))))))
+### C.jet_elements_current_reader.exec_elements_read32_current
+exec_elements_read32_current
+     : forall (ret target : AST.ident) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (bl bi : Values.block) (edge rc : BinNums.Z)
+         (x : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._simplicity_read32 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))))
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi edge rc x)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable) (_ : not (@eq Values.block bl bi)),
+       @ex Memory.Mem.mem
+         (fun mr : Memory.Mem.mem =>
+          @ex Integers.Int64.int
+            (fun r : Integers.Int64.int =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+                  (elements_read32_current_stmt ret target) Events.E0
+                  (@Maps.PTree.set Values.val target (Values.Vlong r)
+                     (@Maps.PTree.set Values.val ret (Values.Vlong r) le)) mr ClightBigstep.Out_normal)
+               (and
+                  (@eq BinNums.Z (Integers.Int64.unsigned r)
+                     (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) x))
+                  (and
+                     (jet_frame_layout.frame_fields_at mr bl BinNums.Z0 bi edge
+                        (BinInt.Z.add rc
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     (and
+                        (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                           (_ : or (not (@eq Values.block b bl))
+                                  (or
+                                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                     (BinInt.Z.le
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                        ofs))),
+                         @eq (option Values.val) (Memory.Mem.load chunk mr b ofs) (Memory.Mem.load chunk m b ofs))
+                        (and
+                           (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                            Memory.Mem.perm mr b ofs kind p)
+                           (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mr b)))))))
+### C.jet_elements_current_reader.elements_first_read32_source
+elements_first_read32_source
+     : @eq Clight.statement (elements_read32_current_stmt jets_elements._t'1 jets_elements._i)
+         jet_elements_indexed_exec.elements_indexed_head
+### C.jet_elements_current_reader.elements_second_read32_source
+elements_second_read32_source
+     : @eq (option Clight.statement)
+         (elements_find_read32_prefix jets_elements._t'2 (Clight.fn_body jets_elements.f_simplicity_output_null_datum))
+         (@Some Clight.statement (elements_read32_current_stmt jets_elements._t'2 jets_elements._j))
+### C.jet_elements_current_reader.elements_read32_current_stmt
+elements_read32_current_stmt =
+fun ret target : AST.ident =>
+Clight.Ssequence
+  (Clight.Scall (@Some AST.ident ret)
+     (Clight.Evar jets_elements._simplicity_read32
+        (Ctypes.Tfunction
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)) Ctypes.Tnil)
+           Ctypesdefs.tulong AST.cc_default))
+     (@cons Clight.expr
+        (Clight.Eaddrof (Clight.Evar jets_elements._src (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))) (@nil Clight.expr)))
+  (Clight.Sset target (Clight.Etempvar ret Ctypesdefs.tulong))
+     : forall (_ : AST.ident) (_ : AST.ident), Clight.statement
+
+Arguments elements_read32_current_stmt ret target
+### C.jet_elements_current_reader.elements_find_read32_prefix
+elements_find_read32_prefix =
+fix elements_find_read32_prefix (ret : AST.ident) (s : Clight.statement) {struct s} : option Clight.statement :=
+  match s return (option Clight.statement) with
+  | Clight.Sskip => @None Clight.statement
+  | Clight.Sassign _ _ => @None Clight.statement
+  | Clight.Sset _ _ => @None Clight.statement
+  | Clight.Scall _ _ _ => @None Clight.statement
+  | Clight.Sbuiltin _ _ _ _ => @None Clight.statement
+  | Clight.Ssequence a b =>
+      match a return (option Clight.statement) with
+      | Clight.Sskip =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Sassign _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Sset _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Scall o e _ =>
+          match o return (option Clight.statement) with
+          | Some id =>
+              match e return (option Clight.statement) with
+              | Clight.Econst_int _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Econst_float _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Econst_single _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Econst_long _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Evar fn _ =>
+                  match
+                    andb (BinPos.Pos.eqb ret id) (BinPos.Pos.eqb fn jets_elements._simplicity_read32)
+                    return (option Clight.statement)
+                  with
+                  | true => @Some Clight.statement s
+                  | false =>
+                      jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                        (elements_find_read32_prefix ret b)
+                  end
+              | Clight.Etempvar _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Ederef _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Eaddrof _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Eunop _ _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Ebinop _ _ _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Ecast _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Efield _ _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Esizeof _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              | Clight.Ealignof _ _ =>
+                  jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                    (elements_find_read32_prefix ret b)
+              end
+          | None =>
+              jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+                (elements_find_read32_prefix ret b)
+          end
+      | Clight.Sbuiltin _ _ _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Ssequence _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Sifthenelse _ _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Sloop _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Sbreak =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Scontinue =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Sreturn _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Sswitch _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Slabel _ _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      | Clight.Sgoto _ =>
+          jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+            (elements_find_read32_prefix ret b)
+      end
+  | Clight.Sifthenelse _ a b =>
+      jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+        (elements_find_read32_prefix ret b)
+  | Clight.Sloop a b =>
+      jet_elements_null_data_small.elements_stmt_first (elements_find_read32_prefix ret a)
+        (elements_find_read32_prefix ret b)
+  | Clight.Sbreak => @None Clight.statement
+  | Clight.Scontinue => @None Clight.statement
+  | Clight.Sreturn _ => @None Clight.statement
+  | Clight.Sswitch _ _ => @None Clight.statement
+  | Clight.Slabel _ _ => @None Clight.statement
+  | Clight.Sgoto _ => @None Clight.statement
+  end
+     : forall (_ : AST.ident) (_ : Clight.statement), option Clight.statement
+
+Arguments elements_find_read32_prefix ret s

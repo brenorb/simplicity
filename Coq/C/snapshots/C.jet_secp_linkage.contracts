@@ -1,0 +1,155 @@
+### C.jet_secp_linkage.secp_map_eq_in
+@secp_map_eq_in
+     : forall (A B : Type) (F G : forall _ : A, B) (l : list A)
+         (_ : @eq (list B) (@List.map A B F l) (@List.map A B G l)) (x : A) (_ : @List.In A x l),
+       @eq B (F x) (G x)
+### C.jet_secp_linkage.secp_helper_lookup_core
+secp_helper_lookup_core
+     : @eq (list (option Clight.fundef))
+         (@List.map (prod AST.ident Clight.function) (option Clight.fundef) (secp_helper_lookup jet_exec.ge0)
+            secp_core_helpers)
+         (@List.map (prod AST.ident Clight.function) (option (Ctypes.fundef Clight.function))
+            (fun p : prod AST.ident Clight.function =>
+             @Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p))) secp_core_helpers)
+### C.jet_secp_linkage.secp_helper_lookup_secp
+secp_helper_lookup_secp
+     : @eq (list (option Clight.fundef))
+         (@List.map (prod AST.ident Clight.function) (option Clight.fundef) (secp_helper_lookup secp_ge)
+            secp_core_helpers)
+         (@List.map (prod AST.ident Clight.function) (option (Ctypes.fundef Clight.function))
+            (fun p : prod AST.ident Clight.function =>
+             @Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p))) secp_core_helpers)
+### C.jet_secp_linkage.secp_helper_lookup_exists
+secp_helper_lookup_exists
+     : forall (ge : Clight.genv) (id : AST.ident) (f : Clight.function)
+         (_ : @eq (option Clight.fundef) (secp_helper_lookup ge (@pair AST.ident Clight.function id f))
+                (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f))),
+       @ex Values.block
+         (fun b : Values.block =>
+          and
+            (@eq (option Values.block)
+               (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+               (@Some Values.block b))
+            (@eq (option Clight.fundef)
+               (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b)
+               (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f))))
+### C.jet_secp_linkage.secp_core_helpers_entries
+secp_core_helpers_entries
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) secp_core_helpers),
+       @ex Values.block
+         (fun b1 : Values.block =>
+          @ex Values.block
+            (fun b2 : Values.block =>
+             and
+               (@eq (option Values.block)
+                  (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0) id)
+                  (@Some Values.block b1))
+               (and
+                  (@eq (option Clight.fundef)
+                     (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0) b1)
+                     (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))
+                  (and
+                     (@eq (option Values.block)
+                        (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv secp_ge) id)
+                        (@Some Values.block b2))
+                     (@eq (option Clight.fundef)
+                        (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv secp_ge) b2)
+                        (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))))))
+### C.jet_secp_linkage.secp_helpers_okb_true
+secp_helpers_okb_true
+     : @eq bool secp_helpers_okb true
+### C.jet_secp_linkage.secp_core_helpers_ok
+secp_core_helpers_ok
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) secp_core_helpers),
+       @eq bool
+         (jet_transport.fundef_okb jet_exec.ge0 secp_ge
+            (@List.map (prod AST.ident Clight.function) AST.ident (@fst AST.ident Clight.function) secp_core_helpers)
+            (@Ctypes.Internal Clight.function f)) true
+### C.jet_secp_linkage.secp_transport_call
+secp_transport_call
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) secp_core_helpers)
+         (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (m' : Memory.Mem.mem)
+         (res : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function f) args t m' res),
+       ClightBigstep.Clight2.eval_funcall secp_ge m (@Ctypes.Internal Clight.function f) args t m' res
+### C.jet_secp_linkage.secp_ge
+secp_ge = Clight.globalenv jets_secp.prog
+     : Clight.genv
+### C.jet_secp_linkage.secp_symbol_block
+secp_symbol_block =
+fun id : AST.ident =>
+match @Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv secp_ge) id return Values.block with
+| Some b => b
+| None => BinNums.xH
+end
+     : forall _ : AST.ident, Values.block
+
+Arguments secp_symbol_block id
+### C.jet_secp_linkage.secp_core_helpers
+secp_core_helpers =
+@cons (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets._LSBclear jets.f_LSBclear)
+  (@cons (prod AST.ident Clight.function) (@pair AST.ident Clight.function jets._LSBkeep jets.f_LSBkeep)
+     (@cons (prod AST.ident Clight.function)
+        (@pair AST.ident Clight.function jets._simplicity_write8 jets.f_simplicity_write8)
+        (@cons (prod AST.ident Clight.function)
+           (@pair AST.ident Clight.function jets._simplicity_write16 jets.f_simplicity_write16)
+           (@cons (prod AST.ident Clight.function)
+              (@pair AST.ident Clight.function jets._simplicity_write32 jets.f_simplicity_write32)
+              (@cons (prod AST.ident Clight.function)
+                 (@pair AST.ident Clight.function jets._simplicity_write64 jets.f_simplicity_write64)
+                 (@cons (prod AST.ident Clight.function)
+                    (@pair AST.ident Clight.function jets._simplicity_read4 jets.f_simplicity_read4)
+                    (@cons (prod AST.ident Clight.function)
+                       (@pair AST.ident Clight.function jets._simplicity_read8 jets.f_simplicity_read8)
+                       (@cons (prod AST.ident Clight.function)
+                          (@pair AST.ident Clight.function jets._simplicity_read16 jets.f_simplicity_read16)
+                          (@cons (prod AST.ident Clight.function)
+                             (@pair AST.ident Clight.function jets._simplicity_read32 jets.f_simplicity_read32)
+                             (@cons (prod AST.ident Clight.function)
+                                (@pair AST.ident Clight.function jets._simplicity_read64 jets.f_simplicity_read64)
+                                (@cons (prod AST.ident Clight.function)
+                                   (@pair AST.ident Clight.function jets._peekBit jets.f_peekBit)
+                                   (@cons (prod AST.ident Clight.function)
+                                      (@pair AST.ident Clight.function jets._readBit jets.f_readBit)
+                                      (@cons (prod AST.ident Clight.function)
+                                         (@pair AST.ident Clight.function jets._writeBit jets.f_writeBit)
+                                         (@cons (prod AST.ident Clight.function)
+                                            (@pair AST.ident Clight.function jets._forwardBits jets.f_forwardBits)
+                                            (@cons (prod AST.ident Clight.function)
+                                               (@pair AST.ident Clight.function jets._skipBits jets.f_skipBits)
+                                               (@cons (prod AST.ident Clight.function)
+                                                  (@pair AST.ident Clight.function jets._write32s jets.f_write32s)
+                                                  (@cons (prod AST.ident Clight.function)
+                                                     (@pair AST.ident Clight.function jets._read32s jets.f_read32s)
+                                                     (@cons (prod AST.ident Clight.function)
+                                                        (@pair AST.ident Clight.function jets._write8s jets.f_write8s)
+                                                        (@cons (prod AST.ident Clight.function)
+                                                           (@pair AST.ident Clight.function jets._read8s jets.f_read8s)
+                                                           (@nil (prod AST.ident Clight.function)))))))))))))))))))))
+     : list (prod AST.ident Clight.function)
+### C.jet_secp_linkage.secp_helper_lookup
+secp_helper_lookup =
+fun (ge : Clight.genv) (p : prod AST.ident Clight.function) =>
+match
+  @Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) (@fst AST.ident Clight.function p)
+  return (option Clight.fundef)
+with
+| Some b => @Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b
+| None => @None Clight.fundef
+end
+     : forall (_ : Clight.genv) (_ : prod AST.ident Clight.function), option Clight.fundef
+
+Arguments secp_helper_lookup ge p
+### C.jet_secp_linkage.secp_helpers_okb
+secp_helpers_okb =
+@List.forallb (prod AST.ident Clight.function)
+  (fun p : prod AST.ident Clight.function =>
+   jet_transport.fundef_okb jet_exec.ge0 secp_ge
+     (@List.map (prod AST.ident Clight.function) AST.ident (@fst AST.ident Clight.function) secp_core_helpers)
+     (@Ctypes.Internal Clight.function (@snd AST.ident Clight.function p))) secp_core_helpers
+     : bool

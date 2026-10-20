@@ -1,0 +1,111 @@
+### C.jet_skipBits_layout.skipBits_entry
+skipBits_entry
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base n : BinNums.Z),
+       Clight.function_entry2 jet_exec.ge0 jets.f_skipBits
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val))) m Clight.empty_env
+         (skip_frame_env bf base n) m
+### C.jet_skipBits_layout.write_frame_padding_cells
+write_frame_padding_cells
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (count : nat)
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor (BinInt.Z.of_nat count)),
+       jet_encoding.frame_output_cells_at m bw edge cursor (@List.repeat (option bool) (@None bool) count)
+### C.jet_skipBits_layout.eval_skipBits_store
+eval_skipBits_store
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (base cursor n : BinNums.Z)
+         (_ : jet_frame_layout.frame_base_valid base) (_ : and (BinInt.Z.le BinNums.Z0 n) (BinInt.Z.le n cursor))
+         (_ : BinInt.Z.le cursor Integers.Int64.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bf
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr cursor))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bf
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (Values.Vlong (Integers.Int64.repr (BinInt.Z.sub cursor n)))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_skipBits)
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val))) Events.E0 mf Values.Vundef
+### C.jet_skipBits_layout.eval_skipBits_layout
+eval_skipBits_layout
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor n : BinNums.Z) (_ : jet_frame_layout.frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 n) (BinInt.Z.le n cursor))
+         (_ : BinInt.Z.le cursor Integers.Int64.max_unsigned)
+         (_ : jet_frame_layout.frame_fields_at m bf base bw edge cursor)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_skipBits)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_frame_layout.frame_fields_at mf bf base bw edge (BinInt.Z.sub cursor n))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bf))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))
+### C.jet_skipBits_layout.eval_skipBits_padding
+eval_skipBits_padding
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (count : nat)
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor (BinInt.Z.of_nat count)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_skipBits)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vlong (Integers.Int64.repr (BinInt.Z.of_nat count))) (@nil Values.val)))
+               Events.E0 mf Values.Vundef)
+            (and (jet_encoding.frame_output_cells_at mf bw edge cursor (@List.repeat (option bool) (@None bool) count))
+               (and (jet_output_layout.write_prefix_at m mf bw edge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bf base bw edge (BinInt.Z.sub cursor (BinInt.Z.of_nat count)))
+                     (and
+                        (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                           (_ : or (not (@eq Values.block b bf))
+                                  (or
+                                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                        (BinInt.Z.add base
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     (BinInt.Z.le
+                                        (BinInt.Z.add base
+                                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                        ofs))),
+                         @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                        (and
+                           (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p),
+                            Memory.Mem.perm mf b ofs kind p)
+                           (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))))
+### C.jet_skipBits_layout.noop_long_store_preserves_long_load
+noop_long_store_preserves_long_load
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (ofs : BinNums.Z) (value : Integers.Int64.int)
+         (bw : Values.block) (addr : BinNums.Z) (old : Integers.Int64.int)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bf ofs) (@Some Values.val (Values.Vlong value)))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.store AST.Mint64 m bf ofs (Values.Vlong value))
+                (@Some Memory.Mem.mem mf))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bw addr) (@Some Values.val (Values.Vlong old))),
+       @eq (option Values.val) (Memory.Mem.load AST.Mint64 mf bw addr) (@Some Values.val (Values.Vlong old))
+### C.jet_skipBits_layout.skip_frame_env
+skip_frame_env =
+fun (bf : Values.block) (base n : BinNums.Z) =>
+@Maps.PTree.set Values.val jets._n (Values.Vlong (Integers.Int64.repr n))
+  (@Maps.PTree.set Values.val jets._frame (Values.Vptr bf (Integers.Ptrofs.repr base))
+     (Clight.create_undef_temps (Clight.fn_temps jets.f_skipBits)))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments skip_frame_env bf (base n)%Z_scope

@@ -1,0 +1,89 @@
+### C.jet_secp_scalar_mul512_low.scalar_mul512_low_den
+scalar_mul512_low_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho beta scalar_mul512_low)
+         (Values.Vlong
+            (Integers.Int64.add Integers.Int64.zero
+               (jet_secp_umul128_numeric.umul128_lo_machine (rho O) (rho (S (S (S (S O))))))))
+### C.jet_secp_scalar_mul512_low.scalar_mul512_low_carrier
+scalar_mul512_low_carrier
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho beta scalar_mul512_low)
+         (Values.Vlong
+            (Integers.Int64.repr
+               (BinInt.Z.modulo
+                  (BinInt.Z.mul (Integers.Int64.unsigned (rho O)) (Integers.Int64.unsigned (rho (S (S (S (S O)))))))
+                  Integers.Int64.modulus)))
+### C.jet_secp_scalar_mul512_low.scalar_mul512_input_product_low
+scalar_mul512_input_product_low
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (BinInt.Z.mul (scalar_mul512_input_value rho O) (scalar_mul512_input_value rho (S (S (S (S O))))))
+            Integers.Int64.modulus)
+         (BinInt.Z.modulo
+            (BinInt.Z.mul (Integers.Int64.unsigned (rho O)) (Integers.Int64.unsigned (rho (S (S (S (S O)))))))
+            Integers.Int64.modulus)
+### C.jet_secp_scalar_mul512_low.scalar_mul512_low_full_product
+scalar_mul512_low_full_product
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho beta scalar_mul512_low)
+         (Values.Vlong
+            (Integers.Int64.repr
+               (BinInt.Z.modulo
+                  (BinInt.Z.mul (scalar_mul512_input_value rho O) (scalar_mul512_input_value rho (S (S (S (S O))))))
+                  Integers.Int64.modulus)))
+### C.jet_secp_scalar_mul512_low.scalar_mul512_low_cell
+scalar_mul512_low_cell
+     : @List.In jet_sx_state.cell (jet_sx_state.mkcell BinNums.Z0 AST.Mint64 (@Some jet_sx_expr.sx scalar_mul512_low))
+         (jet_sx_rep.u64_cells BinNums.Z0 jet_secp_scalar_mul512_run.scalar_mul512_limbs)
+### C.jet_secp_scalar_mul512_low.eval_scalar_mul512_owned_low_product
+eval_scalar_mul512_owned_low_product
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_mul512_run.scalar_mul512_initial_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul_512)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk beta O) (jet_sx_state.bas beta O))
+                  (@Some Values.val
+                     (Values.Vlong
+                        (Integers.Int64.repr
+                           (BinInt.Z.modulo
+                              (BinInt.Z.mul (scalar_mul512_input_value rho O)
+                                 (scalar_mul512_input_value rho (S (S (S (S O)))))) Integers.Int64.modulus)))))
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_scalar_mul512_run.scalar_mul512_state) mf)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot beta
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape jet_secp_scalar_mul512_run.scalar_mul512_initial_regs) b ofs)) m mf))))
+### C.jet_secp_scalar_mul512_low.scalar_mul512_low
+scalar_mul512_low =
+@List.nth jet_sx_expr.sx O jet_secp_scalar_mul512_run.scalar_mul512_limbs (jet_sx_expr.XLc Integers.Int64.zero)
+     : jet_sx_expr.sx
+### C.jet_secp_scalar_mul512_low.scalar_mul512_input_value
+scalar_mul512_input_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (start : nat) =>
+BinInt.Z.add (Integers.Int64.unsigned (rho start))
+  (BinInt.Z.mul Integers.Int64.modulus
+     (BinInt.Z.add (Integers.Int64.unsigned (rho (Nat.add start (S O))))
+        (BinInt.Z.mul Integers.Int64.modulus
+           (BinInt.Z.add (Integers.Int64.unsigned (rho (Nat.add start (S (S O)))))
+              (BinInt.Z.mul Integers.Int64.modulus (Integers.Int64.unsigned (rho (Nat.add start (S (S (S O)))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), BinNums.Z
+
+Arguments scalar_mul512_input_value rho%function_scope start%nat_scope

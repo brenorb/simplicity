@@ -1,0 +1,225 @@
+### C.jet_secp_scalar_mul512_product.mul512_schedule
+mul512_schedule
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq (list Integers.Int64.int) (jet_secp_scalar_mul512_machine.scalar_mul512_machine_outputs rho)
+         (@app Integers.Int64.int (mul512_prefix rho)
+            (@cons Integers.Int64.int (jet_secp_scalar_mul512_machine.col_lo (mul512_c6 rho))
+               (@cons Integers.Int64.int (jet_secp_scalar_mul512_machine.col_hi (mul512_c6 rho))
+                  (@nil Integers.Int64.int))))
+### C.jet_secp_scalar_mul512_product.mul512_column_values
+mul512_column_values
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       and
+         (@eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (mul512_c1 rho))
+            (BinInt.Z.add
+               (jet_secp_scalar_mul512_machine.column_value
+                  (jet_secp_scalar_mul512_machine.column_extract_fast (mul512_c0 rho)))
+               (jet_secp_scalar_mul512_accumulate.column_products (mul512_ps1 rho))))
+         (and
+            (@eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (mul512_c2 rho))
+               (BinInt.Z.add
+                  (jet_secp_scalar_mul512_machine.column_value
+                     (jet_secp_scalar_mul512_machine.column_extract (mul512_c1 rho)))
+                  (jet_secp_scalar_mul512_accumulate.column_products (mul512_ps2 rho))))
+            (and
+               (@eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (mul512_c3 rho))
+                  (BinInt.Z.add
+                     (jet_secp_scalar_mul512_machine.column_value
+                        (jet_secp_scalar_mul512_machine.column_extract (mul512_c2 rho)))
+                     (jet_secp_scalar_mul512_accumulate.column_products (mul512_ps3 rho))))
+               (and
+                  (@eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (mul512_c4 rho))
+                     (BinInt.Z.add
+                        (jet_secp_scalar_mul512_machine.column_value
+                           (jet_secp_scalar_mul512_machine.column_extract (mul512_c3 rho)))
+                        (jet_secp_scalar_mul512_accumulate.column_products (mul512_ps4 rho))))
+                  (@eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (mul512_c5 rho))
+                     (BinInt.Z.add
+                        (jet_secp_scalar_mul512_machine.column_value
+                           (jet_secp_scalar_mul512_machine.column_extract (mul512_c4 rho)))
+                        (jet_secp_scalar_mul512_accumulate.column_products (mul512_ps5 rho)))))))
+### C.jet_secp_scalar_mul512_product.mul512_input_bound
+mul512_input_bound
+     : forall (rho : forall _ : nat, Integers.Int64.int) (start : nat),
+       and (BinInt.Z.le BinNums.Z0 (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho start))
+         (BinInt.Z.lt (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho start)
+            (BinInt.Z.pow Integers.Int64.modulus (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))))
+### C.jet_secp_scalar_mul512_product.mul512_product_bound
+mul512_product_bound
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       and
+         (BinInt.Z.le BinNums.Z0
+            (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+               (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O)))))))
+         (BinInt.Z.lt
+            (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+               (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O))))))
+            (BinInt.Z.pow Integers.Int64.modulus (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_secp_scalar_mul512_product.mul512_reconstruction
+mul512_reconstruction
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+            (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O))))))
+         (BinInt.Z.add (jet_secp_scalar_mul512_accumulate.column_words_value (mul512_prefix rho))
+            (BinInt.Z.mul (BinInt.Z.pow Integers.Int64.modulus (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH))))
+               (mul512_residual rho)))
+### C.jet_secp_scalar_mul512_product.mul512_residual_bound
+mul512_residual_bound
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (mul512_residual rho))
+         (BinInt.Z.lt (mul512_residual rho) (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+### C.jet_secp_scalar_mul512_product.mul512_final_column
+mul512_final_column
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (mul512_c6 rho)) (mul512_residual rho)
+### C.jet_secp_scalar_mul512_product.scalar_mul512_machine_product
+scalar_mul512_machine_product
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (jet_secp_scalar_mul512_accumulate.column_words_value
+            (jet_secp_scalar_mul512_machine.scalar_mul512_machine_outputs rho))
+         (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+            (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O))))))
+### C.jet_secp_scalar_mul512_product.mul512_c0
+mul512_c0 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_machine.column_muladd_fast (rho O) (rho (S (S (S (S O)))))
+  jet_secp_scalar_mul512_machine.column_zero
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_scalar_mul512_machine.mul_column
+
+Arguments mul512_c0 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_ps1
+mul512_ps1 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+@cons (prod Integers.Int64.int Integers.Int64.int)
+  (@pair Integers.Int64.int Integers.Int64.int (rho O) (rho (S (S (S (S (S O)))))))
+  (@cons (prod Integers.Int64.int Integers.Int64.int)
+     (@pair Integers.Int64.int Integers.Int64.int (rho (S O)) (rho (S (S (S (S O))))))
+     (@nil (prod Integers.Int64.int Integers.Int64.int)))
+     : forall _ : forall _ : nat, Integers.Int64.int, list (prod Integers.Int64.int Integers.Int64.int)
+
+Arguments mul512_ps1 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_ps2
+mul512_ps2 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+@cons (prod Integers.Int64.int Integers.Int64.int)
+  (@pair Integers.Int64.int Integers.Int64.int (rho O) (rho (S (S (S (S (S (S O))))))))
+  (@cons (prod Integers.Int64.int Integers.Int64.int)
+     (@pair Integers.Int64.int Integers.Int64.int (rho (S O)) (rho (S (S (S (S (S O)))))))
+     (@cons (prod Integers.Int64.int Integers.Int64.int)
+        (@pair Integers.Int64.int Integers.Int64.int (rho (S (S O))) (rho (S (S (S (S O))))))
+        (@nil (prod Integers.Int64.int Integers.Int64.int))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list (prod Integers.Int64.int Integers.Int64.int)
+
+Arguments mul512_ps2 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_ps3
+mul512_ps3 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+@cons (prod Integers.Int64.int Integers.Int64.int)
+  (@pair Integers.Int64.int Integers.Int64.int (rho O) (rho (S (S (S (S (S (S (S O)))))))))
+  (@cons (prod Integers.Int64.int Integers.Int64.int)
+     (@pair Integers.Int64.int Integers.Int64.int (rho (S O)) (rho (S (S (S (S (S (S O))))))))
+     (@cons (prod Integers.Int64.int Integers.Int64.int)
+        (@pair Integers.Int64.int Integers.Int64.int (rho (S (S O))) (rho (S (S (S (S (S O)))))))
+        (@cons (prod Integers.Int64.int Integers.Int64.int)
+           (@pair Integers.Int64.int Integers.Int64.int (rho (S (S (S O)))) (rho (S (S (S (S O))))))
+           (@nil (prod Integers.Int64.int Integers.Int64.int)))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list (prod Integers.Int64.int Integers.Int64.int)
+
+Arguments mul512_ps3 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_ps4
+mul512_ps4 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+@cons (prod Integers.Int64.int Integers.Int64.int)
+  (@pair Integers.Int64.int Integers.Int64.int (rho (S O)) (rho (S (S (S (S (S (S (S O)))))))))
+  (@cons (prod Integers.Int64.int Integers.Int64.int)
+     (@pair Integers.Int64.int Integers.Int64.int (rho (S (S O))) (rho (S (S (S (S (S (S O))))))))
+     (@cons (prod Integers.Int64.int Integers.Int64.int)
+        (@pair Integers.Int64.int Integers.Int64.int (rho (S (S (S O)))) (rho (S (S (S (S (S O)))))))
+        (@nil (prod Integers.Int64.int Integers.Int64.int))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list (prod Integers.Int64.int Integers.Int64.int)
+
+Arguments mul512_ps4 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_ps5
+mul512_ps5 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+@cons (prod Integers.Int64.int Integers.Int64.int)
+  (@pair Integers.Int64.int Integers.Int64.int (rho (S (S O))) (rho (S (S (S (S (S (S (S O)))))))))
+  (@cons (prod Integers.Int64.int Integers.Int64.int)
+     (@pair Integers.Int64.int Integers.Int64.int (rho (S (S (S O)))) (rho (S (S (S (S (S (S O))))))))
+     (@nil (prod Integers.Int64.int Integers.Int64.int)))
+     : forall _ : forall _ : nat, Integers.Int64.int, list (prod Integers.Int64.int Integers.Int64.int)
+
+Arguments mul512_ps5 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_c1
+mul512_c1 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_accumulate.column_accumulate (mul512_ps1 rho)
+  (jet_secp_scalar_mul512_machine.column_extract_fast (mul512_c0 rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_scalar_mul512_machine.mul_column
+
+Arguments mul512_c1 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_c2
+mul512_c2 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_accumulate.column_accumulate (mul512_ps2 rho)
+  (jet_secp_scalar_mul512_machine.column_extract (mul512_c1 rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_scalar_mul512_machine.mul_column
+
+Arguments mul512_c2 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_c3
+mul512_c3 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_accumulate.column_accumulate (mul512_ps3 rho)
+  (jet_secp_scalar_mul512_machine.column_extract (mul512_c2 rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_scalar_mul512_machine.mul_column
+
+Arguments mul512_c3 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_c4
+mul512_c4 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_accumulate.column_accumulate (mul512_ps4 rho)
+  (jet_secp_scalar_mul512_machine.column_extract (mul512_c3 rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_scalar_mul512_machine.mul_column
+
+Arguments mul512_c4 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_c5
+mul512_c5 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_accumulate.column_accumulate (mul512_ps5 rho)
+  (jet_secp_scalar_mul512_machine.column_extract (mul512_c4 rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_scalar_mul512_machine.mul_column
+
+Arguments mul512_c5 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_c6
+mul512_c6 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_scalar_mul512_machine.column_muladd_fast (rho (S (S (S O)))) (rho (S (S (S (S (S (S (S O))))))))
+  (jet_secp_scalar_mul512_machine.column_extract (mul512_c5 rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_secp_scalar_mul512_machine.mul_column
+
+Arguments mul512_c6 rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_prefix
+mul512_prefix =
+fun rho : forall _ : nat, Integers.Int64.int =>
+@cons Integers.Int64.int (jet_secp_scalar_mul512_machine.col_lo (mul512_c0 rho))
+  (@cons Integers.Int64.int (jet_secp_scalar_mul512_machine.col_lo (mul512_c1 rho))
+     (@cons Integers.Int64.int (jet_secp_scalar_mul512_machine.col_lo (mul512_c2 rho))
+        (@cons Integers.Int64.int (jet_secp_scalar_mul512_machine.col_lo (mul512_c3 rho))
+           (@cons Integers.Int64.int (jet_secp_scalar_mul512_machine.col_lo (mul512_c4 rho))
+              (@cons Integers.Int64.int (jet_secp_scalar_mul512_machine.col_lo (mul512_c5 rho))
+                 (@nil Integers.Int64.int))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list Integers.Int64.int
+
+Arguments mul512_prefix rho%function_scope
+### C.jet_secp_scalar_mul512_product.mul512_residual
+mul512_residual =
+fun rho : forall _ : nat, Integers.Int64.int =>
+BinInt.Z.add
+  (jet_secp_scalar_mul512_machine.column_value (jet_secp_scalar_mul512_machine.column_extract (mul512_c5 rho)))
+  (BinInt.Z.mul (Integers.Int64.unsigned (rho (S (S (S O)))))
+     (Integers.Int64.unsigned (rho (S (S (S (S (S (S (S O))))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments mul512_residual rho%function_scope

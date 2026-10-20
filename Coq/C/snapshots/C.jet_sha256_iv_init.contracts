@@ -1,0 +1,239 @@
+### C.jet_sha256_iv_init.sha256_iv_spec_parametric
+sha256_iv_spec_parametric
+     : @Alg.Core.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@sha256_iv_spec)
+### C.jet_sha256_iv_init.sha256_iv_words_registers
+sha256_iv_words_registers
+     : @eq (list Integers.Int.int) sha256_iv_words SHA256.init_registers
+### C.jet_sha256_iv_init.sha256_iv_spec_digest
+sha256_iv_spec_digest
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@sha256_iv_spec Alg.CoreFunSem tt)
+         (Word.from_hash256 Digest.sha256_iv)
+### C.jet_sha256_iv_init.sha256_iv_spec_cells
+sha256_iv_spec_cells
+     : @eq (list BitMachine.Cell)
+         (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@sha256_iv_spec Alg.CoreFunSem tt))
+         (@List.concat BitMachine.Cell
+            (@List.map Integers.Int.int (list BitMachine.Cell)
+               (fun x : Integers.Int.int =>
+                @Translate.encode (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O)))))))
+                  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) (Integers.Int.unsigned x)))
+               sha256_iv_words))
+### C.jet_sha256_iv_init.sha256_iv_init_body
+sha256_iv_init_body
+     : @eq Clight.statement (Clight.fn_body jets.f_sha256_iv)
+         (jet_uint32_array_init.uint32_init_stmts O sha256_iv_constants)
+### C.jet_sha256_iv_init.sha256_iv_init_entry
+sha256_iv_init_entry
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z),
+       Clight.function_entry2 jet_exec.ge0 jets.f_sha256_iv
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base)) (@nil Values.val)) m Clight.empty_env
+         (sha256_iv_init_env b base) m
+### C.jet_sha256_iv_init.eval_sha256_iv_init_layout
+eval_sha256_iv_init_layout
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) base)
+         (_ : Memory.Mem.range_perm m b base
+                (BinInt.Z.add base
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_sha256_iv)
+               (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mf
+               Values.Vundef)
+            (and (jet_uint32_array_init.uint32_array_at mf b base sha256_iv_words)
+               (and
+                  (forall (chunk : AST.memory_chunk) (bb : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block bb b))
+                            (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) base)
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                  ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf bb ofs) (Memory.Mem.load chunk m bb ofs))
+                  (and
+                     (forall (bb : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm m bb ofs kind p),
+                      Memory.Mem.perm mf bb ofs kind p)
+                     (forall (bb : Values.block) (_ : Memory.Mem.valid_block m bb), Memory.Mem.valid_block mf bb)))))
+### C.jet_sha256_iv_init.sha256_iv_constants
+sha256_iv_constants =
+@cons BinNums.Z
+  (BinNums.Zpos
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (...)))))))))))))))))))))))
+  (@cons BinNums.Z
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xO
+              (BinNums.xI
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))))))))))))))))
+     (@cons BinNums.Z
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xI
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (...)))))))))))))))))))))
+        (@cons BinNums.Z
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))))))))))
+           (@cons BinNums.Z
+              (BinNums.Zpos
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (...)))))))))))))))))))
+              (@cons BinNums.Z
+                 (BinNums.Zpos
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))))))))))))
+                 (@cons BinNums.Z
+                    (BinNums.Zpos
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))))))))))))
+                    (@cons BinNums.Z
+                       (BinNums.Zpos
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...))))))))))))))))
+                       (@nil BinNums.Z))))))))
+     : list BinNums.Z
+### C.jet_sha256_iv_init.sha256_iv_words
+sha256_iv_words =
+@List.map BinNums.Z Integers.Int.int jet_uint32_array_init.uint32_init_value sha256_iv_constants
+     : list Integers.Int.int
+### C.jet_sha256_iv_init.sha256_iv_spec
+sha256_iv_spec =
+fun term : Alg.Core.Algebra =>
+@Alg.scribe Ty.Unit (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))))
+  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))))
+  term
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments sha256_iv_spec {term}
+### C.jet_sha256_iv_init.sha256_iv_init_env
+sha256_iv_init_env =
+fun (b : Values.block) (base : BinNums.Z) =>
+@Maps.PTree.set Values.val jets._iv (Values.Vptr b (Integers.Ptrofs.repr base))
+  (Clight.create_undef_temps (Clight.fn_temps jets.f_sha256_iv))
+     : forall (_ : Values.block) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments sha256_iv_init_env b base%Z_scope

@@ -1,0 +1,842 @@
+### C.jet_elements_legacy_lock_spec.legacy_parse_tail_parametric
+legacy_parse_tail_parametric
+     : forall distance : bool,
+       @Alg.Core.Parametric
+         (Ty.Prod (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+            (Word.Word (S (S (S (S O)))))) (Word.Word (S (S (S (S O)))))
+         (fun alg : Alg.Core.Algebra => @legacy_parse_tail distance alg)
+### C.jet_elements_legacy_lock_spec.legacy_parse_tail_reader
+legacy_parse_tail_reader
+     : forall (distance : bool) (E : Type)
+         (x : Ty.tySem
+                (Ty.Prod (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+                   (Word.Word (S (S (S (S O))))))) (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Word.Word (S (S (S (S O)))))))
+         (@legacy_parse_tail distance (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) x environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S O)))))) (@legacy_parse_tail distance Alg.CoreFunSem x))
+### C.jet_elements_legacy_lock_spec.legacy_fold_body_reader
+legacy_fold_body_reader
+     : forall (distance : bool) (E : Type)
+         (op : Alg.Core.domain (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad))
+                 (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (p : Ty.tySem (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O)))))))
+         (environment : E),
+       @eq
+         (Monad.CIMonad.domain Option.option_CIMonad
+            (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+         (@legacy_fold_body distance (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) op p environment)
+         (legacy_reader_step distance (fun w : Ty.tySem (Word.Word (S (S (S (S (S O)))))) => op w environment) p)
+### C.jet_elements_legacy_lock_spec.legacy_fold_reader_list
+legacy_fold_reader_list
+     : forall (distance : bool) (X : Type) (xs : list X)
+         (enc : forall _ : X, Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (op : Alg.Core.domain
+                 (Alg.CoreSem (Reader.ReaderT_CIMonad jet_elements_prim.Elements.env Option.option_CIMonad))
+                 (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (environment : jet_elements_prim.Elements.env)
+         (a : prod
+                (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                   (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                   (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat (@length X xs)) (jet_forWhile_seq.wsize (S (S (S (S (S O)))))))
+         (_ : forall w : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+              @eq
+                (Monad.CIMonad.domain Option.option_CIMonad
+                   (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))) (op w environment)
+                (@Some (sum unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+                   match
+                     @List.nth_error X xs (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) w))
+                     return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+                   with
+                   | Some x => @inr unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (enc x)
+                   | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))) tt
+                   end)),
+       @eq
+         (Monad.CIMonad.domain Option.option_CIMonad
+            (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+         (@jet_forWhile_spec.for_while_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S O)))))
+            (Word.Word (S (S (S (S O)))))
+            (Alg.CoreSem (Reader.ReaderT_CIMonad jet_elements_prim.Elements.env Option.option_CIMonad))
+            (@legacy_fold_body distance
+               (Alg.CoreSem (Reader.ReaderT_CIMonad jet_elements_prim.Elements.env Option.option_CIMonad)) op)
+            (@pair unit
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))) tt a)
+            environment)
+         (@Some
+            (sum (Ty.tySem (Word.Word (S (S (S (S O))))))
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+            (@inl (Ty.tySem (Word.Word (S (S (S (S O))))))
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+               (@List.fold_left (Ty.tySem (Word.Word (S (S (S (S O)))))) X
+                  (fun (acc : Ty.tySem (Word.Word (S (S (S (S O)))))) (x : X) => legacy_word_step distance acc (enc x))
+                  xs a)))
+### C.jet_elements_legacy_lock_spec.legacy_fold_program_parametric
+legacy_fold_program_parametric
+     : forall (distance : bool) (alg1 alg2 : Alg.Core.Algebra) (R : Alg.Core.Parametric.Rel alg1 alg2)
+         (v1 : Alg.Core.domain alg1 Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+         (v2 : Alg.Core.domain alg2 Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+         (op1 : Alg.Core.domain alg1 (Word.Word (S (S (S (S (S O))))))
+                  (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (op2 : Alg.Core.domain alg2 (Word.Word (S (S (S (S (S O))))))
+                  (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (_ : @Alg.Core.Parametric.rel alg1 alg2 R Ty.Unit (Word.Word (S (S (S (S (S O)))))) v1 v2)
+         (_ : @Alg.Core.Parametric.rel alg1 alg2 R (Word.Word (S (S (S (S (S O))))))
+                (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) op1 op2),
+       @Alg.Core.Parametric.rel alg1 alg2 R Ty.Unit (Word.Word (S (S (S (S O)))))
+         (@legacy_fold_program distance alg1 v1 op1) (@legacy_fold_program distance alg2 v2 op2)
+### C.jet_elements_legacy_lock_spec.legacy_sequence_value_range
+legacy_sequence_value_range
+     : forall (distance : bool) (s : BinNums.Z),
+       and (BinInt.Z.le BinNums.Z0 (legacy_sequence_value distance s))
+         (BinInt.Z.lt (legacy_sequence_value distance s)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))))
+### C.jet_elements_legacy_lock_spec.legacy_max_word_value
+legacy_max_word_value
+     : forall a b : Ty.tySem (Word.Word (S (S (S (S O))))),
+       @eq BinNums.Z
+         (jet_forWhile_seq.wz (S (S (S (S O))))
+            (@jet_minmax_spec.minmax_word_spec (S (S (S (S O)))) true Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S (S (S (S O)))))) (Ty.tySem (Word.Word (S (S (S (S O)))))) a b)))
+         (BinInt.Z.max (jet_forWhile_seq.wz (S (S (S (S O)))) a) (jet_forWhile_seq.wz (S (S (S (S O)))) b))
+### C.jet_elements_legacy_lock_spec.legacy_parse_tail_value
+legacy_parse_tail_value
+     : forall (distance : bool)
+         (p : Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+         (a : prod
+                (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                   (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                   (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S O))))))
+         (@legacy_parse_tail distance Alg.CoreFunSem
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))) p a))
+         match p return (Ty.tySem (Word.Word (S (S (S (S O)))))) with
+         | inl _ => a
+         | inr t =>
+             match t return (Ty.tySem (Word.Word (S (S (S (S O)))))) with
+             | inl x =>
+                 match distance return (Ty.tySem (Word.Word (S (S (S (S O)))))) with
+                 | true =>
+                     @jet_minmax_spec.minmax_word_spec (S (S (S (S O)))) true Alg.CoreFunSem
+                       (@pair
+                          (prod
+                             (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                             (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                          (prod
+                             (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                             (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                          x a)
+                 | false => a
+                 end
+             | inr x =>
+                 match distance return (Ty.tySem (Word.Word (S (S (S (S O)))))) with
+                 | true => a
+                 | false =>
+                     @jet_minmax_spec.minmax_word_spec (S (S (S (S O)))) true Alg.CoreFunSem
+                       (@pair
+                          (prod
+                             (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                             (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                          (prod
+                             (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                             (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                          x a)
+                 end
+             end
+         end
+### C.jet_elements_legacy_lock_spec.legacy_word_step_value
+legacy_word_step_value
+     : forall (distance : bool) (a : Ty.tySem (Word.Word (S (S (S (S O))))))
+         (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq BinNums.Z (jet_forWhile_seq.wz (S (S (S (S O)))) (legacy_word_step distance a x))
+         (BinInt.Z.max (jet_forWhile_seq.wz (S (S (S (S O)))) a)
+            (legacy_sequence_value distance (jet_forWhile_seq.wz (S (S (S (S (S O))))) x)))
+### C.jet_elements_legacy_lock_spec.legacy_fold_value
+legacy_fold_value
+     : forall (distance : bool) (xs : list jet_elements_prim.sigTxInput) (a : Ty.tySem (Word.Word (S (S (S (S O)))))),
+       @eq BinNums.Z
+         (jet_forWhile_seq.wz (S (S (S (S O))))
+            (@List.fold_left (Ty.tySem (Word.Word (S (S (S (S O)))))) jet_elements_prim.sigTxInput
+               (fun (acc : Ty.tySem (Word.Word (S (S (S (S O)))))) (x : jet_elements_prim.sigTxInput) =>
+                legacy_word_step distance acc
+                  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+                     (Integers.Int.unsigned (jet_elements_prim.sigTxiSequence x)))) xs a))
+         (@List.fold_left BinNums.Z jet_elements_prim.sigTxInput
+            (fun (acc : BinNums.Z) (x : jet_elements_prim.sigTxInput) =>
+             BinInt.Z.max acc
+               (legacy_sequence_value distance (Integers.Int.unsigned (jet_elements_prim.sigTxiSequence x)))) xs
+            (jet_forWhile_seq.wz (S (S (S (S O)))) a))
+### C.jet_elements_legacy_lock_spec.legacy_cache_value_range
+legacy_cache_value_range
+     : forall (distance : bool) (xs : list jet_elements_prim.sigTxInput),
+       and (BinInt.Z.le BinNums.Z0 (legacy_cache_value distance xs))
+         (BinInt.Z.lt (legacy_cache_value distance xs)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))))))
+### C.jet_elements_legacy_lock_spec.elements_legacy_version_check_value
+elements_legacy_version_check_value
+     : forall environment : jet_elements_prim.Elements.env,
+       @ex (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (fun b : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit) =>
+          and
+            (@eq
+               (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                  (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)))
+               (@legacy_version_check
+                  (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore
+                     (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))
+                  (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim Ty.Unit
+                     (Word.Word (S (S (S (S (S O))))))
+                     (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+                     jet_elements_prim.Elements.Version) tt environment) (@Some (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)) b))
+            (@eq bool (Bit.toBool b)
+               (BinInt.Z.leb (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (Integers.Int.unsigned
+                     (jet_elements_prim.sigTxVersion (jet_elements_prim.Elements.envTx environment))))))
+### C.jet_elements_legacy_lock_spec.legacy_fold_finish_reader
+legacy_fold_finish_reader
+     : forall (distance : bool)
+         (op : Alg.Core.domain
+                 (Alg.CoreSem (Reader.ReaderT_CIMonad jet_elements_prim.Elements.env Option.option_CIMonad))
+                 (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (a
+          result : prod
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+         (b : sum unit unit) (environment : jet_elements_prim.Elements.env)
+         (_ : @eq
+                (Monad.CIMonad.domain Option.option_CIMonad
+                   (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+                (@jet_forWhile_spec.for_while_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S O)))))
+                   (Word.Word (S (S (S (S O)))))
+                   (Alg.CoreSem (Reader.ReaderT_CIMonad jet_elements_prim.Elements.env Option.option_CIMonad))
+                   (@legacy_fold_body distance
+                      (Alg.CoreSem (Reader.ReaderT_CIMonad jet_elements_prim.Elements.env Option.option_CIMonad)) op)
+                   (@pair unit
+                      (prod
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))) tt a)
+                   environment)
+                (@Some
+                   (sum
+                      (prod
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                      (prod
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                   (@inl
+                      (prod
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                      (prod
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                         (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                            (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                      result))),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Word.Word (S (S (S (S O)))))))
+         (@legacy_fold_finish distance
+            (Alg.CoreSem (Reader.ReaderT_CIMonad jet_elements_prim.Elements.env Option.option_CIMonad)) op
+            (@pair (sum unit unit)
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))) b a)
+            environment)
+         (@Some
+            (prod
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+            match
+              Bit.toBool b
+              return
+                (prod
+                   (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                      (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                   (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                      (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+            with
+            | true => result
+            | false => a
+            end)
+### C.jet_elements_legacy_lock_spec.elements_legacy_lock_spec_value
+elements_legacy_lock_spec_value
+     : forall (distance : bool) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S O)))))))
+         (@elements_legacy_lock_spec distance
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
+            environment)
+         (@Some (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S O)))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S O)))))
+               match
+                 BinInt.Z.leb (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (Integers.Int.unsigned
+                      (jet_elements_prim.sigTxVersion (jet_elements_prim.Elements.envTx environment)))
+                 return BinNums.Z
+               with
+               | true =>
+                   legacy_cache_value distance
+                     (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment))
+               | false => BinNums.Z0
+               end))
+### C.jet_elements_legacy_lock_spec.legacy_parse_tail
+legacy_parse_tail =
+fun (distance : bool) (alg : Alg.Core.Algebra) =>
+@Alg.Core.Combinators.case Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+  (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+  (@Alg.Core.Combinators.drop Ty.Unit (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S O))))) alg))
+  match
+    distance
+    return
+      (Alg.Core.domain alg
+         (Ty.Prod (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) (Word.Word (S (S (S (S O))))))
+         (Word.Word (S (S (S (S O))))))
+  with
+  | true =>
+      @Alg.Core.Combinators.case (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))
+        (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+        (@jet_minmax_spec.minmax_word_spec (S (S (S (S O)))) true alg)
+        (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))
+           (Word.Word (S (S (S (S O))))) alg (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S O))))) alg))
+  | false =>
+      @Alg.Core.Combinators.case (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))
+        (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+        (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))
+           (Word.Word (S (S (S (S O))))) alg (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S O))))) alg))
+        (@jet_minmax_spec.minmax_word_spec (S (S (S (S O)))) true alg)
+  end
+     : forall (_ : bool) (alg : Alg.Core.Algebra),
+       Alg.Core.domain alg
+         (Ty.Prod (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+            (Word.Word (S (S (S (S O)))))) (Word.Word (S (S (S (S O)))))
+
+Arguments legacy_parse_tail distance%bool_scope {alg}
+### C.jet_elements_legacy_lock_spec.legacy_fold_body
+legacy_fold_body =
+fun (distance : bool) (alg : Alg.Core.Algebra)
+  (op : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))) =>
+@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O))))))
+  (Ty.Prod (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O))))))
+  (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) alg
+  (@Alg.Core.Combinators.pair
+     (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O))))) alg
+     (@Alg.Core.Combinators.take (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O)))))
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) alg
+        (@Alg.Core.Combinators.drop Ty.Unit (Word.Word (S (S (S (S (S O))))))
+           (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) alg op))
+     (@Alg.Core.Combinators.drop (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O)))))
+        (Word.Word (S (S (S (S O))))) alg (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S O))))) alg)))
+  (@Alg.Core.Combinators.case Ty.Unit (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S O)))))
+     (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) alg
+     (@Alg.Core.Combinators.injl (Ty.Prod Ty.Unit (Word.Word (S (S (S (S O)))))) (Word.Word (S (S (S (S O)))))
+        (Word.Word (S (S (S (S O))))) alg
+        (@Alg.Core.Combinators.drop Ty.Unit (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+           (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S O))))) alg)))
+     (@Alg.Core.Combinators.injr (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S O))))))
+        (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+        (@Alg.Core.Combinators.comp (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S O))))))
+           (Ty.Prod (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+              (Word.Word (S (S (S (S O)))))) (Word.Word (S (S (S (S O))))) alg
+           (@Alg.Core.Combinators.pair (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S O))))))
+              (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+              (Word.Word (S (S (S (S O))))) alg
+              (@Alg.Core.Combinators.take (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S O)))))
+                 (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))) alg
+                 (@jet_parse_sequence_spec.parse_sequence_spec alg))
+              (@Alg.Core.Combinators.drop (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S O)))))
+                 (Word.Word (S (S (S (S O))))) alg (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S O))))) alg)))
+           (@legacy_parse_tail distance alg))))
+     : forall (_ : bool) (alg : Alg.Core.Algebra)
+         (_ : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))),
+       Alg.Core.domain alg (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O))))))
+         (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+
+Arguments legacy_fold_body distance%bool_scope {alg} op
+### C.jet_elements_legacy_lock_spec.legacy_version_check
+legacy_version_check =
+fun (alg : Alg.Core.Algebra) (version : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))) =>
+@Alg.Core.Combinators.comp Ty.Unit (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+  (Ty.Sum Ty.Unit Ty.Unit) alg
+  (@Alg.Core.Combinators.pair Ty.Unit (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))) alg
+     (@Alg.scribe Ty.Unit (Word.Word (S (S (S (S (S O))))))
+        (jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S O))))) (BinNums.Zpos (BinNums.xO BinNums.xH))) alg)
+     version) (@jet_order_spec.le_word_spec alg (S (S (S (S (S O))))))
+     : forall (alg : Alg.Core.Algebra) (_ : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))),
+       Alg.Core.domain alg Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments legacy_version_check {alg} version
+### C.jet_elements_legacy_lock_spec.legacy_fold_finish
+legacy_fold_finish =
+fun (distance : bool) (alg : Alg.Core.Algebra)
+  (op : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))) =>
+@Alg.Core.Combinators.case Ty.Unit Ty.Unit (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+  (@Alg.Core.Combinators.drop Ty.Unit (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))) alg
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S O))))) alg))
+  (@Alg.Core.Combinators.comp (Ty.Prod Ty.Unit (Word.Word (S (S (S (S O))))))
+     (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) (Word.Word (S (S (S (S O))))) alg
+     (@jet_forWhile_spec.for_while_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S O)))))
+        (Word.Word (S (S (S (S O))))) alg (@legacy_fold_body distance alg op))
+     (@Alg.Core.Combinators.copair (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))
+        (Word.Word (S (S (S (S O))))) alg (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S O))))) alg)
+        (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S O))))) alg)))
+     : forall (_ : bool) (alg : Alg.Core.Algebra)
+         (_ : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))),
+       Alg.Core.domain alg (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+         (Word.Word (S (S (S (S O)))))
+
+Arguments legacy_fold_finish distance%bool_scope {alg} op
+### C.jet_elements_legacy_lock_spec.legacy_fold_program
+legacy_fold_program =
+fun (distance : bool) (alg : Alg.Core.Algebra)
+  (version : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+  (op : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))) =>
+@Alg.Core.Combinators.comp Ty.Unit (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+  (Word.Word (S (S (S (S O))))) alg
+  (@Alg.Core.Combinators.pair Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))) alg
+     (@legacy_version_check alg version) (@Word.zero (S (S (S (S O)))) alg)) (@legacy_fold_finish distance alg op)
+     : forall (_ : bool) (alg : Alg.Core.Algebra) (_ : Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S (S O)))))))
+         (_ : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))),
+       Alg.Core.domain alg Ty.Unit (Word.Word (S (S (S (S O)))))
+
+Arguments legacy_fold_program distance%bool_scope {alg} version op
+### C.jet_elements_legacy_lock_spec.elements_legacy_lock_spec
+elements_legacy_lock_spec =
+fun (distance : bool) (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) =>
+@legacy_fold_program distance (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore alg)
+  (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+     jet_elements_prim.Elements.Version)
+  (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) alg jet_elements_prim.Elements.InputSequence)
+     : forall (_ : bool) (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra),
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S O)))))
+
+Arguments elements_legacy_lock_spec distance%bool_scope {alg}
+### C.jet_elements_legacy_lock_spec.legacy_word_step
+legacy_word_step =
+fun (distance : bool) (a : Ty.tySem (Word.Word (S (S (S (S O)))))) (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))) =>
+@legacy_parse_tail distance Alg.CoreFunSem
+  (@pair (Ty.tySem (Ty.Sum Ty.Unit (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+     (Ty.tySem (Word.Word (S (S (S (S O)))))) (@jet_parse_sequence_spec.parse_sequence_spec Alg.CoreFunSem x) a)
+     : forall (_ : bool) (_ : Ty.tySem (Word.Word (S (S (S (S O)))))) (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       Ty.tySem (Word.Word (S (S (S (S O)))))
+
+Arguments legacy_word_step distance%bool_scope a x
+### C.jet_elements_legacy_lock_spec.legacy_reader_step
+legacy_reader_step =
+fun (distance : bool)
+  (op : forall _ : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+        option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))))
+  (p : Ty.tySem (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O))))))) =>
+match
+  op
+    (@snd unit
+       (prod
+          ((fix tySem (X : Ty.Ty) : Set :=
+              match X return Set with
+              | Ty.Unit => unit
+              | Ty.Sum A B => sum (tySem A) (tySem B)
+              | Ty.Prod A B => prod (tySem A) (tySem B)
+              end)
+             ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                 match n return Ty.Ty with
+                 | O => X
+                 | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                 end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S O))))))
+          ((fix tySem (X : Ty.Ty) : Set :=
+              match X return Set with
+              | Ty.Unit => unit
+              | Ty.Sum A B => sum (tySem A) (tySem B)
+              | Ty.Prod A B => prod (tySem A) (tySem B)
+              end)
+             ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                 match n return Ty.Ty with
+                 | O => X
+                 | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                 end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S O)))))))
+       (@fst
+          (prod
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A B => sum (tySem A) (tySem B)
+                 | Ty.Prod A B => prod (tySem A) (tySem B)
+                 end) Ty.Unit)
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A B => sum (tySem A) (tySem B)
+                 | Ty.Prod A B => prod (tySem A) (tySem B)
+                 end) (Word.Word (S (S (S (S (S O))))))))
+          (prod
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A B => sum (tySem A) (tySem B)
+                 | Ty.Prod A B => prod (tySem A) (tySem B)
+                 end)
+                ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                    match n return Ty.Ty with
+                    | O => X
+                    | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                    end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A B => sum (tySem A) (tySem B)
+                 | Ty.Prod A B => prod (tySem A) (tySem B)
+                 end)
+                ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                    match n return Ty.Ty with
+                    | O => X
+                    | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                    end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) p))
+  return (option (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))))
+with
+| Some t =>
+    match t return (option (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))) with
+    | inl _ =>
+        @Some
+          (sum
+             (prod
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))))
+             (prod
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))))
+          (@inl
+             (prod
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))))
+             (prod
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))))))
+             (@snd
+                (prod
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end) Ty.Unit)
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end) (Word.Word (S (S (S (S (S O))))))))
+                (prod
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end)
+                      ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                          match n return Ty.Ty with
+                          | O => X
+                          | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                          end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end)
+                      ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                          match n return Ty.Ty with
+                          | O => X
+                          | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                          end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) p))
+    | inr x =>
+        @Some
+          (sum
+             (prod
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) (Ty.tySem (Word.Word (S (S (S (S O)))))))
+          (@inr
+             (prod
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end)
+                   ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                       match n return Ty.Ty with
+                       | O => X
+                       | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                       end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) (Ty.tySem (Word.Word (S (S (S (S O))))))
+             (legacy_word_step distance
+                (@snd
+                   (prod
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end) Ty.Unit)
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end) (Word.Word (S (S (S (S (S O))))))))
+                   (prod
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end)
+                         ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                             match n return Ty.Ty with
+                             | O => X
+                             | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                             end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A B => sum (tySem A) (tySem B)
+                          | Ty.Prod A B => prod (tySem A) (tySem B)
+                          end)
+                         ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                             match n return Ty.Ty with
+                             | O => X
+                             | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                             end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O)))))) p) x))
+    end
+| None => @None (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+end
+     : forall (_ : bool)
+         (_ : forall _ : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+              option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))))
+         (_ : Ty.tySem (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Word.Word (S (S (S (S O))))))),
+       option (Ty.tySem (Ty.Sum (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+
+Arguments legacy_reader_step distance%bool_scope op%function_scope p
+### C.jet_elements_legacy_lock_spec.legacy_sequence_value
+legacy_sequence_value =
+fun (distance : bool) (s : BinNums.Z) =>
+match
+  BinInt.Z.testbit s (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))) return BinNums.Z
+with
+| true => BinNums.Z0
+| false =>
+    match
+      match distance return bool with
+      | true => negb (BinInt.Z.testbit s (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+      | false => BinInt.Z.testbit s (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))
+      end return BinNums.Z
+    with
+    | true =>
+        BinInt.Z.modulo s
+          (BinNums.Zpos
+             (BinNums.xO
+                (BinNums.xO
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))))
+    | false => BinNums.Z0
+    end
+end
+     : forall (_ : bool) (_ : BinNums.Z), BinNums.Z
+
+Arguments legacy_sequence_value distance%bool_scope s%Z_scope
+### C.jet_elements_legacy_lock_spec.legacy_cache_value
+legacy_cache_value =
+fun (distance : bool) (xs : list jet_elements_prim.sigTxInput) =>
+@List.fold_left BinNums.Z jet_elements_prim.sigTxInput
+  (fun (a : BinNums.Z) (x : jet_elements_prim.sigTxInput) =>
+   BinInt.Z.max a (legacy_sequence_value distance (Integers.Int.unsigned (jet_elements_prim.sigTxiSequence x)))) xs
+  BinNums.Z0
+     : forall (_ : bool) (_ : list jet_elements_prim.sigTxInput), BinNums.Z
+
+Arguments legacy_cache_value distance%bool_scope xs%list_scope

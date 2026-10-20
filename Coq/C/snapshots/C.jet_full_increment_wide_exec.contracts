@@ -1,0 +1,72 @@
+### C.jet_full_increment_wide_exec.wide_full_increment
+wide_full_increment =
+fun s : jet_wide.wide_size =>
+match s return Clight.function with
+| jet_wide.W16 => jets.f_simplicity_full_increment_16
+| jet_wide.W32 => jets.f_simplicity_full_increment_32
+| jet_wide.W64 => jets.f_simplicity_full_increment_64
+end
+     : forall _ : jet_wide.wide_size, Clight.function
+
+Arguments wide_full_increment s
+### C.jet_full_increment_wide_exec.wide_full_increment_limit_expr
+wide_full_increment_limit_expr =
+fun s : jet_wide.wide_size =>
+match s return Clight.expr with
+| jet_wide.W16 =>
+    Clight.Econst_int
+      (Integers.Int.repr
+         (BinNums.Zpos
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+      Ctypesdefs.tint
+| jet_wide.W32 => Clight.Econst_int Integers.Int.mone Ctypesdefs.tuint
+| jet_wide.W64 => Clight.Econst_long Integers.Int64.mone Ctypesdefs.tulong
+end
+     : forall _ : jet_wide.wide_size, Clight.expr
+
+Arguments wide_full_increment_limit_expr s
+### C.jet_full_increment_wide_exec.wide_full_increment_limit_type
+wide_full_increment_limit_type =
+fun s : jet_wide.wide_size =>
+match s return Ctypes.type with
+| jet_wide.W16 => Ctypesdefs.tuint
+| jet_wide.W32 => Ctypesdefs.tuint
+| jet_wide.W64 => Ctypesdefs.tulong
+end
+     : forall _ : jet_wide.wide_size, Ctypes.type
+
+Arguments wide_full_increment_limit_type s
+### C.jet_full_increment_wide_exec.wide_full_increment_sub_expr
+wide_full_increment_sub_expr =
+fun s : jet_wide.wide_size =>
+Clight.Ebinop Cop.Osub
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint) (wide_full_increment_limit_expr s)
+     (wide_full_increment_limit_type s)) (Clight.Etempvar jets._z Ctypesdefs.tbool) (wide_full_increment_limit_type s)
+     : forall _ : jet_wide.wide_size, Clight.expr
+
+Arguments wide_full_increment_sub_expr s
+### C.jet_full_increment_wide_exec.wide_full_increment_carry_expr
+wide_full_increment_carry_expr =
+fun s : jet_wide.wide_size =>
+Clight.Ebinop Cop.Olt (wide_full_increment_sub_expr s) (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tint
+     : forall _ : jet_wide.wide_size, Clight.expr
+
+Arguments wide_full_increment_carry_expr s
+### C.jet_full_increment_wide_exec.wide_full_increment_sum_expr
+wide_full_increment_sum_expr =
+Clight.Ecast
+  (Clight.Ebinop Cop.Oadd
+     (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+        (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tulong) (Clight.Etempvar jets._z Ctypesdefs.tbool)
+     Ctypesdefs.tulong) Ctypesdefs.tulong
+     : Clight.expr

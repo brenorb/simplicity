@@ -1,0 +1,354 @@
+### C.jet_sha_compress_uchar.compression_uchar_body
+compression_uchar_body
+     : @eq Clight.statement (Clight.fn_body jets_sha.f_sha256_compression_uchar)
+         (Clight.Ssequence (be_fill (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))) be_tail)
+### C.jet_sha_compress_uchar.be_temp_fresh
+be_temp_fresh
+     : forall (k : nat) (_ : lt k (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))),
+       and (not (@eq AST.ident (be_temp k) jets_sha._chunk)) (not (@eq AST.ident (be_temp k) jets_sha._s))
+### C.jet_sha_compress_uchar.ptr_word_offset
+ptr_word_offset
+     : forall (i : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.le i
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))),
+       @eq BinNums.Z
+         (Integers.Ptrofs.unsigned
+            (Integers.Ptrofs.add Integers.Ptrofs.zero
+               (Integers.Ptrofs.mul (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+                  (Integers.Ptrofs.of_ints (Integers.Int.repr i)))))
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) i)
+### C.jet_sha_compress_uchar.be_pair_exec
+be_pair_exec
+     : forall (bc bk : Values.block) (oc : Integers.Ptrofs.int) (bytes : list Integers.Int.int)
+         (e : Clight.env) (_ : not (@eq Values.block bc bk))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha.___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bk
+                      (Ctypesdefs.tarray Ctypesdefs.tuint
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._ReadBE32 e)
+                (@None (prod Values.block Ctypes.type))) (k : nat) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (_ : lt k (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+         (_ : fill_ok bc bk oc bytes m)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._chunk le)
+                (@Some Values.val (Values.Vptr bc oc))),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem)
+               (Memory.Mem.store AST.Mint32 m bk
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat k))
+                  (Values.Vint (c_be_word bytes k))) (@Some Memory.Mem.mem m'))
+            (and
+               (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge e le m (be_call k) Events.E0
+                  (@Maps.PTree.set Values.val (be_temp k) (Values.Vint (c_be_word bytes k)) le) m
+                  ClightBigstep.Out_normal)
+               (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge e
+                  (@Maps.PTree.set Values.val (be_temp k) (Values.Vint (c_be_word bytes k)) le) m
+                  (be_assign k) Events.E0 (@Maps.PTree.set Values.val (be_temp k) (Values.Vint (c_be_word bytes k)) le)
+                  m' ClightBigstep.Out_normal)))
+### C.jet_sha_compress_uchar.fill_ok_store
+fill_ok_store
+     : forall (bc bk : Values.block) (oc : Integers.Ptrofs.int) (bytes : list Integers.Int.int)
+         (_ : not (@eq Values.block bc bk)) (k : nat) (m m' : Memory.Mem.mem) (v : Values.val)
+         (_ : fill_ok bc bk oc bytes m)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint32 m bk
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat k)) v)
+                (@Some Memory.Mem.mem m')), fill_ok bc bk oc bytes m'
+### C.jet_sha_compress_uchar.be_fill_exec
+be_fill_exec
+     : forall (bc bk : Values.block) (oc : Integers.Ptrofs.int) (bytes : list Integers.Int.int)
+         (e : Clight.env) (_ : not (@eq Values.block bc bk))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha.___compound e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bk
+                      (Ctypesdefs.tarray Ctypesdefs.tuint
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._ReadBE32 e)
+                (@None (prod Values.block Ctypes.type))) (k : nat)
+         (_ : lt k (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+         (le0 : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (_ : fill_ok bc bk oc bytes m)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._chunk le0)
+                (@Some Values.val (Values.Vptr bc oc))),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun m' : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge e le0 m (be_fill k) Events.E0 le' m'
+                  ClightBigstep.Out_normal)
+               (and
+                  (@eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._chunk le')
+                     (@Maps.PTree.get Values.val jets_sha._chunk le0))
+                  (and
+                     (@eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._s le')
+                        (@Maps.PTree.get Values.val jets_sha._s le0))
+                     (and (fill_ok bc bk oc bytes m')
+                        (and
+                           (forall (j : nat) (_ : le j k),
+                            @eq (option Values.val)
+                              (Memory.Mem.load AST.Mint32 m' bk
+                                 (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat j)))
+                              (@Some Values.val (Values.Vint (c_be_word bytes j))))
+                           (and
+                              (forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                                 (_ : not (@eq Values.block b bk)),
+                               @eq (option Values.val) (Memory.Mem.load ch m' b ofs) (Memory.Mem.load ch m b ofs))
+                              (and
+                                 (forall (b : Values.block) (ofs : BinNums.Z) (kd : Memtype.perm_kind)
+                                    (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kd p),
+                                  Memory.Mem.perm m' b ofs kd p)
+                                 (forall (b : Values.block) (_ : Memory.Mem.valid_block m b),
+                                  Memory.Mem.valid_block m' b)))))))))
+### C.jet_sha_compress_uchar.c_be_words_eq
+c_be_words_eq
+     : forall (bytes : list Integers.Int.int)
+         (_ : @eq nat (@length Integers.Int.int bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : forall (i : nat)
+                (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              BinInt.Z.lt (Integers.Int.unsigned (@List.nth Integers.Int.int i bytes Integers.Int.zero))
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @eq (list Integers.Int.int)
+         (@List.map nat Integers.Int.int (c_be_word bytes)
+            (List.seq O (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))))
+         (jet_sha_ctx8_model.be_words bytes)
+### C.jet_sha_compress_uchar.cu_entry
+cu_entry
+     : forall (m : Memory.Mem.mem) (m1 : Memory.Mem.mem') (bk bs : Values.block) (os : Integers.Ptrofs.int)
+         (bc : Values.block) (oc : Integers.Ptrofs.int)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block m1 bk)),
+       Clight.function_entry2 jet_sha_linkage.sha_ge jets_sha.f_sha256_compression_uchar
+         (@cons Values.val (Values.Vptr bs os) (@cons Values.val (Values.Vptr bc oc) (@nil Values.val))) m
+         (cu_env bk) (cu_temps bs os bc oc) m1
+### C.jet_sha_compress_uchar.cu_blocks
+cu_blocks
+     : forall bk : Values.block,
+       @eq (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (Clight.blocks_of_env jet_sha_linkage.sha_ge (cu_env bk))
+         (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+            (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bk BinNums.Z0)
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+            (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))
+### C.jet_sha_compress_uchar.eval_sha_compression_uchar
+eval_sha_compression_uchar
+     : forall (m : Memory.Mem.mem) (bs : Values.block) (os : Integers.Ptrofs.int) (bc : Values.block)
+         (oc : Integers.Ptrofs.int) (regs bytes : list Integers.Int.int)
+         (_ : @eq nat (@length Integers.Int.int regs) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : @eq nat (@length Integers.Int.int bytes)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned) (_ : jet_sha_block_local.sha_dispatch_ok m)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S (S (S (S (S O))))))))),
+              and
+                (@eq (option Values.val)
+                   (Memory.Mem.load AST.Mint32 m bs
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i))))
+                   (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i regs Integers.Int.zero))))
+                (Memory.Mem.valid_access m AST.Mint32 bs
+                   (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i)))
+                   Memtype.Writable))
+         (_ : forall (i : nat)
+                (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint8unsigned m bc
+                   (BinInt.Z.add (Integers.Ptrofs.unsigned oc) (BinInt.Z.of_nat i)))
+                (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i bytes Integers.Int.zero)))),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_sha_linkage.sha_ge m
+               (@Ctypes.Internal Clight.function jets_sha.f_sha256_compression_uchar)
+               (@cons Values.val (Values.Vptr bs os) (@cons Values.val (Values.Vptr bc oc) (@nil Values.val)))
+               Events.E0 m' Values.Vundef)
+            (and
+               (forall (i : nat) (_ : lt i (S (S (S (S (S (S (S (S O))))))))),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint32 m' bs
+                     (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat i))))
+                  (@Some Values.val
+                     (Values.Vint
+                        (@List.nth Integers.Int.int i (SHA256.hash_block regs (jet_sha_ctx8_model.be_words bytes))
+                           Integers.Int.zero))))
+               (and
+                  (forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+                     (_ : or (not (@eq Values.block b bs))
+                            (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk ch)) (Integers.Ptrofs.unsigned os))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                                     (BinNums.Zpos
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                  ofs))),
+                   @eq (option Values.val) (Memory.Mem.load ch m' b ofs) (Memory.Mem.load ch m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                        (_ : Memory.Mem.valid_block m b) (_ : Memory.Mem.perm m b ofs k p),
+                      Memory.Mem.perm m' b ofs k p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block m' b)))))
+### C.jet_sha_compress_uchar.be_temps
+be_temps =
+@cons AST.ident jets_sha._t'1
+  (@cons AST.ident jets_sha._t'2
+     (@cons AST.ident jets_sha._t'3
+        (@cons AST.ident jets_sha._t'4
+           (@cons AST.ident jets_sha._t'5
+              (@cons AST.ident jets_sha._t'6
+                 (@cons AST.ident jets_sha._t'7
+                    (@cons AST.ident jets_sha._t'8
+                       (@cons AST.ident jets_sha._t'9
+                          (@cons AST.ident jets_sha._t'10
+                             (@cons AST.ident jets_sha._t'11
+                                (@cons AST.ident jets_sha._t'12
+                                   (@cons AST.ident jets_sha._t'13
+                                      (@cons AST.ident jets_sha._t'14
+                                         (@cons AST.ident jets_sha._t'15
+                                            (@cons AST.ident jets_sha._t'16 (@nil AST.ident))))))))))))))))
+     : list AST.ident
+### C.jet_sha_compress_uchar.be_temp
+be_temp = fun k : nat => @List.nth AST.ident k be_temps jets_sha._t'1
+     : forall _ : nat, AST.ident
+
+Arguments be_temp k%nat_scope
+### C.jet_sha_compress_uchar.be_call
+be_call =
+fun k : nat =>
+Clight.Scall (@Some AST.ident (be_temp k))
+  (Clight.Evar jets_sha._ReadBE32
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuchar) Ctypes.Tnil) Ctypesdefs.tuint AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Ebinop Cop.Oadd (Clight.Etempvar jets_sha._chunk (Ctypesdefs.tptr Ctypesdefs.tuchar))
+        (Clight.Ebinop Cop.Omul
+           (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))) Ctypesdefs.tint)
+           (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat k)) Ctypesdefs.tint) Ctypesdefs.tint)
+        (Ctypesdefs.tptr Ctypesdefs.tuchar)) (@nil Clight.expr))
+     : forall _ : nat, Clight.statement
+
+Arguments be_call k%nat_scope
+### C.jet_sha_compress_uchar.be_assign
+be_assign =
+fun k : nat =>
+Clight.Sassign
+  (Clight.Ederef
+     (Clight.Ebinop Cop.Oadd
+        (Clight.Evar jets_sha.___compound
+           (Ctypesdefs.tarray Ctypesdefs.tuint
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+        (Clight.Econst_int (Integers.Int.repr (BinInt.Z.of_nat k)) Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuint))
+     Ctypesdefs.tuint) (Clight.Etempvar (be_temp k) Ctypesdefs.tuint)
+     : forall _ : nat, Clight.statement
+
+Arguments be_assign k%nat_scope
+### C.jet_sha_compress_uchar.be_fill
+be_fill =
+fix be_fill (k : nat) : Clight.statement :=
+  match k return Clight.statement with
+  | O => Clight.Ssequence (be_call O) (be_assign O)
+  | S k' => Clight.Ssequence (Clight.Ssequence (be_fill k') (be_call k)) (be_assign k)
+  end
+     : forall _ : nat, Clight.statement
+
+Arguments be_fill k%nat_scope
+### C.jet_sha_compress_uchar.be_tail
+be_tail =
+Clight.Ssequence
+  (Clight.Sset jets_sha._t'17
+     (Clight.Evar jets_sha._simplicity_sha256_compression
+        (Ctypesdefs.tptr
+           (Ctypes.Tfunction
+              (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuint)
+                 (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuint) Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))))
+  (Clight.Scall (@None AST.ident)
+     (Clight.Etempvar jets_sha._t'17
+        (Ctypesdefs.tptr
+           (Ctypes.Tfunction
+              (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuint)
+                 (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuint) Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default)))
+     (@cons Clight.expr (Clight.Etempvar jets_sha._s (Ctypesdefs.tptr Ctypesdefs.tuint))
+        (@cons Clight.expr
+           (Clight.Evar jets_sha.___compound
+              (Ctypesdefs.tarray Ctypesdefs.tuint
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+           (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_sha_compress_uchar.c_be_word
+c_be_word =
+fun (bytes : list Integers.Int.int) (j : nat) =>
+jet_sha_be32_exec.c_be32 (@List.nth Integers.Int.int (Nat.mul (S (S (S (S O)))) j) bytes Integers.Int.zero)
+  (@List.nth Integers.Int.int (Nat.add (Nat.mul (S (S (S (S O)))) j) (S O)) bytes Integers.Int.zero)
+  (@List.nth Integers.Int.int (Nat.add (Nat.mul (S (S (S (S O)))) j) (S (S O))) bytes Integers.Int.zero)
+  (@List.nth Integers.Int.int (Nat.add (Nat.mul (S (S (S (S O)))) j) (S (S (S O)))) bytes Integers.Int.zero)
+     : forall (_ : list Integers.Int.int) (_ : nat), Integers.Int.int
+
+Arguments c_be_word bytes%list_scope j%nat_scope
+### C.jet_sha_compress_uchar.fill_ok
+fill_ok =
+fun (bc bk : Values.block) (oc : Integers.Ptrofs.int) (bytes : list Integers.Int.int) (m : Memory.Mem.mem) =>
+and
+  (forall (i : nat) (_ : lt i (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))),
+   @eq (option Values.val)
+     (Memory.Mem.load AST.Mint8unsigned m bc (BinInt.Z.add (Integers.Ptrofs.unsigned oc) (BinInt.Z.of_nat i)))
+     (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i bytes Integers.Int.zero))))
+  (forall (j : nat) (_ : lt j (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))),
+   Memory.Mem.valid_access m AST.Mint32 bk
+     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat j)) Memtype.Writable)
+     : forall (_ : Values.block) (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : list Integers.Int.int)
+         (_ : Memory.Mem.mem), Prop
+
+Arguments fill_ok bc bk oc bytes%list_scope m
+### C.jet_sha_compress_uchar.cu_env
+cu_env =
+fun bk : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_sha.___compound
+  (@pair Values.block Ctypes.type bk
+     (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+  Clight.empty_env
+     : forall _ : Values.block, Clight.env
+
+Arguments cu_env bk
+### C.jet_sha_compress_uchar.cu_temps
+cu_temps =
+fun (bs : Values.block) (os : Integers.Ptrofs.int) (bc : Values.block) (oc : Integers.Ptrofs.int) =>
+@Maps.PTree.set Values.val jets_sha._chunk (Values.Vptr bc oc)
+  (@Maps.PTree.set Values.val jets_sha._s (Values.Vptr bs os)
+     (Clight.create_undef_temps (Clight.fn_temps jets_sha.f_sha256_compression_uchar)))
+     : forall (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Values.block) (_ : Integers.Ptrofs.int),
+       Clight.temp_env
+
+Arguments cu_temps bs os bc oc

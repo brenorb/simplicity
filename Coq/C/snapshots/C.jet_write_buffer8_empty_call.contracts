@@ -1,0 +1,90 @@
+### C.jet_write_buffer8_empty_call.buffer8_body_prefix
+buffer8_body_prefix
+     : @eq Clight.statement (Clight.fn_body jets.f_simplicity_write_buffer8)
+         (Clight.Ssequence buffer8_first_assert
+            (Clight.Ssequence buffer8_second_assert
+               (Clight.Ssequence
+                  (Clight.Sset jets._i
+                     (Clight.Ebinop Cop.Oshl
+                        (Clight.Ecast (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tulong)
+                        (Clight.Etempvar jets._n Ctypesdefs.tint) Ctypesdefs.tulong))
+                  jet_write_buffer8_empty_exec.buffer8_actual_loop)))
+### C.jet_write_buffer8_empty_call.eval_write_buffer8_empty_composes
+eval_write_buffer8_empty_composes
+     : forall (m mf : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (buf : Values.val)
+         (_ : jet_write_buffer8_empty_run.buffer8_empty_calls bf base jet_write_buffer8_empty_run.buffer63_empty_counts
+                m mf),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+         (@Ctypes.Internal Clight.function jets.f_simplicity_write_buffer8)
+         (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+            (@cons Values.val buf
+               (@cons Values.val (Values.Vlong Integers.Int64.zero)
+                  (@cons Values.val
+                     (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+                     (@nil Values.val))))) Events.E0 mf Values.Vundef
+### C.jet_write_buffer8_empty_call.buffer8_first_assert
+buffer8_first_assert =
+match Clight.fn_body jets.f_simplicity_write_buffer8 return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s _ => s
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_write_buffer8_empty_call.buffer8_second_assert
+buffer8_second_assert =
+match Clight.fn_body jets.f_simplicity_write_buffer8 return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s1 =>
+    match s1 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence s _ => s
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_write_buffer8_empty_call.buffer8_empty_temps
+buffer8_empty_temps =
+fun (bf : Values.block) (base : BinNums.Z) (buf : Values.val) =>
+@Maps.PTree.set Values.val jets._n
+  (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+  (@Maps.PTree.set Values.val jets._len (Values.Vlong Integers.Int64.zero)
+     (@Maps.PTree.set Values.val jets._buf buf
+        (@Maps.PTree.set Values.val jets._dst (Values.Vptr bf (Integers.Ptrofs.repr base))
+           (Clight.create_undef_temps (Clight.fn_temps jets.f_simplicity_write_buffer8)))))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.val), Maps.PTree.tree Values.val
+
+Arguments buffer8_empty_temps bf base%Z_scope buf

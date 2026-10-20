@@ -1,0 +1,79 @@
+### C.jet_elements_indexed_then.exec_elements_indexed_then
+exec_elements_indexed_then
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (t3 t4 t5 arrfield : AST.ident) (adelta : BinNums.Z) (sid : AST.ident) (ve : Clight.expr)
+         (wid : AST.ident) (wf : Clight.function) (mb me : Memory.Mem.mem) (be : Values.block)
+         (ebase : BinNums.Z) (bt : Values.block) (txbase : BinNums.Z) (bin : Values.block)
+         (inbase : BinNums.Z) (bd : Values.block) (dbase : BinNums.Z) (r v : Integers.Int64.int)
+         (_ : not (@eq AST.ident t3 jets_elements._i)) (_ : not (@eq AST.ident t3 jets_elements._dst))
+         (_ : not (@eq AST.ident t4 jets_elements._i)) (_ : not (@eq AST.ident t4 jets_elements._dst))
+         (_ : not (@eq AST.ident t5 jets_elements._dst))
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function wid wf)
+                jet_elements_transport.elements_core_helpers)
+         (_ : @eq Ctypes.type (Clight.type_of_fundef (@Ctypes.Internal Clight.function wf))
+                (Ctypes.Tfunction
+                   (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+                      (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) wid e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._i le)
+                (@Some Values.val (Values.Vlong r))) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                Integers.Ptrofs.max_unsigned) (_ : BinInt.Z.le BinNums.Z0 txbase) (_ : BinInt.Z.le BinNums.Z0 adelta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (BinInt.Z.add txbase adelta)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction arrfield adelta)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mb be (BinInt.Z.add ebase BinNums.Z0))
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr mb bt (BinInt.Z.add txbase adelta))
+                (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr inbase))))
+         (_ : forall (le' : Maps.PTree.tree Values.val)
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val t4 le')
+                       (@Some Values.val (Values.Vptr bin (Integers.Ptrofs.repr inbase))))
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._i le')
+                       (@Some Values.val (Values.Vlong r))),
+              Clight.eval_expr jet_elements_linkage.elements_ge e le' mb ve (Values.Vlong v))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge mb
+                (@Ctypes.Internal Clight.function wf)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong v) (@nil Values.val))) Events.E0 me Values.Vundef),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le mb
+            (elements_indexed_then t3 t4 t5 arrfield sid ve wid) Events.E0 le' me ClightBigstep.Out_normal)
+### C.jet_elements_indexed_then.elements_indexed_then
+elements_indexed_then =
+fun (t3 t4 t5 arrfield sid : AST.ident) (ve : Clight.expr) (wid : AST.ident) =>
+Clight.Ssequence
+  (Clight.Sset t3
+     (Clight.Efield
+        (Clight.Ederef
+           (Clight.Etempvar jets_elements._env (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._txEnv Ctypes.noattr)))
+           (Ctypes.Tstruct jets_elements._txEnv Ctypes.noattr)) jets_elements._tx
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr))))
+  (Clight.Ssequence
+     (Clight.Sset t4
+        (Clight.Efield
+           (Clight.Ederef
+              (Clight.Etempvar t3 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr)))
+              (Ctypes.Tstruct jets_elements._elementsTransaction Ctypes.noattr)) arrfield
+           (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr))))
+     (Clight.Ssequence (Clight.Sset t5 ve)
+        (Clight.Scall (@None AST.ident)
+           (Clight.Evar wid
+              (Ctypes.Tfunction
+                 (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+                    (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+           (@cons Clight.expr
+              (Clight.Etempvar jets_elements._dst
+                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+              (@cons Clight.expr (Clight.Etempvar t5 Ctypesdefs.tulong) (@nil Clight.expr))))))
+     : forall (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : AST.ident) (_ : AST.ident)
+         (_ : Clight.expr) (_ : AST.ident), Clight.statement
+
+Arguments elements_indexed_then t3 t4 t5 arrfield sid ve wid

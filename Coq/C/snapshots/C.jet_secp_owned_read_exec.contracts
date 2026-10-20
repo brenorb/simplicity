@@ -1,0 +1,44 @@
+### C.jet_secp_owned_read_exec.eval_owned_read_fe
+eval_owned_read_fe
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (ibits : list bool)
+         (outs0 : list BitMachine.Cell) (cap : BinNums.Z)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc (@List.map bool (option bool) (@Some bool) ibits))
+         (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le (BinInt.Z.add rc (BinInt.Z.of_nat (@length bool ibits))) Integers.Int64.max_unsigned)
+         (_ : @eq nat (@length bool ibits)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (size : BinNums.Z) (k : jet_secp_point_write_run.point_coordinate) (m : Memory.Mem.mem)
+         (layout : jet_sx_state.layout)
+         (_ : jet_sx_state.rep (jet_secp_wrapper_run.read_fe_rho ibits rc) layout
+                (jet_secp_owned_read_run.owned_read_initial_regs size k bi (Integers.Ptrofs.repr edge)) m)
+         (_ : jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi) layout)
+         (_ : jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc false outs0 cap
+                (jet_secp_wrapper_run.read_fe_rho ibits rc) (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O)
+                     (Integers.Ptrofs.repr
+                        (BinInt.Z.add (jet_sx_state.bas layout O) (jet_secp_point_write_run.point_coordinate_offset k))))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (jet_sx_state.bas layout (S O)))) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_sx_state.rep (jet_secp_wrapper_run.read_fe_rho ibits rc) layout
+                  (jet_sx_eval.sregs
+                     (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                        (jet_sx_exec.rsel (jet_secp_wrapper_run.read_fe_rho ibits rc) (jet_sx_state.lay layout)
+                           (jet_secp_owned_read_run.owned_read_result size k bi (Integers.Ptrofs.repr edge))))) mf)
+               (and
+                  (jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc false outs0 cap
+                     (jet_secp_wrapper_run.read_fe_rho ibits rc)
+                     (jet_secp_wrapper_run.read_fe_log bi (Integers.Ptrofs.repr edge)) mf)
+                  (jet_sx_mem.lframe
+                     (jet_sx_exec.frame (jet_secp_frame.extA m0 bd bw bi) layout
+                        (jet_secp_owned_read_run.owned_read_initial_regs size k bi (Integers.Ptrofs.repr edge)) m) m mf))))

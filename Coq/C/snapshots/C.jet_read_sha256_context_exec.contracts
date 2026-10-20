@@ -1,0 +1,411 @@
+### C.jet_read_sha256_context_exec.sha256_read_body_shape
+sha256_read_body_shape
+     : @eq Clight.statement (Clight.fn_body jets.f_simplicity_read_sha256_context)
+         (Clight.Ssequence sha256_read_buffer_call
+            (Clight.Ssequence sha256_read_count_stmt
+               (Clight.Ssequence jet_read_sha256_counter.sha256_read_counter_stmt
+                  (Clight.Ssequence sha256_read_state_stmt jet_read_sha256_overflow.sha256_read_overflow_stmt))))
+### C.jet_read_sha256_context_exec.sha256_read_buffer_symbol
+sha256_read_buffer_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            jets._simplicity_read_buffer8)
+         (@Some Values.block (jet_exec.jet_symbol_block jets._simplicity_read_buffer8))
+### C.jet_read_sha256_context_exec.sha256_read_buffer_funct
+sha256_read_buffer_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            (Values.Vptr (jet_exec.jet_symbol_block jets._simplicity_read_buffer8) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_simplicity_read_buffer8))
+### C.jet_read_sha256_context_exec.sha256_read_state_symbol
+sha256_read_state_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0) jets._read32s)
+         (@Some Values.block (jet_exec.jet_symbol_block jets._read32s))
+### C.jet_read_sha256_context_exec.sha256_read_state_funct
+sha256_read_state_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            (Values.Vptr (jet_exec.jet_symbol_block jets._read32s) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_read32s))
+### C.jet_read_sha256_context_exec.call_sha256_read_buffer
+call_sha256_read_buffer
+     : forall (le : Maps.PTree.tree Values.val) (m mb : Memory.Mem.mem) (bl bc : Values.block)
+         (cbase : BinNums.Z) (bf : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._ctx le)
+                (@Some Values.val (Values.Vptr bc (Integers.Ptrofs.repr cbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read_buffer8)
+                (@cons Values.val
+                   (Values.Vptr bc
+                      (Integers.Ptrofs.add (Integers.Ptrofs.repr cbase)
+                         (Integers.Ptrofs.repr
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                         (@cons Values.val
+                            (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+                            (@nil Values.val))))) Events.E0 mb Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (jet_sha256_read_local.sha256_read_env bl) le m
+         sha256_read_buffer_call Events.E0 le mb ClightBigstep.Out_normal
+### C.jet_read_sha256_context_exec.call_sha256_read_count
+call_sha256_read_count
+     : forall (le : Maps.PTree.tree Values.val) (m mc : Memory.Mem.mem) (bl bf : Values.block)
+         (base : BinNums.Z) (count : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mc
+                (Values.Vlong count)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (jet_sha256_read_local.sha256_read_env bl) le m
+         sha256_read_count_stmt Events.E0
+         (@Maps.PTree.set Values.val jets._compressionCount (Values.Vlong count)
+            (@Maps.PTree.set Values.val jets._t'1 (Values.Vlong count) le)) mc ClightBigstep.Out_normal
+### C.jet_read_sha256_context_exec.call_sha256_read_state
+call_sha256_read_state
+     : forall (le : Maps.PTree.tree Values.val) (m me : Memory.Mem.mem) (bl bc : Values.block)
+         (cbase : BinNums.Z) (bf : Values.block) (base : BinNums.Z) (bi : Values.block) (output : BinNums.Z)
+         (_ : BinInt.Z.le BinNums.Z0 cbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add cbase
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._ctx le)
+                (@Some Values.val (Values.Vptr bc (Integers.Ptrofs.repr cbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src le)
+                (@Some Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m bc cbase)
+                (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr output))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_read32s)
+                (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr output))
+                   (@cons Values.val
+                      (Values.Vlong
+                         (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                      (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)))) Events.E0 me
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (jet_sha256_read_local.sha256_read_env bl) le m
+         sha256_read_state_stmt Events.E0
+         (@Maps.PTree.set Values.val jets._t'4 (Values.Vptr bi (Integers.Ptrofs.repr output)) le) me
+         ClightBigstep.Out_normal
+### C.jet_read_sha256_context_exec.exec_sha256_read_context_composes
+exec_sha256_read_context_composes
+     : forall (m mb mc md me : Memory.Mem.mem) (bl bc : Values.block) (cbase : BinNums.Z) (bf : Values.block)
+         (base : BinNums.Z) (bi : Values.block) (output : BinNums.Z) (count len : Integers.Int64.int)
+         (_ : BinInt.Z.le BinNums.Z0 cbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add cbase
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read_buffer8)
+                (@cons Values.val
+                   (Values.Vptr bc
+                      (Integers.Ptrofs.add (Integers.Ptrofs.repr cbase)
+                         (Integers.Ptrofs.repr
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                         (@cons Values.val
+                            (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+                            (@nil Values.val))))) Events.E0 mb Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mb
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mc
+                (Values.Vlong count))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mc bl BinNums.Z0)
+                (@Some Values.val (Values.Vlong len)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mc bc
+                   (BinInt.Z.add cbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (Values.Vlong (jet_read_sha256_counter.sha256_read_counter count len)))
+                (@Some Memory.Mem.mem md))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr md bc cbase)
+                (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr output))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 md (@Ctypes.Internal Clight.function jets.f_read32s)
+                (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr output))
+                   (@cons Values.val
+                      (Values.Vlong
+                         (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                      (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)))) Events.E0 me
+                Values.Vundef)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 me (jet_exec.jet_symbol_block jets._sha256_max_counter) BinNums.Z0)
+                (@Some Values.val
+                   (Values.Vlong
+                      (Integers.Int64.repr
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+         (_ : not (@eq Values.block bc (jet_exec.jet_symbol_block jets._sha256_max_counter)))
+         (_ : Memory.Mem.valid_access me AST.Mint8unsigned bc
+                (BinInt.Z.add cbase
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Clight.temp_env
+            (fun lef : Clight.temp_env =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (jet_sha256_read_local.sha256_read_env bl)
+                  (jet_sha256_read_local.sha256_read_temps bc cbase bf base) m
+                  (Clight.fn_body jets.f_simplicity_read_sha256_context) Events.E0 lef mf
+                  (ClightBigstep.Out_return
+                     (@Some (prod Values.val Ctypes.type)
+                        (@pair Values.val Ctypes.type
+                           (Values.Vint
+                              (jet_readBit_layout.bit_int (negb (jet_read_sha256_overflow.sha256_read_overflow count))))
+                           Ctypesdefs.tint))))
+               (@eq (option Memory.Mem.mem)
+                  (Memory.Mem.store AST.Mint8unsigned me bc
+                     (BinInt.Z.add cbase
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (Values.Vint (jet_readBit_layout.bit_int (jet_read_sha256_overflow.sha256_read_overflow count))))
+                  (@Some Memory.Mem.mem mf))))
+### C.jet_read_sha256_context_exec.eval_sha256_read_context_composes
+eval_sha256_read_context_composes
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (mb mc md me : Memory.Mem.mem) (bl bc : Values.block)
+         (cbase : BinNums.Z) (bf : Values.block) (base : BinNums.Z) (bi : Values.block) (output : BinNums.Z)
+         (count len : Integers.Int64.int) (_ : BinInt.Z.le BinNums.Z0 cbase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add cbase
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 ma
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read_buffer8)
+                (@cons Values.val
+                   (Values.Vptr bc
+                      (Integers.Ptrofs.add (Integers.Ptrofs.repr cbase)
+                         (Integers.Ptrofs.repr
+                            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                         (@cons Values.val
+                            (Values.Vint (Integers.Int.repr (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+                            (@nil Values.val))))) Events.E0 mb Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mb
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mc
+                (Values.Vlong count))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mc bl BinNums.Z0)
+                (@Some Values.val (Values.Vlong len)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mc bc
+                   (BinInt.Z.add cbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (Values.Vlong (jet_read_sha256_counter.sha256_read_counter count len)))
+                (@Some Memory.Mem.mem md))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr md bc cbase)
+                (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr output))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 md (@Ctypes.Internal Clight.function jets.f_read32s)
+                (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr output))
+                   (@cons Values.val
+                      (Values.Vlong
+                         (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                      (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)))) Events.E0 me
+                Values.Vundef)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 me (jet_exec.jet_symbol_block jets._sha256_max_counter) BinNums.Z0)
+                (@Some Values.val
+                   (Values.Vlong
+                      (Integers.Int64.repr
+                         (BinNums.Zpos
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+         (_ : not (@eq Values.block bc (jet_exec.jet_symbol_block jets._sha256_max_counter)))
+         (_ : Memory.Mem.valid_access me AST.Mint8unsigned bc
+                (BinInt.Z.add cbase
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                Memtype.Writable)
+         (_ : Memory.Mem.range_perm me bl BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mx : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                  (@Ctypes.Internal Clight.function jets.f_simplicity_read_sha256_context)
+                  (@cons Values.val (Values.Vptr bc (Integers.Ptrofs.repr cbase))
+                     (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val))) Events.E0 mf
+                  (Values.Vint
+                     (jet_readBit_layout.bit_int (negb (jet_read_sha256_overflow.sha256_read_overflow count)))))
+               (and
+                  (@eq (option Memory.Mem.mem)
+                     (Memory.Mem.store AST.Mint8unsigned me bc
+                        (BinInt.Z.add cbase
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                        (Values.Vint (jet_readBit_layout.bit_int (jet_read_sha256_overflow.sha256_read_overflow count))))
+                     (@Some Memory.Mem.mem mx))
+                  (and
+                     (@eq (option Memory.Mem.mem)
+                        (Memory.Mem.free_list mx
+                           (Clight.blocks_of_env jet_exec.ge0 (jet_sha256_read_local.sha256_read_env bl)))
+                        (@Some Memory.Mem.mem mf))
+                     (and
+                        (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                           (_ : not (@eq Values.block b bl)),
+                         @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk mx b ofs))
+                        (and
+                           (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : not (@eq Values.block b bl))
+                              (_ : Memory.Mem.perm mx b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                           (@eq Values.block (Memory.Mem.nextblock mf) (Memory.Mem.nextblock mx))))))))
+### C.jet_read_sha256_context_exec.sha256_read_buffer_call
+sha256_read_buffer_call =
+match Clight.fn_body jets.f_simplicity_read_sha256_context return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s _ => s
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_read_sha256_context_exec.sha256_read_count_stmt
+sha256_read_count_stmt =
+match Clight.fn_body jets.f_simplicity_read_sha256_context return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s1 =>
+    match s1 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence s _ => s
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_read_sha256_context_exec.sha256_read_state_stmt
+sha256_read_state_stmt =
+match Clight.fn_body jets.f_simplicity_read_sha256_context return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s1 =>
+    match s1 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s3 =>
+        match s3 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ s5 =>
+            match s5 return Clight.statement with
+            | Clight.Sskip => Clight.Sskip
+            | Clight.Sassign _ _ => Clight.Sskip
+            | Clight.Sset _ _ => Clight.Sskip
+            | Clight.Scall _ _ _ => Clight.Sskip
+            | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+            | Clight.Ssequence s _ => s
+            | Clight.Sifthenelse _ _ _ => Clight.Sskip
+            | Clight.Sloop _ _ => Clight.Sskip
+            | Clight.Sbreak => Clight.Sskip
+            | Clight.Scontinue => Clight.Sskip
+            | Clight.Sreturn _ => Clight.Sskip
+            | Clight.Sswitch _ _ => Clight.Sskip
+            | Clight.Slabel _ _ => Clight.Sskip
+            | Clight.Sgoto _ => Clight.Sskip
+            end
+        | Clight.Sifthenelse _ _ _ => Clight.Sskip
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement

@@ -1,0 +1,154 @@
+### C.jet_secp_scalar_get_b32_numeric.scalar_get_output_region
+scalar_get_output_region
+     : @eq (option jet_sx_state.region)
+         (@List.nth_error jet_sx_state.region (jet_sx_eval.sregs jet_secp_scalar_get_b32_exec.scalar_get_state) O)
+         (@Some jet_sx_state.region
+            (jet_sx_state.mkreg (jet_secp_fe_nv.cells0 jet_secp_scalar_get_b32_exec.scalar_get_state) true
+               (@None BinNums.Z)))
+### C.jet_secp_scalar_get_b32_numeric.scalar_get_output_length
+scalar_get_output_length
+     : @eq nat (@length jet_sx_state.cell (jet_secp_fe_nv.cells0 jet_secp_scalar_get_b32_exec.scalar_get_state))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+### C.jet_secp_scalar_get_b32_numeric.scalar_get_output_checked
+scalar_get_output_checked
+     : @eq bool
+         (jet_secp_b32_exec.zbyte_reg_okb scalar_u64_bounds BinNums.Z0
+            (jet_secp_fe_nv.cells0 jet_secp_scalar_get_b32_exec.scalar_get_state)) true
+### C.jet_secp_scalar_get_b32_numeric.scalar_get_output_numeric
+scalar_get_output_numeric
+     : forall value : BinNums.Z,
+       @eq (list BinNums.Z)
+         (jet_sx_zrep.zcells (fun n : nat => @List.nth BinNums.Z n (scalar_limbs_of value) BinNums.Z0)
+            (jet_secp_fe_nv.cells0 jet_secp_scalar_get_b32_exec.scalar_get_state)) (jet_secp_fe_b32.be_bytes value)
+### C.jet_secp_scalar_get_b32_numeric.scalar_limbs_bounds
+scalar_limbs_bounds
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @List.Forall BinNums.Z
+         (fun limb : BinNums.Z => and (BinInt.Z.le BinNums.Z0 limb) (BinInt.Z.le limb Integers.Int64.max_unsigned))
+         (scalar_limbs_of value)
+### C.jet_secp_scalar_get_b32_numeric.nth_u64_bound
+nth_u64_bound
+     : forall (limbs : list BinNums.Z)
+         (_ : @List.Forall BinNums.Z
+                (fun limb : BinNums.Z =>
+                 and (BinInt.Z.le BinNums.Z0 limb) (BinInt.Z.le limb Integers.Int64.max_unsigned)) limbs)
+         (n : nat),
+       and (BinInt.Z.le BinNums.Z0 (@List.nth BinNums.Z n limbs BinNums.Z0))
+         (BinInt.Z.le (@List.nth BinNums.Z n limbs BinNums.Z0) Integers.Int64.max_unsigned)
+### C.jet_secp_scalar_get_b32_numeric.scalar_limb_rho_unsigned
+scalar_limb_rho_unsigned
+     : forall (value : BinNums.Z) (n : nat)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (scalar_limb_rho value n))
+         (@List.nth BinNums.Z n (scalar_limbs_of value) BinNums.Z0)
+### C.jet_secp_scalar_get_b32_numeric.scalar_get_zcells_numeric
+scalar_get_zcells_numeric
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       @eq (list BinNums.Z)
+         (jet_sx_zrep.zcells (jet_sx_zval.zrho (scalar_limb_rho value))
+            (jet_secp_fe_nv.cells0 jet_secp_scalar_get_b32_exec.scalar_get_state)) (jet_secp_fe_b32.be_bytes value)
+### C.jet_secp_scalar_get_b32_numeric.eval_scalar_get_b32_numeric
+eval_scalar_get_b32_numeric
+     : forall (m : Memory.Mem.mem) (layout : jet_sx_state.layout) (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : jet_sx_state.rep (scalar_limb_rho value) layout jet_secp_scalar_get_b32_exec.scalar_get_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_get_b32)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (jet_sx_state.bas layout (S O)))) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (forall (i : nat) (byte : BinNums.Z)
+                  (_ : @eq (option BinNums.Z) (@List.nth_error BinNums.Z (jet_secp_fe_b32.be_bytes value) i)
+                         (@Some BinNums.Z byte)),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint8unsigned mf (jet_sx_state.blk layout O)
+                     (BinInt.Z.add (jet_sx_state.bas layout O) (BinInt.Z.of_nat i)))
+                  (@Some Values.val (Values.Vint (Integers.Int.repr byte))))
+               (and
+                  (jet_sx_state.rep (scalar_limb_rho value) layout
+                     (jet_sx_eval.sregs jet_secp_scalar_get_b32_exec.scalar_get_state) mf)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot layout
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape jet_secp_scalar_get_b32_exec.scalar_get_regs) b ofs)) m mf))))
+### C.jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+scalar_limbs_of =
+fun value : BinNums.Z =>
+@cons BinNums.Z
+  (BinInt.Z.modulo value
+     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (@cons BinNums.Z
+     (BinInt.Z.modulo
+        (BinInt.Z.div value
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+     (@cons BinNums.Z
+        (BinInt.Z.modulo
+           (BinInt.Z.div value
+              (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                 (BinNums.Zpos
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        (@cons BinNums.Z
+           (BinInt.Z.div value
+              (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                 (BinNums.Zpos
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+           (@nil BinNums.Z))))
+     : forall _ : BinNums.Z, list BinNums.Z
+
+Arguments scalar_limbs_of value%Z_scope
+### C.jet_secp_scalar_get_b32_numeric.scalar_u64_bounds
+scalar_u64_bounds =
+fun _ : nat => @pair BinNums.Z BinNums.Z BinNums.Z0 Integers.Int64.max_unsigned
+     : forall _ : nat, prod BinNums.Z BinNums.Z
+
+Arguments scalar_u64_bounds _%nat_scope
+### C.jet_secp_scalar_get_b32_numeric.scalar_limb_rho
+scalar_limb_rho =
+fun (value : BinNums.Z) (n : nat) => Integers.Int64.repr (@List.nth BinNums.Z n (scalar_limbs_of value) BinNums.Z0)
+     : forall (_ : BinNums.Z) (_ : nat), Integers.Int64.int
+
+Arguments scalar_limb_rho value%Z_scope n%nat_scope

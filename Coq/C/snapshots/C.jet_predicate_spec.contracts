@@ -1,0 +1,47 @@
+### C.jet_predicate_spec.predicate_spec_parametric
+predicate_spec_parametric
+     : forall (n : nat) (all : bool),
+       @Alg.Core.Parametric (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) (@predicate_spec n all)
+### C.jet_predicate_spec.predicate_spec_numeric
+predicate_spec_numeric
+     : forall (n : nat) (all : bool) (x : Ty.tySem (Word.Word n)),
+       @eq bool (Bit.toBool (@predicate_spec n all Alg.CoreFunSem x))
+         (predicate_numeric n all (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+### C.jet_predicate_spec.predicate_spec
+predicate_spec =
+fix predicate_spec (n : nat) (all : bool) (term : Alg.Core.Algebra) {struct n} :
+    Alg.Core.domain term (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit) :=
+  match n as n0 return (Alg.Core.domain term (Word.Word n0) (Ty.Sum Ty.Unit Ty.Unit)) with
+  | O => @Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) term
+  | S n0 =>
+      let hi : Alg.Core.domain term (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Sum Ty.Unit Ty.Unit) :=
+        @Alg.Core.Combinators.take (Word.Word n0) (Word.Word n0) (Ty.Sum Ty.Unit Ty.Unit) term
+          (predicate_spec n0 all term) in
+      let lo : Alg.Core.domain term (Ty.Prod (Word.Word n0) (Word.Word n0)) (Ty.Sum Ty.Unit Ty.Unit) :=
+        @Alg.Core.Combinators.drop (Word.Word n0) (Word.Word n0) (Ty.Sum Ty.Unit Ty.Unit) term
+          (predicate_spec n0 all term) in
+      match all return (Alg.Core.domain term (Word.Word (S n0)) (Ty.Sum Ty.Unit Ty.Unit)) with
+      | true => @Bit.and (Ty.Prod (Word.Word n0) (Word.Word n0)) term hi lo
+      | false => @Bit.or (Ty.Prod (Word.Word n0) (Word.Word n0)) term hi lo
+      end
+  end
+     : forall (n : nat) (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Word.Word n) (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments predicate_spec n%nat_scope all%bool_scope {term}
+### C.jet_predicate_spec.word_modulus
+word_modulus =
+fun n : nat => Zpower.two_power_nat (Word.ToZ.Theory.bitSize (Word.WordToZ n))
+     : forall _ : nat, BinNums.Z
+
+Arguments word_modulus n%nat_scope
+### C.jet_predicate_spec.predicate_numeric
+predicate_numeric =
+fun (n : nat) (all : bool) (v : BinNums.Z) =>
+match all return bool with
+| true => BinInt.Z.eqb v (BinInt.Z.sub (word_modulus n) (BinNums.Zpos BinNums.xH))
+| false => negb (BinInt.Z.eqb v BinNums.Z0)
+end
+     : forall (_ : nat) (_ : bool) (_ : BinNums.Z), bool
+
+Arguments predicate_numeric n%nat_scope all%bool_scope v%Z_scope

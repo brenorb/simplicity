@@ -1,0 +1,39 @@
+### C.jet_secp_scalar_lambda_region.scalar_lambda_mixed_input
+scalar_lambda_mixed_input
+     : forall (rho : forall _ : nat, Integers.Int64.int) (i : nat) (_ : lt i (S (S (S (S O))))),
+       @eq Integers.Int64.int (scalar_lambda_mixed_rho rho i) (rho i)
+### C.jet_secp_scalar_lambda_region.scalar_lambda_mixed_rhs
+scalar_lambda_mixed_rhs
+     : forall (rho : forall _ : nat, Integers.Int64.int) (i : nat) (w : Integers.Int64.int)
+         (_ : @eq (option Integers.Int64.int)
+                (@List.nth_error Integers.Int64.int jet_secp_scalar_lambda_global.scalar_lambda_words i)
+                (@Some Integers.Int64.int w)),
+       @eq Integers.Int64.int (scalar_lambda_mixed_rho rho (Nat.add i (S (S (S (S O)))))) w
+### C.jet_secp_scalar_lambda_region.scalar_lambda_borrowed_region
+scalar_lambda_borrowed_region
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat)
+         (_ : @eq (prod Values.block BinNums.Z) (jet_sx_state.lay beta r)
+                (@pair Values.block BinNums.Z jet_secp_scalar_lambda_global.scalar_lambda_block BinNums.Z0))
+         (_ : jet_secp_scalar_lambda_global.scalar_lambda_global_rep m),
+       jet_sx_state.region_ok (scalar_lambda_mixed_rho rho) beta m r
+         jet_secp_scalar_mul_borrowed_function.scalar_mul_borrowed_rhs
+### C.jet_secp_scalar_lambda_region.scalar_lambda_global_allocated
+scalar_lambda_global_allocated
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (b : Values.block) (lo hi : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m lo hi)
+                (@pair Memory.Mem.mem' Values.block ma b))
+         (_ : jet_secp_scalar_lambda_global.scalar_lambda_global_rep m),
+       jet_secp_scalar_lambda_global.scalar_lambda_global_rep ma
+### C.jet_secp_scalar_lambda_region.scalar_lambda_mixed_rho
+scalar_lambda_mixed_rho =
+fun (rho : forall _ : nat, Integers.Int64.int) (i : nat) =>
+match PeanoNat.Nat.ltb i (S (S (S (S O)))) return Integers.Int64.int with
+| true => rho i
+| false =>
+    @List.nth Integers.Int64.int (Nat.sub i (S (S (S (S O))))) jet_secp_scalar_lambda_global.scalar_lambda_words
+      Integers.Int64.zero
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments scalar_lambda_mixed_rho rho%function_scope i%nat_scope

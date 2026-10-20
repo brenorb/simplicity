@@ -1,0 +1,14 @@
+### C.jet_right_rotate_wide_word.rotate_reverse_index
+rotate_reverse_index
+     : forall (width amount j : BinNums.Z) (_ : and (BinInt.Z.le BinNums.Z0 amount) (BinInt.Z.lt amount width)),
+       @eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.sub j (BinInt.Z.modulo (BinInt.Z.sub width amount) width)) width)
+         (BinInt.Z.modulo (BinInt.Z.add j amount) width)
+### C.jet_right_rotate_wide_word.right_rotate_byte_machine_denotes
+right_rotate_byte_machine_denotes
+     : forall (s : jet_left_rotate_wide_exec.byte_rotate_size) (amount : Ty.tySem (Word.Word (S (S (S O)))))
+         (x : Ty.tySem (Word.Word (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)))),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s))))
+         (jet_right_rotate_wide_layout_machine.right_rotate_byte_machine_value s amount x)
+         (@jet_right_rotate_spec.right_rotate_byte_spec s Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S O)))))
+               (Ty.tySem (Word.Word (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)))) amount x))

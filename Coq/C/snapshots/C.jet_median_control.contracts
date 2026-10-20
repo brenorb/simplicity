@@ -1,0 +1,119 @@
+### C.jet_median_control.exec_median_identity
+exec_median_identity
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (ty : Ctypes.type)
+         (v : Values.val) (_ : @eq (option Values.val) (Cop.sem_cast v ty ty m) (@Some Values.val v)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e (@Maps.PTree.set Values.val jets._t'4 v le) m
+         (median_identity ty) Events.E0 (@Maps.PTree.set Values.val jets._t'4 v le) m ClightBigstep.Out_normal
+### C.jet_median_control.exec_median_set2
+exec_median_set2
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (src_ty dst_ty : Ctypes.type)
+         (id : AST.ident) (v : Values.val)
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (Clight.Ecast (Clight.Etempvar id src_ty) dst_ty) v)
+         (_ : @eq (option Values.val) (Cop.sem_cast v dst_ty dst_ty m) (@Some Values.val v)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (median_set2 src_ty dst_ty id) Events.E0
+         (@Maps.PTree.set Values.val jets._t'4 v le) m ClightBigstep.Out_normal
+### C.jet_median_control.exec_median_set3
+exec_median_set3
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (src_ty dst_ty : Ctypes.type)
+         (id : AST.ident) (v : Values.val)
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (Clight.Ecast (Clight.Etempvar id src_ty) dst_ty) v)
+         (_ : @eq (option Values.val) (Cop.sem_cast v dst_ty dst_ty m) (@Some Values.val v)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (median_set3 src_ty dst_ty id) Events.E0
+         (@Maps.PTree.set Values.val jets._t'4 v le) m ClightBigstep.Out_normal
+### C.jet_median_control.exec_median_if
+exec_median_if
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (ty : Ctypes.type)
+         (a b : AST.ident) (yes no : Clight.statement) (bit : bool) (le' : Clight.temp_env)
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (median_cmp ty a b) (Values.Vint (jet_readBit_layout.bit_int bit)))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m
+                match bit return Clight.statement with
+                | true => yes
+                | false => no
+                end Events.E0 le' m ClightBigstep.Out_normal),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (Clight.Sifthenelse (median_cmp ty a b) yes no) Events.E0
+         le' m ClightBigstep.Out_normal
+### C.jet_median_control.exec_median_choose
+exec_median_choose
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (src_ty dst_ty : Ctypes.type)
+         (bxy byz bzx bxz bzy : bool) (xv yv zv : Values.val)
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (median_cmp src_ty jets._x jets._y)
+                (Values.Vint (jet_readBit_layout.bit_int bxy)))
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (median_cmp src_ty jets._y jets._z)
+                (Values.Vint (jet_readBit_layout.bit_int byz)))
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (median_cmp src_ty jets._z jets._x)
+                (Values.Vint (jet_readBit_layout.bit_int bzx)))
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (median_cmp src_ty jets._x jets._z)
+                (Values.Vint (jet_readBit_layout.bit_int bxz)))
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (median_cmp src_ty jets._z jets._y)
+                (Values.Vint (jet_readBit_layout.bit_int bzy)))
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (Clight.Ecast (Clight.Etempvar jets._x src_ty) dst_ty) xv)
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (Clight.Ecast (Clight.Etempvar jets._y src_ty) dst_ty) yv)
+         (_ : Clight.eval_expr jet_exec.ge0 e le m (Clight.Ecast (Clight.Etempvar jets._z src_ty) dst_ty) zv)
+         (_ : @eq (option Values.val) (Cop.sem_cast xv dst_ty dst_ty m) (@Some Values.val xv))
+         (_ : @eq (option Values.val) (Cop.sem_cast yv dst_ty dst_ty m) (@Some Values.val yv))
+         (_ : @eq (option Values.val) (Cop.sem_cast zv dst_ty dst_ty m) (@Some Values.val zv)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (median_choose src_ty dst_ty) Events.E0
+         (@Maps.PTree.set Values.val jets._t'4 (@median_decision Values.val bxy byz bzx bxz bzy xv yv zv) le) m
+         ClightBigstep.Out_normal
+### C.jet_median_control.median_cmp
+median_cmp =
+fun (ty : Ctypes.type) (a b : AST.ident) =>
+Clight.Ebinop Cop.Olt (Clight.Etempvar a ty) (Clight.Etempvar b ty) Ctypesdefs.tint
+     : forall (_ : Ctypes.type) (_ : AST.ident) (_ : AST.ident), Clight.expr
+
+Arguments median_cmp ty a b
+### C.jet_median_control.median_identity
+median_identity =
+fun ty : Ctypes.type => Clight.Sset jets._t'4 (Clight.Ecast (Clight.Etempvar jets._t'4 ty) ty)
+     : forall _ : Ctypes.type, Clight.statement
+
+Arguments median_identity ty
+### C.jet_median_control.median_set2
+median_set2 =
+fun (src_ty dst_ty : Ctypes.type) (id : AST.ident) =>
+Clight.Ssequence (Clight.Sset jets._t'4 (Clight.Ecast (Clight.Etempvar id src_ty) dst_ty)) (median_identity dst_ty)
+     : forall (_ : Ctypes.type) (_ : Ctypes.type) (_ : AST.ident), Clight.statement
+
+Arguments median_set2 src_ty dst_ty id
+### C.jet_median_control.median_set3
+median_set3 =
+fun (src_ty dst_ty : Ctypes.type) (id : AST.ident) =>
+Clight.Ssequence (median_set2 src_ty dst_ty id) (median_identity dst_ty)
+     : forall (_ : Ctypes.type) (_ : Ctypes.type) (_ : AST.ident), Clight.statement
+
+Arguments median_set3 src_ty dst_ty id
+### C.jet_median_control.median_choose
+median_choose =
+fun src_ty dst_ty : Ctypes.type =>
+Clight.Sifthenelse (median_cmp src_ty jets._x jets._y)
+  (Clight.Sifthenelse (median_cmp src_ty jets._y jets._z) (median_set2 src_ty dst_ty jets._y)
+     (Clight.Sifthenelse (median_cmp src_ty jets._z jets._x) (median_set3 src_ty dst_ty jets._x)
+        (median_set3 src_ty dst_ty jets._z)))
+  (Clight.Sifthenelse (median_cmp src_ty jets._x jets._z) (median_set2 src_ty dst_ty jets._x)
+     (Clight.Sifthenelse (median_cmp src_ty jets._z jets._y) (median_set3 src_ty dst_ty jets._y)
+        (median_set3 src_ty dst_ty jets._z)))
+     : forall (_ : Ctypes.type) (_ : Ctypes.type), Clight.statement
+
+Arguments median_choose src_ty dst_ty
+### C.jet_median_control.median_decision
+median_decision =
+fun (A : Type) (bxy byz bzx bxz bzy : bool) (x y z : A) =>
+match bxy return A with
+| true => match byz return A with
+          | true => y
+          | false => match bzx return A with
+                     | true => x
+                     | false => z
+                     end
+          end
+| false => match bxz return A with
+           | true => x
+           | false => match bzy return A with
+                      | true => y
+                      | false => z
+                      end
+           end
+end
+     : forall (A : Type) (_ : bool) (_ : bool) (_ : bool) (_ : bool) (_ : bool) (_ : A) (_ : A) (_ : A), A
+
+Arguments median_decision {A}%type_scope (bxy byz bzx bxz bzy)%bool_scope x y z

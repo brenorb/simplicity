@@ -1,0 +1,104 @@
+### C.jet_secp_reduce512_accumulate.wide_operation_bound
+wide_operation_bound
+     : forall op : wide_operation,
+       and (BinInt.Z.le BinNums.Z0 (wide_operation_value op))
+         (BinInt.Z.lt (wide_operation_value op) (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+### C.jet_secp_reduce512_accumulate.wide_operation_exact
+wide_operation_exact
+     : forall (op : wide_operation) (s : jet_secp_reduce512_wide.wide_column)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned (jet_secp_reduce512_wide.wtop s)) Integers.Int64.max_unsigned),
+       @eq BinNums.Z (jet_secp_reduce512_wide.wide_value (wide_operation_apply op s))
+         (BinInt.Z.add (jet_secp_reduce512_wide.wide_value s) (wide_operation_value op))
+### C.jet_secp_reduce512_accumulate.wide_operation_sum_bound
+wide_operation_sum_bound
+     : forall ops : list wide_operation,
+       and (BinInt.Z.le BinNums.Z0 (wide_operation_sum ops))
+         (BinInt.Z.le (wide_operation_sum ops)
+            (BinInt.Z.mul (BinInt.Z.of_nat (@length wide_operation ops))
+               (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)))
+### C.jet_secp_reduce512_accumulate.wide_accumulate_value
+wide_accumulate_value
+     : forall (ops : list wide_operation) (s : jet_secp_reduce512_wide.wide_column)
+         (_ : BinInt.Z.lt (BinInt.Z.add (jet_secp_reduce512_wide.wide_value s) (wide_operation_sum ops))
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+                   (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))),
+       @eq BinNums.Z (jet_secp_reduce512_wide.wide_value (wide_accumulate ops s))
+         (BinInt.Z.add (jet_secp_reduce512_wide.wide_value s) (wide_operation_sum ops))
+### C.jet_secp_reduce512_accumulate.wide_accumulate_small
+wide_accumulate_small
+     : forall (ops : list wide_operation) (s : jet_secp_reduce512_wide.wide_column)
+         (_ : le (@length wide_operation ops) (S (S (S (S O)))))
+         (_ : BinInt.Z.lt (jet_secp_reduce512_wide.wide_value s)
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))) Integers.Int64.modulus)),
+       and
+         (@eq BinNums.Z (jet_secp_reduce512_wide.wide_value (wide_accumulate ops s))
+            (BinInt.Z.add (jet_secp_reduce512_wide.wide_value s) (wide_operation_sum ops)))
+         (and
+            (BinInt.Z.lt (jet_secp_reduce512_wide.wide_value (wide_accumulate ops s))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+                  (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)))
+            (BinInt.Z.lt
+               (jet_secp_reduce512_wide.wide_value (jet_secp_reduce512_wide.wide_extract (wide_accumulate ops s)))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))) Integers.Int64.modulus)))
+### C.jet_secp_reduce512_accumulate.wide_operation
+Inductive wide_operation : Set :=
+    Wmul : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), wide_operation
+  | Wsum : forall _ : Integers.Int64.int, wide_operation.
+
+Arguments Wmul a b
+Arguments Wsum x
+### C.jet_secp_reduce512_accumulate.Wmul
+Inductive wide_operation : Set :=
+    Wmul : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), wide_operation
+  | Wsum : forall _ : Integers.Int64.int, wide_operation.
+
+Arguments Wmul a b
+Arguments Wsum x
+### C.jet_secp_reduce512_accumulate.Wsum
+Inductive wide_operation : Set :=
+    Wmul : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), wide_operation
+  | Wsum : forall _ : Integers.Int64.int, wide_operation.
+
+Arguments Wmul a b
+Arguments Wsum x
+### C.jet_secp_reduce512_accumulate.wide_operation_value
+wide_operation_value =
+fun op : wide_operation =>
+match op return BinNums.Z with
+| Wmul a b => BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)
+| Wsum x => Integers.Int64.unsigned x
+end
+     : forall _ : wide_operation, BinNums.Z
+
+Arguments wide_operation_value op
+### C.jet_secp_reduce512_accumulate.wide_operation_apply
+wide_operation_apply =
+fun (op : wide_operation) (s : jet_secp_reduce512_wide.wide_column) =>
+match op return jet_secp_reduce512_wide.wide_column with
+| Wmul a b => jet_secp_reduce512_wide.wide_muladd a b s
+| Wsum x => jet_secp_reduce512_wide.wide_sumadd x s
+end
+     : forall (_ : wide_operation) (_ : jet_secp_reduce512_wide.wide_column), jet_secp_reduce512_wide.wide_column
+
+Arguments wide_operation_apply op s
+### C.jet_secp_reduce512_accumulate.wide_operation_sum
+wide_operation_sum =
+fix wide_operation_sum (ops : list wide_operation) : BinNums.Z :=
+  match ops return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons h t => BinInt.Z.add (wide_operation_value h) (wide_operation_sum t)
+  end
+     : forall _ : list wide_operation, BinNums.Z
+
+Arguments wide_operation_sum ops%list_scope
+### C.jet_secp_reduce512_accumulate.wide_accumulate
+wide_accumulate =
+fix wide_accumulate (ops : list wide_operation) (s : jet_secp_reduce512_wide.wide_column) {struct ops} :
+    jet_secp_reduce512_wide.wide_column :=
+  match ops return jet_secp_reduce512_wide.wide_column with
+  | nil => s
+  | cons h t => wide_accumulate t (wide_operation_apply h s)
+  end
+     : forall (_ : list wide_operation) (_ : jet_secp_reduce512_wide.wide_column), jet_secp_reduce512_wide.wide_column
+
+Arguments wide_accumulate ops%list_scope s

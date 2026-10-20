@@ -1,0 +1,46 @@
+### C.jet_secp_literal_infinity.literal_fe_zero256_parametric
+literal_fe_zero256_parametric
+     : @Alg.Core.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@literal_fe_zero256)
+### C.jet_secp_literal_infinity.literal_gej_infinity_parametric
+literal_gej_infinity_parametric
+     : @Alg.Core.Parametric Ty.Unit
+         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@literal_gej_infinity)
+### C.jet_secp_literal_infinity.zero_field_writer_literal_output
+zero_field_writer_literal_output
+     : @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_write_fe_wide_exec.wide_fe_output Integers.Int64.zero Integers.Int64.zero Integers.Int64.zero
+            Integers.Int64.zero Integers.Int64.zero) (@literal_fe_zero256 Alg.CoreFunSem tt)
+### C.jet_secp_literal_infinity.literal_gej_infinity_encoding
+literal_gej_infinity_encoding
+     : @eq (list BitMachine.Cell)
+         (@Translate.encode
+            (Ty.Prod
+               (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@literal_gej_infinity Alg.CoreFunSem tt))
+         (@app BitMachine.Cell
+            (@app BitMachine.Cell
+               (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@literal_fe_zero256 Alg.CoreFunSem tt))
+               (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@literal_fe_zero256 Alg.CoreFunSem tt)))
+            (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@literal_fe_zero256 Alg.CoreFunSem tt)))
+### C.jet_secp_literal_infinity.literal_fe_zero256
+literal_fe_zero256 =
+fun term : Alg.Core.Algebra => @Word.zero (S (S (S (S (S (S (S (S O)))))))) term
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_fe_zero256 {term}
+### C.jet_secp_literal_infinity.literal_gej_infinity
+literal_gej_infinity =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.pair Ty.Unit
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@Alg.Core.Combinators.pair Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) term (@literal_fe_zero256 term) (@literal_fe_zero256 term))
+  (@literal_fe_zero256 term)
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term Ty.Unit
+         (Ty.Prod (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments literal_gej_infinity {term}

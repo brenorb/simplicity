@@ -1,0 +1,504 @@
+### C.jet_sha_interp_sound.attr_noattrb_true
+attr_noattrb_true
+     : forall (a : Ctypes.attr) (_ : @eq bool (jet_sha_interp.attr_noattrb a) true), @eq Ctypes.attr a Ctypes.noattr
+### C.jet_sha_interp_sound.is_tuint_true
+is_tuint_true
+     : forall (ty : Ctypes.type) (_ : @eq bool (jet_sha_interp.is_tuint ty) true), @eq Ctypes.type ty Ctypesdefs.tuint
+### C.jet_sha_interp_sound.is_tint_true
+is_tint_true
+     : forall (ty : Ctypes.type) (_ : @eq bool (jet_sha_interp.is_tint ty) true), @eq Ctypes.type ty Ctypesdefs.tint
+### C.jet_sha_interp_sound.is_ptuint_true
+is_ptuint_true
+     : forall (ty : Ctypes.type) (_ : @eq bool (jet_sha_interp.is_ptuint ty) true),
+       @eq Ctypes.type ty (Ctypesdefs.tptr Ctypesdefs.tuint)
+### C.jet_sha_interp_sound.is_cc_default_true
+is_cc_default_true
+     : forall (cc : AST.calling_convention) (_ : @eq bool (jet_sha_interp.is_cc_default cc) true),
+       @eq AST.calling_convention cc AST.cc_default
+### C.jet_sha_interp_sound.is_sigma_ty_true
+is_sigma_ty_true
+     : forall (ty : Ctypes.type) (_ : @eq bool (jet_sha_interp.is_sigma_ty ty) true),
+       @eq Ctypes.type ty jet_sha_interp.sigma_ty
+### C.jet_sha_interp_sound.is_round_ty_true
+is_round_ty_true
+     : forall (ty : Ctypes.type) (_ : @eq bool (jet_sha_interp.is_round_ty ty) true),
+       @eq Ctypes.type ty jet_sha_interp.round_ty
+### C.jet_sha_interp_sound.arr_expr_inv
+arr_expr_inv
+     : forall (a : Clight.expr) (p : AST.ident) (i : Integers.Int.int)
+         (_ : @eq (option (prod AST.ident Integers.Int.int)) (jet_sha_interp.arr_expr a)
+                (@Some (prod AST.ident Integers.Int.int) (@pair AST.ident Integers.Int.int p i))),
+       @eq Clight.expr a
+         (Clight.Ebinop Cop.Oadd (Clight.Etempvar p (Ctypesdefs.tptr Ctypesdefs.tuint))
+            (Clight.Econst_int i Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tuint))
+### C.jet_sha_interp_sound.addr_local_inv
+addr_local_inv
+     : forall (e : Clight.expr) (i : nat) (_ : @eq (option nat) (jet_sha_interp.addr_local e) (@Some nat i)),
+       @ex AST.ident
+         (fun x : AST.ident =>
+          and (@eq Clight.expr e (Clight.Eaddrof (Clight.Evar x Ctypesdefs.tuint) (Ctypesdefs.tptr Ctypesdefs.tuint)))
+            (@eq (option nat) (jet_sha_interp.index_of x jet_sha_interp.lids) (@Some nat i)))
+### C.jet_sha_interp_sound.arr_ofs
+arr_ofs
+     : forall (base : Integers.Ptrofs.int) (i : Integers.Int.int) (k : nat)
+         (_ : @eq nat k (BinInt.Z.to_nat (Integers.Int.unsigned i)))
+         (_ : lt k (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add
+                   (BinInt.Z.add (Integers.Ptrofs.unsigned base)
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat k)))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))) Integers.Ptrofs.max_unsigned),
+       @eq BinNums.Z
+         (Integers.Ptrofs.unsigned
+            (Integers.Ptrofs.add base
+               (Integers.Ptrofs.mul (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+                  (Integers.Ptrofs.of_ints i))))
+         (BinInt.Z.add (Integers.Ptrofs.unsigned base)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) (BinInt.Z.of_nat k)))
+### C.jet_sha_interp_sound.sha_F_refl
+sha_F_refl
+     : forall (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int) (m : Memory.Mem.mem),
+       sha_F lb bs os m m
+### C.jet_sha_interp_sound.sha_F_trans
+sha_F_trans
+     : forall (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int) (m1 m2 m3 : Memory.Mem.mem)
+         (_ : sha_F lb bs os m1 m2) (_ : sha_F lb bs os m2 m3), sha_F lb bs os m1 m3
+### C.jet_sha_interp_sound.lb_nth
+lb_nth
+     : forall (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int) (bc : Values.block)
+         (oc : Integers.Ptrofs.int) (_ : @eq nat (@length Values.block lb) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : or (not (@eq Values.block bs bc))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (Integers.Ptrofs.unsigned oc))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (Integers.Ptrofs.unsigned os)))) (i : nat) (_ : lt i (S (S (S (S (S (S (S (S O))))))))),
+       @ex Values.block
+         (fun b : Values.block => @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b))
+### C.jet_sha_interp_sound.lb_in
+lb_in
+     : forall (lb : list Values.block) (i : nat) (b : Values.block)
+         (_ : @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b)),
+       @List.In Values.block b lb
+### C.jet_sha_interp_sound.eval_ie_sound
+eval_ie_sound
+     : forall (env : Clight.env) (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int)
+         (bc : Values.block) (oc : Integers.Ptrofs.int)
+         (_ : @eq nat (@length Values.block lb) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : forall (i : nat) (x : AST.ident) (b : Values.block)
+                (_ : @eq (option AST.ident) (@List.nth_error AST.ident jet_sha_interp.lids i) (@Some AST.ident x))
+                (_ : @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b)),
+              @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) x env)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b Ctypesdefs.tuint)))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : or (not (@eq Values.block bs bc))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (Integers.Ptrofs.unsigned oc))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (Integers.Ptrofs.unsigned os)))) (st : jet_sha_interp.cst) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (e : Clight.expr) (v : Integers.Int.int) (_ : sha_R lb bs os bc oc st le m)
+         (_ : @eq (option Integers.Int.int) (jet_sha_interp.eval_ie st e) (@Some Integers.Int.int v)),
+       and (Clight.eval_expr jet_sha_linkage.sha_ge env le m e (Values.Vint v))
+         (@eq Ctypes.type (Clight.typeof e) Ctypesdefs.tuint)
+### C.jet_sha_interp_sound.set_temp_sound
+set_temp_sound
+     : forall (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int) (bc : Values.block)
+         (oc : Integers.Ptrofs.int) (_ : @eq nat (@length Values.block lb) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : or (not (@eq Values.block bs bc))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (Integers.Ptrofs.unsigned oc))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (Integers.Ptrofs.unsigned os)))) (st st' : jet_sha_interp.cst) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (t : AST.ident) (v : Integers.Int.int) (_ : sha_R lb bs os bc oc st le m)
+         (_ : @eq (option jet_sha_interp.cst) (jet_sha_interp.set_temp st t v) (@Some jet_sha_interp.cst st')),
+       sha_R lb bs os bc oc st' (@Maps.PTree.set Values.val t (Values.Vint v) le) m
+### C.jet_sha_interp_sound.reset_R
+reset_R
+     : forall (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int) (bc : Values.block)
+         (oc : Integers.Ptrofs.int) (st : jet_sha_interp.cst) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : sha_R lb bs os bc oc st le m), sha_R lb bs os bc oc (jet_sha_interp.reset st) le m
+### C.jet_sha_interp_sound.lb_block_eq
+lb_block_eq
+     : forall (lb : list Values.block) (_ : @List.NoDup Values.block lb) (i j : nat) (b : Values.block)
+         (_ : @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b))
+         (_ : @eq (option Values.block) (@List.nth_error Values.block lb j) (@Some Values.block b)),
+       @eq nat i j
+### C.jet_sha_interp_sound.local_store_R
+local_store_R
+     : forall (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int) (bc : Values.block)
+         (oc : Integers.Ptrofs.int) (_ : @eq nat (@length Values.block lb) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : @List.NoDup Values.block lb) (_ : not (@List.In Values.block bs lb))
+         (_ : not (@List.In Values.block bc lb))
+         (_ : or (not (@eq Values.block bs bc))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (Integers.Ptrofs.unsigned oc))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (Integers.Ptrofs.unsigned os)))) (st : jet_sha_interp.cst) (le0 : Clight.temp_env)
+         (m m' : Memory.Mem.mem) (i : nat) (b : Values.block) (v : Integers.Int.int)
+         (_ : sha_R lb bs os bc oc st le0 m)
+         (_ : @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b))
+         (_ : le i (jet_sha_interp.ldef st))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.store AST.Mint32 m b BinNums.Z0 (Values.Vint v))
+                (@Some Memory.Mem.mem m')),
+       and (sha_R lb bs os bc oc (jet_sha_interp.set_local st i v) le0 m') (sha_F lb bs os m m')
+### C.jet_sha_interp_sound.interp_assign_sound
+interp_assign_sound
+     : forall (env : Clight.env) (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int)
+         (bc : Values.block) (oc : Integers.Ptrofs.int)
+         (_ : @eq nat (@length Values.block lb) (S (S (S (S (S (S (S (S O))))))))) (_ : @List.NoDup Values.block lb)
+         (_ : not (@List.In Values.block bs lb)) (_ : not (@List.In Values.block bc lb))
+         (_ : forall (i : nat) (x : AST.ident) (b : Values.block)
+                (_ : @eq (option AST.ident) (@List.nth_error AST.ident jet_sha_interp.lids i) (@Some AST.ident x))
+                (_ : @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b)),
+              @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) x env)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b Ctypesdefs.tuint)))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : or (not (@eq Values.block bs bc))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (Integers.Ptrofs.unsigned oc))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (Integers.Ptrofs.unsigned os)))) (st st' : jet_sha_interp.cst) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (lhs e : Clight.expr) (_ : sha_R lb bs os bc oc st le m)
+         (_ : @eq (option jet_sha_interp.cst) (jet_sha_interp.interp_assign st lhs e) (@Some jet_sha_interp.cst st')),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge env le m (Clight.Sassign lhs e) Events.E0 le m'
+               ClightBigstep.Out_normal) (and (sha_R lb bs os bc oc st' le m') (sha_F lb bs os m m')))
+### C.jet_sha_interp_sound.interp_sigma_sound
+interp_sigma_sound
+     : forall (env : Clight.env) (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int)
+         (bc : Values.block) (oc : Integers.Ptrofs.int)
+         (_ : @eq nat (@length Values.block lb) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : forall (i : nat) (x : AST.ident) (b : Values.block)
+                (_ : @eq (option AST.ident) (@List.nth_error AST.ident jet_sha_interp.lids i) (@Some AST.ident x))
+                (_ : @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b)),
+              @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) x env)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b Ctypesdefs.tuint)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._sigma0 env)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._sigma1 env)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : or (not (@eq Values.block bs bc))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (Integers.Ptrofs.unsigned oc))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (Integers.Ptrofs.unsigned os)))) (st st' : jet_sha_interp.cst) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (t f : AST.ident) (fty : Ctypes.type) (a : Clight.expr)
+         (_ : sha_R lb bs os bc oc st le m)
+         (_ : @eq (option jet_sha_interp.cst) (jet_sha_interp.interp_sigma st t f fty a) (@Some jet_sha_interp.cst st')),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge env le m
+               (Clight.Scall (@Some AST.ident t) (Clight.Evar f fty) (@cons Clight.expr a (@nil Clight.expr)))
+               Events.E0 le' m ClightBigstep.Out_normal) (sha_R lb bs os bc oc st' le' m))
+### C.jet_sha_interp_sound.interp_round_sound
+interp_round_sound
+     : forall (env : Clight.env) (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int)
+         (bc : Values.block) (oc : Integers.Ptrofs.int)
+         (_ : @eq nat (@length Values.block lb) (S (S (S (S (S (S (S (S O))))))))) (_ : @List.NoDup Values.block lb)
+         (_ : not (@List.In Values.block bs lb)) (_ : not (@List.In Values.block bc lb))
+         (_ : forall (i : nat) (x : AST.ident) (b : Values.block)
+                (_ : @eq (option AST.ident) (@List.nth_error AST.ident jet_sha_interp.lids i) (@Some AST.ident x))
+                (_ : @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b)),
+              @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) x env)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b Ctypesdefs.tuint)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._Round env)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : or (not (@eq Values.block bs bc))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (Integers.Ptrofs.unsigned oc))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (Integers.Ptrofs.unsigned os)))) (st st' : jet_sha_interp.cst) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (f : AST.ident) (fty : Ctypes.type) (a b c d e f' g h k : Clight.expr)
+         (_ : sha_R lb bs os bc oc st le m)
+         (_ : @eq (option jet_sha_interp.cst) (jet_sha_interp.interp_round st f fty a b c d e f' g h k)
+                (@Some jet_sha_interp.cst st')),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge env le m
+               (Clight.Scall (@None AST.ident) (Clight.Evar f fty)
+                  (@cons Clight.expr a
+                     (@cons Clight.expr b
+                        (@cons Clight.expr c
+                           (@cons Clight.expr d
+                              (@cons Clight.expr e
+                                 (@cons Clight.expr f'
+                                    (@cons Clight.expr g (@cons Clight.expr h (@cons Clight.expr k (@nil Clight.expr)))))))))))
+               Events.E0 le m' ClightBigstep.Out_normal) (and (sha_R lb bs os bc oc st' le m') (sha_F lb bs os m m')))
+### C.jet_sha_interp_sound.interp_sound
+interp_sound
+     : forall (env : Clight.env) (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int)
+         (bc : Values.block) (oc : Integers.Ptrofs.int)
+         (_ : @eq nat (@length Values.block lb) (S (S (S (S (S (S (S (S O))))))))) (_ : @List.NoDup Values.block lb)
+         (_ : not (@List.In Values.block bs lb)) (_ : not (@List.In Values.block bc lb))
+         (_ : forall (i : nat) (x : AST.ident) (b : Values.block)
+                (_ : @eq (option AST.ident) (@List.nth_error AST.ident jet_sha_interp.lids i) (@Some AST.ident x))
+                (_ : @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b)),
+              @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) x env)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b Ctypesdefs.tuint)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._sigma0 env)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._sigma1 env)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._Round env)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : or (not (@eq Values.block bs bc))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (Integers.Ptrofs.unsigned oc))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (Integers.Ptrofs.unsigned os)))) (s : Clight.statement) (st st' : jet_sha_interp.cst)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : sha_R lb bs os bc oc st le m)
+         (_ : @eq (option jet_sha_interp.cst) (jet_sha_interp.interp s st) (@Some jet_sha_interp.cst st')),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun m' : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge env le m s Events.E0 le' m'
+                  ClightBigstep.Out_normal) (and (sha_R lb bs os bc oc st' le' m') (sha_F lb bs os m m'))))
+### C.jet_sha_interp_sound.interp_spine_sound
+interp_spine_sound
+     : forall (env : Clight.env) (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int)
+         (bc : Values.block) (oc : Integers.Ptrofs.int)
+         (_ : @eq nat (@length Values.block lb) (S (S (S (S (S (S (S (S O))))))))) (_ : @List.NoDup Values.block lb)
+         (_ : not (@List.In Values.block bs lb)) (_ : not (@List.In Values.block bc lb))
+         (_ : forall (i : nat) (x : AST.ident) (b : Values.block)
+                (_ : @eq (option AST.ident) (@List.nth_error AST.ident jet_sha_interp.lids i) (@Some AST.ident x))
+                (_ : @eq (option Values.block) (@List.nth_error Values.block lb i) (@Some Values.block b)),
+              @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) x env)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b Ctypesdefs.tuint)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._sigma0 env)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._sigma1 env)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_sha._Round env)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : or (not (@eq Values.block bs bc))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned os)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                      (Integers.Ptrofs.unsigned oc))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned oc)
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                      (Integers.Ptrofs.unsigned os)))) (fuel : nat) (s : Clight.statement)
+         (st st' : jet_sha_interp.cst) (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : sha_R lb bs os bc oc st le m)
+         (_ : @eq (option jet_sha_interp.cst) (jet_sha_interp.interp_spine fuel s st) (@Some jet_sha_interp.cst st')),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun m' : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge env le m s Events.E0 le' m'
+                  ClightBigstep.Out_normal) (and (sha_R lb bs os bc oc st' le' m') (sha_F lb bs os m m'))))
+### C.jet_sha_interp_sound.sha_R
+sha_R =
+fun (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int) (bc : Values.block)
+  (oc : Integers.Ptrofs.int) =>
+let so : BinNums.Z := Integers.Ptrofs.unsigned os in
+let co : BinNums.Z := Integers.Ptrofs.unsigned oc in
+fun (st : jet_sha_interp.cst) (le0 : Clight.temp_env) (m : Memory.Mem.mem) =>
+and
+  (@eq nat (@length Integers.Int.int (jet_sha_interp.wv st))
+     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+  (and (@eq nat (@length Integers.Int.int (jet_sha_interp.lv st)) (S (S (S (S (S (S (S (S O)))))))))
+     (and (@eq nat (@length Integers.Int.int (jet_sha_interp.sarr st)) (S (S (S (S (S (S (S (S O)))))))))
+        (and
+           (@eq nat (@length Integers.Int.int (jet_sha_interp.chunk st))
+              (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+           (and (le (jet_sha_interp.wdef st) (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))
+              (and (le (jet_sha_interp.ldef st) (S (S (S (S (S (S (S (S O)))))))))
+                 (and
+                    (forall (i : nat) (x : AST.ident) (_ : lt i (jet_sha_interp.wdef st))
+                       (_ : @eq (option AST.ident) (@List.nth_error AST.ident jet_sha_interp.wids i)
+                              (@Some AST.ident x)),
+                     @eq (option Values.val) (@Maps.PTree.get Values.val x le0)
+                       (@Some Values.val
+                          (Values.Vint (@List.nth Integers.Int.int i (jet_sha_interp.wv st) Integers.Int.zero))))
+                    (and
+                       (forall (t : AST.ident) (v : Integers.Int.int)
+                          (_ : @eq (option Integers.Int.int) (jet_sha_interp.alookup (jet_sha_interp.scratch st) t)
+                                 (@Some Integers.Int.int v)),
+                        and
+                          (@eq (option Values.val) (@Maps.PTree.get Values.val t le0)
+                             (@Some Values.val (Values.Vint v)))
+                          (and (@eq (option nat) (jet_sha_interp.index_of t jet_sha_interp.wids) (@None nat))
+                             (and (not (@eq AST.ident t jets_sha._s)) (not (@eq AST.ident t jets_sha._chunk)))))
+                       (and
+                          (@eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._s le0)
+                             (@Some Values.val (Values.Vptr bs os)))
+                          (and
+                             (@eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._chunk le0)
+                                (@Some Values.val (Values.Vptr bc oc)))
+                             (and
+                                (forall (i : nat) (b : Values.block)
+                                   (_ : @eq (option Values.block) (@List.nth_error Values.block lb i)
+                                          (@Some Values.block b)),
+                                 and (Memory.Mem.valid_access m AST.Mint32 b BinNums.Z0 Memtype.Writable)
+                                   (forall _ : lt i (jet_sha_interp.ldef st),
+                                    @eq (option Values.val) (Memory.Mem.load AST.Mint32 m b BinNums.Z0)
+                                      (@Some Values.val
+                                         (Values.Vint
+                                            (@List.nth Integers.Int.int i (jet_sha_interp.lv st) Integers.Int.zero)))))
+                                (and
+                                   (forall (i : nat) (_ : lt i (S (S (S (S (S (S (S ...)))))))),
+                                    and
+                                      (@eq (option Values.val)
+                                         (Memory.Mem.load AST.Mint32 m bs
+                                            (BinInt.Z.add so
+                                               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                                                  (BinInt.Z.of_nat i))))
+                                         (@Some Values.val
+                                            (Values.Vint
+                                               (@List.nth Integers.Int.int i (jet_sha_interp.sarr st) Integers.Int.zero))))
+                                      (Memory.Mem.valid_access m AST.Mint32 bs
+                                         (BinInt.Z.add so
+                                            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                                               (BinInt.Z.of_nat i))) Memtype.Writable))
+                                   (forall (i : nat) (_ : lt i (S (S (S (S (S (S (S ...)))))))),
+                                    @eq (option Values.val)
+                                      (Memory.Mem.load AST.Mint32 m bc
+                                         (BinInt.Z.add co
+                                            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                                               (BinInt.Z.of_nat i))))
+                                      (@Some Values.val
+                                         (Values.Vint
+                                            (@List.nth Integers.Int.int i (jet_sha_interp.chunk st) Integers.Int.zero)))))))))))))))
+     : forall (_ : list Values.block) (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Values.block)
+         (_ : Integers.Ptrofs.int) (_ : jet_sha_interp.cst) (_ : Clight.temp_env) (_ : Memory.Mem.mem), Prop
+
+Arguments sha_R lb%list_scope bs os bc oc st le m
+### C.jet_sha_interp_sound.sha_F
+sha_F =
+fun (lb : list Values.block) (bs : Values.block) (os : Integers.Ptrofs.int) =>
+let so : BinNums.Z := Integers.Ptrofs.unsigned os in
+fun m m' : Memory.Mem.mem =>
+and
+  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : not (@List.In Values.block b lb))
+     (_ : or (not (@eq Values.block b bs))
+            (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) so)
+               (BinInt.Z.le
+                  (BinInt.Z.add so
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) ofs))),
+   @eq (option Values.val) (Memory.Mem.load chunk m' b ofs) (Memory.Mem.load chunk m b ofs))
+  (and
+     (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+        (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm m' b ofs k p)
+     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block m' b))
+     : forall (_ : list Values.block) (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Memory.Mem.mem)
+         (_ : Memory.Mem.mem), Prop
+
+Arguments sha_F lb%list_scope bs os m m'

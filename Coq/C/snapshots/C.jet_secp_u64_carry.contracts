@@ -1,0 +1,33 @@
+### C.jet_secp_u64_carry.u64_add_with_carry
+u64_add_with_carry
+     : forall x y : Integers.Int64.int,
+       and
+         (@eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.add x y))
+            (BinInt.Z.modulo (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y))
+               Integers.Int64.modulus))
+         (@eq BinNums.Z (BinInt.Z.b2z (Integers.Int64.ltu (Integers.Int64.add x y) x))
+            (BinInt.Z.div (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)) Integers.Int64.modulus))
+### C.jet_secp_u64_carry.u64_add_carry_bit
+u64_add_carry_bit
+     : forall x y : Integers.Int64.int,
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.repr
+               (Integers.Int.signed
+                  match Integers.Int64.ltu (Integers.Int64.add x y) x return Integers.Int.int with
+                  | true => Integers.Int.one
+                  | false => Integers.Int.zero
+                  end)))
+         (BinInt.Z.div (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)) Integers.Int64.modulus)
+### C.jet_secp_u64_carry.u64_add_carry_bit_right
+u64_add_carry_bit_right
+     : forall x y : Integers.Int64.int,
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.repr
+               (Integers.Int.signed
+                  match Integers.Int64.ltu (Integers.Int64.add x y) y return Integers.Int.int with
+                  | true => Integers.Int.one
+                  | false => Integers.Int.zero
+                  end)))
+         (BinInt.Z.div (BinInt.Z.add (Integers.Int64.unsigned x) (Integers.Int64.unsigned y)) Integers.Int64.modulus)

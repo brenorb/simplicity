@@ -1,0 +1,558 @@
+### C.jet_elements_null_data_layout.elements_null_data_selected_initial_alloc
+elements_null_data_selected_initial_alloc
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (mc : Memory.Mem.mem) (bl bd : Values.block)
+         (dbase : BinNums.Z) (bw : Values.block) (edge cur count : BinNums.Z) (be : Values.block)
+         (ebase : BinNums.Z) (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block)
+         (outbase : BinNums.Z) (i j : Integers.Int64.int)
+         (parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) (unused_hash : Digest.hash256)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (v : Values.val)
+                (_ : @eq (option Values.val) (Memory.Mem.load chunk m b ofs) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load chunk mc b ofs) (@Some Values.val v))
+         (_ : elements_null_data_selected_initial m bd dbase bw edge cur count be ebase bt txbase bout outbase i j
+                parsed unused_hash),
+       jet_elements_null_data_guard_compose.elements_null_data_selected_footprint mc bl bd dbase bw edge cur count be
+         ebase bt txbase bout outbase i j parsed unused_hash
+### C.jet_elements_null_data_layout.elements_null_data_output_rep_mono
+elements_null_data_output_rep_mono
+     : forall (m mc : Memory.Mem.mem) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+         (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) (i count : Integers.Int64.int)
+         (flag : bool)
+         (_ : forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (v : Values.val)
+                (_ : @eq (option Values.val) (Memory.Mem.load chunk m b ofs) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load chunk mc b ofs) (@Some Values.val v))
+         (_ : jet_elements_null_data_output_guard.elements_null_data_output_rep m be ebase bt txbase bout outbase i
+                count flag),
+       jet_elements_null_data_output_guard.elements_null_data_output_rep mc be ebase bt txbase bout outbase i count
+         flag
+### C.jet_elements_null_data_layout.elements_null_data_count_path_mono
+elements_null_data_count_path_mono
+     : forall (m mc : Memory.Mem.mem) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+         (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) (i count : Integers.Int64.int)
+         (_ : forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (v : Values.val)
+                (_ : @eq (option Values.val) (Memory.Mem.load chunk m b ofs) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load chunk mc b ofs) (@Some Values.val v))
+         (_ : jet_elements_null_data_index.elements_null_data_count_path m be ebase bt txbase bout outbase i count),
+       jet_elements_null_data_index.elements_null_data_count_path mc be ebase bt txbase bout outbase i count
+### C.jet_elements_null_data_layout.elements_null_data_layout_payload_alloc
+elements_null_data_layout_payload_alloc
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (mc : Memory.Mem.mem) (bl bd : Values.block)
+         (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z) (bi : Values.block)
+         (inedge rc : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+         (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) (i : Integers.Int64.int)
+         (jw : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) (unused_hash : Digest.hash256)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (v : Values.val)
+                (_ : @eq (option Values.val) (Memory.Mem.load chunk m b ofs) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load chunk mc b ofs) (@Some Values.val v))
+         (_ : elements_null_data_layout_payload m bd dbase bw edge cur bi inedge rc be ebase bt txbase bout outbase i
+                jw parsed unused_hash),
+       jet_elements_null_data_rest.elements_null_data_rest_payload mc bl bd dbase bw edge cur bi inedge rc be ebase bt
+         txbase bout outbase i jw parsed unused_hash
+### C.jet_elements_null_data_layout.elements_null_data_layout_shape
+elements_null_data_layout_shape
+     : jet_elements_wrapper.elements_wrapper_shape jets_elements.f_simplicity_output_null_datum
+         jet_elements_null_data_rest.elements_null_data_rest
+### C.jet_elements_null_data_layout.eval_elements_null_data_output_block
+eval_elements_null_data_output_block
+     : forall (parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) (unused_hash : Digest.hash256)
+         (iw jw : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (m : Memory.Mem.mem) (bd : Values.block)
+         (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block)
+         (edge cur inedge rc : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+         (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) (count : Integers.Int64.int)
+         (flag : bool) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi inedge rc)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi inedge rc iw)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : Memory.Mem.valid_block m bout)
+         (_ : jet_elements_null_data_output_guard.elements_null_data_output_rep m be ebase bt txbase bout outbase
+                (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) count flag)
+         (_ : forall
+                _ : @eq bool
+                      (andb
+                         (Integers.Int64.ltu
+                            (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) count)
+                         flag) true,
+              elements_null_data_layout_payload m bd dbase bw edge cur bi inedge rc be ebase bt txbase bout outbase
+                (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) jw parsed
+                unused_hash)
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xO
+                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+               (@Ctypes.Internal Clight.function jets_elements.f_simplicity_output_null_datum)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)) (@nil Values.val)))) Events.E0 mf
+               (Values.Vint Integers.Int.one))
+            (and
+               (jet_encoding.frame_output_cells_at mf bw edge cur
+                  (@Translate.encode
+                     (Ty.Sum Ty.Unit
+                        (Ty.Sum Ty.Unit
+                           (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                              (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))
+                     (jet_elements_null_data_guard_compose.elements_null_data_guard_value parsed unused_hash
+                        (andb
+                           (Integers.Int64.ltu
+                              (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw))
+                              count) flag) jw)))
+               (and (jet_output_layout.write_prefix_at m mf bw edge cur)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw edge
+                        (BinInt.Z.sub cur
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add edge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cur
+                                                 (BinNums.Zpos
+                                                    (BinNums.xI
+                                                       (BinNums.xO
+                                                          (BinNums.xI
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address edge cur)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_elements_null_data_layout.eval_elements_null_data_nullable_layout
+eval_elements_null_data_nullable_layout
+     : forall (parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) (unused_hash : Digest.hash256)
+         (iw jw : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (m : Memory.Mem.mem) (bd : Values.block)
+         (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block)
+         (edge cur inedge rc : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+         (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) (count : Integers.Int64.int)
+         (flag : bool) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi inedge rc)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi inedge rc iw)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : jet_elements_null_data_output_guard.elements_null_data_output_rep m be ebase bt txbase bout outbase
+                (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) count flag)
+         (_ : forall
+                _ : @eq bool
+                      (andb
+                         (Integers.Int64.ltu
+                            (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) count)
+                         flag) true,
+              elements_null_data_layout_payload m bd dbase bw edge cur bi inedge rc be ebase bt txbase bout outbase
+                (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) jw parsed
+                unused_hash)
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xO
+                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+               (@Ctypes.Internal Clight.function jets_elements.f_simplicity_output_null_datum)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)) (@nil Values.val)))) Events.E0 mf
+               (Values.Vint Integers.Int.one))
+            (and
+               (jet_encoding.frame_output_cells_at mf bw edge cur
+                  (@Translate.encode
+                     (Ty.Sum Ty.Unit
+                        (Ty.Sum Ty.Unit
+                           (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                              (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))
+                     (jet_elements_null_data_guard_compose.elements_null_data_guard_value parsed unused_hash
+                        (andb
+                           (Integers.Int64.ltu
+                              (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw))
+                              count) flag) jw)))
+               (and (jet_output_layout.write_prefix_at m mf bw edge cur)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw edge
+                        (BinInt.Z.sub cur
+                           (BinNums.Zpos
+                              (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xI
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add edge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cur
+                                                 (BinNums.Zpos
+                                                    (BinNums.xI
+                                                       (BinNums.xO
+                                                          (BinNums.xI
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address edge cur)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_elements_null_data_layout.elements_output_null_datum_initial_equivalence
+elements_output_null_datum_initial_equivalence
+     : forall (environment : jet_elements_prim.Elements.environment)
+         (parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) (unused_hash : Digest.hash256)
+         (iw jw : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (m : Memory.Mem.mem) (bd : Values.block)
+         (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block)
+         (edge cur inedge rc : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+         (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) (count : Integers.Int64.int)
+         (flag : bool) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi inedge rc)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi inedge rc iw)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (_ : jet_elements_null_data_output_guard.elements_null_data_output_rep m be ebase bt txbase bout outbase
+                (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) count flag)
+         (_ : forall
+                _ : @eq bool
+                      (andb
+                         (Integers.Int64.ltu
+                            (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) count)
+                         flag) true,
+              elements_null_data_layout_payload m bd dbase bw edge cur bi inedge rc be ebase bt txbase bout outbase
+                (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) jw parsed
+                unused_hash)
+         (_ : @eq (option (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+                match
+                  @List.nth_error jet_elements_prim.txOutput
+                    (jet_elements_prim.sigTxOut (jet_elements_prim.Elements.envTx environment))
+                    (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw))
+                  return (option (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+                with
+                | Some txo => jet_elements_prim.txNullData (jet_elements_prim.txoScript txo)
+                | None => @None (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+                end
+                match
+                  andb
+                    (Integers.Int64.ltu
+                       (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) iw)) count) flag
+                  return (option (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+                with
+                | true => @Some (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) parsed
+                | false => @None (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+                end)
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur
+                (BinNums.Zpos
+                   (BinNums.xI
+                      (BinNums.xO
+                         (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex
+            (Ty.tySem
+               (Ty.Sum Ty.Unit
+                  (Ty.Sum Ty.Unit
+                     (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))))
+            (fun
+               value : Ty.tySem
+                         (Ty.Sum Ty.Unit
+                            (Ty.Sum Ty.Unit
+                               (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                  (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))) =>
+             and
+               (@eq
+                  (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                     (Ty.tySem
+                        (Ty.Sum Ty.Unit
+                           (Ty.Sum Ty.Unit
+                              (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))))
+                  (@elements_output_null_datum_spec
+                     (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)
+                     (@pair (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+                        iw jw) environment)
+                  (@Some
+                     (Ty.tySem
+                        (Ty.Sum Ty.Unit
+                           (Ty.Sum Ty.Unit
+                              (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))) value))
+               (and
+                  (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+                     (@Ctypes.Internal Clight.function jets_elements.f_simplicity_output_null_datum)
+                     (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                        (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                           (@cons Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase)) (@nil Values.val))))
+                     Events.E0 mf (Values.Vint Integers.Int.one))
+                  (and
+                     (jet_encoding.frame_output_cells_at mf bw edge cur
+                        (@Translate.encode
+                           (Ty.Sum Ty.Unit
+                              (Ty.Sum Ty.Unit
+                                 (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                    (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))) value))
+                     (and (jet_output_layout.write_prefix_at m mf bw edge cur)
+                        (and
+                           (jet_frame_layout.frame_fields_at mf bd dbase bw edge
+                              (BinInt.Z.sub cur
+                                 (BinNums.Zpos
+                                    (BinNums.xI
+                                       (BinNums.xO
+                                          (BinNums.xI
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                           (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                              (_ : Memory.Mem.valid_block m b)
+                              (_ : or (not (@eq Values.block b bd))
+                                     (or
+                                        (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                           (BinInt.Z.add dbase
+                                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                        (BinInt.Z.le
+                                           (BinInt.Z.add dbase
+                                              (BinNums.Zpos
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs)))
+                              (_ : or (not (@eq Values.block b bw))
+                                     (or
+                                        (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                           (BinInt.Z.add edge
+                                              (BinInt.Z.mul
+                                                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                                 (BinInt.Z.div
+                                                    (BinInt.Z.sub cur
+                                                       (BinNums.Zpos
+                                                          (BinNums.xI
+                                                             (BinNums.xO
+                                                                (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))
+                                                    (BinNums.Zpos
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                        (BinInt.Z.le
+                                           (BinInt.Z.add (jet_write_layout.write_word_address edge cur)
+                                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                            @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))))
+### C.jet_elements_null_data_layout.elements_null_data_selected_initial
+elements_null_data_selected_initial =
+fun (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur count : BinNums.Z)
+  (be : Values.block) (ebase : BinNums.Z) (bt : Values.block) (txbase : BinNums.Z) (bout : Values.block)
+  (outbase : BinNums.Z) (i j : Integers.Int64.int)
+  (parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) (unused_hash : Digest.hash256) =>
+forall (d : jet_elements_prim.txNullDatumF (list Integers.Byte.int))
+  (_ : @eq (option (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+         (@List.nth_error (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) parsed
+            (BinInt.Z.to_nat (Integers.Int64.unsigned j)))
+         (@Some (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) d)),
+@ex Values.block
+  (fun bop : Values.block =>
+   @ex BinNums.Z
+     (fun opbase : BinNums.Z =>
+      and
+        (jet_elements_null_data_small.elements_null_data_path_valid m be ebase bt txbase bout outbase bop opbase i j
+           (jet_elements_null_data_opcode.elements_datum_code
+              (@jet_elements_prim.mapNullDatum (list Integers.Byte.int) Digest.hash256 Digest.byteStringHash d)))
+        (and
+           (@List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+              (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+               match pat return Prop with
+               | pair y hi =>
+                   match y return Prop with
+                   | pair b lo => jet_application_sep.out_sep bd dbase bw edge cur count b lo hi
+                   end
+               end)
+              (jet_elements_null_data_loads.elements_null_data_path_footprint be ebase bt txbase bout outbase bop
+                 opbase i j))
+           match
+             jet_elements_null_data_opcode.elements_datum_push
+               (@jet_elements_prim.mapNullDatum (list Integers.Byte.int) Digest.hash256 Digest.byteStringHash d)
+             return Prop
+           with
+           | true =>
+               and
+                 (jet_uint32_array_init.uint32_array_at m bop
+                    (BinInt.Z.add opbase
+                       (BinInt.Z.mul
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                          (Integers.Int64.unsigned j)))
+                    (Digest.hash256_reg
+                       (jet_elements_null_data_opcode.elements_datum_hash
+                          (@jet_elements_prim.mapNullDatum (list Integers.Byte.int) Digest.hash256
+                             Digest.byteStringHash d) unused_hash)))
+                 (jet_application_sep.out_sep bd dbase bw edge cur count bop
+                    (BinInt.Z.add opbase
+                       (BinInt.Z.mul
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                          (Integers.Int64.unsigned j)))
+                    (BinInt.Z.add
+                       (BinInt.Z.add opbase
+                          (BinInt.Z.mul
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                             (Integers.Int64.unsigned j)))
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+           | false => True
+           end)))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block)
+         (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) (_ : Digest.hash256), Prop
+
+Arguments elements_null_data_selected_initial m bd dbase%Z_scope bw (edge cur count)%Z_scope
+  be ebase%Z_scope bt txbase%Z_scope bout outbase%Z_scope i j parsed%list_scope unused_hash
+### C.jet_elements_null_data_layout.elements_null_data_layout_payload
+elements_null_data_layout_payload =
+fun (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+  (bi : Values.block) (inedge rc : BinNums.Z) (be : Values.block) (ebase : BinNums.Z) (bt : Values.block)
+  (txbase : BinNums.Z) (bout : Values.block) (outbase : BinNums.Z) (i : Integers.Int64.int)
+  (jw : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+  (parsed : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) (unused_hash : Digest.hash256) =>
+and
+  (@jet_input_layout.frame_input_word_at (S (S (S (S (S O))))) m bi inedge
+     (BinInt.Z.add rc (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) jw)
+  (and
+     (forall (k : BinNums.Z)
+        (_ : and (BinInt.Z.le BinNums.Z0 k)
+               (BinInt.Z.lt k
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+      jet_application_sep.out_sep bd dbase bw edge cur
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+        bi
+        (BinInt.Z.sub inedge
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+              (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                 (BinInt.Z.div
+                    (BinInt.Z.add
+                       (BinInt.Z.add rc
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) k)
+                    (BinNums.Zpos
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+        (BinInt.Z.add
+           (BinInt.Z.sub inedge
+              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                 (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                    (BinInt.Z.div
+                       (BinInt.Z.add
+                          (BinInt.Z.add rc
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                          k)
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+     (and
+        (BinInt.Z.le (BinInt.Z.of_nat (@length (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) parsed))
+           Integers.Int64.max_unsigned)
+        (and
+           (jet_elements_null_data_index.elements_null_data_count_path m be ebase bt txbase bout outbase i
+              (Integers.Int64.repr
+                 (BinInt.Z.of_nat (@length (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) parsed))))
+           (and
+              (@List.Forall (prod (prod Values.block BinNums.Z) BinNums.Z)
+                 (fun pat : prod (prod Values.block BinNums.Z) BinNums.Z =>
+                  match pat return Prop with
+                  | pair y hi =>
+                      match y return Prop with
+                      | pair b lo =>
+                          jet_application_sep.out_sep bd dbase bw edge cur
+                            (BinNums.Zpos
+                               (BinNums.xI
+                                  (BinNums.xO
+                                     (BinNums.xI
+                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                            b lo hi
+                      end
+                  end)
+                 (jet_elements_null_data_guard_compose.elements_null_data_count_footprint be ebase bt txbase bout
+                    outbase i))
+              (elements_null_data_selected_initial m bd dbase bw edge cur
+                 (BinNums.Zpos
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                 be ebase bt txbase bout outbase i
+                 (Integers.Int64.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) jw)) parsed
+                 unused_hash)))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : Values.block)
+         (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : Integers.Int64.int) (_ : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (_ : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) (_ : Digest.hash256), Prop
+
+Arguments elements_null_data_layout_payload m bd dbase%Z_scope bw (edge cur)%Z_scope bi (inedge rc)%Z_scope
+  be ebase%Z_scope bt txbase%Z_scope bout outbase%Z_scope i jw parsed%list_scope unused_hash
+### C.jet_elements_null_data_layout.elements_output_null_datum_spec
+elements_output_null_datum_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim
+  (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+  (Ty.Sum Ty.Unit
+     (Ty.Sum Ty.Unit
+        (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O))))))) alg jet_elements_prim.Elements.OutputNullDatum
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg
+         (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (Ty.Sum Ty.Unit
+            (Ty.Sum Ty.Unit
+               (Ty.Sum (Ty.Prod (Word.Word (S O)) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                  (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S O)))))))
+
+Arguments elements_output_null_datum_spec {alg}

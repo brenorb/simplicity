@@ -1,0 +1,116 @@
+### C.jet_secp_reduce512_final_stage.reduce512_final_source
+reduce512_final_source
+     : @eq Clight.statement
+         (jet_secp_statement_prefix.statement_sequence jet_secp_reduce512_third_stage.reduce512_third_spine
+            reduce512_final_suffix) (Clight.fn_body jets_secp.f_secp256k1_scalar_reduce_512)
+### C.jet_secp_reduce512_final_stage.reduce512_final_completes
+reduce512_final_completes
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int),
+       @eq bool
+         match reduce512_final_run digits carry return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_reduce512_final_stage.reduce512_final_run_eq
+reduce512_final_run_eq
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int),
+       @eq (option jet_sx_exec.res) (reduce512_final_run digits carry)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (reduce512_final_state digits carry) jet_sx_exec.ONormal))
+### C.jet_secp_reduce512_final_stage.reduce512_final_log
+reduce512_final_log
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int),
+       @eq (list jet_sx_eval.event) (jet_sx_eval.slog (reduce512_final_state digits carry))
+         (@List.repeat jet_sx_eval.event
+            (jet_sx_eval.mkev O (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))) O (@nil jet_sx_expr.sx))
+            (S (S (S O))))
+### C.jet_secp_reduce512_final_stage.reduce512_final_limb_kinds
+reduce512_final_limb_kinds
+     : forall (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int),
+       @eq bool (@List.forallb jet_sx_expr.sx (jet_sx_expr.isk jet_sx_expr.KL) (reduce512_final_limbs digits carry))
+         true
+### C.jet_secp_reduce512_final_stage.reduce512_final_suffix
+reduce512_final_suffix =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement jet_secp_reduce512_third_stage.reduce512_third_count
+     jet_secp_reduce512_first_run.reduce512_spine) jet_secp_reduce512_first_run.reduce512_last
+     : Clight.statement
+### C.jet_secp_reduce512_final_stage.reduce512_final_temps
+reduce512_final_temps =
+fun carry : Integers.Int64.int =>
+@Maps.PTree.set jet_sx_expr.sx jets_secp._c (jet_sx_expr.XL carry)
+  (@Maps.PTree.set jet_sx_expr.sx jets_secp._l (jet_sx_expr.XP (S O) BinNums.Z0)
+     (@Maps.PTree.set jet_sx_expr.sx jets_secp._r (jet_sx_expr.XP O BinNums.Z0) (Maps.PTree.empty jet_sx_expr.sx)))
+     : forall _ : Integers.Int64.int, Maps.PTree.tree jet_sx_expr.sx
+
+Arguments reduce512_final_temps carry
+### C.jet_secp_reduce512_final_stage.reduce512_final_regs
+reduce512_final_regs =
+fun digits : forall _ : nat, Integers.Int64.int =>
+@app jet_sx_state.region
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg
+        (jet_sx_rep.u64_cells BinNums.Z0
+           (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits O))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S O)))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S O))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S O))))) (@nil jet_sx_expr.sx)))))) true
+        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+     (@nil jet_sx_state.region))
+  (@app jet_sx_state.region (@List.tl jet_sx_state.region jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs)
+     (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated))
+     : forall _ : forall _ : nat, Integers.Int64.int, list jet_sx_state.region
+
+Arguments reduce512_final_regs digits%function_scope
+### C.jet_secp_reduce512_final_stage.reduce512_final_initial
+reduce512_final_initial =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) =>
+jet_sx_eval.mkst (reduce512_final_temps carry) (reduce512_final_regs digits) (@nil jet_sx_eval.event)
+  (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), jet_sx_eval.sstate
+
+Arguments reduce512_final_initial digits%function_scope carry
+### C.jet_secp_reduce512_final_stage.reduce512_final_run
+reduce512_final_run =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) =>
+jet_sx_compact.compact_stmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_shift64_executor.secp_shift64_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated)
+  (reduce512_final_initial digits carry) reduce512_final_suffix
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), option jet_sx_exec.res
+
+Arguments reduce512_final_run digits%function_scope carry
+### C.jet_secp_reduce512_final_stage.reduce512_final_state
+reduce512_final_state =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) =>
+match reduce512_final_run digits carry return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ => reduce512_final_initial digits carry
+    end
+| None => reduce512_final_initial digits carry
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), jet_sx_eval.sstate
+
+Arguments reduce512_final_state digits%function_scope carry
+### C.jet_secp_reduce512_final_stage.reduce512_final_limbs
+reduce512_final_limbs =
+fun (digits : forall _ : nat, Integers.Int64.int) (carry : Integers.Int64.int) =>
+@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_frame.cell_sx
+  (jet_sx_state.rcells
+     (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+        (jet_sx_eval.sregs (reduce512_final_state digits carry))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), list jet_sx_expr.sx
+
+Arguments reduce512_final_limbs digits%function_scope carry

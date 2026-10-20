@@ -1,0 +1,160 @@
+### C.jet_multiply64_exec.entry_frame_u128_jet
+entry_frame_u128_jet
+     : forall (env : Values.val) (f : Clight.function) (m : Memory.Mem.mem) (ma mb : Memory.Mem.mem')
+         (bl br bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block) (sofs : Integers.Ptrofs.int)
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_vars f)
+                (@cons (prod AST.ident Ctypes.type)
+                   (@pair AST.ident Ctypes.type jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+                   (@cons (prod AST.ident Ctypes.type)
+                      (@pair AST.ident Ctypes.type jets._r (Ctypes.Tstruct jets._secp256k1_uint128 Ctypes.noattr))
+                      (@nil (prod AST.ident Ctypes.type)))))
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_params f)
+                (@cons (prod AST.ident Ctypes.type)
+                   (@pair AST.ident Ctypes.type jets._dst
+                      (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)))
+                   (@cons (prod AST.ident Ctypes.type)
+                      (@pair AST.ident Ctypes.type jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+                      (@cons (prod AST.ident Ctypes.type)
+                         (@pair AST.ident Ctypes.type jets._env
+                            (Ctypesdefs.tptr (Ctypes.Tstruct jets._txEnv Ctypes.noattr)))
+                         (@nil (prod AST.ident Ctypes.type))))))
+         (_ : @Coqlib.list_disjoint AST.ident
+                (@cons AST.ident jets._dst (@cons AST.ident jets._src (@cons AST.ident jets._env (@nil AST.ident))))
+                (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type) (Clight.fn_temps f)))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc ma BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block mb br)),
+       Clight.function_entry2 jet_exec.ge0 f
+         (@cons Values.val (Values.Vptr bd dofs)
+            (@cons Values.val (Values.Vptr bs sofs) (@cons Values.val env (@nil Values.val)))) m
+         (e_frame_u128 bl br) (jet_arith8_layout_exec.le_arith8_layout env f bd dofs bs sofs) mb
+### C.jet_multiply64_exec.exec_frame_u128_copy
+exec_frame_u128_copy
+     : forall (m mc : Memory.Mem.mem) (bl br bs : Values.block) (sbase : BinNums.Z) (bytes : list Memdata.memval)
+         (le : Maps.PTree.tree Values.val) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src le)
+                (@Some Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes m bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes m bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (e_frame_u128 bl br) le m
+         (Clight.Sassign (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+            (Clight.Etempvar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))) Events.E0 le mc
+         ClightBigstep.Out_normal
+### C.jet_multiply64_exec.call_frame_u128_read
+call_frame_u128_read
+     : forall (s : jet_wide.wide_size) (result : AST.ident) (le : Clight.temp_env) (m mr : Memory.Mem.mem)
+         (bl br : Values.block) (w : Integers.Int64.int)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function (jet_wide.wide_reader s))
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr
+                (Values.Vlong w)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (e_frame_u128 bl br) le m
+         (jet_binary_wide_exec.wide_binary_read s result) Events.E0
+         (@Maps.PTree.set Values.val result (Values.Vlong w) le) mr ClightBigstep.Out_normal
+### C.jet_multiply64_exec.u128_mul_symbol
+u128_mul_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            jets._secp256k1_u128_mul) (@Some Values.block (jet_exec.jet_symbol_block jets._secp256k1_u128_mul))
+### C.jet_multiply64_exec.u128_mul_funct
+u128_mul_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            (Values.Vptr (jet_exec.jet_symbol_block jets._secp256k1_u128_mul) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_secp256k1_u128_mul))
+### C.jet_multiply64_exec.write128_symbol
+write128_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0) jets._write128)
+         (@Some Values.block (jet_exec.jet_symbol_block jets._write128))
+### C.jet_multiply64_exec.write128_funct
+write128_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            (Values.Vptr (jet_exec.jet_symbol_block jets._write128) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_write128))
+### C.jet_multiply64_exec.eval_multiply64_composes
+eval_multiply64_composes
+     : forall (env : Values.val) (m : Memory.Mem.mem) (ma mb : Memory.Mem.mem')
+         (mcopy mr1 mr2 mk me mf : Memory.Mem.mem) (bl br bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bytes : list Memdata.memval) (a b : Integers.Int64.int)
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc ma BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block mb br))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes mb bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes mb bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mcopy))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mcopy
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr1
+                (Values.Vlong a))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr1
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr2
+                (Values.Vlong b))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr2
+                (@Ctypes.Internal Clight.function jets.f_secp256k1_u128_mul)
+                (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vlong a) (@cons Values.val (Values.Vlong b) (@nil Values.val)))) Events.E0
+                mk Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mk (@Ctypes.Internal Clight.function jets.f_write128)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 me
+                Values.Vundef)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free_list me (Clight.blocks_of_env jet_exec.ge0 (e_frame_u128 bl br)))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+         (@Ctypes.Internal Clight.function jets.f_simplicity_multiply_64)
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         Events.E0 mf (Values.Vint Integers.Int.one)
+### C.jet_multiply64_exec.e_frame_u128
+e_frame_u128 =
+fun bl br : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets._r
+  (@pair Values.block Ctypes.type br (Ctypes.Tstruct jets._secp256k1_uint128 Ctypes.noattr))
+  (jet_one8.e_one8 bl)
+     : forall (_ : Values.block) (_ : Values.block), Maps.PTree.tree (prod Values.block Ctypes.type)
+
+Arguments e_frame_u128 bl br
+### C.jet_multiply64_exec.multiply64_temps
+multiply64_temps =
+fun (env : Values.val) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) =>
+jet_arith8_layout_exec.le_arith8_layout env jets.f_simplicity_multiply_64 bd (Integers.Ptrofs.repr dbase) bs
+  (Integers.Ptrofs.repr sbase)
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments multiply64_temps env bd dbase%Z_scope bs sbase%Z_scope
+### C.jet_multiply64_exec.multiply64_read_temps
+multiply64_read_temps =
+fun (env : Values.val) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+  (a b : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets._y (Values.Vlong b)
+  (@Maps.PTree.set Values.val jets._t'2 (Values.Vlong b)
+     (@Maps.PTree.set Values.val jets._x (Values.Vlong a)
+        (@Maps.PTree.set Values.val jets._t'1 (Values.Vlong a) (multiply64_temps env bd dbase bs sbase))))
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments multiply64_read_temps env bd dbase%Z_scope bs sbase%Z_scope a b

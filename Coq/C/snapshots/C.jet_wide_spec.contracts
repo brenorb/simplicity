@@ -1,0 +1,28 @@
+### C.jet_wide_spec.wide_one_spec
+wide_one_spec =
+fun (s : jet_wide.wide_size) (term : Alg.Core.Algebra) =>
+@Alg.Core.Combinators.comp Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (jet_wide.wide_log s)) term
+  (@Bit.true Ty.Unit term) (@jet_spec.left_pad_low_1_n term (jet_wide.wide_log s))
+     : forall (s : jet_wide.wide_size) (term : Alg.Core.Algebra),
+       Alg.Core.domain term Ty.Unit (Word.Word (jet_wide.wide_log s))
+
+Arguments wide_one_spec s {term}
+### C.jet_wide_spec.decode_wide
+decode_wide =
+fun (s : jet_wide.wide_size) (w : Integers.Int64.int) =>
+@Word.ToZ.Theory.fromZ (Word.WordToZ (jet_wide.wide_log s)) (Integers.Int64.unsigned w)
+     : forall (s : jet_wide.wide_size) (_ : Integers.Int64.int), Ty.tySem (Word.Word (jet_wide.wide_log s))
+
+Arguments decode_wide s w
+### C.jet_wide_spec.wide_output_at
+wide_output_at =
+fun (s : jet_wide.wide_size) (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+  (value : Ty.tySem (Word.Word (jet_wide.wide_log s))) =>
+@ex Integers.Int64.int
+  (fun payload : Integers.Int64.int =>
+   and (jet_output_slice.slice_output_at (jet_wide.wide_bits s) m bw edge cursor payload)
+     (@eq (Ty.tySem (Word.Word (jet_wide.wide_log s))) (decode_wide s payload) value))
+     : forall (s : jet_wide.wide_size) (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : Ty.tySem (Word.Word (jet_wide.wide_log s))), Prop
+
+Arguments wide_output_at s m bw (edge cursor)%Z_scope value

@@ -1,0 +1,102 @@
+### C.jet_u128_fields.eval_u128_field_lvalue
+eval_u128_field_lvalue
+     : forall (high : bool) (id : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (br : Values.block) (base : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr br (Integers.Ptrofs.repr base)))),
+       Clight.eval_lvalue jet_exec.ge0 e le m (u128_field_expr high id) br
+         (Integers.Ptrofs.add (Integers.Ptrofs.repr base) (Integers.Ptrofs.repr (u128_field_offset high))) Ctypes.Full
+### C.jet_u128_fields.eval_u128_field
+eval_u128_field
+     : forall (high : bool) (id : BinNums.positive) (e : Clight.env) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (br : Values.block) (base : BinNums.Z) (w : Integers.Int64.int)
+         (_ : jet_frame_layout.frame_base_valid base)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (Values.Vptr br (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m br (BinInt.Z.add base (u128_field_offset high)))
+                (@Some Values.val (Values.Vlong w))),
+       Clight.eval_expr jet_exec.ge0 e le m (u128_field_expr high id) (Values.Vlong w)
+### C.jet_u128_fields.u128_get_body
+u128_get_body
+     : forall high : bool,
+       @eq Clight.statement (Clight.fn_body (u128_get high))
+         (Clight.Ssequence (Clight.Sset jets._t'1 (u128_field_expr high jets._a))
+            (Clight.Sreturn (@Some Clight.expr (Clight.Etempvar jets._t'1 Ctypesdefs.tulong))))
+### C.jet_u128_fields.u128_get_symbol
+u128_get_symbol
+     : forall high : bool,
+       @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0) (u128_get_id high))
+         (@Some Values.block (jet_exec.jet_symbol_block (u128_get_id high)))
+### C.jet_u128_fields.u128_get_funct
+u128_get_funct
+     : forall high : bool,
+       @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            (Values.Vptr (jet_exec.jet_symbol_block (u128_get_id high)) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function (u128_get high)))
+### C.jet_u128_fields.eval_u128_get_layout
+eval_u128_get_layout
+     : forall (high : bool) (m : Memory.Mem.mem) (br : Values.block) (base : BinNums.Z) (w : Integers.Int64.int)
+         (_ : jet_frame_layout.frame_base_valid base)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m br (BinInt.Z.add base (u128_field_offset high)))
+                (@Some Values.val (Values.Vlong w))),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function (u128_get high))
+         (@cons Values.val (Values.Vptr br (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 m
+         (Values.Vlong w)
+### C.jet_u128_fields.u128_field
+u128_field =
+fun high : bool => match high return AST.ident with
+                   | true => jets._hi
+                   | false => jets._lo
+                   end
+     : forall _ : bool, AST.ident
+
+Arguments u128_field high%bool_scope
+### C.jet_u128_fields.u128_field_offset
+u128_field_offset =
+fun high : bool =>
+match high return BinNums.Z with
+| true => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))
+| false => BinNums.Z0
+end
+     : forall _ : bool, BinNums.Z
+
+Arguments u128_field_offset high%bool_scope
+### C.jet_u128_fields.u128_field_expr
+u128_field_expr =
+fun (high : bool) (id : AST.ident) =>
+Clight.Efield
+  (Clight.Ederef (Clight.Etempvar id (Ctypesdefs.tptr (Ctypes.Tstruct jets._secp256k1_uint128 Ctypes.noattr)))
+     (Ctypes.Tstruct jets._secp256k1_uint128 Ctypes.noattr)) (u128_field high) Ctypesdefs.tulong
+     : forall (_ : bool) (_ : AST.ident), Clight.expr
+
+Arguments u128_field_expr high%bool_scope id
+### C.jet_u128_fields.u128_get
+u128_get =
+fun high : bool =>
+match high return Clight.function with
+| true => jets.f_secp256k1_u128_hi_u64
+| false => jets.f_secp256k1_u128_to_u64
+end
+     : forall _ : bool, Clight.function
+
+Arguments u128_get high%bool_scope
+### C.jet_u128_fields.u128_get_id
+u128_get_id =
+fun high : bool =>
+match high return AST.ident with
+| true => jets._secp256k1_u128_hi_u64
+| false => jets._secp256k1_u128_to_u64
+end
+     : forall _ : bool, AST.ident
+
+Arguments u128_get_id high%bool_scope
+### C.jet_u128_fields.u128_get_temps
+u128_get_temps =
+fun (high : bool) (br : Values.block) (base : BinNums.Z) =>
+@Maps.PTree.set Values.val jets._a (Values.Vptr br (Integers.Ptrofs.repr base))
+  (Clight.create_undef_temps (Clight.fn_temps (u128_get high)))
+     : forall (_ : bool) (_ : Values.block) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments u128_get_temps high%bool_scope br base%Z_scope

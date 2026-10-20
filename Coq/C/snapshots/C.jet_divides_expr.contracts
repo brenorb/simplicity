@@ -1,0 +1,68 @@
+### C.jet_divides_expr.exec_divides8_choose
+exec_divides8_choose
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (r t : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._x le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._y le)
+                (@Some Values.val
+                   (Values.Vint
+                      (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) t)))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m divides8_choose Events.E0
+         (@Maps.PTree.set Values.val jets._t'3 (Values.Vint (jet_division_value.division8_raw true t r)) le) m
+         ClightBigstep.Out_normal
+### C.jet_divides_expr.eval_divides8_test_expr
+eval_divides8_test_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (r t : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._t'3 le)
+                (@Some Values.val (Values.Vint (jet_division_value.division8_raw true t r)))),
+       Clight.eval_expr jet_exec.ge0 e le m divides8_test_expr
+         (Values.Vint (jet_readBit_layout.bit_int (jet_divides_spec.divides8_bit r t)))
+### C.jet_divides_expr.exec_wide_divides_choose
+exec_wide_divides_choose
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (r t : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._x le) (@Some Values.val (Values.Vlong r)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._y le) (@Some Values.val (Values.Vlong t))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m wide_divides_choose Events.E0
+         (@Maps.PTree.set Values.val jets._t'3 (Values.Vlong (jet_division_value.division_wide_raw true t r)) le) m
+         ClightBigstep.Out_normal
+### C.jet_divides_expr.eval_wide_divides_test_expr
+eval_wide_divides_test_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (r t : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._t'3 le)
+                (@Some Values.val (Values.Vlong (jet_division_value.division_wide_raw true t r)))),
+       Clight.eval_expr jet_exec.ge0 e le m wide_divides_test_expr
+         (Values.Vint (jet_readBit_layout.bit_int (jet_divides_spec.wide_divides_bit r t)))
+### C.jet_divides_expr.divides8_choose
+divides8_choose =
+Clight.Sifthenelse
+  (Clight.Ebinop Cop.Oeq (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+     (Clight.Etempvar jets._x Ctypesdefs.tuchar) Ctypesdefs.tint)
+  (Clight.Sset jets._t'3 (Clight.Ecast (Clight.Etempvar jets._y Ctypesdefs.tuchar) Ctypesdefs.tint))
+  (Clight.Sset jets._t'3
+     (Clight.Ecast
+        (Clight.Ebinop Cop.Omod (Clight.Etempvar jets._y Ctypesdefs.tuchar) (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+           Ctypesdefs.tint) Ctypesdefs.tint))
+     : Clight.statement
+### C.jet_divides_expr.divides8_test_expr
+divides8_test_expr =
+Clight.Ebinop Cop.Oeq (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) (Clight.Etempvar jets._t'3 Ctypesdefs.tint)
+  Ctypesdefs.tint
+     : Clight.expr
+### C.jet_divides_expr.wide_divides_choose
+wide_divides_choose =
+Clight.Sifthenelse
+  (Clight.Ebinop Cop.Oeq (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+     (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tint)
+  (Clight.Sset jets._t'3 (Clight.Ecast (Clight.Etempvar jets._y Ctypesdefs.tulong) Ctypesdefs.tulong))
+  (Clight.Sset jets._t'3
+     (Clight.Ecast
+        (Clight.Ebinop Cop.Omod (Clight.Etempvar jets._y Ctypesdefs.tulong) (Clight.Etempvar jets._x Ctypesdefs.tulong)
+           Ctypesdefs.tulong) Ctypesdefs.tulong))
+     : Clight.statement
+### C.jet_divides_expr.wide_divides_test_expr
+wide_divides_test_expr =
+Clight.Ebinop Cop.Oeq (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)
+  (Clight.Etempvar jets._t'3 Ctypesdefs.tulong) Ctypesdefs.tint
+     : Clight.expr

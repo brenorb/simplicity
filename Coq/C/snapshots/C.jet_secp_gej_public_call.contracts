@@ -1,0 +1,32 @@
+### C.jet_secp_gej_public_call.eval_gej_infinity_literal_public
+eval_gej_infinity_literal_public
+     : forall (v_env : Values.val) (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bw : Values.block) (outedge cursor N : BinNums.Z)
+         (bi : Values.block) (edge rc : BinNums.Z)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : BinInt.Z.le
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+                N) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m0 bs sbase bi edge rc),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m0
+               (@Ctypes.Internal Clight.function jets_secp.f_simplicity_gej_infinity)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val v_env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and
+               (jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi mf true
+                  (@Translate.encode
+                     (Ty.Prod
+                        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                           (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (@jet_secp_literal_infinity.literal_gej_infinity Alg.CoreFunSem tt)))
+               (jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => not (jet_secp_frame.extA m0 bd bw bi b))
+                  m0 mf)))

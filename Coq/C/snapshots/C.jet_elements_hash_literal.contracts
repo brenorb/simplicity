@@ -1,0 +1,46 @@
+### C.jet_elements_hash_literal.elements_script_cmr_literal_matches
+elements_script_cmr_literal_matches
+     : forall (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_elements_script_cmr_local.elements_script_cmr_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+         (elements_hash_literal_spec
+            (fun e : jet_elements_prim.Elements.env =>
+             jet_elements_prim.tapScriptCMR (jet_elements_prim.Elements.envTap e)) a environment)
+### C.jet_elements_hash_literal.elements_genesis_hash_literal_matches
+elements_genesis_hash_literal_matches
+     : forall (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_elements_genesis_hash_local.elements_genesis_hash_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (elements_hash_literal_spec jet_elements_prim.Elements.envGenesisBlock a environment)
+### C.jet_elements_hash_literal.elements_script_cmr_literal_local_spec
+elements_script_cmr_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_script_cmr
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_elements_script_cmr_local.elements_script_cmr_env_rep
+         (elements_hash_literal_spec
+            (fun e : jet_elements_prim.Elements.env =>
+             jet_elements_prim.tapScriptCMR (jet_elements_prim.Elements.envTap e)))
+### C.jet_elements_hash_literal.elements_genesis_hash_literal_local_spec
+elements_genesis_hash_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_genesis_block_hash
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O))))))))) jet_elements_genesis_hash_local.elements_genesis_hash_env_rep
+         (elements_hash_literal_spec jet_elements_prim.Elements.envGenesisBlock)
+### C.jet_elements_hash_literal.elements_hash_literal_spec
+elements_hash_literal_spec =
+fun (field : forall _ : jet_elements_prim.Elements.env, Digest.hash256) (_ : Ty.tySem Ty.Unit)
+  (environment : jet_elements_prim.Elements.env) =>
+@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+     (jet_haskell_hash_word.haskell_integer_hash256 (Digest.hash256_to_bytelist (field environment))))
+     : forall (_ : forall _ : jet_elements_prim.Elements.env, Digest.hash256) (_ : Ty.tySem Ty.Unit)
+         (_ : jet_elements_prim.Elements.env), option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments elements_hash_literal_spec field%function_scope _ environment

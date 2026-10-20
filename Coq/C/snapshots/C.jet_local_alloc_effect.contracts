@@ -1,0 +1,49 @@
+### C.jet_local_alloc_effect.local_alloc_load_other
+local_alloc_load_other
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (bc : Values.block) (sz : BinNums.Z)
+         (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m BinNums.Z0 sz)
+                (@pair Memory.Mem.mem' Values.block ma bc)) (_ : not (@eq Values.block b bc)),
+       @eq (option Values.val) (Memory.Mem.load chunk ma b ofs) (Memory.Mem.load chunk m b ofs)
+### C.jet_local_alloc_effect.local_alloc_load_outside
+local_alloc_load_outside
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (bc : Values.block) (sz : BinNums.Z)
+         (chunk : AST.memory_chunk) (ofs : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m BinNums.Z0 sz)
+                (@pair Memory.Mem.mem' Values.block ma bc))
+         (_ : or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) BinNums.Z0) (BinInt.Z.le sz ofs)),
+       @eq (option Values.val) (Memory.Mem.load chunk ma bc ofs) (@None Values.val)
+### C.jet_local_alloc_effect.local_free_load_restored
+local_free_load_restored
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (me mf : Memory.Mem.mem) (bc : Values.block)
+         (sz : BinNums.Z) (_ : BinInt.Z.lt BinNums.Z0 sz)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m BinNums.Z0 sz)
+                (@pair Memory.Mem.mem' Values.block ma bc))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free me bc BinNums.Z0 sz) (@Some Memory.Mem.mem mf))
+         (_ : forall (chunk : AST.memory_chunk) (ofs : BinNums.Z)
+                (_ : or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) BinNums.Z0) (BinInt.Z.le sz ofs)),
+              @eq (option Values.val) (Memory.Mem.load chunk me bc ofs) (Memory.Mem.load chunk ma bc ofs))
+         (chunk : AST.memory_chunk) (ofs : BinNums.Z),
+       @eq (option Values.val) (Memory.Mem.load chunk mf bc ofs) (Memory.Mem.load chunk m bc ofs)
+### C.jet_local_alloc_effect.write_effect_local_alloc
+write_effect_local_alloc
+     : forall (m : Memory.Mem.mem) (ma : Memory.Mem.mem') (mb mi me mf : Memory.Mem.mem) (bc : Values.block)
+         (sz : BinNums.Z) (bf : Values.block) (base : BinNums.Z) (bw : Values.block) (edge cursor n : BinNums.Z)
+         (bit : bool) (cells : list BitMachine.Cell) (_ : BinInt.Z.lt BinNums.Z0 sz) (_ : BinInt.Z.le BinNums.Z0 n)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m BinNums.Z0 sz)
+                (@pair Memory.Mem.mem' Values.block ma bc))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free me bc BinNums.Z0 sz) (@Some Memory.Mem.mem mf))
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) n))
+         (_ : jet_elements_effects.write_effect ma mb bf base bw edge cursor (BinNums.Zpos BinNums.xH)
+                (@cons (option bool) (@Some bool bit) (@nil (option bool))))
+         (_ : forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                (_ : or (not (@eq Values.block b bc))
+                       (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) BinNums.Z0) (BinInt.Z.le sz ofs))),
+              @eq (option Values.val) (Memory.Mem.load chunk mi b ofs) (Memory.Mem.load chunk mb b ofs))
+         (_ : forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind) (p : Memtype.permission)
+                (_ : Memory.Mem.perm mb b ofs kind p), Memory.Mem.perm mi b ofs kind p)
+         (_ : forall (b : Values.block) (_ : Memory.Mem.valid_block mb b), Memory.Mem.valid_block mi b)
+         (_ : jet_elements_effects.write_effect mi me bf base bw edge (BinInt.Z.sub cursor (BinNums.Zpos BinNums.xH)) n
+                cells),
+       jet_elements_effects.write_effect m mf bf base bw edge cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) n)
+         (@app (option bool) (@cons (option bool) (@Some bool bit) (@nil (option bool))) cells)

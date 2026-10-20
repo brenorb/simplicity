@@ -1,0 +1,36 @@
+### C.jet_secp_owned_field_slice.owned_field_cells_fit
+owned_field_cells_fit
+     : forall (offset size : BinNums.Z)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add offset
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))) size),
+       @List.Forall jet_sx_state.cell
+         (fun c : jet_sx_state.cell =>
+          BinInt.Z.le (BinInt.Z.add (jet_sx_state.cofs c) (Memdata.size_chunk (jet_sx_state.cchunk c))) size)
+         (jet_sx_rep.u64_cells offset (jet_secp_fe_nv.vars5 (S O)))
+### C.jet_secp_owned_field_slice.owned_field_slice_initial_rep
+owned_field_slice_initial_rep
+     : forall (offset size : BinNums.Z) (t0 t1 t2 t3 t4 : Integers.Int64.int) (rc : BinNums.Z)
+         (m : Memory.Mem.mem) (b : Values.block)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add offset
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))) size)
+         (_ : jet_secp_fe_nv.fe_at m b offset
+                (@cons Integers.Int64.int t0
+                   (@cons Integers.Int64.int t1
+                      (@cons Integers.Int64.int t2
+                         (@cons Integers.Int64.int t3 (@cons Integers.Int64.int t4 (@nil Integers.Int64.int)))))))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0 size Memtype.Cur Memtype.Freeable),
+       jet_sx_state.rep (jet_secp_write_fe_wide_values.wide_fe_rho t0 t1 t2 t3 t4 rc)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+            (@nil (prod Values.block BinNums.Z))) (owned_field_slice offset size) m
+### C.jet_secp_owned_field_slice.owned_field_slice
+owned_field_slice =
+fun offset size : BinNums.Z =>
+@cons jet_sx_state.region
+  (jet_secp_local_regions.free_region
+     (jet_sx_state.mkreg (jet_sx_rep.u64_cells offset (jet_secp_fe_nv.vars5 (S O))) true (@None BinNums.Z)) size)
+  (@nil jet_sx_state.region)
+     : forall (_ : BinNums.Z) (_ : BinNums.Z), list jet_sx_state.region
+
+Arguments owned_field_slice (offset size)%Z_scope

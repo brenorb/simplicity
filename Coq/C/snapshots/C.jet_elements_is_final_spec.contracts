@@ -1,0 +1,344 @@
+### C.jet_elements_is_final_spec.final_tail_core_parametric
+final_tail_core_parametric
+     : @Alg.Core.Parametric (Word.Word (S (S (S (S (S O)))))) (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)
+         (fun term : Alg.Core.Algebra => @final_tail term)
+### C.jet_elements_is_final_spec.final_program_parametric
+@final_program_parametric
+     : forall (alg1 alg2 : Alg.Core.Algebra) (R : Alg.Core.Parametric.Rel alg1 alg2)
+         (op1 : Alg.Core.domain alg1 (Word.Word (S (S (S (S (S O))))))
+                  (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (op2 : Alg.Core.domain alg2 (Word.Word (S (S (S (S (S O))))))
+                  (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (_ : @Alg.Core.Parametric.rel alg1 alg2 R (Word.Word (S (S (S (S (S O))))))
+                (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) op1 op2),
+       @Alg.Core.Parametric.rel alg1 alg2 R Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) (@final_program alg1 op1)
+         (@final_program alg2 op2)
+### C.jet_elements_is_final_spec.final_tail_reader_sem
+@final_tail_reader_sem
+     : forall (E : Type) (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)))
+         (@final_tail (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) x environment)
+         (@Some (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)) (@final_tail Alg.CoreFunSem x))
+### C.jet_elements_is_final_spec.final_body_reader_sem
+@final_body_reader_sem
+     : forall (E : Type)
+         (op : Alg.Core.domain (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad))
+                 (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (p : Ty.tySem (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) Ty.Unit))
+         (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)))
+         (@final_body (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) op p environment)
+         (final_step (fun w : Ty.tySem (Word.Word (S (S (S (S (S O)))))) => op w environment) p)
+### C.jet_elements_is_final_spec.final_program_reader_finish
+@final_program_reader_finish
+     : forall (E : Type)
+         (op : Alg.Core.domain (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad))
+                 (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)))
+         (@final_program (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) op tt environment)
+         (@Option.option_bind (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)) (sum unit unit)
+            (fun result : Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit) =>
+             match result return (option (sum unit unit)) with
+             | inl x => @Some (sum unit unit) x
+             | inr _ => @Some (sum unit unit) (@inr unit unit tt)
+             end)
+            (@jet_forWhile_spec.for_while_program (S (S (S (S (S O))))) Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit
+               (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad))
+               (@final_body (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) op)
+               (@pair unit unit tt tt) environment))
+### C.jet_elements_is_final_spec.final_program_reader_sem
+@final_program_reader_sem
+     : forall (E : Type)
+         (op : Alg.Core.domain (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad))
+                 (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+         (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)))
+         (@final_program (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) op tt environment)
+         (@Option.option_bind (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)) (sum unit unit)
+            (fun result : Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit) =>
+             match result return (option (sum unit unit)) with
+             | inl x => @Some (sum unit unit) x
+             | inr _ => @Some (sum unit unit) (@inr unit unit tt)
+             end)
+            (@jet_forWhile_spec.for_while_run (S (S (S (S (S O))))) Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit
+               (final_step (fun w : Ty.tySem (Word.Word (S (S (S (S (S O)))))) => op w environment)) tt tt))
+### C.jet_elements_is_final_spec.final_tail_value
+final_tail_value
+     : forall v : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       @eq (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)) (@final_tail Alg.CoreFunSem v)
+         match
+           jet_predicate_spec.predicate_numeric (S (S (S (S (S O))))) true
+             (jet_forWhile_seq.wz (S (S (S (S (S O))))) v) return (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit))
+         with
+         | true => @inr (sum unit unit) unit tt
+         | false => @inl (sum unit unit) unit (@inl unit unit tt)
+         end
+### C.jet_elements_is_final_spec.lead_le
+@lead_le
+     : forall (X : Type) (f : forall _ : X, bool) (xs : list X), le (@lead X f xs) (@length X xs)
+### C.jet_elements_is_final_spec.lead_before
+@lead_before
+     : forall (X : Type) (f : forall _ : X, bool) (xs : list X) (i : nat) (_ : lt i (@lead X f xs)),
+       @ex X (fun x : X => and (@eq (option X) (@List.nth_error X xs i) (@Some X x)) (@eq bool (f x) true))
+### C.jet_elements_is_final_spec.lead_at
+@lead_at
+     : forall (X : Type) (f : forall _ : X, bool) (xs : list X),
+       match @List.nth_error X xs (@lead X f xs) return Prop with
+       | Some x => and (@eq bool (f x) false) (@eq bool (@List.forallb X f xs) false)
+       | None => @eq bool (@List.forallb X f xs) true
+       end
+### C.jet_elements_is_final_spec.final_run_list
+@final_run_list
+     : forall (X : Type) (xs : list X) (enc : forall _ : X, Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (f : forall _ : X, bool)
+         (op : forall _ : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+               option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))))
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat (@length X xs)) (jet_forWhile_seq.wsize (S (S (S (S (S O)))))))
+         (_ : forall x : X,
+              @eq bool
+                (jet_predicate_spec.predicate_numeric (S (S (S (S (S O))))) true
+                   (jet_forWhile_seq.wz (S (S (S (S (S O))))) (enc x))) (f x))
+         (_ : forall w : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+              @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))) (op w)
+                (@Some (sum unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+                   match
+                     @List.nth_error X xs (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) w))
+                     return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+                   with
+                   | Some x => @inr unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (enc x)
+                   | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S O))))))) tt
+                   end)),
+       @eq (option (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)))
+         (@jet_forWhile_spec.for_while_run (S (S (S (S (S O))))) Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit
+            (final_step op) tt tt)
+         (@Some (sum (sum unit unit) unit) (@inl (sum unit unit) unit (Bit.fromBool (@List.forallb X f xs))))
+### C.jet_elements_is_final_spec.elements_tx_is_final_spec_parametric
+elements_tx_is_final_spec_parametric
+     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)
+         (@elements_tx_is_final_spec)
+### C.jet_elements_is_final_spec.sequence_final_numeric
+sequence_final_numeric
+     : forall txi : jet_elements_prim.sigTxInput,
+       @eq bool
+         (jet_predicate_spec.predicate_numeric (S (S (S (S (S O))))) true
+            (jet_forWhile_seq.wz (S (S (S (S (S O)))))
+               (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+                  (Integers.Int.unsigned (jet_elements_prim.sigTxiSequence txi))))) (sequence_final txi)
+### C.jet_elements_is_final_spec.final_list_op
+final_list_op
+     : forall (xs : list jet_elements_prim.sigTxInput) (w : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq (option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))))
+         (@Some (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+            match
+              @option_map jet_elements_prim.sigTxInput (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+                (fun txi : jet_elements_prim.sigTxInput =>
+                 @Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+                   (Integers.Int.unsigned (jet_elements_prim.sigTxiSequence txi)))
+                (@List.nth_error jet_elements_prim.sigTxInput xs
+                   (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) w)))
+              return (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))))
+            with
+            | Some b => @inr unit (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O)))))))) b
+            | None =>
+                @inl unit
+                  (prod
+                     (prod
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                     (prod
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                        (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                           (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))) tt
+            end)
+         (@Some (sum unit (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O)))))))))
+            match
+              @List.nth_error jet_elements_prim.sigTxInput xs
+                (BinInt.Z.to_nat (jet_forWhile_seq.wz (S (S (S (S (S O))))) w))
+              return (sum unit (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O)))))))))
+            with
+            | Some x =>
+                @inr unit (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+                  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+                     (Integers.Int.unsigned (jet_elements_prim.sigTxiSequence x)))
+            | None => @inl unit (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O)))))))) tt
+            end)
+### C.jet_elements_is_final_spec.elements_tx_is_final_spec_value
+elements_tx_is_final_spec_value
+     : forall environment : jet_elements_prim.Elements.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit)))
+         (@elements_tx_is_final_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
+            environment)
+         (@Some (sum unit unit)
+            (Bit.fromBool
+               (@List.forallb jet_elements_prim.sigTxInput sequence_final
+                  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment)))))
+### C.jet_elements_is_final_spec.final_tail
+final_tail =
+fun alg : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit Ty.Unit)
+  (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit) alg (@jet_predicate_spec.predicate_spec (S (S (S (S (S O))))) true alg)
+  (@Alg.Core.Combinators.copair Ty.Unit Ty.Unit (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit) alg
+     (@Alg.Core.Combinators.injl Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit alg (@Bit.false Ty.Unit alg))
+     (@Alg.Core.Combinators.injr Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit alg (@Alg.Core.Combinators.unit Ty.Unit alg)))
+     : forall alg : Alg.Core.Algebra,
+       Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)
+
+Arguments final_tail {alg}
+### C.jet_elements_is_final_spec.final_body
+final_body =
+fun (alg : Alg.Core.Algebra)
+  (op : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))) =>
+@Alg.Core.Combinators.comp (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) Ty.Unit)
+  (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit) alg
+  (@Alg.Core.Combinators.take (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) Ty.Unit
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) alg
+     (@Alg.Core.Combinators.drop Ty.Unit (Word.Word (S (S (S (S (S O))))))
+        (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) alg op))
+  (@Alg.Core.Combinators.copair Ty.Unit (Word.Word (S (S (S (S (S O)))))) (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit) alg
+     (@Alg.Core.Combinators.injl Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit alg (@Bit.true Ty.Unit alg))
+     (@final_tail alg))
+     : forall (alg : Alg.Core.Algebra)
+         (_ : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))),
+       Alg.Core.domain alg (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) Ty.Unit)
+         (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)
+
+Arguments final_body {alg} op
+### C.jet_elements_is_final_spec.final_program
+final_program =
+fun (alg : Alg.Core.Algebra)
+  (op : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))) =>
+@Alg.Core.Combinators.comp Ty.Unit (Ty.Prod Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit) alg
+  (@Alg.Core.Combinators.pair Ty.Unit Ty.Unit Ty.Unit alg (@Alg.Core.Combinators.unit Ty.Unit alg)
+     (@Alg.Core.Combinators.unit Ty.Unit alg))
+  (@Alg.Core.Combinators.comp (Ty.Prod Ty.Unit Ty.Unit) (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)
+     (Ty.Sum Ty.Unit Ty.Unit) alg
+     (@jet_forWhile_spec.for_while_program (S (S (S (S (S O))))) Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit alg
+        (@final_body alg op))
+     (@Alg.Core.Combinators.copair (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) alg
+        (@Alg.Core.Combinators.iden (Ty.Sum Ty.Unit Ty.Unit) alg) (@Bit.true Ty.Unit alg)))
+     : forall (alg : Alg.Core.Algebra)
+         (_ : Alg.Core.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))),
+       Alg.Core.domain alg Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments final_program {alg} op
+### C.jet_elements_is_final_spec.final_step
+final_step =
+fun
+  (op : forall _ : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+        option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))))
+  (p : Ty.tySem (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) Ty.Unit)) =>
+match
+  op
+    (@snd unit
+       (prod
+          ((fix tySem (X : Ty.Ty) : Set :=
+              match X return Set with
+              | Ty.Unit => unit
+              | Ty.Sum A B => sum (tySem A) (tySem B)
+              | Ty.Prod A B => prod (tySem A) (tySem B)
+              end)
+             ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                 match n return Ty.Ty with
+                 | O => X
+                 | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                 end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S O))))))
+          ((fix tySem (X : Ty.Ty) : Set :=
+              match X return Set with
+              | Ty.Unit => unit
+              | Ty.Sum A B => sum (tySem A) (tySem B)
+              | Ty.Prod A B => prod (tySem A) (tySem B)
+              end)
+             ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                 match n return Ty.Ty with
+                 | O => X
+                 | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                 end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S O)))))))
+       (@fst
+          (prod
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A B => sum (tySem A) (tySem B)
+                 | Ty.Prod A B => prod (tySem A) (tySem B)
+                 end) Ty.Unit)
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A B => sum (tySem A) (tySem B)
+                 | Ty.Prod A B => prod (tySem A) (tySem B)
+                 end) (Word.Word (S (S (S (S (S O)))))))) unit p))
+  return (option (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)))
+with
+| Some t =>
+    match t return (option (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit))) with
+    | inl _ => @Some (sum (sum unit unit) unit) (@inl (sum unit unit) unit (@inr unit unit tt))
+    | inr v =>
+        @Some (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit))
+          ((@final_tail Alg.CoreFunSem
+            :
+            Ty.Arrow (Word.Word (S (S (S (S (S O)))))) (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit)) v)
+    end
+| None => @None (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit))
+end
+     : forall
+         (_ : forall _ : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+              option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O)))))))))
+         (_ : Ty.tySem (Ty.Prod (Ty.Prod Ty.Unit (Word.Word (S (S (S (S (S O))))))) Ty.Unit)),
+       option (Ty.tySem (Ty.Sum (Ty.Sum Ty.Unit Ty.Unit) Ty.Unit))
+
+Arguments final_step op%function_scope p
+### C.jet_elements_is_final_spec.lead
+lead =
+fix lead (X : Type) (f : forall _ : X, bool) (xs : list X) {struct xs} : nat :=
+  match xs return nat with
+  | nil => O
+  | cons x t => match f x return nat with
+                | true => S (lead X f t)
+                | false => O
+                end
+  end
+     : forall (X : Type) (_ : forall _ : X, bool) (_ : list X), nat
+
+Arguments lead {X}%type_scope f%function_scope xs%list_scope
+### C.jet_elements_is_final_spec.sequence_final
+sequence_final =
+fun txi : jet_elements_prim.sigTxInput =>
+BinInt.Z.eqb (Integers.Int.unsigned (jet_elements_prim.sigTxiSequence txi))
+  (BinNums.Zpos
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))))
+     : forall _ : jet_elements_prim.sigTxInput, bool
+
+Arguments sequence_final txi
+### C.jet_elements_is_final_spec.elements_tx_is_final_spec
+elements_tx_is_final_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@final_program (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore alg)
+  (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S O))))))) alg jet_elements_prim.Elements.InputSequence)
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Ty.Sum Ty.Unit Ty.Unit)
+
+Arguments elements_tx_is_final_spec {alg}

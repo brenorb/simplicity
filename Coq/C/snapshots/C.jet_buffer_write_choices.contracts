@@ -1,0 +1,40 @@
+### C.jet_buffer_write_choices.buffer_byte_counts_capacity
+buffer_byte_counts_capacity
+     : forall depth : nat,
+       @eq nat (S (@List.fold_right nat nat PeanoNat.Nat.add O (jet_buffer_chunks.buffer_byte_counts depth)))
+         (PeanoNat.Nat.pow (S (S O)) (S depth))
+### C.jet_buffer_write_choices.buffer_byte_chunks_ordered
+buffer_byte_chunks_ordered
+     : forall (depth : nat) (x : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) depth)),
+       byte_chunks_ordered (jet_buffer_input.buffer_byte_chunks depth x)
+### C.jet_buffer_write_choices.byte_chunk_remaining_choice
+byte_chunk_remaining_choice
+     : forall (c : prod nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))))
+         (cs : list jet_buffer_input.byte_chunk)
+         (_ : match @snd nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c return Prop with
+              | Some xs =>
+                  @eq nat (@length (Ty.tySem (Word.Word (S (S (S O))))) xs)
+                    (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)
+              | None => True
+              end) (_ : jet_buffer_chunks.byte_chunks_sized cs)
+         (_ : lt (jet_buffer_chunks.byte_chunks_capacity cs)
+                (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)),
+       @eq bool (jet_read_buffer8_tag_layout.byte_chunk_tag c)
+         (BinInt.Z.leb (BinInt.Z.of_nat (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c))
+            (BinInt.Z.of_nat
+               (@length (Ty.tySem (Word.Word (S (S (S O)))))
+                  (jet_buffer_chunks.byte_chunks_values
+                     (@cons (prod nat (option (list (Ty.tySem (Word.Word (S (S (S O)))))))) c cs)))))
+### C.jet_buffer_write_choices.byte_chunks_ordered
+byte_chunks_ordered =
+fix byte_chunks_ordered (chunks : list jet_buffer_input.byte_chunk) : Prop :=
+  match chunks return Prop with
+  | nil => True
+  | cons c cs =>
+      and
+        (lt (jet_buffer_chunks.byte_chunks_capacity cs)
+           (@fst nat (option (list (Ty.tySem (Word.Word (S (S (S O))))))) c)) (byte_chunks_ordered cs)
+  end
+     : forall _ : list jet_buffer_input.byte_chunk, Prop
+
+Arguments byte_chunks_ordered chunks%list_scope

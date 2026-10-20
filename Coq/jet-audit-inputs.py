@@ -15,7 +15,7 @@ SNAPSHOT_DIR = "snapshots"
 def fingerprint(coq=COQ, repo=REPO, updating=False):
     digest = hashlib.sha256()
     for label, root, suffixes in (
-        ("Coq", coq, {".v", ".c", ".sh", ".py", ".txt", ".tsv", ".expected", ".contracts", ".assumptions"}),
+        ("Coq", coq, {".v", ".c", ".sh", ".py", ".txt", ".tsv", ".expected", ".contracts", ".assumptions", ".json"}),
         ("C", repo / "C", {".c", ".h", ".inc", ".S", ".s"}),
         ("Haskell", repo / "Haskell", {".hs"}),
     ):
@@ -23,7 +23,7 @@ def fingerprint(coq=COQ, repo=REPO, updating=False):
             if not path.is_file() or "__pycache__" in path.parts:
                 continue
             if (path.suffix not in suffixes and not path.name.startswith("_CoqProject")
-                    and path.name != "clightgen-linux.ini.in"):
+                    and path.name not in {"clightgen-linux.ini.in", "JET_BITCOIN_MODEL_MISMATCHES.md"}):
                 continue
             if updating and label == "Coq" and (path.name in SNAPSHOTS or SNAPSHOT_DIR in path.relative_to(root).parts):
                 continue

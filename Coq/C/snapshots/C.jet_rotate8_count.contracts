@@ -1,0 +1,81 @@
+### C.jet_rotate8_count.rotate8_amount_unsigned
+rotate8_amount_unsigned
+     : forall a : Integers.Int.int,
+       @eq BinNums.Z (Integers.Int.unsigned (rotate8_amount a))
+         (BinInt.Z.modulo (Integers.Int.unsigned a) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+### C.jet_rotate8_count.rotate8_amount_bounds
+rotate8_amount_bounds
+     : forall a : Integers.Int.int,
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned (rotate8_amount a)))
+         (BinInt.Z.lt (Integers.Int.unsigned (rotate8_amount a))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+### C.jet_rotate8_count.rotate8_amount_cast_id
+rotate8_amount_cast_id
+     : forall a : Integers.Int.int,
+       @eq Integers.Int.int
+         (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (rotate8_amount a))
+         (rotate8_amount a)
+### C.jet_rotate8_count.eval_rotate8_amount
+eval_rotate8_amount
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (input : Clight.expr)
+         (a : Integers.Int.int)
+         (_ : or (@eq Ctypes.type (Clight.typeof input) Ctypesdefs.tuchar)
+                (@eq Ctypes.type (Clight.typeof input) Ctypesdefs.tint))
+         (_ : Clight.eval_expr jet_exec.ge0 e le m input (Values.Vint a))
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))),
+       Clight.eval_expr jet_exec.ge0 e le m (rotate8_amount_expr input) (Values.Vint (rotate8_amount a))
+### C.jet_rotate8_count.rotate8_reverse_amount_unsigned
+rotate8_reverse_amount_unsigned
+     : forall (a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))),
+       @eq BinNums.Z (Integers.Int.unsigned (rotate8_reverse_amount a))
+         (BinInt.Z.modulo
+            (BinInt.Z.sub (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (Integers.Int.unsigned a))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+### C.jet_rotate8_count.eval_rotate8_reverse_amount
+eval_rotate8_reverse_amount
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._amt le) (@Some Values.val (Values.Vint a))),
+       Clight.eval_expr jet_exec.ge0 e le m rotate8_reverse_amount_expr (Values.Vint (rotate8_reverse_amount a))
+### C.jet_rotate8_count.rotate8_amount
+rotate8_amount =
+fun a : Integers.Int.int =>
+Integers.Int.repr
+  (BinInt.Z.modulo (Integers.Int.unsigned a) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     : forall _ : Integers.Int.int, Integers.Int.int
+
+Arguments rotate8_amount a
+### C.jet_rotate8_count.rotate8_amount_expr
+rotate8_amount_expr =
+fun input : Clight.expr =>
+Clight.Ecast
+  (Clight.Ebinop Cop.Omod input
+     (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+        Ctypesdefs.tint) Ctypesdefs.tint) Ctypesdefs.tuchar
+     : forall _ : Clight.expr, Clight.expr
+
+Arguments rotate8_amount_expr input
+### C.jet_rotate8_count.rotate8_reverse_amount
+rotate8_reverse_amount =
+fun a : Integers.Int.int =>
+rotate8_amount
+  (Integers.Int.repr
+     (BinInt.Z.sub (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (Integers.Int.unsigned a)))
+     : forall _ : Integers.Int.int, Integers.Int.int
+
+Arguments rotate8_reverse_amount a
+### C.jet_rotate8_count.rotate8_reverse_amount_expr
+rotate8_reverse_amount_expr =
+rotate8_amount_expr
+  (Clight.Ebinop Cop.Osub
+     (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+        Ctypesdefs.tint) (Clight.Etempvar jets._amt Ctypesdefs.tuchar) Ctypesdefs.tint)
+     : Clight.expr

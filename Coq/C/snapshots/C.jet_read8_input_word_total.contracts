@@ -1,0 +1,139 @@
+### C.jet_read8_input_word_total.frame_input_word_at_bit8
+frame_input_word_at_bit8
+     : forall (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (x : Ty.tySem (Word.Word (S (S (S O))))) (i : nat)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S O))) m bw edge cursor x)
+         (_ : lt i (S (S (S (S (S (S (S (S O))))))))),
+       jet_input_layout.frame_input_bit_at m bw edge (BinInt.Z.add cursor (BinInt.Z.of_nat i))
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x)
+            (BinInt.Z.sub (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH))) (BinInt.Z.of_nat i)))
+### C.jet_read8_input_word_total.read8_input_loads
+read8_input_loads
+     : forall (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (x : Ty.tySem (Word.Word (S (S (S O)))))
+         (_ : and (BinInt.Z.le BinNums.Z0 cursor)
+                (BinInt.Z.le cursor
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S O))) m bw edge cursor x),
+       and
+         (and
+            (BinInt.Z.le
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                  (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                     (BinInt.Z.div cursor
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+               edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned))
+         (@ex Integers.Int64.int
+            (fun high : Integers.Int64.int =>
+             @ex Integers.Int64.int
+               (fun low : Integers.Int64.int =>
+                and
+                  (@eq (option Values.val)
+                     (Memory.Mem.load AST.Mint64 m bw
+                        (BinInt.Z.sub edge
+                           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                              (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                                 (BinInt.Z.div cursor
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                     (@Some Values.val (Values.Vlong high)))
+                  (forall
+                     _ : BinInt.Z.lt
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))
+                           (BinInt.Z.modulo cursor
+                              (BinNums.Zpos
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+                   and
+                     (BinInt.Z.le
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.add (BinNums.Zpos (BinNums.xO BinNums.xH))
+                              (BinInt.Z.div cursor
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                        edge)
+                     (@eq (option Values.val)
+                        (Memory.Mem.load AST.Mint64 m bw
+                           (BinInt.Z.sub edge
+                              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                 (BinInt.Z.add (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                    (BinInt.Z.div cursor
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                        (@Some Values.val (Values.Vlong low)))))))
+### C.jet_read8_input_word_total.read8_input_result_repr
+read8_input_result_repr
+     : forall (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z) (high low : Integers.Int64.int)
+         (x : Ty.tySem (Word.Word (S (S (S O))))) (_ : BinInt.Z.le BinNums.Z0 cursor)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S O))) m bw edge cursor x)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bw
+                   (BinInt.Z.sub edge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                            (BinInt.Z.div cursor
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong high)))
+         (_ : forall
+                _ : BinInt.Z.lt
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))
+                      (BinInt.Z.modulo cursor
+                         (BinNums.Zpos
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+              @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bw
+                   (BinInt.Z.sub edge
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                         (BinInt.Z.add (BinNums.Zpos (BinNums.xO BinNums.xH))
+                            (BinInt.Z.div cursor
+                               (BinNums.Zpos
+                                  (BinNums.xO
+                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                (@Some Values.val (Values.Vlong low))),
+       @eq Integers.Int.int (jet_read8.read8_result (jet_read8_layout_total.read8_layout_byte cursor high low))
+         (Integers.Int.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x))
+### C.jet_read8_input_word_total.eval_read8_word_at
+eval_read8_word_at
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (x : Ty.tySem (Word.Word (S (S (S O)))))
+         (_ : jet_frame_layout.frame_base_valid base)
+         (_ : and (BinInt.Z.le BinNums.Z0 cursor)
+                (BinInt.Z.le cursor
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+         (_ : jet_frame_layout.frame_fields_at m bf base bw edge cursor)
+         (_ : @jet_input_layout.frame_input_word_at (S (S (S O))) m bw edge cursor x)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bf
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable)
+         (_ : not (@eq Values.block bf bw)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+               (@Ctypes.Internal Clight.function jets.f_simplicity_read8)
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 mf
+               (Values.Vint (Integers.Int.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x))))
+            (and
+               (jet_frame_layout.frame_fields_at mf bf base bw edge
+                  (BinInt.Z.add cursor (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bf))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)))))

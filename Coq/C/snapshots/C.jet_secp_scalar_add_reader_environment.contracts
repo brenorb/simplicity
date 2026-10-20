@@ -1,0 +1,77 @@
+### C.jet_secp_scalar_add_reader_environment.scalar_add_reader_first
+scalar_add_reader_first
+     : forall (va vb : BinNums.Z) (n : nat) (_ : lt n (S (S (S (S O))))),
+       @eq Integers.Int64.int (scalar_add_reader_rho va vb n) (jet_secp_scalar_get_b32_numeric.scalar_limb_rho va n)
+### C.jet_secp_scalar_add_reader_environment.scalar_add_reader_second
+scalar_add_reader_second
+     : forall (va vb : BinNums.Z) (n : nat) (_ : lt n (S (S (S (S O))))),
+       @eq Integers.Int64.int (scalar_add_reader_rho va vb (Nat.add (S (S (S (S O)))) n))
+         (jet_secp_scalar_get_b32_numeric.scalar_limb_rho vb n)
+### C.jet_secp_scalar_add_reader_environment.scalar_add_reader_values_first
+scalar_add_reader_values_first
+     : forall va vb : BinNums.Z,
+       @eq (list Integers.Int64.int) (jet_secp_scalar_add_initial.scalar_add_values (scalar_add_reader_rho va vb) O)
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+            (jet_secp_scalar_get_b32_numeric.scalar_limbs_of va))
+### C.jet_secp_scalar_add_reader_environment.scalar_add_reader_values_second
+scalar_add_reader_values_second
+     : forall va vb : BinNums.Z,
+       @eq (list Integers.Int64.int)
+         (jet_secp_scalar_add_initial.scalar_add_values (scalar_add_reader_rho va vb) (S (S (S (S O)))))
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+            (jet_secp_scalar_get_b32_numeric.scalar_limbs_of vb))
+### C.jet_secp_scalar_add_reader_environment.scalar_add_reader_weighted_values
+scalar_add_reader_weighted_values
+     : forall (va vb : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 va)
+                (BinInt.Z.lt va
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 vb)
+                (BinInt.Z.lt vb
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       and (@eq BinNums.Z (jet_secp_scalar_overflow_numeric.scalar_limb_value (scalar_add_reader_rho va vb)) va)
+         (@eq BinNums.Z
+            (jet_secp_scalar_overflow_numeric.scalar_limb_value
+               (jet_secp_scalar_add_numeric.scalar_add_second_rho (scalar_add_reader_rho va vb))) vb)
+### C.jet_secp_scalar_add_reader_environment.scalar_add_normalized_reader_values
+scalar_add_normalized_reader_values
+     : forall a b : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       and
+         (@eq BinNums.Z (jet_secp_scalar_overflow_numeric.scalar_limb_value (scalar_add_normalized_rho a b))
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem a)))
+         (@eq BinNums.Z
+            (jet_secp_scalar_overflow_numeric.scalar_limb_value
+               (jet_secp_scalar_add_numeric.scalar_add_second_rho (scalar_add_normalized_rho a b)))
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem b)))
+### C.jet_secp_scalar_add_reader_environment.scalar_add_reader_rho
+scalar_add_reader_rho =
+fun (va vb : BinNums.Z) (n : nat) =>
+match PeanoNat.Nat.ltb n (S (S (S (S O)))) return Integers.Int64.int with
+| true => jet_secp_scalar_get_b32_numeric.scalar_limb_rho va n
+| false => jet_secp_scalar_get_b32_numeric.scalar_limb_rho vb (Nat.sub n (S (S (S (S O)))))
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : nat), Integers.Int64.int
+
+Arguments scalar_add_reader_rho (va vb)%Z_scope n%nat_scope
+### C.jet_secp_scalar_add_reader_environment.scalar_add_normalized_rho
+scalar_add_normalized_rho =
+fun a b : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))) =>
+scalar_add_reader_rho
+  (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+     (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem a))
+  (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+     (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem b))
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : nat), Integers.Int64.int
+
+Arguments scalar_add_normalized_rho a b n%nat_scope

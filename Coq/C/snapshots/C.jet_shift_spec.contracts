@@ -1,0 +1,139 @@
+### C.jet_shift_spec.shift_control_step_parametric
+shift_control_step_parametric
+     : forall (m : nat) (X : Ty.Ty) (n : nat) (right : bool) (i : nat),
+       @Alg.Core.Parametric (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n)))
+         (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (@shift_control_step m X n right i)
+### C.jet_shift_spec.shift_controls_spec_parametric
+shift_controls_spec_parametric
+     : forall (m : nat) (X : Ty.Ty) (n : nat) (right : bool) (indices : list nat),
+       @Alg.Core.Parametric (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (Word.Vector X n)
+         (@shift_controls_spec m X n right indices)
+### C.jet_shift_spec.shift_with_word_spec_parametric
+shift_with_word_spec_parametric
+     : forall (m n : nat) (right : bool),
+       @Alg.Core.Parametric
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word m) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n) (@shift_with_word_spec m n right)
+### C.jet_shift_spec.shift_word_spec_parametric
+shift_word_spec_parametric
+     : forall (m n : nat) (right : bool),
+       @Alg.Core.Parametric (Ty.Prod (Word.Word m) (Word.Word n)) (Word.Word n) (@shift_word_spec m n right)
+### C.jet_shift_spec.shift_control_step
+shift_control_step =
+fun (m : nat) (X : Ty.Ty) (n : nat) (right : bool) (i : nat) (term : Alg.Core.Algebra) =>
+@SVC.pair (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) X (Ty.Prod (Word.Word m) (Word.Vector X n)) term
+  (@SVC.take X (Ty.Prod (Word.Word m) (Word.Vector X n)) X term (@SVC.iden X term))
+  (@SVC.pair (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (Word.Word m) (Word.Vector X n) term
+     (@SVC.drop X (Ty.Prod (Word.Word m) (Word.Vector X n)) (Word.Word m) term
+        (@SVC.take (Word.Word m) (Word.Vector X n) (Word.Word m) term (@SVC.iden (Word.Word m) term)))
+     match
+       right return (Alg.Core.domain term (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (Word.Vector X n))
+     with
+     | true =>
+         @SVC.comp (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n)))
+           (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod X (Word.Vector X n))) (Word.Vector X n) term
+           (@SVC.pair (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (Ty.Sum Ty.Unit Ty.Unit)
+              (Ty.Prod X (Word.Vector X n)) term
+              (@SVC.drop X (Ty.Prod (Word.Word m) (Word.Vector X n)) (Ty.Sum Ty.Unit Ty.Unit) term
+                 (@SVC.take (Word.Word m) (Word.Vector X n) (Ty.Sum Ty.Unit Ty.Unit) term
+                    (@jet_word_bit_spec.word_bit_spec m i term)))
+              (@SVC.pair (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) X (Word.Vector X n) term
+                 (@SVC.take X (Ty.Prod (Word.Word m) (Word.Vector X n)) X term (@SVC.iden X term))
+                 (@SVC.drop X (Ty.Prod (Word.Word m) (Word.Vector X n)) (Word.Vector X n) term
+                    (@SVC.drop (Word.Word m) (Word.Vector X n) (Word.Vector X n) term
+                       (@SVC.iden (Word.Vector X n) term)))))
+           (@Bit.cond (Ty.Prod X (Word.Vector X n)) (Word.Vector X n) term
+              (@SVC.comp (Ty.Prod X (Word.Vector X n)) (Ty.Prod (Word.Vector X n) X) (Word.Vector X n) term
+                 (@Word.full_right_shift1 X n term)
+                 (@SVC.take (Word.Vector X n) X (Word.Vector X n) term (@SVC.iden (Word.Vector X n) term)))
+              (@SVC.drop X (Word.Vector X n) (Word.Vector X n) term (@SVC.iden (Word.Vector X n) term)))
+     | false =>
+         @SVC.comp (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n)))
+           (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Vector X n) X)) (Word.Vector X n) term
+           (@SVC.pair (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (Ty.Sum Ty.Unit Ty.Unit)
+              (Ty.Prod (Word.Vector X n) X) term
+              (@SVC.drop X (Ty.Prod (Word.Word m) (Word.Vector X n)) (Ty.Sum Ty.Unit Ty.Unit) term
+                 (@SVC.take (Word.Word m) (Word.Vector X n) (Ty.Sum Ty.Unit Ty.Unit) term
+                    (@jet_word_bit_spec.word_bit_spec m i term)))
+              (@SVC.pair (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (Word.Vector X n) X term
+                 (@SVC.drop X (Ty.Prod (Word.Word m) (Word.Vector X n)) (Word.Vector X n) term
+                    (@SVC.drop (Word.Word m) (Word.Vector X n) (Word.Vector X n) term
+                       (@SVC.iden (Word.Vector X n) term)))
+                 (@SVC.take X (Ty.Prod (Word.Word m) (Word.Vector X n)) X term (@SVC.iden X term))))
+           (@Bit.cond (Ty.Prod (Word.Vector X n) X) (Word.Vector X n) term
+              (@SVC.comp (Ty.Prod (Word.Vector X n) X) (Ty.Prod X (Word.Vector X n)) (Word.Vector X n) term
+                 (@Word.full_left_shift1 X n term)
+                 (@SVC.drop X (Word.Vector X n) (Word.Vector X n) term (@SVC.iden (Word.Vector X n) term)))
+              (@SVC.take (Word.Vector X n) X (Word.Vector X n) term (@SVC.iden (Word.Vector X n) term)))
+     end)
+     : forall (m : nat) (X : Ty.Ty) (n : nat) (_ : bool) (_ : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n)))
+         (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n)))
+
+Arguments shift_control_step m%nat_scope X%ty_scope n%nat_scope right%bool_scope i%nat_scope {term}
+### C.jet_shift_spec.shift_controls_spec
+shift_controls_spec =
+fix shift_controls_spec
+  (m : nat) (X : Ty.Ty) (n : nat) (right : bool) (indices : list nat) (term : Alg.Core.Algebra) {struct indices} :
+    Alg.Core.domain term (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (Word.Vector X n) :=
+  match
+    indices return (Alg.Core.domain term (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (Word.Vector X n))
+  with
+  | nil =>
+      @SVC.drop X (Ty.Prod (Word.Word m) (Word.Vector X n)) (Word.Vector X n) term
+        (@SVC.drop (Word.Word m) (Word.Vector X n) (Word.Vector X n) term (@SVC.iden (Word.Vector X n) term))
+  | cons i rest =>
+      match
+        n as n0 return (Alg.Core.domain term (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n0))) (Word.Vector X n0))
+      with
+      | O =>
+          @SVC.comp (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X O)))
+            (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X O))) (Word.Vector X O) term
+            (@shift_control_step m X O right i term) (shift_controls_spec m X O right rest term)
+      | S n0 =>
+          @SVC.comp (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X (S n0))))
+            (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X (S n0)))) (Word.Vector X (S n0)) term
+            (@shift_control_step m X (S n0) right i term)
+            (@SVC.comp (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X (S n0))))
+               (Ty.Prod (Ty.Prod X X) (Ty.Prod (Word.Word m) (Word.Vector X (S n0)))) (Word.Vector X (S n0)) term
+               (@SVC.pair (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X (S n0)))) (Ty.Prod X X)
+                  (Ty.Prod (Word.Word m) (Word.Vector X (S n0))) term
+                  (@SVC.pair (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X (S n0)))) X X term
+                     (@SVC.take X (Ty.Prod (Word.Word m) (Word.Vector X (S n0))) X term (@SVC.iden X term))
+                     (@SVC.take X (Ty.Prod (Word.Word m) (Word.Vector X (S n0))) X term (@SVC.iden X term)))
+                  (@SVC.drop X (Ty.Prod (Word.Word m) (Word.Vector X (S n0)))
+                     (Ty.Prod (Word.Word m) (Word.Vector X (S n0))) term
+                     (@SVC.iden (Ty.Prod (Word.Word m) (Word.Vector X (S n0))) term)))
+               (@eq_rect Ty.Ty (Word.Vector (Ty.Prod X X) n0)
+                  (fun V : Ty.Ty => Alg.Core.domain term (Ty.Prod (Ty.Prod X X) (Ty.Prod (Word.Word m) V)) V)
+                  (shift_controls_spec m (Ty.Prod X X) n0 right rest term) (Word.Vector X (S n0))
+                  (@eq_sym Ty.Ty (Word.Vector X (S n0)) (Word.Vector (Ty.Prod X X) n0) (@Word.VectorPromote X n0))))
+      end
+  end
+     : forall (m : nat) (X : Ty.Ty) (n : nat) (_ : bool) (_ : list nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod X (Ty.Prod (Word.Word m) (Word.Vector X n))) (Word.Vector X n)
+
+Arguments shift_controls_spec m%nat_scope X%ty_scope n%nat_scope right%bool_scope indices%list_scope {term}
+### C.jet_shift_spec.shift_with_word_spec
+shift_with_word_spec =
+fun (m n : nat) (right : bool) (term : Alg.Core.Algebra) =>
+@shift_controls_spec m (Ty.Sum Ty.Unit Ty.Unit) n right (List.seq O (PeanoNat.Nat.pow (S (S O)) m)) term
+     : forall (m n : nat) (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word m) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)
+
+Arguments shift_with_word_spec (m n)%nat_scope right%bool_scope {term}
+### C.jet_shift_spec.shift_word_spec
+shift_word_spec =
+fun (m n : nat) (right : bool) (term : Alg.Core.Algebra) =>
+@SVC.comp (Ty.Prod (Word.Word m) (Word.Word n))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word m) (Word.Word n))) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)
+  term
+  (@SVC.pair (Ty.Prod (Word.Word m) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word m) (Word.Word n)) term
+     (@Bit.false (Ty.Prod (Word.Word m) (Word.Word n)) term) (@SVC.iden (Ty.Prod (Word.Word m) (Word.Word n)) term))
+  (@shift_with_word_spec m n right term)
+     : forall (m n : nat) (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word m) (Word.Word n)) (Word.Word n)
+
+Arguments shift_word_spec (m n)%nat_scope right%bool_scope {term}

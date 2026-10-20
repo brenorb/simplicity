@@ -1,0 +1,194 @@
+### C.jet_sx_orc.xconst_sound
+xconst_sound
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : forall _ : nat, prod Values.block BinNums.Z)
+         (x : jet_sx_expr.sx) (z : BinNums.Z) (_ : @eq (option BinNums.Z) (xconst x) (@Some BinNums.Z z)),
+       and (@eq Values.val (jet_sx_expr.den ρ β x) (Values.Vlong (Integers.Int64.repr z)))
+         (and (BinInt.Z.le BinNums.Z0 z) (BinInt.Z.le z Integers.Int64.max_unsigned))
+### C.jet_sx_orc.cells_sorted_shape
+cells_sorted_shape
+     : forall (cs cs' : list jet_sx_state.cell) (lo : BinNums.Z)
+         (_ : @eq (list (prod BinNums.Z AST.memory_chunk))
+                (@List.map jet_sx_state.cell (prod BinNums.Z AST.memory_chunk) jet_sx_state.cshape cs')
+                (@List.map jet_sx_state.cell (prod BinNums.Z AST.memory_chunk) jet_sx_state.cshape cs)),
+       @eq bool (jet_sx_state.cells_sorted lo cs) (jet_sx_state.cells_sorted lo cs')
+### C.jet_sx_orc.rep_update
+rep_update
+     : forall (ρ : forall _ : nat, Integers.Int64.int) (β : jet_sx_state.layout)
+         (regs regs' : list jet_sx_state.region) (m m' : Memory.Mem.mem) (_ : jet_sx_state.rep ρ β regs m)
+         (_ : @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   regs')
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   regs))
+         (_ : forall (b : Values.block) (o : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                (_ : Memory.Mem.perm m b o k p), Memory.Mem.perm m' b o k p)
+         (_ : forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block m' b)
+         (_ : forall (r : nat) (reg reg' : jet_sx_state.region) (c' : jet_sx_state.cell) (x : jet_sx_expr.sx)
+                (_ : @eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region regs r)
+                       (@Some jet_sx_state.region reg))
+                (_ : @eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region regs' r)
+                       (@Some jet_sx_state.region reg')) (_ : @List.In jet_sx_state.cell c' (jet_sx_state.rcells reg'))
+                (_ : @eq (option jet_sx_expr.sx) (jet_sx_state.cval c') (@Some jet_sx_expr.sx x)),
+              or
+                (and (@List.In jet_sx_state.cell c' (jet_sx_state.rcells reg))
+                   (@eq (option Values.val)
+                      (Memory.Mem.load (jet_sx_state.cchunk c') m' (jet_sx_state.blk β r)
+                         (BinInt.Z.add (jet_sx_state.bas β r) (jet_sx_state.cofs c')))
+                      (Memory.Mem.load (jet_sx_state.cchunk c') m (jet_sx_state.blk β r)
+                         (BinInt.Z.add (jet_sx_state.bas β r) (jet_sx_state.cofs c')))))
+                (and
+                   (@eq (option Values.val)
+                      (Memory.Mem.load (jet_sx_state.cchunk c') m' (jet_sx_state.blk β r)
+                         (BinInt.Z.add (jet_sx_state.bas β r) (jet_sx_state.cofs c')))
+                      (@Some Values.val (jet_sx_expr.den ρ (jet_sx_state.lay β) x)))
+                   (@eq bool (jet_sx_state.xp_le r x) true))), jet_sx_state.rep ρ β regs' m'
+### C.jet_sx_orc.bnd_of_log_sound
+bnd_of_log_sound
+     : forall (tb : forall (_ : nat) (_ : nat), prod BinNums.Z BinNums.Z)
+         (ev_ok : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event), Prop)
+         (ρ : forall _ : nat, Integers.Int64.int) (log : list jet_sx_eval.event)
+         (_ : forall (ev : jet_sx_eval.event) (_ : ev_ok ρ ev) (j : nat) (_ : lt j (jet_sx_eval.ecnt ev)),
+              and
+                (BinInt.Z.le (@fst BinNums.Z BinNums.Z (tb (jet_sx_eval.etag ev) j))
+                   (Integers.Int64.unsigned (ρ (Nat.add (jet_sx_eval.ebase ev) j))))
+                (BinInt.Z.le (Integers.Int64.unsigned (ρ (Nat.add (jet_sx_eval.ebase ev) j)))
+                   (@snd BinNums.Z BinNums.Z (tb (jet_sx_eval.etag ev) j))))
+         (_ : @List.Forall jet_sx_eval.event (ev_ok ρ) log) (n : nat),
+       and (BinInt.Z.le (@fst BinNums.Z BinNums.Z (bnd_of_log tb log n)) (Integers.Int64.unsigned (ρ n)))
+         (BinInt.Z.le (Integers.Int64.unsigned (ρ n)) (@snd BinNums.Z BinNums.Z (bnd_of_log tb log n)))
+### C.jet_sx_orc.xconst
+xconst =
+fun x : jet_sx_expr.sx =>
+match x return (option BinNums.Z) with
+| jet_sx_expr.XI _ => @None BinNums.Z
+| jet_sx_expr.XIc _ => @None BinNums.Z
+| jet_sx_expr.XL _ => @None BinNums.Z
+| jet_sx_expr.XLc l => @Some BinNums.Z (Integers.Int64.unsigned l)
+| jet_sx_expr.XLv _ => @None BinNums.Z
+| jet_sx_expr.XV _ => @None BinNums.Z
+| jet_sx_expr.XA _ _ => @None BinNums.Z
+| jet_sx_expr.XP _ _ => @None BinNums.Z
+| jet_sx_expr.XIb _ _ _ => @None BinNums.Z
+| jet_sx_expr.XLb _ _ _ => @None BinNums.Z
+| jet_sx_expr.XIsh _ _ _ => @None BinNums.Z
+| jet_sx_expr.XLsh _ _ _ => @None BinNums.Z
+| jet_sx_expr.XIcmp _ _ _ _ => @None BinNums.Z
+| jet_sx_expr.XLcmp _ _ _ _ => @None BinNums.Z
+| jet_sx_expr.XI2L sg a =>
+    match sg return (option BinNums.Z) with
+    | Ctypes.Signed =>
+        match a return (option BinNums.Z) with
+        | jet_sx_expr.XI _ => @None BinNums.Z
+        | jet_sx_expr.XIc i =>
+            match BinInt.Z.leb BinNums.Z0 (Integers.Int.signed i) return (option BinNums.Z) with
+            | true => @Some BinNums.Z (Integers.Int.signed i)
+            | false => @None BinNums.Z
+            end
+        | jet_sx_expr.XL _ => @None BinNums.Z
+        | jet_sx_expr.XLc _ => @None BinNums.Z
+        | jet_sx_expr.XLv _ => @None BinNums.Z
+        | jet_sx_expr.XV _ => @None BinNums.Z
+        | jet_sx_expr.XA _ _ => @None BinNums.Z
+        | jet_sx_expr.XP _ _ => @None BinNums.Z
+        | jet_sx_expr.XIb _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XLb _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XIsh _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XLsh _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XIcmp _ _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XLcmp _ _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XI2L _ _ => @None BinNums.Z
+        | jet_sx_expr.XL2I _ => @None BinNums.Z
+        | jet_sx_expr.XIcast _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XInz _ => @None BinNums.Z
+        | jet_sx_expr.XLnz _ => @None BinNums.Z
+        | jet_sx_expr.XIz _ => @None BinNums.Z
+        | jet_sx_expr.XLz _ => @None BinNums.Z
+        | jet_sx_expr.XIneg _ => @None BinNums.Z
+        | jet_sx_expr.XLneg _ => @None BinNums.Z
+        | jet_sx_expr.XInot _ => @None BinNums.Z
+        | jet_sx_expr.XLnot _ => @None BinNums.Z
+        end
+    | Ctypes.Unsigned =>
+        match a return (option BinNums.Z) with
+        | jet_sx_expr.XI _ => @None BinNums.Z
+        | jet_sx_expr.XIc i => @Some BinNums.Z (Integers.Int.unsigned i)
+        | jet_sx_expr.XL _ => @None BinNums.Z
+        | jet_sx_expr.XLc _ => @None BinNums.Z
+        | jet_sx_expr.XLv _ => @None BinNums.Z
+        | jet_sx_expr.XV _ => @None BinNums.Z
+        | jet_sx_expr.XA _ _ => @None BinNums.Z
+        | jet_sx_expr.XP _ _ => @None BinNums.Z
+        | jet_sx_expr.XIb _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XLb _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XIsh _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XLsh _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XIcmp _ _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XLcmp _ _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XI2L _ _ => @None BinNums.Z
+        | jet_sx_expr.XL2I _ => @None BinNums.Z
+        | jet_sx_expr.XIcast _ _ _ => @None BinNums.Z
+        | jet_sx_expr.XInz _ => @None BinNums.Z
+        | jet_sx_expr.XLnz _ => @None BinNums.Z
+        | jet_sx_expr.XIz _ => @None BinNums.Z
+        | jet_sx_expr.XLz _ => @None BinNums.Z
+        | jet_sx_expr.XIneg _ => @None BinNums.Z
+        | jet_sx_expr.XLneg _ => @None BinNums.Z
+        | jet_sx_expr.XInot _ => @None BinNums.Z
+        | jet_sx_expr.XLnot _ => @None BinNums.Z
+        end
+    end
+| jet_sx_expr.XL2I _ => @None BinNums.Z
+| jet_sx_expr.XIcast _ _ _ => @None BinNums.Z
+| jet_sx_expr.XInz _ => @None BinNums.Z
+| jet_sx_expr.XLnz _ => @None BinNums.Z
+| jet_sx_expr.XIz _ => @None BinNums.Z
+| jet_sx_expr.XLz _ => @None BinNums.Z
+| jet_sx_expr.XIneg _ => @None BinNums.Z
+| jet_sx_expr.XLneg _ => @None BinNums.Z
+| jet_sx_expr.XInot _ => @None BinNums.Z
+| jet_sx_expr.XLnot _ => @None BinNums.Z
+end
+     : forall _ : jet_sx_expr.sx, option BinNums.Z
+
+Arguments xconst x
+### C.jet_sx_orc.bnd_of_log
+bnd_of_log =
+fix bnd_of_log
+  (tb : forall (_ : nat) (_ : nat), prod BinNums.Z BinNums.Z) (log : list jet_sx_eval.event) (n : nat) {struct log} :
+    prod BinNums.Z BinNums.Z :=
+  match log return (prod BinNums.Z BinNums.Z) with
+  | nil =>
+      @pair BinNums.Z BinNums.Z BinNums.Z0
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI
+                                                           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))))
+  | cons ev t =>
+      match
+        andb (PeanoNat.Nat.leb (jet_sx_eval.ebase ev) n)
+          (PeanoNat.Nat.ltb n (Nat.add (jet_sx_eval.ebase ev) (jet_sx_eval.ecnt ev))) return (prod BinNums.Z BinNums.Z)
+      with
+      | true => tb (jet_sx_eval.etag ev) (Nat.sub n (jet_sx_eval.ebase ev))
+      | false => bnd_of_log tb t n
+      end
+  end
+     : forall (_ : forall (_ : nat) (_ : nat), prod BinNums.Z BinNums.Z) (_ : list jet_sx_eval.event) (_ : nat),
+       prod BinNums.Z BinNums.Z
+
+Arguments bnd_of_log tb%function_scope log%list_scope n%nat_scope

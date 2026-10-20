@@ -1,0 +1,44 @@
+### C.jet_bitcoin_composites.bitcoin_core_composite_domain_checked
+bitcoin_core_composite_domain_checked
+     : @eq bool
+         (@List.forallb BinNums.positive
+            (fun id : BinNums.positive => @List.existsb BinNums.positive (BinPos.Pos.eqb id) bitcoin_core_composite_ids)
+            (@List.map (prod BinNums.positive Ctypes.composite) BinNums.positive
+               (@fst BinNums.positive Ctypes.composite)
+               (@Maps.PTree.elements Ctypes.composite (@Ctypes.prog_comp_env Clight.function jets.prog)))) true
+### C.jet_bitcoin_composites.bitcoin_core_composite_lookups_checked
+bitcoin_core_composite_lookups_checked
+     : @List.Forall BinNums.positive
+         (fun id : BinNums.positive =>
+          @eq (option Ctypes.composite)
+            (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_bitcoin_linkage.bitcoin_ge))
+            (@Maps.PTree.get Ctypes.composite id (@Ctypes.prog_comp_env Clight.function jets.prog)))
+         bitcoin_core_composite_ids
+### C.jet_bitcoin_composites.bitcoin_composite_env_extends
+bitcoin_composite_env_extends
+     : forall (id : BinNums.positive) (co : Ctypes.composite)
+         (_ : @eq (option Ctypes.composite)
+                (@Maps.PTree.get Ctypes.composite id (@Ctypes.prog_comp_env Clight.function jets.prog))
+                (@Some Ctypes.composite co)),
+       @eq (option Ctypes.composite)
+         (@Maps.PTree.get Ctypes.composite id (Clight.genv_cenv jet_bitcoin_linkage.bitcoin_ge))
+         (@Some Ctypes.composite co)
+### C.jet_bitcoin_composites.bitcoin_sizeof_complete_type
+bitcoin_sizeof_complete_type
+     : forall (ty : Ctypes.type)
+         (_ : @eq bool (Ctypes.complete_type (@Ctypes.prog_comp_env Clight.function jets.prog) ty) true),
+       @eq BinNums.Z (Ctypes.sizeof (Clight.genv_cenv jet_bitcoin_linkage.bitcoin_ge) ty)
+         (Ctypes.sizeof (@Ctypes.prog_comp_env Clight.function jets.prog) ty)
+### C.jet_bitcoin_composites.bitcoin_field_offset_complete_members
+bitcoin_field_offset_complete_members
+     : forall (field : AST.ident) (members : Ctypes.members)
+         (_ : @eq bool (Ctypes.complete_members (@Ctypes.prog_comp_env Clight.function jets.prog) members) true),
+       @eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+         (Ctypes.field_offset (Clight.genv_cenv jet_bitcoin_linkage.bitcoin_ge) field members)
+         (Ctypes.field_offset (@Ctypes.prog_comp_env Clight.function jets.prog) field members)
+### C.jet_bitcoin_composites.bitcoin_core_composite_ids
+bitcoin_core_composite_ids =
+@cons AST.ident jets._sha256_midstate
+  (@cons AST.ident jets._sha256_context
+     (@cons AST.ident jets._frameItem (@cons AST.ident jets._secp256k1_uint128 (@nil AST.ident))))
+     : list AST.ident

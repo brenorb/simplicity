@@ -1,0 +1,41 @@
+### C.jet_order8_exec.order8_bit_numeric
+order8_bit_numeric
+     : forall (k : jet_order_spec.order_op) (r t : Integers.Int.int),
+       @eq bool (order8_bit k r t)
+         (jet_order_spec.order_numeric k (Integers.Int.unsigned (jet_add8.add8_u r))
+            (Integers.Int.unsigned (jet_add8.add8_u t)))
+### C.jet_order8_exec.order8_denotes
+order8_denotes
+     : forall (k : jet_order_spec.order_op) (w z : Integers.Int64.int),
+       @eq bool (order8_bit k (jet_read8.read8_result w) (jet_read8.read8_result z))
+         (Bit.toBool
+            (@jet_order_spec.order_word_spec k (S (S (S O))) Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Word (S (S (S O)))))
+                  (jet_spec.decode_word8 w) (jet_spec.decode_word8 z))))
+### C.jet_order8_exec.order8
+order8 =
+fun k : jet_order_spec.order_op =>
+match k return Clight.function with
+| jet_order_spec.OLt => jets.f_simplicity_lt_8
+| jet_order_spec.OLe => jets.f_simplicity_le_8
+end
+     : forall _ : jet_order_spec.order_op, Clight.function
+
+Arguments order8 k
+### C.jet_order8_exec.order8_expr
+order8_expr =
+fun k : jet_order_spec.order_op =>
+Clight.Ebinop (jet_order_wide_exec.order_binop k) (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+  (Clight.Etempvar jets._y Ctypesdefs.tuchar) Ctypesdefs.tint
+     : forall _ : jet_order_spec.order_op, Clight.expr
+
+Arguments order8_expr k
+### C.jet_order8_exec.order8_bit
+order8_bit =
+fun (k : jet_order_spec.order_op) (r t : Integers.Int.int) =>
+Integers.Int.cmp (jet_order_wide_exec.order_cmp k)
+  (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r)
+  (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) t)
+     : forall (_ : jet_order_spec.order_op) (_ : Integers.Int.int) (_ : Integers.Int.int), bool
+
+Arguments order8_bit k r t

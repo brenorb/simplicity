@@ -1,0 +1,240 @@
+### C.jet_secp_scalar_reader_lifecycle.scalar_reader_local_lookup
+scalar_reader_local_lookup
+     : forall (id : AST.ident) (r : nat) (ty : Ctypes.type)
+         (_ : @eq (option (prod nat Ctypes.type))
+                (jet_sx_eval.vlookup jet_secp_scalar_reader_run.scalar_reader_venv id)
+                (@Some (prod nat Ctypes.type) (@pair nat Ctypes.type r ty))),
+       and (@eq AST.ident id jets_secp._buf)
+         (and (@eq nat r (S (S O)))
+            (@eq Ctypes.type ty
+               (Ctypesdefs.tarray Ctypesdefs.tuchar
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_scalar_reader_lifecycle.free_scalar_reader_buffer
+free_scalar_reader_buffer
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (bi : Values.block)
+         (edge : Integers.Ptrofs.int) (e : Clight.env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho layout
+                (jet_sx_eval.sregs (jet_secp_scalar_reader_set.scalar_reader_set_state bi edge)) m)
+         (_ : jet_sx_eval.ematch layout jet_secp_scalar_reader_run.scalar_reader_venv e),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (@eq (option Memory.Mem.mem) (Memory.Mem.free_list m (Clight.blocks_of_env jet_secp_linkage.secp_ge e))
+               (@Some Memory.Mem.mem mf))
+            (Memory.Mem.unchanged_on
+               (fun (b : Values.block) (_ : BinNums.Z) => not (@eq Values.block b (jet_sx_state.blk layout (S (S O)))))
+               m mf))
+### C.jet_secp_scalar_reader_lifecycle.represented_layout_valid
+represented_layout_valid
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (regs : list jet_sx_state.region) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : jet_sx_state.rep rho layout regs m)
+         (_ : @List.In Values.block b
+                (@List.map (prod Values.block BinNums.Z) Values.block (@fst Values.block BinNums.Z) layout)),
+       Memory.Mem.valid_block m b
+### C.jet_secp_scalar_reader_lifecycle.scalar_reader_final_length
+scalar_reader_final_length
+     : forall (bi : Values.block) (edge : Integers.Ptrofs.int),
+       @eq nat (@length jet_sx_state.region (scalar_reader_final_regs bi edge)) (S (S O))
+### C.jet_secp_scalar_reader_lifecycle.scalar_reader_foot_extended
+scalar_reader_foot_extended
+     : forall (layout : list (prod Values.block BinNums.Z)) (buffer : Values.block) (base : BinNums.Z)
+         (bi : Values.block) (edge : Integers.Ptrofs.int) (b : Values.block) (ofs : BinNums.Z)
+         (_ : @eq nat (@length (prod Values.block BinNums.Z) layout) (S (S O)))
+         (_ : jet_sx_state.foot
+                (@app (prod Values.block BinNums.Z) layout
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z buffer base)
+                      (@nil (prod Values.block BinNums.Z))))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   (jet_sx_eval.sregs (jet_secp_scalar_reader_run.scalar_reader_initial bi edge))) b ofs),
+       or
+         (jet_sx_state.foot layout
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+               (jet_secp_scalar_reader_run.scalar_reader_initial_regs bi edge)) b ofs) (@eq Values.block b buffer)
+### C.jet_secp_scalar_reader_lifecycle.eval_scalar_reader_owned
+eval_scalar_reader_owned
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (ibits : list bool)
+         (outs0 : list BitMachine.Cell) (cap : BinNums.Z)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc (@List.map bool (option bool) (@Some bool) ibits))
+         (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le (BinInt.Z.add rc (BinInt.Z.of_nat (@length bool ibits))) Integers.Int64.max_unsigned)
+         (_ : @eq nat (@length bool ibits)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (m : Memory.Mem.mem) (layout : jet_sx_state.layout)
+         (_ : jet_sx_state.rep (jet_secp_scalar_reader_lifecycle.rd_rho rc ibits) layout
+                (jet_secp_scalar_reader_run.scalar_reader_initial_regs bi (Integers.Ptrofs.repr edge)) m)
+         (_ : jet_sx_exec.xsep (jet_secp_scalar_reader_lifecycle.rd_ext m0 bd bw bi) layout)
+         (_ : jet_secp_scalar_reader_lifecycle.rd_inv m0 bd dbase bw outedge cursor N bi rc outs0 cap
+                (jet_secp_scalar_reader_lifecycle.rd_rho rc ibits) (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (jet_sx_state.bas layout (S O)))) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_sx_state.rep (jet_secp_scalar_reader_lifecycle.rd_rho rc ibits) layout
+                  (scalar_reader_final_regs bi (Integers.Ptrofs.repr edge)) mf)
+               (and
+                  (jet_secp_scalar_reader_lifecycle.rd_inv m0 bd dbase bw outedge cursor N bi rc outs0 cap
+                     (jet_secp_scalar_reader_lifecycle.rd_rho rc ibits)
+                     (jet_secp_scalar_reader_run.scalar_reader_log bi (Integers.Ptrofs.repr edge)) mf)
+                  (jet_sx_mem.lframe
+                     (jet_sx_exec.frame (jet_secp_scalar_reader_lifecycle.rd_ext m0 bd bw bi) layout
+                        (jet_secp_scalar_reader_run.scalar_reader_initial_regs bi (Integers.Ptrofs.repr edge)) m) m mf))))
+### C.jet_secp_scalar_reader_lifecycle.scalar_reader_final_loads
+scalar_reader_final_loads
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (bi : Values.block)
+         (edge : Integers.Ptrofs.int) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho layout (scalar_reader_final_regs bi edge) m) (i : nat) (_ : lt i (S (S (S (S O))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk layout O)
+            (BinInt.Z.add (jet_sx_state.bas layout O)
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))))
+         (@Some Values.val
+            (Values.Vlong (jet_secp_scalar_reader_value.scalar_reader_limb rho (jet_sx_state.lay layout) i)))
+### C.jet_secp_scalar_reader_lifecycle.scalar_reader_final_cursor
+scalar_reader_final_cursor
+     : forall (bits : list bool) (rc : BinNums.Z) (layout : jet_sx_state.layout) (bi : Values.block)
+         (edge : BinNums.Z) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep (jet_secp_wrapper_run.read_fe_rho bits rc) layout
+                (scalar_reader_final_regs bi (Integers.Ptrofs.repr edge)) m),
+       jet_frame_layout.frame_fields_at m (jet_sx_state.blk layout (S O)) (jet_sx_state.bas layout (S O)) bi edge
+         (BinInt.Z.add rc
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_scalar_reader_lifecycle.eval_scalar_reader_numeric_owned
+eval_scalar_reader_numeric_owned
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z) (ibits : list bool)
+         (outs0 : list BitMachine.Cell) (cap : BinNums.Z)
+         (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc (@List.map bool (option bool) (@Some bool) ibits))
+         (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le (BinInt.Z.add rc (BinInt.Z.of_nat (@length bool ibits))) Integers.Int64.max_unsigned)
+         (_ : @eq nat (@length bool ibits)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+         (m : Memory.Mem.mem) (layout : jet_sx_state.layout)
+         (_ : jet_sx_state.rep (jet_secp_scalar_reader_lifecycle.value_rho rc ibits) layout
+                (jet_secp_scalar_reader_run.scalar_reader_initial_regs bi (Integers.Ptrofs.repr edge)) m)
+         (_ : jet_sx_exec.xsep (jet_secp_scalar_reader_lifecycle.value_ext m0 bd bw bi) layout)
+         (_ : jet_secp_scalar_reader_lifecycle.value_inv m0 bd dbase bw outedge cursor N bi rc outs0 cap
+                (jet_secp_scalar_reader_lifecycle.value_rho rc ibits) (@nil jet_sx_eval.event) m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_read_scalar)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout (S O))
+                        (Integers.Ptrofs.repr (jet_sx_state.bas layout (S O)))) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (forall (i : nat) (_ : lt i (S (S (S (S O))))),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk layout O)
+                     (BinInt.Z.add (jet_sx_state.bas layout O)
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.of_nat i))))
+                  (@Some Values.val
+                     (Values.Vlong
+                        (jet_secp_scalar_reader_value.scalar_reader_limb
+                           (jet_secp_scalar_reader_lifecycle.value_rho rc ibits) (jet_sx_state.lay layout) i))))
+               (and
+                  (@eq BinNums.Z
+                     (jet_secp_scalar_overflow_numeric.scalar_limb_value
+                        (jet_secp_scalar_reader_value.scalar_reader_limb
+                           (jet_secp_scalar_reader_lifecycle.value_rho rc ibits) (jet_sx_state.lay layout)))
+                     (BinInt.Z.modulo
+                        (jet_secp_fe_math.be_val
+                           (jet_secp_input_bytes.input_bytes
+                              (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))) ibits))
+                        jet_secp_canonical_scalar.canonical_group_order))
+                  (and
+                     (jet_frame_layout.frame_fields_at mf (jet_sx_state.blk layout (S O))
+                        (jet_sx_state.bas layout (S O)) bi edge
+                        (BinInt.Z.add rc
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                     (and
+                        (jet_sx_state.rep (jet_secp_scalar_reader_lifecycle.value_rho rc ibits) layout
+                           (scalar_reader_final_regs bi (Integers.Ptrofs.repr edge)) mf)
+                        (and
+                           (jet_secp_scalar_reader_lifecycle.value_inv m0 bd dbase bw outedge cursor N bi rc outs0 cap
+                              (jet_secp_scalar_reader_lifecycle.value_rho rc ibits)
+                              (jet_secp_scalar_reader_run.scalar_reader_log bi (Integers.Ptrofs.repr edge)) mf)
+                           (jet_sx_mem.lframe
+                              (jet_sx_exec.frame (jet_secp_scalar_reader_lifecycle.value_ext m0 bd bw bi) layout
+                                 (jet_secp_scalar_reader_run.scalar_reader_initial_regs bi (Integers.Ptrofs.repr edge))
+                                 m) m mf)))))))
+### C.jet_secp_scalar_reader_lifecycle.scalar_reader_final_regs
+scalar_reader_final_regs =
+fun (bi : Values.block) (edge : Integers.Ptrofs.int) =>
+@List.firstn jet_sx_state.region (S (S O))
+  (jet_sx_eval.sregs (jet_secp_scalar_reader_set.scalar_reader_set_state bi edge))
+     : forall (_ : Values.block) (_ : Integers.Ptrofs.int), list jet_sx_state.region
+
+Arguments scalar_reader_final_regs bi edge
+### C.jet_secp_scalar_reader_lifecycle.rd_rho
+jet_secp_scalar_reader_lifecycle.rd_rho =
+fun (rc : BinNums.Z) (ibits : list bool) => jet_secp_wrapper_run.read_fe_rho ibits rc
+     : forall (_ : BinNums.Z) (_ : list bool) (_ : nat), Integers.Int64.int
+
+Arguments jet_secp_scalar_reader_lifecycle.rd_rho rc%Z_scope ibits%list_scope n%nat_scope
+### C.jet_secp_scalar_reader_lifecycle.rd_inv
+jet_secp_scalar_reader_lifecycle.rd_inv =
+fun (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (outedge cursor N : BinNums.Z)
+  (bi : Values.block) (rc : BinNums.Z) (outs0 : list BitMachine.Cell) (cap : BinNums.Z) =>
+jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc false outs0 cap
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : list BitMachine.Cell)
+         (_ : BinNums.Z) (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event)
+         (_ : Memory.Mem.mem), Prop
+
+Arguments jet_secp_scalar_reader_lifecycle.rd_inv m0 bd dbase%Z_scope bw (outedge cursor N)%Z_scope
+  bi rc%Z_scope outs0%list_scope cap%Z_scope ρ%function_scope log%list_scope m
+### C.jet_secp_scalar_reader_lifecycle.rd_ext
+jet_secp_scalar_reader_lifecycle.rd_ext =
+fun (m0 : Memory.Mem.mem) (bd bw bi : Values.block) => jet_secp_frame.extA m0 bd bw bi
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block), Prop
+
+Arguments jet_secp_scalar_reader_lifecycle.rd_ext m0 bd bw bi _
+### C.jet_secp_scalar_reader_lifecycle.value_rho
+jet_secp_scalar_reader_lifecycle.value_rho =
+fun (rc : BinNums.Z) (ibits : list bool) => jet_secp_wrapper_run.read_fe_rho ibits rc
+     : forall (_ : BinNums.Z) (_ : list bool) (_ : nat), Integers.Int64.int
+
+Arguments jet_secp_scalar_reader_lifecycle.value_rho rc%Z_scope ibits%list_scope n%nat_scope
+### C.jet_secp_scalar_reader_lifecycle.value_inv
+jet_secp_scalar_reader_lifecycle.value_inv =
+fun (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (outedge cursor N : BinNums.Z)
+  (bi : Values.block) (rc : BinNums.Z) (outs0 : list BitMachine.Cell) (cap : BinNums.Z) =>
+jet_secp_frame.invA m0 bd dbase bw outedge cursor N bi rc false outs0 cap
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z) (_ : list BitMachine.Cell)
+         (_ : BinNums.Z) (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event)
+         (_ : Memory.Mem.mem), Prop
+
+Arguments jet_secp_scalar_reader_lifecycle.value_inv m0 bd dbase%Z_scope bw (outedge cursor N)%Z_scope
+  bi rc%Z_scope outs0%list_scope cap%Z_scope ρ%function_scope log%list_scope m
+### C.jet_secp_scalar_reader_lifecycle.value_ext
+jet_secp_scalar_reader_lifecycle.value_ext =
+fun (m0 : Memory.Mem.mem) (bd bw bi : Values.block) => jet_secp_frame.extA m0 bd bw bi
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block), Prop
+
+Arguments jet_secp_scalar_reader_lifecycle.value_ext m0 bd bw bi _

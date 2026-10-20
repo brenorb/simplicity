@@ -1,0 +1,58 @@
+### C.jet_binary_wide_exec.wide_binary
+wide_binary =
+fun (k : jet_binary_spec.binary_op) (s : jet_wide.wide_size) =>
+match k return Clight.function with
+| jet_binary_spec.BAnd =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_and_16
+    | jet_wide.W32 => jets.f_simplicity_and_32
+    | jet_wide.W64 => jets.f_simplicity_and_64
+    end
+| jet_binary_spec.BOr =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_or_16
+    | jet_wide.W32 => jets.f_simplicity_or_32
+    | jet_wide.W64 => jets.f_simplicity_or_64
+    end
+| jet_binary_spec.BXor =>
+    match s return Clight.function with
+    | jet_wide.W16 => jets.f_simplicity_xor_16
+    | jet_wide.W32 => jets.f_simplicity_xor_32
+    | jet_wide.W64 => jets.f_simplicity_xor_64
+    end
+end
+     : forall (_ : jet_binary_spec.binary_op) (_ : jet_wide.wide_size), Clight.function
+
+Arguments wide_binary k s
+### C.jet_binary_wide_exec.binary_clight_op
+binary_clight_op =
+fun k : jet_binary_spec.binary_op =>
+match k return Cop.binary_operation with
+| jet_binary_spec.BAnd => Cop.Oand
+| jet_binary_spec.BOr => Cop.Oor
+| jet_binary_spec.BXor => Cop.Oxor
+end
+     : forall _ : jet_binary_spec.binary_op, Cop.binary_operation
+
+Arguments binary_clight_op k
+### C.jet_binary_wide_exec.wide_binary_expr
+wide_binary_expr =
+fun k : jet_binary_spec.binary_op =>
+Clight.Ebinop (binary_clight_op k) (Clight.Etempvar jets._x Ctypesdefs.tulong)
+  (Clight.Etempvar jets._y Ctypesdefs.tulong) Ctypesdefs.tulong
+     : forall _ : jet_binary_spec.binary_op, Clight.expr
+
+Arguments wide_binary_expr k
+### C.jet_binary_wide_exec.wide_binary_read
+wide_binary_read =
+fun (s : jet_wide.wide_size) (result : AST.ident) =>
+Clight.Scall (@Some AST.ident result)
+  (Clight.Evar (jet_wide.wide_reader_id s)
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tulong AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr))) (@nil Clight.expr))
+     : forall (_ : jet_wide.wide_size) (_ : AST.ident), Clight.statement
+
+Arguments wide_binary_read s result

@@ -1,0 +1,67 @@
+### C.jet_ternary8_exec.ternary8
+ternary8 =
+fun k : jet_ternary_spec.ternary_op =>
+match k return Clight.function with
+| jet_ternary_spec.TMaj => jets.f_simplicity_maj_8
+| jet_ternary_spec.TXorXor => jets.f_simplicity_xor_xor_8
+| jet_ternary_spec.TCh => jets.f_simplicity_ch_8
+end
+     : forall _ : jet_ternary_spec.ternary_op, Clight.function
+
+Arguments ternary8 k
+### C.jet_ternary8_exec.ternary8_raw
+ternary8_raw =
+fun (k : jet_ternary_spec.ternary_op) (r t u : Integers.Int.int) =>
+jet_ternary_spec.ternary_int k
+  (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r)
+  (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) t)
+  (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) u)
+     : forall (_ : jet_ternary_spec.ternary_op) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int),
+       Integers.Int.int
+
+Arguments ternary8_raw k r t u
+### C.jet_ternary8_exec.ternary8_payload
+ternary8_payload =
+fun (k : jet_ternary_spec.ternary_op) (r t u : Integers.Int.int) =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (ternary8_raw k r t u)
+     : forall (_ : jet_ternary_spec.ternary_op) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int),
+       Integers.Int.int
+
+Arguments ternary8_payload k r t u
+### C.jet_ternary8_exec.int_bin
+int_bin =
+fun (k : jet_binary_spec.binary_op) (ty : Ctypes.type) (a b : Clight.expr) =>
+Clight.Ebinop (jet_binary_wide_exec.binary_clight_op k) a b ty
+     : forall (_ : jet_binary_spec.binary_op) (_ : Ctypes.type) (_ : Clight.expr) (_ : Clight.expr), Clight.expr
+
+Arguments int_bin k ty a b
+### C.jet_ternary8_exec.ternary8_expr
+ternary8_expr =
+fun k : jet_ternary_spec.ternary_op =>
+match k return Clight.expr with
+| jet_ternary_spec.TMaj =>
+    int_bin jet_binary_spec.BOr Ctypesdefs.tint
+      (int_bin jet_binary_spec.BOr Ctypesdefs.tint
+         (int_bin jet_binary_spec.BAnd Ctypesdefs.tint (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+            (Clight.Etempvar jets._y Ctypesdefs.tuchar))
+         (int_bin jet_binary_spec.BAnd Ctypesdefs.tint (Clight.Etempvar jets._y Ctypesdefs.tuchar)
+            (Clight.Etempvar jets._z Ctypesdefs.tuchar)))
+      (int_bin jet_binary_spec.BAnd Ctypesdefs.tint (Clight.Etempvar jets._z Ctypesdefs.tuchar)
+         (Clight.Etempvar jets._x Ctypesdefs.tuchar))
+| jet_ternary_spec.TXorXor =>
+    int_bin jet_binary_spec.BXor Ctypesdefs.tint
+      (int_bin jet_binary_spec.BXor Ctypesdefs.tint (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+         (Clight.Etempvar jets._y Ctypesdefs.tuchar)) (Clight.Etempvar jets._z Ctypesdefs.tuchar)
+| jet_ternary_spec.TCh =>
+    int_bin jet_binary_spec.BOr Ctypesdefs.tuint
+      (int_bin jet_binary_spec.BAnd Ctypesdefs.tint (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+         (Clight.Etempvar jets._y Ctypesdefs.tuchar))
+      (int_bin jet_binary_spec.BAnd Ctypesdefs.tuint
+         (Clight.Eunop Cop.Onotint
+            (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+               (Clight.Etempvar jets._x Ctypesdefs.tuchar) Ctypesdefs.tuint) Ctypesdefs.tuint)
+         (Clight.Etempvar jets._z Ctypesdefs.tuchar))
+end
+     : forall _ : jet_ternary_spec.ternary_op, Clight.expr
+
+Arguments ternary8_expr k

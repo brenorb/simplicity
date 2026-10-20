@@ -1,0 +1,68 @@
+### C.jet_secp_point_zero_preserved.point_initial_cell_present
+point_initial_cell_present
+     : forall (k : jet_secp_point_write_run.point_coordinate) (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @List.In jet_sx_state.cell
+         (jet_sx_state.mkcell
+            (BinInt.Z.add (jet_secp_point_write_run.point_coordinate_offset k)
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat n)))
+            AST.Mint64 (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S n))))
+         (jet_sx_state.rcells
+            (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))
+               (jet_secp_point_write_run.point_write_initial_regs k)))
+### C.jet_secp_point_zero_preserved.point_initial_rep_loads
+point_initial_rep_loads
+     : forall (k : jet_secp_point_write_run.point_coordinate) (m : Memory.Mem.mem) (layout : jet_sx_state.layout)
+         (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_sx_state.rep rho layout (jet_secp_point_write_run.point_write_initial_regs k) m)
+         (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk layout O)
+            (BinInt.Z.add (jet_sx_state.bas layout O)
+               (BinInt.Z.add (jet_secp_point_write_run.point_coordinate_offset k)
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat n)))))
+         (@Some Values.val (Values.Vlong (rho (S n))))
+### C.jet_secp_point_zero_preserved.eval_point_zero_canonical_preserved
+eval_point_zero_canonical_preserved
+     : forall (k : jet_secp_point_write_run.point_coordinate) (m : Memory.Mem.mem) (b : Values.block)
+         (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_secp_fe_nv.fe_at m b (jet_secp_point_write_run.point_coordinate_offset k)
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_fe_math.fe_limbs_of
+                      (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                         (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value)))))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_is_zero)
+               (@cons Values.val
+                  (Values.Vptr b (Integers.Ptrofs.repr (jet_secp_point_write_run.point_coordinate_offset k)))
+                  (@nil Values.val)) Events.E0 mf
+               (Values.Vint
+                  (jet_readBit_layout.bit_int
+                     (Bit.toBool (@jet_secp_canonical_zero.canonical_fe_is_zero Alg.CoreFunSem value)))))
+            (and
+               (jet_secp_fe_nv.fe_at mf b (jet_secp_point_write_run.point_coordinate_offset k)
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                     (jet_secp_fe_math.fe_limbs_of
+                        (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                           (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value)))))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (jet_sx_mem.lframe
+                     (fun (bx : Values.block) (pos : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot
+                           (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+                              (@nil (prod Values.block BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_secp_point_write_run.point_write_initial_regs k)) bx pos)) m mf))))

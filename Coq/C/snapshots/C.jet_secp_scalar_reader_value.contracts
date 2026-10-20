@@ -1,0 +1,79 @@
+### C.jet_secp_scalar_reader_value.scalar_reader_subst_den
+scalar_reader_subst_den
+     : forall (sigma : forall _ : nat, jet_sx_expr.sx) (rho rho' : forall _ : nat, Integers.Int64.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z) (x : jet_sx_expr.sx)
+         (_ : forall n : nat, @eq Values.val (jet_sx_expr.den rho layout (sigma n)) (Values.Vlong (rho' n))),
+       @eq Values.val (jet_sx_expr.den rho layout (jet_secp_symbolic_substitution.sx_subst sigma x))
+         (jet_sx_expr.den rho' layout x)
+### C.jet_secp_scalar_reader_value.scalar_reader_limb_shift
+scalar_reader_limb_shift
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (i : nat),
+       @eq Integers.Int64.int (scalar_reader_limb rho layout i)
+         (jet_secp_scalar_set_shape.scalar_set_limb (fun n : nat => rho (S n)) layout i)
+### C.jet_secp_scalar_reader_value.scalar_reader_byte_rho
+scalar_reader_byte_rho
+     : forall (bits : list bool) (rc : BinNums.Z) (n : nat)
+         (_ : @eq nat (@length bool bits)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq Integers.Int64.int (jet_secp_wrapper_run.read_fe_rho bits rc (S n))
+         (jet_secp_b32_exec.byte_rho
+            (jet_secp_input_bytes.input_bytes
+               (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))) bits) n)
+### C.jet_secp_scalar_reader_value.scalar_reader_limb_bytes
+scalar_reader_limb_bytes
+     : forall (bits : list bool) (rc : BinNums.Z) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (i : nat)
+         (_ : @eq nat (@length bool bits)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq Integers.Int64.int (scalar_reader_limb (jet_secp_wrapper_run.read_fe_rho bits rc) layout i)
+         (jet_secp_scalar_set_shape.scalar_set_limb
+            (jet_secp_b32_exec.byte_rho
+               (jet_secp_input_bytes.input_bytes
+                  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))) bits)) layout i)
+### C.jet_secp_scalar_reader_value.scalar_reader_value_mod_group
+scalar_reader_value_mod_group
+     : forall (bits : list bool) (rc : BinNums.Z) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : @eq nat (@length bool bits)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq BinNums.Z
+         (jet_secp_scalar_overflow_numeric.scalar_limb_value
+            (scalar_reader_limb (jet_secp_wrapper_run.read_fe_rho bits rc) layout))
+         (BinInt.Z.modulo
+            (jet_secp_fe_math.be_val
+               (jet_secp_input_bytes.input_bytes
+                  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))) bits))
+            jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_scalar_reader_value.scalar_reader_set_loads
+scalar_reader_set_loads
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (bi : Values.block)
+         (edge : Integers.Ptrofs.int) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho layout
+                (jet_sx_eval.sregs (jet_secp_scalar_reader_set.scalar_reader_set_state bi edge)) m)
+         (i : nat) (_ : lt i (S (S (S (S O))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk layout O)
+            (BinInt.Z.add (jet_sx_state.bas layout O)
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))))
+         (@Some Values.val (Values.Vlong (scalar_reader_limb rho (jet_sx_state.lay layout) i)))
+### C.jet_secp_scalar_reader_value.scalar_reader_limb
+scalar_reader_limb =
+fun (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z) (i : nat) =>
+jet_sx_expr.il
+  (jet_sx_expr.den rho layout
+     (jet_secp_symbolic_substitution.sx_subst jet_secp_scalar_reader_set.scalar_reader_byte_shift
+        (@List.nth jet_sx_expr.sx i
+           (@cons jet_sx_expr.sx
+              (jet_secp_scalar_set_shape.scalar_set_instantiate jet_secp_scalar_reduce_numeric.scalar_reduce_low0)
+              (@cons jet_sx_expr.sx
+                 (jet_secp_scalar_set_shape.scalar_set_instantiate jet_secp_scalar_reduce_numeric.scalar_reduce_low1)
+                 (@cons jet_sx_expr.sx
+                    (jet_secp_scalar_set_shape.scalar_set_instantiate jet_secp_scalar_reduce_numeric.scalar_reduce_low2)
+                    (@cons jet_sx_expr.sx
+                       (jet_secp_scalar_set_shape.scalar_set_instantiate
+                          jet_secp_scalar_reduce_numeric.scalar_reduce_low3) (@nil jet_sx_expr.sx)))))
+           (jet_sx_expr.XLc Integers.Int64.zero))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z) (_ : nat),
+       Integers.Int64.int
+
+Arguments scalar_reader_limb (rho layout)%function_scope i%nat_scope

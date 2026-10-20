@@ -1,0 +1,25 @@
+### C.jet_equality_wide_exec.eq_int64_denotes
+eq_int64_denotes
+     : forall (n : nat) (x y : Ty.tySem (Word.Word n)) (r t : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned t) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)),
+       @eq bool (Integers.Int64.eq r t)
+         (Bit.toBool
+            (@jet_equality_spec.equality_spec (Word.Word n) Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+### C.jet_equality_wide_exec.wide_eq
+wide_eq =
+fun s : jet_wide.wide_size =>
+match s return Clight.function with
+| jet_wide.W16 => jets.f_simplicity_eq_16
+| jet_wide.W32 => jets.f_simplicity_eq_32
+| jet_wide.W64 => jets.f_simplicity_eq_64
+end
+     : forall _ : jet_wide.wide_size, Clight.function
+
+Arguments wide_eq s
+### C.jet_equality_wide_exec.wide_eq_expr
+wide_eq_expr =
+Clight.Ebinop Cop.Oeq (Clight.Etempvar jets._x Ctypesdefs.tulong) (Clight.Etempvar jets._y Ctypesdefs.tulong)
+  Ctypesdefs.tint
+     : Clight.expr

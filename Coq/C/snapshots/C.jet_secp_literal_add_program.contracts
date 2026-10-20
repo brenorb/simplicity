@@ -1,0 +1,60 @@
+### C.jet_secp_literal_add_program.literal_fe_one256_parametric
+literal_fe_one256_parametric
+     : @Alg.Core.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@literal_fe_one256)
+### C.jet_secp_literal_add_program.literal_fe_add_expand_parametric
+literal_fe_add_expand_parametric
+     : @Alg.Core.Parametric (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) (@literal_fe_add_expand)
+### C.jet_secp_literal_add_program.literal_fe_add_parametric
+literal_fe_add_parametric
+     : @Alg.Core.Parametric
+         (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@literal_fe_add)
+### C.jet_secp_literal_add_program.literal_fe_one256
+literal_fe_one256 =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@Bit.true Ty.Unit term) (@jet_spec.left_pad_low_1_n term (S (S (S (S (S (S (S (S O)))))))))
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_fe_one256 {term}
+### C.jet_secp_literal_add_program.literal_fe_add_expand
+literal_fe_add_expand =
+fun term : Alg.Core.Algebra =>
+@Bit.cond (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+  (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O))))))))) Ty.Unit
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+        (@Alg.Core.Combinators.unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) term) (@literal_fe_one256 term))
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+  (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O))))))))) Ty.Unit
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+        (@Alg.Core.Combinators.unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) term)
+        (@Word.zero (S (S (S (S (S (S (S (S O)))))))) term))
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments literal_fe_add_expand {term}
+### C.jet_secp_literal_add_program.literal_fe_add
+literal_fe_add =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@jet_canonical_add_adapter.canonical_add_word (S (S (S (S (S (S (S (S O)))))))) term)
+  (@Alg.Core.Combinators.comp (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@literal_fe_add_expand term) (@jet_secp_negate_literal_contract.literal_fe_normalize512 term))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term
+         (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_fe_add {term}

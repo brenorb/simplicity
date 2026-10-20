@@ -1,0 +1,110 @@
+### C.jet_context.jet_context
+@jet_context
+     : forall (A B : Ty.Ty) (f : Clight.function) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (_ : @Alg.Core.Parametric A B t)
+         (_ : jet_bitmachine_rep.jet_local_spec f A B (fun a : Ty.tySem A => t Alg.CoreFunSem a))
+         (_ : le (S O) (Translate.bitSize B)) (env : Values.val) (m : Memory.Mem.mem)
+         (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context) (a : Ty.tySem A),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode A a) (BitMachine.newWriteFrame (Translate.bitSize B))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode A a)
+              (BitMachine.fullWriteFrame (@Translate.encode B (t Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function f)
+               (jet_bitmachine_rep.jet_args env L) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (t Translate.Naive.translate) (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_context.gap_buffer_separated
+gap_buffer_separated
+     : forall (L : jet_bitmachine_rep.bm_layout) (s : BitMachine.RunState)
+         (_ : @eq nat (@length jet_bitmachine_rep.frame_loc (jet_bitmachine_rep.inactive_read_locs L))
+                (@length BitMachine.ReadFrame (BitMachine.inactiveReadFrames s)))
+         (_ : @eq nat (@length jet_bitmachine_rep.frame_loc (jet_bitmachine_rep.inactive_write_locs L))
+                (@length BitMachine.WriteFrame (BitMachine.inactiveWriteFrames s))) (_ : gap_buffer_layout L s),
+       jet_bitmachine_rep.bm_separated L s
+### C.jet_context.increasing_ranges
+increasing_ranges =
+fix increasing_ranges (l : list (prod BinNums.Z BinNums.Z)) : Prop :=
+  match l return Prop with
+  | nil => True
+  | cons x l' =>
+      and (BinInt.Z.le (@fst BinNums.Z BinNums.Z x) (@snd BinNums.Z BinNums.Z x))
+        (and
+           match l' return Prop with
+           | nil => True
+           | cons y _ => BinInt.Z.le (@snd BinNums.Z BinNums.Z x) (@fst BinNums.Z BinNums.Z y)
+           end (increasing_ranges l'))
+  end
+     : forall _ : list (prod BinNums.Z BinNums.Z), Prop
+
+Arguments increasing_ranges l%list_scope
+### C.jet_context.read_ranges
+read_ranges =
+fun (ls : list jet_bitmachine_rep.frame_loc) (rfs : list BitMachine.ReadFrame) =>
+@List.map (prod jet_bitmachine_rep.frame_loc BitMachine.ReadFrame) (prod BinNums.Z BinNums.Z)
+  (fun p : prod jet_bitmachine_rep.frame_loc BitMachine.ReadFrame =>
+   @pair BinNums.Z BinNums.Z
+     (jet_bitmachine_rep.read_region_lo (@fst jet_bitmachine_rep.frame_loc BitMachine.ReadFrame p)
+        (@snd jet_bitmachine_rep.frame_loc BitMachine.ReadFrame p))
+     (jet_bitmachine_rep.edge_ofs (@fst jet_bitmachine_rep.frame_loc BitMachine.ReadFrame p)))
+  (@List.combine jet_bitmachine_rep.frame_loc BitMachine.ReadFrame ls rfs)
+     : forall (_ : list jet_bitmachine_rep.frame_loc) (_ : list BitMachine.ReadFrame), list (prod BinNums.Z BinNums.Z)
+
+Arguments read_ranges (ls rfs)%list_scope
+### C.jet_context.write_ranges
+write_ranges =
+fun (ls : list jet_bitmachine_rep.frame_loc) (wfs : list BitMachine.WriteFrame) =>
+@List.map (prod jet_bitmachine_rep.frame_loc BitMachine.WriteFrame) (prod BinNums.Z BinNums.Z)
+  (fun p : prod jet_bitmachine_rep.frame_loc BitMachine.WriteFrame =>
+   @pair BinNums.Z BinNums.Z (jet_bitmachine_rep.edge_ofs (@fst jet_bitmachine_rep.frame_loc BitMachine.WriteFrame p))
+     (jet_bitmachine_rep.write_region_hi (@fst jet_bitmachine_rep.frame_loc BitMachine.WriteFrame p)
+        (@snd jet_bitmachine_rep.frame_loc BitMachine.WriteFrame p)))
+  (@List.combine jet_bitmachine_rep.frame_loc BitMachine.WriteFrame ls wfs)
+     : forall (_ : list jet_bitmachine_rep.frame_loc) (_ : list BitMachine.WriteFrame), list (prod BinNums.Z BinNums.Z)
+
+Arguments write_ranges (ls wfs)%list_scope
+### C.jet_context.item_ranges
+item_ranges =
+fun ls : list jet_bitmachine_rep.frame_loc =>
+@List.map jet_bitmachine_rep.frame_loc (prod BinNums.Z BinNums.Z)
+  (fun l : jet_bitmachine_rep.frame_loc =>
+   @pair BinNums.Z BinNums.Z (jet_bitmachine_rep.item_ofs l)
+     (BinInt.Z.add (jet_bitmachine_rep.item_ofs l)
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) ls
+     : forall _ : list jet_bitmachine_rep.frame_loc, list (prod BinNums.Z BinNums.Z)
+
+Arguments item_ranges ls%list_scope
+### C.jet_context.gap_buffer_layout
+gap_buffer_layout =
+fun (L : jet_bitmachine_rep.bm_layout) (s : BitMachine.RunState) =>
+and
+  (increasing_ranges
+     (@app (prod BinNums.Z BinNums.Z)
+        (@List.rev (prod BinNums.Z BinNums.Z)
+           (item_ranges
+              (@cons jet_bitmachine_rep.frame_loc (jet_bitmachine_rep.active_read_loc L)
+                 (jet_bitmachine_rep.inactive_read_locs L))))
+        (item_ranges
+           (@cons jet_bitmachine_rep.frame_loc (jet_bitmachine_rep.active_write_loc L)
+              (jet_bitmachine_rep.inactive_write_locs L)))))
+  (increasing_ranges
+     (@app (prod BinNums.Z BinNums.Z)
+        (@List.rev (prod BinNums.Z BinNums.Z)
+           (read_ranges
+              (@cons jet_bitmachine_rep.frame_loc (jet_bitmachine_rep.active_read_loc L)
+                 (jet_bitmachine_rep.inactive_read_locs L))
+              (@cons BitMachine.ReadFrame (BitMachine.activeReadFrame s) (BitMachine.inactiveReadFrames s))))
+        (write_ranges
+           (@cons jet_bitmachine_rep.frame_loc (jet_bitmachine_rep.active_write_loc L)
+              (jet_bitmachine_rep.inactive_write_locs L))
+           (@cons BitMachine.WriteFrame (BitMachine.activeWriteFrame s) (BitMachine.inactiveWriteFrames s)))))
+     : forall (_ : jet_bitmachine_rep.bm_layout) (_ : BitMachine.RunState), Prop
+
+Arguments gap_buffer_layout L s

@@ -1,0 +1,24 @@
+### C.jet_firstFail_list.first_fail_list_count
+first_fail_list_count
+     : forall (n : nat) (X : Type) (B : Ty.Ty) (xs : list X) (encode : forall _ : X, Ty.tySem B)
+         (_ : BinInt.Z.lt (BinInt.Z.of_nat (@length X xs))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) n)))),
+       @eq (option (Ty.tySem (Word.Word n)))
+         (@jet_firstFail_spec.first_fail_run n Ty.Unit B (@indexed_list_primitive n X B xs encode))
+         (@Some (Ty.tySem (Word.ToZ.obj (Word.WordToZ n)))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ n) (BinInt.Z.of_nat (@length X xs))))
+### C.jet_firstFail_list.indexed_list_primitive
+indexed_list_primitive =
+fun (n : nat) (X : Type) (B : Ty.Ty) (xs : list X) (encode : forall _ : X, Ty.tySem B) (w : Ty.tySem (Word.Word n)) =>
+@Some (sum unit (Ty.tySem B))
+  match
+    @option_map X (Ty.tySem B) encode
+      (@List.nth_error X xs (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ n) w))) return (sum unit (Ty.tySem B))
+  with
+  | Some b => @inr unit (Ty.tySem B) b
+  | None => @inl unit (Ty.tySem B) tt
+  end
+     : forall (n : nat) (X : Type) (B : Ty.Ty) (_ : list X) (_ : forall _ : X, Ty.tySem B) (_ : Ty.tySem (Word.Word n)),
+       option (Ty.tySem (Ty.Sum Ty.Unit B))
+
+Arguments indexed_list_primitive n%nat_scope {X}%type_scope {B}%ty_scope xs%list_scope encode%function_scope w

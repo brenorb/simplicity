@@ -1,0 +1,58 @@
+### C.jet_full_add_wide_word.wide_full_add_values_denote_input
+wide_full_add_values_denote_input
+     : forall (s : jet_wide.wide_size) (c : Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+         (x y : Ty.tySem (Word.Word (jet_wide.wide_log s))) (r t : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned t) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) y)),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log s))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+            match wide_full_add_carry s (Bit.toBool c) r t return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (jet_wide_spec.decode_wide s
+               (Integers.Int64.zero_ext (jet_wide.wide_bits s) (wide_full_add_payload (Bit.toBool c) r t))))
+         (@wide_full_add_spec s Alg.CoreFunSem
+            (@pair (Ty.tySem (Ty.Sum Ty.Unit Ty.Unit))
+               (prod (Ty.tySem (Word.Word (jet_wide.wide_log s))) (Ty.tySem (Word.Word (jet_wide.wide_log s)))) c
+               (@pair (Ty.tySem (Word.Word (jet_wide.wide_log s))) (Ty.tySem (Word.Word (jet_wide.wide_log s))) x y)))
+### C.jet_full_add_wide_word.wide_full_add_spec_parametric
+wide_full_add_spec_parametric
+     : forall s : jet_wide.wide_size,
+       @Alg.Core.Parametric
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+            (Ty.Prod (Word.Word (jet_wide.wide_log s)) (Word.Word (jet_wide.wide_log s))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (jet_wide.wide_log s))) (@wide_full_add_spec s)
+### C.jet_full_add_wide_word.wide_full_add_spec
+wide_full_add_spec =
+fun (s : jet_wide.wide_size) (term : Alg.Core.Algebra) => @Word.fullAdder (jet_wide.wide_log s) term
+     : forall (s : jet_wide.wide_size) (term : Alg.Core.Algebra),
+       Alg.Core.domain term
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+            (Ty.Prod (Word.Word (jet_wide.wide_log s)) (Word.Word (jet_wide.wide_log s))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (jet_wide.wide_log s)))
+
+Arguments wide_full_add_spec s {term}
+### C.jet_full_add_wide_word.wide_full_add_first_carry
+wide_full_add_first_carry =
+fun (s : jet_wide.wide_size) (r t : Integers.Int64.int) =>
+Integers.Int64.ltu
+  (Integers.Int64.sub (Integers.Int64.repr (jet_full_increment_wide_word.wide_full_increment_max s)) t) r
+     : forall (_ : jet_wide.wide_size) (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments wide_full_add_first_carry s r t
+### C.jet_full_add_wide_word.wide_full_add_carry
+wide_full_add_carry =
+fun (s : jet_wide.wide_size) (cin : bool) (r t : Integers.Int64.int) =>
+orb (wide_full_add_first_carry s r t)
+  (jet_full_increment_wide_word.wide_full_increment_carry s cin (Integers.Int64.add r t))
+     : forall (_ : jet_wide.wide_size) (_ : bool) (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments wide_full_add_carry s cin%bool_scope r t
+### C.jet_full_add_wide_word.wide_full_add_payload
+wide_full_add_payload =
+fun (cin : bool) (r t : Integers.Int64.int) =>
+Integers.Int64.add (Integers.Int64.add r t) (jet_readBit_layout.bit_long cin)
+     : forall (_ : bool) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments wide_full_add_payload cin%bool_scope r t

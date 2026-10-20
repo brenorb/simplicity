@@ -1,0 +1,23 @@
+### C.jet_frame_layout.frame_base_valid
+frame_base_valid =
+fun base : BinNums.Z =>
+and (BinInt.Z.le BinNums.Z0 base)
+  (BinInt.Z.le (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+     (BinInt.Z.add Integers.Ptrofs.max_unsigned (BinNums.Zpos BinNums.xH)))
+     : forall _ : BinNums.Z, Prop
+
+Arguments frame_base_valid base%Z_scope
+### C.jet_frame_layout.frame_fields_at
+frame_fields_at =
+fun (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z) =>
+and
+  (@eq (option Values.val) (Memory.Mem.load AST.Mptr m bf base)
+     (@Some Values.val (Values.Vptr bw (Integers.Ptrofs.repr edge))))
+  (@eq (option Values.val)
+     (Memory.Mem.load AST.Mint64 m bf
+        (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+     (@Some Values.val (Values.Vlong (Integers.Int64.repr cursor))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : BinNums.Z), Prop
+
+Arguments frame_fields_at m bf base%Z_scope bw (edge cursor)%Z_scope

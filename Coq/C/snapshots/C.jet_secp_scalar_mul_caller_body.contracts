@@ -1,0 +1,161 @@
+### C.jet_secp_scalar_mul_caller_body.scalar_mul_caller_source
+scalar_mul_caller_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_scalar_mul)
+         (Clight.Ssequence scalar_mul_product_stmt scalar_mul_reduction_stmt)
+### C.jet_secp_scalar_mul_caller_body.scalar_mul_product_linkage
+scalar_mul_product_linkage
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._secp256k1_scalar_mul_512)
+            (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_scalar_mul_512)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_scalar_mul_512)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul_512)))
+### C.jet_secp_scalar_mul_caller_body.scalar_mul_reduction_linkage
+scalar_mul_reduction_linkage
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._secp256k1_scalar_reduce_512)
+            (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_scalar_reduce_512)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_scalar_reduce_512)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_reduce_512)))
+### C.jet_secp_scalar_mul_caller_body.exec_scalar_mul_product_call
+exec_scalar_mul_product_call
+     : forall (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._b le)
+                (@Some Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                      (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O)))))))
+         (_ : @eq BinNums.Z (jet_sx_state.bas beta O) BinNums.Z0)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul_512)
+                (@cons Values.val
+                   (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                   (@cons Values.val
+                      (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                      (@cons Values.val
+                         (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                            (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))) (@nil Values.val)))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (scalar_mul_caller_env beta) le m
+         scalar_mul_product_stmt Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_scalar_mul_caller_body.exec_scalar_mul_reduction_call
+exec_scalar_mul_reduction_call
+     : forall (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))))
+         (_ : @eq BinNums.Z (jet_sx_state.bas beta O) BinNums.Z0)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_reduce_512)
+                (@cons Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                   (@cons Values.val
+                      (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                      (@nil Values.val))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (scalar_mul_caller_env beta) le m
+         scalar_mul_reduction_stmt Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_scalar_mul_caller_body.exec_scalar_mul_caller_body_inplace
+exec_scalar_mul_caller_body_inplace
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_regs m)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._b le)
+                (@Some Values.val
+                   (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                      (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (scalar_mul_caller_env beta) le m
+               (Clight.fn_body jets_secp.f_secp256k1_scalar_mul) Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_sx_state.rep (jet_secp_product_reduce_bridge.product_reduce_rho rho)
+                  (jet_secp_product_reduce_bridge.product_reduce_layout beta)
+                  (jet_secp_reduce512_function_numeric.reduce512_numeric_owned_regs
+                     (jet_secp_product_reduce_bridge.product_reduce_rho rho)) mf)
+               (and
+                  (@eq BinNums.Z
+                     (jet_secp_reduce512_final_atomic.final_output_value
+                        (jet_secp_reduce512_body_numeric.reduce512_body_digits
+                           (jet_secp_product_reduce_bridge.product_reduce_rho rho))
+                        (jet_secp_reduce512_body_numeric.reduce512_body_carry
+                           (jet_secp_product_reduce_bridge.product_reduce_rho rho))
+                        (jet_secp_product_reduce_bridge.product_reduce_rho rho)
+                        (jet_sx_state.lay (jet_secp_product_reduce_bridge.product_reduce_layout beta)))
+                     (BinInt.Z.modulo
+                        (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+                           (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O))))))
+                        jet_secp_canonical_scalar.canonical_group_order))
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot beta
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_regs) b ofs)) m mf))))
+### C.jet_secp_scalar_mul_caller_body.scalar_mul_caller_env
+scalar_mul_caller_env =
+fun beta : jet_sx_state.layout =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_secp._l
+  (@pair Values.block Ctypes.type (jet_sx_state.blk beta O)
+     (Ctypesdefs.tarray Ctypesdefs.tulong (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+  Clight.empty_env
+     : forall _ : jet_sx_state.layout, Clight.env
+
+Arguments scalar_mul_caller_env beta
+### C.jet_secp_scalar_mul_caller_body.scalar_mul_product_stmt
+scalar_mul_product_stmt =
+match Clight.fn_body jets_secp.f_secp256k1_scalar_mul return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence a _ => a
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_secp_scalar_mul_caller_body.scalar_mul_reduction_stmt
+scalar_mul_reduction_stmt =
+match Clight.fn_body jets_secp.f_secp256k1_scalar_mul return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ b => b
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement

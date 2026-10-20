@@ -1,0 +1,262 @@
+### C.jet_elements_index_eval.elements_ptr_index_repr
+elements_ptr_index_repr
+     : forall (base sz n : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : and (BinInt.Z.lt BinNums.Z0 sz)
+                (BinInt.Z.le sz
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 n)
+         (_ : BinInt.Z.le (BinInt.Z.add base (BinInt.Z.mul sz n)) Integers.Ptrofs.max_unsigned),
+       @eq Integers.Ptrofs.int
+         (Integers.Ptrofs.add (Integers.Ptrofs.repr base)
+            (Integers.Ptrofs.mul (Integers.Ptrofs.repr sz) (Integers.Ptrofs.of_int64 (Integers.Int64.repr n))))
+         (Integers.Ptrofs.repr (BinInt.Z.add base (BinInt.Z.mul sz n)))
+### C.jet_elements_index_eval.sem_add_ptr_long_sizeof
+sem_add_ptr_long_sizeof
+     : forall (ce : Ctypes.composite_env) (S : Ctypes.type) (r : Integers.Int64.int) (ofs : Integers.Ptrofs.int)
+         (b : Values.block) (sz : BinNums.Z) (m : Memory.Mem.mem) (_ : @eq BinNums.Z (Ctypes.sizeof ce S) sz),
+       @eq (option Values.val)
+         (Cop.sem_add ce (Values.Vptr b ofs) (Ctypesdefs.tptr S) (Values.Vlong r) Ctypesdefs.tulong m)
+         (@Some Values.val
+            (Values.Vptr b
+               (Integers.Ptrofs.add ofs (Integers.Ptrofs.mul (Integers.Ptrofs.repr sz) (Integers.Ptrofs.of_int64 r)))))
+### C.jet_elements_index_eval.eval_elements_index
+eval_elements_index
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (xp ip : BinNums.positive)
+         (sid : AST.ident) (sz : BinNums.Z) (b : Values.block) (base r : BinNums.Z)
+         (_ : @eq BinNums.Z
+                (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge) (Ctypes.Tstruct sid Ctypes.noattr))
+                sz)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val xp le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val ip le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr r)))) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : and (BinInt.Z.lt BinNums.Z0 sz)
+                (BinInt.Z.le sz
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 r)
+         (_ : BinInt.Z.le (BinInt.Z.add base (BinInt.Z.mul sz r)) Integers.Ptrofs.max_unsigned),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         (Clight.Ederef
+            (Clight.Ebinop Cop.Oadd (Clight.Etempvar xp (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+               (Clight.Etempvar ip Ctypesdefs.tulong) (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+            (Ctypes.Tstruct sid Ctypes.noattr))
+         (Values.Vptr b (Integers.Ptrofs.repr (BinInt.Z.add base (BinInt.Z.mul sz r))))
+### C.jet_elements_index_eval.elements_sizeof_sigInput
+elements_sizeof_sigInput
+     : @eq BinNums.Z
+         (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge)
+            (Ctypes.Tstruct jets_elements._sigInput Ctypes.noattr))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_elements_index_eval.elements_sizeof_sigOutput
+elements_sizeof_sigOutput
+     : @eq BinNums.Z
+         (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge)
+            (Ctypes.Tstruct jets_elements._sigOutput Ctypes.noattr))
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_elements_index_eval.elements_elementsTransaction_input
+elements_elementsTransaction_input
+     : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction jets_elements._input BinNums.Z0
+### C.jet_elements_index_eval.elements_elementsTransaction_output
+elements_elementsTransaction_output
+     : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction jets_elements._output
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+### C.jet_elements_index_eval.elements_elementsTransaction_numInputs
+elements_elementsTransaction_numInputs
+     : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction jets_elements._numInputs
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+### C.jet_elements_index_eval.elements_elementsTransaction_numOutputs
+elements_elementsTransaction_numOutputs
+     : jet_elements_field_eval.elements_field_at jets_elements._elementsTransaction jets_elements._numOutputs
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+### C.jet_elements_index_eval.elements_sigInput_txo
+elements_sigInput_txo
+     : jet_elements_field_eval.elements_field_at jets_elements._sigInput jets_elements._txo
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_elements_index_eval.elements_sigInput_sequence
+elements_sigInput_sequence
+     : jet_elements_field_eval.elements_field_at jets_elements._sigInput jets_elements._sequence
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+### C.jet_elements_index_eval.elements_sigInput_prevOutpoint
+elements_sigInput_prevOutpoint
+     : jet_elements_field_eval.elements_field_at jets_elements._sigInput jets_elements._prevOutpoint
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))
+### C.jet_elements_index_eval.elements_sigInput_scriptSigHash
+elements_sigInput_scriptSigHash
+     : jet_elements_field_eval.elements_field_at jets_elements._sigInput jets_elements._scriptSigHash
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+### C.jet_elements_index_eval.elements_sigInput_annexHash
+elements_sigInput_annexHash
+     : jet_elements_field_eval.elements_field_at jets_elements._sigInput jets_elements._annexHash BinNums.Z0
+### C.jet_elements_index_eval.elements_sigInput_pegin
+elements_sigInput_pegin
+     : jet_elements_field_eval.elements_field_at jets_elements._sigInput jets_elements._pegin
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_elements_index_eval.elements_utxo_scriptPubKey
+elements_utxo_scriptPubKey
+     : jet_elements_field_eval.elements_field_at jets_elements._utxo jets_elements._scriptPubKey BinNums.Z0
+### C.jet_elements_index_eval.elements_sigOutput_scriptPubKey
+elements_sigOutput_scriptPubKey
+     : jet_elements_field_eval.elements_field_at jets_elements._sigOutput jets_elements._scriptPubKey
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_elements_index_eval.eval_elements_elem_field_at
+eval_elements_elem_field_at
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (t4 ip : BinNums.positive)
+         (sid : AST.ident) (sz : BinNums.Z) (field : AST.ident) (fdelta : BinNums.Z) (b : Values.block)
+         (inbase : BinNums.Z) (r v : Integers.Int64.int)
+         (_ : @eq BinNums.Z
+                (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge) (Ctypes.Tstruct sid Ctypes.noattr))
+                sz) (_ : jet_elements_field_eval.elements_field_at sid field fdelta)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val t4 le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr inbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val ip le) (@Some Values.val (Values.Vlong r)))
+         (_ : BinInt.Z.le BinNums.Z0 inbase)
+         (_ : and (BinInt.Z.lt BinNums.Z0 sz)
+                (BinInt.Z.le sz
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 fdelta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned r))) fdelta)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned r))) fdelta))
+                (@Some Values.val (Values.Vlong v))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         (Clight.Efield
+            (Clight.Ederef
+               (Clight.Ebinop Cop.Oadd (Clight.Etempvar t4 (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+                  (Clight.Etempvar ip Ctypesdefs.tulong) (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+               (Ctypes.Tstruct sid Ctypes.noattr)) field Ctypesdefs.tulong) (Values.Vlong v)
+### C.jet_elements_index_eval.eval_elements_elem_field
+eval_elements_elem_field
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (t4 : BinNums.positive)
+         (sid : AST.ident) (sz : BinNums.Z) (field : AST.ident) (fdelta : BinNums.Z) (b : Values.block)
+         (inbase : BinNums.Z) (r v : Integers.Int64.int)
+         (_ : @eq BinNums.Z
+                (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge) (Ctypes.Tstruct sid Ctypes.noattr))
+                sz) (_ : jet_elements_field_eval.elements_field_at sid field fdelta)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val t4 le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr inbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._i le)
+                (@Some Values.val (Values.Vlong r))) (_ : BinInt.Z.le BinNums.Z0 inbase)
+         (_ : and (BinInt.Z.lt BinNums.Z0 sz)
+                (BinInt.Z.le sz
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 fdelta)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned r))) fdelta)
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned r))) fdelta))
+                (@Some Values.val (Values.Vlong v))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         (Clight.Efield
+            (Clight.Ederef
+               (Clight.Ebinop Cop.Oadd (Clight.Etempvar t4 (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+                  (Clight.Etempvar jets_elements._i Ctypesdefs.tulong)
+                  (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr))) (Ctypes.Tstruct sid Ctypes.noattr)) field
+            Ctypesdefs.tulong) (Values.Vlong v)
+### C.jet_elements_index_eval.eval_elements_elem_nested_field_at
+eval_elements_elem_nested_field_at
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (t4 ip : BinNums.positive)
+         (sid : AST.ident) (sz : BinNums.Z) (f1 : AST.ident) (d1 : BinNums.Z) (sid1 f2 : AST.ident)
+         (d2 : BinNums.Z) (b : Values.block) (inbase : BinNums.Z) (r v : Integers.Int64.int)
+         (_ : @eq BinNums.Z
+                (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge) (Ctypes.Tstruct sid Ctypes.noattr))
+                sz) (_ : jet_elements_field_eval.elements_field_at sid f1 d1)
+         (_ : jet_elements_field_eval.elements_field_at sid1 f2 d2)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val t4 le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr inbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val ip le) (@Some Values.val (Values.Vlong r)))
+         (_ : BinInt.Z.le BinNums.Z0 inbase)
+         (_ : and (BinInt.Z.lt BinNums.Z0 sz)
+                (BinInt.Z.le sz
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 d1) (_ : BinInt.Z.le BinNums.Z0 d2)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add
+                   (BinInt.Z.add (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned r))) d1)
+                      d2) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m b
+                   (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned r)))
+                      (BinInt.Z.add d1 d2))) (@Some Values.val (Values.Vlong v))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         (Clight.Efield
+            (Clight.Efield
+               (Clight.Ederef
+                  (Clight.Ebinop Cop.Oadd (Clight.Etempvar t4 (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+                     (Clight.Etempvar ip Ctypesdefs.tulong) (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+                  (Ctypes.Tstruct sid Ctypes.noattr)) f1 (Ctypes.Tstruct sid1 Ctypes.noattr)) f2 Ctypesdefs.tulong)
+         (Values.Vlong v)
+### C.jet_elements_index_eval.eval_elements_elem_field_addr
+eval_elements_elem_field_addr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (t4 ip : BinNums.positive)
+         (sid : AST.ident) (sz : BinNums.Z) (field : AST.ident) (fdelta : BinNums.Z) (sid1 : AST.ident)
+         (b : Values.block) (inbase : BinNums.Z) (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z
+                (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge) (Ctypes.Tstruct sid Ctypes.noattr))
+                sz) (_ : jet_elements_field_eval.elements_field_at sid field fdelta)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val t4 le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr inbase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val ip le) (@Some Values.val (Values.Vlong r)))
+         (_ : BinInt.Z.le BinNums.Z0 inbase)
+         (_ : and (BinInt.Z.lt BinNums.Z0 sz)
+                (BinInt.Z.le sz
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 fdelta)
+         (_ : BinInt.Z.le (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned r))) fdelta)
+                Integers.Ptrofs.max_unsigned)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned r)))
+                   (BinNums.Zpos BinNums.xH)) Integers.Ptrofs.max_unsigned),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         (Clight.Eaddrof
+            (Clight.Efield
+               (Clight.Ederef
+                  (Clight.Ebinop Cop.Oadd (Clight.Etempvar t4 (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+                     (Clight.Etempvar ip Ctypesdefs.tulong) (Ctypesdefs.tptr (Ctypes.Tstruct sid Ctypes.noattr)))
+                  (Ctypes.Tstruct sid Ctypes.noattr)) field (Ctypes.Tstruct sid1 Ctypes.noattr))
+            (Ctypesdefs.tptr (Ctypes.Tstruct sid1 Ctypes.noattr)))
+         (Values.Vptr b
+            (Integers.Ptrofs.repr
+               (BinInt.Z.add (BinInt.Z.add inbase (BinInt.Z.mul sz (Integers.Int64.unsigned r))) fdelta)))

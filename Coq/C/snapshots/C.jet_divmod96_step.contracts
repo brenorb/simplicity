@@ -1,0 +1,58 @@
+### C.jet_divmod96_step.eval_divmod96_quotient
+eval_divmod96_quotient
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bq : Values.block)
+         (ofs : Integers.Ptrofs.int) (q : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._q le) (@Some Values.val (Values.Vptr bq ofs)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bq (Integers.Ptrofs.unsigned ofs))
+                (@Some Values.val (Values.Vlong q))),
+       Clight.eval_expr jet_exec.ge0 e le m
+         (Clight.Ederef (Clight.Etempvar jets._q (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong)
+         (Values.Vlong q)
+### C.jet_divmod96_step.exec_divmod96_correction_stmt
+exec_divmod96_correction_stmt
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m ms : Memory.Mem.mem) (bq : Values.block)
+         (ofs : Integers.Ptrofs.int) (q rh bh d bl : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._q le) (@Some Values.val (Values.Vptr bq ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._rh le) (@Some Values.val (Values.Vlong rh)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._bh le) (@Some Values.val (Values.Vlong bh)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._d le) (@Some Values.val (Values.Vlong d)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._bl le) (@Some Values.val (Values.Vlong bl)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bq (Integers.Ptrofs.unsigned ofs))
+                (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bq (Integers.Ptrofs.unsigned ofs)
+                   (Values.Vlong (Integers.Int64.sub q Integers.Int64.one))) (@Some Memory.Mem.mem ms)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m divmod96_correction_stmt Events.E0
+         (@Maps.PTree.set Values.val jets._d (Values.Vlong (Integers.Int64.sub d bl))
+            (@Maps.PTree.set Values.val jets._rh (Values.Vlong (Integers.Int64.add rh bh))
+               (@Maps.PTree.set Values.val jets._t'3 (Values.Vlong q) le))) ms ClightBigstep.Out_normal
+### C.jet_divmod96_step.divmod96_machine_step_values
+divmod96_machine_step_values
+     : forall (q rh bh d bl : Integers.Int64.int) (_ : BinInt.Z.lt BinNums.Z0 (Integers.Int64.unsigned q))
+         (_ : BinInt.Z.lt (BinInt.Z.add (Integers.Int64.unsigned rh) (Integers.Int64.unsigned bh))
+                Integers.Int64.modulus) (_ : BinInt.Z.le (Integers.Int64.unsigned bl) (Integers.Int64.unsigned d)),
+       and
+         (@eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.sub q Integers.Int64.one))
+            (BinInt.Z.sub (Integers.Int64.unsigned q) (BinNums.Zpos BinNums.xH)))
+         (and
+            (@eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.add rh bh))
+               (BinInt.Z.add (Integers.Int64.unsigned rh) (Integers.Int64.unsigned bh)))
+            (@eq BinNums.Z (Integers.Int64.unsigned (Integers.Int64.sub d bl))
+               (BinInt.Z.sub (Integers.Int64.unsigned d) (Integers.Int64.unsigned bl))))
+### C.jet_divmod96_step.divmod96_correction_stmt
+divmod96_correction_stmt =
+Clight.Ssequence
+  (Clight.Ssequence
+     (Clight.Sset jets._t'3
+        (Clight.Ederef (Clight.Etempvar jets._q (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong))
+     (Clight.Sassign (Clight.Ederef (Clight.Etempvar jets._q (Ctypesdefs.tptr Ctypesdefs.tulong)) Ctypesdefs.tulong)
+        (Clight.Ebinop Cop.Osub (Clight.Etempvar jets._t'3 Ctypesdefs.tulong)
+           (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tulong)))
+  (Clight.Ssequence
+     (Clight.Sset jets._rh
+        (Clight.Ebinop Cop.Oadd (Clight.Etempvar jets._rh Ctypesdefs.tulong)
+           (Clight.Etempvar jets._bh Ctypesdefs.tulong) Ctypesdefs.tulong))
+     (Clight.Sset jets._d
+        (Clight.Ebinop Cop.Osub (Clight.Etempvar jets._d Ctypesdefs.tulong)
+           (Clight.Etempvar jets._bl Ctypesdefs.tulong) Ctypesdefs.tulong)))
+     : Clight.statement

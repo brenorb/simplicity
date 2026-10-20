@@ -1,0 +1,20 @@
+### C.jet_rotate_wide_word.wide_rotate_result_bits
+wide_rotate_result_bits
+     : forall (s : jet_wide.wide_size) (x : Ty.tySem (Word.Word (jet_wide.wide_log s))) (r : Integers.Int64.int)
+         (a : Integers.Int.int) (j : BinNums.Z)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x))
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (jet_wide.wide_bits s)))
+         (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j (jet_wide.wide_bits s))),
+       @eq bool (Integers.Int64.testbit (jet_rotate_wide_helper.wide_rotate_result s r a) j)
+         (BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x)
+            (BinInt.Z.modulo (BinInt.Z.sub j (Integers.Int.unsigned a)) (jet_wide.wide_bits s)))
+### C.jet_rotate_wide_word.left_rotate_byte_machine_denotes
+left_rotate_byte_machine_denotes
+     : forall (s : jet_left_rotate_wide_exec.byte_rotate_size) (amount : Ty.tySem (Word.Word (S (S (S O)))))
+         (x : Ty.tySem (Word.Word (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)))),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s))))
+         (jet_left_rotate_wide_layout_machine.left_rotate_byte_machine_value s amount x)
+         (@jet_rotate_spec.left_rotate_byte_spec s Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S O)))))
+               (Ty.tySem (Word.Word (jet_wide.wide_log (jet_left_rotate_wide_exec.byte_rotate_width s)))) amount x))

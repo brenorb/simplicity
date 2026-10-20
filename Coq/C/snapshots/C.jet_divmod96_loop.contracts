@@ -1,0 +1,47 @@
+### C.jet_divmod96_loop.exec_divmod96_loop_exit
+exec_divmod96_loop_exit
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (rh al d : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._rh le) (@Some Values.val (Values.Vlong rh)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._al le) (@Some Values.val (Values.Vlong al)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._d le) (@Some Values.val (Values.Vlong d)))
+         (_ : @eq bool (jet_divmod96_value.divmod96_guard rh al d) false),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m divmod96_loop_stmt Events.E0
+         (@Maps.PTree.set Values.val jets._t'2 (Values.Vint Integers.Int.zero) le) m ClightBigstep.Out_normal
+### C.jet_divmod96_loop.exec_divmod96_loop_take
+exec_divmod96_loop_take
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m ms mf : Memory.Mem.mem)
+         (lef : Clight.temp_env) (bq : Values.block) (ofs : Integers.Ptrofs.int) (q rh bh al d bl : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._q le) (@Some Values.val (Values.Vptr bq ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._rh le) (@Some Values.val (Values.Vlong rh)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._bh le) (@Some Values.val (Values.Vlong bh)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._al le) (@Some Values.val (Values.Vlong al)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._d le) (@Some Values.val (Values.Vlong d)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._bl le) (@Some Values.val (Values.Vlong bl)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bq (Integers.Ptrofs.unsigned ofs))
+                (@Some Values.val (Values.Vlong q)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bq (Integers.Ptrofs.unsigned ofs)
+                   (Values.Vlong (Integers.Int64.sub q Integers.Int64.one))) (@Some Memory.Mem.mem ms))
+         (_ : @eq bool (jet_divmod96_value.divmod96_guard rh al d) true)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e (divmod96_next_env le q rh bh d bl) ms divmod96_loop_stmt
+                Events.E0 lef mf ClightBigstep.Out_normal),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m divmod96_loop_stmt Events.E0 lef mf ClightBigstep.Out_normal
+### C.jet_divmod96_loop.divmod96_loop_stmt
+divmod96_loop_stmt =
+Clight.Sloop
+  (Clight.Ssequence
+     (Clight.Ssequence jet_divmod96_expr.divmod96_guard_stmt
+        (Clight.Sifthenelse (Clight.Etempvar jets._t'2 Ctypesdefs.tint) Clight.Sskip Clight.Sbreak))
+     jet_divmod96_step.divmod96_correction_stmt) Clight.Sskip
+     : Clight.statement
+### C.jet_divmod96_loop.divmod96_next_env
+divmod96_next_env =
+fun (le : Maps.PTree.tree Values.val) (q rh bh d bl : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets._d (Values.Vlong (Integers.Int64.sub d bl))
+  (@Maps.PTree.set Values.val jets._rh (Values.Vlong (Integers.Int64.add rh bh))
+     (@Maps.PTree.set Values.val jets._t'3 (Values.Vlong q)
+        (@Maps.PTree.set Values.val jets._t'2 (Values.Vint Integers.Int.one) le)))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments divmod96_next_env le q rh bh d bl

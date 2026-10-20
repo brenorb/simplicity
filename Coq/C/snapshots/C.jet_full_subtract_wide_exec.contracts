@@ -1,0 +1,44 @@
+### C.jet_full_subtract_wide_exec.wide_full_subtract
+wide_full_subtract =
+fun s : jet_wide.wide_size =>
+match s return Clight.function with
+| jet_wide.W16 => jets.f_simplicity_full_subtract_16
+| jet_wide.W32 => jets.f_simplicity_full_subtract_32
+| jet_wide.W64 => jets.f_simplicity_full_subtract_64
+end
+     : forall _ : jet_wide.wide_size, Clight.function
+
+Arguments wide_full_subtract s
+### C.jet_full_subtract_wide_exec.wide_full_subtract_diff_expr
+wide_full_subtract_diff_expr =
+Clight.Ebinop Cop.Osub
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+     (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tulong) (Clight.Etempvar jets._y Ctypesdefs.tulong)
+  Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_full_subtract_wide_exec.wide_full_subtract_first_borrow_expr
+wide_full_subtract_first_borrow_expr =
+Clight.Ebinop Cop.Olt
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+     (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tulong)
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+     (Clight.Etempvar jets._y Ctypesdefs.tulong) Ctypesdefs.tulong) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_full_subtract_wide_exec.wide_full_subtract_second_borrow_expr
+wide_full_subtract_second_borrow_expr =
+Clight.Ebinop Cop.Olt wide_full_subtract_diff_expr
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+     (Clight.Etempvar jets._z Ctypesdefs.tbool) Ctypesdefs.tuint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_full_subtract_wide_exec.wide_full_subtract_payload_expr
+wide_full_subtract_payload_expr =
+Clight.Ecast
+  (Clight.Ebinop Cop.Osub wide_full_subtract_diff_expr (Clight.Etempvar jets._z Ctypesdefs.tbool) Ctypesdefs.tulong)
+  Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_full_subtract_wide_exec.wide_full_subtract_choose
+wide_full_subtract_choose =
+Clight.Sifthenelse wide_full_subtract_first_borrow_expr
+  (Clight.Sset jets._t'4 (Clight.Econst_int Integers.Int.one Ctypesdefs.tint))
+  (Clight.Sset jets._t'4 (Clight.Ecast wide_full_subtract_second_borrow_expr Ctypesdefs.tbool))
+     : Clight.statement

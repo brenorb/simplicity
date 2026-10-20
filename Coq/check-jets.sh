@@ -21,6 +21,8 @@
 # jet-sysroot.sh for step 5; JET_SYSROOT defaults to its output directory).
 set -euo pipefail
 cd "$(dirname "$0")"
+# Selection is controlled only by --jets, never by a caller's stale shell state.
+unset JET_ONLY_MODULES JET_TARGETS
 
 update=false; ast=false; build=true; accept=false; jets=""
 for a in "$@"; do
@@ -61,120 +63,145 @@ audit_inputs() {
 }
 inputs_before=$(audit_inputs)
 
+# Source and mutation checks are independent and write only to temporary trees.
+# Run each unchanged command, keep its own exit status, and print logs in order.
+work=$(mktemp -d "${TMPDIR:-/tmp}/jet-check.XXXXXX")
+trap 'rm -rf "$work"' EXIT
+static_started=0; static_next=0; static_failed=0
+static_pids=(); static_labels=()
+static_wait_one() {
+  local slot=$static_next
+  if ! wait "${static_pids[$slot]}"; then static_failed=1; fi
+  printf '== source check: %s\n' "${static_labels[$slot]}"
+  cat "$work/static-$slot.log"
+  static_next=$((static_next + 1))
+}
+static_check() {
+  local slot=$static_started
+  static_labels[$slot]=$(printf '%q ' "$@")
+  "$@" > "$work/static-$slot.log" 2>&1 &
+  static_pids[$slot]=$!
+  static_started=$((static_started + 1))
+  if (( static_started - static_next >= jobs )); then static_wait_one; fi
+}
 echo "== static checks"
-python3 check-jet-source-target.py
-python3 test-jet-source-target.py
-python3 scan-jet-proofs.py
-python3 jet-coverage.py
-python3 test-jet-coverage.py
-python3 elements-version-review/check-version-source.py --repo "${JET_C_REPO:-..}" --coq .
-python3 elements-version-review/test-version-source.py "${JET_C_REPO:-..}" .
-python3 elements-version-review/check-getters-source.py --repo "${JET_C_REPO:-..}" --coq .
-python3 elements-version-review/test-getters-source.py "${JET_C_REPO:-..}" .
-python3 elements-count-review/check-source.py --repo "${JET_C_REPO:-..}" --coq .
-python3 elements-count-review/test-source.py "${JET_C_REPO:-..}" .
-python3 elements-sequence-review/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_sequence_literal.v
-python3 elements-sequence-review/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_sequence_literal.v
-python3 elements-current-sequence/check-source.py --repo "${JET_C_REPO:-..}" --coq . --sequence C/jet_elements_sequence_literal.v --literal C/jet_elements_current_sequence_literal.v
-python3 elements-current-sequence/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_sequence_literal.v C/jet_elements_current_sequence_literal.v
-python3 elements-tapleaf-literal/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_tapleaf_literal.v
-python3 elements-tapleaf-literal/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_tapleaf_literal.v
-python3 elements-hash-literal/check-source.py --repo "${JET_C_REPO:-..}" --coq . --helper C/jet_haskell_hash_word.v --endpoint C/jet_elements_hash_literal.v
-python3 elements-hash-literal/test-source.py "${JET_C_REPO:-..}" . C/jet_haskell_hash_word.v C/jet_elements_hash_literal.v
-python3 elements-finality/check-source.py --repo "${JET_C_REPO:-..}" --coq .
-python3 elements-finality/test-source.py "${JET_C_REPO:-..}" .
-python3 elements-lock/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_lock_literal.v
-python3 elements-lock/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_lock_literal.v
-python3 elements-check-lock/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_check_lock_literal.v --transport C/jet_application_partial_transport.v
-python3 elements-check-lock/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_check_lock_literal.v C/jet_application_partial_transport.v
-python3 elements-pegin/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_pegin_literal.v
-python3 elements-pegin/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_pegin_literal.v
-python3 elements-script-hash/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_script_hash_literal.v
-python3 elements-script-hash/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_script_hash_literal.v
-python3 elements-issuance-proof/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_issuance_proof_literal.v
-python3 elements-issuance-proof/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_issuance_proof_literal.v
-python3 elements-annex-hash/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_optional_digest_literal.v
-python3 elements-annex-hash/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_optional_digest_literal.v
-python3 elements-issuance-digest/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_issuance_digest_literal.v
-python3 elements-issuance-digest/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_issuance_digest_literal.v
-python3 elements-outpoint-output/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_indexed_literal.v
-python3 elements-outpoint-output/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_indexed_literal.v
-python3 elements-output-proof/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_output_proof_literal.v
-python3 elements-output-proof/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_output_proof_literal.v
-python3 elements-tap-getters/check-source.py "${JET_C_REPO:-..}"
-python3 elements-tap-getters/test-source.py "${JET_C_REPO:-..}"
-python3 elements-lbtc-asset/check-source.py "${JET_C_REPO:-..}"
-python3 elements-lbtc-asset/test-source.py "${JET_C_REPO:-..}"
-python3 elements-legacy-lock/check-source.py "${JET_C_REPO:-..}"
-python3 elements-legacy-lock/test-source.py "${JET_C_REPO:-..}"
-python3 elements-legacy-check/check-source.py "${JET_C_REPO:-..}"
-python3 elements-legacy-check/test-source.py "${JET_C_REPO:-..}"
-python3 elements-output-nonce/check-source.py "${JET_C_REPO:-..}"
-python3 elements-output-nonce/test-source.py "${JET_C_REPO:-..}"
-python3 elements-asset-literal/check-source.py "${JET_C_REPO:-..}"
-python3 elements-asset-literal/test-source.py "${JET_C_REPO:-..}"
-python3 elements-amount-literal/check-source.py "${JET_C_REPO:-..}"
-python3 elements-amount-literal/test-source.py "${JET_C_REPO:-..}"
-python3 elements-issuance-amount-literal/check-source.py "${JET_C_REPO:-..}"
-python3 elements-issuance-amount-literal/test-source.py "${JET_C_REPO:-..}"
-python3 elements-token-amount-complete/check-source.py "${JET_C_REPO:-..}"
-python3 elements-token-amount-complete/test-source.py "${JET_C_REPO:-..}"
-python3 elements-txid-literal/check-source.py "${JET_C_REPO:-..}"
-python3 elements-txid-literal/test-source.py "${JET_C_REPO:-..}"
-python3 elements-null-data-source/check-source.py "${JET_C_REPO:-..}"
-python3 elements-null-data-source/test-source.py "${JET_C_REPO:-..}"
-python3 check-fullshift-specification.py
-python3 test-fullshift-specification.py
-python3 check-secp-normalize-specification.py
-python3 test-secp-normalize-specification.py
-python3 check-secp-predicates-specification.py
-python3 test-secp-predicates-specification.py
+static_check python3 check-jet-source-target.py
+static_check python3 test-jet-source-target.py
+static_check python3 scan-jet-proofs.py
+static_check python3 jet-coverage.py
+static_check python3 test-jet-coverage.py
+static_check python3 elements-version-review/check-version-source.py --repo "${JET_C_REPO:-..}" --coq .
+static_check python3 elements-version-review/test-version-source.py "${JET_C_REPO:-..}" .
+static_check python3 elements-version-review/check-getters-source.py --repo "${JET_C_REPO:-..}" --coq .
+static_check python3 elements-version-review/test-getters-source.py "${JET_C_REPO:-..}" .
+static_check python3 elements-count-review/check-source.py --repo "${JET_C_REPO:-..}" --coq .
+static_check python3 elements-count-review/test-source.py "${JET_C_REPO:-..}" .
+static_check python3 elements-sequence-review/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_sequence_literal.v
+static_check python3 elements-sequence-review/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_sequence_literal.v
+static_check python3 elements-current-sequence/check-source.py --repo "${JET_C_REPO:-..}" --coq . --sequence C/jet_elements_sequence_literal.v --literal C/jet_elements_current_sequence_literal.v
+static_check python3 elements-current-sequence/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_sequence_literal.v C/jet_elements_current_sequence_literal.v
+static_check python3 elements-tapleaf-literal/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_tapleaf_literal.v
+static_check python3 elements-tapleaf-literal/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_tapleaf_literal.v
+static_check python3 elements-hash-literal/check-source.py --repo "${JET_C_REPO:-..}" --coq . --helper C/jet_haskell_hash_word.v --endpoint C/jet_elements_hash_literal.v
+static_check python3 elements-hash-literal/test-source.py "${JET_C_REPO:-..}" . C/jet_haskell_hash_word.v C/jet_elements_hash_literal.v
+static_check python3 elements-finality/check-source.py --repo "${JET_C_REPO:-..}" --coq .
+static_check python3 elements-finality/test-source.py "${JET_C_REPO:-..}" .
+static_check python3 elements-lock/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_lock_literal.v
+static_check python3 elements-lock/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_lock_literal.v
+static_check python3 elements-check-lock/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_check_lock_literal.v --transport C/jet_application_partial_transport.v
+static_check python3 elements-check-lock/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_check_lock_literal.v C/jet_application_partial_transport.v
+static_check python3 elements-pegin/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_pegin_literal.v
+static_check python3 elements-pegin/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_pegin_literal.v
+static_check python3 elements-script-hash/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_script_hash_literal.v
+static_check python3 elements-script-hash/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_script_hash_literal.v
+static_check python3 elements-issuance-proof/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_issuance_proof_literal.v
+static_check python3 elements-issuance-proof/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_issuance_proof_literal.v
+static_check python3 elements-annex-hash/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_optional_digest_literal.v
+static_check python3 elements-annex-hash/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_optional_digest_literal.v
+static_check python3 elements-issuance-digest/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_issuance_digest_literal.v
+static_check python3 elements-issuance-digest/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_issuance_digest_literal.v
+static_check python3 elements-outpoint-output/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_indexed_literal.v
+static_check python3 elements-outpoint-output/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_indexed_literal.v
+static_check python3 elements-output-proof/check-source.py --repo "${JET_C_REPO:-..}" --coq . --literal C/jet_elements_output_proof_literal.v
+static_check python3 elements-output-proof/test-source.py "${JET_C_REPO:-..}" . C/jet_elements_output_proof_literal.v
+static_check python3 elements-tap-getters/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-tap-getters/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-lbtc-asset/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-lbtc-asset/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-legacy-lock/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-legacy-lock/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-legacy-check/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-legacy-check/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-output-nonce/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-output-nonce/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-asset-literal/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-asset-literal/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-amount-literal/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-amount-literal/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-issuance-amount-literal/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-issuance-amount-literal/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-token-amount-complete/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-token-amount-complete/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-txid-literal/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-txid-literal/test-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-null-data-source/check-source.py "${JET_C_REPO:-..}"
+static_check python3 elements-null-data-source/test-source.py "${JET_C_REPO:-..}"
+static_check python3 check-fullshift-specification.py
+static_check python3 test-fullshift-specification.py
+static_check python3 check-secp-normalize-specification.py
+static_check python3 test-secp-normalize-specification.py
+static_check python3 check-secp-predicates-specification.py
+static_check python3 test-secp-predicates-specification.py
 for gate in negate-wiring recursive-ports literal-ports foundations; do
   candidate_ports=C
   if [[ "$gate" == recursive-ports ]]; then candidate_ports=negate-review; fi
   python3 "negate-review/check-$gate.py" --repo "${JET_C_REPO:-..}" --candidates "$candidate_ports"
   python3 "negate-review/test-$gate.py" --repo "${JET_C_REPO:-..}" --candidates "$candidate_ports"
 done
-python3 add-review/check-add-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
-python3 add-review/test-add-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
-python3 infinity-review/check-infinity-wiring.py --repo "${JET_C_REPO:-..}" --candidates C
-python3 infinity-review/test-infinity-wiring.py --repo "${JET_C_REPO:-..}" --candidates C
-python3 predicate-review/check-gej-predicate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
-python3 predicate-review/test-gej-predicate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
-python3 gej-negate-review/check-gej-negate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
-python3 gej-negate-review/test-gej-negate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
-python3 ge-negate-review/check-ge-negate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
-python3 ge-negate-review/test-ge-negate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
-python3 scalar-review/check-literal.py --repo "${JET_C_REPO:-..}" --source C --coq .
-python3 scalar-review/test-literal.py "${JET_C_REPO:-..}" C .
-python3 scalar-review/test-scalar-ports.py "${JET_C_REPO:-..}" C .
-python3 scalar-integration-review/check-normalize-public.py --repo "${JET_C_REPO:-..}" --source C --dependencies C --coq .
-python3 scalar-integration-review/test-normalize-public.py "${JET_C_REPO:-..}" C C .
-python3 scalar-integration-review/check-negate-ports.py --repo "${JET_C_REPO:-..}" --source C --dependencies C --coq .
-python3 scalar-integration-review/test-negate-ports.py "${JET_C_REPO:-..}" C C .
-python3 scalar-integration-review/check-negate-public.py --repo "${JET_C_REPO:-..}" --source C --dependencies C --coq .
-python3 scalar-integration-review/test-negate-public.py "${JET_C_REPO:-..}" C C .
-python3 scalar-add-review/check-add-bridge.py --repo "${JET_C_REPO:-..}" --source C --coq .
-python3 scalar-add-review/test-add-bridge.py "${JET_C_REPO:-..}" C .
-python3 scalar-add-review/check-add-public.py --repo "${JET_C_REPO:-..}" --source C --coq .
-python3 scalar-add-review/test-add-public.py "${JET_C_REPO:-..}" C .
-python3 scalar-multiply-review/check-multiply-public.py --repo "${JET_C_REPO:-..}" --coq .
-python3 scalar-multiply-review/test-multiply-public.py "${JET_C_REPO:-..}" .
-python3 scalar-square-review/check-square-public.py --repo "${JET_C_REPO:-..}" --coq .
-python3 scalar-square-review/test-square-public.py "${JET_C_REPO:-..}" .
-python3 scalar-lambda-integration/check-lambda-public.py --repo "${JET_C_REPO:-..}" --coq .
-python3 scalar-lambda-integration/test-lambda-public.py "${JET_C_REPO:-..}" .
-python3 check-bitcoin-primitive-identity.py
-python3 test-bitcoin-primitive-identity.py
-python3 test-jet-audit-inputs.py
+static_check python3 add-review/check-add-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+static_check python3 add-review/test-add-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+static_check python3 infinity-review/check-infinity-wiring.py --repo "${JET_C_REPO:-..}" --candidates C
+static_check python3 infinity-review/test-infinity-wiring.py --repo "${JET_C_REPO:-..}" --candidates C
+static_check python3 predicate-review/check-gej-predicate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+static_check python3 predicate-review/test-gej-predicate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+static_check python3 gej-negate-review/check-gej-negate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+static_check python3 gej-negate-review/test-gej-negate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+static_check python3 ge-negate-review/check-ge-negate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+static_check python3 ge-negate-review/test-ge-negate-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
+static_check python3 scalar-review/check-literal.py --repo "${JET_C_REPO:-..}" --source C --coq .
+static_check python3 scalar-review/test-literal.py "${JET_C_REPO:-..}" C .
+static_check python3 scalar-review/test-scalar-ports.py "${JET_C_REPO:-..}" C .
+static_check python3 scalar-integration-review/check-normalize-public.py --repo "${JET_C_REPO:-..}" --source C --dependencies C --coq .
+static_check python3 scalar-integration-review/test-normalize-public.py "${JET_C_REPO:-..}" C C .
+static_check python3 scalar-integration-review/check-negate-ports.py --repo "${JET_C_REPO:-..}" --source C --dependencies C --coq .
+static_check python3 scalar-integration-review/test-negate-ports.py "${JET_C_REPO:-..}" C C .
+static_check python3 scalar-integration-review/check-negate-public.py --repo "${JET_C_REPO:-..}" --source C --dependencies C --coq .
+static_check python3 scalar-integration-review/test-negate-public.py "${JET_C_REPO:-..}" C C .
+static_check python3 scalar-add-review/check-add-bridge.py --repo "${JET_C_REPO:-..}" --source C --coq .
+static_check python3 scalar-add-review/test-add-bridge.py "${JET_C_REPO:-..}" C .
+static_check python3 scalar-add-review/check-add-public.py --repo "${JET_C_REPO:-..}" --source C --coq .
+static_check python3 scalar-add-review/test-add-public.py "${JET_C_REPO:-..}" C .
+static_check python3 scalar-multiply-review/check-multiply-public.py --repo "${JET_C_REPO:-..}" --coq .
+static_check python3 scalar-multiply-review/test-multiply-public.py "${JET_C_REPO:-..}" .
+static_check python3 scalar-square-review/check-square-public.py --repo "${JET_C_REPO:-..}" --coq .
+static_check python3 scalar-square-review/test-square-public.py "${JET_C_REPO:-..}" .
+static_check python3 scalar-lambda-integration/check-lambda-public.py --repo "${JET_C_REPO:-..}" --coq .
+static_check python3 scalar-lambda-integration/test-lambda-public.py "${JET_C_REPO:-..}" .
+static_check python3 check-bitcoin-primitive-identity.py
+static_check python3 test-bitcoin-primitive-identity.py
+static_check python3 test-jet-audit-inputs.py
+
+while (( static_next < static_started )); do static_wait_one; done
+if (( static_failed )); then
+  echo 'source or mutation checks failed; proof acceptance stopped' >&2
+  exit 1
+fi
 
 missing=$(comm -23 <(grep -E '^C/jets?[_.]' _CoqProject.jets | sort -u) \
                    <(grep -E '^C/jets?[_.]' _CoqProject | sort -u) || true)
 if [[ -n "$missing" ]]; then
   echo "jet modules missing from _CoqProject:" >&2; echo "$missing" >&2; exit 1
 fi
-work=$(mktemp -d "${TMPDIR:-/tmp}/jet-check.XXXXXX")
-trap 'rm -rf "$work"' EXIT
 if [[ -n "$jets" ]]; then
   roots=$(python3 - "$jets" <<'PY'
 import sys

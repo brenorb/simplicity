@@ -1,0 +1,34 @@
+### C.jet_read4_call.symbol_read4
+symbol_read4
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0) jets._simplicity_read4)
+         (@Some Values.block (jet_exec.jet_symbol_block jets._simplicity_read4))
+### C.jet_read4_call.funct_read4
+funct_read4
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            (Values.Vptr (jet_exec.jet_symbol_block jets._simplicity_read4) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_simplicity_read4))
+### C.jet_read4_call.call_nibble_read
+call_nibble_read
+     : forall (result : AST.ident) (le : Clight.temp_env) (m mr : Memory.Mem.mem) (bl : Values.block)
+         (r : Integers.Int.int)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read4)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr
+                (Values.Vint r)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (jet_one8.e_one8 bl) le m (nibble_read result) Events.E0
+         (@Maps.PTree.set Values.val result (Values.Vint r) le) mr ClightBigstep.Out_normal
+### C.jet_read4_call.nibble_read
+nibble_read =
+fun result : AST.ident =>
+Clight.Scall (@Some AST.ident result)
+  (Clight.Evar jets._simplicity_read4
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tuchar AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr))) (@nil Clight.expr))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments nibble_read result

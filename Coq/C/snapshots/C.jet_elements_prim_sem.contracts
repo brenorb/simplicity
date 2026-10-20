@@ -1,0 +1,63 @@
+### C.jet_elements_prim_sem.core_reader_sem
+@core_reader_sem
+     : forall (A B : Ty.Ty) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (_ : @Alg.Core.Parametric A B (fun alg : Alg.Core.Algebra => t alg)) (E : Type) (x : Ty.tySem A)
+         (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem B))
+         (t (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) x environment)
+         (@Some (Ty.tySem B) (t Alg.CoreFunSem x))
+### C.jet_elements_prim_sem.elements_pair_sem
+@elements_pair_sem
+     : forall (A B C : Ty.Ty) (p : forall (_ : Ty.tySem A) (_ : jet_elements_prim.Elements.env), option (Ty.tySem B))
+         (q : forall (_ : Ty.tySem A) (_ : jet_elements_prim.Elements.env), option (Ty.tySem C))
+         (a : Ty.tySem A) (env : jet_elements_prim.Elements.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+         (@elements_pair
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) A B C p q
+            a env)
+         match
+           p a env
+           return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+         with
+         | Some b =>
+             match
+               q a env
+               return
+                 (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+             with
+             | Some c => @Some (prod (Ty.tySem B) (Ty.tySem C)) (@pair (Ty.tySem B) (Ty.tySem C) b c)
+             | None => @None (Ty.tySem (Ty.Prod B C))
+             end
+         | None => @None (Ty.tySem (Ty.Prod B C))
+         end
+### C.jet_elements_prim_sem.elements_core_sem
+@elements_core_sem
+     : forall (A B : Ty.Ty) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (_ : @Alg.Core.Parametric A B (fun alg : Alg.Core.Algebra => t alg)) (a : Ty.tySem A)
+         (env : jet_elements_prim.Elements.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (@elements_core A B t
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a env)
+         (@Some (Ty.tySem B) (t Alg.CoreFunSem a))
+### C.jet_elements_prim_sem.elements_pair
+elements_pair =
+fun (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) (A B C : Ty.Ty)
+  (p : jet_elements_prim.PrimitiveElements.Primitive.domain alg A B)
+  (q : jet_elements_prim.PrimitiveElements.Primitive.domain alg A C) =>
+@DC.pair A B C (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore alg) p q
+     : forall (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) (A B C : Ty.Ty)
+         (_ : jet_elements_prim.PrimitiveElements.Primitive.domain alg A B)
+         (_ : jet_elements_prim.PrimitiveElements.Primitive.domain alg A C),
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg A (Ty.Prod B C)
+
+Arguments elements_pair {alg} {A B C}%ty_scope p q
+### C.jet_elements_prim_sem.elements_core
+elements_core =
+fun (A B : Ty.Ty) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+  (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) =>
+t (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore alg)
+     : forall (A B : Ty.Ty) (_ : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra),
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg A B
+
+Arguments elements_core {A B}%ty_scope t%function_scope {alg}

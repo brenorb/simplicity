@@ -1,0 +1,39 @@
+### C.jet_shift64_with_word.shift64_with_payload_bits
+shift64_with_payload_bits
+     : forall (right fill : bool) (amount : Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S O))))))
+         (x : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (r : Integers.Int64.int) (a : Integers.Int.int)
+         (j : BinNums.Z)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) x))
+         (_ : @eq BinNums.Z (Integers.Int.unsigned a) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) amount))
+         (_ : and (BinInt.Z.le BinNums.Z0 j)
+                (BinInt.Z.lt j
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (jet_shift_wide_helper_exec.shift_wide_payload jet_wide.W64 right fill r a) j)
+         (BinInt.Z.testbit
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+               (@jet_shift64_with_spec.shift64_with_spec right Alg.CoreFunSem
+                  (@pair (sum unit unit)
+                     (prod (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S O))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))) (Bit.fromBool fill)
+                     (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S O))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) amount x)))) j)
+### C.jet_shift64_with_word.shift64_with_payload_denotes
+shift64_with_payload_denotes
+     : forall (right fill : bool) (amount : Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S O))))))
+         (x : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (r : Integers.Int64.int) (a : Integers.Int.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) x))
+         (_ : @eq BinNums.Z (Integers.Int.unsigned a) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) amount)),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W64)))
+         (jet_wide_spec.decode_wide jet_wide.W64
+            (Integers.Int64.zero_ext
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               (jet_shift_wide_helper_exec.shift_wide_payload jet_wide.W64 right fill r a)))
+         (@jet_shift64_with_spec.shift64_with_spec right Alg.CoreFunSem
+            (@pair (sum unit unit)
+               (prod (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S O))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))) (Bit.fromBool fill)
+               (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S O))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) amount x)))

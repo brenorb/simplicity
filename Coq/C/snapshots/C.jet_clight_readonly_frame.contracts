@@ -1,0 +1,45 @@
+### C.jet_clight_readonly_frame.readonly_bounds_not_writable
+readonly_bounds_not_writable
+     : forall (m : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z) (_ : readonly_region_bounds m b lo hi)
+         (ofs : BinNums.Z), not (Memory.Mem.perm m b ofs Memtype.Max Memtype.Writable)
+### C.jet_clight_readonly_frame.readonly_bounds_transport
+readonly_bounds_transport
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+         (_ : readonly_region_bounds m b lo hi) (_ : jet_clight_forward.mem_forward m mf)
+         (_ : Memory.Mem.range_perm mf b lo hi Memtype.Cur Memtype.Readable), readonly_region_bounds mf b lo hi
+### C.jet_clight_readonly_frame.readonly_bounds_valid_access
+readonly_bounds_valid_access
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z) (chunk : AST.memory_chunk)
+         (ofs : BinNums.Z) (_ : readonly_region_bounds m b lo hi) (_ : readonly_region_bounds mf b lo hi)
+         (_ : Memory.Mem.valid_access m chunk b ofs Memtype.Readable),
+       Memory.Mem.valid_access mf chunk b ofs Memtype.Readable
+### C.jet_clight_readonly_frame.readonly_region_lframe
+readonly_region_lframe
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+         (_ : readonly_region_bounds m b lo hi) (_ : Memory.Mem.range_perm mf b lo hi Memtype.Cur Memtype.Readable)
+         (_ : jet_clight_readonly.readonly_readback m mf),
+       jet_sx_mem.lframe (fun (block : Values.block) (_ : BinNums.Z) => @eq Values.block block b) m mf
+### C.jet_clight_readonly_frame.clight_funcall_readonly_lframe
+clight_funcall_readonly_lframe
+     : forall (ge : Clight.genv) (m : Memory.Mem.mem) (f : Clight.fundef) (args : list Values.val)
+         (t : Events.trace) (mf : Memory.Mem.mem) (result : Values.val) (b : Values.block)
+         (lo hi : BinNums.Z) (_ : ClightBigstep.Clight2.eval_funcall ge m f args t mf result)
+         (_ : Memory.Mem.valid_block m b) (_ : readonly_region_bounds m b lo hi)
+         (_ : Memory.Mem.range_perm mf b lo hi Memtype.Cur Memtype.Readable),
+       jet_sx_mem.lframe (fun (block : Values.block) (_ : BinNums.Z) => @eq Values.block block b) m mf
+### C.jet_clight_readonly_frame.lframe_add_block
+lframe_add_block
+     : forall (P Q : forall (_ : Values.block) (_ : BinNums.Z), Prop) (b : Values.block) (m mf : Memory.Mem.mem)
+         (_ : jet_sx_mem.lframe P m mf)
+         (_ : jet_sx_mem.lframe (fun (block : Values.block) (_ : BinNums.Z) => @eq Values.block block b) m mf)
+         (_ : forall (block : Values.block) (ofs : BinNums.Z) (_ : not (@eq Values.block block b)) (_ : Q block ofs),
+              P block ofs), jet_sx_mem.lframe Q m mf
+### C.jet_clight_readonly_frame.readonly_region_bounds
+readonly_region_bounds =
+fun (m : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z) =>
+forall (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission),
+iff (Memory.Mem.perm m b ofs k p)
+  (and (and (BinInt.Z.le lo ofs) (BinInt.Z.lt ofs hi)) (Memtype.perm_order Memtype.Readable p))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z), Prop
+
+Arguments readonly_region_bounds m b (lo hi)%Z_scope

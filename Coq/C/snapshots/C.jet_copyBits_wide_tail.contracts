@@ -1,0 +1,123 @@
+### C.jet_copyBits_wide_tail.copy_loop_after_full_shape
+copy_loop_after_full_shape
+     : @eq Clight.statement jet_copyBits_loop_crossing.copy_loop_after_full
+         (Clight.Ssequence
+            (Clight.Sset jets._n
+               (Clight.Ebinop Cop.Osub (Clight.Etempvar jets._n Ctypesdefs.tulong)
+                  jet_frame_constants.generated_uword_bits Ctypesdefs.tulong))
+            (Clight.Ssequence
+               (Clight.Sset jets._dst_ptr
+                  (Clight.Ebinop Cop.Osub (Clight.Etempvar jets._dst_ptr (Ctypesdefs.tptr Ctypesdefs.tulong))
+                     (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tulong)))
+               (Clight.Sset jets._src_ptr
+                  (Clight.Ebinop Cop.Osub (Clight.Etempvar jets._src_ptr (Ctypesdefs.tptr Ctypesdefs.tulong))
+                     (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) (Ctypesdefs.tptr Ctypesdefs.tulong)))))
+### C.jet_copyBits_wide_tail.exec_copy_loop_advance
+exec_copy_loop_advance
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bi : Values.block)
+         (src_ofs : Integers.Ptrofs.int) (bw : Values.block) (dst_ofs : Integers.Ptrofs.int)
+         (n : BinNums.Z)
+         (_ : and
+                (BinInt.Z.lt
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src_ptr le)
+                (@Some Values.val (Values.Vptr bi src_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst_ptr le)
+                (@Some Values.val (Values.Vptr bw dst_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._n le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr n)))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m
+         jet_copyBits_loop_crossing.copy_loop_after_full Events.E0 (copy_loop_next_env le bi src_ofs bw dst_ofs n) m
+         ClightBigstep.Out_normal
+### C.jet_copyBits_wide_tail.exec_copy_loop_iter
+exec_copy_loop_iter
+     : forall (le : Maps.PTree.tree Values.val) (m mi mf : Memory.Mem.mem) (bi : Values.block)
+         (src_ofs : Integers.Ptrofs.int) (bw : Values.block) (dst_ofs : Integers.Ptrofs.int)
+         (ss n : BinNums.Z) (source next : Integers.Int64.int)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and
+                (BinInt.Z.lt
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src_ptr le)
+                (@Some Values.val (Values.Vptr bi src_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst_ptr le)
+                (@Some Values.val (Values.Vptr bw dst_ofs)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._src_shift le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr ss))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._n le)
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr n))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m bi (Integers.Ptrofs.unsigned src_ofs))
+                (@Some Values.val (Values.Vlong source)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_copyBits_loop_exec.copy_loop_value ss source))) (@Some Memory.Mem.mem mi))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mi bi
+                   (Integers.Ptrofs.unsigned
+                      (Integers.Ptrofs.sub src_ofs
+                         (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (@Some Values.val (Values.Vlong next)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mi bw (Integers.Ptrofs.unsigned dst_ofs)
+                   (Values.Vlong (jet_copyBits_loop_crossing.copy_loop_join_value ss source next)))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m jet_copyBits_loop_exec.copy_loop_body
+         Events.E0
+         (copy_loop_next_env
+            (jet_copyBits_loop_crossing.copy_loop_join_env (jet_copyBits_loop_exec.copy_loop_env le ss source) ss
+               source next) bi src_ofs bw dst_ofs n) mf ClightBigstep.Out_normal
+### C.jet_copyBits_wide_tail.exec_copy_loop_step
+exec_copy_loop_step
+     : forall (le le1 le2 : Clight.temp_env) (m m1 m2 : Memory.Mem.mem) (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m jet_copyBits_loop_exec.copy_loop_body
+                Events.E0 le1 m1 ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le1 m1 jet_copyBits_loop_exec.copy_loop
+                Events.E0 le2 m2 out),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 Clight.empty_env le m jet_copyBits_loop_exec.copy_loop Events.E0
+         le2 m2 out
+### C.jet_copyBits_wide_tail.copy_loop_next_env
+copy_loop_next_env =
+fun (le : Maps.PTree.tree Values.val) (bi : Values.block) (src_ofs : Integers.Ptrofs.int) (bw : Values.block)
+  (dst_ofs : Integers.Ptrofs.int) (n : BinNums.Z) =>
+@Maps.PTree.set Values.val jets._src_ptr
+  (Values.Vptr bi
+     (Integers.Ptrofs.sub src_ofs
+        (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+  (@Maps.PTree.set Values.val jets._dst_ptr
+     (Values.Vptr bw
+        (Integers.Ptrofs.sub dst_ofs
+           (Integers.Ptrofs.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+     (@Maps.PTree.set Values.val jets._n
+        (Values.Vlong
+           (Integers.Int64.repr
+              (BinInt.Z.sub n
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+        le))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Values.block) (_ : Integers.Ptrofs.int)
+         (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments copy_loop_next_env le bi src_ofs bw dst_ofs n%Z_scope

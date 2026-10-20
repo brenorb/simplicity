@@ -1,0 +1,46 @@
+### C.jet_bitcoin_word_helpers.bitcoin_clear_symbol
+bitcoin_clear_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_bitcoin_linkage.bitcoin_ge)
+            jets_bitcoin._LSBclear)
+         (@Some Values.block (jet_bitcoin_linkage.bitcoin_symbol_block jets_bitcoin._LSBclear))
+### C.jet_bitcoin_word_helpers.bitcoin_clear_funct
+bitcoin_clear_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_bitcoin_linkage.bitcoin_ge)
+            (Values.Vptr (jet_bitcoin_linkage.bitcoin_symbol_block jets_bitcoin._LSBclear) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_bitcoin.f_LSBclear))
+### C.jet_bitcoin_word_helpers.bitcoin_keep_symbol
+bitcoin_keep_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_bitcoin_linkage.bitcoin_ge)
+            jets_bitcoin._LSBkeep)
+         (@Some Values.block (jet_bitcoin_linkage.bitcoin_symbol_block jets_bitcoin._LSBkeep))
+### C.jet_bitcoin_word_helpers.bitcoin_keep_funct
+bitcoin_keep_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_bitcoin_linkage.bitcoin_ge)
+            (Values.Vptr (jet_bitcoin_linkage.bitcoin_symbol_block jets_bitcoin._LSBkeep) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_bitcoin.f_LSBkeep))
+### C.jet_bitcoin_word_helpers.eval_bitcoin_clear_width
+eval_bitcoin_clear_width
+     : forall (m : Memory.Mem.mem) (w : Integers.Int64.int) (n : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       ClightBigstep.Clight2.eval_funcall jet_bitcoin_linkage.bitcoin_ge m
+         (@Ctypes.Internal Clight.function jets_bitcoin.f_LSBclear)
+         (@cons Values.val (Values.Vlong w) (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))
+         Events.E0 m (Values.Vlong (jet_word_bits.clear_low n w))
+### C.jet_bitcoin_word_helpers.eval_bitcoin_keep_width
+eval_bitcoin_keep_width
+     : forall (m : Memory.Mem.mem) (w : Integers.Int64.int) (n : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       ClightBigstep.Clight2.eval_funcall jet_bitcoin_linkage.bitcoin_ge m
+         (@Ctypes.Internal Clight.function jets_bitcoin.f_LSBkeep)
+         (@cons Values.val (Values.Vlong w) (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))
+         Events.E0 m (Values.Vlong (Integers.Int64.zero_ext n w))

@@ -1,0 +1,128 @@
+### C.jet_secp_reduce512_second_run.reduce512_second_source
+reduce512_second_source
+     : @eq Clight.statement
+         (jet_secp_statement_prefix.statement_sequence reduce512_second_spine reduce512_second_suffix)
+         (Clight.fn_body jets_secp.f_secp256k1_scalar_reduce_512)
+### C.jet_secp_reduce512_second_run.reduce512_second_boundary
+reduce512_second_boundary
+     : and
+         (@eq bool
+            (jet_secp_reduce512_first_run.statement_ends_set jets_secp._p4
+               (@List.last Clight.statement reduce512_second_spine Clight.Sskip)) true)
+         (and (lt jet_secp_reduce512_first_run.reduce512_first_count reduce512_second_count)
+            (lt reduce512_second_count (@length Clight.statement jet_secp_reduce512_first_run.reduce512_spine)))
+### C.jet_secp_reduce512_second_run.reduce512_second_completes
+reduce512_second_completes
+     : @eq bool
+         match reduce512_second_run return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_reduce512_second_run.reduce512_second_run_eq
+reduce512_second_run_eq
+     : @eq (option jet_sx_exec.res) reduce512_second_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone reduce512_second_state jet_sx_exec.ONormal))
+### C.jet_secp_reduce512_second_run.reduce512_second_temps_present
+reduce512_second_temps_present
+     : @eq bool
+         (@List.forallb BinNums.positive
+            (fun id : BinNums.positive =>
+             match @Maps.PTree.get jet_sx_expr.sx id (jet_sx_eval.stemps reduce512_second_state) return bool with
+             | Some _ => true
+             | None => false
+             end)
+            (@cons AST.ident jets_secp._p0
+               (@cons AST.ident jets_secp._p1
+                  (@cons AST.ident jets_secp._p2
+                     (@cons AST.ident jets_secp._p3 (@cons AST.ident jets_secp._p4 (@nil AST.ident))))))) true
+### C.jet_secp_reduce512_second_run.reduce512_second_limb_kinds
+reduce512_second_limb_kinds
+     : @eq bool (@List.forallb jet_sx_expr.sx (jet_sx_expr.isk jet_sx_expr.KL) reduce512_second_limbs) true
+### C.jet_secp_reduce512_second_run.reduce512_second_count
+reduce512_second_count =
+jet_secp_reduce512_first_run.spine_cut_after jets_secp._p4 jet_secp_reduce512_first_run.reduce512_spine
+     : nat
+### C.jet_secp_reduce512_second_run.reduce512_second_spine
+reduce512_second_spine =
+@List.firstn Clight.statement reduce512_second_count jet_secp_reduce512_first_run.reduce512_spine
+     : list Clight.statement
+### C.jet_secp_reduce512_second_run.reduce512_second_prefix
+reduce512_second_prefix =
+jet_secp_statement_prefix.statement_sequence reduce512_second_spine Clight.Sskip
+     : Clight.statement
+### C.jet_secp_reduce512_second_run.reduce512_second_suffix
+reduce512_second_suffix =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement reduce512_second_count jet_secp_reduce512_first_run.reduce512_spine)
+  jet_secp_reduce512_first_run.reduce512_last
+     : Clight.statement
+### C.jet_secp_reduce512_second_run.reduce512_second_run
+reduce512_second_run =
+match
+  jet_sx_mem.xalloc (jet_sx_mem.std_cells (Clight.genv_cenv jet_secp_linkage.secp_ge))
+    (Clight.genv_cenv jet_secp_linkage.secp_ge) (Clight.fn_vars jets_secp.f_secp256k1_scalar_reduce_512)
+    (S (S O)) return (option jet_sx_exec.res)
+with
+| Some p =>
+    match p return (option jet_sx_exec.res) with
+    | pair locals ve =>
+        match
+          jet_sx_mem.xbind (Clight.fn_params jets_secp.f_secp256k1_scalar_reduce_512)
+            (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+               (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0) (@nil jet_sx_expr.sx)))
+            (Maps.PTree.empty jet_sx_expr.sx) return (option jet_sx_exec.res)
+        with
+        | Some ts =>
+            jet_sx_compact.compact_stmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+              (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_shift64_executor.secp_shift64_table
+              (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))) ve
+              (jet_sx_eval.mkst ts
+                 (@app jet_sx_state.region jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs locals)
+                 (@nil jet_sx_eval.event) (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))) reduce512_second_prefix
+        | None => @None jet_sx_exec.res
+        end
+    end
+| None => @None jet_sx_exec.res
+end
+     : option jet_sx_exec.res
+### C.jet_secp_reduce512_second_run.reduce512_second_state
+reduce512_second_state =
+match reduce512_second_run return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : jet_sx_eval.sstate
+### C.jet_secp_reduce512_second_run.reduce512_second_temp
+reduce512_second_temp =
+fun id : AST.ident =>
+match @Maps.PTree.get jet_sx_expr.sx id (jet_sx_eval.stemps reduce512_second_state) return jet_sx_expr.sx with
+| Some x => x
+| None => jet_sx_expr.XV Values.Vundef
+end
+     : forall _ : AST.ident, jet_sx_expr.sx
+
+Arguments reduce512_second_temp id
+### C.jet_secp_reduce512_second_run.reduce512_second_limbs
+reduce512_second_limbs =
+@cons jet_sx_expr.sx (reduce512_second_temp jets_secp._p0)
+  (@cons jet_sx_expr.sx (reduce512_second_temp jets_secp._p1)
+     (@cons jet_sx_expr.sx (reduce512_second_temp jets_secp._p2)
+        (@cons jet_sx_expr.sx (reduce512_second_temp jets_secp._p3)
+           (@cons jet_sx_expr.sx (jet_sx_expr.XI2L Ctypes.Unsigned (reduce512_second_temp jets_secp._p4))
+              (@nil jet_sx_expr.sx)))))
+     : list jet_sx_expr.sx

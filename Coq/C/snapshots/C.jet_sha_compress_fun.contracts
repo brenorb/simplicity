@@ -1,0 +1,1446 @@
+### C.jet_sha_compress_fun.interp_spine_run
+interp_spine_run
+     : forall (fuel : nat) (s : Clight.statement) (st : jet_sha_interp.cst),
+       @eq (option jet_sha_interp.cst) (jet_sha_interp.interp_spine fuel s st) (run (split_spine fuel s) st)
+### C.jet_sha_compress_fun.run_app
+run_app
+     : forall (l1 l2 : list Clight.statement) (st : jet_sha_interp.cst),
+       @eq (option jet_sha_interp.cst) (run (@app Clight.statement l1 l2) st)
+         match run l1 st return (option jet_sha_interp.cst) with
+         | Some st1 => run l2 st1
+         | None => @None jet_sha_interp.cst
+         end
+### C.jet_sha_compress_fun.body_elems_eq
+body_elems_eq
+     : @eq (list Clight.statement)
+         (split_spine (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+            (Clight.fn_body jets_sha.f_sha256_compression_portable)) body_elems
+### C.jet_sha_compress_fun.int_eq_true_eq
+int_eq_true_eq
+     : forall (a b : Integers.Int.int) (_ : @eq bool (Integers.Int.eq a b) true), @eq Integers.Int.int a b
+### C.jet_sha_compress_fun.int_mul_one'
+int_mul_one'
+     : forall (o x : Integers.Int.int) (_ : @eq bool (Integers.Int.eq o Integers.Int.one) true),
+       @eq Integers.Int.int (Integers.Int.mul o x) x
+### C.jet_sha_compress_fun.rnd_function_c
+rnd_function_c
+     : forall (x0 x1 x2 x3 x4 x5 x6 x7 Kc K W wt : Integers.Int.int) (_ : @eq bool (Integers.Int.eq Kc K) true)
+         (_ : @eq Integers.Int.int wt W),
+       @eq SHA256.registers
+         (SHA256.rnd_function
+            (@cons Integers.Int.int x0
+               (@cons Integers.Int.int x1
+                  (@cons Integers.Int.int x2
+                     (@cons Integers.Int.int x3
+                        (@cons Integers.Int.int x4
+                           (@cons Integers.Int.int x5
+                              (@cons Integers.Int.int x6 (@cons Integers.Int.int x7 (@nil Integers.Int.int))))))))) K W)
+         (@cons Integers.Int.int
+            (Integers.Int.add (jet_sha_round.c_T1 x7 x4 x5 x6 (Integers.Int.add Kc wt)) (jet_sha_round.c_T2 x0 x1 x2))
+            (@cons Integers.Int.int x0
+               (@cons Integers.Int.int x1
+                  (@cons Integers.Int.int x2
+                     (@cons Integers.Int.int
+                        (Integers.Int.add x3 (jet_sha_round.c_T1 x7 x4 x5 x6 (Integers.Int.add Kc wt)))
+                        (@cons Integers.Int.int x4
+                           (@cons Integers.Int.int x5 (@cons Integers.Int.int x6 (@nil Integers.Int.int)))))))))
+### C.jet_sha_compress_fun.W_first
+W_first
+     : forall (c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 : Integers.Int.int) (t : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 t)
+                (BinInt.Z.lt t (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))),
+       @eq Integers.Int.int (SHA256.W (M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15) t)
+         (M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 t)
+### C.jet_sha_compress_fun.W_step
+W_step
+     : forall (c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 : Integers.Int.int) (t : BinNums.Z)
+         (wa wb wc wd one : Integers.Int.int)
+         (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) t)
+         (_ : @eq Integers.Int.int wa
+                (SHA256.W (M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15)
+                   (BinInt.Z.sub t (BinNums.Zpos (BinNums.xO BinNums.xH)))))
+         (_ : @eq Integers.Int.int wb
+                (SHA256.W (M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15)
+                   (BinInt.Z.sub t (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH))))))
+         (_ : @eq Integers.Int.int wc
+                (SHA256.W (M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15)
+                   (BinInt.Z.sub t (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+         (_ : @eq Integers.Int.int wd
+                (SHA256.W (M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15)
+                   (BinInt.Z.sub t (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : @eq bool (Integers.Int.eq one Integers.Int.one) true),
+       @eq Integers.Int.int
+         (Integers.Int.add
+            (Integers.Int.add (Integers.Int.add (Integers.Int.mul one wd) (jet_sha_linkage.c_sigma1 wa)) wb)
+            (jet_sha_linkage.c_sigma0 wc)) (SHA256.W (M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15) t)
+### C.jet_sha_compress_fun.split_spine
+split_spine =
+fix split_spine (fuel : nat) (s : Clight.statement) {struct fuel} : list Clight.statement :=
+  match fuel return (list Clight.statement) with
+  | O => @cons Clight.statement s (@nil Clight.statement)
+  | S fuel0 =>
+      match s return (list Clight.statement) with
+      | Clight.Sskip => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Sassign _ _ => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Sset _ _ => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Scall _ _ _ => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Sbuiltin _ _ _ _ => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Ssequence a b => @cons Clight.statement a (split_spine fuel0 b)
+      | Clight.Sifthenelse _ _ _ => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Sloop _ _ => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Sbreak => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Scontinue => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Sreturn _ => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Sswitch _ _ => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Slabel _ _ => @cons Clight.statement s (@nil Clight.statement)
+      | Clight.Sgoto _ => @cons Clight.statement s (@nil Clight.statement)
+      end
+  end
+     : forall (_ : nat) (_ : Clight.statement), list Clight.statement
+
+Arguments split_spine fuel%nat_scope s
+### C.jet_sha_compress_fun.run
+run =
+fix run (l : list Clight.statement) (st : jet_sha_interp.cst) {struct l} : option jet_sha_interp.cst :=
+  match l return (option jet_sha_interp.cst) with
+  | nil => @Some jet_sha_interp.cst st
+  | cons a l' =>
+      match jet_sha_interp.interp a (jet_sha_interp.reset st) return (option jet_sha_interp.cst) with
+      | Some st1 => run l' st1
+      | None => @None jet_sha_interp.cst
+      end
+  end
+     : forall (_ : list Clight.statement) (_ : jet_sha_interp.cst), option jet_sha_interp.cst
+
+Arguments run l%list_scope st
+### C.jet_sha_compress_fun.body_elems
+body_elems =
+@cons Clight.statement
+  (Clight.Ssequence
+     (Clight.Sset
+        (BinNums.xI
+           (BinNums.xO
+              (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+        (Clight.Ederef
+           (Clight.Ebinop Cop.Oadd
+              (Clight.Etempvar (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                 (Ctypes.Tpointer (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                    (Ctypes.mk_attr false (@None BinNums.N))))
+              (Clight.Econst_int (Integers.Int.mkint BinNums.Z0 (Integers.Int.Z_mod_modulus_range' BinNums.Z0))
+                 (Ctypes.Tint Ctypes.I32 Ctypes.Signed (Ctypes.mk_attr false (@None BinNums.N))))
+              (Ctypes.Tpointer (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                 (Ctypes.mk_attr false (@None BinNums.N))))
+           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))))
+     (Clight.Sassign
+        (Clight.Evar (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))
+        (Clight.Etempvar
+           (BinNums.xI
+              (BinNums.xO
+                 (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))))
+  (@cons Clight.statement
+     (Clight.Ssequence
+        (Clight.Sset
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+           (Clight.Ederef
+              (Clight.Ebinop Cop.Oadd
+                 (Clight.Etempvar
+                    (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                    (Ctypes.Tpointer (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                       (Ctypes.mk_attr false (@None BinNums.N))))
+                 (Clight.Econst_int
+                    (Integers.Int.mkint (BinNums.Zpos BinNums.xH)
+                       (Integers.Int.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH)))
+                    (Ctypes.Tint Ctypes.I32 Ctypes.Signed (Ctypes.mk_attr false (@None BinNums.N))))
+                 (Ctypes.Tpointer (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                    (Ctypes.mk_attr false (@None BinNums.N))))
+              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))))
+        (Clight.Sassign
+           (Clight.Evar (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))
+           (Clight.Etempvar
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))))
+     (@cons Clight.statement
+        (Clight.Ssequence
+           (Clight.Sset
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+              (Clight.Ederef
+                 (Clight.Ebinop Cop.Oadd
+                    (Clight.Etempvar
+                       (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                       (Ctypes.Tpointer
+                          (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                          (Ctypes.mk_attr false (@None BinNums.N))))
+                    (Clight.Econst_int
+                       (Integers.Int.mkint (BinNums.Zpos (BinNums.xO BinNums.xH))
+                          (Integers.Int.Z_mod_modulus_range' (BinNums.Zpos (BinNums.xO BinNums.xH))))
+                       (Ctypes.Tint Ctypes.I32 Ctypes.Signed (Ctypes.mk_attr false (@None BinNums.N))))
+                    (Ctypes.Tpointer (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                       (Ctypes.mk_attr false (@None BinNums.N))))
+                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))))
+           (Clight.Sassign
+              (Clight.Evar (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))
+              (Clight.Etempvar
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))))
+        (@cons Clight.statement
+           (Clight.Ssequence
+              (Clight.Sset
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                 (Clight.Ederef
+                    (Clight.Ebinop Cop.Oadd
+                       (Clight.Etempvar
+                          (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                          (Ctypes.Tpointer
+                             (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                             (Ctypes.mk_attr false (@None BinNums.N))))
+                       (Clight.Econst_int
+                          (Integers.Int.mkint (BinNums.Zpos (BinNums.xI BinNums.xH))
+                             (Integers.Int.Z_mod_modulus_range' (BinNums.Zpos (BinNums.xI BinNums.xH))))
+                          (Ctypes.Tint Ctypes.I32 Ctypes.Signed (Ctypes.mk_attr false (@None BinNums.N))))
+                       (Ctypes.Tpointer
+                          (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                          (Ctypes.mk_attr false (@None BinNums.N))))
+                    (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))))
+              (Clight.Sassign
+                 (Clight.Evar (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                    (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))
+                 (Clight.Etempvar
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                    (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))))
+           (@cons Clight.statement
+              (Clight.Ssequence
+                 (Clight.Sset
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                    (Clight.Ederef
+                       (Clight.Ebinop Cop.Oadd
+                          (Clight.Etempvar
+                             (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                             (Ctypes.Tpointer
+                                (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                                (Ctypes.mk_attr false (@None BinNums.N))))
+                          (Clight.Econst_int
+                             (Integers.Int.mkint (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                                (Integers.Int.Z_mod_modulus_range' (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))))
+                             (Ctypes.Tint Ctypes.I32 Ctypes.Signed (Ctypes.mk_attr false (@None BinNums.N))))
+                          (Ctypes.Tpointer
+                             (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                             (Ctypes.mk_attr false (@None BinNums.N))))
+                       (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))))
+                 (Clight.Sassign
+                    (Clight.Evar
+                       (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                       (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))
+                    (Clight.Etempvar
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                       (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))))
+              (@cons Clight.statement
+                 (Clight.Ssequence
+                    (Clight.Sset
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                       (Clight.Ederef
+                          (Clight.Ebinop Cop.Oadd
+                             (Clight.Etempvar
+                                (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                (Ctypes.Tpointer
+                                   (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                                   (Ctypes.mk_attr false (@None BinNums.N))))
+                             (Clight.Econst_int
+                                (Integers.Int.mkint (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+                                   (Integers.Int.Z_mod_modulus_range'
+                                      (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+                                (Ctypes.Tint Ctypes.I32 Ctypes.Signed (Ctypes.mk_attr false (@None BinNums.N))))
+                             (Ctypes.Tpointer
+                                (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                                (Ctypes.mk_attr false (@None BinNums.N))))
+                          (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))))
+                    (Clight.Sassign
+                       (Clight.Evar
+                          (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                          (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))
+                       (Clight.Etempvar
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                          (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))))
+                 (@cons Clight.statement
+                    (Clight.Ssequence
+                       (Clight.Sset
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                          (Clight.Ederef
+                             (Clight.Ebinop Cop.Oadd
+                                (Clight.Etempvar
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                   (Ctypes.Tpointer
+                                      (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                                      (Ctypes.mk_attr false (@None BinNums.N))))
+                                (Clight.Econst_int
+                                   (Integers.Int.mkint (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))
+                                      (Integers.Int.Z_mod_modulus_range'
+                                         (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))))
+                                   (Ctypes.Tint Ctypes.I32 Ctypes.Signed (Ctypes.mk_attr false (@None BinNums.N))))
+                                (Ctypes.Tpointer
+                                   (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                                   (Ctypes.mk_attr false (@None BinNums.N))))
+                             (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))))
+                       (Clight.Sassign
+                          (Clight.Evar
+                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                             (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))
+                          (Clight.Etempvar
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                             (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))))
+                    (@cons Clight.statement
+                       (Clight.Ssequence
+                          (Clight.Sset
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                             (Clight.Ederef
+                                (Clight.Ebinop Cop.Oadd
+                                   (Clight.Etempvar
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                      (Ctypes.Tpointer
+                                         (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                            (Ctypes.mk_attr false (@None BinNums.N)))
+                                         (Ctypes.mk_attr false (@None BinNums.N))))
+                                   (Clight.Econst_int
+                                      (Integers.Int.mkint (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))
+                                         (Integers.Int.Z_mod_modulus_range'
+                                            (BinNums.Zpos (BinNums.xI (BinNums.xI BinNums.xH)))))
+                                      (Ctypes.Tint Ctypes.I32 Ctypes.Signed (Ctypes.mk_attr false (@None BinNums.N))))
+                                   (Ctypes.Tpointer
+                                      (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))
+                                      (Ctypes.mk_attr false (@None BinNums.N))))
+                                (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))))
+                          (Clight.Sassign
+                             (Clight.Evar
+                                (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))
+                             (Clight.Etempvar
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                                (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))))
+                       (@cons Clight.statement
+                          (Clight.Ssequence
+                             (Clight.Ssequence
+                                (Clight.Ssequence
+                                   (Clight.Sset
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                                      (Clight.Ederef
+                                         (Clight.Ebinop Cop.Oadd
+                                            (Clight.Etempvar
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (...))))))))
+                                               (Ctypes.Tpointer
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N)))
+                                                  (Ctypes.mk_attr false (@None BinNums.N))))
+                                            (Clight.Econst_int
+                                               (Integers.Int.mkint BinNums.Z0
+                                                  (Integers.Int.Z_mod_modulus_range' BinNums.Z0))
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Signed
+                                                  (Ctypes.mk_attr false (@None BinNums.N))))
+                                            (Ctypes.Tpointer
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                  (Ctypes.mk_attr false (@None BinNums.N)))
+                                               (Ctypes.mk_attr false (@None BinNums.N))))
+                                         (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                            (Ctypes.mk_attr false (@None BinNums.N)))))
+                                   (Clight.Sset
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                      (Clight.Ecast
+                                         (Clight.Etempvar
+                                            (BinNums.xI
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))))
+                                            (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                               (Ctypes.mk_attr false (@None BinNums.N))))
+                                         (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                            (Ctypes.mk_attr false (@None BinNums.N))))))
+                                (Clight.Sset
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))
+                                   (Clight.Etempvar
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                      (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N))))))
+                             (Clight.Ssequence
+                                (Clight.Sset
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                                   (Clight.Evar
+                                      (BinNums.xO
+                                         (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                      (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (Ctypes.mk_attr false (@None BinNums.N)))))
+                                (Clight.Ssequence
+                                   (Clight.Sset
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                                      (Clight.Evar
+                                         (BinNums.xI
+                                            (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                         (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                            (Ctypes.mk_attr false (@None BinNums.N)))))
+                                   (Clight.Ssequence
+                                      (Clight.Sset
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                                         (Clight.Evar
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                            (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                               (Ctypes.mk_attr false (@None BinNums.N)))))
+                                      (Clight.Ssequence
+                                         (Clight.Sset
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))))
+                                            (Clight.Evar
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                  (Ctypes.mk_attr false (@None BinNums.N)))))
+                                         (Clight.Ssequence
+                                            (Clight.Sset
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))
+                                               (Clight.Evar
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N)))))
+                                            (Clight.Ssequence
+                                               (Clight.Sset
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))
+                                                  (Clight.Evar
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (...))))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N)))))
+                                               (Clight.Scall (@None AST.ident)
+                                                  (Clight.Evar
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (...))))))
+                                                     (Ctypes.Tfunction
+                                                        (Ctypes.Tcons
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))
+                                                           (Ctypes.Tcons
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))
+                                                              (Ctypes.Tcons
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))
+                                                                 (Ctypes.Tcons (...) (...))))) Ctypes.Tvoid
+                                                        (AST.mkcallconv (@None BinNums.Z) false false)))
+                                                  (@cons Clight.expr
+                                                     (Clight.Etempvar
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...)))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N))))
+                                                     (@cons Clight.expr
+                                                        (Clight.Etempvar (BinNums.xO (BinNums.xO (BinNums.xO (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N))))
+                                                        (@cons Clight.expr
+                                                           (Clight.Etempvar (BinNums.xI (BinNums.xO (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...))))
+                                                           (@cons Clight.expr
+                                                              (Clight.Eaddrof (Clight.Evar (...) (...))
+                                                                 (Ctypes.Tpointer (...) (...)))
+                                                              (@cons Clight.expr (Clight.Etempvar (...) (...))
+                                                                 (@cons Clight.expr (...) (...)))))))))))))))
+                          (@cons Clight.statement
+                             (Clight.Ssequence
+                                (Clight.Ssequence
+                                   (Clight.Ssequence
+                                      (Clight.Sset
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                                         (Clight.Ederef
+                                            (Clight.Ebinop Cop.Oadd
+                                               (Clight.Etempvar
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...)))))))
+                                                  (Ctypes.Tpointer
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N)))
+                                                     (Ctypes.mk_attr false (@None BinNums.N))))
+                                               (Clight.Econst_int
+                                                  (Integers.Int.mkint (BinNums.Zpos BinNums.xH)
+                                                     (Integers.Int.Z_mod_modulus_range' (BinNums.Zpos BinNums.xH)))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Signed
+                                                     (Ctypes.mk_attr false (@None BinNums.N))))
+                                               (Ctypes.Tpointer
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N)))
+                                                  (Ctypes.mk_attr false (@None BinNums.N))))
+                                            (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                               (Ctypes.mk_attr false (@None BinNums.N)))))
+                                      (Clight.Sset
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                         (Clight.Ecast
+                                            (Clight.Etempvar
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                  (Ctypes.mk_attr false (@None BinNums.N))))
+                                            (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                               (Ctypes.mk_attr false (@None BinNums.N))))))
+                                   (Clight.Sset
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))
+                                      (Clight.Etempvar
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                         (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                            (Ctypes.mk_attr false (@None BinNums.N))))))
+                                (Clight.Ssequence
+                                   (Clight.Sset
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                                      (Clight.Evar
+                                         (BinNums.xI
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                         (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                            (Ctypes.mk_attr false (@None BinNums.N)))))
+                                   (Clight.Ssequence
+                                      (Clight.Sset
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                                         (Clight.Evar
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                            (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                               (Ctypes.mk_attr false (@None BinNums.N)))))
+                                      (Clight.Ssequence
+                                         (Clight.Sset
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))))
+                                            (Clight.Evar
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                  (Ctypes.mk_attr false (@None BinNums.N)))))
+                                         (Clight.Ssequence
+                                            (Clight.Sset
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))))
+                                               (Clight.Evar
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N)))))
+                                            (Clight.Ssequence
+                                               (Clight.Sset
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (...)))))))
+                                                  (Clight.Evar
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...))))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N)))))
+                                               (Clight.Ssequence
+                                                  (Clight.Sset
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (...))))))
+                                                     (Clight.Evar
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                  (Clight.Scall (@None AST.ident)
+                                                     (Clight.Evar
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (...)))))
+                                                        (Ctypes.Tfunction
+                                                           (Ctypes.Tcons
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))
+                                                              (Ctypes.Tcons
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))
+                                                                 (Ctypes.Tcons (...) (...)))) Ctypes.Tvoid
+                                                           (AST.mkcallconv (@None BinNums.Z) false false)))
+                                                     (@cons Clight.expr
+                                                        (Clight.Etempvar (BinNums.xO (BinNums.xO (BinNums.xO (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N))))
+                                                        (@cons Clight.expr
+                                                           (Clight.Etempvar (BinNums.xI (BinNums.xO (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...))))
+                                                           (@cons Clight.expr
+                                                              (Clight.Etempvar (BinNums.xO (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...)))
+                                                              (@cons Clight.expr (Clight.Eaddrof (...) (...))
+                                                                 (@cons Clight.expr (...) (...))))))))))))))
+                             (@cons Clight.statement
+                                (Clight.Ssequence
+                                   (Clight.Ssequence
+                                      (Clight.Ssequence
+                                         (Clight.Sset
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))))
+                                            (Clight.Ederef
+                                               (Clight.Ebinop Cop.Oadd
+                                                  (Clight.Etempvar
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))
+                                                     (Ctypes.Tpointer
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N)))
+                                                        (Ctypes.mk_attr false (@None BinNums.N))))
+                                                  (Clight.Econst_int
+                                                     (Integers.Int.mkint (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                                        (Integers.Int.Z_mod_modulus_range'
+                                                           (BinNums.Zpos (BinNums.xO BinNums.xH))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Signed
+                                                        (Ctypes.mk_attr false (@None BinNums.N))))
+                                                  (Ctypes.Tpointer
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N)))
+                                                     (Ctypes.mk_attr false (@None BinNums.N))))
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                  (Ctypes.mk_attr false (@None BinNums.N)))))
+                                         (Clight.Sset
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                            (Clight.Ecast
+                                               (Clight.Etempvar
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N))))
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                  (Ctypes.mk_attr false (@None BinNums.N))))))
+                                      (Clight.Sset
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (...))))))))))
+                                         (Clight.Etempvar
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                            (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                               (Ctypes.mk_attr false (@None BinNums.N))))))
+                                   (Clight.Ssequence
+                                      (Clight.Sset
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                                         (Clight.Evar
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                            (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                               (Ctypes.mk_attr false (@None BinNums.N)))))
+                                      (Clight.Ssequence
+                                         (Clight.Sset
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))))
+                                            (Clight.Evar
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                  (Ctypes.mk_attr false (@None BinNums.N)))))
+                                         (Clight.Ssequence
+                                            (Clight.Sset
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (...))))))))
+                                               (Clight.Evar
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N)))))
+                                            (Clight.Ssequence
+                                               (Clight.Sset
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))
+                                                  (Clight.Evar
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N)))))
+                                               (Clight.Ssequence
+                                                  (Clight.Sset
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))
+                                                     (Clight.Evar
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (...)))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                  (Clight.Ssequence
+                                                     (Clight.Sset
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))
+                                                        (Clight.Evar (BinNums.xO (BinNums.xI (BinNums.xI (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                     (Clight.Scall (@None AST.ident)
+                                                        (Clight.Evar (BinNums.xI (BinNums.xO (BinNums.xI (...))))
+                                                           (Ctypes.Tfunction
+                                                              (Ctypes.Tcons
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))
+                                                                 (Ctypes.Tcons (...) (...))) Ctypes.Tvoid
+                                                              (AST.mkcallconv (@None BinNums.Z) false false)))
+                                                        (@cons Clight.expr
+                                                           (Clight.Etempvar (BinNums.xI (BinNums.xO (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...))))
+                                                           (@cons Clight.expr
+                                                              (Clight.Etempvar (BinNums.xO (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...)))
+                                                              (@cons Clight.expr (Clight.Etempvar (...) (...))
+                                                                 (@cons Clight.expr (...) (...)))))))))))))
+                                (@cons Clight.statement
+                                   (Clight.Ssequence
+                                      (Clight.Ssequence
+                                         (Clight.Ssequence
+                                            (Clight.Sset
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (...))))))))
+                                               (Clight.Ederef
+                                                  (Clight.Ebinop Cop.Oadd
+                                                     (Clight.Etempvar
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (...)))))
+                                                        (Ctypes.Tpointer
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))
+                                                           (Ctypes.mk_attr false (@None BinNums.N))))
+                                                     (Clight.Econst_int
+                                                        (Integers.Int.mkint (BinNums.Zpos (BinNums.xI BinNums.xH))
+                                                           (Integers.Int.Z_mod_modulus_range'
+                                                              (BinNums.Zpos (BinNums.xI BinNums.xH))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Signed
+                                                           (Ctypes.mk_attr false (@None BinNums.N))))
+                                                     (Ctypes.Tpointer
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N)))
+                                                        (Ctypes.mk_attr false (@None BinNums.N))))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N)))))
+                                            (Clight.Sset
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                               (Clight.Ecast
+                                                  (Clight.Etempvar
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (...))))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N))))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N))))))
+                                         (Clight.Sset
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))
+                                            (Clight.Etempvar
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                  (Ctypes.mk_attr false (@None BinNums.N))))))
+                                      (Clight.Ssequence
+                                         (Clight.Sset
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))))
+                                            (Clight.Evar
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                               (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                  (Ctypes.mk_attr false (@None BinNums.N)))))
+                                         (Clight.Ssequence
+                                            (Clight.Sset
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (...))))))))
+                                               (Clight.Evar
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N)))))
+                                            (Clight.Ssequence
+                                               (Clight.Sset
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))
+                                                  (Clight.Evar
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (...))))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N)))))
+                                               (Clight.Ssequence
+                                                  (Clight.Sset
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (...))))))
+                                                     (Clight.Evar
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (...)))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                  (Clight.Ssequence
+                                                     (Clight.Sset
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...)))))
+                                                        (Clight.Evar (BinNums.xO (BinNums.xO (BinNums.xI (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                     (Clight.Ssequence
+                                                        (Clight.Sset (BinNums.xI (BinNums.xI (BinNums.xI (...))))
+                                                           (Clight.Evar (BinNums.xI (BinNums.xO (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))))
+                                                        (Clight.Scall (@None AST.ident)
+                                                           (Clight.Evar (BinNums.xI (BinNums.xO (...)))
+                                                              (Ctypes.Tfunction (Ctypes.Tcons (...) (...)) Ctypes.Tvoid
+                                                                 (AST.mkcallconv (...) false false)))
+                                                           (@cons Clight.expr
+                                                              (Clight.Etempvar (BinNums.xO (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...)))
+                                                              (@cons Clight.expr (Clight.Etempvar (...) (...))
+                                                                 (@cons Clight.expr (...) (...))))))))))))
+                                   (@cons Clight.statement
+                                      (Clight.Ssequence
+                                         (Clight.Ssequence
+                                            (Clight.Ssequence
+                                               (Clight.Sset
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))
+                                                  (Clight.Ederef
+                                                     (Clight.Ebinop Cop.Oadd
+                                                        (Clight.Etempvar (BinNums.xO (BinNums.xO (BinNums.xI (...))))
+                                                           (Ctypes.Tpointer
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))
+                                                              (Ctypes.mk_attr false (@None BinNums.N))))
+                                                        (Clight.Econst_int
+                                                           (Integers.Int.mkint (BinNums.Zpos (BinNums.xO (...)))
+                                                              (Integers.Int.Z_mod_modulus_range' (BinNums.Zpos (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Signed
+                                                              (Ctypes.mk_attr false (@None BinNums.N))))
+                                                        (Ctypes.Tpointer
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))
+                                                           (Ctypes.mk_attr false (@None BinNums.N))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N)))))
+                                               (Clight.Sset
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))
+                                                  (Clight.Ecast
+                                                     (Clight.Etempvar
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (...)))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N))))))
+                                            (Clight.Sset
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (...))))))))
+                                               (Clight.Etempvar
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N))))))
+                                         (Clight.Ssequence
+                                            (Clight.Sset
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...))))))))
+                                               (Clight.Evar
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                                  (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                     (Ctypes.mk_attr false (@None BinNums.N)))))
+                                            (Clight.Ssequence
+                                               (Clight.Sset
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...)))))))
+                                                  (Clight.Evar
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO (...))))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N)))))
+                                               (Clight.Ssequence
+                                                  (Clight.Sset
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...))))))
+                                                     (Clight.Evar
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                  (Clight.Ssequence
+                                                     (Clight.Sset
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))
+                                                        (Clight.Evar (BinNums.xO (BinNums.xI (BinNums.xO (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                     (Clight.Ssequence
+                                                        (Clight.Sset (BinNums.xI (BinNums.xI (BinNums.xI (...))))
+                                                           (Clight.Evar (BinNums.xI (BinNums.xI (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))))
+                                                        (Clight.Ssequence
+                                                           (Clight.Sset (BinNums.xO (BinNums.xO (...)))
+                                                              (Clight.Evar (BinNums.xO (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))))
+                                                           (Clight.Scall (@None AST.ident)
+                                                              (Clight.Evar (BinNums.xI (...))
+                                                                 (Ctypes.Tfunction (...) Ctypes.Tvoid (...)))
+                                                              (@cons Clight.expr (Clight.Etempvar (...) (...))
+                                                                 (@cons Clight.expr (...) (...)))))))))))
+                                      (@cons Clight.statement
+                                         (Clight.Ssequence
+                                            (Clight.Ssequence
+                                               (Clight.Ssequence
+                                                  (Clight.Sset
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (...))))))
+                                                     (Clight.Ederef
+                                                        (Clight.Ebinop Cop.Oadd
+                                                           (Clight.Etempvar (BinNums.xO (BinNums.xO (...)))
+                                                              (Ctypes.Tpointer
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))
+                                                                 (Ctypes.mk_attr false (...))))
+                                                           (Clight.Econst_int
+                                                              (Integers.Int.mkint (BinNums.Zpos (...))
+                                                                 (Integers.Int.Z_mod_modulus_range' (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Signed
+                                                                 (Ctypes.mk_attr false (...))))
+                                                           (Ctypes.Tpointer
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))
+                                                              (Ctypes.mk_attr false (@None BinNums.N))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                  (Clight.Sset
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (...))))))
+                                                     (Clight.Ecast
+                                                        (Clight.Etempvar (BinNums.xO (BinNums.xI (BinNums.xO (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N))))))
+                                               (Clight.Sset
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (...)))))))
+                                                  (Clight.Etempvar
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (...))))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N))))))
+                                            (Clight.Ssequence
+                                               (Clight.Sset
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (...)))))))
+                                                  (Clight.Evar
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))
+                                                     (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                        (Ctypes.mk_attr false (@None BinNums.N)))))
+                                               (Clight.Ssequence
+                                                  (Clight.Sset
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (...))))))
+                                                     (Clight.Evar
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                  (Clight.Ssequence
+                                                     (Clight.Sset
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...)))))
+                                                        (Clight.Evar (BinNums.xI (BinNums.xI (BinNums.xI (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                     (Clight.Ssequence
+                                                        (Clight.Sset (BinNums.xI (BinNums.xI (BinNums.xI (...))))
+                                                           (Clight.Evar (BinNums.xI (BinNums.xO (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))))
+                                                        (Clight.Ssequence
+                                                           (Clight.Sset (BinNums.xO (BinNums.xO (...)))
+                                                              (Clight.Evar (BinNums.xO (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))))
+                                                           (Clight.Ssequence
+                                                              (Clight.Sset (BinNums.xI (...)) (Clight.Evar (...) (...)))
+                                                              (Clight.Scall (@None AST.ident)
+                                                                 (Clight.Evar (...) (...))
+                                                                 (@cons Clight.expr (...) (...))))))))))
+                                         (@cons Clight.statement
+                                            (Clight.Ssequence
+                                               (Clight.Ssequence
+                                                  (Clight.Ssequence
+                                                     (Clight.Sset
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (...)))))
+                                                        (Clight.Ederef
+                                                           (Clight.Ebinop Cop.Oadd
+                                                              (Clight.Etempvar (BinNums.xO (...))
+                                                                 (Ctypes.Tpointer (...) (...)))
+                                                              (Clight.Econst_int (Integers.Int.mkint (...) (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Signed (...)))
+                                                              (Ctypes.Tpointer
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))
+                                                                 (Ctypes.mk_attr false (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                     (Clight.Sset
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...)))))
+                                                        (Clight.Ecast
+                                                           (Clight.Etempvar (BinNums.xI (BinNums.xI (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N))))))
+                                                  (Clight.Sset
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...))))))
+                                                     (Clight.Etempvar
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...)))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N))))))
+                                               (Clight.Ssequence
+                                                  (Clight.Sset
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...))))))
+                                                     (Clight.Evar
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (...)))))
+                                                        (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                           (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                  (Clight.Ssequence
+                                                     (Clight.Sset
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))
+                                                        (Clight.Evar (BinNums.xI (BinNums.xO (BinNums.xI (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                     (Clight.Ssequence
+                                                        (Clight.Sset (BinNums.xI (BinNums.xI (BinNums.xI (...))))
+                                                           (Clight.Evar (BinNums.xO (BinNums.xI (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))))
+                                                        (Clight.Ssequence
+                                                           (Clight.Sset (BinNums.xO (BinNums.xO (...)))
+                                                              (Clight.Evar (BinNums.xO (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))))
+                                                           (Clight.Ssequence
+                                                              (Clight.Sset (BinNums.xI (...)) (Clight.Evar (...) (...)))
+                                                              (Clight.Ssequence (Clight.Sset (...) (...))
+                                                                 (Clight.Scall (...) (...) (...)))))))))
+                                            (@cons Clight.statement
+                                               (Clight.Ssequence
+                                                  (Clight.Ssequence
+                                                     (Clight.Ssequence
+                                                        (Clight.Sset (BinNums.xO (BinNums.xO (BinNums.xI (...))))
+                                                           (Clight.Ederef
+                                                              (Clight.Ebinop Cop.Oadd (Clight.Etempvar (...) (...))
+                                                                 (Clight.Econst_int (...) (...))
+                                                                 (Ctypes.Tpointer (...) (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))))
+                                                        (Clight.Sset (BinNums.xI (BinNums.xI (BinNums.xI (...))))
+                                                           (Clight.Ecast
+                                                              (Clight.Etempvar (BinNums.xO (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...))))))
+                                                     (Clight.Sset
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))
+                                                        (Clight.Etempvar (BinNums.xI (BinNums.xI (BinNums.xI (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N))))))
+                                                  (Clight.Ssequence
+                                                     (Clight.Sset
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...)))))
+                                                        (Clight.Evar (BinNums.xI (BinNums.xI (BinNums.xO (...))))
+                                                           (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                              (Ctypes.mk_attr false (@None BinNums.N)))))
+                                                     (Clight.Ssequence
+                                                        (Clight.Sset (BinNums.xI (BinNums.xI (BinNums.xI (...))))
+                                                           (Clight.Evar (BinNums.xO (BinNums.xO (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))))
+                                                        (Clight.Ssequence
+                                                           (Clight.Sset (BinNums.xO (BinNums.xO (...)))
+                                                              (Clight.Evar (BinNums.xI (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))))
+                                                           (Clight.Ssequence
+                                                              (Clight.Sset (BinNums.xI (...)) (Clight.Evar (...) (...)))
+                                                              (Clight.Ssequence (Clight.Sset (...) (...))
+                                                                 (Clight.Ssequence (...) (...))))))))
+                                               (@cons Clight.statement
+                                                  (Clight.Ssequence
+                                                     (Clight.Ssequence
+                                                        (Clight.Ssequence
+                                                           (Clight.Sset (BinNums.xI (BinNums.xO (...)))
+                                                              (Clight.Ederef (Clight.Ebinop Cop.Oadd (...) (...) (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))))
+                                                           (Clight.Sset (BinNums.xO (BinNums.xO (...)))
+                                                              (Clight.Ecast (Clight.Etempvar (...) (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...)))))
+                                                        (Clight.Sset (BinNums.xO (BinNums.xO (BinNums.xO (...))))
+                                                           (Clight.Etempvar (BinNums.xO (BinNums.xO (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...))))))
+                                                     (Clight.Ssequence
+                                                        (Clight.Sset (BinNums.xI (BinNums.xI (BinNums.xI (...))))
+                                                           (Clight.Evar (BinNums.xO (BinNums.xI (...)))
+                                                              (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned
+                                                                 (Ctypes.mk_attr false (...)))))
+                                                        (Clight.Ssequence
+                                                           (Clight.Sset (BinNums.xO (BinNums.xO (...)))
+                                                              (Clight.Evar (BinNums.xI (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))))
+                                                           (Clight.Ssequence
+                                                              (Clight.Sset (BinNums.xI (...)) (Clight.Evar (...) (...)))
+                                                              (Clight.Ssequence (Clight.Sset (...) (...))
+                                                                 (Clight.Ssequence (...) (...)))))))
+                                                  (@cons Clight.statement
+                                                     (Clight.Ssequence
+                                                        (Clight.Ssequence
+                                                           (Clight.Ssequence
+                                                              (Clight.Sset (BinNums.xO (...))
+                                                                 (Clight.Ederef (...) (...)))
+                                                              (Clight.Sset (BinNums.xI (...))
+                                                                 (Clight.Ecast (...) (...))))
+                                                           (Clight.Sset (BinNums.xO (BinNums.xO (...)))
+                                                              (Clight.Etempvar (BinNums.xI (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...)))))
+                                                        (Clight.Ssequence
+                                                           (Clight.Sset (BinNums.xO (BinNums.xO (...)))
+                                                              (Clight.Evar (BinNums.xI (...))
+                                                                 (Ctypes.Tint Ctypes.I32 Ctypes.Unsigned (...))))
+                                                           (Clight.Ssequence
+                                                              (Clight.Sset (BinNums.xI (...)) (Clight.Evar (...) (...)))
+                                                              (Clight.Ssequence (Clight.Sset (...) (...))
+                                                                 (Clight.Ssequence (...) (...))))))
+                                                     (@cons Clight.statement
+                                                        (Clight.Ssequence
+                                                           (Clight.Ssequence
+                                                              (Clight.Ssequence (Clight.Sset (...) (...))
+                                                                 (Clight.Sset (...) (...)))
+                                                              (Clight.Sset (BinNums.xO (...))
+                                                                 (Clight.Etempvar (...) (...))))
+                                                           (Clight.Ssequence
+                                                              (Clight.Sset (BinNums.xI (...)) (Clight.Evar (...) (...)))
+                                                              (Clight.Ssequence (Clight.Sset (...) (...))
+                                                                 (Clight.Ssequence (...) (...)))))
+                                                        (@cons Clight.statement
+                                                           (Clight.Ssequence
+                                                              (Clight.Ssequence (Clight.Ssequence (...) (...))
+                                                                 (Clight.Sset (...) (...)))
+                                                              (Clight.Ssequence (Clight.Sset (...) (...))
+                                                                 (Clight.Ssequence (...) (...))))
+                                                           (@cons Clight.statement
+                                                              (Clight.Ssequence (Clight.Ssequence (...) (...))
+                                                                 (Clight.Ssequence (...) (...)))
+                                                              (@cons Clight.statement (Clight.Ssequence (...) (...))
+                                                                 (@cons Clight.statement (...) (...)))))))))))))))))))))))
+     : list Clight.statement
+### C.jet_sha_compress_fun.regs
+regs =
+fun r0 r1 r2 r3 r4 r5 r6 r7 : Integers.Int.int =>
+@cons Integers.Int.int r0
+  (@cons Integers.Int.int r1
+     (@cons Integers.Int.int r2
+        (@cons Integers.Int.int r3
+           (@cons Integers.Int.int r4
+              (@cons Integers.Int.int r5
+                 (@cons Integers.Int.int r6 (@cons Integers.Int.int r7 (@nil Integers.Int.int))))))))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int),
+       list Integers.Int.int
+
+Arguments regs r0 r1 r2 r3 r4 r5 r6 r7
+### C.jet_sha_compress_fun.block
+block =
+fun c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 : Integers.Int.int =>
+@cons Integers.Int.int c0
+  (@cons Integers.Int.int c1
+     (@cons Integers.Int.int c2
+        (@cons Integers.Int.int c3
+           (@cons Integers.Int.int c4
+              (@cons Integers.Int.int c5
+                 (@cons Integers.Int.int c6
+                    (@cons Integers.Int.int c7
+                       (@cons Integers.Int.int c8
+                          (@cons Integers.Int.int c9
+                             (@cons Integers.Int.int c10
+                                (@cons Integers.Int.int c11
+                                   (@cons Integers.Int.int c12
+                                      (@cons Integers.Int.int c13
+                                         (@cons Integers.Int.int c14
+                                            (@cons Integers.Int.int c15 (@nil Integers.Int.int))))))))))))))))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int),
+       list Integers.Int.int
+
+Arguments block c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15
+### C.jet_sha_compress_fun.M
+M =
+fun c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 : Integers.Int.int =>
+SHA256.nthi (block c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15)
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : BinNums.Z), Integers.Int.int
+
+Arguments M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 _%Z_scope
+### C.jet_sha_compress_fun.wlast
+wlast =
+fun t j : nat =>
+Nat.add j
+  (Nat.mul (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+     (PeanoNat.Nat.div
+        (Nat.sub
+           (Nat.sub (PeanoNat.Nat.min t (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))) (S O))
+           j) (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))))
+     : forall (_ : nat) (_ : nat), nat
+
+Arguments wlast (t j)%nat_scope
+### C.jet_sha_compress_fun.st_ok
+st_ok =
+fun (r0 r1 r2 r3 r4 r5 r6 r7 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 : Integers.Int.int)
+  (st : jet_sha_interp.cst) =>
+and (@eq (list Integers.Int.int) (jet_sha_interp.sarr st) (regs r0 r1 r2 r3 r4 r5 r6 r7))
+  (and
+     (@eq (list Integers.Int.int) (jet_sha_interp.chunk st)
+        (block c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15))
+     (and (@eq nat (jet_sha_interp.ldef st) (S (S (S (S (S (S (S (S O)))))))))
+        (and
+           (@eq nat (@length Integers.Int.int (jet_sha_interp.wv st))
+              (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))))))
+           (@eq nat (@length Integers.Int.int (jet_sha_interp.lv st)) (S (S (S (S (S (S (S (S O))))))))))))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : jet_sha_interp.cst), Prop
+
+Arguments st_ok r0 r1 r2 r3 r4 r5 r6 r7 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 st
+### C.jet_sha_compress_fun.regs_inv
+regs_inv =
+fun (r0 r1 r2 r3 r4 r5 r6 r7 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 : Integers.Int.int)
+  (t : nat) (l : list Integers.Int.int) =>
+@eq (list Integers.Int.int)
+  (@List.map nat Integers.Int.int
+     (fun j : nat =>
+      @List.nth Integers.Int.int
+        (PeanoNat.Nat.modulo
+           (Nat.sub (Nat.add j (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))) t)
+           (S (S (S (S (S (S (S (S O))))))))) l Integers.Int.zero) (List.seq O (S (S (S (S (S (S (S (S O))))))))))
+  (SHA256.Round (regs r0 r1 r2 r3 r4 r5 r6 r7) (M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15)
+     (BinInt.Z.sub (BinInt.Z.of_nat t) (BinNums.Zpos BinNums.xH)))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : nat) (_ : list Integers.Int.int), Prop
+
+Arguments regs_inv r0 r1 r2 r3 r4 r5 r6 r7 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14
+  c15 t%nat_scope l%list_scope
+### C.jet_sha_compress_fun.w_inv
+w_inv =
+fun (c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 : Integers.Int.int) (t : nat) (w : list Integers.Int.int) =>
+forall (j : nat) (_ : lt j (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))) (_ : lt j t),
+@eq Integers.Int.int (@List.nth Integers.Int.int j w Integers.Int.zero)
+  (SHA256.W (M c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15) (BinInt.Z.of_nat (wlast t j)))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : nat) (_ : list Integers.Int.int), Prop
+
+Arguments w_inv c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 t%nat_scope w%list_scope
+### C.jet_sha_compress_fun.Inv
+Inv =
+fun (r0 r1 r2 r3 r4 r5 r6 r7 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 : Integers.Int.int)
+  (t : nat) (st : jet_sha_interp.cst) =>
+and (st_ok r0 r1 r2 r3 r4 r5 r6 r7 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 st)
+  (and
+     (@eq nat (jet_sha_interp.wdef st)
+        (PeanoNat.Nat.min t (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))))
+     (and
+        (regs_inv r0 r1 r2 r3 r4 r5 r6 r7 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 t
+           (jet_sha_interp.lv st))
+        (w_inv c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 t (jet_sha_interp.wv st))))
+     : forall (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int) (_ : Integers.Int.int)
+         (_ : nat) (_ : jet_sha_interp.cst), Prop
+
+Arguments Inv r0 r1 r2 r3 r4 r5 r6 r7 c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 t%nat_scope st
+### C.jet_sha_compress_fun.round_stmt
+round_stmt =
+fun t : nat => @List.nth Clight.statement (Nat.add (S (S (S (S (S (S (S (S O)))))))) t) body_elems Clight.Sskip
+     : forall _ : nat, Clight.statement
+
+Arguments round_stmt t%nat_scope

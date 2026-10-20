@@ -1,0 +1,85 @@
+### C.jet_secp_scalar_bind.scalar_bind_den
+scalar_bind_den
+     : forall (sigma : forall _ : nat, jet_sx_expr.sx) (flag : jet_sx_expr.sx)
+         (rho rho' : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (x : jet_sx_expr.sx)
+         (_ : forall n : nat, @eq Values.val (jet_sx_expr.den rho layout (sigma n)) (Values.Vlong (rho' n)))
+         (_ : @eq Values.val (jet_sx_expr.den rho layout flag)
+                (Values.Vint (Integers.Int64.loword (rho' (S (S (S (S O)))))))),
+       @eq Values.val (jet_sx_expr.den rho layout (scalar_bind sigma flag x)) (jet_sx_expr.den rho' layout x)
+### C.jet_secp_scalar_bind.scalar_loword_signed
+scalar_loword_signed
+     : forall i : Integers.Int.int,
+       @eq Integers.Int.int (Integers.Int64.loword (Integers.Int64.repr (Integers.Int.signed i))) i
+### C.jet_secp_scalar_bind.scalar_flag_lift
+scalar_flag_lift
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (flag : jet_sx_expr.sx) (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KI flag) true),
+       @eq Values.val (jet_sx_expr.den rho layout flag)
+         (Values.Vint
+            (Integers.Int64.loword
+               (Integers.Int64.repr (Integers.Int.signed (jet_sx_expr.ii (jet_sx_expr.den rho layout flag))))))
+### C.jet_secp_scalar_bind.scalar_bind
+scalar_bind =
+fix scalar_bind (sigma : forall _ : nat, jet_sx_expr.sx) (flag x : jet_sx_expr.sx) {struct x} : jet_sx_expr.sx :=
+  match x return jet_sx_expr.sx with
+  | jet_sx_expr.XI _ => x
+  | jet_sx_expr.XIc _ => x
+  | jet_sx_expr.XL _ => x
+  | jet_sx_expr.XLc _ => x
+  | jet_sx_expr.XLv n => sigma n
+  | jet_sx_expr.XV _ => x
+  | jet_sx_expr.XA _ _ => x
+  | jet_sx_expr.XP _ _ => x
+  | jet_sx_expr.XIb o a b => jet_sx_expr.XIb o (scalar_bind sigma flag a) (scalar_bind sigma flag b)
+  | jet_sx_expr.XLb o a b => jet_sx_expr.XLb o (scalar_bind sigma flag a) (scalar_bind sigma flag b)
+  | jet_sx_expr.XIsh o a k => jet_sx_expr.XIsh o (scalar_bind sigma flag a) k
+  | jet_sx_expr.XLsh o a k => jet_sx_expr.XLsh o (scalar_bind sigma flag a) k
+  | jet_sx_expr.XIcmp c sg a b => jet_sx_expr.XIcmp c sg (scalar_bind sigma flag a) (scalar_bind sigma flag b)
+  | jet_sx_expr.XLcmp c sg a b => jet_sx_expr.XLcmp c sg (scalar_bind sigma flag a) (scalar_bind sigma flag b)
+  | jet_sx_expr.XI2L sg a => jet_sx_expr.XI2L sg (scalar_bind sigma flag a)
+  | jet_sx_expr.XL2I a =>
+      match a return jet_sx_expr.sx with
+      | jet_sx_expr.XI _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XIc _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XL _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XLc _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XLv n =>
+          match PeanoNat.Nat.eqb n (S (S (S (S O)))) return jet_sx_expr.sx with
+          | true => flag
+          | false => jet_sx_expr.XL2I (sigma n)
+          end
+      | jet_sx_expr.XV _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XA _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XP _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XIb _ _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XLb _ _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XIsh _ _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XLsh _ _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XIcmp _ _ _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XLcmp _ _ _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XI2L _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XL2I _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XIcast _ _ _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XInz _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XLnz _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XIz _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XLz _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XIneg _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XLneg _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XInot _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      | jet_sx_expr.XLnot _ => jet_sx_expr.XL2I (scalar_bind sigma flag a)
+      end
+  | jet_sx_expr.XIcast sz sg a => jet_sx_expr.XIcast sz sg (scalar_bind sigma flag a)
+  | jet_sx_expr.XInz a => jet_sx_expr.XInz (scalar_bind sigma flag a)
+  | jet_sx_expr.XLnz a => jet_sx_expr.XLnz (scalar_bind sigma flag a)
+  | jet_sx_expr.XIz a => jet_sx_expr.XIz (scalar_bind sigma flag a)
+  | jet_sx_expr.XLz a => jet_sx_expr.XLz (scalar_bind sigma flag a)
+  | jet_sx_expr.XIneg a => jet_sx_expr.XIneg (scalar_bind sigma flag a)
+  | jet_sx_expr.XLneg a => jet_sx_expr.XLneg (scalar_bind sigma flag a)
+  | jet_sx_expr.XInot a => jet_sx_expr.XInot (scalar_bind sigma flag a)
+  | jet_sx_expr.XLnot a => jet_sx_expr.XLnot (scalar_bind sigma flag a)
+  end
+     : forall (_ : forall _ : nat, jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments scalar_bind sigma%function_scope flag x

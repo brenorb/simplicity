@@ -1,0 +1,65 @@
+### C.jet_sx_u64_rebuild.initialized_u64_rebuild
+initialized_u64_rebuild
+     : forall (cs : list jet_sx_state.cell) (ofs : BinNums.Z) (_ : @eq bool (initialized_u64_cells ofs cs) true),
+       @eq (list jet_sx_state.cell)
+         (jet_sx_rep.u64_cells ofs (@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_frame.cell_sx cs)) cs
+### C.jet_sx_u64_rebuild.two_owned_u64_rebuild
+two_owned_u64_rebuild
+     : forall (regs : list jet_sx_state.region) (src : jet_sx_state.region) (sz : BinNums.Z)
+         (_ : @eq nat (@length jet_sx_state.region regs) (S (S O)))
+         (_ : @eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region regs (S O))
+                (@Some jet_sx_state.region src))
+         (_ : @eq bool
+                (jet_sx_state.rw
+                   (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+                      regs)) true)
+         (_ : @eq (option BinNums.Z)
+                (jet_sx_state.rfree
+                   (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+                      regs)) (@Some BinNums.Z sz))
+         (_ : @eq bool
+                (initialized_u64_cells BinNums.Z0
+                   (jet_sx_state.rcells
+                      (@List.hd jet_sx_state.region
+                         (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z)) regs))) true),
+       @eq (list jet_sx_state.region) regs
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg
+               (jet_sx_rep.u64_cells BinNums.Z0
+                  (@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_frame.cell_sx
+                     (jet_sx_state.rcells
+                        (@List.hd jet_sx_state.region
+                           (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z)) regs)))) true
+               (@Some BinNums.Z sz)) (@cons jet_sx_state.region src (@nil jet_sx_state.region)))
+### C.jet_sx_u64_rebuild.initialized_u64_cells
+initialized_u64_cells =
+fix initialized_u64_cells (ofs : BinNums.Z) (cs : list jet_sx_state.cell) {struct cs} : bool :=
+  match cs return bool with
+  | nil => true
+  | cons c tail =>
+      match c return bool with
+      | jet_sx_state.mkcell d cchunk cval =>
+          match cchunk return bool with
+          | AST.Mint8signed => false
+          | AST.Mint8unsigned => false
+          | AST.Mint16signed => false
+          | AST.Mint16unsigned => false
+          | AST.Mint32 => false
+          | AST.Mint64 =>
+              match cval return bool with
+              | Some _ =>
+                  andb (BinInt.Z.eqb d ofs)
+                    (initialized_u64_cells
+                       (BinInt.Z.add ofs (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) tail)
+              | None => false
+              end
+          | AST.Mfloat32 => false
+          | AST.Mfloat64 => false
+          | AST.Many32 => false
+          | AST.Many64 => false
+          end
+      end
+  end
+     : forall (_ : BinNums.Z) (_ : list jet_sx_state.cell), bool
+
+Arguments initialized_u64_cells ofs%Z_scope cs%list_scope

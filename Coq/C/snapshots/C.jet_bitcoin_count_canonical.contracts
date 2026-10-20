@@ -1,0 +1,54 @@
+### C.jet_bitcoin_count_canonical.bitcoin_transaction_num_inputs_spec_parametric
+bitcoin_transaction_num_inputs_spec_parametric
+     : @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@bitcoin_transaction_num_inputs_spec)
+### C.jet_bitcoin_count_canonical.bitcoin_transaction_num_outputs_spec_parametric
+bitcoin_transaction_num_outputs_spec_parametric
+     : @Bitcoin.PrimitiveBitcoin.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S O))))))
+         (@bitcoin_transaction_num_outputs_spec)
+### C.jet_bitcoin_count_canonical.bitcoin_transaction_num_inputs_spec_search
+bitcoin_transaction_num_inputs_spec_search
+     : forall environment : Bitcoin.Bitcoin.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@bitcoin_transaction_num_inputs_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt environment)
+         (@jet_firstFail_spec.first_fail_run (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+            (fun w : Ty.tySem (Word.Word (S (S (S (S (S O)))))) =>
+             @Bitcoin.Bitcoin.sem (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) Bitcoin.Bitcoin.InputValue w environment))
+### C.jet_bitcoin_count_canonical.bitcoin_transaction_num_outputs_spec_search
+bitcoin_transaction_num_outputs_spec_search
+     : forall environment : Bitcoin.Bitcoin.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+         (@bitcoin_transaction_num_outputs_spec
+            (Bitcoin.PrimitiveBitcoin.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt environment)
+         (@jet_firstFail_spec.first_fail_run (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+            (fun w : Ty.tySem (Word.Word (S (S (S (S (S O)))))) =>
+             @Bitcoin.Bitcoin.sem (Word.Word (S (S (S (S (S O))))))
+               (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) Bitcoin.Bitcoin.OutputValue w environment))
+### C.jet_bitcoin_count_canonical.bitcoin_transaction_num_inputs_spec
+bitcoin_transaction_num_inputs_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@jet_firstFail_spec.first_fail_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+  (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toAssertion alg)
+  (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) alg Bitcoin.Bitcoin.InputValue)
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments bitcoin_transaction_num_inputs_spec {alg}
+### C.jet_bitcoin_count_canonical.bitcoin_transaction_num_outputs_spec
+bitcoin_transaction_num_outputs_spec =
+fun alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra =>
+@jet_firstFail_spec.first_fail_program (S (S (S (S (S O))))) Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+  (Bitcoin.PrimitiveBitcoin.Primitive.CanonicalStructures.toAssertion alg)
+  (@Bitcoin.PrimitiveBitcoin.Primitive.Combinators.prim (Word.Word (S (S (S (S (S O))))))
+     (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))) alg Bitcoin.Bitcoin.OutputValue)
+     : forall alg : Bitcoin.PrimitiveBitcoin.Primitive.Algebra,
+       Bitcoin.PrimitiveBitcoin.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S O))))))
+
+Arguments bitcoin_transaction_num_outputs_spec {alg}

@@ -1,0 +1,241 @@
+### C.jet_firstFail_spec.first_fail_body_parametric
+first_fail_body_parametric
+     : forall (n : nat) (A B : Ty.Ty) (alg1 alg2 : Alg.Core.Algebra) (R : Alg.Core.Parametric.Rel alg1 alg2)
+         (op1 : Alg.Core.domain alg1 (Word.Word n) (Ty.Sum A B))
+         (op2 : Alg.Core.domain alg2 (Word.Word n) (Ty.Sum A B))
+         (_ : @Alg.Core.Parametric.rel alg1 alg2 R (Word.Word n) (Ty.Sum A B) op1 op2),
+       @Alg.Core.Parametric.rel alg1 alg2 R (Ty.Prod (Ty.Prod Ty.Unit (Word.Word n)) Ty.Unit)
+         (Ty.Sum (Word.Word n) Ty.Unit) (@first_fail_body n A B alg1 op1) (@first_fail_body n A B alg2 op2)
+### C.jet_firstFail_spec.first_fail_program_parametric
+first_fail_program_parametric
+     : forall (n : nat) (A B : Ty.Ty) (alg1 alg2 : Alg.Assertion.Algebra) (R : Alg.Assertion.Parametric.Rel alg1 alg2)
+         (op1 : Alg.Assertion.domain alg1 (Word.Word n) (Ty.Sum A B))
+         (op2 : Alg.Assertion.domain alg2 (Word.Word n) (Ty.Sum A B))
+         (_ : @Alg.Assertion.Parametric.rel alg1 alg2 R (Word.Word n) (Ty.Sum A B) op1 op2),
+       @Alg.Assertion.Parametric.rel alg1 alg2 R Ty.Unit (Word.Word n) (@first_fail_program n A B alg1 op1)
+         (@first_fail_program n A B alg2 op2)
+### C.jet_firstFail_spec.first_fail_program_reader_finish
+first_fail_program_reader_finish
+     : forall (n : nat) (E : Type) (A B : Ty.Ty)
+         (op : Alg.Assertion.domain (Alg.AssertionSem (Reader.ReaderT_CIMonadZero E Option.option_Monad_Zero))
+                 (Word.Word n) (Ty.Sum A B)) (environment : E),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Word.Word n)))
+         (@first_fail_program n A B (Alg.AssertionSem (Reader.ReaderT_CIMonadZero E Option.option_Monad_Zero)) op tt
+            environment)
+         (@Option.option_bind (Ty.tySem (Ty.Sum (Word.Word n) Ty.Unit))
+            ((fix tySem (X : Ty.Ty) : Set :=
+                match X return Set with
+                | Ty.Unit => unit
+                | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                end) (Word.Word n))
+            (fun result : Ty.tySem (Ty.Sum (Word.Word n) Ty.Unit) =>
+             match
+               result
+               return
+                 (option
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                        | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                        end) (Word.Word n)))
+             with
+             | inl counter =>
+                 @Some
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                       | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                       end) (Word.Word n)) counter
+             | inr _ =>
+                 @None
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                       | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                       end) (Word.Word n))
+             end)
+            (@jet_forWhile_spec.for_while_program n Ty.Unit (Word.Word n) Ty.Unit
+               (Alg.Assertion.toCore (Alg.AssertionSem (Reader.ReaderT_CIMonadZero E Option.option_Monad_Zero)))
+               (@first_fail_body n A B
+                  (Alg.Assertion.toCore (Alg.AssertionSem (Reader.ReaderT_CIMonadZero E Option.option_Monad_Zero))) op)
+               (@pair unit unit tt tt) environment))
+### C.jet_firstFail_spec.first_fail_body_reader_sem
+first_fail_body_reader_sem
+     : forall (n : nat) (E : Type) (A B : Ty.Ty)
+         (op : Alg.Core.domain (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad))
+                 (Word.Word n) (Ty.Sum A B)) (p : Ty.tySem (Ty.Prod (Ty.Prod Ty.Unit (Word.Word n)) Ty.Unit))
+         (environment : E),
+       @eq (Monad.CIMonad.domain Option.option_CIMonad (Ty.tySem (Ty.Sum (Word.Word n) Ty.Unit)))
+         (@first_fail_body n A B (Alg.CoreSem (Reader.ReaderT_CIMonad E Option.option_CIMonad)) op p environment)
+         (@first_fail_step n A B (fun w : Ty.tySem (Word.Word n) => op w environment) p)
+### C.jet_firstFail_spec.first_fail_program_reader_sem
+first_fail_program_reader_sem
+     : forall (n : nat) (E : Type) (A B : Ty.Ty)
+         (op : Alg.Assertion.domain (Alg.AssertionSem (Reader.ReaderT_CIMonadZero E Option.option_Monad_Zero))
+                 (Word.Word n) (Ty.Sum A B)) (environment : E),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Word.Word n)))
+         (@first_fail_program n A B (Alg.AssertionSem (Reader.ReaderT_CIMonadZero E Option.option_Monad_Zero)) op tt
+            environment) (@first_fail_run n A B (fun w : Ty.tySem (Word.Word n) => op w environment))
+### C.jet_firstFail_spec.first_fail_body
+first_fail_body =
+fun (n : nat) (A B : Ty.Ty) (alg : Alg.Core.Algebra) (op : Alg.Core.domain alg (Word.Word n) (Ty.Sum A B)) =>
+@Alg.Core.Combinators.take (Ty.Prod Ty.Unit (Word.Word n)) Ty.Unit (Ty.Sum (Word.Word n) Ty.Unit) alg
+  (@Alg.Core.Combinators.drop Ty.Unit (Word.Word n) (Ty.Sum (Word.Word n) Ty.Unit) alg
+     (@Alg.Core.Combinators.comp (Word.Word n) (Ty.Prod (Ty.Sum A B) (Word.Word n)) (Ty.Sum (Word.Word n) Ty.Unit) alg
+        (@Alg.Core.Combinators.pair (Word.Word n) (Ty.Sum A B) (Word.Word n) alg op
+           (@Alg.Core.Combinators.iden (Word.Word n) alg))
+        (@Alg.Core.Combinators.case A B (Word.Word n) (Ty.Sum (Word.Word n) Ty.Unit) alg
+           (@Alg.Core.Combinators.injl (Ty.Prod A (Word.Word n)) (Word.Word n) Ty.Unit alg
+              (@Alg.Core.Combinators.drop A (Word.Word n) (Word.Word n) alg
+                 (@Alg.Core.Combinators.iden (Word.Word n) alg)))
+           (@Alg.Core.Combinators.injr (Ty.Prod B (Word.Word n)) (Word.Word n) Ty.Unit alg
+              (@Alg.Core.Combinators.unit (Ty.Prod B (Word.Word n)) alg)))))
+     : forall (n : nat) (A B : Ty.Ty) (alg : Alg.Core.Algebra) (_ : Alg.Core.domain alg (Word.Word n) (Ty.Sum A B)),
+       Alg.Core.domain alg (Ty.Prod (Ty.Prod Ty.Unit (Word.Word n)) Ty.Unit) (Ty.Sum (Word.Word n) Ty.Unit)
+
+Arguments first_fail_body n%nat_scope {A B}%ty_scope {alg} op
+### C.jet_firstFail_spec.first_fail_program
+first_fail_program =
+fun (n : nat) (A B : Ty.Ty) (alg : Alg.Assertion.Algebra) (op : Alg.Assertion.domain alg (Word.Word n) (Ty.Sum A B)) =>
+@Alg.Core.Combinators.comp Ty.Unit (Ty.Prod Ty.Unit Ty.Unit) (Word.Word n) (Alg.Assertion.toCore alg)
+  (@Alg.Core.Combinators.pair Ty.Unit Ty.Unit Ty.Unit (Alg.Assertion.toCore alg)
+     (@Alg.Core.Combinators.unit Ty.Unit (Alg.Assertion.toCore alg))
+     (@Alg.Core.Combinators.unit Ty.Unit (Alg.Assertion.toCore alg)))
+  (@Alg.Core.Combinators.comp (Ty.Prod Ty.Unit Ty.Unit) (Ty.Sum (Word.Word n) Ty.Unit) (Word.Word n)
+     (Alg.Assertion.toCore alg)
+     (@jet_forWhile_spec.for_while_program n Ty.Unit (Word.Word n) Ty.Unit (Alg.Assertion.toCore alg)
+        (@first_fail_body n A B (Alg.Assertion.toCore alg) op))
+     (@Alg.Core.Combinators.comp (Ty.Sum (Word.Word n) Ty.Unit) (Ty.Prod (Ty.Sum (Word.Word n) Ty.Unit) Ty.Unit)
+        (Word.Word n) (Alg.Assertion.toCore alg)
+        (@Alg.Core.Combinators.pair (Ty.Sum (Word.Word n) Ty.Unit) (Ty.Sum (Word.Word n) Ty.Unit) Ty.Unit
+           (Alg.Assertion.toCore alg)
+           (@Alg.Core.Combinators.iden (Ty.Sum (Word.Word n) Ty.Unit) (Alg.Assertion.toCore alg))
+           (@Alg.Core.Combinators.unit (Ty.Sum (Word.Word n) Ty.Unit) (Alg.Assertion.toCore alg)))
+        (@Alg.Assertion.Combinators.assertl (Word.Word n) Ty.Unit Ty.Unit (Word.Word n) alg
+           (@Alg.Core.Combinators.take (Word.Word n) Ty.Unit (Word.Word n) (Alg.Assertion.toCore alg)
+              (@Alg.Core.Combinators.iden (Word.Word n) (Alg.Assertion.toCore alg)))
+           jet_assertion_spec.assertion_cmr_fail0)))
+     : forall (n : nat) (A B : Ty.Ty) (alg : Alg.Assertion.Algebra)
+         (_ : Alg.Assertion.domain alg (Word.Word n) (Ty.Sum A B)), Alg.Assertion.domain alg Ty.Unit (Word.Word n)
+
+Arguments first_fail_program n%nat_scope {A B}%ty_scope {alg} op
+### C.jet_firstFail_spec.first_fail_step
+first_fail_step =
+fun (n : nat) (A B : Ty.Ty) (op : forall _ : Ty.tySem (Word.Word n), option (Ty.tySem (Ty.Sum A B)))
+  (p : Ty.tySem (Ty.Prod (Ty.Prod Ty.Unit (Word.Word n)) Ty.Unit)) =>
+match
+  op
+    (@snd unit
+       ((fix tySem (X : Ty.Ty) : Set :=
+           match X return Set with
+           | Ty.Unit => unit
+           | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+           | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+           end) (Word.Word n))
+       (@fst
+          (prod
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) Ty.Unit)
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) (Word.Word n))) unit p)) return (option (Ty.tySem (Ty.Sum (Word.Word n) Ty.Unit)))
+with
+| Some t =>
+    match t return (option (Ty.tySem (Ty.Sum (Word.Word n) Ty.Unit))) with
+    | inl _ =>
+        @Some
+          (sum
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) (Word.Word n)) unit)
+          (@inl
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) (Word.Word n)) unit
+             (@snd unit
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) (Word.Word n))
+                (@fst
+                   (prod
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                          | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                          end) Ty.Unit)
+                      ((fix tySem (X : Ty.Ty) : Set :=
+                          match X return Set with
+                          | Ty.Unit => unit
+                          | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                          | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                          end) (Word.Word n))) unit p)))
+    | inr _ =>
+        @Some
+          (sum
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) (Word.Word n)) unit)
+          (@inr
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) (Word.Word n)) unit tt)
+    end
+| None => @None (Ty.tySem (Ty.Sum (Word.Word n) Ty.Unit))
+end
+     : forall (n : nat) (A B : Ty.Ty) (_ : forall _ : Ty.tySem (Word.Word n), option (Ty.tySem (Ty.Sum A B)))
+         (_ : Ty.tySem (Ty.Prod (Ty.Prod Ty.Unit (Word.Word n)) Ty.Unit)),
+       option (Ty.tySem (Ty.Sum (Word.Word n) Ty.Unit))
+
+Arguments first_fail_step n%nat_scope {A B}%ty_scope op%function_scope p
+### C.jet_firstFail_spec.first_fail_run
+first_fail_run =
+fun (n : nat) (A B : Ty.Ty) (op : forall _ : Ty.tySem (Word.Word n), option (Ty.tySem (Ty.Sum A B))) =>
+match
+  @jet_forWhile_spec.for_while_run n Ty.Unit (Word.Word n) Ty.Unit (@first_fail_step n A B op) tt tt
+  return (option (Ty.tySem (Word.Word n)))
+with
+| Some t =>
+    match t return (option (Ty.tySem (Word.Word n))) with
+    | inl counter =>
+        @Some
+          ((fix tySem (X : Ty.Ty) : Set :=
+              match X return Set with
+              | Ty.Unit => unit
+              | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+              | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+              end) (Word.Word n)) counter
+    | inr _ => @None (Ty.tySem (Word.Word n))
+    end
+| None => @None (Ty.tySem (Word.Word n))
+end
+     : forall (n : nat) (A B : Ty.Ty) (_ : forall _ : Ty.tySem (Word.Word n), option (Ty.tySem (Ty.Sum A B))),
+       option (Ty.tySem (Word.Word n))
+
+Arguments first_fail_run n%nat_scope {A B}%ty_scope op%function_scope

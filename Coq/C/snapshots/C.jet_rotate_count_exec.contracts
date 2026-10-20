@@ -1,0 +1,89 @@
+### C.jet_rotate_count_exec.byte_carrier_cast_id
+byte_carrier_cast_id
+     : forall (a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))),
+       @eq Integers.Int.int (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) a)
+         a
+### C.jet_rotate_count_exec.wide_rotate_amount_unsigned
+wide_rotate_amount_unsigned
+     : forall (s : jet_wide.wide_size) (a : Integers.Int.int),
+       @eq BinNums.Z (Integers.Int.unsigned (wide_rotate_amount s a))
+         (BinInt.Z.modulo (Integers.Int.unsigned a) (jet_wide.wide_bits s))
+### C.jet_rotate_count_exec.wide_rotate_amount_bounds
+wide_rotate_amount_bounds
+     : forall (s : jet_wide.wide_size) (a : Integers.Int.int),
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned (wide_rotate_amount s a)))
+         (BinInt.Z.lt (Integers.Int.unsigned (wide_rotate_amount s a)) (jet_wide.wide_bits s))
+### C.jet_rotate_count_exec.wide_rotate_amount_cast_id
+wide_rotate_amount_cast_id
+     : forall (s : jet_wide.wide_size) (a : Integers.Int.int),
+       @eq Integers.Int.int
+         (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (wide_rotate_amount s a)) (wide_rotate_amount s a)
+### C.jet_rotate_count_exec.eval_wide_rotate_amount
+eval_wide_rotate_amount
+     : forall (s : jet_wide.wide_size) (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (input : Clight.expr) (a : Integers.Int.int)
+         (_ : or (@eq Ctypes.type (Clight.typeof input) Ctypesdefs.tuchar)
+                (@eq Ctypes.type (Clight.typeof input) Ctypesdefs.tint))
+         (_ : Clight.eval_expr jet_exec.ge0 e le m input (Values.Vint a))
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))),
+       Clight.eval_expr jet_exec.ge0 e le m (wide_rotate_amount_expr s input) (Values.Vint (wide_rotate_amount s a))
+### C.jet_rotate_count_exec.wide_rotate_reverse_amount_unsigned
+wide_rotate_reverse_amount_unsigned
+     : forall (s : jet_wide.wide_size) (a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (jet_wide.wide_bits s))),
+       @eq BinNums.Z (Integers.Int.unsigned (wide_rotate_reverse_amount s a))
+         (BinInt.Z.modulo (BinInt.Z.sub (jet_wide.wide_bits s) (Integers.Int.unsigned a)) (jet_wide.wide_bits s))
+### C.jet_rotate_count_exec.eval_wide_rotate_reverse_amount
+eval_wide_rotate_reverse_amount
+     : forall (s : jet_wide.wide_size) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (jet_wide.wide_bits s)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._amt le) (@Some Values.val (Values.Vint a))),
+       Clight.eval_expr jet_exec.ge0 e le m (wide_rotate_reverse_amount_expr s)
+         (Values.Vint (wide_rotate_reverse_amount s a))
+### C.jet_rotate_count_exec.wide_rotate_amount
+wide_rotate_amount =
+fun (s : jet_wide.wide_size) (a : Integers.Int.int) =>
+Integers.Int.repr (BinInt.Z.modulo (Integers.Int.unsigned a) (jet_wide.wide_bits s))
+     : forall (_ : jet_wide.wide_size) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments wide_rotate_amount s a
+### C.jet_rotate_count_exec.wide_rotate_amount_expr
+wide_rotate_amount_expr =
+fun (s : jet_wide.wide_size) (input : Clight.expr) =>
+Clight.Ecast
+  (Clight.Ebinop Cop.Omod input (Clight.Econst_int (Integers.Int.repr (jet_wide.wide_bits s)) Ctypesdefs.tint)
+     Ctypesdefs.tint) Ctypesdefs.tuchar
+     : forall (_ : jet_wide.wide_size) (_ : Clight.expr), Clight.expr
+
+Arguments wide_rotate_amount_expr s input
+### C.jet_rotate_count_exec.wide_rotate_reverse_amount
+wide_rotate_reverse_amount =
+fun (s : jet_wide.wide_size) (a : Integers.Int.int) =>
+wide_rotate_amount s (Integers.Int.repr (BinInt.Z.sub (jet_wide.wide_bits s) (Integers.Int.unsigned a)))
+     : forall (_ : jet_wide.wide_size) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments wide_rotate_reverse_amount s a
+### C.jet_rotate_count_exec.wide_rotate_reverse_amount_expr
+wide_rotate_reverse_amount_expr =
+fun s : jet_wide.wide_size =>
+wide_rotate_amount_expr s
+  (Clight.Ebinop Cop.Osub (Clight.Econst_int (Integers.Int.repr (jet_wide.wide_bits s)) Ctypesdefs.tint)
+     (Clight.Etempvar jets._amt Ctypesdefs.tuchar) Ctypesdefs.tint)
+     : forall _ : jet_wide.wide_size, Clight.expr
+
+Arguments wide_rotate_reverse_amount_expr s

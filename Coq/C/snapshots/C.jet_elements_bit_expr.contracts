@@ -1,0 +1,79 @@
+### C.jet_elements_bit_expr.exec_elements_bit_expr
+exec_elements_bit_expr
+     : forall (bit : bool) (ret : option AST.ident) (a : Clight.expr)
+         (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (edge cur : BinNums.Z)
+         (_ : @eq Ctypes.type (Clight.typeof a) Ctypesdefs.tint)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m a
+                (Values.Vint
+                   match bit return Integers.Int.int with
+                   | true => Integers.Int.one
+                   | false => Integers.Int.zero
+                   end)) (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur (BinNums.Zpos BinNums.xH)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m (elements_bit_expr_stmt ret a)
+               Events.E0
+               (Clight.set_opttemp ret
+                  (Values.Vint
+                     match bit return Integers.Int.int with
+                     | true => Integers.Int.one
+                     | false => Integers.Int.zero
+                     end) le) mf ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur (BinNums.Zpos BinNums.xH)
+               (@cons (option bool) (@Some bool bit) (@nil (option bool)))))
+### C.jet_elements_bit_expr.exec_elements_skip_expr
+exec_elements_skip_expr
+     : forall (n : BinNums.Z) (a : Clight.expr) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bw : Values.block) (edge cur : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 n) (BinInt.Z.le n Integers.Int.max_signed))
+         (_ : @eq Ctypes.type (Clight.typeof a) Ctypesdefs.tint)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._skipBits e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m a (Values.Vint (Integers.Int.repr n)))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw edge cur n),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m (elements_skip_expr_stmt a)
+               Events.E0 le mf ClightBigstep.Out_normal)
+            (jet_elements_effects.write_effect m mf bd dbase bw edge cur n
+               (@List.repeat (option bool) (@None bool) (BinInt.Z.to_nat n))))
+### C.jet_elements_bit_expr.elements_bit_expr_stmt
+elements_bit_expr_stmt =
+fun (ret : option AST.ident) (a : Clight.expr) =>
+Clight.Scall ret
+  (Clight.Evar jets_elements._writeBit
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tbool Ctypes.Tnil)) Ctypesdefs.tbool AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons Clight.expr a (@nil Clight.expr)))
+     : forall (_ : option AST.ident) (_ : Clight.expr), Clight.statement
+
+Arguments elements_bit_expr_stmt ret a
+### C.jet_elements_bit_expr.elements_skip_expr_stmt
+elements_skip_expr_stmt =
+fun a : Clight.expr =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._skipBits
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons Clight.expr a (@nil Clight.expr)))
+     : forall _ : Clight.expr, Clight.statement
+
+Arguments elements_skip_expr_stmt a

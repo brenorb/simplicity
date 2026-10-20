@@ -1,0 +1,63 @@
+### C.jet_extend_wide_spec.extend_wide_args_length
+extend_wide_args_length
+     : forall (s : jet_extend_wide_loop.extend_wide_size) (r : Integers.Int64.int),
+       @eq BinNums.Z
+         (BinInt.Z.mul (jet_wide.wide_bits (jet_extend_wide_loop.extend_wide_input s))
+            (BinInt.Z.of_nat (@length Integers.Int64.int (jet_extend_wide_exec.extend_wide_output_args s r))))
+         (jet_extend_wide_loop.extend_wide_bits s)
+### C.jet_extend_wide_spec.extend_wide_msb_denotes
+extend_wide_msb_denotes
+     : forall (s : jet_extend_wide_loop.extend_wide_size)
+         (x : Ty.tySem (Word.Word (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))))
+         (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))) x)),
+       @eq bool (jet_extend_wide_exec.extend_wide_msb s r)
+         (Bit.toBool
+            (@Word.leftmost (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))
+               Alg.CoreFunSem x))
+### C.jet_extend_wide_spec.extend_wide_constant_decode
+extend_wide_constant_decode
+     : forall (s : jet_extend_wide_loop.extend_wide_size) (bit : bool),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))))
+         (jet_wide_spec.decode_wide (jet_extend_wide_loop.extend_wide_input s)
+            (Integers.Int64.zero_ext (jet_wide.wide_bits (jet_extend_wide_loop.extend_wide_input s))
+               (jet_pad_bit_spec.extend_bit_long (jet_extend_wide_loop.extend_wide_input s) bit)))
+         (@jet_extend_word_spec.pad_word_constant (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s)) bit
+            Alg.CoreFunSem tt)
+### C.jet_extend_wide_spec.extend_wide_payload_decode
+extend_wide_payload_decode
+     : forall (s : jet_extend_wide_loop.extend_wide_size)
+         (x : Ty.tySem (Word.Word (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))))
+         (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))) x)),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))))
+         (jet_wide_spec.decode_wide (jet_extend_wide_loop.extend_wide_input s)
+            (Integers.Int64.zero_ext (jet_wide.wide_bits (jet_extend_wide_loop.extend_wide_input s)) r)) x
+### C.jet_extend_wide_spec.extend_wide_sequence_denotes
+extend_wide_sequence_denotes
+     : forall (s : jet_extend_wide_loop.extend_wide_size)
+         (x : Ty.tySem (Word.Word (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))))
+         (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r)
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))) x)),
+       @eq (list BitMachine.Cell)
+         (jet_write_wide_sequence.wide_sequence_cells (jet_extend_wide_loop.extend_wide_input s)
+            (jet_extend_wide_exec.extend_wide_output_args s r))
+         (@Translate.encode
+            (Word.Vector (Word.Word (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s)))
+               (extend_wide_depth s))
+            (@jet_extend_word_spec.left_extend_word_spec (jet_wide.wide_log (jet_extend_wide_loop.extend_wide_input s))
+               (extend_wide_depth s) Alg.CoreFunSem x))
+### C.jet_extend_wide_spec.extend_wide_depth
+extend_wide_depth =
+fun s : jet_extend_wide_loop.extend_wide_size =>
+match s return nat with
+| jet_extend_wide_loop.E16to32 => S O
+| jet_extend_wide_loop.E16to64 => S (S O)
+| jet_extend_wide_loop.E32to64 => S O
+end
+     : forall _ : jet_extend_wide_loop.extend_wide_size, nat
+
+Arguments extend_wide_depth s

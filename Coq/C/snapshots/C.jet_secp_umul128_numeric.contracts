@@ -1,0 +1,97 @@
+### C.jet_secp_umul128_numeric.umul128_hi_den
+umul128_hi_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout jet_secp_umul128_exec.umul128_hi)
+         (Values.Vlong (umul128_hi_machine (rho O) (rho (S O))))
+### C.jet_secp_umul128_numeric.umul128_lo_den
+umul128_lo_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout jet_secp_umul128_exec.umul128_lo)
+         (Values.Vlong (umul128_lo_machine (rho O) (rho (S O))))
+### C.jet_secp_umul128_numeric.umul128_unsigned_outputs
+umul128_unsigned_outputs
+     : forall a b : Integers.Int64.int,
+       and
+         (@eq BinNums.Z (Integers.Int64.unsigned (umul128_hi_machine a b))
+            (BinInt.Z.div (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)) Integers.Int64.modulus))
+         (@eq BinNums.Z (Integers.Int64.unsigned (umul128_lo_machine a b))
+            (BinInt.Z.modulo (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+               Integers.Int64.modulus))
+### C.jet_secp_umul128_numeric.umul128_hi_carrier
+umul128_hi_carrier
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout jet_secp_umul128_exec.umul128_hi)
+         (Values.Vlong
+            (Integers.Int64.repr
+               (BinInt.Z.div (BinInt.Z.mul (Integers.Int64.unsigned (rho O)) (Integers.Int64.unsigned (rho (S O))))
+                  Integers.Int64.modulus)))
+### C.jet_secp_umul128_numeric.umul128_lo_carrier
+umul128_lo_carrier
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho layout jet_secp_umul128_exec.umul128_lo)
+         (Values.Vlong
+            (Integers.Int64.repr
+               (BinInt.Z.modulo (BinInt.Z.mul (Integers.Int64.unsigned (rho O)) (Integers.Int64.unsigned (rho (S O))))
+                  Integers.Int64.modulus)))
+### C.jet_secp_umul128_numeric.eval_umul128_owned_product
+eval_umul128_owned_product
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho layout jet_secp_umul128_exec.umul128_initial_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_umul128)
+               (@cons Values.val (Values.Vlong (rho O))
+                  (@cons Values.val (Values.Vlong (rho (S O)))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                        (@nil Values.val)))) Events.E0 mf
+               (Values.Vlong
+                  (Integers.Int64.repr
+                     (BinInt.Z.modulo
+                        (BinInt.Z.mul (Integers.Int64.unsigned (rho O)) (Integers.Int64.unsigned (rho (S O))))
+                        Integers.Int64.modulus))))
+            (and
+               (@eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk layout O) (jet_sx_state.bas layout O))
+                  (@Some Values.val
+                     (Values.Vlong
+                        (Integers.Int64.repr
+                           (BinInt.Z.div
+                              (BinInt.Z.mul (Integers.Int64.unsigned (rho O)) (Integers.Int64.unsigned (rho (S O))))
+                              Integers.Int64.modulus)))))
+               (and
+                  (jet_sx_state.rep rho layout
+                     (@cons jet_sx_state.region
+                        (jet_sx_state.mkreg
+                           (jet_sx_rep.u64_cells BinNums.Z0
+                              (@cons jet_sx_expr.sx jet_secp_umul128_exec.umul128_hi (@nil jet_sx_expr.sx))) true
+                           (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        (@nil jet_sx_state.region)) mf)
+                  (jet_sx_mem.lframe
+                     (fun (b : Values.block) (ofs : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot layout
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape jet_secp_umul128_exec.umul128_initial_regs) b ofs)) m mf))))
+### C.jet_secp_umul128_numeric.umul128_hi_machine
+umul128_hi_machine =
+fun a b : Integers.Int64.int =>
+jet_umul128_value.umul128_hi (jet_umul128_value.umul128_hh a b) (jet_umul128_value.umul128_lh a b)
+  (jet_umul128_value.umul128_hl a b)
+  (jet_umul128_value.umul128_mid (jet_umul128_value.umul128_ll a b) (jet_umul128_value.umul128_lh a b)
+     (jet_umul128_value.umul128_hl a b))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_hi_machine a b
+### C.jet_secp_umul128_numeric.umul128_lo_machine
+umul128_lo_machine =
+fun a b : Integers.Int64.int =>
+jet_umul128_value.umul128_lo (jet_umul128_value.umul128_ll a b)
+  (jet_umul128_value.umul128_mid (jet_umul128_value.umul128_ll a b) (jet_umul128_value.umul128_lh a b)
+     (jet_umul128_value.umul128_hl a b))
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments umul128_lo_machine a b

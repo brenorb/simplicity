@@ -1,0 +1,158 @@
+### C.jet_elements_issuance_helper.elements_assetIssuance_type
+elements_assetIssuance_type
+     : jet_elements_field_eval.elements_field_at jets_elements._assetIssuance jets_elements._type
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+### C.jet_elements_issuance_helper.eval_elements_issuance_tagged
+eval_elements_issuance_tagged
+     : forall (op : Cop.binary_operation) (k : Integers.Int.int) (pexpr : Clight.expr) (cid : AST.ident)
+         (pt : Ctypes.type) (cf : Clight.function) (n : BinNums.Z) (b : forall _ : Integers.Int.int, bool)
+         (pcells : list BitMachine.Cell) (m : Memory.Mem.mem) (bi : Values.block) (ibase : BinNums.Z)
+         (bf : Values.block) (base : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z)
+         (ty : Integers.Int.int) (pofs : BinNums.Z)
+         (_ : forall (t : Integers.Int.int) (mm : Memory.Mem.mem),
+              @eq (option Values.val)
+                (Cop.sem_binary_operation (Clight.genv_cenv jet_elements_linkage.elements_ge) op
+                   (Values.Vint k) Ctypesdefs.tint (Values.Vint t) Ctypesdefs.tint mm)
+                (@Some Values.val (Values.Val.of_bool (b t))))
+         (_ : @eq Ctypes.type (Clight.typeof pexpr) (Ctypesdefs.tptr pt))
+         (_ : @eq (option Values.block)
+                (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+                   (Clight.genv_genv jet_elements_linkage.elements_ge) cid)
+                (@Some Values.block (jet_elements_linkage.elements_symbol_block cid)))
+         (_ : @eq (option Clight.fundef)
+                (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type
+                   (Clight.genv_genv jet_elements_linkage.elements_ge)
+                   (Values.Vptr (jet_elements_linkage.elements_symbol_block cid) Integers.Ptrofs.zero))
+                (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function cf)))
+         (_ : @eq Ctypes.type (Clight.type_of_fundef (@Ctypes.Internal Clight.function cf))
+                (Ctypes.Tfunction
+                   (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+                      (Ctypes.Tcons (Ctypesdefs.tptr pt) Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))
+         (_ : BinInt.Z.le BinNums.Z0 ibase)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ibase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_application_sep.out_sep bf base bw edge cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) n) bi ibase
+                (BinInt.Z.add ibase
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m bi
+                   (BinInt.Z.add ibase
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                (@Some Values.val (Values.Vint ty)))
+         (_ : jet_output_layout.write_frame_at m bf base bw edge cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) n))
+         (_ : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m' : Memory.Mem.mem)
+                (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._issuance le)
+                       (@Some Values.val (Values.Vptr bi (Integers.Ptrofs.repr ibase)))),
+              Clight.eval_expr jet_elements_linkage.elements_ge e le m' pexpr
+                (Values.Vptr bi (Integers.Ptrofs.repr pofs)))
+         (_ : forall (_ : @eq bool (b ty) true) (mb : Memory.Mem.mem)
+                (_ : forall (chunk : AST.memory_chunk) (o : BinNums.Z) (_ : BinInt.Z.le ibase o)
+                       (_ : BinInt.Z.le (BinInt.Z.add o (Memdata.size_chunk chunk))
+                              (BinInt.Z.add ibase
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))),
+                     @eq (option Values.val) (Memory.Mem.load chunk mb bi o) (Memory.Mem.load chunk m bi o))
+                (_ : jet_output_layout.write_frame_at mb bf base bw edge
+                       (BinInt.Z.sub cursor (BinNums.Zpos BinNums.xH)) n),
+              @ex Memory.Mem.mem
+                (fun me : Memory.Mem.mem =>
+                 and
+                   (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge mb
+                      (@Ctypes.Internal Clight.function cf)
+                      (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                         (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr pofs)) (@nil Values.val))) Events.E0
+                      me Values.Vundef)
+                   (jet_elements_effects.write_effect mb me bf base bw edge
+                      (BinInt.Z.sub cursor (BinNums.Zpos BinNums.xH)) n pcells))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+               (@Ctypes.Internal Clight.function (issuance_tagged_fun op k pexpr cid pt n))
+               (@cons Values.val (Values.Vptr bf (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bi (Integers.Ptrofs.repr ibase)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (jet_elements_effects.write_effect m mf bf base bw edge cursor (BinInt.Z.add (BinNums.Zpos BinNums.xH) n)
+               (issuance_tagged_cells (b ty) n pcells)))
+### C.jet_elements_issuance_helper.issuance_tagged_fun
+issuance_tagged_fun =
+fun (op : Cop.binary_operation) (k : Integers.Int.int) (pexpr : Clight.expr) (cid : AST.ident)
+  (pt : Ctypes.type) (n : BinNums.Z) =>
+Clight.mkfunction Ctypesdefs.tvoid AST.cc_default
+  (@cons (prod AST.ident Ctypes.type)
+     (@pair AST.ident Ctypes.type jets_elements._dst
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+     (@cons (prod AST.ident Ctypes.type)
+        (@pair AST.ident Ctypes.type jets_elements._issuance
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)))
+        (@nil (prod AST.ident Ctypes.type)))) (@nil (prod AST.ident Ctypes.type))
+  (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type jets_elements._t'1 Ctypesdefs.tbool)
+     (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type jets_elements._t'2 Ctypesdefs.tint)
+        (@nil (prod AST.ident Ctypes.type))))
+  (Clight.Ssequence
+     (Clight.Ssequence
+        (Clight.Sset jets_elements._t'2
+           (Clight.Efield
+              (Clight.Ederef
+                 (Clight.Etempvar jets_elements._issuance
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)))
+                 (Ctypes.Tstruct jets_elements._assetIssuance Ctypes.noattr)) jets_elements._type Ctypesdefs.tint))
+        (Clight.Scall (@Some AST.ident jets_elements._t'1)
+           (Clight.Evar jets_elements._writeBit
+              (Ctypes.Tfunction
+                 (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+                    (Ctypes.Tcons Ctypesdefs.tbool Ctypes.Tnil)) Ctypesdefs.tbool AST.cc_default))
+           (@cons Clight.expr
+              (Clight.Etempvar jets_elements._dst
+                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+              (@cons Clight.expr
+                 (Clight.Ebinop op (Clight.Econst_int k Ctypesdefs.tint)
+                    (Clight.Etempvar jets_elements._t'2 Ctypesdefs.tint) Ctypesdefs.tint) (@nil Clight.expr)))))
+     (Clight.Sifthenelse (Clight.Etempvar jets_elements._t'1 Ctypesdefs.tbool)
+        (Clight.Scall (@None AST.ident)
+           (Clight.Evar cid
+              (Ctypes.Tfunction
+                 (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+                    (Ctypes.Tcons (Ctypesdefs.tptr pt) Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+           (@cons Clight.expr
+              (Clight.Etempvar jets_elements._dst
+                 (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+              (@cons Clight.expr pexpr (@nil Clight.expr)))) (jet_elements_indexed_scalar.elements_skip_stmt n)))
+     : forall (_ : Cop.binary_operation) (_ : Integers.Int.int) (_ : Clight.expr) (_ : AST.ident)
+         (_ : Ctypes.type) (_ : BinNums.Z), Clight.function
+
+Arguments issuance_tagged_fun op k pexpr cid pt n%Z_scope
+### C.jet_elements_issuance_helper.issuance_tagged_cells
+issuance_tagged_cells =
+fun (b : bool) (n : BinNums.Z) (pcells : list BitMachine.Cell) =>
+@app (option bool) (@cons (option bool) (@Some bool b) (@nil (option bool)))
+  match b return (list (option bool)) with
+  | true => pcells
+  | false => @List.repeat (option bool) (@None bool) (BinInt.Z.to_nat n)
+  end
+     : forall (_ : bool) (_ : BinNums.Z) (_ : list BitMachine.Cell), list BitMachine.Cell
+
+Arguments issuance_tagged_cells b%bool_scope n%Z_scope pcells%list_scope

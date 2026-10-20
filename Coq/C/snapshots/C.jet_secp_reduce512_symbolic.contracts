@@ -1,0 +1,332 @@
+### C.jet_secp_reduce512_symbolic.wide_C0_den
+wide_C0_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho beta wide_symbolic_C0) (Values.Vlong wide_C0)
+### C.jet_secp_reduce512_symbolic.wide_C1_den
+wide_C1_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho beta wide_symbolic_C1) (Values.Vlong wide_C1)
+### C.jet_secp_reduce512_symbolic.wide_bind_den
+wide_bind_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (a b x : jet_sx_expr.sx) (A B : Integers.Int64.int)
+         (_ : @eq Values.val (jet_sx_expr.den rho beta a) (Values.Vlong A))
+         (_ : @eq Values.val (jet_sx_expr.den rho beta b) (Values.Vlong B)),
+       @eq Values.val (jet_sx_expr.den rho beta (wide_bind a b x))
+         (jet_sx_expr.den
+            (fun n : nat => match PeanoNat.Nat.eqb n O return Integers.Int64.int with
+                            | true => A
+                            | false => B
+                            end) beta x)
+### C.jet_secp_reduce512_symbolic.wide_product_lo_den
+wide_product_lo_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (a b : jet_sx_expr.sx) (A B : Integers.Int64.int)
+         (_ : @eq Values.val (jet_sx_expr.den rho beta a) (Values.Vlong A))
+         (_ : @eq Values.val (jet_sx_expr.den rho beta b) (Values.Vlong B)),
+       @eq Values.val (jet_sx_expr.den rho beta (wide_symbolic_product_lo a b))
+         (Values.Vlong (jet_secp_umul128_numeric.umul128_lo_machine A B))
+### C.jet_secp_reduce512_symbolic.wide_product_hi_den
+wide_product_hi_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (a b : jet_sx_expr.sx) (A B : Integers.Int64.int)
+         (_ : @eq Values.val (jet_sx_expr.den rho beta a) (Values.Vlong A))
+         (_ : @eq Values.val (jet_sx_expr.den rho beta b) (Values.Vlong B)),
+       @eq Values.val (jet_sx_expr.den rho beta (wide_symbolic_product_hi a b))
+         (Values.Vlong (jet_secp_umul128_numeric.umul128_hi_machine A B))
+### C.jet_secp_reduce512_symbolic.wide_carry_den
+wide_carry_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (sg : Ctypes.signedness) (a b : jet_sx_expr.sx) (A B : Integers.Int64.int)
+         (_ : @eq Values.val (jet_sx_expr.den rho beta a) (Values.Vlong A))
+         (_ : @eq Values.val (jet_sx_expr.den rho beta b) (Values.Vlong B)),
+       @eq Values.val (jet_sx_expr.den rho beta (wide_symbolic_carry sg a b))
+         (Values.Vlong (jet_secp_scalar_mul512_machine.column_carry64 A B))
+### C.jet_secp_reduce512_symbolic.wide_from_word_rep
+wide_from_word_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (x : jet_sx_expr.sx) (X : Integers.Int64.int)
+         (_ : @eq Values.val (jet_sx_expr.den rho beta x) (Values.Vlong X)),
+       wide_rep rho beta (wide_symbolic_from_word x) (jet_secp_reduce512_wide.wide_from_word X)
+### C.jet_secp_reduce512_symbolic.wide_lo_add_rep
+wide_lo_add_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (a b : jet_sx_expr.sx) (A B : Integers.Int64.int) (sy : jet_secp_scalar_mul512_symbolic.symbolic_column)
+         (ma : jet_secp_reduce512_wide.wide_column) (_ : @eq Values.val (jet_sx_expr.den rho beta a) (Values.Vlong A))
+         (_ : @eq Values.val (jet_sx_expr.den rho beta b) (Values.Vlong B)) (_ : wide_rep rho beta sy ma),
+       @eq Values.val (jet_sx_expr.den rho beta (wide_symbolic_lo_add a b sy))
+         (Values.Vlong (jet_secp_scalar_mul512_machine.column_product_lo A B (jet_secp_reduce512_wide.wide_lower ma)))
+### C.jet_secp_reduce512_symbolic.wide_hi_add_rep
+wide_hi_add_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (a b : jet_sx_expr.sx) (A B : Integers.Int64.int) (sy : jet_secp_scalar_mul512_symbolic.symbolic_column)
+         (ma : jet_secp_reduce512_wide.wide_column) (_ : @eq Values.val (jet_sx_expr.den rho beta a) (Values.Vlong A))
+         (_ : @eq Values.val (jet_sx_expr.den rho beta b) (Values.Vlong B)) (_ : wide_rep rho beta sy ma),
+       @eq Values.val (jet_sx_expr.den rho beta (wide_symbolic_hi_add a b sy))
+         (Values.Vlong
+            (jet_secp_scalar_mul512_machine.column_product_hi_add A B (jet_secp_reduce512_wide.wide_lower ma)))
+### C.jet_secp_reduce512_symbolic.wide_muladd_rep
+wide_muladd_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (a b : jet_sx_expr.sx) (A B : Integers.Int64.int) (sy : jet_secp_scalar_mul512_symbolic.symbolic_column)
+         (ma : jet_secp_reduce512_wide.wide_column) (_ : @eq Values.val (jet_sx_expr.den rho beta a) (Values.Vlong A))
+         (_ : @eq Values.val (jet_sx_expr.den rho beta b) (Values.Vlong B)) (_ : wide_rep rho beta sy ma),
+       wide_rep rho beta (wide_symbolic_muladd a b sy) (jet_secp_reduce512_wide.wide_muladd A B ma)
+### C.jet_secp_reduce512_symbolic.wide_muladd_fast_rep
+wide_muladd_fast_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (a b : jet_sx_expr.sx) (A B : Integers.Int64.int) (sy : jet_secp_scalar_mul512_symbolic.symbolic_column)
+         (ma : jet_secp_reduce512_wide.wide_column) (_ : @eq Values.val (jet_sx_expr.den rho beta a) (Values.Vlong A))
+         (_ : @eq Values.val (jet_sx_expr.den rho beta b) (Values.Vlong B)) (_ : wide_rep rho beta sy ma),
+       wide_rep rho beta (wide_symbolic_muladd_fast a b sy) (jet_secp_reduce512_wide.wide_muladd_fast A B ma)
+### C.jet_secp_reduce512_symbolic.wide_sumadd_rep
+wide_sumadd_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (x : jet_sx_expr.sx) (X : Integers.Int64.int) (sy : jet_secp_scalar_mul512_symbolic.symbolic_column)
+         (ma : jet_secp_reduce512_wide.wide_column) (_ : @eq Values.val (jet_sx_expr.den rho beta x) (Values.Vlong X))
+         (_ : wide_rep rho beta sy ma),
+       wide_rep rho beta (wide_symbolic_sumadd x sy) (jet_secp_reduce512_wide.wide_sumadd X ma)
+### C.jet_secp_reduce512_symbolic.wide_sumadd_fast_rep
+wide_sumadd_fast_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (x : jet_sx_expr.sx) (X : Integers.Int64.int) (sy : jet_secp_scalar_mul512_symbolic.symbolic_column)
+         (ma : jet_secp_reduce512_wide.wide_column) (_ : @eq Values.val (jet_sx_expr.den rho beta x) (Values.Vlong X))
+         (_ : wide_rep rho beta sy ma),
+       wide_rep rho beta (wide_symbolic_sumadd_fast x sy) (jet_secp_reduce512_wide.wide_sumadd_fast X ma)
+### C.jet_secp_reduce512_symbolic.wide_extract_rep
+wide_extract_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (sy : jet_secp_scalar_mul512_symbolic.symbolic_column) (ma : jet_secp_reduce512_wide.wide_column)
+         (_ : wide_rep rho beta sy ma),
+       wide_rep rho beta (wide_symbolic_extract sy) (jet_secp_reduce512_wide.wide_extract ma)
+### C.jet_secp_reduce512_symbolic.wide_extract_fast_rep
+wide_extract_fast_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (sy : jet_secp_scalar_mul512_symbolic.symbolic_column) (ma : jet_secp_reduce512_wide.wide_column)
+         (_ : wide_rep rho beta sy ma),
+       wide_rep rho beta (wide_symbolic_extract_fast sy) (jet_secp_reduce512_wide.wide_extract_fast ma)
+### C.jet_secp_reduce512_symbolic.wide_symbolic_C0
+wide_symbolic_C0 =
+jet_sx_expr.XLb jet_sx_expr.Badd
+  (jet_sx_expr.XLnot
+     (jet_sx_expr.XLc
+        (Integers.Int64.repr
+           (BinNums.Zneg
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO (...)))))))))))))))))))))))
+  (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.one))
+     : jet_sx_expr.sx
+### C.jet_secp_reduce512_symbolic.wide_symbolic_C1
+wide_symbolic_C1 =
+jet_sx_expr.XLnot
+  (jet_sx_expr.XLc
+     (Integers.Int64.repr
+        (BinNums.Zneg
+           (BinNums.xI
+              (BinNums.xO
+                 (BinNums.xI
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+     : jet_sx_expr.sx
+### C.jet_secp_reduce512_symbolic.wide_C0
+wide_C0 =
+Integers.Int64.repr
+  (BinNums.Zpos
+     (BinNums.xI
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (...)))))))))))))))))))))))
+     : Integers.Int64.int
+### C.jet_secp_reduce512_symbolic.wide_C1
+wide_C1 =
+Integers.Int64.repr
+  (BinNums.Zpos
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xI
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xI (...)))))))))))))))))))))))
+     : Integers.Int64.int
+### C.jet_secp_reduce512_symbolic.wide_bind
+wide_bind =
+fun a b x : jet_sx_expr.sx =>
+jet_secp_scalar_bind.scalar_bind
+  (fun n : nat => match PeanoNat.Nat.eqb n O return jet_sx_expr.sx with
+                  | true => a
+                  | false => b
+                  end) (jet_sx_expr.XL2I b) x
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments wide_bind a b x
+### C.jet_secp_reduce512_symbolic.wide_symbolic_product_lo
+wide_symbolic_product_lo =
+fun a b : jet_sx_expr.sx => wide_bind a b jet_secp_umul128_exec.umul128_lo
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments wide_symbolic_product_lo a b
+### C.jet_secp_reduce512_symbolic.wide_symbolic_product_hi
+wide_symbolic_product_hi =
+fun a b : jet_sx_expr.sx => wide_bind a b jet_secp_umul128_exec.umul128_hi
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments wide_symbolic_product_hi a b
+### C.jet_secp_reduce512_symbolic.wide_symbolic_carry
+wide_symbolic_carry =
+fun (sg : Ctypes.signedness) (a b : jet_sx_expr.sx) =>
+jet_sx_expr.XI2L sg (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned (jet_sx_expr.XLb jet_sx_expr.Badd a b) b)
+     : forall (_ : Ctypes.signedness) (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments wide_symbolic_carry sg a b
+### C.jet_secp_reduce512_symbolic.wide_symbolic_from_word
+wide_symbolic_from_word =
+fun x : jet_sx_expr.sx =>
+jet_secp_scalar_mul512_symbolic.scolumn x (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.zero))
+  (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.zero))
+     : forall _ : jet_sx_expr.sx, jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments wide_symbolic_from_word x
+### C.jet_secp_reduce512_symbolic.wide_symbolic_lo_add
+wide_symbolic_lo_add =
+fun (a b : jet_sx_expr.sx) (s : jet_secp_scalar_mul512_symbolic.symbolic_column) =>
+jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_lo s) (wide_symbolic_product_lo a b)
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_secp_scalar_mul512_symbolic.symbolic_column),
+       jet_sx_expr.sx
+
+Arguments wide_symbolic_lo_add a b s
+### C.jet_secp_reduce512_symbolic.wide_symbolic_hi_add
+wide_symbolic_hi_add =
+fun (a b : jet_sx_expr.sx) (s : jet_secp_scalar_mul512_symbolic.symbolic_column) =>
+jet_sx_expr.XLb jet_sx_expr.Badd (wide_symbolic_product_hi a b)
+  (wide_symbolic_carry Ctypes.Signed (jet_secp_scalar_mul512_symbolic.sc_lo s) (wide_symbolic_product_lo a b))
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_secp_scalar_mul512_symbolic.symbolic_column),
+       jet_sx_expr.sx
+
+Arguments wide_symbolic_hi_add a b s
+### C.jet_secp_reduce512_symbolic.wide_symbolic_muladd
+wide_symbolic_muladd =
+fun (a b : jet_sx_expr.sx) (s : jet_secp_scalar_mul512_symbolic.symbolic_column) =>
+jet_secp_scalar_mul512_symbolic.scolumn (wide_symbolic_lo_add a b s)
+  (jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_hi s) (wide_symbolic_hi_add a b s))
+  (jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_top s)
+     (wide_symbolic_carry Ctypes.Signed (jet_secp_scalar_mul512_symbolic.sc_hi s) (wide_symbolic_hi_add a b s)))
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_secp_scalar_mul512_symbolic.symbolic_column),
+       jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments wide_symbolic_muladd a b s
+### C.jet_secp_reduce512_symbolic.wide_symbolic_muladd_fast
+wide_symbolic_muladd_fast =
+fun (a b : jet_sx_expr.sx) (s : jet_secp_scalar_mul512_symbolic.symbolic_column) =>
+jet_secp_scalar_mul512_symbolic.scolumn (wide_symbolic_lo_add a b s)
+  (jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_hi s) (wide_symbolic_hi_add a b s))
+  (jet_secp_scalar_mul512_symbolic.sc_top s)
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_secp_scalar_mul512_symbolic.symbolic_column),
+       jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments wide_symbolic_muladd_fast a b s
+### C.jet_secp_reduce512_symbolic.wide_symbolic_sumadd
+wide_symbolic_sumadd =
+fun (x : jet_sx_expr.sx) (s : jet_secp_scalar_mul512_symbolic.symbolic_column) =>
+jet_secp_scalar_mul512_symbolic.scolumn (jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_lo s) x)
+  (jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_hi s)
+     (wide_symbolic_carry Ctypes.Unsigned (jet_secp_scalar_mul512_symbolic.sc_lo s) x))
+  (jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_top s)
+     (wide_symbolic_carry Ctypes.Signed (jet_secp_scalar_mul512_symbolic.sc_hi s)
+        (wide_symbolic_carry Ctypes.Unsigned (jet_secp_scalar_mul512_symbolic.sc_lo s) x)))
+     : forall (_ : jet_sx_expr.sx) (_ : jet_secp_scalar_mul512_symbolic.symbolic_column),
+       jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments wide_symbolic_sumadd x s
+### C.jet_secp_reduce512_symbolic.wide_symbolic_sumadd_fast
+wide_symbolic_sumadd_fast =
+fun (x : jet_sx_expr.sx) (s : jet_secp_scalar_mul512_symbolic.symbolic_column) =>
+jet_secp_scalar_mul512_symbolic.scolumn (jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_lo s) x)
+  (jet_sx_expr.XLb jet_sx_expr.Badd (jet_secp_scalar_mul512_symbolic.sc_hi s)
+     (wide_symbolic_carry Ctypes.Signed (jet_secp_scalar_mul512_symbolic.sc_lo s) x))
+  (jet_secp_scalar_mul512_symbolic.sc_top s)
+     : forall (_ : jet_sx_expr.sx) (_ : jet_secp_scalar_mul512_symbolic.symbolic_column),
+       jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments wide_symbolic_sumadd_fast x s
+### C.jet_secp_reduce512_symbolic.wide_symbolic_extract
+wide_symbolic_extract =
+fun s : jet_secp_scalar_mul512_symbolic.symbolic_column =>
+jet_secp_scalar_mul512_symbolic.scolumn (jet_secp_scalar_mul512_symbolic.sc_hi s)
+  (jet_secp_scalar_mul512_symbolic.sc_top s) (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.zero))
+     : forall _ : jet_secp_scalar_mul512_symbolic.symbolic_column, jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments wide_symbolic_extract s
+### C.jet_secp_reduce512_symbolic.wide_symbolic_extract_fast
+wide_symbolic_extract_fast =
+fun s : jet_secp_scalar_mul512_symbolic.symbolic_column =>
+jet_secp_scalar_mul512_symbolic.scolumn (jet_secp_scalar_mul512_symbolic.sc_hi s)
+  (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc Integers.Int.zero)) (jet_secp_scalar_mul512_symbolic.sc_top s)
+     : forall _ : jet_secp_scalar_mul512_symbolic.symbolic_column, jet_secp_scalar_mul512_symbolic.symbolic_column
+
+Arguments wide_symbolic_extract_fast s
+### C.jet_secp_reduce512_symbolic.wide_rep
+wide_rep =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+  (sy : jet_secp_scalar_mul512_symbolic.symbolic_column) (ma : jet_secp_reduce512_wide.wide_column) =>
+and
+  (@eq Values.val (jet_sx_expr.den rho beta (jet_secp_scalar_mul512_symbolic.sc_lo sy))
+     (Values.Vlong (jet_secp_reduce512_wide.wlo ma)))
+  (and
+     (@eq Values.val (jet_sx_expr.den rho beta (jet_secp_scalar_mul512_symbolic.sc_hi sy))
+        (Values.Vlong (jet_secp_reduce512_wide.whi ma)))
+     (@eq Values.val (jet_sx_expr.den rho beta (jet_secp_scalar_mul512_symbolic.sc_top sy))
+        (Values.Vlong (jet_secp_reduce512_wide.wtop ma))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : jet_secp_scalar_mul512_symbolic.symbolic_column) (_ : jet_secp_reduce512_wide.wide_column), Prop
+
+Arguments wide_rep (rho beta)%function_scope sy ma

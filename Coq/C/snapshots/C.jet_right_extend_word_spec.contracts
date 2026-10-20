@@ -1,0 +1,82 @@
+### C.jet_right_extend_word_spec.right_pad_word_spec_parametric
+right_pad_word_spec_parametric
+     : forall (n d : nat) (high : bool),
+       @Alg.Core.Parametric (Word.Word n) (Word.Vector (Word.Word n) d) (@right_pad_word_spec n d high)
+### C.jet_right_extend_word_spec.right_extend_word_spec_parametric
+right_extend_word_spec_parametric
+     : forall n d : nat, @Alg.Core.Parametric (Word.Word n) (Word.Vector (Word.Word n) d) (@right_extend_word_spec n d)
+### C.jet_right_extend_word_spec.encode_right_pad_word_spec
+encode_right_pad_word_spec
+     : forall (n d : nat) (high : bool) (x : Ty.tySem (Word.Word n)),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Word.Vector (Word.Word n) d) (@right_pad_word_spec n d high Alg.CoreFunSem x))
+         (@app BitMachine.Cell (@Translate.encode (Word.Word n) x)
+            (@List.concat BitMachine.Cell
+               (@List.repeat (list BitMachine.Cell)
+                  (@Translate.encode (Word.Word n) (@jet_extend_word_spec.pad_word_constant n high Alg.CoreFunSem tt))
+                  (Nat.sub (PeanoNat.Nat.pow (S (S O)) d) (S O)))))
+### C.jet_right_extend_word_spec.right_extend_word8_lsb_denotes
+right_extend_word8_lsb_denotes
+     : forall (x : Ty.tySem (Word.Word (S (S (S O))))) (r : Integers.Int.int)
+         (_ : @eq BinNums.Z (Integers.Int.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x)),
+       @eq bool (jet_right_extend_word8_loop.right_extend_word8_lsb r)
+         (Bit.toBool (@Word.rightmost (Ty.Sum Ty.Unit Ty.Unit) (S (S (S O))) Alg.CoreFunSem x))
+### C.jet_right_extend_word_spec.right_extend_word8_args_length
+right_extend_word8_args_length
+     : forall (s : jet_extend_word8_loop.extend_word8_size) (r : Integers.Int.int),
+       @eq BinNums.Z
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinInt.Z.of_nat (@length Integers.Int.int (right_extend_word8_output_args s r))))
+         (jet_extend_word8_loop.extend_word8_bits s)
+### C.jet_right_extend_word_spec.right_extend_word8_sequence_denotes
+right_extend_word8_sequence_denotes
+     : forall (s : jet_extend_word8_loop.extend_word8_size) (x : Ty.tySem (Word.Word (S (S (S O)))))
+         (r : Integers.Int.int)
+         (_ : @eq BinNums.Z (Integers.Int.unsigned (jet_extend_word8_exec.extend_word8_payload r))
+                (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S O)))) x))
+         (_ : @eq (Ty.tySem (Word.Word (S (S (S O)))))
+                (jet_spec.decode_word8
+                   (Integers.Int64.repr (Integers.Int.unsigned (jet_extend_word8_exec.extend_word8_payload r)))) x),
+       @eq (list BitMachine.Cell) (jet_write8_sequence.byte_sequence_cells (right_extend_word8_output_args s r))
+         (@Translate.encode (Word.Vector (Word.Word (S (S (S O)))) (jet_extend_word_spec.extend_word8_depth s))
+            (@right_extend_word_spec (S (S (S O))) (jet_extend_word_spec.extend_word8_depth s) Alg.CoreFunSem x))
+### C.jet_right_extend_word_spec.right_pad_word_spec
+right_pad_word_spec =
+fix right_pad_word_spec (n d : nat) (high : bool) (term : Alg.Core.Algebra) {struct d} :
+    Alg.Core.domain term (Word.Word n) (Word.Vector (Word.Word n) d) :=
+  match d as d0 return (Alg.Core.domain term (Word.Word n) (Word.Vector (Word.Word n) d0)) with
+  | O => @RC.iden (Word.Word n) term
+  | S d0 =>
+      @RC.pair (Word.Word n) (Word.Vector (Word.Word n) d0) (Word.Vector (Word.Word n) d0) term
+        (right_pad_word_spec n d0 high term)
+        (@Word.fill (Word.Word n) (Word.Word n) d0 term
+           (@RC.comp (Word.Word n) Ty.Unit (Word.Word n) term (@RC.unit (Word.Word n) term)
+              (@jet_extend_word_spec.pad_word_constant n high term)))
+  end
+     : forall (n d : nat) (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Word.Word n) (Word.Vector (Word.Word n) d)
+
+Arguments right_pad_word_spec (n d)%nat_scope high%bool_scope {term}
+### C.jet_right_extend_word_spec.right_extend_word_spec
+right_extend_word_spec =
+fun (n d : nat) (term : Alg.Core.Algebra) =>
+@RC.comp (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)
+  (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)) (Word.Vector (Word.Word n) d) term
+  (@RC.pair (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n) (Ty.Sum Ty.Unit Ty.Unit) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n)
+     term (@Word.rightmost (Ty.Sum Ty.Unit Ty.Unit) n term) (@RC.iden (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) n) term))
+  (@Bit.cond (Word.Word n) (Word.Vector (Word.Word n) d) term (@right_pad_word_spec n d true term)
+     (@right_pad_word_spec n d false term))
+     : forall (n d : nat) (term : Alg.Core.Algebra), Alg.Core.domain term (Word.Word n) (Word.Vector (Word.Word n) d)
+
+Arguments right_extend_word_spec (n d)%nat_scope {term}
+### C.jet_right_extend_word_spec.right_extend_word8_output_args
+right_extend_word8_output_args =
+fun (s : jet_extend_word8_loop.extend_word8_size) (r : Integers.Int.int) =>
+@app Integers.Int.int (@cons Integers.Int.int (jet_extend_word8_exec.extend_word8_payload r) (@nil Integers.Int.int))
+  (@List.repeat Integers.Int.int
+     (jet_extend_bit8_exec.extend_bit8_arg
+        (jet_right_extend_word8_loop.right_extend_word8_lsb (jet_extend_word8_exec.extend_word8_payload r)))
+     (BinInt.Z.to_nat (jet_extend_word8_loop.extend_word8_count s)))
+     : forall (_ : jet_extend_word8_loop.extend_word8_size) (_ : Integers.Int.int), list Integers.Int.int
+
+Arguments right_extend_word8_output_args s r

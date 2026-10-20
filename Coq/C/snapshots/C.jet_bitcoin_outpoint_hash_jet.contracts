@@ -1,0 +1,174 @@
+### C.jet_bitcoin_outpoint_hash_jet.op_body
+op_body
+     : @eq Clight.statement (Clight.fn_body jets_sha.f_simplicity_bitcoin_outpoint_hash)
+         (Clight.Ssequence
+            (Clight.Sassign (Clight.Evar jets_sha._src (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr))
+               (Clight.Etempvar jets_sha._src (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr)))
+            (jet_sha_add_n_init.an_init op_rest))
+### C.jet_bitcoin_outpoint_hash_jet.op_blocks
+op_blocks
+     : forall bl bm bb bx : Values.block,
+       @eq (list (prod (prod Values.block BinNums.Z) BinNums.Z))
+         (Clight.blocks_of_env jet_sha_linkage.sha_ge (op_env bl bm bb bx))
+         (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+            (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bx BinNums.Z0)
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+               (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bl BinNums.Z0)
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+               (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                  (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bm BinNums.Z0)
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                     (@pair (prod Values.block BinNums.Z) BinNums.Z (@pair Values.block BinNums.Z bb BinNums.Z0)
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                     (@nil (prod (prod Values.block BinNums.Z) BinNums.Z))))))
+### C.jet_bitcoin_outpoint_hash_jet.op_entry
+op_entry
+     : forall (env : Values.val) (m : Memory.Mem.mem) (m1 m2 m3 m4 : Memory.Mem.mem') (bl bm bb bx bd : Values.block)
+         (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block m1 bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m1 BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block m2 bm))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m2 BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block m3 bb))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m3 BinNums.Z0
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                (@pair Memory.Mem.mem' Values.block m4 bx)),
+       Clight.function_entry2 jet_sha_linkage.sha_ge jets_sha.f_simplicity_bitcoin_outpoint_hash
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         m (op_env bl bm bb bx) (op_temps env bd dbase bs sbase) m4
+### C.jet_bitcoin_outpoint_hash_jet.op_copy
+op_copy
+     : forall (m mc : Memory.Mem.mem) (bl bm bb bx bs : Values.block) (sbase : BinNums.Z) (bytes : list Memdata.memval)
+         (le : Maps.PTree.tree Values.val) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_sha._src le)
+                (@Some Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes m bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes m bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc)),
+       ClightBigstep.Clight2.exec_stmt jet_sha_linkage.sha_ge (op_env bl bm bb bx) le m
+         (Clight.Sassign (Clight.Evar jets_sha._src (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr))
+            (Clight.Etempvar jets_sha._src (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr))) Events.E0 le mc
+         ClightBigstep.Out_normal
+### C.jet_bitcoin_outpoint_hash_jet.op_fst_pair
+op_fst_pair
+     : forall (A B : Type) (a : A) (b : B), @eq A (@fst A B (@pair A B a b)) a
+### C.jet_bitcoin_outpoint_hash_jet.op_snd_pair
+op_snd_pair
+     : forall (A B : Type) (a : A) (b : B), @eq B (@snd A B (@pair A B a b)) b
+### C.jet_bitcoin_outpoint_hash_jet.op_cast36
+op_cast36
+     : forall m : Memory.Mem.mem,
+       @eq (option Values.val)
+         (Cop.sem_cast
+            (Values.Vint
+               (Integers.Int.repr
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+            Ctypesdefs.tint Ctypesdefs.tulong m)
+         (@Some Values.val
+            (Values.Vlong
+               (Integers.Int64.repr
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+### C.jet_bitcoin_outpoint_hash_jet.op_len36
+op_len36
+     : forall (n : nat)
+         (_ : @eq nat n (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       @eq Integers.Int64.int (Integers.Int64.repr (BinInt.Z.of_nat n))
+         (Integers.Int64.repr
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+### C.jet_bitcoin_outpoint_hash_jet.bitcoin_outpoint_hash_local_spec
+bitcoin_outpoint_hash_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       jet_sha_ctx8_add_jets.sha_jet_partial_local_spec jets_sha.f_simplicity_bitcoin_outpoint_hash
+         (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+            (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O))))))))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type
+         (fun
+            a : Ty.tySem
+                  (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S O)))))))) =>
+          @jet_bitcoin_ctx_hash_spec.outpoint_hash_spec (Alg.AssertionSem Option.option_Monad_Zero) a)
+### C.jet_bitcoin_outpoint_hash_jet.op_env
+op_env =
+fun bl bm bb bx : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_sha._ctx
+  (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_sha._sha256_context Ctypes.noattr))
+  (@Maps.PTree.set (prod Values.block Ctypes.type) jets_sha._buf
+     (@pair Values.block Ctypes.type bb
+        (Ctypesdefs.tarray Ctypesdefs.tuchar
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+     (@Maps.PTree.set (prod Values.block Ctypes.type) jets_sha._midstate
+        (@pair Values.block Ctypes.type bm (Ctypes.Tstruct jets_sha._sha256_midstate Ctypes.noattr))
+        (@Maps.PTree.set (prod Values.block Ctypes.type) jets_sha._src
+           (@pair Values.block Ctypes.type bl (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr)) Clight.empty_env)))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block), Clight.env
+
+Arguments op_env bl bm bb bx
+### C.jet_bitcoin_outpoint_hash_jet.op_temps
+op_temps =
+fun (env : Values.val) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_sha._env env
+  (@Maps.PTree.set Values.val jets_sha._src (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+     (@Maps.PTree.set Values.val jets_sha._dst (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+        (Clight.create_undef_temps (Clight.fn_temps jets_sha.f_simplicity_bitcoin_outpoint_hash))))
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments op_temps env bd dbase%Z_scope bs sbase%Z_scope
+### C.jet_bitcoin_outpoint_hash_jet.op_read8s
+op_read8s =
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_sha._read8s
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuchar)
+           (Ctypes.Tcons Ctypesdefs.tulong
+              (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr)) Ctypes.Tnil)))
+        Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Evar jets_sha._buf
+        (Ctypesdefs.tarray Ctypesdefs.tuchar
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+     (@cons Clight.expr
+        (Clight.Econst_int
+           (Integers.Int.repr
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+           Ctypesdefs.tint)
+        (@cons Clight.expr
+           (Clight.Eaddrof (Clight.Evar jets_sha._src (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr))
+              (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._frameItem Ctypes.noattr))) (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_bitcoin_outpoint_hash_jet.op_uchars
+op_uchars =
+Clight.Scall (@None AST.ident) (Clight.Evar jets_sha._sha256_uchars jet_sha_finalize_exec.uchars_ty)
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_sha._ctx (Ctypes.Tstruct jets_sha._sha256_context Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_sha._sha256_context Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Evar jets_sha._buf
+           (Ctypesdefs.tarray Ctypesdefs.tuchar
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (@cons Clight.expr
+           (Clight.Econst_int
+              (Integers.Int.repr
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))))
+              Ctypesdefs.tint) (@nil Clight.expr))))
+     : Clight.statement
+### C.jet_bitcoin_outpoint_hash_jet.op_rest
+op_rest =
+Clight.Ssequence jet_sha_ctx8_finalize_jet.fz_read
+  (Clight.Ssequence op_read8s (Clight.Ssequence op_uchars jet_sha_ctx8_add_buffer_jet.ab_write))
+     : Clight.statement

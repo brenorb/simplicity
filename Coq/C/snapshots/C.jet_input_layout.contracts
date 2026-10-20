@@ -1,0 +1,141 @@
+### C.jet_input_layout.byte_slice_at
+byte_slice_at =
+fun (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z) (x : Ty.tySem (Word.Word (S (S (S O))))) =>
+and
+  (and (BinInt.Z.le BinNums.Z0 cursor)
+     (BinInt.Z.le cursor
+        (BinInt.Z.sub Integers.Int64.max_unsigned (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+  (and
+     (and
+        (BinInt.Z.le
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+              (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                 (BinInt.Z.div cursor
+                    (BinNums.Zpos
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+           edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned))
+     (@ex Integers.Int64.int
+        (fun high : Integers.Int64.int =>
+         @ex Integers.Int64.int
+           (fun low : Integers.Int64.int =>
+            and
+              (@eq (option Values.val)
+                 (Memory.Mem.load AST.Mint64 m bw
+                    (BinInt.Z.sub edge
+                       (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                          (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                             (BinInt.Z.div cursor
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                 (@Some Values.val (Values.Vlong high)))
+              (and
+                 (forall
+                    _ : BinInt.Z.lt
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))
+                          (BinInt.Z.modulo cursor
+                             (BinNums.Zpos
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))),
+                  and
+                    (BinInt.Z.le
+                       (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                          (BinInt.Z.add (BinNums.Zpos (BinNums.xO BinNums.xH))
+                             (BinInt.Z.div cursor
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                       edge)
+                    (@eq (option Values.val)
+                       (Memory.Mem.load AST.Mint64 m bw
+                          (BinInt.Z.sub edge
+                             (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                (BinInt.Z.add (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                   (BinInt.Z.div cursor
+                                      (BinNums.Zpos
+                                         (BinNums.xO
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                       (@Some Values.val (Values.Vlong low))))
+                 (@eq (Ty.tySem (Word.Word (S (S (S O)))))
+                    (jet_spec.decode_word8 (jet_read8_layout_total.read8_layout_byte cursor high low)) x))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z)
+         (_ : Ty.tySem (Word.Word (S (S (S O))))), Prop
+
+Arguments byte_slice_at m bw (edge cursor)%Z_scope x
+### C.jet_input_layout.byte_input_at
+byte_input_at =
+fun (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block) (edge cursor : BinNums.Z)
+  (xs : list (Ty.tySem (Word.Word (S (S (S O)))))) =>
+and (jet_frame_layout.frame_base_valid base)
+  (and (jet_frame_layout.frame_fields_at m bf base bw edge cursor)
+     (forall (i : nat) (x : Ty.tySem (Word.Word (S (S (S O)))))
+        (_ : @eq (option (Ty.tySem (Word.Word (S (S (S O))))))
+               (@List.nth_error (Ty.tySem (Word.Word (S (S (S O))))) xs i)
+               (@Some (Ty.tySem (Word.Word (S (S (S O))))) x)),
+      byte_slice_at m bw edge
+        (BinInt.Z.add cursor
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))) x))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z)
+         (_ : BinNums.Z) (_ : list (Ty.tySem (Word.Word (S (S (S O)))))), Prop
+
+Arguments byte_input_at m bf base%Z_scope bw (edge cursor)%Z_scope xs%list_scope
+### C.jet_input_layout.frame_input_bit_at
+frame_input_bit_at =
+fun (m : Memory.Mem.mem) (bw : Values.block) (edge q : BinNums.Z) (b : bool) =>
+and (and (BinInt.Z.le BinNums.Z0 q) (BinInt.Z.le q Integers.Int64.max_unsigned))
+  (and
+     (and
+        (BinInt.Z.le
+           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+              (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                 (BinInt.Z.div q
+                    (BinNums.Zpos
+                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+           edge) (BinInt.Z.le edge Integers.Ptrofs.max_unsigned))
+     (@ex Integers.Int64.int
+        (fun w : Integers.Int64.int =>
+         and
+           (@eq (option Values.val)
+              (Memory.Mem.load AST.Mint64 m bw
+                 (BinInt.Z.sub edge
+                    (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                       (BinInt.Z.add (BinNums.Zpos BinNums.xH)
+                          (BinInt.Z.div q
+                             (BinNums.Zpos
+                                (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+              (@Some Values.val (Values.Vlong w)))
+           (@eq bool b
+              (BinInt.Z.testbit (Integers.Int64.unsigned w)
+                 (BinInt.Z.sub
+                    (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))
+                    (BinInt.Z.modulo q
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : bool), Prop
+
+Arguments frame_input_bit_at m bw (edge q)%Z_scope b%bool_scope
+### C.jet_input_layout.frame_input_bits_at
+frame_input_bits_at =
+fun (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z) (bits : list bool) =>
+forall (i : nat) (b : bool) (_ : @eq (option bool) (@List.nth_error bool bits i) (@Some bool b)),
+frame_input_bit_at m bw edge (BinInt.Z.add cursor (BinInt.Z.of_nat i)) b
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : list bool), Prop
+
+Arguments frame_input_bits_at m bw (edge cursor)%Z_scope bits%list_scope
+### C.jet_input_layout.frame_input_word_bits
+frame_input_word_bits =
+fun (n : nat) (value : Ty.tySem (Word.Word n)) =>
+@List.map nat bool
+  (fun i : nat =>
+   BinInt.Z.testbit (@Word.ToZ.Theory.toZ (Word.WordToZ n) value)
+     (BinInt.Z.of_nat (Nat.sub (PeanoNat.Nat.pow (S (S O)) n) (S i)))) (List.seq O (PeanoNat.Nat.pow (S (S O)) n))
+     : forall (n : nat) (_ : Ty.tySem (Word.Word n)), list bool
+
+Arguments frame_input_word_bits {n}%nat_scope value
+### C.jet_input_layout.frame_input_word_at
+frame_input_word_at =
+fun (n : nat) (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z) (value : Ty.tySem (Word.Word n)) =>
+frame_input_bits_at m bw edge cursor (@frame_input_word_bits n value)
+     : forall (n : nat) (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z)
+         (_ : Ty.tySem (Word.Word n)), Prop
+
+Arguments frame_input_word_at {n}%nat_scope m bw (edge cursor)%Z_scope value

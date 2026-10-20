@@ -1,0 +1,184 @@
+### C.jet_encoding.encode_word
+encode_word
+     : forall (n : nat) (x : Ty.tySem (Word.Word n)),
+       @eq (list BitMachine.Cell) (@Translate.encode (Word.Word n) x)
+         (@List.map bool (option bool) (@Some bool) (@jet_input_layout.frame_input_word_bits n x))
+### C.jet_encoding.frame_input_word_at_encode
+@frame_input_word_at_encode
+     : forall (n : nat) (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z) (x : Ty.tySem (Word.Word n)),
+       iff (@jet_input_layout.frame_input_word_at n m bw edge cursor x)
+         (frame_input_cells_at m bw edge cursor (@Translate.encode (Word.Word n) x))
+### C.jet_encoding.frame_input_word_pair_encode
+@frame_input_word_pair_encode
+     : forall (n : nat) (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (x y : Ty.tySem (Word.Word n)),
+       iff
+         (and (@jet_input_layout.frame_input_word_at n m bw edge cursor x)
+            (@jet_input_layout.frame_input_word_at n m bw edge
+               (BinInt.Z.add cursor (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) n))) y))
+         (frame_input_cells_at m bw edge cursor
+            (@Translate.encode (Ty.Prod (Word.Word n) (Word.Word n))
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+### C.jet_encoding.byte_slice_at_encode
+byte_slice_at_encode
+     : forall (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (x : Ty.tySem (Word.Word (S (S (S O))))),
+       iff (jet_input_layout.byte_slice_at m bw edge cursor x)
+         (and
+            (and (BinInt.Z.le BinNums.Z0 cursor)
+               (BinInt.Z.le cursor
+                  (BinInt.Z.sub Integers.Int64.max_unsigned
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+            (frame_input_cells_at m bw edge cursor (@Translate.encode (Word.Word (S (S (S O)))) x)))
+### C.jet_encoding.byte_input_single_encode
+byte_input_single_encode
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (x : Ty.tySem (Word.Word (S (S (S O))))),
+       iff
+         (jet_input_layout.byte_input_at m bf base bw edge cursor
+            (@cons (Ty.tySem (Word.Word (S (S (S O))))) x (@nil (Ty.tySem (Word.Word (S (S (S O))))))))
+         (and (jet_frame_layout.frame_base_valid base)
+            (and (jet_frame_layout.frame_fields_at m bf base bw edge cursor)
+               (and
+                  (and (BinInt.Z.le BinNums.Z0 cursor)
+                     (BinInt.Z.le cursor
+                        (BinInt.Z.sub Integers.Int64.max_unsigned
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (frame_input_cells_at m bw edge cursor (@Translate.encode (Word.Word (S (S (S O)))) x)))))
+### C.jet_encoding.byte_input_pair_encode
+byte_input_pair_encode
+     : forall (m : Memory.Mem.mem) (bf : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (x y : Ty.tySem (Word.Word (S (S (S O))))),
+       iff
+         (jet_input_layout.byte_input_at m bf base bw edge cursor
+            (@cons (Ty.tySem (Word.Word (S (S (S O))))) x
+               (@cons (Ty.tySem (Word.Word (S (S (S O))))) y (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+         (and (jet_frame_layout.frame_base_valid base)
+            (and (jet_frame_layout.frame_fields_at m bf base bw edge cursor)
+               (and
+                  (and (BinInt.Z.le BinNums.Z0 cursor)
+                     (BinInt.Z.le cursor
+                        (BinInt.Z.sub Integers.Int64.max_unsigned
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                  (frame_input_cells_at m bw edge cursor
+                     (@Translate.encode (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))
+                        (@pair (Ty.tySem (Word.Word (S (S (S O))))) (Ty.tySem (Word.Word (S (S (S O))))) x y))))))
+### C.jet_encoding.slice_word_output_encode
+slice_word_output_encode
+     : forall (lg : nat) (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (x : Ty.tySem (Word.Word lg))
+         (_ : BinInt.Z.le (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) lg))
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : BinInt.Z.le (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) lg)) cursor),
+       iff
+         (@ex Integers.Int64.int
+            (fun p : Integers.Int64.int =>
+             and
+               (jet_output_slice.slice_output_at (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) lg)) m bw edge cursor p)
+               (@eq (Ty.tySem (Word.ToZ.obj (Word.WordToZ lg)))
+                  (@Word.ToZ.Theory.fromZ (Word.WordToZ lg) (Integers.Int64.unsigned p)) x)))
+         (frame_output_cells_at m bw edge cursor (@Translate.encode (Word.Word lg) x))
+### C.jet_encoding.wide_output_at_encode
+wide_output_at_encode
+     : forall (s : jet_wide.wide_size) (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (x : Ty.tySem (Word.Word (jet_wide.wide_log s))) (_ : BinInt.Z.le (jet_wide.wide_bits s) cursor),
+       iff (jet_wide_spec.wide_output_at s m bw edge cursor x)
+         (frame_output_cells_at m bw edge cursor (@Translate.encode (Word.Word (jet_wide.wide_log s)) x))
+### C.jet_encoding.byte_output_at_encode
+byte_output_at_encode
+     : forall (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (x : Ty.tySem (Word.Word (S (S (S O)))))
+         (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) cursor),
+       iff (jet_output_layout.byte_output_at m bw edge cursor x)
+         (frame_output_cells_at m bw edge cursor (@Translate.encode (Word.Word (S (S (S O)))) x))
+### C.jet_encoding.carry_wide_output_encode
+carry_wide_output_encode
+     : forall (s : jet_wide.wide_size) (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (v : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (jet_wide.wide_log s))))
+         (_ : BinInt.Z.le (BinInt.Z.add (BinNums.Zpos BinNums.xH) (jet_wide.wide_bits s)) cursor),
+       iff (jet_carry_wide_layout.carry_wide_output_at s m bw edge cursor v)
+         (frame_output_cells_at m bw edge cursor
+            (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (jet_wide.wide_log s))) v))
+### C.jet_encoding.carry_byte_output_encode
+carry_byte_output_encode
+     : forall (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (v : Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O))))))
+         (_ : BinInt.Z.le (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))) cursor),
+       iff (jet_carry_byte_layout.carry_byte_output_at m bw edge cursor v)
+         (frame_output_cells_at m bw edge cursor
+            (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O))))) v))
+### C.jet_encoding.frame_input_word_triple_encode
+@frame_input_word_triple_encode
+     : forall (n : nat) (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z)
+         (x y z : Ty.tySem (Word.Word n)),
+       iff
+         (and (@jet_input_layout.frame_input_word_at n m bw edge cursor x)
+            (and
+               (@jet_input_layout.frame_input_word_at n m bw edge
+                  (BinInt.Z.add cursor (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) n))) y)
+               (@jet_input_layout.frame_input_word_at n m bw edge
+                  (BinInt.Z.add cursor
+                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinInt.Z.of_nat (PeanoNat.Nat.pow (S (S O)) n)))) z)))
+         (frame_input_cells_at m bw edge cursor
+            (@Translate.encode (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)))
+               (@pair (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) x
+                  (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) y z))))
+### C.jet_encoding.msb_bits
+msb_bits =
+fun (N : nat) (z : BinNums.Z) =>
+@List.map nat bool (fun i : nat => BinInt.Z.testbit z (BinInt.Z.of_nat (Nat.sub N (S i)))) (List.seq O N)
+     : forall (_ : nat) (_ : BinNums.Z), list bool
+
+Arguments msb_bits N%nat_scope z%Z_scope
+### C.jet_encoding.cell_matches
+cell_matches =
+fun (P : forall _ : bool, Prop) (c : BitMachine.Cell) =>
+match c return Prop with
+| Some b => P b
+| None => @ex bool (fun b : bool => P b)
+end
+     : forall (_ : forall _ : bool, Prop) (_ : BitMachine.Cell), Prop
+
+Arguments cell_matches P%function_scope c
+### C.jet_encoding.frame_input_cells_at
+frame_input_cells_at =
+fun (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z) (cells : list BitMachine.Cell) =>
+forall (i : nat) (c : BitMachine.Cell)
+  (_ : @eq (option BitMachine.Cell) (@List.nth_error BitMachine.Cell cells i) (@Some BitMachine.Cell c)),
+cell_matches (jet_input_layout.frame_input_bit_at m bw edge (BinInt.Z.add cursor (BinInt.Z.of_nat i))) c
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : list BitMachine.Cell), Prop
+
+Arguments frame_input_cells_at m bw (edge cursor)%Z_scope cells%list_scope
+### C.jet_encoding.frame_output_bit_at
+frame_output_bit_at =
+fun (m : Memory.Mem.mem) (bw : Values.block) (edge q : BinNums.Z) (b : bool) =>
+and (BinInt.Z.le BinNums.Z0 q)
+  (@ex Integers.Int64.int
+     (fun w : Integers.Int64.int =>
+      and
+        (@eq (option Values.val)
+           (Memory.Mem.load AST.Mint64 m bw
+              (BinInt.Z.add edge
+                 (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                    (BinInt.Z.div q
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+           (@Some Values.val (Values.Vlong w)))
+        (@eq bool b
+           (Integers.Int64.testbit w
+              (BinInt.Z.modulo q
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : bool), Prop
+
+Arguments frame_output_bit_at m bw (edge q)%Z_scope b%bool_scope
+### C.jet_encoding.frame_output_cells_at
+frame_output_cells_at =
+fun (m : Memory.Mem.mem) (bw : Values.block) (edge cursor : BinNums.Z) (cells : list BitMachine.Cell) =>
+forall (i : nat) (c : BitMachine.Cell)
+  (_ : @eq (option BitMachine.Cell) (@List.nth_error BitMachine.Cell cells i) (@Some BitMachine.Cell c)),
+cell_matches
+  (frame_output_bit_at m bw edge (BinInt.Z.sub (BinInt.Z.sub cursor (BinNums.Zpos BinNums.xH)) (BinInt.Z.of_nat i))) c
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : BinNums.Z) (_ : list BitMachine.Cell), Prop
+
+Arguments frame_output_cells_at m bw (edge cursor)%Z_scope cells%list_scope

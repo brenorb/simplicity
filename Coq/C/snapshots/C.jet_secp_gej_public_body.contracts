@@ -1,0 +1,88 @@
+### C.jet_secp_gej_public_body.gej_public_body
+gej_public_body
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_simplicity_gej_infinity)
+         (Clight.Ssequence
+            (Clight.Sassign (Clight.Evar jets_secp._src (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))
+               (Clight.Etempvar jets_secp._src (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))) gej_public_rest)
+### C.jet_secp_gej_public_body.gej_public_writer_symbol
+gej_public_writer_symbol
+     : @ex Values.block
+         (fun b : Values.block =>
+          and
+            (@eq (option Values.block)
+               (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+                  jets_secp._write_gej) (@Some Values.block b))
+            (@eq (option Clight.fundef)
+               (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+               (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_secp.f_write_gej))))
+### C.jet_secp_gej_public_body.exec_gej_public_initializer
+exec_gej_public_initializer
+     : forall (le : Clight.temp_env) (m mf : Memory.Mem.mem) (bl ba : Values.block)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_gej_set_infinity)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_gej_public_entry.gej_public_env bl ba) le m
+         gej_public_init_stmt Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_gej_public_body.exec_gej_public_writer
+exec_gej_public_writer
+     : forall (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bl ba bd : Values.block)
+         (dbase : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_write_gej)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_gej_public_entry.gej_public_env bl ba) le m
+         gej_public_write_stmt Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_gej_public_body.exec_gej_public_rest_from_calls
+exec_gej_public_rest_from_calls
+     : forall (le : Maps.PTree.tree Values.val) (m mi mf : Memory.Mem.mem) (bl ba bd : Values.block)
+         (dbase : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_gej_set_infinity)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mi Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mi
+                (@Ctypes.Internal Clight.function jets_secp.f_write_gej)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_gej_public_entry.gej_public_env bl ba) le m
+         gej_public_rest Events.E0 le mf
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.one) Ctypesdefs.tint)))
+### C.jet_secp_gej_public_body.gej_public_init_stmt
+gej_public_init_stmt =
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_secp._secp256k1_gej_set_infinity
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_secp._a (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))) (@nil Clight.expr))
+     : Clight.statement
+### C.jet_secp_gej_public_body.gej_public_write_stmt
+gej_public_write_stmt =
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_secp._write_gej
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr))
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)) Ctypes.Tnil))
+        Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_secp._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp._frameItem Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Eaddrof (Clight.Evar jets_secp._a (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr))) (@nil Clight.expr)))
+     : Clight.statement
+### C.jet_secp_gej_public_body.gej_public_rest
+gej_public_rest =
+Clight.Ssequence gej_public_init_stmt
+  (Clight.Ssequence gej_public_write_stmt
+     (Clight.Sreturn
+        (@Some Clight.expr (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos BinNums.xH)) Ctypesdefs.tint))))
+     : Clight.statement

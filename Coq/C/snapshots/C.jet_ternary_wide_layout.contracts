@@ -1,0 +1,287 @@
+### C.jet_ternary_wide_layout.eval_wide_ternary_layout_matches_spec
+eval_wide_ternary_layout_matches_spec
+     : forall (env : Values.val) (k : jet_ternary_spec.ternary_op) (s : jet_wide.wide_size)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (bi bw : Values.block) (edge outedge : BinNums.Z) (x y z : Ty.tySem (Word.Word (jet_wide.wide_log s)))
+         (cursor rc : BinNums.Z) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge rc)
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc
+                   (BinInt.Z.sub Integers.Int64.max_unsigned
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xI BinNums.xH)) (jet_wide.wide_bits s)))))
+         (_ : @jet_input_layout.frame_input_word_at (jet_wide.wide_log s) m bi edge rc x)
+         (_ : @jet_input_layout.frame_input_word_at (jet_wide.wide_log s) m bi edge
+                (BinInt.Z.add rc (jet_wide.wide_bits s)) y)
+         (_ : @jet_input_layout.frame_input_word_at (jet_wide.wide_log s) m bi edge
+                (BinInt.Z.add rc (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (jet_wide.wide_bits s))) z)
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor (jet_wide.wide_bits s)),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+               (@Ctypes.Internal Clight.function (jet_ternary_wide_exec.wide_ternary k s))
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) Events.E0 mf (Values.Vint Integers.Int.one))
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+                     (@jet_ternary_spec.ternary_word_spec (jet_wide.wide_log s) k Alg.CoreFunSem
+                        (@pair (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+                           (prod (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+                              (Ty.tySem (Word.Word (jet_wide.wide_log s)))) x
+                           (@pair (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+                              (Ty.tySem (Word.Word (jet_wide.wide_log s))) y z)))))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (jet_wide.wide_bits s)))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div (BinInt.Z.sub cursor (jet_wide.wide_bits s))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_ternary_wide_layout.wide_ternary_local_spec
+wide_ternary_local_spec
+     : forall (k : jet_ternary_spec.ternary_op) (s : jet_wide.wide_size),
+       jet_bitmachine_rep.jet_local_spec (jet_ternary_wide_exec.wide_ternary k s)
+         (Ty.Prod (Word.Word (jet_wide.wide_log s))
+            (Ty.Prod (Word.Word (jet_wide.wide_log s)) (Word.Word (jet_wide.wide_log s))))
+         (Word.Word (jet_wide.wide_log s))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (jet_wide.wide_log s))
+                       (Ty.Prod (Word.Word (jet_wide.wide_log s)) (Word.Word (jet_wide.wide_log s)))) =>
+          @jet_ternary_spec.ternary_word_spec (jet_wide.wide_log s) k Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.maj16_local_spec
+maj16_local_spec
+     : jet_bitmachine_rep.jet_local_spec jets.f_simplicity_maj_16
+         (Ty.Prod (Word.Word (S (S (S (S O))))) (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S O)))))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (S (S (S (S O)))))
+                       (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))) =>
+          @jet_ternary_spec.ternary_word_spec (S (S (S (S O)))) jet_ternary_spec.TMaj Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.maj32_local_spec
+maj32_local_spec
+     : jet_bitmachine_rep.jet_local_spec jets.f_simplicity_maj_32
+         (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S (S O))))))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+                       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) =>
+          @jet_ternary_spec.ternary_word_spec (S (S (S (S (S O))))) jet_ternary_spec.TMaj Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.maj64_local_spec
+maj64_local_spec
+     : jet_bitmachine_rep.jet_local_spec jets.f_simplicity_maj_64
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O)))))))
+            (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+         (Word.Word (S (S (S (S (S (S O)))))))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S O)))))))
+                       (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))) =>
+          @jet_ternary_spec.ternary_word_spec (S (S (S (S (S (S O)))))) jet_ternary_spec.TMaj Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.xor_xor16_local_spec
+xor_xor16_local_spec
+     : jet_bitmachine_rep.jet_local_spec jets.f_simplicity_xor_xor_16
+         (Ty.Prod (Word.Word (S (S (S (S O))))) (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S O)))))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (S (S (S (S O)))))
+                       (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))) =>
+          @jet_ternary_spec.ternary_word_spec (S (S (S (S O)))) jet_ternary_spec.TXorXor Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.xor_xor32_local_spec
+xor_xor32_local_spec
+     : jet_bitmachine_rep.jet_local_spec jets.f_simplicity_xor_xor_32
+         (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S (S O))))))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+                       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) =>
+          @jet_ternary_spec.ternary_word_spec (S (S (S (S (S O))))) jet_ternary_spec.TXorXor Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.xor_xor64_local_spec
+xor_xor64_local_spec
+     : jet_bitmachine_rep.jet_local_spec jets.f_simplicity_xor_xor_64
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O)))))))
+            (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+         (Word.Word (S (S (S (S (S (S O)))))))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S O)))))))
+                       (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))) =>
+          @jet_ternary_spec.ternary_word_spec (S (S (S (S (S (S O)))))) jet_ternary_spec.TXorXor Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.ch16_local_spec
+ch16_local_spec
+     : jet_bitmachine_rep.jet_local_spec jets.f_simplicity_ch_16
+         (Ty.Prod (Word.Word (S (S (S (S O))))) (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+         (Word.Word (S (S (S (S O)))))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (S (S (S (S O)))))
+                       (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))) =>
+          @jet_ternary_spec.ternary_word_spec (S (S (S (S O)))) jet_ternary_spec.TCh Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.ch32_local_spec
+ch32_local_spec
+     : jet_bitmachine_rep.jet_local_spec jets.f_simplicity_ch_32
+         (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+            (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+         (Word.Word (S (S (S (S (S O))))))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (S (S (S (S (S O))))))
+                       (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))) =>
+          @jet_ternary_spec.ternary_word_spec (S (S (S (S (S O))))) jet_ternary_spec.TCh Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.ch64_local_spec
+ch64_local_spec
+     : jet_bitmachine_rep.jet_local_spec jets.f_simplicity_ch_64
+         (Ty.Prod (Word.Word (S (S (S (S (S (S O)))))))
+            (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+         (Word.Word (S (S (S (S (S (S O)))))))
+         (fun
+            xyz : Ty.tySem
+                    (Ty.Prod (Word.Word (S (S (S (S (S (S O)))))))
+                       (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))) =>
+          @jet_ternary_spec.ternary_word_spec (S (S (S (S (S (S O)))))) jet_ternary_spec.TCh Alg.CoreFunSem xyz)
+### C.jet_ternary_wide_layout.wide_ternary_context
+wide_ternary_context
+     : forall (k : jet_ternary_spec.ternary_op) (s : jet_wide.wide_size),
+       @jet_canonical.jet_context_for (jet_ternary_wide_exec.wide_ternary k s)
+         (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+            (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+               (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+         (@jet_ternary_spec.ternary_word_spec (jet_wide.wide_log s) k)
+### C.jet_ternary_wide_layout.wide_ternary_guarantees
+wide_ternary_guarantees
+     : forall (k : jet_ternary_spec.ternary_op) (s : jet_wide.wide_size) (env : Values.val)
+         (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem
+                (Ty.Prod (Word.Word (jet_wide.wide_log s))
+                   (Ty.Prod (Word.Word (jet_wide.wide_log s)) (Word.Word (jet_wide.wide_log s)))))
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat
+                      (Translate.bitSize
+                         (Ty.Prod (Word.Word (jet_wide.wide_log s))
+                            (Ty.Prod (Word.Word (jet_wide.wide_log s)) (Word.Word (jet_wide.wide_log s)))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor
+                (@Translate.encode
+                   (Ty.Prod (Word.Word (jet_wide.wide_log s))
+                      (Ty.Prod (Word.Word (jet_wide.wide_log s)) (Word.Word (jet_wide.wide_log s)))) a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (Translate.bitSize (Word.Word (jet_wide.wide_log s))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function (jet_ternary_wide_exec.wide_ternary k s))
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Word.Word (jet_wide.wide_log s))
+                     (@jet_ternary_spec.ternary_word_spec (jet_wide.wide_log s) k Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize (Word.Word (jet_wide.wide_log s))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat (Translate.bitSize (Word.Word (jet_wide.wide_log s)))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_ternary_wide_layout.wide_ternary_context_guarantees
+wide_ternary_context_guarantees
+     : forall (k : jet_ternary_spec.ternary_op) (s : jet_wide.wide_size) (env : Values.val)
+         (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem
+                (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+                   (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+                      (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))))),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode
+                 (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+                    (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+                       (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s)))) a)
+              (BitMachine.newWriteFrame
+                 (Translate.bitSize (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode
+                 (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+                    (Ty.Prod (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+                       (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s)))) a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (jet_wide.wide_log s))
+                    (@jet_ternary_spec.ternary_word_spec (jet_wide.wide_log s) k Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function (jet_ternary_wide_exec.wide_ternary k s))
+               (jet_bitmachine_rep.jet_args env L) m (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram
+                  (@jet_ternary_spec.ternary_word_spec (jet_wide.wide_log s) k Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))

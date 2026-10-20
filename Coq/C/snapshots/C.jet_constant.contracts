@@ -1,0 +1,240 @@
+### C.jet_constant.constant_spec_parametric
+constant_spec_parametric
+     : forall (s : constant_size) (high : bool),
+       @Alg.Core.Parametric Ty.Unit (Word.Word (constant_log s)) (@constant_spec s high)
+### C.jet_constant.constant_size
+Inductive constant_size : Set :=
+    C1 : constant_size | C8 : constant_size | C16 : constant_size | C32 : constant_size | C64 : constant_size.
+### C.jet_constant.constant_bits
+constant_bits =
+fun s : constant_size =>
+match s return BinNums.Z with
+| C1 => BinNums.Zpos BinNums.xH
+| C8 => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))
+| C16 => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+| C32 => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+| C64 => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+end
+     : forall _ : constant_size, BinNums.Z
+
+Arguments constant_bits s
+### C.jet_constant.constant_log
+constant_log =
+fun s : constant_size =>
+match s return nat with
+| C1 => O
+| C8 => S (S (S O))
+| C16 => S (S (S (S O)))
+| C32 => S (S (S (S (S O))))
+| C64 => S (S (S (S (S (S O)))))
+end
+     : forall _ : constant_size, nat
+
+Arguments constant_log s
+### C.jet_constant.constant_jet
+constant_jet =
+fun (s : constant_size) (high : bool) =>
+match s return Clight.function with
+| C1 =>
+    match high return Clight.function with
+    | true => jets.f_simplicity_high_1
+    | false => jets.f_simplicity_low_1
+    end
+| C8 =>
+    match high return Clight.function with
+    | true => jets.f_simplicity_high_8
+    | false => jets.f_simplicity_low_8
+    end
+| C16 =>
+    match high return Clight.function with
+    | true => jets.f_simplicity_high_16
+    | false => jets.f_simplicity_low_16
+    end
+| C32 =>
+    match high return Clight.function with
+    | true => jets.f_simplicity_high_32
+    | false => jets.f_simplicity_low_32
+    end
+| C64 =>
+    match high return Clight.function with
+    | true => jets.f_simplicity_high_64
+    | false => jets.f_simplicity_low_64
+    end
+end
+     : forall (_ : constant_size) (_ : bool), Clight.function
+
+Arguments constant_jet s high%bool_scope
+### C.jet_constant.constant_spec
+constant_spec =
+fun (s : constant_size) (high : bool) (term : Alg.Core.Algebra) =>
+match high return (Alg.Core.domain term Ty.Unit (Word.Word (constant_log s))) with
+| true => @Word.fill Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) (constant_log s) term (@Bit.true Ty.Unit term)
+| false => @Word.zero (constant_log s) term
+end
+     : forall (s : constant_size) (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term Ty.Unit (Word.Word (constant_log s))
+
+Arguments constant_spec s high%bool_scope {term}
+### C.jet_constant.constant_writer
+constant_writer =
+fun s : constant_size =>
+match s return Clight.function with
+| C1 => jets.f_writeBit
+| C8 => jets.f_simplicity_write8
+| C16 => jet_wide.wide_writer jet_wide.W16
+| C32 => jet_wide.wide_writer jet_wide.W32
+| C64 => jet_wide.wide_writer jet_wide.W64
+end
+     : forall _ : constant_size, Clight.function
+
+Arguments constant_writer s
+### C.jet_constant.constant_writer_id
+constant_writer_id =
+fun s : constant_size =>
+match s return AST.ident with
+| C1 => jets._writeBit
+| C8 => jets._simplicity_write8
+| C16 => jet_wide.wide_writer_id jet_wide.W16
+| C32 => jet_wide.wide_writer_id jet_wide.W32
+| C64 => jet_wide.wide_writer_id jet_wide.W64
+end
+     : forall _ : constant_size, AST.ident
+
+Arguments constant_writer_id s
+### C.jet_constant.constant_arg_type
+constant_arg_type =
+fun s : constant_size =>
+match s return Ctypes.type with
+| C1 => Ctypesdefs.tbool
+| C8 => Ctypesdefs.tuchar
+| C16 => Ctypesdefs.tulong
+| C32 => Ctypesdefs.tulong
+| C64 => Ctypesdefs.tulong
+end
+     : forall _ : constant_size, Ctypes.type
+
+Arguments constant_arg_type s
+### C.jet_constant.constant_return_type
+constant_return_type =
+fun s : constant_size =>
+match s return Ctypes.type with
+| C1 => Ctypesdefs.tbool
+| C8 => Ctypesdefs.tvoid
+| C16 => Ctypesdefs.tvoid
+| C32 => Ctypesdefs.tvoid
+| C64 => Ctypesdefs.tvoid
+end
+     : forall _ : constant_size, Ctypes.type
+
+Arguments constant_return_type s
+### C.jet_constant.constant_unsigned
+constant_unsigned =
+fun (s : constant_size) (high : bool) =>
+match high return BinNums.Z with
+| true =>
+    BinInt.Z.sub (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (constant_bits s)) (BinNums.Zpos BinNums.xH)
+| false => BinNums.Z0
+end
+     : forall (_ : constant_size) (_ : bool), BinNums.Z
+
+Arguments constant_unsigned s high%bool_scope
+### C.jet_constant.constant_value
+constant_value =
+fun (s : constant_size) (high : bool) =>
+match s return Values.val with
+| C1 => Values.Vint (Integers.Int.repr (constant_unsigned s high))
+| C8 => Values.Vint (Integers.Int.repr (constant_unsigned s high))
+| C16 => Values.Vlong (Integers.Int64.repr (constant_unsigned s high))
+| C32 => Values.Vlong (Integers.Int64.repr (constant_unsigned s high))
+| C64 => Values.Vlong (Integers.Int64.repr (constant_unsigned s high))
+end
+     : forall (_ : constant_size) (_ : bool), Values.val
+
+Arguments constant_value s high%bool_scope
+### C.jet_constant.constant_return
+constant_return =
+fun (s : constant_size) (high : bool) =>
+match s return Values.val with
+| C1 => constant_value s high
+| C8 => Values.Vundef
+| C16 => Values.Vundef
+| C32 => Values.Vundef
+| C64 => Values.Vundef
+end
+     : forall (_ : constant_size) (_ : bool), Values.val
+
+Arguments constant_return s high%bool_scope
+### C.jet_constant.constant_expr
+constant_expr =
+fun (s : constant_size) (high : bool) =>
+match high return Clight.expr with
+| true =>
+    match s return Clight.expr with
+    | C1 => Clight.Econst_int Integers.Int.one Ctypesdefs.tint
+    | C8 =>
+        Clight.Econst_int
+          (Integers.Int.repr
+             (BinNums.Zpos
+                (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+          Ctypesdefs.tint
+    | C16 =>
+        Clight.Econst_int
+          (Integers.Int.repr
+             (BinNums.Zpos
+                (BinNums.xI
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+          Ctypesdefs.tint
+    | C32 => Clight.Econst_int (Integers.Int.repr (BinNums.Zneg BinNums.xH)) Ctypesdefs.tuint
+    | C64 => Clight.Econst_long (Integers.Int64.repr (BinNums.Zneg BinNums.xH)) Ctypesdefs.tulong
+    end
+| false => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+end
+     : forall (_ : constant_size) (_ : bool), Clight.expr
+
+Arguments constant_expr s high%bool_scope
+### C.jet_constant.constant_raw
+constant_raw =
+fun (s : constant_size) (high : bool) =>
+match high return Values.val with
+| true =>
+    match s return Values.val with
+    | C1 => Values.Vint Integers.Int.one
+    | C8 =>
+        Values.Vint
+          (Integers.Int.repr
+             (BinNums.Zpos
+                (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+    | C16 =>
+        Values.Vint
+          (Integers.Int.repr
+             (BinNums.Zpos
+                (BinNums.xI
+                   (BinNums.xI
+                      (BinNums.xI
+                         (BinNums.xI
+                            (BinNums.xI
+                               (BinNums.xI
+                                  (BinNums.xI
+                                     (BinNums.xI
+                                        (BinNums.xI
+                                           (BinNums.xI
+                                              (BinNums.xI
+                                                 (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+    | C32 => Values.Vint (Integers.Int.repr (BinNums.Zneg BinNums.xH))
+    | C64 => Values.Vlong (Integers.Int64.repr (BinNums.Zneg BinNums.xH))
+    end
+| false => Values.Vint Integers.Int.zero
+end
+     : forall (_ : constant_size) (_ : bool), Values.val
+
+Arguments constant_raw s high%bool_scope

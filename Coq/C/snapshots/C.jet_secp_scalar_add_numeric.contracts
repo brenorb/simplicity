@@ -1,0 +1,110 @@
+### C.jet_secp_scalar_add_numeric.scalar_add_raw_values
+scalar_add_raw_values
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       let s0 : BinNums.Z :=
+         BinInt.Z.add (Integers.Int64.unsigned (rho O)) (Integers.Int64.unsigned (rho (S (S (S (S O)))))) in
+       let s1 : BinNums.Z :=
+         BinInt.Z.add (BinInt.Z.add (BinInt.Z.div s0 Integers.Int64.modulus) (Integers.Int64.unsigned (rho (S O))))
+           (Integers.Int64.unsigned (rho (S (S (S (S (S O))))))) in
+       let s2 : BinNums.Z :=
+         BinInt.Z.add (BinInt.Z.add (BinInt.Z.div s1 Integers.Int64.modulus) (Integers.Int64.unsigned (rho (S (S O)))))
+           (Integers.Int64.unsigned (rho (S (S (S (S (S (S O)))))))) in
+       let s3 : BinNums.Z :=
+         BinInt.Z.add
+           (BinInt.Z.add (BinInt.Z.div s2 Integers.Int64.modulus) (Integers.Int64.unsigned (rho (S (S (S O))))))
+           (Integers.Int64.unsigned (rho (S (S (S (S (S (S (S O))))))))) in
+       and
+         (@eq BinNums.Z
+            (Integers.Int64.unsigned
+               (jet_sx_expr.il (jet_sx_expr.den rho layout jet_secp_scalar_add_values.scalar_add_low0)))
+            (BinInt.Z.modulo s0 Integers.Int64.modulus))
+         (and
+            (@eq BinNums.Z
+               (Integers.Int64.unsigned
+                  (jet_sx_expr.il (jet_sx_expr.den rho layout jet_secp_scalar_add_values.scalar_add_low1)))
+               (BinInt.Z.modulo s1 Integers.Int64.modulus))
+            (and
+               (@eq BinNums.Z
+                  (Integers.Int64.unsigned
+                     (jet_sx_expr.il (jet_sx_expr.den rho layout jet_secp_scalar_add_values.scalar_add_low2)))
+                  (BinInt.Z.modulo s2 Integers.Int64.modulus))
+               (and
+                  (@eq BinNums.Z
+                     (Integers.Int64.unsigned
+                        (jet_sx_expr.il (jet_sx_expr.den rho layout jet_secp_scalar_add_values.scalar_add_low3)))
+                     (BinInt.Z.modulo s3 Integers.Int64.modulus))
+                  (@eq BinNums.Z (scalar_add_carry_value rho layout) (BinInt.Z.div s3 Integers.Int64.modulus)))))
+### C.jet_secp_scalar_add_numeric.scalar_add_input_range
+scalar_add_input_range
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (scalar_add_input_value rho))
+         (BinInt.Z.lt (scalar_add_input_value rho)
+            (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+### C.jet_secp_scalar_add_numeric.scalar_add_raw_decomposition
+scalar_add_raw_decomposition
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq BinNums.Z
+         (BinInt.Z.add (scalar_add_raw_value rho layout)
+            (BinInt.Z.mul
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+               (scalar_add_carry_value rho layout))) (scalar_add_input_value rho)
+### C.jet_secp_scalar_add_numeric.scalar_add_raw_and_carry
+scalar_add_raw_and_carry
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       and
+         (@eq BinNums.Z (scalar_add_raw_value rho layout)
+            (BinInt.Z.modulo (scalar_add_input_value rho)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (@eq BinNums.Z (scalar_add_carry_value rho layout)
+            (BinInt.Z.div (scalar_add_input_value rho)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+### C.jet_secp_scalar_add_numeric.scalar_add_carry_bit
+scalar_add_carry_bit
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       and (BinInt.Z.le BinNums.Z0 (scalar_add_carry_value rho layout))
+         (BinInt.Z.le (scalar_add_carry_value rho layout) (BinNums.Zpos BinNums.xH))
+### C.jet_secp_scalar_add_numeric.scalar_add_second_rho
+scalar_add_second_rho =
+fun (rho : forall _ : nat, Integers.Int64.int) (n : nat) => rho (Nat.add (S (S (S (S O)))) n)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments scalar_add_second_rho rho%function_scope n%nat_scope
+### C.jet_secp_scalar_add_numeric.scalar_add_input_value
+scalar_add_input_value =
+fun rho : forall _ : nat, Integers.Int64.int =>
+BinInt.Z.add (jet_secp_scalar_overflow_numeric.scalar_limb_value rho)
+  (jet_secp_scalar_overflow_numeric.scalar_limb_value (scalar_add_second_rho rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, BinNums.Z
+
+Arguments scalar_add_input_value rho%function_scope
+### C.jet_secp_scalar_add_numeric.scalar_add_raw_value
+scalar_add_raw_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z) =>
+jet_secp_scalar_overflow_numeric.scalar_limb_value (jet_secp_scalar_add_values.scalar_add_raw_rho rho layout)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z), BinNums.Z
+
+Arguments scalar_add_raw_value (rho layout)%function_scope
+### C.jet_secp_scalar_add_numeric.scalar_add_carry_value
+scalar_add_carry_value =
+fun (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z) =>
+Integers.Int64.unsigned (jet_sx_expr.il (jet_sx_expr.den rho layout jet_secp_scalar_add_values.scalar_add_high3))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z), BinNums.Z
+
+Arguments scalar_add_carry_value (rho layout)%function_scope

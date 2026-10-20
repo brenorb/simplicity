@@ -1,0 +1,51 @@
+### C.jet_predicate8_exec.predicate8_denotes
+predicate8_denotes
+     : forall (all : bool) (payload : Integers.Int64.int),
+       @eq bool (predicate8_bit all (jet_read8.read8_result payload))
+         (Bit.toBool
+            (@jet_predicate_spec.predicate_spec (S (S (S O))) all Alg.CoreFunSem (jet_spec.decode_word8 payload)))
+### C.jet_predicate8_exec.predicate8
+predicate8 =
+fun all : bool =>
+match all return Clight.function with
+| true => jets.f_simplicity_all_8
+| false => jets.f_simplicity_some_8
+end
+     : forall _ : bool, Clight.function
+
+Arguments predicate8 all%bool_scope
+### C.jet_predicate8_exec.predicate8_expr
+predicate8_expr =
+fun all : bool =>
+match all return Clight.expr with
+| true =>
+    Clight.Ebinop Cop.Oeq (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+      (Clight.Econst_int
+         (Integers.Int.repr
+            (BinNums.Zpos
+               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         Ctypesdefs.tint) Ctypesdefs.tint
+| false =>
+    Clight.Ebinop Cop.One (Clight.Etempvar jets._x Ctypesdefs.tuchar)
+      (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tint
+end
+     : forall _ : bool, Clight.expr
+
+Arguments predicate8_expr all%bool_scope
+### C.jet_predicate8_exec.predicate8_bit
+predicate8_bit =
+fun (all : bool) (r : Integers.Int.int) =>
+match all return bool with
+| true =>
+    Integers.Int.eq (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r)
+      (Integers.Int.repr
+         (BinNums.Zpos
+            (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+| false =>
+    negb
+      (Integers.Int.eq (Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) r)
+         Integers.Int.zero)
+end
+     : forall (_ : bool) (_ : Integers.Int.int), bool
+
+Arguments predicate8_bit all%bool_scope r

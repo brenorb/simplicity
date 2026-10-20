@@ -1,0 +1,133 @@
+### C.jet_write128_layout.write128_body
+write128_body
+     : @eq Clight.statement (Clight.fn_body jets.f_write128)
+         (Clight.Ssequence (Clight.Ssequence (write128_get_call true jets._t'1) (write128_write_call jets._t'1))
+            (Clight.Ssequence (write128_get_call false jets._t'2) (write128_write_call jets._t'2)))
+### C.jet_write128_layout.call_write128_get
+call_write128_get
+     : forall (high : bool) (result : AST.ident) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (br : Values.block) (base : BinNums.Z)
+         (w : Integers.Int64.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) (jet_u128_fields.u128_get_id high) e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._x le)
+                (@Some Values.val (Values.Vptr br (Integers.Ptrofs.repr base))))
+         (_ : jet_frame_layout.frame_base_valid base)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m br (BinInt.Z.add base (jet_u128_fields.u128_field_offset high)))
+                (@Some Values.val (Values.Vlong w))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (write128_get_call high result) Events.E0
+         (@Maps.PTree.set Values.val result (Values.Vlong w) le) m ClightBigstep.Out_normal
+### C.jet_write128_layout.call_write128_write
+call_write128_write
+     : forall (result : BinNums.positive) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Maps.PTree.tree Values.val) (m mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z)
+         (w : Integers.Int64.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets._simplicity_write64 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._frame le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val result le) (@Some Values.val (Values.Vlong w)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function jets.f_simplicity_write64)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vlong w) (@nil Values.val))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (write128_write_call result) Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_write128_layout.eval_write128_layout
+eval_write128_layout
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bw : Values.block)
+         (edge cursor : BinNums.Z) (br : Values.block) (rbase : BinNums.Z) (hi lo : Integers.Int64.int)
+         (_ : jet_frame_layout.frame_base_valid rbase) (_ : not (@eq Values.block br bd))
+         (_ : not (@eq Values.block br bw))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m br
+                   (BinInt.Z.add rbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vlong hi)))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m br rbase) (@Some Values.val (Values.Vlong lo)))
+         (_ : jet_output_layout.write_frame_at m bd base bw edge cursor
+                (BinNums.Zpos
+                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_write128)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr br (Integers.Ptrofs.repr rbase)) (@nil Values.val))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw edge cursor
+                  (@Translate.encode (Word.Word (S (S (S (S (S (S (S O))))))))
+                     (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+                        (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+                        (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.unsigned hi))
+                        (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) (Integers.Int64.unsigned lo)))))
+               (and (jet_output_layout.write_prefix_at m mf bw edge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd base bw edge
+                        (BinInt.Z.sub cursor
+                           (BinNums.Zpos
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                     (and
+                        (jet_output_layout.loads_outside_ranges m mf bd
+                           (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                           (BinInt.Z.add base
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) bw
+                           (BinInt.Z.add edge
+                              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                 (BinInt.Z.div
+                                    (BinInt.Z.sub cursor
+                                       (BinNums.Zpos
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                           (BinInt.Z.add (jet_write_layout.write_word_address edge cursor)
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                        (and
+                           (forall (bb : Values.block) (addr : BinNums.Z) (kind : Memtype.perm_kind)
+                              (p : Memtype.permission) (_ : Memory.Mem.perm m bb addr kind p),
+                            Memory.Mem.perm mf bb addr kind p)
+                           (forall (bb : Values.block) (_ : Memory.Mem.valid_block m bb), Memory.Mem.valid_block mf bb)))))))
+### C.jet_write128_layout.write128_get_call
+write128_get_call =
+fun (high : bool) (result : AST.ident) =>
+Clight.Scall (@Some AST.ident result)
+  (Clight.Evar (jet_u128_fields.u128_get_id high)
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._secp256k1_uint128 Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tulong AST.cc_default))
+  (@cons Clight.expr (Clight.Etempvar jets._x (Ctypesdefs.tptr (Ctypes.Tstruct jets._secp256k1_uint128 Ctypes.noattr)))
+     (@nil Clight.expr))
+     : forall (_ : bool) (_ : AST.ident), Clight.statement
+
+Arguments write128_get_call high%bool_scope result
+### C.jet_write128_layout.write128_write_call
+write128_write_call =
+fun result : AST.ident =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets._simplicity_write64
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+           (Ctypes.Tcons Ctypesdefs.tulong Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr (Clight.Etempvar jets._frame (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)))
+     (@cons Clight.expr (Clight.Etempvar result Ctypesdefs.tulong) (@nil Clight.expr)))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments write128_write_call result
+### C.jet_write128_layout.write128_temps
+write128_temps =
+fun (bd : Values.block) (base : BinNums.Z) (br : Values.block) (rbase : BinNums.Z) =>
+@Maps.PTree.set Values.val jets._x (Values.Vptr br (Integers.Ptrofs.repr rbase))
+  (@Maps.PTree.set Values.val jets._frame (Values.Vptr bd (Integers.Ptrofs.repr base))
+     (Clight.create_undef_temps (Clight.fn_temps jets.f_write128)))
+     : forall (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments write128_temps bd base%Z_scope br rbase%Z_scope

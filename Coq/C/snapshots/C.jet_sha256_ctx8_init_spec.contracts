@@ -1,0 +1,48 @@
+### C.jet_sha256_ctx8_init_spec.sha256_ctx8_init_spec_parametric
+sha256_ctx8_init_spec_parametric
+     : @Alg.Core.Parametric Ty.Unit sha256_ctx8_type (@sha256_ctx8_init_spec)
+### C.jet_sha256_ctx8_init_spec.sha256_ctx8_init_spec_value
+sha256_ctx8_init_spec_value
+     : @eq (Ty.tySem sha256_ctx8_type) (@sha256_ctx8_init_spec Alg.CoreFunSem tt)
+         (@pair (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+            (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+            (jet_buffer_empty_spec.buffer_empty_value (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (@Word.zero (S (S (S (S (S (S O)))))) Alg.CoreFunSem tt)
+               (@jet_sha256_iv_init.sha256_iv_spec Alg.CoreFunSem tt)))
+### C.jet_sha256_ctx8_init_spec.encode_ctx_product
+encode_ctx_product
+     : forall (A B : Ty.Ty) (a : Ty.tySem A) (b : Ty.tySem B),
+       @eq (list BitMachine.Cell) (@Translate.encode (Ty.Prod A B) (@pair (Ty.tySem A) (Ty.tySem B) a b))
+         (@app BitMachine.Cell (@Translate.encode A a) (@Translate.encode B b))
+### C.jet_sha256_ctx8_init_spec.sha256_ctx8_init_spec_cells
+sha256_ctx8_init_spec_cells
+     : @eq (list BitMachine.Cell) (@Translate.encode sha256_ctx8_type (@sha256_ctx8_init_spec Alg.CoreFunSem tt))
+         (@app BitMachine.Cell
+            (jet_buffer_empty_spec.buffer_empty_cells (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+            (@app BitMachine.Cell
+               (@Translate.encode (Word.Word (S (S (S (S (S (S O)))))))
+                  (@Word.zero (S (S (S (S (S (S O)))))) Alg.CoreFunSem tt))
+               (jet_write32s_layout.uint32_word_cells jet_sha256_iv_init.sha256_iv_words)))
+### C.jet_sha256_ctx8_init_spec.sha256_ctx8_type_bits
+sha256_ctx8_type_bits
+     : @eq nat (Translate.bitSize sha256_ctx8_type)
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+### C.jet_sha256_ctx8_init_spec.sha256_ctx8_type
+sha256_ctx8_type =
+Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+     : Ty.Ty
+### C.jet_sha256_ctx8_init_spec.sha256_ctx8_init_spec
+sha256_ctx8_init_spec =
+fun term : Alg.Core.Algebra =>
+@AC.pair Ty.Unit (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+  (@jet_buffer_empty_spec.buffer_empty_spec (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) Ty.Unit term)
+  (@AC.pair Ty.Unit (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@Word.zero (S (S (S (S (S (S O)))))) term) (@jet_sha256_iv_init.sha256_iv_spec term))
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term Ty.Unit sha256_ctx8_type
+
+Arguments sha256_ctx8_init_spec {term}

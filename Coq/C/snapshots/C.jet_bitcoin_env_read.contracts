@@ -1,0 +1,44 @@
+### C.jet_bitcoin_env_read.eval_bitcoin_env_tx
+eval_bitcoin_env_tx
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (be : Values.block)
+         (base : BinNums.Z) (bt : Values.block) (txbase : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 base) (BinInt.Z.le base Integers.Ptrofs.max_unsigned))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mptr m be base)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr txbase)))),
+       Clight.eval_expr jet_bitcoin_linkage.bitcoin_ge e le m
+         (Clight.Efield
+            (Clight.Ederef
+               (Clight.Etempvar jets_bitcoin._env (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._txEnv Ctypes.noattr)))
+               (Ctypes.Tstruct jets_bitcoin._txEnv Ctypes.noattr)) jets_bitcoin._tx
+            (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)))
+         (Values.Vptr bt (Integers.Ptrofs.repr txbase))
+### C.jet_bitcoin_env_read.eval_bitcoin_tx_version
+eval_bitcoin_tx_version
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (bt : Values.block)
+         (base : BinNums.Z) (version : Integers.Int64.int) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._t'1 le)
+                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 m bt
+                   (BinInt.Z.add base
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))))))
+                (@Some Values.val (Values.Vlong version))),
+       Clight.eval_expr jet_bitcoin_linkage.bitcoin_ge e le m
+         (Clight.Efield
+            (Clight.Ederef
+               (Clight.Etempvar jets_bitcoin._t'1
+                  (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)))
+               (Ctypes.Tstruct jets_bitcoin._bitcoinTransaction Ctypes.noattr)) jets_bitcoin._version Ctypesdefs.tulong)
+         (Values.Vlong version)

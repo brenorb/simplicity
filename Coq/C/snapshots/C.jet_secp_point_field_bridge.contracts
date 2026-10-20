@@ -1,0 +1,95 @@
+### C.jet_secp_point_field_bridge.point_canonical_field_limbs
+point_canonical_field_limbs
+     : forall value : BinNums.Z,
+       @eq (list Integers.Int64.int) (jet_secp_point_write_field.point_field_limbs (point_canonical_field value))
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value))
+### C.jet_secp_point_field_bridge.point_negative_field_limbs
+point_negative_field_limbs
+     : forall value : BinNums.Z,
+       @eq (list Integers.Int64.int) (jet_secp_point_write_field.point_field_limbs (point_negative_field value))
+         (jet_secp_field_negate_storage.negate_values (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0))
+### C.jet_secp_point_field_bridge.point_reader_limb_model
+point_reader_limb_model
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       and
+         (jet_secp_fe_math.fe_limbs_ok
+            (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S O)))
+            (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S (S O))))
+            (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S (S (S O)))))
+            (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S (S (S (S O))))))
+            (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S (S (S (S (S O))))))))
+         (@eq BinNums.Z
+            (jet_secp_fe_math.fe_val
+               (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S O)))
+               (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S (S O))))
+               (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S (S (S O)))))
+               (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S (S (S (S O))))))
+               (Integers.Int64.unsigned (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0 (S (S (S (S (S O))))))))
+            value)
+### C.jet_secp_point_field_bridge.point_canonical_field_bounded
+point_canonical_field_bounded
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       jet_secp_point_write_field.point_field_bounds (point_canonical_field value)
+### C.jet_secp_point_field_bridge.point_negative_field_bounded
+point_negative_field_bounded
+     : forall (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))),
+       jet_secp_point_write_field.point_field_bounds (point_negative_field value)
+### C.jet_secp_point_field_bridge.point_canonical_field_output
+point_canonical_field_output
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_point_write_field.point_field_output
+            (point_canonical_field (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)))
+         (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem x)
+### C.jet_secp_point_field_bridge.point_negative_field_output
+point_negative_field_output
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : BinInt.Z.lt (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)
+                jet_secp_fe_math.feP),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_point_write_field.point_field_output
+            (point_negative_field (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)))
+         (@jet_secp_canonical_negate.canonical_fe_negate Alg.CoreFunSem x)
+### C.jet_secp_point_field_bridge.point_canonical_field
+point_canonical_field =
+fun value : BinNums.Z =>
+jet_secp_point_write_field.mkpointfield (jet_secp_b32_exec.limb_rho value O) (jet_secp_b32_exec.limb_rho value (S O))
+  (jet_secp_b32_exec.limb_rho value (S (S O))) (jet_secp_b32_exec.limb_rho value (S (S (S O))))
+  (jet_secp_b32_exec.limb_rho value (S (S (S (S O)))))
+     : forall _ : BinNums.Z, jet_secp_point_write_field.point_field
+
+Arguments point_canonical_field value%Z_scope
+### C.jet_secp_point_field_bridge.point_negative_field
+point_negative_field =
+fun value : BinNums.Z =>
+jet_secp_point_write_field.mkpointfield
+  (jet_secp_field_negate_values.negate_value (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0) O)
+  (jet_secp_field_negate_values.negate_value (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0) (S O))
+  (jet_secp_field_negate_values.negate_value (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0) (S (S O)))
+  (jet_secp_field_negate_values.negate_value (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0) (S (S (S O))))
+  (jet_secp_field_negate_values.negate_value (jet_secp_write_fe_numeric.write_fe_rho value BinNums.Z0)
+     (S (S (S (S O)))))
+     : forall _ : BinNums.Z, jet_secp_point_write_field.point_field
+
+Arguments point_negative_field value%Z_scope

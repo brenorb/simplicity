@@ -1,0 +1,136 @@
+### C.jet_copyBits_short_word.copy_left_value_bits
+copy_left_value_bits
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (jet_copyBits_helper_exec.copy_left_value ss ds old source) i)
+         match Coqlib.zlt i (BinInt.Z.sub ds ss) return bool with
+         | left _ => false
+         | right _ =>
+             match Coqlib.zlt i ds return bool with
+             | left _ => Integers.Int64.testbit source (BinInt.Z.sub i (BinInt.Z.sub ds ss))
+             | right _ => Integers.Int64.testbit old i
+             end
+         end
+### C.jet_copyBits_short_word.copy_right_value_bits
+copy_right_value_bits
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (jet_copyBits_helper_right.copy_right_value ss ds old source) i)
+         match Coqlib.zlt i ds return bool with
+         | left _ => Integers.Int64.testbit source (BinInt.Z.add i (BinInt.Z.sub ss ds))
+         | right _ => Integers.Int64.testbit old i
+         end
+### C.jet_copyBits_short_word.copy_left_copied_bit
+copy_left_copied_bit
+     : forall (ss ds n : BinNums.Z) (old source : Integers.Int64.int) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n ss)) (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j n)),
+       @eq bool
+         (Integers.Int64.testbit (jet_copyBits_helper_exec.copy_left_value ss ds old source)
+            (BinInt.Z.sub (BinInt.Z.sub ds (BinNums.Zpos BinNums.xH)) j))
+         (Integers.Int64.testbit source (BinInt.Z.sub (BinInt.Z.sub ss (BinNums.Zpos BinNums.xH)) j))
+### C.jet_copyBits_short_word.copy_right_copied_bit
+copy_right_copied_bit
+     : forall (ss ds n : BinNums.Z) (old source : Integers.Int64.int) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n ds)) (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j n)),
+       @eq bool
+         (Integers.Int64.testbit (jet_copyBits_helper_right.copy_right_value ss ds old source)
+            (BinInt.Z.sub (BinInt.Z.sub ds (BinNums.Zpos BinNums.xH)) j))
+         (Integers.Int64.testbit source (BinInt.Z.sub (BinInt.Z.sub ss (BinNums.Zpos BinNums.xH)) j))
+### C.jet_copyBits_short_word.copy_left_existing_bit
+copy_left_existing_bit
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (and (BinInt.Z.lt ss ds)
+                   (BinInt.Z.le ds
+                      (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le ds i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (jet_copyBits_helper_exec.copy_left_value ss ds old source) i)
+         (Integers.Int64.testbit old i)
+### C.jet_copyBits_short_word.copy_right_existing_bit
+copy_right_existing_bit
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le ds i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (jet_copyBits_helper_right.copy_right_value ss ds old source) i)
+         (Integers.Int64.testbit old i)
+### C.jet_copyBits_short_word.copy_short_copied_bit
+copy_short_copied_bit
+     : forall (ss ds n : BinNums.Z) (old source : Integers.Int64.int) (j : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n ss)) (_ : BinInt.Z.le n ds)
+         (_ : and (BinInt.Z.le BinNums.Z0 j) (BinInt.Z.lt j n)),
+       @eq bool
+         (Integers.Int64.testbit (copy_short_value ss ds old source)
+            (BinInt.Z.sub (BinInt.Z.sub ds (BinNums.Zpos BinNums.xH)) j))
+         (Integers.Int64.testbit source (BinInt.Z.sub (BinInt.Z.sub ss (BinNums.Zpos BinNums.xH)) j))
+### C.jet_copyBits_short_word.copy_short_existing_bit
+copy_short_existing_bit
+     : forall (ss ds : BinNums.Z) (old source : Integers.Int64.int) (i : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ss)
+                (BinInt.Z.le ss
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) ds)
+                (BinInt.Z.le ds
+                   (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+         (_ : and (BinInt.Z.le ds i)
+                (BinInt.Z.lt i
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool (Integers.Int64.testbit (copy_short_value ss ds old source) i) (Integers.Int64.testbit old i)
+### C.jet_copyBits_short_word.copy_short_value
+copy_short_value =
+fun (ss ds : BinNums.Z) (old source : Integers.Int64.int) =>
+match Coqlib.zlt ss ds return Integers.Int64.int with
+| left _ => jet_copyBits_helper_exec.copy_left_value ss ds old source
+| right _ => jet_copyBits_helper_right.copy_right_value ss ds old source
+end
+     : forall (_ : BinNums.Z) (_ : BinNums.Z) (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments copy_short_value (ss ds)%Z_scope old source

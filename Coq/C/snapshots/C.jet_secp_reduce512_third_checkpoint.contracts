@@ -1,0 +1,104 @@
+### C.jet_secp_reduce512_third_checkpoint.second_checkpoint_p4_value
+second_checkpoint_p4_value
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z (Integers.Int.unsigned (second_checkpoint_p4 rho))
+         (jet_secp_reduce512_typed_value.stage_p4_integer (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+            (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho))
+### C.jet_secp_reduce512_third_checkpoint.second_checkpoint_p4_bound
+second_checkpoint_p4_bound
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned (second_checkpoint_p4 rho)))
+         (BinInt.Z.le (Integers.Int.unsigned (second_checkpoint_p4 rho)) (BinNums.Zpos (BinNums.xO BinNums.xH)))
+### C.jet_secp_reduce512_third_checkpoint.second_checkpoint_split
+second_checkpoint_split
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.add (jet_secp_reduce512_third_value.third_input_low (second_checkpoint_digits rho))
+            (BinInt.Z.mul jet_secp_reduce512_fold_bounds.reduce512_radix
+               (Integers.Int.unsigned (second_checkpoint_p4 rho))))
+         (jet_secp_reduce512_fold_bounds.second_fold_bridge_value rho)
+### C.jet_secp_reduce512_third_checkpoint.second_checkpoint_third_modulo
+second_checkpoint_third_modulo
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (jet_secp_reduce512_third_value.third_fold_value (second_checkpoint_digits rho) (second_checkpoint_p4 rho))
+            jet_secp_canonical_scalar.canonical_group_order)
+         (BinInt.Z.modulo (jet_secp_reduce512_fold_bounds.second_fold_bridge_value rho)
+            jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_reduce512_third_checkpoint.second_checkpoint_forget_stack
+second_checkpoint_forget_stack
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int),
+       @eq (list jet_sx_state.region)
+         (jet_sx_forget_cells.forget_after (S (S O))
+            (jet_sx_eval.sregs (jet_secp_reduce512_typed_stage.reduce512_typed_stage_state digits p4)))
+         (@app jet_sx_state.region jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs
+            (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated))
+### C.jet_secp_reduce512_third_checkpoint.second_checkpoint_param_sources
+second_checkpoint_param_sources
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int),
+       and
+         (@eq (option jet_sx_expr.sx)
+            (@Maps.PTree.get jet_sx_expr.sx jets_secp._r
+               (jet_sx_eval.stemps (jet_secp_reduce512_typed_stage.reduce512_typed_stage_state digits p4)))
+            (@Some jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)))
+         (@eq (option jet_sx_expr.sx)
+            (@Maps.PTree.get jet_sx_expr.sx jets_secp._l
+               (jet_sx_eval.stemps (jet_secp_reduce512_typed_stage.reduce512_typed_stage_state digits p4)))
+            (@Some jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)))
+### C.jet_secp_reduce512_third_checkpoint.second_checkpoint_tmatch
+second_checkpoint_tmatch
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Clight.temp_env)
+         (_ : jet_sx_eval.tmatch rho beta
+                (jet_sx_eval.stemps
+                   (jet_secp_reduce512_typed_stage.reduce512_typed_stage_state
+                      (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                      (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho))) le),
+       jet_sx_eval.tmatch rho beta
+         (jet_secp_reduce512_third_stage.reduce512_third_temps (second_checkpoint_digits rho)
+            (second_checkpoint_p4 rho)) le
+### C.jet_secp_reduce512_third_checkpoint.second_checkpoint_digits
+second_checkpoint_digits =
+fun (rho : forall _ : nat, Integers.Int64.int) (n : nat) =>
+match n return Integers.Int64.int with
+| O =>
+    jet_secp_reduce512_wide.wlo
+      (jet_secp_reduce512_typed_atomic.stage_ma0 (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho))
+| S n0 =>
+    match n0 return Integers.Int64.int with
+    | O =>
+        jet_secp_reduce512_wide.wlo
+          (jet_secp_reduce512_typed_atomic.stage_ma1 (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho))
+    | S n1 =>
+        match n1 return Integers.Int64.int with
+        | O =>
+            jet_secp_reduce512_wide.wlo
+              (jet_secp_reduce512_typed_atomic.stage_ma2 (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                 (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho))
+        | S n2 =>
+            match n2 return Integers.Int64.int with
+            | O =>
+                jet_secp_reduce512_wide.wlo
+                  (jet_secp_reduce512_typed_atomic.stage_ma3
+                     (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+                     (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho))
+            | S _ => Integers.Int64.zero
+            end
+        end
+    end
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments second_checkpoint_digits rho%function_scope n%nat_scope
+### C.jet_secp_reduce512_third_checkpoint.second_checkpoint_p4
+second_checkpoint_p4 =
+fun rho : forall _ : nat, Integers.Int64.int =>
+Integers.Int64.loword
+  (Integers.Int64.add
+     (jet_secp_reduce512_wide.whi
+        (jet_secp_reduce512_typed_atomic.stage_ma3 (jet_secp_reduce512_checkpoint.first_checkpoint_digits rho)
+           (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho)))
+     (jet_secp_reduce512_typed_atomic.stage_ma_m6 (jet_secp_reduce512_checkpoint.first_checkpoint_m6 rho)))
+     : forall _ : forall _ : nat, Integers.Int64.int, Integers.Int.int
+
+Arguments second_checkpoint_p4 rho%function_scope

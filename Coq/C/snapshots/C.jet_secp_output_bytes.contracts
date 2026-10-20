@@ -1,0 +1,54 @@
+### C.jet_secp_output_bytes.msb_bits_mod
+msb_bits_mod
+     : forall (N : nat) (value : BinNums.Z),
+       @eq (list bool)
+         (jet_encoding.msb_bits N
+            (BinInt.Z.modulo value (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.of_nat N))))
+         (jet_encoding.msb_bits N value)
+### C.jet_secp_output_bytes.be_chunks_bits
+be_chunks_bits
+     : forall (count : nat) (value : BinNums.Z),
+       @eq (list bool)
+         (@List.concat bool
+            (@List.map BinNums.Z (list bool) (jet_encoding.msb_bits (S (S (S (S (S (S (S (S O)))))))))
+               (be_chunks count value)))
+         (jet_encoding.msb_bits (Nat.mul (S (S (S (S (S (S (S (S O)))))))) count) value)
+### C.jet_secp_output_bytes.be_chunks_32
+be_chunks_32
+     : forall value : BinNums.Z,
+       @eq (list BinNums.Z)
+         (be_chunks (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))) value)
+         (jet_secp_fe_b32.be_bytes value)
+### C.jet_secp_output_bytes.be_chunks_byte_bounds
+be_chunks_byte_bounds
+     : forall (count : nat) (value : BinNums.Z),
+       @List.Forall BinNums.Z
+         (fun byte : BinNums.Z =>
+          and (BinInt.Z.le BinNums.Z0 byte)
+            (BinInt.Z.lt byte
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (be_chunks count value)
+### C.jet_secp_output_bytes.machine_byte_encoding
+machine_byte_encoding
+     : forall (byte : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 byte)
+                (BinInt.Z.lt byte
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Word.Word (S (S (S O))))
+            (jet_spec.decode_word8 (Integers.Int64.repr (Integers.Int.unsigned (Integers.Int.repr byte)))))
+         (@List.map bool (option bool) (@Some bool) (jet_encoding.msb_bits (S (S (S (S (S (S (S (S O)))))))) byte))
+### C.jet_secp_output_bytes.be_bytes_canonical_encoding
+be_bytes_canonical_encoding
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (list BitMachine.Cell)
+         (jet_write8_sequence.byte_sequence_cells
+            (@List.map BinNums.Z Integers.Int.int Integers.Int.repr
+               (jet_secp_fe_b32.be_bytes (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value))))
+         (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) value)

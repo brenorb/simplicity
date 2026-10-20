@@ -1,0 +1,83 @@
+### C.jet_secp_canonical_scalar_lambda.canonical_lambda_value_range
+canonical_lambda_value_range
+     : and
+         (and (BinInt.Z.le BinNums.Z0 jet_secp_scalar_lambda_global.canonical_lambda_value)
+            (BinInt.Z.lt jet_secp_scalar_lambda_global.canonical_lambda_value
+               jet_secp_canonical_scalar.canonical_group_order))
+         (BinInt.Z.lt jet_secp_canonical_scalar.canonical_group_order
+            (jet_predicate_spec.word_modulus (S (S (S (S (S (S (S (S O))))))))))
+### C.jet_secp_canonical_scalar_lambda.canonical_lambda_word_value
+canonical_lambda_word_value
+     : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) canonical_lambda_word)
+         jet_secp_scalar_lambda_global.canonical_lambda_value
+### C.jet_secp_canonical_scalar_lambda.canonical_scalar_lambda_parametric
+canonical_scalar_lambda_parametric
+     : @Alg.Core.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@canonical_scalar_lambda)
+### C.jet_secp_canonical_scalar_lambda.canonical_scalar_multiply_lambda_parametric
+canonical_scalar_multiply_lambda_parametric
+     : @Alg.Core.Parametric (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@canonical_scalar_multiply_lambda)
+### C.jet_secp_canonical_scalar_lambda.canonical_scalar_multiply_lambda_step
+canonical_scalar_multiply_lambda_step
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (@canonical_scalar_multiply_lambda Alg.CoreFunSem value)
+         (@jet_secp_canonical_scalar_negate.canonical_scalar_multiply Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) canonical_lambda_word value))
+### C.jet_secp_canonical_scalar_lambda.canonical_scalar_multiply_lambda_numeric
+canonical_scalar_multiply_lambda_numeric
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (@canonical_scalar_multiply_lambda Alg.CoreFunSem value))
+         (BinInt.Z.modulo
+            (BinInt.Z.mul jet_secp_scalar_lambda_global.canonical_lambda_value
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) value))
+            jet_secp_canonical_scalar.canonical_group_order)
+### C.jet_secp_canonical_scalar_lambda.canonical_scalar_lambda_normalized_value
+canonical_scalar_lambda_normalized_value
+     : @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem canonical_lambda_word))
+         jet_secp_scalar_lambda_global.canonical_lambda_value
+### C.jet_secp_canonical_scalar_lambda.canonical_scalar_multiply_lambda_c_order
+canonical_scalar_multiply_lambda_c_order
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (BinInt.Z.mul
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                  (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem value))
+               jet_secp_scalar_lambda_global.canonical_lambda_value) jet_secp_canonical_scalar.canonical_group_order)
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (@canonical_scalar_multiply_lambda Alg.CoreFunSem value))
+### C.jet_secp_canonical_scalar_lambda.canonical_lambda_word
+canonical_lambda_word =
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+  jet_secp_scalar_lambda_global.canonical_lambda_value
+     : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+### C.jet_secp_canonical_scalar_lambda.canonical_scalar_lambda
+canonical_scalar_lambda =
+fun term : Alg.Core.Algebra =>
+@Alg.scribe Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) canonical_lambda_word term
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments canonical_scalar_lambda {term}
+### C.jet_secp_canonical_scalar_lambda.canonical_scalar_multiply_lambda
+canonical_scalar_multiply_lambda =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O))))))))) Ty.Unit
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+        (@Alg.Core.Combinators.unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) term) (@canonical_scalar_lambda term))
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+  (@jet_secp_canonical_scalar_negate.canonical_scalar_multiply term)
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments canonical_scalar_multiply_lambda {term}

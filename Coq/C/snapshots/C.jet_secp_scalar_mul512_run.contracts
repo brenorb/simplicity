@@ -1,0 +1,202 @@
+### C.jet_secp_scalar_mul512_run.scalar_mul512_functions_ok
+scalar_mul512_functions_ok
+     : forall (id : AST.ident) (f : Clight.function)
+         (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) scalar_mul512_functions),
+       @ex Values.block
+         (fun b : Values.block =>
+          and
+            (@eq (option Values.block)
+               (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge) id)
+               (@Some Values.block b))
+            (@eq (option Clight.fundef)
+               (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge) b)
+               (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f))))
+### C.jet_secp_scalar_mul512_run.scalar_mul512_run_completes
+scalar_mul512_run_completes
+     : @eq bool
+         match scalar_mul512_run return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_scalar_mul512_run.scalar_mul512_run_eq
+scalar_mul512_run_eq
+     : @eq (option jet_sx_exec.res) scalar_mul512_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone scalar_mul512_state jet_sx_exec.ONormal))
+### C.jet_secp_scalar_mul512_run.scalar_mul512_return
+scalar_mul512_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps scalar_mul512_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_scalar_mul512_run.scalar_mul512_log_nil
+scalar_mul512_log_nil
+     : @eq (list jet_sx_eval.event) (jet_sx_eval.slog scalar_mul512_state) (@nil jet_sx_eval.event)
+### C.jet_secp_scalar_mul512_run.scalar_mul512_limbs_length
+scalar_mul512_limbs_length
+     : @eq nat (@length jet_sx_expr.sx scalar_mul512_limbs) (S (S (S (S (S (S (S (S O))))))))
+### C.jet_secp_scalar_mul512_run.scalar_mul512_output
+scalar_mul512_output
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs scalar_mul512_state)
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 scalar_mul512_limbs) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (@cons jet_sx_state.region
+               (jet_sx_state.mkreg
+                  (jet_sx_rep.u64_cells BinNums.Z0
+                     (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+                        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+                           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O)))) (@nil jet_sx_expr.sx)))))) true
+                  (@Some BinNums.Z
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+               (@cons jet_sx_state.region
+                  (jet_sx_state.mkreg
+                     (jet_sx_rep.u64_cells BinNums.Z0
+                        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S O)))))
+                           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S O))))))
+                              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))
+                                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S O))))))))
+                                    (@nil jet_sx_expr.sx)))))) true
+                     (@Some BinNums.Z
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                  (@nil jet_sx_state.region))))
+### C.jet_secp_scalar_mul512_run.eval_scalar_mul512_owned
+eval_scalar_mul512_owned
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta scalar_mul512_initial_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul_512)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_sx_state.rep rho beta
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 scalar_mul512_limbs) true
+                        (@Some BinNums.Z
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                     (@cons jet_sx_state.region
+                        (jet_sx_state.mkreg
+                           (jet_sx_rep.u64_cells BinNums.Z0
+                              (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+                                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+                                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                                       (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O)))) (@nil jet_sx_expr.sx))))))
+                           true
+                           (@Some BinNums.Z
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                        (@cons jet_sx_state.region
+                           (jet_sx_state.mkreg
+                              (jet_sx_rep.u64_cells BinNums.Z0
+                                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S O)))))
+                                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S O))))))
+                                       (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))
+                                          (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S O))))))))
+                                             (@nil jet_sx_expr.sx)))))) true
+                              (@Some BinNums.Z
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                           (@nil jet_sx_state.region)))) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape scalar_mul512_initial_regs) b ofs)) m mf)))
+### C.jet_secp_scalar_mul512_run.scalar_mul512_functions
+scalar_mul512_functions =
+@cons (prod AST.ident Clight.function)
+  (@pair AST.ident Clight.function jets_secp._secp256k1_umul128 jets_secp.f_secp256k1_umul128)
+  (@cons (prod AST.ident Clight.function)
+     (@pair AST.ident Clight.function jets_secp._secp256k1_u128_mul jets_secp.f_secp256k1_u128_mul)
+     (@cons (prod AST.ident Clight.function)
+        (@pair AST.ident Clight.function jets_secp._secp256k1_u128_to_u64 jets_secp.f_secp256k1_u128_to_u64)
+        (@cons (prod AST.ident Clight.function)
+           (@pair AST.ident Clight.function jets_secp._secp256k1_u128_hi_u64 jets_secp.f_secp256k1_u128_hi_u64)
+           (@nil (prod AST.ident Clight.function)))))
+     : list (prod AST.ident Clight.function)
+### C.jet_secp_scalar_mul512_run.scalar_mul512_initial_regs
+scalar_mul512_initial_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells BinNums.Z0
+        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S O)))))))))
+           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S O))))))))))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S O)))))))))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))))
+                       (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))
+                          (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))
+                             (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))
+                                (@nil jet_sx_expr.sx)))))))))) true
+     (@Some BinNums.Z
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg
+        (jet_sx_rep.u64_cells BinNums.Z0
+           (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O)))) (@nil jet_sx_expr.sx)))))) true
+        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+     (@cons jet_sx_state.region
+        (jet_sx_state.mkreg
+           (jet_sx_rep.u64_cells BinNums.Z0
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S O)))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S O))))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))
+                       (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S O)))))))) (@nil jet_sx_expr.sx))))))
+           true
+           (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (@nil jet_sx_state.region)))
+     : list jet_sx_state.region
+### C.jet_secp_scalar_mul512_run.scalar_mul512_run
+scalar_mul512_run =
+jet_sx_compact.compact_fun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (jet_sx_pure.int_table scalar_mul512_functions)
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_scalar_mul_512
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)
+        (@cons jet_sx_expr.sx (jet_sx_expr.XP (S (S O)) BinNums.Z0) (@nil jet_sx_expr.sx)))) scalar_mul512_initial_regs
+  (@nil jet_sx_eval.event) (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+     : option jet_sx_exec.res
+### C.jet_secp_scalar_mul512_run.scalar_mul512_state
+scalar_mul512_state =
+match scalar_mul512_run return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : jet_sx_eval.sstate
+### C.jet_secp_scalar_mul512_run.scalar_mul512_limbs
+scalar_mul512_limbs =
+@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_frame.cell_sx
+  (jet_sx_state.rcells
+     (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+        (jet_sx_eval.sregs scalar_mul512_state)))
+     : list jet_sx_expr.sx

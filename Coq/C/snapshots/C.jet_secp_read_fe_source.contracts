@@ -1,0 +1,54 @@
+### C.jet_secp_read_fe_source.local_read_leaf_source
+local_read_leaf_source
+     : forall (bi : Values.block) (edge : Integers.Ptrofs.int),
+       jet_secp_local_regions.all_leaf_property
+         (fun state : jet_sx_eval.sstate =>
+          @eq (list jet_sx_state.cell)
+            (jet_sx_state.rcells
+               (@List.nth jet_sx_state.region (S O) (jet_sx_eval.sregs state)
+                  (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))))
+            (jet_secp_frame.mk_frame_cells (jet_sx_expr.XA bi edge)
+               (Integers.Int64.repr
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (jet_secp_local_regions.local_read_result bi edge)
+### C.jet_secp_read_fe_source.local_read_selected_source
+local_read_selected_source
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z)
+         (bi : Values.block) (edge : Integers.Ptrofs.int),
+       @eq (list jet_sx_state.cell)
+         (jet_sx_state.rcells
+            (@List.nth jet_sx_state.region (S O)
+               (jet_sx_eval.sregs
+                  (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                     (jet_sx_exec.rsel rho layout (jet_secp_local_regions.local_read_result bi edge))))
+               (jet_sx_state.mkreg (@nil jet_sx_state.cell) true (@None BinNums.Z))))
+         (jet_secp_frame.mk_frame_cells (jet_sx_expr.XA bi edge)
+            (Integers.Int64.repr
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+### C.jet_secp_read_fe_source.local_read_final_source_fields
+local_read_final_source_fields
+     : forall (m : Memory.Mem.mem) (ba bl bi : Values.block) (edge rc : BinNums.Z)
+         (rho : forall _ : nat, Integers.Int64.int) (_ : @eq Integers.Int64.int (rho O) (Integers.Int64.repr rc))
+         (_ : jet_sx_state.rep rho
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bl BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z))))
+                (jet_sx_eval.sregs
+                   (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                      (jet_sx_exec.rsel rho
+                         (jet_sx_state.lay
+                            (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                               (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bl BinNums.Z0)
+                                  (@nil (prod Values.block BinNums.Z)))))
+                         (jet_secp_local_regions.local_read_result bi (Integers.Ptrofs.repr edge))))) m),
+       jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge
+         (BinInt.Z.add rc
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))

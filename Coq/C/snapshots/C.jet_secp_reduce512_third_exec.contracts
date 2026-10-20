@@ -1,0 +1,68 @@
+### C.jet_secp_reduce512_third_exec.third_output_region
+third_output_region
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int),
+       @eq (option jet_sx_state.region)
+         (@List.nth_error jet_sx_state.region
+            (jet_sx_eval.sregs (jet_secp_reduce512_third_stage.reduce512_third_state digits p4)) O)
+         (@Some jet_sx_state.region
+            (jet_sx_state.mkreg
+               (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_reduce512_third_stage.reduce512_third_limbs digits p4)) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_reduce512_third_exec.third_raw_c
+third_raw_c
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._c
+            (jet_sx_eval.stemps (jet_secp_reduce512_third_stage.reduce512_third_state digits p4)))
+         (@Some jet_sx_expr.sx
+            (jet_secp_scalar_mul512_symbolic.sc_hi (jet_secp_reduce512_third_atomic.third_sy3 digits p4)))
+### C.jet_secp_reduce512_third_exec.exec_typed_third_stage
+exec_typed_third_stage
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int)
+         (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta
+                (jet_sx_eval.sregs (jet_secp_reduce512_third_stage.reduce512_third_initial digits p4)) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_reduce512_third_stage.reduce512_third_temps digits p4) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  jet_secp_reduce512_third_stage.reduce512_third_stage Events.E0 le' mf ClightBigstep.Out_normal)
+               (and
+                  (jet_sx_state.rep rho beta
+                     (jet_sx_eval.sregs (jet_secp_reduce512_third_stage.reduce512_third_state digits p4)) mf)
+                  (and
+                     (forall (i : nat) (x : Integers.Int64.int)
+                        (_ : @eq (option Integers.Int64.int)
+                               (@List.nth_error Integers.Int64.int
+                                  (jet_secp_reduce512_third_atomic.third_machine_outputs digits p4) i)
+                               (@Some Integers.Int64.int x)),
+                      @eq (option Values.val)
+                        (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk beta O)
+                           (BinInt.Z.add (jet_sx_state.bas beta O)
+                              (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                 (BinInt.Z.of_nat i)))) (@Some Values.val (Values.Vlong x)))
+                     (and
+                        (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._c le')
+                           (@Some Values.val
+                              (Values.Vlong
+                                 (jet_secp_reduce512_wide.whi (jet_secp_reduce512_third_atomic.third_ma3 digits p4)))))
+                        (and
+                           (jet_sx_eval.tmatch rho beta
+                              (jet_sx_eval.stemps (jet_secp_reduce512_third_stage.reduce512_third_state digits p4)) le')
+                           (jet_sx_mem.lframe
+                              (fun (b : Values.block) (ofs : BinNums.Z) =>
+                               not
+                                 (jet_sx_state.foot beta
+                                    (@List.map jet_sx_state.region
+                                       (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                       jet_sx_state.rshape
+                                       (jet_sx_eval.sregs
+                                          (jet_secp_reduce512_third_stage.reduce512_third_initial digits p4))) b ofs))
+                              m mf)))))))

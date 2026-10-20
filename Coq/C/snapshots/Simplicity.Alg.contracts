@@ -1,0 +1,58 @@
+### Simplicity.Alg.AssertionSem_mixin
+AssertionSem_mixin =
+fun M : Monad.MonadZero.type =>
+Assertion.Mixin (fun x x0 : Ty.Ty => forall _ : Ty.tySem x, Monad.MonadZero.domain M (Ty.tySem x0))
+  (fun (A B C D : Ty.Ty)
+     (s : (fun x x0 : Ty.Ty => forall _ : Ty.tySem x, Monad.MonadZero.domain M (Ty.tySem x0)) (Ty.Prod A C) D)
+     (_ : Digest.hash256) (p : Ty.tySem (Ty.Prod (Ty.Sum A B) C)) =>
+   match p return (Monad.MonadZero.domain M (Ty.tySem D)) with
+   | Datatypes.pair ab c =>
+       match ab return (Monad.MonadZero.domain M (Ty.tySem D)) with
+       | inl a =>
+           s
+             (@Datatypes.pair
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => Datatypes.unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) A)
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => Datatypes.unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) C) a c)
+       | inr _ => @Monad.MonadZero.Theory.mzero M (Ty.tySem D)
+       end
+   end)
+  (fun (A B C D : Ty.Ty) (_ : Digest.hash256)
+     (t : (fun x x0 : Ty.Ty => forall _ : Ty.tySem x, Monad.MonadZero.domain M (Ty.tySem x0)) (Ty.Prod B C) D)
+     (p : Ty.tySem (Ty.Prod (Ty.Sum A B) C)) =>
+   match p return (Monad.MonadZero.domain M (Ty.tySem D)) with
+   | Datatypes.pair ab c =>
+       match ab return (Monad.MonadZero.domain M (Ty.tySem D)) with
+       | inl _ => @Monad.MonadZero.Theory.mzero M (Ty.tySem D)
+       | inr b =>
+           t
+             (@Datatypes.pair
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => Datatypes.unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) B)
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => Datatypes.unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) C) b c)
+       end
+   end)
+  (fun (A B : Ty.Ty) (_ : prod Digest.hash256 Digest.hash256) =>
+   @Monad.MonadZero.Theory.kzero M (Ty.tySem A) (Ty.tySem B))
+     : forall M : Monad.MonadZero.type,
+       Assertion.mixin (Ty.Kleisli (Monad.CIMonad.domain (Monad.MonadZero.to_Monad M)))
+
+Arguments AssertionSem_mixin M

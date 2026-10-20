@@ -1,0 +1,39 @@
+### C.jet_secp_field_add_owned.eval_field_add_owned
+eval_field_add_owned
+     : forall (m : Memory.Mem.mem) (a b : Values.block) (rho : forall _ : nat, Integers.Int64.int)
+         (_ : not (@eq Values.block a b))
+         (_ : jet_secp_fe_nv.fe_at m a BinNums.Z0 (jet_secp_field_add_initial.field_values rho (S O)))
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0
+                (jet_secp_field_add_initial.field_values rho (S (S (S (S (S (S O))))))))
+         (_ : Memory.Mem.range_perm m a BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_add)
+               (@cons Values.val (Values.Vptr a Integers.Ptrofs.zero)
+                  (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and (jet_secp_fe_nv.fe_at mf a BinNums.Z0 (jet_secp_field_add_storage.add_values rho))
+               (and
+                  (Memory.Mem.range_perm mf a BinNums.Z0
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (and
+                     (Memory.Mem.range_perm mf b BinNums.Z0
+                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                        Memtype.Cur Memtype.Freeable)
+                     (jet_sx_mem.lframe
+                        (fun (b' : Values.block) (pos : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot
+                              (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z a BinNums.Z0)
+                                 (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+                                    (@nil (prod Values.block BinNums.Z))))
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape jet_secp_field_add.field_add_initial_regs) b' pos)) m mf)))))

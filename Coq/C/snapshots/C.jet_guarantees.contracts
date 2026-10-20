@@ -1,0 +1,1121 @@
+### C.jet_guarantees.jet_local_spec_guarantees
+jet_local_spec_guarantees
+     : forall (f : Clight.function) (A B : Ty.Ty) (spec : forall _ : Ty.tySem A, Ty.tySem B)
+         (_ : jet_bitmachine_rep.jet_local_spec f A B spec) (env : Values.val) (m : Memory.Mem.mem)
+         (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block)
+         (edge outedge cursor read_cursor : BinNums.Z) (a : Ty.tySem A) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize A)))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor (@Translate.encode A a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor (BinInt.Z.of_nat (Translate.bitSize B))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function f)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and (jet_encoding.frame_output_cells_at mf bw outedge cursor (@Translate.encode B (spec a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize B))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize B)))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.jet_context_guarantees
+@jet_context_guarantees
+     : forall (A B : Ty.Ty) (f : Clight.function) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (_ : @Alg.Core.Parametric A B t)
+         (_ : jet_bitmachine_rep.jet_local_spec f A B (fun a : Ty.tySem A => t Alg.CoreFunSem a))
+         (_ : le (S O) (Translate.bitSize B)) (env : Values.val) (m : Memory.Mem.mem)
+         (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context) (a : Ty.tySem A),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode A a) (BitMachine.newWriteFrame (Translate.bitSize B))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode A a)
+              (BitMachine.fullWriteFrame (@Translate.encode B (t Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function f) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (t Translate.Naive.translate) (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.one8_guarantees
+one8_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem Ty.Unit) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize Ty.Unit)))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor (@Translate.encode Ty.Unit a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S O))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_one_8)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Word.Word (S (S (S O)))) (@jet_spec.one8_spec Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S O))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S O)))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.one16_guarantees
+one16_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem Ty.Unit) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize Ty.Unit)))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor (@Translate.encode Ty.Unit a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S O)))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_one_16)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Word.Word (S (S (S (S O)))))
+                     (@jet_wide_spec.wide_one_spec jet_wide.W16 Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S O)))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S O))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.one32_guarantees
+one32_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem Ty.Unit) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize Ty.Unit)))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor (@Translate.encode Ty.Unit a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S (S O))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_one_32)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Word.Word (S (S (S (S (S O))))))
+                     (@jet_wide_spec.wide_one_spec jet_wide.W32 Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S (S O))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S (S O)))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.one64_guarantees
+one64_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem Ty.Unit) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize Ty.Unit)))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor (@Translate.encode Ty.Unit a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S (S (S O)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_one_64)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Word.Word (S (S (S (S (S (S O)))))))
+                     (@jet_wide_spec.wide_one_spec jet_wide.W64 Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S (S (S O)))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (Translate.bitSize (Word.Word (S (S (S (S (S (S O))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.increment8_guarantees
+increment8_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Word.Word (S (S (S O))))) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S O)))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor (@Translate.encode (Word.Word (S (S (S O)))) a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_increment_8)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))
+                     (@jet_spec.increment8_spec Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat
+                              (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (Translate.bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.increment16_guarantees
+increment16_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Word.Word (S (S (S (S O)))))) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S O))))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor
+                (@Translate.encode (Word.Word (S (S (S (S O))))) a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_increment_16)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+                     (@jet_increment_wide_word.increment16_spec Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat
+                              (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (Translate.bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O)))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.increment32_guarantees
+increment32_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S (S O)))))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor
+                (@Translate.encode (Word.Word (S (S (S (S (S O)))))) a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat
+                   (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_increment_32)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+                     (@jet_increment32_wide_word.increment32_spec Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat
+                              (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (Translate.bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+                                                          (Word.Word (S (S (S (S (S O))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.increment64_guarantees
+increment64_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize (Word.Word (S (S (S (S (S (S O))))))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor
+                (@Translate.encode (Word.Word (S (S (S (S (S (S O))))))) a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat
+                   (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_increment_64)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+                     (@jet_increment64_wide_word.increment64_spec Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat
+                              (Translate.bitSize
+                                 (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (Translate.bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+                                                          (Word.Word (S (S (S (S (S (...)))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.add8_guarantees
+add8_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))))
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat (Translate.bitSize (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor
+                (@Translate.encode (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_add_8)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))
+                     (@jet_add8_word.add8_spec Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat
+                              (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (Translate.bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.add16_guarantees
+add16_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat
+                      (Translate.bitSize (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor
+                (@Translate.encode (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_add_16)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+                     (@jet_add16_wide_word.add16_spec Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat
+                              (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (Translate.bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O)))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.add32_guarantees
+add32_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat
+                      (Translate.bitSize (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor
+                (@Translate.encode (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat
+                   (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_add_32)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+                     (@jet_add32_wide_word.add32_spec Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat
+                              (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (Translate.bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+                                                          (Word.Word (S (S (S (S (S O))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.add64_guarantees
+add64_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add read_cursor
+                   (BinInt.Z.of_nat
+                      (Translate.bitSize
+                         (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor
+                (@Translate.encode
+                   (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O)))))))) a))
+         (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor
+                (BinInt.Z.of_nat
+                   (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))))),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_add_64)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+                     (@cons Values.val env (@nil Values.val)))) m (Values.Vint Integers.Int.one) mf)
+            (and
+               (jet_encoding.frame_output_cells_at mf bw outedge cursor
+                  (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+                     (@jet_add64_wide_word.add64_spec Alg.CoreFunSem a)))
+               (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                  (and
+                     (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                        (BinInt.Z.sub cursor
+                           (BinInt.Z.of_nat
+                              (Translate.bitSize
+                                 (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))))))
+                     (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                        (_ : Memory.Mem.valid_block m b)
+                        (_ : or (not (@eq Values.block b bd))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add dbase
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                     ofs)))
+                        (_ : or (not (@eq Values.block b bw))
+                               (or
+                                  (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                     (BinInt.Z.add outedge
+                                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                           (BinInt.Z.div
+                                              (BinInt.Z.sub cursor
+                                                 (BinInt.Z.of_nat
+                                                    (Translate.bitSize
+                                                       (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+                                                          (Word.Word (S (S (S (S (S (...)))))))))))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                                  (BinInt.Z.le
+                                     (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+                      @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))))
+### C.jet_guarantees.one8_context_guarantees
+one8_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem Ty.Unit),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode Ty.Unit a)
+              (BitMachine.newWriteFrame (Translate.bitSize (Word.Word (S (S (S O))))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode Ty.Unit a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Word.Word (S (S (S O)))) (@jet_spec.one8_spec Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_one_8) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_spec.one8_spec Translate.Naive.translate) (BitMachine.Running s0)
+                  (BitMachine.Running s1))))
+### C.jet_guarantees.one16_context_guarantees
+one16_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem Ty.Unit),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode Ty.Unit a)
+              (BitMachine.newWriteFrame (Translate.bitSize (Word.Word (jet_wide.wide_log jet_wide.W16))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode Ty.Unit a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Word.Word (jet_wide.wide_log jet_wide.W16))
+                    (@jet_wide_spec.wide_one_spec jet_wide.W16 Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_one_16) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_wide_spec.wide_one_spec jet_wide.W16 Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.one32_context_guarantees
+one32_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem Ty.Unit),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode Ty.Unit a)
+              (BitMachine.newWriteFrame (Translate.bitSize (Word.Word (jet_wide.wide_log jet_wide.W32))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode Ty.Unit a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Word.Word (jet_wide.wide_log jet_wide.W32))
+                    (@jet_wide_spec.wide_one_spec jet_wide.W32 Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_one_32) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_wide_spec.wide_one_spec jet_wide.W32 Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.one64_context_guarantees
+one64_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem Ty.Unit),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode Ty.Unit a)
+              (BitMachine.newWriteFrame (Translate.bitSize (Word.Word (jet_wide.wide_log jet_wide.W64))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode Ty.Unit a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Word.Word (jet_wide.wide_log jet_wide.W64))
+                    (@jet_wide_spec.wide_one_spec jet_wide.W64 Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_one_64) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_wide_spec.wide_one_spec jet_wide.W64 Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.increment8_context_guarantees
+increment8_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem (Word.Word (S (S (S O))))),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode (Word.Word (S (S (S O)))) a)
+              (BitMachine.newWriteFrame
+                 (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode (Word.Word (S (S (S O)))) a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))
+                    (@jet_spec.increment8_spec Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_increment_8) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_spec.increment8_spec Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.increment16_context_guarantees
+increment16_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem (Word.Word (S (S (S (S O)))))),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode (Word.Word (S (S (S (S O))))) a)
+              (BitMachine.newWriteFrame
+                 (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode (Word.Word (S (S (S (S O))))) a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+                    (@jet_increment_wide_word.increment16_spec Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_increment_16) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_increment_wide_word.increment16_spec Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.increment32_context_guarantees
+increment32_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode (Word.Word (S (S (S (S (S O)))))) a)
+              (BitMachine.newWriteFrame
+                 (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode (Word.Word (S (S (S (S (S O)))))) a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+                    (@jet_increment32_wide_word.increment32_spec Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_increment_32) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_increment32_wide_word.increment32_spec Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.increment64_context_guarantees
+increment64_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode (Word.Word (S (S (S (S (S (S O))))))) a)
+              (BitMachine.newWriteFrame
+                 (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState (@Translate.encode (Word.Word (S (S (S (S (S (S O))))))) a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+                    (@jet_increment64_wide_word.increment64_spec Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_increment_64) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_increment64_wide_word.increment64_spec Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.add8_context_guarantees
+add8_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))))),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) a)
+              (BitMachine.newWriteFrame
+                 (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode (Ty.Prod (Word.Word (S (S (S O)))) (Word.Word (S (S (S O))))) a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S O)))))
+                    (@jet_add8_word.add8_spec Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_add_8) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_add8_word.add8_spec Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.add16_context_guarantees
+add16_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) a)
+              (BitMachine.newWriteFrame
+                 (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))) a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+                    (@jet_add16_wide_word.add16_spec Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_add_16) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_add16_wide_word.add16_spec Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.add32_context_guarantees
+add32_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) a)
+              (BitMachine.newWriteFrame
+                 (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode (Ty.Prod (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))) a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S O)))))))
+                    (@jet_add32_wide_word.add32_spec Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_add_32) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_add32_wide_word.add32_spec Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))
+### C.jet_guarantees.add64_context_guarantees
+add64_context_guarantees
+     : forall (env : Values.val) (m : Memory.Mem.mem) (L : jet_bitmachine_rep.bm_layout) (ctx : BitMachine.Context)
+         (a : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))),
+       let s0 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                 a)
+              (BitMachine.newWriteFrame
+                 (Translate.bitSize (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))))) in
+       let s1 : BitMachine.RunState :=
+         BitMachine.fillContext ctx
+           (BitMachine.Build_LocalState
+              (@Translate.encode (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S O))))))))
+                 a)
+              (BitMachine.fullWriteFrame
+                 (@Translate.encode (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+                    (@jet_add64_wide_word.add64_spec Alg.CoreFunSem a)))) in
+       forall (_ : jet_bitmachine_rep.bm_rep m L s0) (_ : jet_bitmachine_rep.bm_separated L s0)
+         (_ : jet_bitmachine_rep.active_write_writable m L s0),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (jet_clight_determinism.silent_call_guarantees (Clight.globalenv jets.prog)
+               (@Ctypes.Internal Clight.function jets.f_simplicity_add_64) (jet_bitmachine_rep.jet_args env L) m
+               (Values.Vint Integers.Int.one) mf)
+            (and (jet_bitmachine_rep.bm_rep mf L s1)
+               (BitMachine.runProgram (@jet_add64_wide_word.add64_spec Translate.Naive.translate)
+                  (BitMachine.Running s0) (BitMachine.Running s1))))

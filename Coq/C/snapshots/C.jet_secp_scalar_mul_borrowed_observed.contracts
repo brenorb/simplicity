@@ -1,0 +1,51 @@
+### C.jet_secp_scalar_mul_borrowed_observed.eval_scalar_mul_borrowed_inplace_observed
+eval_scalar_mul_borrowed_inplace_observed
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                        (@nil Values.val)))) Events.E0 mf Values.Vundef)
+            (and
+               (forall (i : nat) (w : Integers.Int64.int)
+                  (_ : @eq (option Integers.Int64.int)
+                         (@List.nth_error Integers.Int64.int
+                            (jet_secp_scalar_mul_caller_observed.scalar_mul_caller_words rho) i)
+                         (@Some Integers.Int64.int w)),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk beta O)
+                     (BinInt.Z.add (jet_sx_state.bas beta O)
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.of_nat i)))) (@Some Values.val (Values.Vlong w)))
+               (and
+                  (@eq BinNums.Z
+                     (jet_secp_scalar_mul512_accumulate.column_words_value
+                        (jet_secp_scalar_mul_caller_observed.scalar_mul_caller_words rho))
+                     (BinInt.Z.modulo
+                        (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+                           (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O))))))
+                        jet_secp_canonical_scalar.canonical_group_order))
+                  (and
+                     (jet_sx_state.rep (jet_secp_product_reduce_bridge.product_reduce_rho rho)
+                        (@cons (prod Values.block BinNums.Z) (jet_sx_state.lay beta O)
+                           (@nil (prod Values.block BinNums.Z)))
+                        (jet_secp_scalar_mul_caller_function.scalar_mul_caller_output rho) mf)
+                     (and
+                        (jet_sx_state.region_ok rho beta mf (S O)
+                           jet_secp_scalar_mul_borrowed_function.scalar_mul_borrowed_rhs)
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape jet_secp_scalar_mul_borrowed_alloc.scalar_mul_borrowed_inputs)
+                                 b ofs)) m mf))))))

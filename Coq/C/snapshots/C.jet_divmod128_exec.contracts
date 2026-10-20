@@ -1,0 +1,379 @@
+### C.jet_divmod128_exec.divmod128_body
+divmod128_body
+     : @eq Clight.statement (Clight.fn_body jets.f_simplicity_div_mod_128_64)
+         (Clight.Ssequence
+            (Clight.Sassign (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+               (Clight.Etempvar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr)))
+            (Clight.Ssequence
+               (Clight.Ssequence (jet_binary_wide_exec.wide_binary_read jet_wide.W64 jets._t'1)
+                  (Clight.Sset jets._ah (Clight.Etempvar jets._t'1 Ctypesdefs.tulong)))
+               (Clight.Ssequence
+                  (Clight.Ssequence (jet_binary_wide_exec.wide_binary_read jet_wide.W32 jets._t'2)
+                     (Clight.Sset jets._am (Clight.Etempvar jets._t'2 Ctypesdefs.tulong)))
+                  (Clight.Ssequence
+                     (Clight.Ssequence (jet_binary_wide_exec.wide_binary_read jet_wide.W32 jets._t'3)
+                        (Clight.Sset jets._al (Clight.Etempvar jets._t'3 Ctypesdefs.tulong)))
+                     (Clight.Ssequence
+                        (Clight.Ssequence (jet_binary_wide_exec.wide_binary_read jet_wide.W64 jets._t'4)
+                           (Clight.Sset jets._b (Clight.Etempvar jets._t'4 Ctypesdefs.tulong)))
+                        (Clight.Ssequence
+                           (Clight.Ssequence jet_divmod128_expr.divmod128_guard_stmt divmod128_branch_stmt)
+                           (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint)))))))))
+### C.jet_divmod128_exec.exec_divmod128_valid_composes
+exec_divmod128_valid_composes
+     : forall (le : Maps.PTree.tree Values.val) (m m1 m2 mw1 mw2 mf : Memory.Mem.mem) (bl bqh bql br bd : Values.block)
+         (dbase : BinNums.Z) (ah am al b r1 qh ql rf : Integers.Int64.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._ah le) (@Some Values.val (Values.Vlong ah)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._am le) (@Some Values.val (Values.Vlong am)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._al le) (@Some Values.val (Values.Vlong al)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._b le) (@Some Values.val (Values.Vlong b)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_div_mod_96_64)
+                (@cons Values.val (Values.Vptr bqh Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vlong ah)
+                         (@cons Values.val (Values.Vlong am) (@cons Values.val (Values.Vlong b) (@nil Values.val))))))
+                Events.E0 m1 Values.Vundef)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m1 br BinNums.Z0)
+                (@Some Values.val (Values.Vlong r1)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m1
+                (@Ctypes.Internal Clight.function jets.f_div_mod_96_64)
+                (@cons Values.val (Values.Vptr bql Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vlong r1)
+                         (@cons Values.val (Values.Vlong al) (@cons Values.val (Values.Vlong b) (@nil Values.val))))))
+                Events.E0 m2 Values.Vundef)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 m2 bqh BinNums.Z0)
+                (@Some Values.val (Values.Vlong qh)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m2
+                (@Ctypes.Internal Clight.function jets.f_simplicity_write32)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong qh) (@nil Values.val))) Events.E0 mw1 Values.Vundef)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mw1 bql BinNums.Z0)
+                (@Some Values.val (Values.Vlong ql)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mw1
+                (@Ctypes.Internal Clight.function jets.f_simplicity_write32)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong ql) (@nil Values.val))) Events.E0 mw2 Values.Vundef)
+         (_ : @eq (option Values.val) (Memory.Mem.load AST.Mint64 mw2 br BinNums.Z0)
+                (@Some Values.val (Values.Vlong rf)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mw2
+                (@Ctypes.Internal Clight.function jets.f_simplicity_write64)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong rf) (@nil Values.val))) Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (jet_divmod128_entry.divmod128_env bl bqh bql br) le m
+         divmod128_valid_stmt Events.E0 (divmod128_valid_env le r1 qh ql rf) mf ClightBigstep.Out_normal
+### C.jet_divmod128_exec.eval_divmod128_composes
+eval_divmod128_composes
+     : forall (env : Values.val) (m : Memory.Mem.mem) (ma mb mc md : Memory.Mem.mem')
+         (mcopy mr1 mr2 mr3 mr4 me mf : Memory.Mem.mem) (bl bqh bql br bd : Values.block) (dbase : BinNums.Z)
+         (bs : Values.block) (sbase : BinNums.Z) (bytes : list Memdata.memval) (ah am al b : Integers.Int64.int)
+         (lef : Clight.temp_env) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc ma BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@pair Memory.Mem.mem' Values.block mb bqh))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc mb BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@pair Memory.Mem.mem' Values.block mc bql))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc mc BinNums.Z0 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                (@pair Memory.Mem.mem' Values.block md br))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes md bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes md bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mcopy))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mcopy
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr1
+                (Values.Vlong ah))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr1
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read32)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr2
+                (Values.Vlong am))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr2
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read32)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr3
+                (Values.Vlong al))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr3
+                (@Ctypes.Internal Clight.function jets.f_simplicity_read64)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr4
+                (Values.Vlong b))
+         (_ : ClightBigstep.Clight2.exec_stmt jet_exec.ge0 (jet_divmod128_entry.divmod128_env bl bqh bql br)
+                (@Maps.PTree.set Values.val jets._t'5
+                   (Values.Vint (jet_readBit_layout.bit_int (jet_divmod128_spec.divmod128_guard ah b)))
+                   (divmod128_read_env (jet_divmod128_entry.divmod128_temps env bd dbase bs sbase) ah am al b)) mr4
+                divmod128_branch_stmt Events.E0 lef me ClightBigstep.Out_normal)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free_list me
+                   (Clight.blocks_of_env jet_exec.ge0 (jet_divmod128_entry.divmod128_env bl bqh bql br)))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+         (@Ctypes.Internal Clight.function jets.f_simplicity_div_mod_128_64)
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         Events.E0 mf (Values.Vint Integers.Int.one)
+### C.jet_divmod128_exec.eval_divmod128_invalid_expr
+eval_divmod128_invalid_expr
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem),
+       Clight.eval_expr jet_exec.ge0 e le m divmod128_invalid_expr
+         (Values.Vlong (Integers.Int64.repr Integers.Int64.max_unsigned))
+### C.jet_divmod128_exec.exec_divmod128_invalid_composes
+exec_divmod128_invalid_composes
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m m1 mf : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets._simplicity_write64 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function jets.f_simplicity_write64)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong (Integers.Int64.repr Integers.Int64.max_unsigned)) (@nil Values.val)))
+                Events.E0 m1 Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m1
+                (@Ctypes.Internal Clight.function jets.f_simplicity_write64)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong (Integers.Int64.repr Integers.Int64.max_unsigned)) (@nil Values.val)))
+                Events.E0 mf Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m divmod128_invalid_stmt Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_divmod128_exec.divmod128_body_tail
+divmod128_body_tail =
+match Clight.fn_body jets.f_simplicity_div_mod_128_64 return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence _ s0 =>
+    match s0 return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ s4 =>
+            match s4 return Clight.statement with
+            | Clight.Sskip => Clight.Sskip
+            | Clight.Sassign _ _ => Clight.Sskip
+            | Clight.Sset _ _ => Clight.Sskip
+            | Clight.Scall _ _ _ => Clight.Sskip
+            | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+            | Clight.Ssequence _ s6 =>
+                match s6 return Clight.statement with
+                | Clight.Sskip => Clight.Sskip
+                | Clight.Sassign _ _ => Clight.Sskip
+                | Clight.Sset _ _ => Clight.Sskip
+                | Clight.Scall _ _ _ => Clight.Sskip
+                | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+                | Clight.Ssequence _ t => t
+                | Clight.Sifthenelse _ _ _ => Clight.Sskip
+                | Clight.Sloop _ _ => Clight.Sskip
+                | Clight.Sbreak => Clight.Sskip
+                | Clight.Scontinue => Clight.Sskip
+                | Clight.Sreturn _ => Clight.Sskip
+                | Clight.Sswitch _ _ => Clight.Sskip
+                | Clight.Slabel _ _ => Clight.Sskip
+                | Clight.Sgoto _ => Clight.Sskip
+                end
+            | Clight.Sifthenelse _ _ _ => Clight.Sskip
+            | Clight.Sloop _ _ => Clight.Sskip
+            | Clight.Sbreak => Clight.Sskip
+            | Clight.Scontinue => Clight.Sskip
+            | Clight.Sreturn _ => Clight.Sskip
+            | Clight.Sswitch _ _ => Clight.Sskip
+            | Clight.Slabel _ _ => Clight.Sskip
+            | Clight.Sgoto _ => Clight.Sskip
+            end
+        | Clight.Sifthenelse _ _ _ => Clight.Sskip
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_divmod128_exec.divmod128_valid_debug
+divmod128_valid_debug =
+match divmod128_body_tail return Clight.statement with
+| Clight.Sskip => Clight.Sskip
+| Clight.Sassign _ _ => Clight.Sskip
+| Clight.Sset _ _ => Clight.Sskip
+| Clight.Scall _ _ _ => Clight.Sskip
+| Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+| Clight.Ssequence s _ =>
+    match s return Clight.statement with
+    | Clight.Sskip => Clight.Sskip
+    | Clight.Sassign _ _ => Clight.Sskip
+    | Clight.Sset _ _ => Clight.Sskip
+    | Clight.Scall _ _ _ => Clight.Sskip
+    | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+    | Clight.Ssequence _ s2 =>
+        match s2 return Clight.statement with
+        | Clight.Sskip => Clight.Sskip
+        | Clight.Sassign _ _ => Clight.Sskip
+        | Clight.Sset _ _ => Clight.Sskip
+        | Clight.Scall _ _ _ => Clight.Sskip
+        | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+        | Clight.Ssequence _ _ => Clight.Sskip
+        | Clight.Sifthenelse _ s3 _ =>
+            match s3 return Clight.statement with
+            | Clight.Sskip => Clight.Sskip
+            | Clight.Sassign _ _ => Clight.Sskip
+            | Clight.Sset _ _ => Clight.Sskip
+            | Clight.Scall _ _ _ => Clight.Sskip
+            | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+            | Clight.Ssequence _ s6 =>
+                match s6 return Clight.statement with
+                | Clight.Sskip => Clight.Sskip
+                | Clight.Sassign _ _ => Clight.Sskip
+                | Clight.Sset _ _ => Clight.Sskip
+                | Clight.Scall _ _ _ => Clight.Sskip
+                | Clight.Sbuiltin _ _ _ _ => Clight.Sskip
+                | Clight.Ssequence check _ => check
+                | Clight.Sifthenelse _ _ _ => Clight.Sskip
+                | Clight.Sloop _ _ => Clight.Sskip
+                | Clight.Sbreak => Clight.Sskip
+                | Clight.Scontinue => Clight.Sskip
+                | Clight.Sreturn _ => Clight.Sskip
+                | Clight.Sswitch _ _ => Clight.Sskip
+                | Clight.Slabel _ _ => Clight.Sskip
+                | Clight.Sgoto _ => Clight.Sskip
+                end
+            | Clight.Sifthenelse _ _ _ => Clight.Sskip
+            | Clight.Sloop _ _ => Clight.Sskip
+            | Clight.Sbreak => Clight.Sskip
+            | Clight.Scontinue => Clight.Sskip
+            | Clight.Sreturn _ => Clight.Sskip
+            | Clight.Sswitch _ _ => Clight.Sskip
+            | Clight.Slabel _ _ => Clight.Sskip
+            | Clight.Sgoto _ => Clight.Sskip
+            end
+        | Clight.Sloop _ _ => Clight.Sskip
+        | Clight.Sbreak => Clight.Sskip
+        | Clight.Scontinue => Clight.Sskip
+        | Clight.Sreturn _ => Clight.Sskip
+        | Clight.Sswitch _ _ => Clight.Sskip
+        | Clight.Slabel _ _ => Clight.Sskip
+        | Clight.Sgoto _ => Clight.Sskip
+        end
+    | Clight.Sifthenelse _ _ _ => Clight.Sskip
+    | Clight.Sloop _ _ => Clight.Sskip
+    | Clight.Sbreak => Clight.Sskip
+    | Clight.Scontinue => Clight.Sskip
+    | Clight.Sreturn _ => Clight.Sskip
+    | Clight.Sswitch _ _ => Clight.Sskip
+    | Clight.Slabel _ _ => Clight.Sskip
+    | Clight.Sgoto _ => Clight.Sskip
+    end
+| Clight.Sifthenelse _ _ _ => Clight.Sskip
+| Clight.Sloop _ _ => Clight.Sskip
+| Clight.Sbreak => Clight.Sskip
+| Clight.Scontinue => Clight.Sskip
+| Clight.Sreturn _ => Clight.Sskip
+| Clight.Sswitch _ _ => Clight.Sskip
+| Clight.Slabel _ _ => Clight.Sskip
+| Clight.Sgoto _ => Clight.Sskip
+end
+     : Clight.statement
+### C.jet_divmod128_exec.divmod128_valid_stmt
+divmod128_valid_stmt =
+Clight.Ssequence (jet_divmod128_entry.divmod128_helper_call jets._qh jets._ah jets._am)
+  (Clight.Ssequence divmod128_valid_debug
+     (Clight.Ssequence
+        (Clight.Ssequence (Clight.Sset jets._t'9 (Clight.Evar jets._r Ctypesdefs.tulong))
+           (jet_divmod128_entry.divmod128_helper_call jets._ql jets._t'9 jets._al))
+        (Clight.Ssequence
+           (Clight.Ssequence (Clight.Sset jets._t'8 (Clight.Evar jets._qh Ctypesdefs.tulong))
+              (jet_arith8_layout_exec.frame_writer_call jets._simplicity_write32 Ctypesdefs.tulong Ctypesdefs.tvoid
+                 (Clight.Etempvar jets._t'8 Ctypesdefs.tulong)))
+           (Clight.Ssequence
+              (Clight.Ssequence (Clight.Sset jets._t'7 (Clight.Evar jets._ql Ctypesdefs.tulong))
+                 (jet_arith8_layout_exec.frame_writer_call jets._simplicity_write32 Ctypesdefs.tulong Ctypesdefs.tvoid
+                    (Clight.Etempvar jets._t'7 Ctypesdefs.tulong)))
+              (Clight.Ssequence (Clight.Sset jets._t'6 (Clight.Evar jets._r Ctypesdefs.tulong))
+                 (jet_arith8_layout_exec.frame_writer_call jets._simplicity_write64 Ctypesdefs.tulong Ctypesdefs.tvoid
+                    (Clight.Etempvar jets._t'6 Ctypesdefs.tulong)))))))
+     : Clight.statement
+### C.jet_divmod128_exec.divmod128_invalid_expr
+divmod128_invalid_expr =
+Clight.Ecast (Clight.Eunop Cop.Oneg (Clight.Econst_int Integers.Int.one Ctypesdefs.tint) Ctypesdefs.tint)
+  Ctypesdefs.tulong
+     : Clight.expr
+### C.jet_divmod128_exec.divmod128_invalid_stmt
+divmod128_invalid_stmt =
+Clight.Ssequence
+  (jet_arith8_layout_exec.frame_writer_call jets._simplicity_write64 Ctypesdefs.tulong Ctypesdefs.tvoid
+     divmod128_invalid_expr)
+  (jet_arith8_layout_exec.frame_writer_call jets._simplicity_write64 Ctypesdefs.tulong Ctypesdefs.tvoid
+     divmod128_invalid_expr)
+     : Clight.statement
+### C.jet_divmod128_exec.divmod128_branch_stmt
+divmod128_branch_stmt =
+Clight.Sifthenelse (Clight.Etempvar jets._t'5 Ctypesdefs.tint) divmod128_valid_stmt divmod128_invalid_stmt
+     : Clight.statement
+### C.jet_divmod128_exec.divmod128_valid_env
+divmod128_valid_env =
+fun (le : Maps.PTree.tree Values.val) (r1 qh ql rf : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets._t'6 (Values.Vlong rf)
+  (@Maps.PTree.set Values.val jets._t'7 (Values.Vlong ql)
+     (@Maps.PTree.set Values.val jets._t'8 (Values.Vlong qh)
+        (@Maps.PTree.set Values.val jets._t'9 (Values.Vlong r1) le)))
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments divmod128_valid_env le r1 qh ql rf
+### C.jet_divmod128_exec.divmod128_read_set
+divmod128_read_set =
+fun (le : Maps.PTree.tree Values.val) (id tmp : BinNums.positive) (w : Integers.Int64.int) =>
+@Maps.PTree.set Values.val id (Values.Vlong w) (@Maps.PTree.set Values.val tmp (Values.Vlong w) le)
+     : forall (_ : Maps.PTree.tree Values.val) (_ : BinNums.positive) (_ : BinNums.positive) (_ : Integers.Int64.int),
+       Maps.PTree.tree Values.val
+
+Arguments divmod128_read_set le (id tmp)%positive_scope w
+### C.jet_divmod128_exec.divmod128_read_env
+divmod128_read_env =
+fun (le : Maps.PTree.tree Values.val) (ah am al b : Integers.Int64.int) =>
+divmod128_read_set
+  (divmod128_read_set (divmod128_read_set (divmod128_read_set le jets._ah jets._t'1 ah) jets._am jets._t'2 am) jets._al
+     jets._t'3 al) jets._b jets._t'4 b
+     : forall (_ : Maps.PTree.tree Values.val) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), Maps.PTree.tree Values.val
+
+Arguments divmod128_read_env le ah am al b

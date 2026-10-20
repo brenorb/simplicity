@@ -1,0 +1,94 @@
+### C.jet_median_spec.median_word_spec_parametric
+median_word_spec_parametric
+     : forall n : nat,
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n))) (Word.Word n)
+         (@median_word_spec n)
+### C.jet_median_spec.minmax_word_spec_numeric
+minmax_word_spec_numeric
+     : forall (n : nat) (maximum : bool) (x y : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ n)
+            (@jet_minmax_spec.minmax_word_spec n maximum Alg.CoreFunSem
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y)))
+         match maximum return BinNums.Z with
+         | true => BinInt.Z.max (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)
+         | false => BinInt.Z.min (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)
+         end
+### C.jet_median_spec.median_minmax_numeric
+median_minmax_numeric
+     : forall a b c : BinNums.Z,
+       @eq BinNums.Z (BinInt.Z.max (BinInt.Z.max (BinInt.Z.min a b) (BinInt.Z.min a c)) (BinInt.Z.min b c))
+         (@median_select BinNums.Z BinInt.Z.ltb a b c)
+### C.jet_median_spec.median_word_spec_strict
+median_word_spec_strict
+     : forall (n : nat) (x y z : Ty.tySem (Word.Word n)),
+       @eq (Ty.tySem (Word.Word n))
+         (@median_word_spec n Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word n)) (prod (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n))) x
+               (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) y z)))
+         (@median_select (Ty.tySem (Word.ToZ.obj (Word.WordToZ n)))
+            (fun a b : Ty.tySem (Word.ToZ.obj (Word.WordToZ n)) =>
+             BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ n) a) (@Word.ToZ.Theory.toZ (Word.WordToZ n) b)) x y z)
+### C.jet_median_spec.median_word_spec
+median_word_spec =
+fun (n : nat) (term : Alg.Core.Algebra) =>
+@jet_minmax_spec.AC.comp (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) term
+  (@jet_minmax_spec.AC.pair (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n))) (Word.Word n)
+     (Word.Word n) term
+     (@jet_minmax_spec.AC.comp (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)))
+        (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) term
+        (@jet_minmax_spec.AC.pair (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)))
+           (Word.Word n) (Word.Word n) term
+           (@jet_minmax_spec.AC.comp (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)))
+              (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) term
+              (@jet_minmax_spec.AC.pair (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)))
+                 (Word.Word n) (Word.Word n) term
+                 (@jet_minmax_spec.AC.take (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n))
+                    (Word.Word n) term (@jet_minmax_spec.AC.iden (Word.Word n) term))
+                 (@jet_minmax_spec.AC.drop (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n))
+                    (Word.Word n) term
+                    (@jet_minmax_spec.AC.take (Word.Word n) (Word.Word n) (Word.Word n) term
+                       (@jet_minmax_spec.AC.iden (Word.Word n) term))))
+              (@jet_minmax_spec.minmax_word_spec n false term))
+           (@jet_minmax_spec.AC.comp (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)))
+              (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) term
+              (@jet_minmax_spec.AC.pair (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)))
+                 (Word.Word n) (Word.Word n) term
+                 (@jet_minmax_spec.AC.take (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n))
+                    (Word.Word n) term (@jet_minmax_spec.AC.iden (Word.Word n) term))
+                 (@jet_minmax_spec.AC.drop (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n))
+                    (Word.Word n) term
+                    (@jet_minmax_spec.AC.drop (Word.Word n) (Word.Word n) (Word.Word n) term
+                       (@jet_minmax_spec.AC.iden (Word.Word n) term))))
+              (@jet_minmax_spec.minmax_word_spec n false term))) (@jet_minmax_spec.minmax_word_spec n true term))
+     (@jet_minmax_spec.AC.drop (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) term
+        (@jet_minmax_spec.minmax_word_spec n false term))) (@jet_minmax_spec.minmax_word_spec n true term)
+     : forall (n : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Ty.Prod (Word.Word n) (Word.Word n))) (Word.Word n)
+
+Arguments median_word_spec n%nat_scope {term}
+### C.jet_median_spec.median_select
+median_select =
+fun (A : Type) (less : forall (_ : A) (_ : A), bool) (x y z : A) =>
+match less x y return A with
+| true =>
+    match less y z return A with
+    | true => y
+    | false => match less z x return A with
+               | true => x
+               | false => z
+               end
+    end
+| false =>
+    match less x z return A with
+    | true => x
+    | false => match less z y return A with
+               | true => y
+               | false => z
+               end
+    end
+end
+     : forall (A : Type) (_ : forall (_ : A) (_ : A), bool) (_ : A) (_ : A) (_ : A), A
+
+Arguments median_select {A}%type_scope less%function_scope x y z

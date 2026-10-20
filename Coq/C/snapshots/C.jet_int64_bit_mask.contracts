@@ -1,0 +1,32 @@
+### C.jet_int64_bit_mask.top_bit_threshold
+top_bit_threshold
+     : forall (z k : BinNums.Z) (_ : BinInt.Z.le BinNums.Z0 k)
+         (_ : and (BinInt.Z.le BinNums.Z0 z)
+                (BinInt.Z.lt z
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) (BinInt.Z.add k (BinNums.Zpos BinNums.xH))))),
+       @eq bool (BinInt.Z.testbit z k) (negb (BinInt.Z.ltb z (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+### C.jet_int64_bit_mask.int64_single_bit_mask
+int64_single_bit_mask
+     : forall (r : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq Integers.Int64.int
+         (Integers.Int64.and r (Integers.Int64.repr (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+         match Integers.Int64.testbit r k return Integers.Int64.int with
+         | true => Integers.Int64.repr (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)
+         | false => Integers.Int64.zero
+         end
+### C.jet_int64_bit_mask.int64_single_bit_mask_nonzero
+int64_single_bit_mask_nonzero
+     : forall (r : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq bool
+         (negb
+            (Integers.Int64.eq
+               (Integers.Int64.and r (Integers.Int64.repr (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k)))
+               Integers.Int64.zero)) (Integers.Int64.testbit r k)

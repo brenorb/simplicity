@@ -1,0 +1,39 @@
+### C.jet_secp_canonical_scalar_square.canonical_scalar_square_parametric
+canonical_scalar_square_parametric
+     : @Alg.Core.Parametric (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@canonical_scalar_square)
+### C.jet_secp_canonical_scalar_square.canonical_scalar_square_step
+canonical_scalar_square_step
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@canonical_scalar_square Alg.CoreFunSem value)
+         (@jet_secp_canonical_scalar_negate.canonical_scalar_multiply Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) value value))
+### C.jet_secp_canonical_scalar_square.canonical_scalar_square_normalized_value
+canonical_scalar_square_normalized_value
+     : forall value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (BinInt.Z.modulo
+            (BinInt.Z.mul
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                  (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem value))
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                  (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem value)))
+            jet_secp_canonical_scalar.canonical_group_order)
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (@canonical_scalar_square Alg.CoreFunSem value))
+### C.jet_secp_canonical_scalar_square.canonical_scalar_square
+canonical_scalar_square =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term)
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+  (@jet_secp_canonical_scalar_negate.canonical_scalar_multiply term)
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments canonical_scalar_square {term}

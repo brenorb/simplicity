@@ -1,0 +1,188 @@
+### C.jet_extend_bit_wide_exec.wide_extend_bit_body
+wide_extend_bit_body
+     : forall s : jet_wide.wide_size,
+       @eq Clight.statement (Clight.fn_body (wide_extend_bit s))
+         (Clight.Ssequence
+            (Clight.Sassign (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+               (Clight.Etempvar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr)))
+            (Clight.Ssequence
+               (Clight.Ssequence jet_complement1_exec.bit_jet_read
+                  (Clight.Sset jets._bit (Clight.Ecast (Clight.Etempvar jets._t'1 Ctypesdefs.tbool) Ctypesdefs.tbool)))
+               (Clight.Ssequence
+                  (Clight.Ssequence (wide_extend_bit_choose s)
+                     (jet_arith8_layout_exec.frame_writer_call (jet_wide.wide_writer_id s) Ctypesdefs.tulong
+                        Ctypesdefs.tvoid (Clight.Etempvar jets._t'2 (extend_bit_type s))))
+                  (Clight.Sreturn (@Some Clight.expr (Clight.Econst_int Integers.Int.one Ctypesdefs.tint))))))
+### C.jet_extend_bit_wide_exec.eval_extend_bit_choice_expr
+eval_extend_bit_choice_expr
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (s : jet_wide.wide_size) (bit : bool),
+       Clight.eval_expr jet_exec.ge0 e le m (extend_bit_choice_expr s bit) (extend_bit_raw s bit)
+### C.jet_extend_bit_wide_exec.exec_wide_extend_bit_choose
+exec_wide_extend_bit_choose
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (s : jet_wide.wide_size)
+         (bit : bool)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._bit le)
+                (@Some Values.val (Values.Vint (jet_readBit_layout.bit_int bit)))),
+       ClightBigstep.Clight2.exec_stmt jet_exec.ge0 e le m (wide_extend_bit_choose s) Events.E0
+         (@Maps.PTree.set Values.val jets._t'2 (extend_bit_raw s bit) le) m ClightBigstep.Out_normal
+### C.jet_extend_bit_wide_exec.extend_bit_long64
+extend_bit_long64
+     : forall bit : bool,
+       @eq Integers.Int64.int (jet_pad_bit_spec.extend_bit_long jet_wide.W64 bit)
+         match bit return Integers.Int64.int with
+         | true => Integers.Int64.mone
+         | false => Integers.Int64.zero
+         end
+### C.jet_extend_bit_wide_exec.extend_bit_raw_cast
+extend_bit_raw_cast
+     : forall (s : jet_wide.wide_size) (bit : bool) (m : Memory.Mem.mem),
+       @eq (option Values.val) (Cop.sem_cast (extend_bit_raw s bit) (extend_bit_type s) Ctypesdefs.tulong m)
+         (@Some Values.val (Values.Vlong (jet_pad_bit_spec.extend_bit_long s bit)))
+### C.jet_extend_bit_wide_exec.eval_wide_extend_bit_composes
+eval_wide_extend_bit_composes
+     : forall (env : Values.val) (s : jet_wide.wide_size) (m : Memory.Mem.mem) (ma : Memory.Mem.mem')
+         (mc mr me mf : Memory.Mem.mem) (bl bd : Values.block) (dbase : BinNums.Z) (bs : Values.block)
+         (sbase : BinNums.Z) (bytes : list Memdata.memval) (bit : bool) (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block ma bl))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes ma bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes ma bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mc (@Ctypes.Internal Clight.function jets.f_readBit)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mr
+                (Values.Vint (jet_readBit_layout.bit_int bit)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 mr
+                (@Ctypes.Internal Clight.function (jet_wide.wide_writer s))
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vlong (jet_pad_bit_spec.extend_bit_long s bit)) (@nil Values.val)))
+                Events.E0 me Values.Vundef)
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.free me bl BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function (wide_extend_bit s))
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         Events.E0 mf (Values.Vint Integers.Int.one)
+### C.jet_extend_bit_wide_exec.wide_extend_bit
+wide_extend_bit =
+fun s : jet_wide.wide_size =>
+match s return Clight.function with
+| jet_wide.W16 => jets.f_simplicity_left_extend_1_16
+| jet_wide.W32 => jets.f_simplicity_left_extend_1_32
+| jet_wide.W64 => jets.f_simplicity_left_extend_1_64
+end
+     : forall _ : jet_wide.wide_size, Clight.function
+
+Arguments wide_extend_bit s
+### C.jet_extend_bit_wide_exec.extend_bit_type
+extend_bit_type =
+fun s : jet_wide.wide_size =>
+match s return Ctypes.type with
+| jet_wide.W16 => Ctypesdefs.tint
+| jet_wide.W32 => Ctypesdefs.tuint
+| jet_wide.W64 => Ctypesdefs.tulong
+end
+     : forall _ : jet_wide.wide_size, Ctypes.type
+
+Arguments extend_bit_type s
+### C.jet_extend_bit_wide_exec.extend_bit_true_expr
+extend_bit_true_expr =
+fun s : jet_wide.wide_size =>
+match s return Clight.expr with
+| jet_wide.W16 =>
+    Clight.Econst_int
+      (Integers.Int.repr
+         (BinNums.Zpos
+            (BinNums.xI
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+      Ctypesdefs.tint
+| jet_wide.W32 => Clight.Econst_int (Integers.Int.repr (BinNums.Zneg BinNums.xH)) Ctypesdefs.tuint
+| jet_wide.W64 => Clight.Econst_long (Integers.Int64.repr (BinNums.Zneg BinNums.xH)) Ctypesdefs.tulong
+end
+     : forall _ : jet_wide.wide_size, Clight.expr
+
+Arguments extend_bit_true_expr s
+### C.jet_extend_bit_wide_exec.extend_bit_raw
+extend_bit_raw =
+fun (s : jet_wide.wide_size) (bit : bool) =>
+match s return Values.val with
+| jet_wide.W16 =>
+    Values.Vint
+      match bit return Integers.Int.int with
+      | true =>
+          Integers.Int.repr
+            (BinNums.Zpos
+               (BinNums.xI
+                  (BinNums.xI
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))))))))))
+      | false => Integers.Int.zero
+      end
+| jet_wide.W32 =>
+    Values.Vint match bit return Integers.Int.int with
+                | true => Integers.Int.mone
+                | false => Integers.Int.zero
+                end
+| jet_wide.W64 =>
+    Values.Vlong
+      match bit return Integers.Int64.int with
+      | true => Integers.Int64.mone
+      | false => Integers.Int64.zero
+      end
+end
+     : forall (_ : jet_wide.wide_size) (_ : bool), Values.val
+
+Arguments extend_bit_raw s bit%bool_scope
+### C.jet_extend_bit_wide_exec.extend_bit_choice_expr
+extend_bit_choice_expr =
+fun (s : jet_wide.wide_size) (bit : bool) =>
+Clight.Ecast
+  match bit return Clight.expr with
+  | true => extend_bit_true_expr s
+  | false => Clight.Econst_int Integers.Int.zero Ctypesdefs.tint
+  end (extend_bit_type s)
+     : forall (_ : jet_wide.wide_size) (_ : bool), Clight.expr
+
+Arguments extend_bit_choice_expr s bit%bool_scope
+### C.jet_extend_bit_wide_exec.wide_extend_bit_choose
+wide_extend_bit_choose =
+fun s : jet_wide.wide_size =>
+Clight.Sifthenelse (Clight.Etempvar jets._bit Ctypesdefs.tbool) (Clight.Sset jets._t'2 (extend_bit_choice_expr s true))
+  (Clight.Sset jets._t'2 (extend_bit_choice_expr s false))
+     : forall _ : jet_wide.wide_size, Clight.statement
+
+Arguments wide_extend_bit_choose s
+### C.jet_extend_bit_wide_exec.le_wide_extend_bit
+le_wide_extend_bit =
+fun (env : Values.val) (s : jet_wide.wide_size) (bd : Values.block) (dofs : Integers.Ptrofs.int)
+  (bs : Values.block) (sofs : Integers.Ptrofs.int) (bit : bool) =>
+@Maps.PTree.set Values.val jets._bit (Values.Vint (jet_readBit_layout.bit_int bit))
+  (@Maps.PTree.set Values.val jets._t'1 (Values.Vint (jet_readBit_layout.bit_int bit))
+     (jet_arith8_layout_exec.le_arith8_layout env (wide_extend_bit s) bd dofs bs sofs))
+     : forall (_ : Values.val) (_ : jet_wide.wide_size) (_ : Values.block) (_ : Integers.Ptrofs.int)
+         (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : bool), Maps.PTree.tree Values.val
+
+Arguments le_wide_extend_bit env s bd dofs bs sofs bit%bool_scope

@@ -1,0 +1,35 @@
+### Simplicity.Translate.encode
+encode =
+fix encode (X : Ty.Ty) : forall _ : Ty.tySem X, list BitMachine.Cell :=
+  match X as X0 return (forall _ : Ty.tySem X0, list BitMachine.Cell) with
+  | Ty.Unit => fun _ : Ty.tySem Ty.Unit => @nil BitMachine.Cell
+  | Ty.Sum A B =>
+      fun ab : Ty.tySem (Ty.Sum A B) =>
+      match ab return (list BitMachine.Cell) with
+      | inl a =>
+          @cons (option bool) (@Some bool false)
+            (@app (option bool) (@List.repeat (option bool) (@None bool) (padL A B)) (encode A a))
+      | inr b =>
+          @cons (option bool) (@Some bool true)
+            (@app (option bool) (@List.repeat (option bool) (@None bool) (padR A B)) (encode B b))
+      end
+  | Ty.Prod A B =>
+      fun ab : Ty.tySem (Ty.Prod A B) =>
+      match ab return (list BitMachine.Cell) with
+      | pair a b => @app BitMachine.Cell (encode A a) (encode B b)
+      end
+  end
+     : forall (X : Ty.Ty) (_ : Ty.tySem X), list BitMachine.Cell
+
+Arguments encode {X}%ty_scope _
+### Simplicity.Translate.bitSize
+bitSize =
+fix bitSize (X : Ty.Ty) : nat :=
+  match X return nat with
+  | Ty.Unit => O
+  | Ty.Sum A B => Nat.add (S O) (Nat.max (bitSize A) (bitSize B))
+  | Ty.Prod A B => Nat.add (bitSize A) (bitSize B)
+  end
+     : forall _ : Ty.Ty, nat
+
+Arguments bitSize X%ty_scope

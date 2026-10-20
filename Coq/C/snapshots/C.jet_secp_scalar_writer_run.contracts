@@ -1,0 +1,181 @@
+### C.jet_secp_scalar_writer_run.scalar_writer_run_eq
+scalar_writer_run_eq
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int),
+       @eq (option jet_sx_exec.res) (scalar_writer_run bd base) (@Some jet_sx_exec.res (scalar_writer_result bd base))
+### C.jet_secp_scalar_writer_run.scalar_writer_return
+scalar_writer_return
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int) (rho : forall _ : nat, Integers.Int64.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH
+            (jet_sx_eval.stemps
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (scalar_writer_result bd base)))))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_scalar_writer_run.scalar_writer_regions
+scalar_writer_regions
+     : forall (bd : Values.block) (base : Integers.Ptrofs.int) (rho : forall _ : nat, Integers.Int64.int)
+         (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (list jet_sx_state.region)
+         (jet_sx_eval.sregs
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho layout (scalar_writer_result bd base))))
+         scalar_writer_initial_regs
+### C.jet_secp_scalar_writer_run.scalar_writer_initial_regs
+scalar_writer_initial_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells BinNums.Z0
+        (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O)))) (@nil jet_sx_expr.sx)))))) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+  (@nil jet_sx_state.region)
+     : list jet_sx_state.region
+### C.jet_secp_scalar_writer_run.scalar_writer_run
+scalar_writer_run =
+fun (bd : Values.block) (base : Integers.Ptrofs.int) =>
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_write_fe_wrapper.write_fe_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))) jets_secp.f_write_scalar
+  (@cons jet_sx_expr.sx (jet_sx_expr.XA bd base)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0) (@nil jet_sx_expr.sx))) scalar_writer_initial_regs
+  (@nil jet_sx_eval.event) (S (S (S (S O))))
+     : forall (_ : Values.block) (_ : Integers.Ptrofs.int), option jet_sx_exec.res
+
+Arguments scalar_writer_run bd base
+### C.jet_secp_scalar_writer_run.scalar_writer_tree
+scalar_writer_tree =
+fun (bd : Values.block) (base : Integers.Ptrofs.int) =>
+@Some jet_sx_exec.res
+  (jet_sx_exec.RDone
+     (jet_sx_eval.mkst (@Maps.PTree.Empty jet_sx_expr.sx)
+        (@cons jet_sx_state.region
+           (jet_sx_state.mkreg
+              (@cons jet_sx_state.cell
+                 (jet_sx_state.mkcell BinNums.Z0 AST.Mint64 (@Some jet_sx_expr.sx (jet_sx_expr.XLv O)))
+                 (@cons jet_sx_state.cell
+                    (jet_sx_state.mkcell (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) AST.Mint64
+                       (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S O))))
+                    (@cons jet_sx_state.cell
+                       (jet_sx_state.mkcell
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) AST.Mint64
+                          (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))))
+                       (@cons jet_sx_state.cell
+                          (jet_sx_state.mkcell
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))) AST.Mint64
+                             (@Some jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O)))))) (@nil jet_sx_state.cell))))) true
+              (@Some BinNums.Z
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+           (@nil jet_sx_state.region))
+        (@cons jet_sx_eval.event
+           (jet_sx_eval.mkev (S (S O)) (S (S (S (S O)))) O
+              (@cons jet_sx_expr.sx (jet_sx_expr.XA bd base)
+                 (@cons jet_sx_expr.sx
+                    (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                       (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                          (jet_sx_expr.XL2I
+                             (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLv (S (S (S O))))
+                                (BinNums.Zpos
+                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH))))))))))
+                    (@cons jet_sx_expr.sx
+                       (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                          (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                             (jet_sx_expr.XL2I
+                                (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLv (S (S (S O))))
+                                   (BinNums.Zpos
+                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))))))
+                       (@cons jet_sx_expr.sx
+                          (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                             (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                (jet_sx_expr.XL2I
+                                   (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLv (S (S (S O))))
+                                      (BinNums.Zpos
+                                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))
+                          (@cons jet_sx_expr.sx
+                             (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                   (jet_sx_expr.XL2I
+                                      (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLv (S (S (S O))))
+                                         (BinNums.Zpos
+                                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                             (@cons jet_sx_expr.sx
+                                (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                   (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                      (jet_sx_expr.XL2I
+                                         (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLv (S (S (S O))))
+                                            (BinNums.Zpos
+                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+                                (@cons jet_sx_expr.sx
+                                   (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                      (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                         (jet_sx_expr.XL2I
+                                            (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLv (S (S (S O))))
+                                               (BinNums.Zpos
+                                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                   (@cons jet_sx_expr.sx
+                                      (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                         (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                            (jet_sx_expr.XL2I
+                                               (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLv (S (S (S O))))
+                                                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                                      (@cons jet_sx_expr.sx
+                                         (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                            (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                               (jet_sx_expr.XL2I (jet_sx_expr.XLv (S (S (S O)))))))
+                                         (@cons jet_sx_expr.sx
+                                            (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                               (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                  (jet_sx_expr.XL2I
+                                                     (jet_sx_expr.XLsh jet_sx_expr.Hshru (jet_sx_expr.XLv (S (S O)))
+                                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))
+                                            (@cons jet_sx_expr.sx
+                                               (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                  (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                     (jet_sx_expr.XL2I
+                                                        (jet_sx_expr.XLsh jet_sx_expr.Hshru
+                                                           (jet_sx_expr.XLv (S (S O)))
+                                                           (BinNums.Zpos (BinNums.xO (BinNums.xO ...)))))))
+                                               (@cons jet_sx_expr.sx
+                                                  (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                     (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                        (jet_sx_expr.XL2I
+                                                           (jet_sx_expr.XLsh jet_sx_expr.Hshru
+                                                              (jet_sx_expr.XLv (S ...)) (BinNums.Zpos (BinNums.xO ...))))))
+                                                  (@cons jet_sx_expr.sx
+                                                     (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                        (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                           (jet_sx_expr.XL2I
+                                                              (jet_sx_expr.XLsh jet_sx_expr.Hshru
+                                                                 (jet_sx_expr.XLv ...) (BinNums.Zpos ...)))))
+                                                     (@cons jet_sx_expr.sx
+                                                        (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                           (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                              (jet_sx_expr.XL2I
+                                                                 (jet_sx_expr.XLsh jet_sx_expr.Hshru ... ...))))
+                                                        (@cons jet_sx_expr.sx
+                                                           (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                              (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                                 (jet_sx_expr.XL2I ...)))
+                                                           (@cons jet_sx_expr.sx
+                                                              (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned
+                                                                 (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned ...))
+                                                              (@cons jet_sx_expr.sx
+                                                                 (jet_sx_expr.XIcast Ctypes.I8 Ctypes.Unsigned ...)
+                                                                 (@cons jet_sx_expr.sx ... ...)))))))))))))))))))
+           (@nil jet_sx_eval.event)) (S (S (S (S O))))) jet_sx_exec.ONormal)
+     : forall (_ : Values.block) (_ : Integers.Ptrofs.int), option jet_sx_exec.res
+
+Arguments scalar_writer_tree bd base
+### C.jet_secp_scalar_writer_run.scalar_writer_result
+scalar_writer_result =
+fun (bd : Values.block) (base : Integers.Ptrofs.int) =>
+match scalar_writer_tree bd base return jet_sx_exec.res with
+| Some result => result
+| None =>
+    jet_sx_exec.RDone
+      (jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O)
+      jet_sx_exec.ONormal
+end
+     : forall (_ : Values.block) (_ : Integers.Ptrofs.int), jet_sx_exec.res
+
+Arguments scalar_writer_result bd base

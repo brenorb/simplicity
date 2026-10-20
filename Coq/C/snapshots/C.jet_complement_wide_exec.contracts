@@ -1,0 +1,30 @@
+### C.jet_complement_wide_exec.wide_complement
+wide_complement =
+fun s : jet_wide.wide_size =>
+match s return Clight.function with
+| jet_wide.W16 => jets.f_simplicity_complement_16
+| jet_wide.W32 => jets.f_simplicity_complement_32
+| jet_wide.W64 => jets.f_simplicity_complement_64
+end
+     : forall _ : jet_wide.wide_size, Clight.function
+
+Arguments wide_complement s
+### C.jet_complement_wide_exec.wide_complement_read
+wide_complement_read =
+fun s : jet_wide.wide_size =>
+Clight.Scall (@Some AST.ident jets._t'1)
+  (Clight.Evar (jet_wide.wide_reader_id s)
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tulong AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets._src (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+        (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr))) (@nil Clight.expr))
+     : forall _ : jet_wide.wide_size, Clight.statement
+
+Arguments wide_complement_read s
+### C.jet_complement_wide_exec.wide_complement_expr
+wide_complement_expr =
+Clight.Eunop Cop.Onotint
+  (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+     (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tulong) Ctypesdefs.tulong
+     : Clight.expr

@@ -1,0 +1,100 @@
+### C.jet_secp_scalar_mul512_accumulate.column_products_bound
+column_products_bound
+     : forall ps : list (prod Integers.Int64.int Integers.Int64.int),
+       and (BinInt.Z.le BinNums.Z0 (column_products ps))
+         (BinInt.Z.le (column_products ps)
+            (BinInt.Z.mul (BinInt.Z.of_nat (@length (prod Integers.Int64.int Integers.Int64.int) ps))
+               (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)))
+### C.jet_secp_scalar_mul512_accumulate.column_accumulate_value
+column_accumulate_value
+     : forall (ps : list (prod Integers.Int64.int Integers.Int64.int)) (s : jet_secp_scalar_mul512_machine.mul_column)
+         (_ : BinInt.Z.lt (BinInt.Z.add (jet_secp_scalar_mul512_machine.column_value s) (column_products ps))
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+                   (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))),
+       @eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (column_accumulate ps s))
+         (BinInt.Z.add (jet_secp_scalar_mul512_machine.column_value s) (column_products ps))
+### C.jet_secp_scalar_mul512_accumulate.column_accumulate_small
+column_accumulate_small
+     : forall (ps : list (prod Integers.Int64.int Integers.Int64.int)) (s : jet_secp_scalar_mul512_machine.mul_column)
+         (_ : le (@length (prod Integers.Int64.int Integers.Int64.int) ps) (S (S (S (S O)))))
+         (_ : BinInt.Z.lt (jet_secp_scalar_mul512_machine.column_value s)
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))) Integers.Int64.modulus)),
+       and
+         (@eq BinNums.Z (jet_secp_scalar_mul512_machine.column_value (column_accumulate ps s))
+            (BinInt.Z.add (jet_secp_scalar_mul512_machine.column_value s) (column_products ps)))
+         (and
+            (BinInt.Z.lt (jet_secp_scalar_mul512_machine.column_value (column_accumulate ps s))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))
+                  (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)))
+            (BinInt.Z.lt
+               (jet_secp_scalar_mul512_machine.column_value
+                  (jet_secp_scalar_mul512_machine.column_extract (column_accumulate ps s)))
+               (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))) Integers.Int64.modulus)))
+### C.jet_secp_scalar_mul512_accumulate.column_fast_carry_small
+column_fast_carry_small
+     : forall a b : Integers.Int64.int,
+       BinInt.Z.lt
+         (jet_secp_scalar_mul512_machine.column_value
+            (jet_secp_scalar_mul512_machine.column_extract_fast
+               (jet_secp_scalar_mul512_machine.column_muladd_fast a b jet_secp_scalar_mul512_machine.column_zero)))
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))) Integers.Int64.modulus)
+### C.jet_secp_scalar_mul512_accumulate.column_fast_zero_product
+column_fast_zero_product
+     : forall a b : Integers.Int64.int,
+       @eq BinNums.Z
+         (jet_secp_scalar_mul512_machine.column_value
+            (jet_secp_scalar_mul512_machine.column_muladd_fast a b jet_secp_scalar_mul512_machine.column_zero))
+         (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+### C.jet_secp_scalar_mul512_accumulate.column_words_bound
+column_words_bound
+     : forall xs : list Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (column_words_value xs))
+         (BinInt.Z.lt (column_words_value xs)
+            (BinInt.Z.pow Integers.Int64.modulus (BinInt.Z.of_nat (@length Integers.Int64.int xs))))
+### C.jet_secp_scalar_mul512_accumulate.column_words_append
+column_words_append
+     : forall xs ys : list Integers.Int64.int,
+       @eq BinNums.Z (column_words_value (@app Integers.Int64.int xs ys))
+         (BinInt.Z.add (column_words_value xs)
+            (BinInt.Z.mul (BinInt.Z.pow Integers.Int64.modulus (BinInt.Z.of_nat (@length Integers.Int64.int xs)))
+               (column_words_value ys)))
+### C.jet_secp_scalar_mul512_accumulate.column_products
+column_products =
+fix column_products (ps : list (prod Integers.Int64.int Integers.Int64.int)) : BinNums.Z :=
+  match ps return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons p t =>
+      match p return BinNums.Z with
+      | pair a b =>
+          BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)) (column_products t)
+      end
+  end
+     : forall _ : list (prod Integers.Int64.int Integers.Int64.int), BinNums.Z
+
+Arguments column_products ps%list_scope
+### C.jet_secp_scalar_mul512_accumulate.column_accumulate
+column_accumulate =
+fix column_accumulate
+  (ps : list (prod Integers.Int64.int Integers.Int64.int)) (s : jet_secp_scalar_mul512_machine.mul_column) {struct ps} :
+    jet_secp_scalar_mul512_machine.mul_column :=
+  match ps return jet_secp_scalar_mul512_machine.mul_column with
+  | nil => s
+  | cons p t =>
+      match p return jet_secp_scalar_mul512_machine.mul_column with
+      | pair a b => column_accumulate t (jet_secp_scalar_mul512_machine.column_muladd a b s)
+      end
+  end
+     : forall (_ : list (prod Integers.Int64.int Integers.Int64.int)) (_ : jet_secp_scalar_mul512_machine.mul_column),
+       jet_secp_scalar_mul512_machine.mul_column
+
+Arguments column_accumulate ps%list_scope s
+### C.jet_secp_scalar_mul512_accumulate.column_words_value
+column_words_value =
+fix column_words_value (xs : list Integers.Int64.int) : BinNums.Z :=
+  match xs return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons x t => BinInt.Z.add (Integers.Int64.unsigned x) (BinInt.Z.mul Integers.Int64.modulus (column_words_value t))
+  end
+     : forall _ : list Integers.Int64.int, BinNums.Z
+
+Arguments column_words_value xs%list_scope

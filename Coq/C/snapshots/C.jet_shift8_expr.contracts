@@ -1,0 +1,146 @@
+### C.jet_shift8_expr.shift8_helper_body
+shift8_helper_body
+     : forall right : bool,
+       @eq Clight.statement (Clight.fn_body (shift8_helper right))
+         (Clight.Ssequence
+            (Clight.Ssequence (shift8_reader true jets._t'1)
+               (Clight.Sset jets._amt (Clight.Ecast (Clight.Etempvar jets._t'1 Ctypesdefs.tuchar) Ctypesdefs.tuchar)))
+            (Clight.Ssequence
+               (Clight.Ssequence (shift8_reader false jets._t'2)
+                  (Clight.Sset jets._output
+                     (Clight.Ecast (Clight.Etempvar jets._t'2 Ctypesdefs.tuchar) Ctypesdefs.tuchar)))
+               (Clight.Ssequence shift8_fill_step
+                  (Clight.Ssequence
+                     (Clight.Sifthenelse shift8_count_expr (Clight.Sset jets._output (shift8_scalar_expr right))
+                        (Clight.Sset jets._output
+                           (Clight.Ecast (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tuchar)))
+                     (Clight.Ssequence shift8_fill_step
+                        (Clight.Scall (@None AST.ident)
+                           (Clight.Evar jets._simplicity_write8
+                              (Ctypes.Tfunction
+                                 (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr))
+                                    (Ctypes.Tcons Ctypesdefs.tuchar Ctypes.Tnil)) Ctypesdefs.tvoid AST.cc_default))
+                           (@cons Clight.expr
+                              (Clight.Etempvar jets._dst
+                                 (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)))
+                              (@cons Clight.expr (Clight.Etempvar jets._output Ctypesdefs.tuchar) (@nil Clight.expr)))))))))
+### C.jet_shift8_expr.eval_shift8_scalar_expr
+eval_shift8_scalar_expr
+     : forall (right : bool) (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem)
+         (r a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._output le) (@Some Values.val (Values.Vint r)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._amt le) (@Some Values.val (Values.Vint a))),
+       Clight.eval_expr jet_exec.ge0 e le m (shift8_scalar_expr right) (Values.Vint (shift8_scalar_result right r a))
+### C.jet_shift8_expr.eval_shift8_fill_expr
+eval_shift8_fill_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (r : Integers.Int.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._output le) (@Some Values.val (Values.Vint r))),
+       Clight.eval_expr jet_exec.ge0 e le m shift8_fill_expr (Values.Vint (shift8_fill_result r))
+### C.jet_shift8_expr.eval_shift8_count_expr
+eval_shift8_count_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (a : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 (Integers.Int.unsigned a))
+                (BinInt.Z.lt (Integers.Int.unsigned a)
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets._amt le) (@Some Values.val (Values.Vint a))),
+       Clight.eval_expr jet_exec.ge0 e le m shift8_count_expr
+         (Values.Vint
+            match
+              Coqlib.zlt (Integers.Int.unsigned a) (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+              return Integers.Int.int
+            with
+            | left _ => Integers.Int.one
+            | right _ => Integers.Int.zero
+            end)
+### C.jet_shift8_expr.shift8_scalar_expr
+shift8_scalar_expr =
+fun right : bool =>
+Clight.Ecast
+  (Clight.Ecast
+     match right return Clight.expr with
+     | true =>
+         Clight.Ebinop Cop.Oshr (Clight.Etempvar jets._output Ctypesdefs.tuchar)
+           (Clight.Etempvar jets._amt Ctypesdefs.tuchar) Ctypesdefs.tint
+     | false =>
+         Clight.Ebinop Cop.Oshl
+           (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+              (Clight.Etempvar jets._output Ctypesdefs.tuchar) Ctypesdefs.tuint)
+           (Clight.Etempvar jets._amt Ctypesdefs.tuchar) Ctypesdefs.tuint
+     end Ctypesdefs.tuchar) Ctypesdefs.tuchar
+     : forall _ : bool, Clight.expr
+
+Arguments shift8_scalar_expr right%bool_scope
+### C.jet_shift8_expr.shift8_scalar_result
+shift8_scalar_result =
+fun (right : bool) (r a : Integers.Int.int) =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+  match right return Integers.Int.int with
+  | true => Integers.Int.shr r a
+  | false => Integers.Int.shl r a
+  end
+     : forall (_ : bool) (_ : Integers.Int.int) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments shift8_scalar_result right%bool_scope r a
+### C.jet_shift8_expr.shift8_fill_expr
+shift8_fill_expr =
+Clight.Ecast
+  (Clight.Ebinop Cop.Oxor
+     (Clight.Econst_int
+        (Integers.Int.repr
+           (BinNums.Zpos
+              (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+        Ctypesdefs.tint) (Clight.Etempvar jets._output Ctypesdefs.tuchar) Ctypesdefs.tint) Ctypesdefs.tuchar
+     : Clight.expr
+### C.jet_shift8_expr.shift8_fill_result
+shift8_fill_result =
+fun r : Integers.Int.int =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+  (Integers.Int.xor
+     (Integers.Int.repr
+        (BinNums.Zpos
+           (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))) r)
+     : forall _ : Integers.Int.int, Integers.Int.int
+
+Arguments shift8_fill_result r
+### C.jet_shift8_expr.shift8_count_expr
+shift8_count_expr =
+Clight.Ebinop Cop.Olt (Clight.Etempvar jets._amt Ctypesdefs.tuchar)
+  (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     Ctypesdefs.tint) Ctypesdefs.tint
+     : Clight.expr
+### C.jet_shift8_expr.shift8_helper
+shift8_helper =
+fun right : bool =>
+match right return Clight.function with
+| true => jets.f_right_shift_helper_8
+| false => jets.f_left_shift_helper_8
+end
+     : forall _ : bool, Clight.function
+
+Arguments shift8_helper right%bool_scope
+### C.jet_shift8_expr.shift8_reader
+shift8_reader =
+fun (nibble : bool) (result : AST.ident) =>
+Clight.Scall (@Some AST.ident result)
+  (Clight.Evar
+     match nibble return AST.ident with
+     | true => jets._simplicity_read4
+     | false => jets._simplicity_read8
+     end
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)) Ctypes.Tnil)
+        Ctypesdefs.tuchar AST.cc_default))
+  (@cons Clight.expr (Clight.Etempvar jets._src (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)))
+     (@nil Clight.expr))
+     : forall (_ : bool) (_ : AST.ident), Clight.statement
+
+Arguments shift8_reader nibble%bool_scope result
+### C.jet_shift8_expr.shift8_fill_step
+shift8_fill_step =
+Clight.Sifthenelse (Clight.Etempvar jets._with Ctypesdefs.tbool) (Clight.Sset jets._output shift8_fill_expr)
+  Clight.Sskip
+     : Clight.statement

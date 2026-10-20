@@ -1,0 +1,73 @@
+### C.jet_clight_forward.mem_forward_refl
+mem_forward_refl
+     : forall m : Memory.Mem.mem, mem_forward m m
+### C.jet_clight_forward.mem_forward_trans
+mem_forward_trans
+     : forall (m mi mf : Memory.Mem.mem) (_ : mem_forward m mi) (_ : mem_forward mi mf), mem_forward m mf
+### C.jet_clight_forward.store_forward
+store_forward
+     : forall (chunk : AST.memory_chunk) (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (v : Values.val) (mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.store chunk m b ofs v) (@Some Memory.Mem.mem mf)),
+       mem_forward m mf
+### C.jet_clight_forward.storebytes_forward
+storebytes_forward
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (bytes : list Memdata.memval)
+         (mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes m b ofs bytes) (@Some Memory.Mem.mem mf)),
+       mem_forward m mf
+### C.jet_clight_forward.alloc_forward
+alloc_forward
+     : forall (m : Memory.Mem.mem) (lo hi : BinNums.Z) (mf : Memory.Mem.mem') (fresh : Values.block)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m lo hi)
+                (@pair Memory.Mem.mem' Values.block mf fresh)), mem_forward m mf
+### C.jet_clight_forward.free_forward
+free_forward
+     : forall (m : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z) (mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free m b lo hi) (@Some Memory.Mem.mem mf)),
+       mem_forward m mf
+### C.jet_clight_forward.freelist_forward
+freelist_forward
+     : forall (blocks : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (m mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free_list m blocks) (@Some Memory.Mem.mem mf)),
+       mem_forward m mf
+### C.jet_clight_forward.external_call_mem_forward
+external_call_mem_forward
+     : forall (ef : AST.external_function) (ge : Globalenvs.Senv.t) (args : list Values.val)
+         (m : Memory.Mem.mem) (t : Events.trace) (result : Values.val) (mf : Memory.Mem.mem)
+         (_ : Events.external_call ef ge args m t result mf), mem_forward m mf
+### C.jet_clight_forward.clight_alloc_variables_forward
+clight_alloc_variables_forward
+     : forall (ge : Clight.genv) (e : Clight.env) (m : Memory.Mem.mem) (vars : list (prod AST.ident Ctypes.type))
+         (e' : Clight.env) (m' : Memory.Mem.mem) (_ : Clight.alloc_variables ge e m vars e' m'),
+       mem_forward m m'
+### C.jet_clight_forward.clight_entry2_forward
+clight_entry2_forward
+     : forall (ge : Clight.genv) (f : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (m' : Memory.Mem.mem) (_ : Clight.function_entry2 ge f args m e le m'),
+       mem_forward m m'
+### C.jet_clight_forward.clight_assign_forward
+clight_assign_forward
+     : forall (ce : Ctypes.composite_env) (ty : Ctypes.type) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (bf : Ctypes.bitfield) (v : Values.val) (m' : Memory.Mem.mem)
+         (_ : Clight.assign_loc ce ty m b ofs bf v m'), mem_forward m m'
+### C.jet_clight_forward.clight_exec_forward
+clight_exec_forward
+     : forall ge : Clight.genv,
+       and
+         (forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (s : Clight.statement)
+            (t : Events.trace) (le' : Clight.temp_env) (m' : Memory.Mem.mem) (out : ClightBigstep.outcome)
+            (_ : ClightBigstep.Clight2.exec_stmt ge e le m s t le' m' out), mem_forward m m')
+         (forall (m : Memory.Mem.mem) (f : Clight.fundef) (args : list Values.val) (t : Events.trace)
+            (m' : Memory.Mem.mem) (result : Values.val)
+            (_ : ClightBigstep.Clight2.eval_funcall ge m f args t m' result), mem_forward m m')
+### C.jet_clight_forward.mem_forward
+mem_forward =
+fun m mf : Memory.Mem.mem =>
+forall (b : Values.block) (_ : Memory.Mem.valid_block m b),
+and (Memory.Mem.valid_block mf b)
+  (forall (ofs : BinNums.Z) (p : Memtype.permission) (_ : Memory.Mem.perm mf b ofs Memtype.Max p),
+   Memory.Mem.perm m b ofs Memtype.Max p)
+     : forall (_ : Memory.Mem.mem) (_ : Memory.Mem.mem), Prop
+
+Arguments mem_forward m mf

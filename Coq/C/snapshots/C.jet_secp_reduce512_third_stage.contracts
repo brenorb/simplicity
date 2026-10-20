@@ -1,0 +1,144 @@
+### C.jet_secp_reduce512_third_stage.reduce512_third_source
+reduce512_third_source
+     : @eq Clight.statement
+         (jet_secp_statement_prefix.statement_sequence jet_secp_reduce512_second_run.reduce512_second_spine
+            reduce512_third_stage) reduce512_third_prefix
+### C.jet_secp_reduce512_third_stage.reduce512_third_boundary
+reduce512_third_boundary
+     : and
+         (@eq bool
+            (jet_secp_reduce512_first_run.statement_ends_set jets_secp._c
+               (@List.last Clight.statement reduce512_third_spine Clight.Sskip)) true)
+         (and (lt jet_secp_reduce512_second_run.reduce512_second_count reduce512_third_count)
+            (lt reduce512_third_count (@length Clight.statement jet_secp_reduce512_first_run.reduce512_spine)))
+### C.jet_secp_reduce512_third_stage.reduce512_third_completes
+reduce512_third_completes
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int),
+       @eq bool
+         match reduce512_third_run digits p4 return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_reduce512_third_stage.reduce512_third_run_eq
+reduce512_third_run_eq
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int),
+       @eq (option jet_sx_exec.res) (reduce512_third_run digits p4)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (reduce512_third_state digits p4) jet_sx_exec.ONormal))
+### C.jet_secp_reduce512_third_stage.reduce512_third_log
+reduce512_third_log
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int),
+       @eq (list jet_sx_eval.event) (jet_sx_eval.slog (reduce512_third_state digits p4))
+         (@List.repeat jet_sx_eval.event
+            (jet_sx_eval.mkev O (S (S (S (S (S (S (S (S (S (S (S (S O)))))))))))) O (@nil jet_sx_expr.sx))
+            (S (S (S O))))
+### C.jet_secp_reduce512_third_stage.reduce512_third_limb_kinds
+reduce512_third_limb_kinds
+     : forall (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int),
+       @eq bool (@List.forallb jet_sx_expr.sx (jet_sx_expr.isk jet_sx_expr.KL) (reduce512_third_limbs digits p4)) true
+### C.jet_secp_reduce512_third_stage.reduce512_third_count
+reduce512_third_count =
+Nat.add jet_secp_reduce512_second_run.reduce512_second_count
+  (jet_secp_reduce512_first_run.spine_cut_after jets_secp._c
+     (@List.skipn Clight.statement jet_secp_reduce512_second_run.reduce512_second_count
+        jet_secp_reduce512_first_run.reduce512_spine))
+     : nat
+### C.jet_secp_reduce512_third_stage.reduce512_third_spine
+reduce512_third_spine =
+@List.firstn Clight.statement reduce512_third_count jet_secp_reduce512_first_run.reduce512_spine
+     : list Clight.statement
+### C.jet_secp_reduce512_third_stage.reduce512_third_prefix
+reduce512_third_prefix =
+jet_secp_statement_prefix.statement_sequence reduce512_third_spine Clight.Sskip
+     : Clight.statement
+### C.jet_secp_reduce512_third_stage.reduce512_third_stage_spine
+reduce512_third_stage_spine =
+@List.firstn Clight.statement (Nat.sub reduce512_third_count jet_secp_reduce512_second_run.reduce512_second_count)
+  (@List.skipn Clight.statement jet_secp_reduce512_second_run.reduce512_second_count
+     jet_secp_reduce512_first_run.reduce512_spine)
+     : list Clight.statement
+### C.jet_secp_reduce512_third_stage.reduce512_third_stage
+reduce512_third_stage =
+jet_secp_statement_prefix.statement_sequence reduce512_third_stage_spine Clight.Sskip
+     : Clight.statement
+### C.jet_secp_reduce512_third_stage.reduce512_third_temps
+reduce512_third_temps =
+fun (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int) =>
+@Maps.PTree.set jet_sx_expr.sx jets_secp._p4 (jet_sx_expr.XI p4)
+  (@Maps.PTree.set jet_sx_expr.sx jets_secp._p3 (jet_sx_expr.XL (digits (S (S (S O)))))
+     (@Maps.PTree.set jet_sx_expr.sx jets_secp._p2 (jet_sx_expr.XL (digits (S (S O))))
+        (@Maps.PTree.set jet_sx_expr.sx jets_secp._p1 (jet_sx_expr.XL (digits (S O)))
+           (@Maps.PTree.set jet_sx_expr.sx jets_secp._p0 (jet_sx_expr.XL (digits O))
+              (@Maps.PTree.set jet_sx_expr.sx jets_secp._l (jet_sx_expr.XP (S O) BinNums.Z0)
+                 (@Maps.PTree.set jet_sx_expr.sx jets_secp._r (jet_sx_expr.XP O BinNums.Z0)
+                    (Maps.PTree.empty jet_sx_expr.sx)))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), Maps.PTree.tree jet_sx_expr.sx
+
+Arguments reduce512_third_temps digits%function_scope p4
+### C.jet_secp_reduce512_third_stage.reduce512_third_initial
+reduce512_third_initial =
+fun (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int) =>
+jet_sx_eval.mkst (reduce512_third_temps digits p4)
+  (@app jet_sx_state.region jet_secp_scalar_reduce512_run.scalar_reduce512_initial_regs
+     (@fst (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated))
+  (@nil jet_sx_eval.event) (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), jet_sx_eval.sstate
+
+Arguments reduce512_third_initial digits%function_scope p4
+### C.jet_secp_reduce512_third_stage.reduce512_third_run
+reduce512_third_run =
+fun (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int) =>
+jet_sx_compact.compact_stmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_shift64_executor.secp_shift64_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_reduce512_typed_stage.reduce512_allocated)
+  (reduce512_third_initial digits p4) reduce512_third_stage
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), option jet_sx_exec.res
+
+Arguments reduce512_third_run digits%function_scope p4
+### C.jet_secp_reduce512_third_stage.reduce512_third_state
+reduce512_third_state =
+fun (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int) =>
+match reduce512_third_run digits p4 return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ => reduce512_third_initial digits p4
+    end
+| None => reduce512_third_initial digits p4
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), jet_sx_eval.sstate
+
+Arguments reduce512_third_state digits%function_scope p4
+### C.jet_secp_reduce512_third_stage.reduce512_third_limbs
+reduce512_third_limbs =
+fun (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int) =>
+@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_frame.cell_sx
+  (jet_sx_state.rcells
+     (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+        (jet_sx_eval.sregs (reduce512_third_state digits p4))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), list jet_sx_expr.sx
+
+Arguments reduce512_third_limbs digits%function_scope p4
+### C.jet_secp_reduce512_third_stage.reduce512_third_c
+reduce512_third_c =
+fun (digits : forall _ : nat, Integers.Int64.int) (p4 : Integers.Int.int) =>
+match
+  @Maps.PTree.get jet_sx_expr.sx jets_secp._c (jet_sx_eval.stemps (reduce512_third_state digits p4))
+  return jet_sx_expr.sx
+with
+| Some x => x
+| None => jet_sx_expr.XV Values.Vundef
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int.int), jet_sx_expr.sx
+
+Arguments reduce512_third_c digits%function_scope p4

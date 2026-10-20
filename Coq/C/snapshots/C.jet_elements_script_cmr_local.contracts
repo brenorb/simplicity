@@ -1,0 +1,121 @@
+### C.jet_elements_script_cmr_local.elements_script_cmr_spec_parametric
+elements_script_cmr_spec_parametric
+     : @jet_elements_prim.PrimitiveElements.Primitive.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@elements_script_cmr_spec)
+### C.jet_elements_script_cmr_local.elements_script_cmr_spec_sem
+elements_script_cmr_spec_sem
+     : forall environment : jet_elements_prim.Elements.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@elements_script_cmr_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
+            environment)
+         (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (Word.from_hash256 (jet_elements_prim.tapScriptCMR (jet_elements_prim.Elements.envTap environment))))
+### C.jet_elements_script_cmr_local.encode_word_pair
+encode_word_pair
+     : forall (n : nat) (hi lo : Ty.tySem (Word.Word n)),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Word.Word (S n)) (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) hi lo))
+         (@app BitMachine.Cell (@Translate.encode (Word.Word n) hi) (@Translate.encode (Word.Word n) lo))
+### C.jet_elements_script_cmr_local.encode_from_hash256
+encode_from_hash256
+     : forall h : Digest.hash256,
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.from_hash256 h))
+         (jet_elements_hash_write.hash_cells (Digest.hash256_reg h))
+### C.jet_elements_script_cmr_local.elements_script_cmr_getter_body
+elements_script_cmr_getter_body
+     : jet_elements_wrapper.elements_wrapper_shape jets_elements.f_simplicity_script_cmr
+         (jet_elements_wrapper.elements_simple_rest
+            (jet_elements_hash_getters.elements_hash_mid_write32s jets_elements._taproot jets_elements._elementsTapEnv
+               jets_elements._scriptCMR))
+### C.jet_elements_script_cmr_local.elements_tapEnv_scriptCMR_at
+elements_tapEnv_scriptCMR_at
+     : jet_elements_field_eval.elements_field_at jets_elements._elementsTapEnv jets_elements._scriptCMR
+         (BinNums.Zpos
+            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_elements_script_cmr_local.elements_script_cmr_local_spec
+elements_script_cmr_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_script_cmr
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O))))))))) elements_script_cmr_env_rep
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env) =>
+          @elements_script_cmr_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_elements_script_cmr_local.elements_script_cmr_spec
+elements_script_cmr_spec =
+fun alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra =>
+@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  alg jet_elements_prim.Elements.ScriptCMR
+     : forall alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra,
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments elements_script_cmr_spec {alg}
+### C.jet_elements_script_cmr_local.elements_script_cmr_env_rep
+elements_script_cmr_env_rep =
+fun (m : Memory.Mem.mem) (env : Values.val) (environment : jet_elements_prim.Elements.env)
+  (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      @ex Values.block
+        (fun bt : Values.block =>
+         @ex BinNums.Z
+           (fun tbase : BinNums.Z =>
+            and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+              (and (BinInt.Z.le BinNums.Z0 ebase)
+                 (and
+                    (BinInt.Z.le
+                       (BinInt.Z.add ebase
+                          (BinNums.Zpos
+                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                       Integers.Ptrofs.max_unsigned)
+                    (and (BinInt.Z.le BinNums.Z0 tbase)
+                       (and
+                          (BinInt.Z.le
+                             (BinInt.Z.add tbase
+                                (BinNums.Zpos
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+                             Integers.Ptrofs.max_unsigned)
+                          (and
+                             (@eq (option Values.val)
+                                (Memory.Mem.load AST.Mptr m be
+                                   (BinInt.Z.add ebase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                (@Some Values.val (Values.Vptr bt (Integers.Ptrofs.repr tbase))))
+                             (and
+                                (jet_uint32_array_init.uint32_array_at m bt
+                                   (BinInt.Z.add tbase
+                                      (BinNums.Zpos
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                   (Digest.hash256_reg
+                                      (jet_elements_prim.tapScriptCMR (jet_elements_prim.Elements.envTap environment))))
+                                (@eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) fp
+                                   (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                      (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                         (@pair Values.block BinNums.Z be
+                                            (BinInt.Z.add ebase
+                                               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                         (BinInt.Z.add ebase
+                                            (BinNums.Zpos
+                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                                      (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                                         (@pair (prod Values.block BinNums.Z) BinNums.Z
+                                            (@pair Values.block BinNums.Z bt
+                                               (BinInt.Z.add tbase
+                                                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...))))))
+                                            (BinInt.Z.add tbase
+                                               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI ...)))))))
+                                         (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))))))))))))))
+     : forall (_ : Memory.Mem.mem) (_ : Values.val) (_ : jet_elements_prim.Elements.env)
+         (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments elements_script_cmr_env_rep m env environment fp%list_scope

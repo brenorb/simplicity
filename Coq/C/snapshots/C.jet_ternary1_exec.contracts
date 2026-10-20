@@ -1,0 +1,76 @@
+### C.jet_ternary1_exec.ternary1
+ternary1 =
+fun k : jet_ternary_spec.ternary_op =>
+match k return Clight.function with
+| jet_ternary_spec.TMaj => jets.f_simplicity_maj_1
+| jet_ternary_spec.TXorXor => jets.f_simplicity_xor_xor_1
+| jet_ternary_spec.TCh => jets.f_simplicity_ch_1
+end
+     : forall _ : jet_ternary_spec.ternary_op, Clight.function
+
+Arguments ternary1 k
+### C.jet_ternary1_exec.ternary1_choose
+ternary1_choose =
+fun k : jet_ternary_spec.ternary_op =>
+match k return Clight.statement with
+| jet_ternary_spec.TMaj =>
+    Clight.Ssequence
+      (Clight.Ssequence
+         (Clight.Sifthenelse (Clight.Etempvar jets._x Ctypesdefs.tbool)
+            (Clight.Sset jets._t'4 (Clight.Ecast (Clight.Etempvar jets._y Ctypesdefs.tbool) Ctypesdefs.tbool))
+            (Clight.Sset jets._t'4 (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint)))
+         (Clight.Sifthenelse (Clight.Etempvar jets._t'4 Ctypesdefs.tint)
+            (Clight.Sset jets._t'5 (Clight.Econst_int Integers.Int.one Ctypesdefs.tint))
+            (Clight.Sifthenelse (Clight.Etempvar jets._y Ctypesdefs.tbool)
+               (Clight.Ssequence
+                  (Clight.Sset jets._t'5 (Clight.Ecast (Clight.Etempvar jets._z Ctypesdefs.tbool) Ctypesdefs.tbool))
+                  (Clight.Sset jets._t'5 (Clight.Ecast (Clight.Etempvar jets._t'5 Ctypesdefs.tint) Ctypesdefs.tbool)))
+               (Clight.Sset jets._t'5
+                  (Clight.Ecast (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tbool)))))
+      (Clight.Sifthenelse (Clight.Etempvar jets._t'5 Ctypesdefs.tint)
+         (Clight.Sset jets._t'6 (Clight.Econst_int Integers.Int.one Ctypesdefs.tint))
+         (Clight.Sifthenelse (Clight.Etempvar jets._z Ctypesdefs.tbool)
+            (Clight.Ssequence
+               (Clight.Sset jets._t'6 (Clight.Ecast (Clight.Etempvar jets._x Ctypesdefs.tbool) Ctypesdefs.tbool))
+               (Clight.Sset jets._t'6 (Clight.Ecast (Clight.Etempvar jets._t'6 Ctypesdefs.tint) Ctypesdefs.tbool)))
+            (Clight.Sset jets._t'6
+               (Clight.Ecast (Clight.Econst_int Integers.Int.zero Ctypesdefs.tint) Ctypesdefs.tbool))))
+| jet_ternary_spec.TXorXor => Clight.Sskip
+| jet_ternary_spec.TCh =>
+    Clight.Sifthenelse (Clight.Etempvar jets._x Ctypesdefs.tbool)
+      (Clight.Sset jets._t'4 (Clight.Ecast (Clight.Etempvar jets._y Ctypesdefs.tbool) Ctypesdefs.tint))
+      (Clight.Sset jets._t'4 (Clight.Ecast (Clight.Etempvar jets._z Ctypesdefs.tbool) Ctypesdefs.tint))
+end
+     : forall _ : jet_ternary_spec.ternary_op, Clight.statement
+
+Arguments ternary1_choose k
+### C.jet_ternary1_exec.ternary1_arg
+ternary1_arg =
+fun k : jet_ternary_spec.ternary_op =>
+match k return Clight.expr with
+| jet_ternary_spec.TMaj => Clight.Etempvar jets._t'6 Ctypesdefs.tint
+| jet_ternary_spec.TXorXor =>
+    Clight.Ebinop Cop.Oxor
+      (Clight.Ebinop Cop.Oxor (Clight.Etempvar jets._x Ctypesdefs.tbool) (Clight.Etempvar jets._y Ctypesdefs.tbool)
+         Ctypesdefs.tint) (Clight.Etempvar jets._z Ctypesdefs.tbool) Ctypesdefs.tint
+| jet_ternary_spec.TCh => Clight.Etempvar jets._t'4 Ctypesdefs.tint
+end
+     : forall _ : jet_ternary_spec.ternary_op, Clight.expr
+
+Arguments ternary1_arg k
+### C.jet_ternary1_exec.ternary1_write
+ternary1_write =
+fun k : jet_ternary_spec.ternary_op =>
+match k return Clight.statement with
+| jet_ternary_spec.TMaj =>
+    Clight.Ssequence (ternary1_choose k)
+      (jet_arith8_layout_exec.frame_writer_call jets._writeBit Ctypesdefs.tbool Ctypesdefs.tbool (ternary1_arg k))
+| jet_ternary_spec.TXorXor =>
+    jet_arith8_layout_exec.frame_writer_call jets._writeBit Ctypesdefs.tbool Ctypesdefs.tbool (ternary1_arg k)
+| jet_ternary_spec.TCh =>
+    Clight.Ssequence (ternary1_choose k)
+      (jet_arith8_layout_exec.frame_writer_call jets._writeBit Ctypesdefs.tbool Ctypesdefs.tbool (ternary1_arg k))
+end
+     : forall _ : jet_ternary_spec.ternary_op, Clight.statement
+
+Arguments ternary1_write k

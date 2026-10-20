@@ -1,0 +1,60 @@
+### C.jet_program_initialization.initializer_alignment_positive
+initializer_alignment_positive
+     : forall i : AST.init_data, BinInt.Z.lt BinNums.Z0 (Globalenvs.Genv.init_data_alignment i)
+### C.jet_program_initialization.initializer_alignedb_sound
+initializer_alignedb_sound
+     : forall (il : list AST.init_data) (ofs : BinNums.Z) (_ : @eq bool (initializer_alignedb ofs il) true),
+       Globalenvs.Genv.init_data_list_aligned ofs il
+### C.jet_program_initialization.program_initialization_checked
+@program_initialization_checked
+     : forall (F V : Type) (p : AST.program F V) (_ : @eq bool (@program_initialization_okb F V p) true),
+       @ex Memory.Mem.mem
+         (fun m : Memory.Mem.mem =>
+          @eq (option Memory.Mem.mem) (@Globalenvs.Genv.init_mem F V p) (@Some Memory.Mem.mem m))
+### C.jet_program_initialization.initializer_alignedb
+initializer_alignedb =
+fix initializer_alignedb (ofs : BinNums.Z) (il : list AST.init_data) {struct il} : bool :=
+  match il return bool with
+  | nil => true
+  | cons i rest =>
+      andb (BinInt.Z.eqb (BinInt.Z.modulo ofs (Globalenvs.Genv.init_data_alignment i)) BinNums.Z0)
+        (initializer_alignedb (BinInt.Z.add ofs (AST.init_data_size i)) rest)
+  end
+     : forall (_ : BinNums.Z) (_ : list AST.init_data), bool
+
+Arguments initializer_alignedb ofs%Z_scope il%list_scope
+### C.jet_program_initialization.initializer_referenceb
+initializer_referenceb =
+fun (F V : Type) (ge : Globalenvs.Genv.t F V) (i : AST.init_data) =>
+match i return bool with
+| AST.Init_int8 _ => true
+| AST.Init_int16 _ => true
+| AST.Init_int32 _ => true
+| AST.Init_int64 _ => true
+| AST.Init_float32 _ => true
+| AST.Init_float64 _ => true
+| AST.Init_space _ => true
+| AST.Init_addrof id _ =>
+    match @Globalenvs.Genv.find_symbol F V ge id return bool with
+    | Some _ => true
+    | None => false
+    end
+end
+     : forall (F V : Type) (_ : Globalenvs.Genv.t F V) (_ : AST.init_data), bool
+
+Arguments initializer_referenceb {F V}%type_scope ge i
+### C.jet_program_initialization.program_initialization_okb
+program_initialization_okb =
+fun (F V : Type) (p : AST.program F V) =>
+@List.forallb (prod AST.ident (AST.globdef F V))
+  (fun idg : prod AST.ident (AST.globdef F V) =>
+   match @snd AST.ident (AST.globdef F V) idg return bool with
+   | AST.Gfun _ => true
+   | AST.Gvar v =>
+       andb (initializer_alignedb BinNums.Z0 (@AST.gvar_init V v))
+         (@List.forallb AST.init_data (@initializer_referenceb F V (@Globalenvs.Genv.globalenv F V p))
+            (@AST.gvar_init V v))
+   end) (@AST.prog_defs F V p)
+     : forall (F V : Type) (_ : AST.program F V), bool
+
+Arguments program_initialization_okb {F V}%type_scope p

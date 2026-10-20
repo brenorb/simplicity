@@ -1,0 +1,138 @@
+### C.jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_completes
+scalar_mul512_fresh_completes
+     : @eq bool
+         match scalar_mul512_fresh_run return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_run_eq
+scalar_mul512_fresh_run_eq
+     : @eq (option jet_sx_exec.res) scalar_mul512_fresh_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone scalar_mul512_fresh_state jet_sx_exec.ONormal))
+### C.jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_output
+scalar_mul512_fresh_output
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs scalar_mul512_fresh_state)
+         (jet_sx_eval.sregs jet_secp_scalar_mul512_run.scalar_mul512_state)
+### C.jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_return
+scalar_mul512_fresh_return
+     : @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps scalar_mul512_fresh_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_log_nil
+scalar_mul512_fresh_log_nil
+     : @eq (list jet_sx_eval.event) (jet_sx_eval.slog scalar_mul512_fresh_state) (@nil jet_sx_eval.event)
+### C.jet_secp_scalar_mul512_fresh.eval_scalar_mul512_fresh
+eval_scalar_mul512_fresh
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta scalar_mul512_fresh_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul_512)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_scalar_mul512_run.scalar_mul512_state) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape scalar_mul512_fresh_regs) b ofs)) m mf)))
+### C.jet_secp_scalar_mul512_fresh.eval_scalar_mul512_fresh_product
+eval_scalar_mul512_fresh_product
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta scalar_mul512_fresh_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_scalar_mul_512)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk beta O) (Integers.Ptrofs.repr (jet_sx_state.bas beta O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk beta (S O)) (Integers.Ptrofs.repr (jet_sx_state.bas beta (S O))))
+                     (@cons Values.val
+                        (Values.Vptr (jet_sx_state.blk beta (S (S O)))
+                           (Integers.Ptrofs.repr (jet_sx_state.bas beta (S (S O))))) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and
+               (forall (i : nat) (x : Integers.Int64.int)
+                  (_ : @eq (option Integers.Int64.int)
+                         (@List.nth_error Integers.Int64.int
+                            (jet_secp_scalar_mul512_machine.scalar_mul512_machine_outputs rho) i)
+                         (@Some Integers.Int64.int x)),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint64 mf (jet_sx_state.blk beta O)
+                     (BinInt.Z.add (jet_sx_state.bas beta O)
+                        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                           (BinInt.Z.of_nat i)))) (@Some Values.val (Values.Vlong x)))
+               (and
+                  (@eq BinNums.Z
+                     (jet_secp_scalar_mul512_accumulate.column_words_value
+                        (jet_secp_scalar_mul512_machine.scalar_mul512_machine_outputs rho))
+                     (BinInt.Z.mul (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho O)
+                        (jet_secp_scalar_mul512_low.scalar_mul512_input_value rho (S (S (S (S O)))))))
+                  (and
+                     (jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_scalar_mul512_run.scalar_mul512_state) mf)
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (ofs : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot beta
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape scalar_mul512_fresh_regs) b ofs)) m mf)))))
+### C.jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_regs
+scalar_mul512_fresh_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (@List.map jet_sx_state.cell jet_sx_state.cell
+        (fun c : jet_sx_state.cell =>
+         jet_sx_state.mkcell (jet_sx_state.cofs c) (jet_sx_state.cchunk c) (@None jet_sx_expr.sx))
+        (jet_sx_state.rcells
+           (@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+              jet_secp_scalar_mul512_run.scalar_mul512_initial_regs))) true
+     (@Some BinNums.Z
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+  (@List.tl jet_sx_state.region jet_secp_scalar_mul512_run.scalar_mul512_initial_regs)
+     : list jet_sx_state.region
+### C.jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_run
+scalar_mul512_fresh_run =
+jet_sx_compact.compact_fun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (jet_sx_pure.int_table jet_secp_scalar_mul512_run.scalar_mul512_functions)
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_scalar_mul_512
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XP (S O) BinNums.Z0)
+        (@cons jet_sx_expr.sx (jet_sx_expr.XP (S (S O)) BinNums.Z0) (@nil jet_sx_expr.sx)))) scalar_mul512_fresh_regs
+  (@nil jet_sx_eval.event) (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+     : option jet_sx_exec.res
+### C.jet_secp_scalar_mul512_fresh.scalar_mul512_fresh_state
+scalar_mul512_fresh_state =
+match scalar_mul512_fresh_run return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : jet_sx_eval.sstate

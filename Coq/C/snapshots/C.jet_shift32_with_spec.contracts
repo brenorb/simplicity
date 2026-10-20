@@ -1,0 +1,51 @@
+### C.jet_shift32_with_spec.shift32_with_spec_parametric
+shift32_with_spec_parametric
+     : forall right : bool,
+       @Alg.Core.Parametric
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+            (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))))))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))) (@shift32_with_spec right)
+### C.jet_shift32_with_spec.shift32_with_complement_normalform
+shift32_with_complement_normalform
+     : forall (right fill : bool)
+         (amount : prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+         (x : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq (Ty.tySem (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))
+         (@shift32_with_spec right Alg.CoreFunSem
+            (@pair (sum unit unit)
+               (prod
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S O)))))))) (Bit.fromBool fill)
+               (@pair
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S O))))))) amount x)))
+         match fill return (Ty.tySem (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))))) with
+         | true =>
+             @jet_complement_spec.complement_spec (S (S (S (S (S O))))) Alg.CoreFunSem
+               (@jet_shift32_spec.shift32_plain_spec right Alg.CoreFunSem
+                  (@pair
+                     (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                        (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S O))))))) amount
+                     (@jet_complement_spec.complement_spec (S (S (S (S (S O))))) Alg.CoreFunSem x)))
+         | false =>
+             @jet_shift32_spec.shift32_plain_spec right Alg.CoreFunSem
+               (@pair
+                  (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                     (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S O))))))) amount x)
+         end
+### C.jet_shift32_with_spec.shift32_with_spec
+shift32_with_spec =
+fun (right : bool) (term : Alg.Core.Algebra) =>
+@jet_shift_spec.shift_with_word_spec (S (S (S O))) (S (S (S (S (S O))))) right term
+     : forall (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit)
+            (Ty.Prod (Word.Word (S (S (S O)))) (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))))))
+         (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))))
+
+Arguments shift32_with_spec right%bool_scope {term}

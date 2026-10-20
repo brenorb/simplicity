@@ -1,0 +1,57 @@
+### C.jet_add16_wide_word.add16_values_denote_input
+add16_values_denote_input
+     : forall (r s : Integers.Int64.int) (x y : Ty.tySem (Word.Word (S (S (S (S O))))))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S O))))) x))
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned s) (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S O))))) y)),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W16))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W16)))
+            match add16_carry r s return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (jet_wide_spec.decode_wide jet_wide.W16
+               (Integers.Int64.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                  (add16_payload r s))))
+         (add16_spec_value
+            (@pair (Ty.tySem (Word.Word (S (S (S (S O)))))) (Ty.tySem (Word.Word (S (S (S (S O)))))) x y))
+### C.jet_add16_wide_word.add16_spec
+add16_spec =
+fun term : Alg.Core.Algebra => @Word.adder (S (S (S (S O)))) term
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O))))))
+         (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+
+Arguments add16_spec {term}
+### C.jet_add16_wide_word.add16_spec_value
+add16_spec_value =
+@add16_spec Alg.CoreFunSem
+     : forall _ : Ty.tySem (Ty.Prod (Word.Word (S (S (S (S O))))) (Word.Word (S (S (S (S O)))))),
+       Ty.tySem (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S O))))))
+### C.jet_add16_wide_word.add16_carry
+add16_carry =
+fun x y : Integers.Int64.int =>
+Integers.Int64.ltu
+  (Integers.Int64.sub
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))))))))))
+     y) x
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), bool
+
+Arguments add16_carry x y
+### C.jet_add16_wide_word.add16_payload
+add16_payload =
+fun x y : Integers.Int64.int => Integers.Int64.add x y
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments add16_payload x y

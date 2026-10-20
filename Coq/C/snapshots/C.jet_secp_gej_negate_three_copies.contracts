@@ -1,0 +1,47 @@
+### C.jet_secp_gej_negate_three_copies.exec_gej_negate_three_self_copies
+exec_gej_negate_three_self_copies
+     : forall (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._r le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : Memory.Mem.range_perm m b base
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mx : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun my : Memory.Mem.mem =>
+             @ex Memory.Mem.mem
+               (fun mz : Memory.Mem.mem =>
+                and
+                  (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le m
+                     (jet_secp_gej_negate_fields.gej_negate_field_copy_stmt jets_secp._x) Events.E0 le mx
+                     ClightBigstep.Out_normal)
+                  (and
+                     (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le mx
+                        (jet_secp_gej_negate_fields.gej_negate_field_copy_stmt jets_secp._y) Events.E0 le my
+                        ClightBigstep.Out_normal)
+                     (and
+                        (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge Clight.empty_env le my
+                           (jet_secp_gej_negate_fields.gej_negate_field_copy_stmt jets_secp._z) Events.E0 le mz
+                           ClightBigstep.Out_normal)
+                        (and (Memory.Mem.unchanged_on (fun (_ : Values.block) (_ : BinNums.Z) => True) m mz)
+                           (Memory.Mem.range_perm mz b base
+                              (BinInt.Z.add base
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                              Memtype.Cur Memtype.Freeable)))))))

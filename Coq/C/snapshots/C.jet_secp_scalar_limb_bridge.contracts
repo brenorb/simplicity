@@ -1,0 +1,93 @@
+### C.jet_secp_scalar_limb_bridge.radix_four_limbs
+radix_four_limbs
+     : forall (base a0 a1 a2 a3 : BinNums.Z) (_ : BinInt.Z.lt BinNums.Z0 base)
+         (_ : and (BinInt.Z.le BinNums.Z0 a0) (BinInt.Z.lt a0 base))
+         (_ : and (BinInt.Z.le BinNums.Z0 a1) (BinInt.Z.lt a1 base))
+         (_ : and (BinInt.Z.le BinNums.Z0 a2) (BinInt.Z.lt a2 base))
+         (_ : and (BinInt.Z.le BinNums.Z0 a3) (BinInt.Z.lt a3 base)),
+       let value : BinNums.Z :=
+         BinInt.Z.add
+           (BinInt.Z.add (BinInt.Z.add a0 (BinInt.Z.mul base a1))
+              (BinInt.Z.mul (BinInt.Z.pow base (BinNums.Zpos (BinNums.xO BinNums.xH))) a2))
+           (BinInt.Z.mul (BinInt.Z.pow base (BinNums.Zpos (BinNums.xI BinNums.xH))) a3) in
+       and (@eq BinNums.Z (BinInt.Z.modulo value base) a0)
+         (and (@eq BinNums.Z (BinInt.Z.modulo (BinInt.Z.div value base) base) a1)
+            (and
+               (@eq BinNums.Z
+                  (BinInt.Z.modulo (BinInt.Z.div value (BinInt.Z.pow base (BinNums.Zpos (BinNums.xO BinNums.xH)))) base)
+                  a2)
+               (@eq BinNums.Z (BinInt.Z.div value (BinInt.Z.pow base (BinNums.Zpos (BinNums.xI BinNums.xH)))) a3)))
+### C.jet_secp_scalar_limb_bridge.scalar_limbs_of_four_words
+scalar_limbs_of_four_words
+     : forall w0 w1 w2 w3 : Integers.Int64.int,
+       @eq (list BinNums.Z)
+         (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+            (BinInt.Z.add
+               (BinInt.Z.add
+                  (BinInt.Z.add (Integers.Int64.unsigned w0)
+                     (BinInt.Z.mul
+                        (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                           (BinNums.Zpos
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                        (Integers.Int64.unsigned w1)))
+                  (BinInt.Z.mul
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                     (Integers.Int64.unsigned w2)))
+               (BinInt.Z.mul
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))))))
+                  (Integers.Int64.unsigned w3))))
+         (@cons BinNums.Z (Integers.Int64.unsigned w0)
+            (@cons BinNums.Z (Integers.Int64.unsigned w1)
+               (@cons BinNums.Z (Integers.Int64.unsigned w2)
+                  (@cons BinNums.Z (Integers.Int64.unsigned w3) (@nil BinNums.Z)))))
+### C.jet_secp_scalar_limb_bridge.scalar_reader_limbs_canonical
+scalar_reader_limbs_canonical
+     : forall (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (rc : BinNums.Z)
+         (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (list Integers.Int64.int)
+         (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+            (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                  (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem value))))
+         (@cons Integers.Int64.int
+            (jet_secp_scalar_reader_value.scalar_reader_limb
+               (jet_secp_wrapper_run.read_fe_rho
+                  (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc) layout O)
+            (@cons Integers.Int64.int
+               (jet_secp_scalar_reader_value.scalar_reader_limb
+                  (jet_secp_wrapper_run.read_fe_rho
+                     (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc) layout
+                  (S O))
+               (@cons Integers.Int64.int
+                  (jet_secp_scalar_reader_value.scalar_reader_limb
+                     (jet_secp_wrapper_run.read_fe_rho
+                        (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc) layout
+                     (S (S O)))
+                  (@cons Integers.Int64.int
+                     (jet_secp_scalar_reader_value.scalar_reader_limb
+                        (jet_secp_wrapper_run.read_fe_rho
+                           (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc) layout
+                        (S (S (S O)))) (@nil Integers.Int64.int)))))
+### C.jet_secp_scalar_limb_bridge.scalar_reader_storage_for_serializer
+scalar_reader_storage_for_serializer
+     : forall (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (rc : BinNums.Z)
+         (layout : jet_sx_state.layout) (bi : Values.block) (edge : Integers.Ptrofs.int) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep
+                (jet_secp_wrapper_run.read_fe_rho
+                   (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc) layout
+                (jet_secp_scalar_reader_lifecycle.scalar_reader_final_regs bi edge) m),
+       and
+         (jet_secp_scalar_get_b32_storage.scalar_at m (jet_sx_state.blk layout O) (jet_sx_state.bas layout O)
+            (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+               (jet_secp_scalar_get_b32_numeric.scalar_limbs_of
+                  (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                     (@jet_secp_canonical_scalar.canonical_scalar_normalize Alg.CoreFunSem value)))))
+         (Memory.Mem.range_perm m (jet_sx_state.blk layout O) BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+            Memtype.Freeable)

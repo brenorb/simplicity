@@ -1,0 +1,59 @@
+### C.jet_secp_affine_weak_owned.affine_coordinate_offset_bounds
+affine_coordinate_offset_bounds
+     : forall k : jet_secp_affine_weak_exec.affine_coordinate,
+       and (BinInt.Z.le BinNums.Z0 (jet_secp_affine_weak_exec.affine_coordinate_offset k))
+         (BinInt.Z.le (jet_secp_affine_weak_exec.affine_coordinate_offset k)
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))
+### C.jet_secp_affine_weak_owned.affine_reader_initial_rep
+affine_reader_initial_rep
+     : forall (k : jet_secp_affine_weak_exec.affine_coordinate) (value rc : BinNums.Z) (m : Memory.Mem.mem)
+         (b : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m b (jet_secp_affine_weak_exec.affine_coordinate_offset k)
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value)))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable),
+       jet_sx_state.rep (jet_secp_write_fe_numeric.write_fe_rho value rc)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+            (@nil (prod Values.block BinNums.Z))) (jet_secp_affine_weak_exec.affine_initial_regs k) m
+### C.jet_secp_affine_weak_owned.eval_affine_weak_reader_owned
+eval_affine_weak_reader_owned
+     : forall (k : jet_secp_affine_weak_exec.affine_coordinate) (m : Memory.Mem.mem) (b : Values.block)
+         (value : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 value)
+                (BinInt.Z.lt value
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+         (_ : jet_secp_fe_nv.fe_at m b (jet_secp_affine_weak_exec.affine_coordinate_offset k)
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value)))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                Memtype.Cur Memtype.Freeable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_normalize_weak)
+               (@cons Values.val
+                  (Values.Vptr b (Integers.Ptrofs.repr (jet_secp_affine_weak_exec.affine_coordinate_offset k)))
+                  (@nil Values.val)) Events.E0 mf Values.Vundef)
+            (and
+               (jet_secp_fe_nv.fe_at mf b (jet_secp_affine_weak_exec.affine_coordinate_offset k)
+                  (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr (jet_secp_fe_math.fe_limbs_of value)))
+               (and
+                  (Memory.Mem.range_perm mf b BinNums.Z0
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))
+                     Memtype.Cur Memtype.Freeable)
+                  (jet_sx_mem.lframe
+                     (fun (bx : Values.block) (pos : BinNums.Z) =>
+                      not
+                        (jet_sx_state.foot
+                           (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+                              (@nil (prod Values.block BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_secp_affine_weak_exec.affine_initial_regs k)) bx pos)) m mf))))

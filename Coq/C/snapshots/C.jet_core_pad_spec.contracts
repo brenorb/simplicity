@@ -1,0 +1,75 @@
+### C.jet_core_pad_spec.rep_cells
+rep_cells =
+fun (c : list BitMachine.Cell) (n : nat) => @List.concat BitMachine.Cell (@List.repeat (list BitMachine.Cell) c n)
+     : forall (_ : list BitMachine.Cell) (_ : nat), list BitMachine.Cell
+
+Arguments rep_cells c%list_scope n%nat_scope
+### C.jet_core_pad_spec.low_word
+low_word =
+fun (term : Alg.Core.Algebra) (w : nat) => @Word.fill Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) w term (@Bit.false Ty.Unit term)
+     : forall (term : Alg.Core.Algebra) (w : nat), Alg.Core.domain term Ty.Unit (Word.Word w)
+
+Arguments low_word {term} w%nat_scope
+### C.jet_core_pad_spec.high_word
+high_word =
+fun (term : Alg.Core.Algebra) (w : nat) => @Word.fill Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) w term (@Bit.true Ty.Unit term)
+     : forall (term : Alg.Core.Algebra) (w : nat), Alg.Core.domain term Ty.Unit (Word.Word w)
+
+Arguments high_word {term} w%nat_scope
+### C.jet_core_pad_spec.left_pad_pad
+left_pad_pad =
+fix left_pad_pad (term : Alg.Core.Algebra) (a : Ty.Ty) (t : Alg.Core.domain term a a) (k : nat) {struct k} :
+    Alg.Core.domain term a (Word.Vector a k) :=
+  match k as k0 return (Alg.Core.domain term a (Word.Vector a k0)) with
+  | O => @AC.iden a term
+  | S k0 => @AC.pair a (Word.Vector a k0) (Word.Vector a k0) term (@Word.fill a a k0 term t) (left_pad_pad term a t k0)
+  end
+     : forall (term : Alg.Core.Algebra) (a : Ty.Ty) (_ : Alg.Core.domain term a a) (k : nat),
+       Alg.Core.domain term a (Word.Vector a k)
+
+Arguments left_pad_pad {term} {a}%ty_scope t k%nat_scope
+### C.jet_core_pad_spec.right_pad_pad
+right_pad_pad =
+fix right_pad_pad (term : Alg.Core.Algebra) (a : Ty.Ty) (t : Alg.Core.domain term a a) (k : nat) {struct k} :
+    Alg.Core.domain term a (Word.Vector a k) :=
+  match k as k0 return (Alg.Core.domain term a (Word.Vector a k0)) with
+  | O => @AC.iden a term
+  | S k0 =>
+      @AC.pair a (Word.Vector a k0) (Word.Vector a k0) term (right_pad_pad term a t k0) (@Word.fill a a k0 term t)
+  end
+     : forall (term : Alg.Core.Algebra) (a : Ty.Ty) (_ : Alg.Core.domain term a a) (k : nat),
+       Alg.Core.domain term a (Word.Vector a k)
+
+Arguments right_pad_pad {term} {a}%ty_scope t k%nat_scope
+### C.jet_core_pad_spec.left_pad_low_spec
+left_pad_low_spec =
+fun (term : Alg.Core.Algebra) (w k : nat) =>
+@left_pad_pad term (Word.Word w)
+  (@AC.comp (Word.Word w) Ty.Unit (Word.Word w) term (@AC.unit (Word.Word w) term) (@low_word term w)) k
+     : forall (term : Alg.Core.Algebra) (w k : nat), Alg.Core.domain term (Word.Word w) (Word.Vector (Word.Word w) k)
+
+Arguments left_pad_low_spec {term} (w k)%nat_scope
+### C.jet_core_pad_spec.left_pad_high_spec
+left_pad_high_spec =
+fun (term : Alg.Core.Algebra) (w k : nat) =>
+@left_pad_pad term (Word.Word w)
+  (@AC.comp (Word.Word w) Ty.Unit (Word.Word w) term (@AC.unit (Word.Word w) term) (@high_word term w)) k
+     : forall (term : Alg.Core.Algebra) (w k : nat), Alg.Core.domain term (Word.Word w) (Word.Vector (Word.Word w) k)
+
+Arguments left_pad_high_spec {term} (w k)%nat_scope
+### C.jet_core_pad_spec.right_pad_low_spec
+right_pad_low_spec =
+fun (term : Alg.Core.Algebra) (w k : nat) =>
+@right_pad_pad term (Word.Word w)
+  (@AC.comp (Word.Word w) Ty.Unit (Word.Word w) term (@AC.unit (Word.Word w) term) (@low_word term w)) k
+     : forall (term : Alg.Core.Algebra) (w k : nat), Alg.Core.domain term (Word.Word w) (Word.Vector (Word.Word w) k)
+
+Arguments right_pad_low_spec {term} (w k)%nat_scope
+### C.jet_core_pad_spec.right_pad_high_spec
+right_pad_high_spec =
+fun (term : Alg.Core.Algebra) (w k : nat) =>
+@right_pad_pad term (Word.Word w)
+  (@AC.comp (Word.Word w) Ty.Unit (Word.Word w) term (@AC.unit (Word.Word w) term) (@high_word term w)) k
+     : forall (term : Alg.Core.Algebra) (w k : nat), Alg.Core.domain term (Word.Word w) (Word.Vector (Word.Word w) k)
+
+Arguments right_pad_high_spec {term} (w k)%nat_scope

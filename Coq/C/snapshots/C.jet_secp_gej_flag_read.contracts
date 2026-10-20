@@ -1,0 +1,58 @@
+### C.jet_secp_gej_flag_read.gej_flag_entry
+gej_flag_entry
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z),
+       Clight.function_entry2 jet_secp_linkage.secp_ge jets_secp.f_secp256k1_gej_is_infinity
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base)) (@nil Values.val)) m Clight.empty_env
+         (gej_flag_env b base) m
+### C.jet_secp_gej_flag_read.eval_gej_flag_load
+eval_gej_flag_load
+     : forall (m : Memory.Mem.mem) (le : Maps.PTree.tree Values.val) (b : Values.block) (base : BinNums.Z)
+         (flag : Integers.Int.int) (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a le)
+                (@Some Values.val (Values.Vptr b (Integers.Ptrofs.repr base))))
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add base
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                (@Some Values.val (Values.Vint flag))),
+       Clight.eval_expr jet_secp_linkage.secp_ge Clight.empty_env le m
+         (Clight.Efield
+            (Clight.Ederef
+               (Clight.Etempvar jets_secp._a (Ctypesdefs.tptr (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)))
+               (Ctypes.Tstruct jets_secp.__6123 Ctypes.noattr)) jets_secp._infinity Ctypesdefs.tint)
+         (Values.Vint flag)
+### C.jet_secp_gej_flag_read.eval_gej_flag_accessor
+eval_gej_flag_accessor
+     : forall (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (flag : Integers.Int.int)
+         (_ : BinInt.Z.le BinNums.Z0 base)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add base
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint32 m b
+                   (BinInt.Z.add base
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                (@Some Values.val (Values.Vint flag))),
+       ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+         (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_gej_is_infinity)
+         (@cons Values.val (Values.Vptr b (Integers.Ptrofs.repr base)) (@nil Values.val)) Events.E0 m
+         (Values.Vint flag)
+### C.jet_secp_gej_flag_read.gej_flag_env
+gej_flag_env =
+fun (b : Values.block) (base : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_secp._a (Values.Vptr b (Integers.Ptrofs.repr base))
+  (Clight.create_undef_temps (Clight.fn_temps jets_secp.f_secp256k1_gej_is_infinity))
+     : forall (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments gej_flag_env b base%Z_scope

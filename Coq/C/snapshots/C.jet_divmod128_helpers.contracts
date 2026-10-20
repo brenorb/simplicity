@@ -1,0 +1,124 @@
+### C.jet_divmod128_helpers.eval_divmod128_helpers
+eval_divmod128_helpers
+     : forall (m : Memory.Mem.mem) (bqh : Values.block) (qoh : Integers.Ptrofs.int) (bql : Values.block)
+         (qol : Integers.Ptrofs.int) (br : Values.block) (ro : Integers.Ptrofs.int) (ah am al b : Integers.Int64.int)
+         (_ : BinInt.Z.le Integers.Int64.modulus
+                (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned b)))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned ah) (Integers.Int64.unsigned b))
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned am) jet_divmod96_value.divmod96_radix)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned al) jet_divmod96_value.divmod96_radix)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bqh (Integers.Ptrofs.unsigned qoh) Memtype.Writable)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bql (Integers.Ptrofs.unsigned qol) Memtype.Writable)
+         (_ : Memory.Mem.valid_access m AST.Mint64 br (Integers.Ptrofs.unsigned ro) Memtype.Writable)
+         (_ : or (not (@eq Values.block bqh bql))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned qoh)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned qol))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned qol)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned qoh))))
+         (_ : or (not (@eq Values.block bqh br))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned qoh)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned ro))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned ro)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned qoh))))
+         (_ : or (not (@eq Values.block bql br))
+                (or
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned qol)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned ro))
+                   (BinInt.Z.le
+                      (BinInt.Z.add (Integers.Ptrofs.unsigned ro)
+                         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (Integers.Ptrofs.unsigned qol)))),
+       @ex Memory.Mem.mem
+         (fun m1 : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             @ex Integers.Int64.int
+               (fun qh : Integers.Int64.int =>
+                @ex Integers.Int64.int
+                  (fun ql : Integers.Int64.int =>
+                   @ex Integers.Int64.int
+                     (fun r1 : Integers.Int64.int =>
+                      @ex Integers.Int64.int
+                        (fun rf : Integers.Int64.int =>
+                         and
+                           (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                              (@Ctypes.Internal Clight.function jets.f_div_mod_96_64)
+                              (@cons Values.val (Values.Vptr bqh qoh)
+                                 (@cons Values.val (Values.Vptr br ro)
+                                    (@cons Values.val (Values.Vlong ah)
+                                       (@cons Values.val (Values.Vlong am)
+                                          (@cons Values.val (Values.Vlong b) (@nil Values.val)))))) Events.E0 m1
+                              Values.Vundef)
+                           (and
+                              (@eq (option Values.val) (Memory.Mem.load AST.Mint64 m1 br (Integers.Ptrofs.unsigned ro))
+                                 (@Some Values.val (Values.Vlong r1)))
+                              (and
+                                 (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m1
+                                    (@Ctypes.Internal Clight.function jets.f_div_mod_96_64)
+                                    (@cons Values.val (Values.Vptr bql qol)
+                                       (@cons Values.val (Values.Vptr br ro)
+                                          (@cons Values.val (Values.Vlong r1)
+                                             (@cons Values.val (Values.Vlong al)
+                                                (@cons Values.val (Values.Vlong b) (@nil Values.val)))))) Events.E0 mf
+                                    Values.Vundef)
+                                 (and
+                                    (@eq (option Values.val)
+                                       (Memory.Mem.load AST.Mint64 mf bqh (Integers.Ptrofs.unsigned qoh))
+                                       (@Some Values.val (Values.Vlong qh)))
+                                    (and
+                                       (@eq (option Values.val)
+                                          (Memory.Mem.load AST.Mint64 mf bql (Integers.Ptrofs.unsigned qol))
+                                          (@Some Values.val (Values.Vlong ql)))
+                                       (and
+                                          (@eq (option Values.val)
+                                             (Memory.Mem.load AST.Mint64 mf br (Integers.Ptrofs.unsigned ro))
+                                             (@Some Values.val (Values.Vlong rf)))
+                                          (and
+                                             (and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned qh))
+                                                (BinInt.Z.lt (Integers.Int64.unsigned qh)
+                                                   jet_divmod96_value.divmod96_radix))
+                                             (and
+                                                (and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned ql))
+                                                   (BinInt.Z.lt (Integers.Int64.unsigned ql)
+                                                      jet_divmod96_value.divmod96_radix))
+                                                (and
+                                                   (and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned rf))
+                                                      (BinInt.Z.lt (Integers.Int64.unsigned rf)
+                                                         (Integers.Int64.unsigned b)))
+                                                   (and
+                                                      (@eq BinNums.Z
+                                                         (BinInt.Z.add
+                                                            (BinInt.Z.mul (BinInt.Z.add (...) (...))
+                                                               jet_divmod96_value.divmod96_radix)
+                                                            (Integers.Int64.unsigned al))
+                                                         (BinInt.Z.add
+                                                            (BinInt.Z.mul (BinInt.Z.add (...) (...))
+                                                               (Integers.Int64.unsigned b))
+                                                            (Integers.Int64.unsigned rf)))
+                                                      (and
+                                                         (forall (chunk : AST.memory_chunk)
+                                                            (bb : Values.block) (addr : BinNums.Z)
+                                                            (_ : or (not ...) (or ... ...))
+                                                            (_ : or (not ...) (or ... ...))
+                                                            (_ : or (not ...) (or ... ...)),
+                                                          @eq (option Values.val) (Memory.Mem.load chunk mf bb addr)
+                                                            (Memory.Mem.load chunk m bb addr))
+                                                         (and
+                                                            (forall (bb : Values.block) (addr : BinNums.Z)
+                                                               (kind : Memtype.perm_kind) (p : Memtype.permission)
+                                                               (_ : Memory.Mem.perm m bb addr kind p),
+                                                             Memory.Mem.perm mf bb addr kind p)
+                                                            (@eq Values.block (Memory.Mem.nextblock mf)
+                                                               (Memory.Mem.nextblock m)))))))))))))))))))

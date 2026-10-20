@@ -1,0 +1,24 @@
+### C.jet_subtract_wide_exec.wide_subtract
+wide_subtract =
+fun s : jet_wide.wide_size =>
+match s return Clight.function with
+| jet_wide.W16 => jets.f_simplicity_subtract_16
+| jet_wide.W32 => jets.f_simplicity_subtract_32
+| jet_wide.W64 => jets.f_simplicity_subtract_64
+end
+     : forall _ : jet_wide.wide_size, Clight.function
+
+Arguments wide_subtract s
+### C.jet_subtract_wide_exec.wide_subtract_borrow_expr
+wide_subtract_borrow_expr =
+Clight.Ebinop Cop.Olt (Clight.Etempvar jets._x Ctypesdefs.tulong) (Clight.Etempvar jets._y Ctypesdefs.tulong)
+  Ctypesdefs.tint
+     : Clight.expr
+### C.jet_subtract_wide_exec.wide_subtract_payload_expr
+wide_subtract_payload_expr =
+Clight.Ecast
+  (Clight.Ebinop Cop.Osub
+     (Clight.Ebinop Cop.Omul (Clight.Econst_int Integers.Int.one Ctypesdefs.tuint)
+        (Clight.Etempvar jets._x Ctypesdefs.tulong) Ctypesdefs.tulong) (Clight.Etempvar jets._y Ctypesdefs.tulong)
+     Ctypesdefs.tulong) Ctypesdefs.tulong
+     : Clight.expr

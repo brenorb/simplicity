@@ -1,0 +1,69 @@
+### C.jet_elements_hash_elem.encode_sum_inr_hash'
+encode_sum_inr_hash'
+     : forall w : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (@inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) w))
+         (@cons (option bool) (@Some bool true) (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) w))
+### C.jet_elements_hash_elem.hash_elem_rep_mono
+hash_elem_rep_mono
+     : forall (m1 m2 : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (h : Digest.hash256)
+         (_ : hash_elem_rep m1 b ofs h)
+         (_ : forall (chunk : AST.memory_chunk) (o : BinNums.Z) (v : Values.val) (_ : BinInt.Z.le ofs o)
+                (_ : BinInt.Z.le (BinInt.Z.add o (Memdata.size_chunk chunk))
+                       (BinInt.Z.add ofs
+                          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                (_ : @eq (option Values.val) (Memory.Mem.load chunk m1 b o) (@Some Values.val v)),
+              @eq (option Values.val) (Memory.Mem.load chunk m2 b o) (@Some Values.val v)),
+       hash_elem_rep m2 b ofs h
+### C.jet_elements_hash_elem.hash_elem_pay
+hash_elem_pay
+     : forall (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block) (outedge : BinNums.Z)
+         (m' : Memory.Mem.mem) (bin : Values.block) (ofs : BinNums.Z) (x : Digest.hash256)
+         (cur : BinNums.Z) (_ : hash_elem_rep m' bin ofs x) (_ : BinInt.Z.le BinNums.Z0 ofs)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : jet_application_sep.out_sep bd dbase bw outedge cur
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                bin ofs
+                (BinInt.Z.add ofs
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : jet_output_layout.write_frame_at m' bd dbase bw outedge cur
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))),
+       @ex Memory.Mem.mem
+         (fun me : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m'
+               (@Ctypes.Internal Clight.function jets_elements.f_writeHash)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                  (@cons Values.val (Values.Vptr bin (Integers.Ptrofs.repr ofs)) (@nil Values.val))) Events.E0 me
+               Values.Vundef)
+            (jet_elements_effects.write_effect m' me bd dbase bw outedge cur
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (jet_elements_hash_write.hash_cells (Digest.hash256_reg x))))
+### C.jet_elements_hash_elem.hash_cells_len_256
+hash_cells_len_256
+     : forall x : Digest.hash256,
+       @eq BinNums.Z
+         (BinInt.Z.of_nat (@length BitMachine.Cell (jet_elements_hash_write.hash_cells (Digest.hash256_reg x))))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+### C.jet_elements_hash_elem.hash_elem_rep
+hash_elem_rep =
+fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (h : Digest.hash256) =>
+jet_uint32_array_init.uint32_array_at m b ofs (Digest.hash256_reg h)
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : Digest.hash256), Prop
+
+Arguments hash_elem_rep m b ofs%Z_scope h

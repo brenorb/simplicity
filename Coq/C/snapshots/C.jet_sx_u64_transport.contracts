@@ -1,0 +1,12 @@
+### C.jet_sx_u64_transport.region_u64_transport
+region_u64_transport
+     : forall (rho rho' : forall _ : nat, Integers.Int64.int) (beta beta' : jet_sx_state.layout)
+         (m : Memory.Mem.mem) (r r' : nat) (xs ys : list jet_sx_expr.sx) (w : bool) (owned : option BinNums.Z)
+         (_ : @eq (prod Values.block BinNums.Z) (jet_sx_state.lay beta' r') (jet_sx_state.lay beta r))
+         (_ : @eq nat (@length jet_sx_expr.sx ys) (@length jet_sx_expr.sx xs))
+         (_ : @eq (list Values.val)
+                (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho' (jet_sx_state.lay beta')) ys)
+                (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) xs))
+         (_ : @eq bool (@List.forallb jet_sx_expr.sx (jet_sx_state.xp_le r') ys) true)
+         (_ : jet_sx_state.region_ok rho beta m r (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 xs) w owned)),
+       jet_sx_state.region_ok rho' beta' m r' (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 ys) w owned)

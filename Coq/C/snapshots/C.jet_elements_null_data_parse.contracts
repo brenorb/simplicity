@@ -1,0 +1,93 @@
+### C.jet_elements_null_data_parse.getBytes_rest_length
+getBytes_rest_length
+     : forall (n : BinNums.Z) (bs data rest : list Integers.Byte.int)
+         (_ : @eq (option (prod (list Integers.Byte.int) (list Integers.Byte.int))) (jet_elements_prim.getBytes n bs)
+                (@Some (prod (list Integers.Byte.int) (list Integers.Byte.int))
+                   (@pair (list Integers.Byte.int) (list Integers.Byte.int) data rest))),
+       le (@length Integers.Byte.int rest) (@length Integers.Byte.int bs)
+### C.jet_elements_null_data_parse.getPush_rest_length
+getPush_rest_length
+     : forall (width : BinNums.Z) (bs data rest : list Integers.Byte.int)
+         (_ : @eq (option (prod (list Integers.Byte.int) (list Integers.Byte.int)))
+                (jet_elements_prim.getPush width bs)
+                (@Some (prod (list Integers.Byte.int) (list Integers.Byte.int))
+                   (@pair (list Integers.Byte.int) (list Integers.Byte.int) data rest))),
+       le (@length Integers.Byte.int rest) (@length Integers.Byte.int bs)
+### C.jet_elements_null_data_parse.getTxNullDatum_consumes
+getTxNullDatum_consumes
+     : forall (bs : list Integers.Byte.int) (d : jet_elements_prim.txNullDatumF (list Integers.Byte.int))
+         (rest : list Integers.Byte.int)
+         (_ : @eq (option (prod (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) (list Integers.Byte.int)))
+                (jet_elements_prim.getTxNullDatum bs)
+                (@Some (prod (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) (list Integers.Byte.int))
+                   (@pair (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) (list Integers.Byte.int) d rest))),
+       lt (@length Integers.Byte.int rest) (@length Integers.Byte.int bs)
+### C.jet_elements_null_data_parse.getTxNullData_sound
+getTxNullData_sound
+     : forall (fuel : nat) (bs : list Integers.Byte.int)
+         (ds : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+         (_ : @eq (option (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+                (jet_elements_prim.getTxNullData fuel bs)
+                (@Some (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) ds)),
+       null_data_parse bs ds
+### C.jet_elements_null_data_parse.getTxNullData_complete
+getTxNullData_complete
+     : forall (bs : list Integers.Byte.int) (ds : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+         (_ : null_data_parse bs ds) (fuel : nat) (_ : le (@length Integers.Byte.int bs) fuel),
+       @eq (option (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+         (jet_elements_prim.getTxNullData fuel bs)
+         (@Some (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) ds)
+### C.jet_elements_null_data_parse.getTxNullData_fuel_adequate
+getTxNullData_fuel_adequate
+     : forall (fuel : nat) (bs : list Integers.Byte.int)
+         (ds : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+         (_ : le (@length Integers.Byte.int bs) fuel),
+       iff
+         (@eq (option (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+            (jet_elements_prim.getTxNullData fuel bs)
+            (@Some (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) ds)) (null_data_parse bs ds)
+### C.jet_elements_null_data_parse.null_data_parse_length
+null_data_parse_length
+     : forall (bs : list Integers.Byte.int) (ds : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+         (_ : null_data_parse bs ds),
+       le (@length (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) ds) (@length Integers.Byte.int bs)
+### C.jet_elements_null_data_parse.txNullData_parser_relation
+txNullData_parser_relation
+     : forall (script : jet_elements_prim.script) (ds : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))),
+       iff
+         (@eq (option (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))))
+            (jet_elements_prim.txNullData script)
+            (@Some (list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))) ds))
+         (@ex Integers.Byte.int
+            (fun op : Integers.Byte.int =>
+             @ex (list Integers.Byte.int)
+               (fun rest : list Integers.Byte.int =>
+                and (@eq jet_elements_prim.script script (@cons Integers.Byte.int op rest))
+                  (and
+                     (@eq BinNums.Z (Integers.Byte.unsigned op)
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+                     (null_data_parse rest ds)))))
+### C.jet_elements_null_data_parse.null_data_parse
+Inductive
+null_data_parse
+    : forall (_ : list Integers.Byte.int) (_ : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int))), Prop :=
+    null_data_parse_nil : null_data_parse (@nil Integers.Byte.int)
+                            (@nil (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+  | null_data_parse_cons : forall (bs : list Integers.Byte.int)
+                             (d : jet_elements_prim.txNullDatumF (list Integers.Byte.int))
+                             (rest : list Integers.Byte.int)
+                             (ds : list (jet_elements_prim.txNullDatumF (list Integers.Byte.int)))
+                             (_ : @eq
+                                    (option
+                                       (prod (jet_elements_prim.txNullDatumF (list Integers.Byte.int))
+                                          (list Integers.Byte.int))) (jet_elements_prim.getTxNullDatum bs)
+                                    (@Some
+                                       (prod (jet_elements_prim.txNullDatumF (list Integers.Byte.int))
+                                          (list Integers.Byte.int))
+                                       (@pair (jet_elements_prim.txNullDatumF (list Integers.Byte.int))
+                                          (list Integers.Byte.int) d rest))) (_ : null_data_parse rest ds),
+                           null_data_parse bs (@cons (jet_elements_prim.txNullDatumF (list Integers.Byte.int)) d ds).
+
+Arguments null_data_parse (_ _)%list_scope
+Arguments null_data_parse_cons bs%list_scope d (rest ds)%list_scope _ _

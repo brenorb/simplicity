@@ -1,0 +1,1489 @@
+### C.jet_sha_ctx8_spec.buffer_list_empty
+buffer_list_empty
+     : forall (X : Ty.Ty) (depth : nat),
+       @eq (list (Ty.tySem X)) (buffer_list X depth (jet_buffer_empty_spec.buffer_empty_value X depth))
+         (@nil (Ty.tySem X))
+### C.jet_sha_ctx8_spec.buffer_snoc_spec_parametric
+buffer_snoc_spec_parametric
+     : forall (X : Ty.Ty) (depth : nat),
+       @Alg.Core.Parametric (Ty.Prod (jet_buffer_empty_spec.buffer_type X depth) X)
+         (Ty.Sum (Word.Vector X (S depth)) (jet_buffer_empty_spec.buffer_type X depth)) (@buffer_snoc_spec X depth)
+### C.jet_sha_ctx8_spec.buffer_snoc_value
+buffer_snoc_value
+     : forall (X : Ty.Ty) (depth : nat) (b : Ty.tySem (jet_buffer_empty_spec.buffer_type X depth)) (x : Ty.tySem X),
+       match
+         @buffer_snoc_spec X depth Alg.CoreFunSem
+           (@pair (Ty.tySem (jet_buffer_empty_spec.buffer_type X depth)) (Ty.tySem X) b x)
+         return Prop
+       with
+       | inl v =>
+           @eq (list (Ty.tySem X)) (jet_buffer_input.vector_values X (S depth) v)
+             (@app (Ty.tySem X) (buffer_list X depth b) (@cons (Ty.tySem X) x (@nil (Ty.tySem X))))
+       | inr b' =>
+           @eq (list (Ty.tySem X)) (buffer_list X depth b')
+             (@app (Ty.tySem X) (buffer_list X depth b) (@cons (Ty.tySem X) x (@nil (Ty.tySem X))))
+       end
+### C.jet_sha_ctx8_spec.opt_core
+@opt_core
+     : forall (A B : Ty.Ty) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (_ : @Alg.Core.Parametric A B t) (a : Ty.tySem A),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (t (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero)) a)
+         (@Some (Ty.tySem B) (t Alg.CoreFunSem a))
+### C.jet_sha_ctx8_spec.opt_comp
+@opt_comp
+     : forall (A B C : Ty.Ty) (s : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) A B)
+         (t : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) B C) (a : Ty.tySem A),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem C))
+         (@jet_sha256_count_assertion.AC.comp A B C (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero))
+            s t a)
+         match s a return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem C)) with
+         | Some b => t b
+         | None => @None (Ty.tySem C)
+         end
+### C.jet_sha_ctx8_spec.opt_pair
+@opt_pair
+     : forall (A B C : Ty.Ty) (s : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) A B)
+         (t : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) A C) (a : Ty.tySem A),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+         (@jet_sha256_count_assertion.AC.pair A B C (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero))
+            s t a)
+         match
+           s a
+           return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+         with
+         | Some b =>
+             match
+               t a
+               return
+                 (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+             with
+             | Some c => @Some (prod (Ty.tySem B) (Ty.tySem C)) (@pair (Ty.tySem B) (Ty.tySem C) b c)
+             | None => @None (Ty.tySem (Ty.Prod B C))
+             end
+         | None => @None (Ty.tySem (Ty.Prod B C))
+         end
+### C.jet_sha_ctx8_spec.opt_case
+@opt_case
+     : forall (A B C D : Ty.Ty) (s : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) (Ty.Prod A C) D)
+         (t : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) (Ty.Prod B C) D)
+         (p : Ty.tySem (Ty.Prod (Ty.Sum A B) C)),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem D))
+         (@jet_sha256_count_assertion.AC.case A B C D
+            (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero)) s t p)
+         match
+           @fst
+             (sum
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) A)
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                    | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                    end) B))
+             ((fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) C) p
+           return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem D))
+         with
+         | inl a =>
+             s
+               (@pair
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) A)
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) C) a
+                  (@snd
+                     (sum
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                            | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                            end) A)
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                            | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                            end) B))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                         | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                         end) C) p))
+         | inr b =>
+             t
+               (@pair
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) B)
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) C) b
+                  (@snd
+                     (sum
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                            | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                            end) A)
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                            | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                            end) B))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                         | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                         end) C) p))
+         end
+### C.jet_sha_ctx8_spec.opt_take
+@opt_take
+     : forall (A B C : Ty.Ty) (t : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) A C)
+         (p : Ty.tySem (Ty.Prod A B)),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem C))
+         (@jet_sha256_count_assertion.AC.take A B C (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero))
+            t p)
+         (t
+            (@fst
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                   | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                   end) A)
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                   | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                   end) B) p))
+### C.jet_sha_ctx8_spec.opt_drop
+@opt_drop
+     : forall (A B C : Ty.Ty) (t : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) B C)
+         (p : Ty.tySem (Ty.Prod A B)),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem C))
+         (@jet_sha256_count_assertion.AC.drop A B C (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero))
+            t p)
+         (t
+            (@snd
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                   | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                   end) A)
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                   | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                   end) B) p))
+### C.jet_sha_ctx8_spec.opt_iden
+@opt_iden
+     : forall (A : Ty.Ty) (a : Ty.tySem A),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem A))
+         (@jet_sha256_count_assertion.AC.iden A (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero)) a)
+         (@Some (Ty.tySem A) a)
+### C.jet_sha_ctx8_spec.opt_unit
+@opt_unit
+     : forall (A : Ty.Ty) (a : Ty.tySem A),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem Ty.Unit))
+         (@jet_sha256_count_assertion.AC.unit A (Alg.Assertion.toCore (Alg.AssertionSem Option.option_Monad_Zero)) a)
+         (@Some unit tt)
+### C.jet_sha_ctx8_spec.opt_assertl_l
+@opt_assertl_l
+     : forall (A B C D : Ty.Ty) (s : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) (Ty.Prod A C) D)
+         (h : Digest.hash256)
+         (a : (fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) A)
+         (c : (fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) C),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem D))
+         (@Alg.Assertion.Combinators.assertl A B C D (Alg.AssertionSem Option.option_Monad_Zero) s h
+            (@pair
+               (sum
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) A)
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) B))
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                   | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                   end) C)
+               (@inl
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) A)
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) B) a) c))
+         (s
+            (@pair
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                   | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                   end) A)
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                   | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                   end) C) a c))
+### C.jet_sha_ctx8_spec.opt_assertl_r
+@opt_assertl_r
+     : forall (A B C D : Ty.Ty) (s : Alg.Assertion.domain (Alg.AssertionSem Option.option_Monad_Zero) (Ty.Prod A C) D)
+         (h : Digest.hash256) (b : Ty.tySem B)
+         (c : (fix tySem (X : Ty.Ty) : Set :=
+                 match X return Set with
+                 | Ty.Unit => unit
+                 | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                 | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                 end) C),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem D))
+         (@Alg.Assertion.Combinators.assertl A B C D (Alg.AssertionSem Option.option_Monad_Zero) s h
+            (@pair
+               (sum
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) A) (Ty.tySem B))
+               ((fix tySem (X : Ty.Ty) : Set :=
+                   match X return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                   | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                   end) C)
+               (@inr
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                      | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                      end) A) (Ty.tySem B) b) c)) (@None (Ty.tySem D))
+### C.jet_sha_ctx8_spec.ctx8_add1_full_option
+ctx8_add1_full_option
+     : forall (blk : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+         (count : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+         (@ctx8_add1_full (Alg.AssertionSem Option.option_Monad_Zero)
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+               (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) blk
+               (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) count h)))
+         match
+           @fst (sum unit unit)
+             (prod
+                (prod
+                   (prod
+                      (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                         (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                      (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                         (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                   (prod
+                      (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                         (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                      (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                         (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                (prod
+                   (prod
+                      (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                         (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                      (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                         (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                   (prod
+                      (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                         (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                      (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                         (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+             (@jet_increment_spec.increment_word_spec Alg.CoreFunSem (S (S (S (S (S (S O)))))) count)
+           return
+             (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+                (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+         with
+         | inl _ =>
+             @Some
+               (prod (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+               (@pair (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                  (prod
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                  (jet_buffer_empty_spec.buffer_empty_value (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+                  (@pair
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (@snd (sum unit unit)
+                        (prod
+                           (prod
+                              (prod
+                                 (prod
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                                 (prod
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                              (prod
+                                 (prod
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                                 (prod
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                           (prod
+                              (prod
+                                 (prod
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                                 (prod
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                              (prod
+                                 (prod
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                                 (prod
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                    (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                        (@jet_increment_spec.increment_word_spec Alg.CoreFunSem (S (S (S (S (S (S O)))))) count))
+                     (@SHA256.hashBlock Alg.CoreFunSem
+                        (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))) h blk))))
+         | inr _ => @None (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+         end
+### C.jet_sha_ctx8_spec.word64_pow
+word64_pow
+     : @eq BinNums.Z (Zpower.two_power_nat (Word.ToZ.Theory.bitSize (Word.WordToZ (S (S (S (S (S (S O)))))))))
+         (BinNums.Zpos
+            (BinNums.xO
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))))))))
+### C.jet_sha_ctx8_spec.increment64_numeric
+increment64_numeric
+     : forall count : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))),
+       @eq BinNums.Z
+         (BinInt.Z.add
+            (BinInt.Z.mul
+               (@Word.ToZ.Theory.toZ Word.BitToZ
+                  (@fst (sum unit unit)
+                     (prod
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                        (prod
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                           (prod
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                              (prod
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                                 (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                     (@jet_increment_spec.increment_word_spec Alg.CoreFunSem (S (S (S (S (S (S O)))))) count)))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))))
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+               (@snd (sum unit unit)
+                  (prod
+                     (prod
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))))
+                     (prod
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))
+                        (prod
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit))))
+                           (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                              (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))))))
+                  (@jet_increment_spec.increment_word_spec Alg.CoreFunSem (S (S (S (S (S (S O)))))) count))))
+         (BinInt.Z.add (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count) (BinNums.Zpos BinNums.xH))
+### C.jet_sha_ctx8_spec.word64_range
+word64_range
+     : forall y : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))),
+       and (BinInt.Z.le BinNums.Z0 (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) y))
+         (BinInt.Z.lt (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) y)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+### C.jet_sha_ctx8_spec.ctx8_add1_snoc_parametric
+ctx8_add1_snoc_parametric
+     : @Alg.Core.Parametric (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+         (Ty.Prod (Ty.Sum (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) ctx8_buf) ctx8_tail)
+         (@ctx8_add1_snoc)
+### C.jet_sha_ctx8_spec.ctx8_add1_option
+ctx8_add1_option
+     : forall
+         (c : prod
+                ((fix tySem (X : Ty.Ty) : Set :=
+                    match X return Set with
+                    | Ty.Unit => unit
+                    | Ty.Sum A B => sum (tySem A) (tySem B)
+                    | Ty.Prod A B => prod (tySem A) (tySem B)
+                    end) (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                (prod
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end) (Word.Word (S (S (S (S (S (S O))))))))
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A B => sum (tySem A) (tySem B)
+                       | Ty.Prod A B => prod (tySem A) (tySem B)
+                       end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (x : prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+         (@ctx8_add1_spec (Alg.AssertionSem Option.option_Monad_Zero)
+            (@pair
+               (prod
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                  (prod
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S O))))))))
+                     ((fix tySem (X : Ty.Ty) : Set :=
+                         match X return Set with
+                         | Ty.Unit => unit
+                         | Ty.Sum A B => sum (tySem A) (tySem B)
+                         | Ty.Prod A B => prod (tySem A) (tySem B)
+                         end) (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+               (prod (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))
+                  (prod (prod (sum unit unit) (sum unit unit)) (prod (sum unit unit) (sum unit unit)))) c x))
+         (ctx8_add1_model c x)
+### C.jet_sha_ctx8_spec.ctx8_add1_full_parametric
+ctx8_add1_full_parametric
+     : @Alg.Assertion.Parametric (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) ctx8_tail)
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type (@ctx8_add1_full)
+### C.jet_sha_ctx8_spec.ctx8_add1_spec_parametric
+ctx8_add1_spec_parametric
+     : @Alg.Assertion.Parametric (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type (@ctx8_add1_spec)
+### C.jet_sha_ctx8_spec.ctx8_addn_spec_parametric
+ctx8_addn_spec_parametric
+     : forall n : nat,
+       @Alg.Assertion.Parametric
+         (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type (@ctx8_addn_spec n)
+### C.jet_sha_ctx8_spec.ctx8_add_list_app
+ctx8_add_list_app
+     : forall (c : Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+         (l1 l2 : list (Ty.tySem (Word.Word (S (S (S O)))))),
+       @eq (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+         (ctx8_add_list c (@app (Ty.tySem (Word.Word (S (S (S O))))) l1 l2))
+         match ctx8_add_list c l1 return (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)) with
+         | Some c' => ctx8_add_list c' l2
+         | None => @None (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+         end
+### C.jet_sha_ctx8_spec.ctx8_addn_option
+ctx8_addn_option
+     : forall (n : nat) (c : Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+         (v : Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) n)),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+         (@ctx8_addn_spec n (Alg.AssertionSem Option.option_Monad_Zero)
+            (@pair (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+               (Ty.tySem (Word.Vector (Word.Word (S (S (S O)))) n)) c v))
+         (ctx8_add_list c (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) n v))
+### C.jet_sha_ctx8_spec.buffer_list
+buffer_list =
+fix buffer_list (X : Ty.Ty) (depth : nat) {struct depth} :
+    forall _ : Ty.tySem (jet_buffer_empty_spec.buffer_type X depth), list (Ty.tySem X) :=
+  match
+    depth as depth0 return (forall _ : Ty.tySem (jet_buffer_empty_spec.buffer_type X depth0), list (Ty.tySem X))
+  with
+  | O =>
+      fun x : Ty.tySem (jet_buffer_empty_spec.buffer_type X O) =>
+      match x return (list (Ty.tySem X)) with
+      | inl _ => @nil (Ty.tySem X)
+      | inr y =>
+          @cons
+            ((fix tySem (X0 : Ty.Ty) : Set :=
+                match X0 return Set with
+                | Ty.Unit => unit
+                | Ty.Sum A B => sum (tySem A) (tySem B)
+                | Ty.Prod A B => prod (tySem A) (tySem B)
+                end) X) y
+            (@nil
+               ((fix tySem (X0 : Ty.Ty) : Set :=
+                   match X0 return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) X))
+      end
+  | S d =>
+      fun x : Ty.tySem (jet_buffer_empty_spec.buffer_type X (S d)) =>
+      @app (Ty.tySem X)
+        match
+          @fst
+            (sum
+               ((fix tySem (X0 : Ty.Ty) : Set :=
+                   match X0 return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) Ty.Unit)
+               ((fix tySem (X0 : Ty.Ty) : Set :=
+                   match X0 return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) (Word.Vector X (S d))))
+            ((fix tySem (X0 : Ty.Ty) : Set :=
+                match X0 return Set with
+                | Ty.Unit => unit
+                | Ty.Sum A B => sum (tySem A) (tySem B)
+                | Ty.Prod A B => prod (tySem A) (tySem B)
+                end)
+               ((fix buffer_type (X0 : Ty.Ty) (depth0 : nat) {struct depth0} : Ty.Ty :=
+                   match depth0 return Ty.Ty with
+                   | O => Ty.Sum Ty.Unit X0
+                   | S d0 => Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X0 (S d0))) (buffer_type X0 d0)
+                   end) X d)) x return (list (Ty.tySem X))
+        with
+        | inl _ => @nil (Ty.tySem X)
+        | inr v => jet_buffer_input.vector_values X (S d) v
+        end
+        (buffer_list X d
+           (@snd
+              (sum
+                 ((fix tySem (X0 : Ty.Ty) : Set :=
+                     match X0 return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) Ty.Unit)
+                 ((fix tySem (X0 : Ty.Ty) : Set :=
+                     match X0 return Set with
+                     | Ty.Unit => unit
+                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                     end) (Word.Vector X (S d))))
+              ((fix tySem (X0 : Ty.Ty) : Set :=
+                  match X0 return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix buffer_type (X0 : Ty.Ty) (depth0 : nat) {struct depth0} : Ty.Ty :=
+                     match depth0 return Ty.Ty with
+                     | O => Ty.Sum Ty.Unit X0
+                     | S d0 => Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X0 (S d0))) (buffer_type X0 d0)
+                     end) X d)) x))
+  end
+     : forall (X : Ty.Ty) (depth : nat) (_ : Ty.tySem (jet_buffer_empty_spec.buffer_type X depth)), list (Ty.tySem X)
+
+Arguments buffer_list X%ty_scope depth%nat_scope _
+### C.jet_sha_ctx8_spec.buffer_snoc_spec
+buffer_snoc_spec =
+fix buffer_snoc_spec (X : Ty.Ty) (depth : nat) (term : Alg.Core.Algebra) {struct depth} :
+    Alg.Core.domain term (Ty.Prod (jet_buffer_empty_spec.buffer_type X depth) X)
+      (Ty.Sum (Word.Vector X (S depth)) (jet_buffer_empty_spec.buffer_type X depth)) :=
+  match
+    depth as depth0
+    return
+      (Alg.Core.domain term (Ty.Prod (jet_buffer_empty_spec.buffer_type X depth0) X)
+         (Ty.Sum (Word.Vector X (S depth0)) (jet_buffer_empty_spec.buffer_type X depth0)))
+  with
+  | O =>
+      @jet_sha256_count_assertion.AC.case Ty.Unit X X (Ty.Sum (Ty.Prod X X) (Ty.Sum Ty.Unit X)) term
+        (@jet_sha256_count_assertion.AC.injr (Ty.Prod Ty.Unit X) (Ty.Prod X X) (Ty.Sum Ty.Unit X) term
+           (@jet_sha256_count_assertion.AC.injr (Ty.Prod Ty.Unit X) Ty.Unit X term
+              (@jet_sha256_count_assertion.AC.drop Ty.Unit X X term (@jet_sha256_count_assertion.AC.iden X term))))
+        (@jet_sha256_count_assertion.AC.injl (Ty.Prod X X) (Ty.Prod X X) (Ty.Sum Ty.Unit X) term
+           (@jet_sha256_count_assertion.AC.iden (Ty.Prod X X) term))
+  | S d =>
+      @jet_sha256_count_assertion.AC.comp
+        (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) X)
+        (Ty.Prod (Ty.Sum (Word.Vector X (S d)) (jet_buffer_empty_spec.buffer_type X d))
+           (Ty.Sum Ty.Unit (Word.Vector X (S d))))
+        (Ty.Sum (Ty.Prod (Word.Vector X (S d)) (Word.Vector X (S d)))
+           (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d))) term
+        (@jet_sha256_count_assertion.AC.pair
+           (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) X)
+           (Ty.Sum (Word.Vector X (S d)) (jet_buffer_empty_spec.buffer_type X d))
+           (Ty.Sum Ty.Unit (Word.Vector X (S d))) term
+           (@jet_sha256_count_assertion.AC.comp
+              (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) X)
+              (Ty.Prod (jet_buffer_empty_spec.buffer_type X d) X)
+              (Ty.Sum (Word.Vector X (S d)) (jet_buffer_empty_spec.buffer_type X d)) term
+              (@jet_sha256_count_assertion.AC.pair
+                 (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) X)
+                 (jet_buffer_empty_spec.buffer_type X d) X term
+                 (@jet_sha256_count_assertion.AC.take
+                    (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) X
+                    (jet_buffer_empty_spec.buffer_type X d) term
+                    (@jet_sha256_count_assertion.AC.drop (Ty.Sum Ty.Unit (Word.Vector X (S d)))
+                       (jet_buffer_empty_spec.buffer_type X d) (jet_buffer_empty_spec.buffer_type X d) term
+                       (@jet_sha256_count_assertion.AC.iden (jet_buffer_empty_spec.buffer_type X d) term)))
+                 (@jet_sha256_count_assertion.AC.drop
+                    (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) X X term
+                    (@jet_sha256_count_assertion.AC.iden X term))) (buffer_snoc_spec X d term))
+           (@jet_sha256_count_assertion.AC.take
+              (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) X
+              (Ty.Sum Ty.Unit (Word.Vector X (S d))) term
+              (@jet_sha256_count_assertion.AC.take (Ty.Sum Ty.Unit (Word.Vector X (S d)))
+                 (jet_buffer_empty_spec.buffer_type X d) (Ty.Sum Ty.Unit (Word.Vector X (S d))) term
+                 (@jet_sha256_count_assertion.AC.iden (Ty.Sum Ty.Unit (Word.Vector X (S d))) term))))
+        (@jet_sha256_count_assertion.AC.case (Word.Vector X (S d)) (jet_buffer_empty_spec.buffer_type X d)
+           (Ty.Sum Ty.Unit (Word.Vector X (S d)))
+           (Ty.Sum (Ty.Prod (Word.Vector X (S d)) (Word.Vector X (S d)))
+              (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d))) term
+           (@jet_sha256_count_assertion.AC.comp (Ty.Prod (Word.Vector X (S d)) (Ty.Sum Ty.Unit (Word.Vector X (S d))))
+              (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (Word.Vector X (S d)))
+              (Ty.Sum (Ty.Prod (Word.Vector X (S d)) (Word.Vector X (S d)))
+                 (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d))) term
+              (@jet_sha256_count_assertion.AC.pair
+                 (Ty.Prod (Word.Vector X (S d)) (Ty.Sum Ty.Unit (Word.Vector X (S d))))
+                 (Ty.Sum Ty.Unit (Word.Vector X (S d))) (Word.Vector X (S d)) term
+                 (@jet_sha256_count_assertion.AC.drop (Word.Vector X (S d)) (Ty.Sum Ty.Unit (Word.Vector X (S d)))
+                    (Ty.Sum Ty.Unit (Word.Vector X (S d))) term
+                    (@jet_sha256_count_assertion.AC.iden (Ty.Sum Ty.Unit (Word.Vector X (S d))) term))
+                 (@jet_sha256_count_assertion.AC.take (Word.Vector X (S d)) (Ty.Sum Ty.Unit (Word.Vector X (S d)))
+                    (Word.Vector X (S d)) term (@jet_sha256_count_assertion.AC.iden (Word.Vector X (S d)) term)))
+              (@jet_sha256_count_assertion.AC.case Ty.Unit (Word.Vector X (S d)) (Word.Vector X (S d))
+                 (Ty.Sum (Ty.Prod (Word.Vector X (S d)) (Word.Vector X (S d)))
+                    (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d))) term
+                 (@jet_sha256_count_assertion.AC.injr (Ty.Prod Ty.Unit (Word.Vector X (S d)))
+                    (Ty.Prod (Word.Vector X (S d)) (Word.Vector X (S d)))
+                    (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) term
+                    (@jet_sha256_count_assertion.AC.pair (Ty.Prod Ty.Unit (Word.Vector X (S d)))
+                       (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d) term
+                       (@jet_sha256_count_assertion.AC.injr (Ty.Prod Ty.Unit (Word.Vector X (S d))) Ty.Unit
+                          (Word.Vector X (S d)) term
+                          (@jet_sha256_count_assertion.AC.drop Ty.Unit (Word.Vector X (S d))
+                             (Word.Vector X (S d)) term
+                             (@jet_sha256_count_assertion.AC.iden (Word.Vector X (S d)) term)))
+                       (@jet_buffer_empty_spec.buffer_empty_spec X d (Ty.Prod Ty.Unit (Word.Vector X (S d))) term)))
+                 (@jet_sha256_count_assertion.AC.injl (Ty.Prod (Word.Vector X (S d)) (Word.Vector X (S d)))
+                    (Ty.Prod (Word.Vector X (S d)) (Word.Vector X (S d)))
+                    (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) term
+                    (@jet_sha256_count_assertion.AC.iden (Ty.Prod (Word.Vector X (S d)) (Word.Vector X (S d))) term))))
+           (@jet_sha256_count_assertion.AC.injr
+              (Ty.Prod (jet_buffer_empty_spec.buffer_type X d) (Ty.Sum Ty.Unit (Word.Vector X (S d))))
+              (Ty.Prod (Word.Vector X (S d)) (Word.Vector X (S d)))
+              (Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d)) term
+              (@jet_sha256_count_assertion.AC.pair
+                 (Ty.Prod (jet_buffer_empty_spec.buffer_type X d) (Ty.Sum Ty.Unit (Word.Vector X (S d))))
+                 (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d) term
+                 (@jet_sha256_count_assertion.AC.drop (jet_buffer_empty_spec.buffer_type X d)
+                    (Ty.Sum Ty.Unit (Word.Vector X (S d))) (Ty.Sum Ty.Unit (Word.Vector X (S d))) term
+                    (@jet_sha256_count_assertion.AC.iden (Ty.Sum Ty.Unit (Word.Vector X (S d))) term))
+                 (@jet_sha256_count_assertion.AC.take (jet_buffer_empty_spec.buffer_type X d)
+                    (Ty.Sum Ty.Unit (Word.Vector X (S d))) (jet_buffer_empty_spec.buffer_type X d) term
+                    (@jet_sha256_count_assertion.AC.iden (jet_buffer_empty_spec.buffer_type X d) term)))))
+  end
+     : forall (X : Ty.Ty) (depth : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (jet_buffer_empty_spec.buffer_type X depth) X)
+         (Ty.Sum (Word.Vector X (S depth)) (jet_buffer_empty_spec.buffer_type X depth))
+
+Arguments buffer_snoc_spec X%ty_scope depth%nat_scope {term}
+### C.jet_sha_ctx8_spec.ctx8_buf
+ctx8_buf = jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))
+     : Ty.Ty
+### C.jet_sha_ctx8_spec.ctx8_tail
+ctx8_tail = Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     : Ty.Ty
+### C.jet_sha_ctx8_spec.ctx8_add1_snoc
+ctx8_add1_snoc =
+fun term : Alg.Core.Algebra =>
+@jet_sha256_count_assertion.AC.pair
+  (Ty.Prod
+     (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Word.Word (S (S (S O)))))
+  (Ty.Sum (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S (S O)))))))
+     (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+  (@jet_sha256_count_assertion.AC.comp
+     (Ty.Prod
+        (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Word.Word (S (S (S O)))))
+     (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Word.Word (S (S (S O)))))
+     (Ty.Sum (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S (S O)))))))
+        (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) term
+     (@jet_sha256_count_assertion.AC.pair
+        (Ty.Prod
+           (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S O)))))
+        (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Word.Word (S (S (S O)))) term
+        (@jet_sha256_count_assertion.AC.take
+           (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S O))))
+           (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) term
+           (@jet_sha256_count_assertion.AC.take
+              (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) term
+              (@jet_sha256_count_assertion.AC.iden
+                 (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) term)))
+        (@jet_sha256_count_assertion.AC.drop
+           (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S O)))) (Word.Word (S (S (S O)))) term
+           (@jet_sha256_count_assertion.AC.iden (Word.Word (S (S (S O)))) term)))
+     (@buffer_snoc_spec (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) term))
+  (@jet_sha256_count_assertion.AC.take
+     (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Word.Word (S (S (S O))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+     (@jet_sha256_count_assertion.AC.drop
+        (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term
+        (@jet_sha256_count_assertion.AC.iden
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) term)))
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+         (Ty.Prod (Ty.Sum (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) ctx8_buf) ctx8_tail)
+
+Arguments ctx8_add1_snoc {term}
+### C.jet_sha_ctx8_spec.ctx8_add1_full
+ctx8_add1_full =
+fun term : Alg.Assertion.Algebra =>
+@jet_sha256_count_assertion.AC.pair
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+     (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+  (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Alg.Assertion.toCore term)
+  (@jet_sha256_count_assertion.AC.comp
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))) Ty.Unit
+     (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) (Alg.Assertion.toCore term)
+     (@jet_sha256_count_assertion.AC.unit
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Alg.Assertion.toCore term))
+     (@jet_buffer_empty_spec.buffer_empty_spec (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) Ty.Unit
+        (Alg.Assertion.toCore term)))
+  (@jet_sha256_count_assertion.AC.pair
+     (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+     (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Alg.Assertion.toCore term)
+     (@jet_sha256_count_assertion.AC.drop (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (Word.Word (S (S (S (S (S (S O))))))) (Alg.Assertion.toCore term)
+        (@jet_sha256_count_assertion.AC.comp
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O))))))))
+           (Word.Word (S (S (S (S (S (S O))))))) (Alg.Assertion.toCore term)
+           (@jet_sha256_count_assertion.AC.take (Word.Word (S (S (S (S (S (S O)))))))
+              (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word (S (S (S (S (S (S O)))))))) (Alg.Assertion.toCore term)
+              (@jet_increment_spec.increment_word_spec (Alg.Assertion.toCore term) (S (S (S (S (S (S O))))))))
+           (@Alg.Assertion.Combinators.assertl Ty.Unit Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+              (Word.Word (S (S (S (S (S (S O))))))) term
+              (@jet_sha256_count_assertion.AC.drop Ty.Unit (Word.Word (S (S (S (S (S (S O)))))))
+                 (Word.Word (S (S (S (S (S (S O))))))) (Alg.Assertion.toCore term)
+                 (@jet_sha256_count_assertion.AC.iden (Word.Word (S (S (S (S (S (S O))))))) (Alg.Assertion.toCore term)))
+              jet_assertion_spec.assertion_cmr_fail0)))
+     (@jet_sha256_count_assertion.AC.comp
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))))
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Alg.Assertion.toCore term)
+        (@jet_sha256_count_assertion.AC.pair
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+           (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+           (Alg.Assertion.toCore term)
+           (@jet_sha256_count_assertion.AC.drop (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Alg.Assertion.toCore term)
+              (@jet_sha256_count_assertion.AC.drop (Word.Word (S (S (S (S (S (S O)))))))
+                 (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                 (Alg.Assertion.toCore term)
+                 (@jet_sha256_count_assertion.AC.iden (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+                    (Alg.Assertion.toCore term))))
+           (@jet_sha256_count_assertion.AC.take (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+              (Ty.Prod (Word.Word (S (S (S (S (S (S O))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+              (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) (Alg.Assertion.toCore term)
+              (@jet_sha256_count_assertion.AC.iden (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+                 (Alg.Assertion.toCore term)))) (@SHA256.hashBlock (Alg.Assertion.toCore term))))
+     : forall term : Alg.Assertion.Algebra,
+       Alg.Assertion.domain term (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) ctx8_tail)
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type
+
+Arguments ctx8_add1_full {term}
+### C.jet_sha_ctx8_spec.ctx8_add1_spec
+ctx8_add1_spec =
+fun term : Alg.Assertion.Algebra =>
+@jet_sha256_count_assertion.AC.comp (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+  (Ty.Prod (Ty.Sum (Word.Word (S (S (S (S (S (S (S (S (S O)))))))))) ctx8_buf) ctx8_tail)
+  jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term) (@ctx8_add1_snoc (Alg.Assertion.toCore term))
+  (@jet_sha256_count_assertion.AC.comp
+     (Ty.Prod
+        (Ty.Sum (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+           (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))) ctx8_tail)
+     jet_sha256_ctx8_init_spec.sha256_ctx8_type jet_sha256_ctx8_init_spec.sha256_ctx8_type
+     (Alg.Assertion.toCore term)
+     (@jet_sha256_count_assertion.AC.case (Word.Word (S (S (S (S (S (S (S (S (S O))))))))))
+        (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) ctx8_tail
+        jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term) (@ctx8_add1_full term)
+        (@jet_sha256_count_assertion.AC.iden
+           (Ty.Prod (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) ctx8_tail)
+           (Alg.Assertion.toCore term)))
+     (@jet_sha256_count_assertion.AC.comp jet_sha256_ctx8_init_spec.sha256_ctx8_type
+        (Ty.Prod Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type) jet_sha256_ctx8_init_spec.sha256_ctx8_type
+        (Alg.Assertion.toCore term)
+        (@jet_sha256_count_assertion.AC.pair jet_sha256_ctx8_init_spec.sha256_ctx8_type Ty.Unit
+           jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+           (@jet_sha256_count_assertion.sha256_count_assertion_spec term)
+           (@jet_sha256_count_assertion.AC.iden jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)))
+        (@jet_sha256_count_assertion.AC.drop Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+           (@jet_sha256_count_assertion.AC.iden jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)))))
+     : forall term : Alg.Assertion.Algebra,
+       Alg.Assertion.domain term (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S O)))))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type
+
+Arguments ctx8_add1_spec {term}
+### C.jet_sha_ctx8_spec.ctx8_limit
+ctx8_limit =
+BinNums.Zpos
+  (BinNums.xO
+     (BinNums.xO
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+     : BinNums.Z
+### C.jet_sha_ctx8_spec.ctx8_add1_model
+ctx8_add1_model =
+fun (c : Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type) (x : Ty.tySem (Word.Word (S (S (S O))))) =>
+match c return (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)) with
+| pair buf t =>
+    match t return (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)) with
+    | pair count h =>
+        match
+          @buffer_snoc_spec (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) Alg.CoreFunSem
+            (@pair
+               (prod
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+                  ((fix tySem (X : Ty.Ty) : Set :=
+                      match X return Set with
+                      | Ty.Unit => unit
+                      | Ty.Sum A B => sum (tySem A) (tySem B)
+                      | Ty.Prod A B => prod (tySem A) (tySem B)
+                      end)
+                     ((fix buffer_type (X : Ty.Ty) (depth : nat) {struct depth} : Ty.Ty :=
+                         match depth return Ty.Ty with
+                         | O => Ty.Sum Ty.Unit X
+                         | S d => Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (buffer_type X d)
+                         end) (Word.Word (S (S (S O)))) (S (S (S (S O))))))) (Ty.tySem (Word.Word (S (S (S O))))) buf x)
+          return (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+        with
+        | inl blk =>
+            match
+              BinInt.Z.ltb
+                (BinInt.Z.add (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count)
+                   (BinNums.Zpos BinNums.xH)) ctx8_limit
+              return (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+            with
+            | true =>
+                @Some
+                  (prod (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                     (prod (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                  (@pair (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                     (prod (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+                     (jet_buffer_empty_spec.buffer_empty_value (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))
+                     (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+                           (BinInt.Z.add (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count)
+                              (BinNums.Zpos BinNums.xH)))
+                        (@SHA256.hashBlock Alg.CoreFunSem
+                           (@pair
+                              (prod
+                                 ((fix tySem (X : Ty.Ty) : Set :=
+                                     match X return Set with
+                                     | Ty.Unit => unit
+                                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                                     end)
+                                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                        match n return Ty.Ty with
+                                        | O => X
+                                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                                 ((fix tySem (X : Ty.Ty) : Set :=
+                                     match X return Set with
+                                     | Ty.Unit => unit
+                                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                                     end)
+                                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                        match n return Ty.Ty with
+                                        | O => X
+                                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                        end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))
+                              (prod
+                                 ((fix tySem (X : Ty.Ty) : Set :=
+                                     match X return Set with
+                                     | Ty.Unit => unit
+                                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                                     end)
+                                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                        match n return Ty.Ty with
+                                        | O => X
+                                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                        end) (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                                 ((fix tySem (X : Ty.Ty) : Set :=
+                                     match X return Set with
+                                     | Ty.Unit => unit
+                                     | Ty.Sum A B => sum (tySem A) (tySem B)
+                                     | Ty.Prod A B => prod (tySem A) (tySem B)
+                                     end)
+                                    ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                        match n return Ty.Ty with
+                                        | O => X
+                                        | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                        end) (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))) h blk))))
+            | false => @None (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+            end
+        | inr buf' =>
+            match
+              BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count) ctx8_limit
+              return (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type))
+            with
+            | true =>
+                @Some
+                  (prod
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix buffer_type (X : Ty.Ty) (depth : nat) {struct depth} : Ty.Ty :=
+                               match depth return Ty.Ty with
+                               | O => Ty.Sum Ty.Unit X
+                               | S d => Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (buffer_type X d)
+                               end) (Word.Word (S (S (S O)))) (S (S (S (S O)))))))
+                     (prod
+                        (prod
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))))))
+                        (prod
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))))
+                  (@pair
+                     (prod
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end) (Ty.Sum Ty.Unit (Word.Vector (Word.Word (S (S (S O)))) (S (S (S (S (S O))))))))
+                        ((fix tySem (X : Ty.Ty) : Set :=
+                            match X return Set with
+                            | Ty.Unit => unit
+                            | Ty.Sum A B => sum (tySem A) (tySem B)
+                            | Ty.Prod A B => prod (tySem A) (tySem B)
+                            end)
+                           ((fix buffer_type (X : Ty.Ty) (depth : nat) {struct depth} : Ty.Ty :=
+                               match depth return Ty.Ty with
+                               | O => Ty.Sum Ty.Unit X
+                               | S d => Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (buffer_type X d)
+                               end) (Word.Word (S (S (S O)))) (S (S (S (S O)))))))
+                     (prod
+                        (prod
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))))))
+                        (prod
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O))))))))))) buf'
+                     (@pair
+                        (prod
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))))
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))))))
+                        (prod
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))
+                           ((fix tySem (X : Ty.Ty) : Set :=
+                               match X return Set with
+                               | Ty.Unit => unit
+                               | Ty.Sum A B => sum (tySem A) (tySem B)
+                               | Ty.Prod A B => prod (tySem A) (tySem B)
+                               end)
+                              ((fix Vector (X : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                                  match n return Ty.Ty with
+                                  | O => X
+                                  | S n0 => Ty.Prod (Vector X n0) (Vector X n0)
+                                  end) (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S (S (S O)))))))))) count h))
+            | false => @None (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+            end
+        end
+    end
+end
+     : forall (_ : Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type) (_ : Ty.tySem (Word.Word (S (S (S O))))),
+       option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+
+Arguments ctx8_add1_model c x
+### C.jet_sha_ctx8_spec.ctx8_addn_spec
+ctx8_addn_spec =
+fix ctx8_addn_spec (n : nat) (term : Alg.Assertion.Algebra) {struct n} :
+    Alg.Assertion.domain term
+      (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n))
+      jet_sha256_ctx8_init_spec.sha256_ctx8_type :=
+  match
+    n as n0
+    return
+      (Alg.Assertion.domain term
+         (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n0))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+  with
+  | O => @ctx8_add1_spec term
+  | S n0 =>
+      @jet_sha256_count_assertion.AC.comp
+        (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) n0) (Word.Vector (Word.Word (S (S (S O)))) n0)))
+        (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n0))
+        jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+        (@jet_sha256_count_assertion.AC.pair
+           (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+              (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) n0) (Word.Vector (Word.Word (S (S (S O)))) n0)))
+           jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n0)
+           (Alg.Assertion.toCore term)
+           (@jet_sha256_count_assertion.AC.comp
+              (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                 (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) n0) (Word.Vector (Word.Word (S (S (S O)))) n0)))
+              (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n0))
+              jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+              (@jet_sha256_count_assertion.AC.pair
+                 (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                    (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) n0) (Word.Vector (Word.Word (S (S (S O)))) n0)))
+                 jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n0)
+                 (Alg.Assertion.toCore term)
+                 (@jet_sha256_count_assertion.AC.take jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                    (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) n0) (Word.Vector (Word.Word (S (S (S O)))) n0))
+                    jet_sha256_ctx8_init_spec.sha256_ctx8_type (Alg.Assertion.toCore term)
+                    (@jet_sha256_count_assertion.AC.iden jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                       (Alg.Assertion.toCore term)))
+                 (@jet_sha256_count_assertion.AC.drop jet_sha256_ctx8_init_spec.sha256_ctx8_type
+                    (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) n0) (Word.Vector (Word.Word (S (S (S O)))) n0))
+                    (Word.Vector (Word.Word (S (S (S O)))) n0) (Alg.Assertion.toCore term)
+                    (@jet_sha256_count_assertion.AC.take (Word.Vector (Word.Word (S (S (S O)))) n0)
+                       (Word.Vector (Word.Word (S (S (S O)))) n0) (Word.Vector (Word.Word (S (S (S O)))) n0)
+                       (Alg.Assertion.toCore term)
+                       (@jet_sha256_count_assertion.AC.iden (Word.Vector (Word.Word (S (S (S O)))) n0)
+                          (Alg.Assertion.toCore term))))) (ctx8_addn_spec n0 term))
+           (@jet_sha256_count_assertion.AC.drop jet_sha256_ctx8_init_spec.sha256_ctx8_type
+              (Ty.Prod (Word.Vector (Word.Word (S (S (S O)))) n0) (Word.Vector (Word.Word (S (S (S O)))) n0))
+              (Word.Vector (Word.Word (S (S (S O)))) n0) (Alg.Assertion.toCore term)
+              (@jet_sha256_count_assertion.AC.drop (Word.Vector (Word.Word (S (S (S O)))) n0)
+                 (Word.Vector (Word.Word (S (S (S O)))) n0) (Word.Vector (Word.Word (S (S (S O)))) n0)
+                 (Alg.Assertion.toCore term)
+                 (@jet_sha256_count_assertion.AC.iden (Word.Vector (Word.Word (S (S (S O)))) n0)
+                    (Alg.Assertion.toCore term))))) (ctx8_addn_spec n0 term)
+  end
+     : forall (n : nat) (term : Alg.Assertion.Algebra),
+       Alg.Assertion.domain term
+         (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) n))
+         jet_sha256_ctx8_init_spec.sha256_ctx8_type
+
+Arguments ctx8_addn_spec n%nat_scope {term}
+### C.jet_sha_ctx8_spec.ctx8_add_list
+ctx8_add_list =
+fix ctx8_add_list
+  (c : Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type) (l : list (Ty.tySem (Word.Word (S (S (S O)))))) {struct l} :
+    option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type) :=
+  match l return (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)) with
+  | nil => @Some (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type) c
+  | cons x l0 =>
+      match ctx8_add1_model c x return (option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)) with
+      | Some c' => ctx8_add_list c' l0
+      | None => @None (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+      end
+  end
+     : forall (_ : Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type) (_ : list (Ty.tySem (Word.Word (S (S (S O)))))),
+       option (Ty.tySem jet_sha256_ctx8_init_spec.sha256_ctx8_type)
+
+Arguments ctx8_add_list c l%list_scope

@@ -1,0 +1,30 @@
+### C.jet_secp_point_weak_loads.point_weak_bounds_positioned
+point_weak_bounds_positioned
+     : forall (rho : forall _ : nat, Integers.Int64.int)
+         (_ : forall n : nat,
+              and
+                (BinInt.Z.le (@fst BinNums.Z BinNums.Z (jet_secp_point_weak_values.point_weak_bounds n))
+                   (Integers.Int64.unsigned (rho n)))
+                (BinInt.Z.le (Integers.Int64.unsigned (rho n))
+                   (@snd BinNums.Z BinNums.Z (jet_secp_point_weak_values.point_weak_bounds n)))),
+       jet_secp_fe_math.fe_limbs_ok (Integers.Int64.unsigned (rho (S O))) (Integers.Int64.unsigned (rho (S (S O))))
+         (Integers.Int64.unsigned (rho (S (S (S O))))) (Integers.Int64.unsigned (rho (S (S (S (S O))))))
+         (Integers.Int64.unsigned (rho (S (S (S (S (S O)))))))
+### C.jet_secp_point_weak_loads.point_weak_rep_preserved_loads
+point_weak_rep_preserved_loads
+     : forall (k : jet_secp_point_write_run.point_coordinate) (m : Memory.Mem.mem) (layout : jet_sx_state.layout)
+         (rho : forall _ : nat, Integers.Int64.int)
+         (_ : forall n : nat,
+              and
+                (BinInt.Z.le (@fst BinNums.Z BinNums.Z (jet_secp_point_weak_values.point_weak_bounds n))
+                   (Integers.Int64.unsigned (rho n)))
+                (BinInt.Z.le (Integers.Int64.unsigned (rho n))
+                   (@snd BinNums.Z BinNums.Z (jet_secp_point_weak_values.point_weak_bounds n))))
+         (_ : jet_sx_state.rep rho layout (jet_sx_eval.sregs (jet_secp_point_weak_exec.point_weak_state k)) m)
+         (n : nat) (_ : lt n (S (S (S (S (S O)))))),
+       @eq (option Values.val)
+         (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk layout O)
+            (BinInt.Z.add (jet_sx_state.bas layout O)
+               (BinInt.Z.add (jet_secp_point_write_run.point_coordinate_offset k)
+                  (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat n)))))
+         (@Some Values.val (Values.Vlong (rho (S n))))

@@ -1,0 +1,125 @@
+### C.jet_elements_current_spec.elements_assert_sem
+@elements_assert_sem
+     : forall (A B : Ty.Ty)
+         (t : forall (_ : Ty.tySem A) (_ : jet_elements_prim.Elements.env), option (Ty.tySem (Ty.Sum Ty.Unit B)))
+         (a : Ty.tySem A) (env : jet_elements_prim.Elements.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (@elements_assert_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) A B t a
+            env)
+         match
+           t a env return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         with
+         | Some t0 =>
+             match
+               t0 return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+             with
+             | inl _ => @None (Ty.tySem B)
+             | inr b =>
+                 @Some
+                   ((fix tySem (X : Ty.Ty) : Set :=
+                       match X return Set with
+                       | Ty.Unit => unit
+                       | Ty.Sum A0 B0 => sum (tySem A0) (tySem B0)
+                       | Ty.Prod A0 B0 => prod (tySem A0) (tySem B0)
+                       end) B) b
+             end
+         | None => @None (Ty.tySem B)
+         end
+### C.jet_elements_current_spec.elements_comp_sem
+@elements_comp_sem
+     : forall (A B C : Ty.Ty) (p : forall (_ : Ty.tySem A) (_ : jet_elements_prim.Elements.env), option (Ty.tySem B))
+         (q : forall (_ : Ty.tySem B) (_ : jet_elements_prim.Elements.env), option (Ty.tySem C))
+         (a : Ty.tySem A) (env : jet_elements_prim.Elements.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem C))
+         (@elements_comp
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) A B C p q
+            a env)
+         match
+           p a env return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem C))
+         with
+         | Some b => q b env
+         | None => @None (Ty.tySem C)
+         end
+### C.jet_elements_current_spec.elements_ix_word
+elements_ix_word
+     : forall environment : jet_elements_prim.Elements.env,
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O))))))
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+               (BinInt.Z.of_nat (jet_elements_prim.Elements.envIx environment))))
+         (BinInt.Z.of_nat (jet_elements_prim.Elements.envIx environment))
+### C.jet_elements_current_spec.elements_current_sem
+@elements_current_sem
+     : forall (B : Ty.Ty)
+         (t : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (_ : jet_elements_prim.Elements.env),
+              option (Ty.tySem (Ty.Sum Ty.Unit B))) (f : forall _ : jet_elements_prim.sigTxInput, Ty.tySem B)
+         (_ : forall (a : Ty.tySem (Word.Word (S (S (S (S (S O))))))) (e : jet_elements_prim.Elements.env),
+              @eq (option (Ty.tySem (Ty.Sum Ty.Unit B))) (t a e)
+                (@Some (sum unit (Ty.tySem B))
+                   match
+                     @List.nth_error jet_elements_prim.sigTxInput
+                       (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx e))
+                       (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) a))
+                     return (sum unit (Ty.tySem B))
+                   with
+                   | Some txi => @inr unit (Ty.tySem B) (f txi)
+                   | None => @inl unit (Ty.tySem B) tt
+                   end)) (environment : jet_elements_prim.Elements.env),
+       @ex jet_elements_prim.sigTxInput
+         (fun txi : jet_elements_prim.sigTxInput =>
+          and
+            (@eq (option jet_elements_prim.sigTxInput)
+               (@List.nth_error jet_elements_prim.sigTxInput
+                  (jet_elements_prim.sigTxIn (jet_elements_prim.Elements.envTx environment))
+                  (jet_elements_prim.Elements.envIx environment)) (@Some jet_elements_prim.sigTxInput txi))
+            (@eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+               (@elements_current_spec
+                  (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) B t
+                  tt environment) (@Some (Ty.tySem B) (f txi))))
+### C.jet_elements_current_spec.elements_assert_spec
+elements_assert_spec =
+fun (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) (A B : Ty.Ty)
+  (t : jet_elements_prim.PrimitiveElements.Primitive.domain alg A (Ty.Sum Ty.Unit B)) =>
+@Alg.Core.Combinators.comp A (Ty.Prod (Ty.Sum Ty.Unit B) Ty.Unit) B
+  (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore alg)
+  (@Alg.Core.Combinators.pair A (Ty.Sum Ty.Unit B) Ty.Unit
+     (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore alg) t
+     (@Alg.Core.Combinators.unit A (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore alg)))
+  (@Alg.Assertion.Combinators.assertr Ty.Unit B Ty.Unit B
+     (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toAssertion alg)
+     jet_assertion_spec.assertion_cmr_fail0
+     (@Alg.Core.Combinators.take B Ty.Unit B
+        (Alg.Assertion.toCore (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toAssertion alg))
+        (@Alg.Core.Combinators.iden B
+           (Alg.Assertion.toCore (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toAssertion alg)))))
+     : forall (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) (A B : Ty.Ty)
+         (_ : jet_elements_prim.PrimitiveElements.Primitive.domain alg A (Ty.Sum Ty.Unit B)),
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg A B
+
+Arguments elements_assert_spec {alg} {A B}%ty_scope t
+### C.jet_elements_current_spec.elements_comp
+elements_comp =
+fun (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) (A B C : Ty.Ty)
+  (p : jet_elements_prim.PrimitiveElements.Primitive.domain alg A B)
+  (q : jet_elements_prim.PrimitiveElements.Primitive.domain alg B C) =>
+@Alg.Core.Combinators.comp A B C (jet_elements_prim.PrimitiveElements.Primitive.CanonicalStructures.toCore alg) p q
+     : forall (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) (A B C : Ty.Ty)
+         (_ : jet_elements_prim.PrimitiveElements.Primitive.domain alg A B)
+         (_ : jet_elements_prim.PrimitiveElements.Primitive.domain alg B C),
+       jet_elements_prim.PrimitiveElements.Primitive.domain alg A C
+
+Arguments elements_comp {alg} {A B C}%ty_scope p q
+### C.jet_elements_current_spec.elements_current_spec
+elements_current_spec =
+fun (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) (B : Ty.Ty)
+  (p : jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O)))))) (Ty.Sum Ty.Unit B))
+=>
+@elements_comp alg Ty.Unit (Word.Word (S (S (S (S (S O)))))) B
+  (@jet_elements_prim.PrimitiveElements.Primitive.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+     jet_elements_prim.Elements.CurrentIndex) (@elements_assert_spec alg (Word.Word (S (S (S (S (S O)))))) B p)
+     : forall (alg : jet_elements_prim.PrimitiveElements.Primitive.Algebra) (B : Ty.Ty)
+         (_ : jet_elements_prim.PrimitiveElements.Primitive.domain alg (Word.Word (S (S (S (S (S O))))))
+                (Ty.Sum Ty.Unit B)), jet_elements_prim.PrimitiveElements.Primitive.domain alg Ty.Unit B
+
+Arguments elements_current_spec {alg} {B}%ty_scope p

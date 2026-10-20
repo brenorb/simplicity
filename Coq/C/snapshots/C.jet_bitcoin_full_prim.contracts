@@ -1,0 +1,116 @@
+### C.jet_bitcoin_full_prim.fx_comp
+@fx_comp
+     : forall (A B C : Ty.Ty)
+         (s : Alg.Core.domain
+                (Alg.Assertion.toCore
+                   (PF.CanonicalStructures.toAssertion
+                      (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))) A B)
+         (t : Alg.Core.domain
+                (Alg.Assertion.toCore
+                   (PF.CanonicalStructures.toAssertion
+                      (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))) B C)
+         (a : Ty.tySem A) (e : BitcoinFull.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem C))
+         (@jet_buffer_empty_spec.AC.comp A B C
+            (Alg.Assertion.toCore
+               (PF.CanonicalStructures.toAssertion
+                  (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))) s t a e)
+         match
+           s a e return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem C))
+         with
+         | Some b => t b e
+         | None => @None (Ty.tySem C)
+         end
+### C.jet_bitcoin_full_prim.fx_pair
+@fx_pair
+     : forall (A B C : Ty.Ty)
+         (s : Alg.Core.domain
+                (Alg.Assertion.toCore
+                   (PF.CanonicalStructures.toAssertion
+                      (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))) A B)
+         (t : Alg.Core.domain
+                (Alg.Assertion.toCore
+                   (PF.CanonicalStructures.toAssertion
+                      (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))) A C)
+         (a : Ty.tySem A) (e : BitcoinFull.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+         (@jet_buffer_empty_spec.AC.pair A B C
+            (Alg.Assertion.toCore
+               (PF.CanonicalStructures.toAssertion
+                  (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))) s t a e)
+         match
+           s a e
+           return (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+         with
+         | Some b =>
+             match
+               t a e
+               return
+                 (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem (Ty.Prod B C)))
+             with
+             | Some c => @Some (prod (Ty.tySem B) (Ty.tySem C)) (@pair (Ty.tySem B) (Ty.tySem C) b c)
+             | None => @None (Ty.tySem (Ty.Prod B C))
+             end
+         | None => @None (Ty.tySem (Ty.Prod B C))
+         end
+### C.jet_bitcoin_full_prim.fx_prim
+@fx_prim
+     : forall (A B : Ty.Ty) (p : BitcoinFull.t A B) (a : Ty.tySem A) (e : BitcoinFull.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (@PF.Combinators.prim A B (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) p
+            a e) (@BitcoinFull.sem A B p a e)
+### C.jet_bitcoin_full_prim.fx_assert
+@fx_assert
+     : forall (A B : Ty.Ty) (t : forall alg : Alg.Assertion.Algebra, Alg.Assertion.domain alg A B)
+         (_ : @Alg.Assertion.Parametric A B t) (a : Ty.tySem A) (e : BitcoinFull.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (t
+            (PF.CanonicalStructures.toAssertion
+               (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero)) a e)
+         (t (Alg.AssertionSem Option.option_Monad_Zero) a)
+### C.jet_bitcoin_full_prim.fx_core
+@fx_core
+     : forall (A B : Ty.Ty) (t : forall alg : Alg.Core.Algebra, Alg.Core.domain alg A B)
+         (_ : @Alg.Core.Parametric A B t) (a : Ty.tySem A) (e : BitcoinFull.env),
+       @eq (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero) (Ty.tySem B))
+         (t
+            (Alg.Assertion.toCore
+               (PF.CanonicalStructures.toAssertion
+                  (PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero))) a e)
+         (@Some (Ty.tySem B) (t Alg.CoreFunSem a))
+### C.jet_bitcoin_full_prim.BitcoinFull.prim
+Inductive prim : forall (_ : Ty.Ty) (_ : Ty.Ty), Set :=
+    Base : forall (A B : Ty.Ty) (_ : Bitcoin.Bitcoin.prim A B), BitcoinFull.prim A B
+  | Ext : forall (A B : Ty.Ty) (_ : jet_bitcoin_ext_prim.BitcoinExt.prim A B), BitcoinFull.prim A B.
+
+Arguments BitcoinFull.prim (_ _)%ty_scope
+Arguments BitcoinFull.Base {A B}%ty_scope _
+Arguments BitcoinFull.Ext {A B}%ty_scope _
+### C.jet_bitcoin_full_prim.BitcoinFull.t
+BitcoinFull.t = BitcoinFull.prim
+     : forall (_ : Ty.Ty) (_ : Ty.Ty), Set
+
+Arguments BitcoinFull.t (_ _)%ty_scope
+### C.jet_bitcoin_full_prim.BitcoinFull.tag
+BitcoinFull.tag =
+fun (A B : Ty.Ty) (p : BitcoinFull.t A B) =>
+match p in (BitcoinFull.prim t t0) return Digest.hash256 with
+| @BitcoinFull.Base A0 B0 q => @Bitcoin.Bitcoin.tag A0 B0 q
+| @BitcoinFull.Ext A0 B0 q => @jet_bitcoin_ext_prim.BitcoinExt.tag A0 B0 q
+end
+     : forall (A B : Ty.Ty) (_ : BitcoinFull.t A B), Digest.hash256
+
+Arguments BitcoinFull.tag {A B}%ty_scope p
+### C.jet_bitcoin_full_prim.BitcoinFull.env
+BitcoinFull.env = jet_bitcoin_ext_prim.ext_environment
+     : Set
+### C.jet_bitcoin_full_prim.BitcoinFull.sem
+BitcoinFull.sem =
+fun (A B : Ty.Ty) (p : BitcoinFull.t A B) (a : Ty.tySem A) (e : BitcoinFull.env) =>
+match p in (BitcoinFull.prim A0 B0) return (forall _ : Ty.tySem A0, option (Ty.tySem B0)) with
+| @BitcoinFull.Base A0 B0 q => fun a0 : Ty.tySem A0 => @Bitcoin.Bitcoin.sem A0 B0 q a0 (jet_bitcoin_ext_prim.extBase e)
+| @BitcoinFull.Ext A0 B0 q => fun a0 : Ty.tySem A0 => @jet_bitcoin_ext_prim.BitcoinExt.sem A0 B0 q a0 e
+end a
+     : forall (A B : Ty.Ty) (_ : BitcoinFull.t A B) (_ : Ty.tySem A) (_ : BitcoinFull.env), option (Ty.tySem B)
+
+Arguments BitcoinFull.sem {A B}%ty_scope p a e

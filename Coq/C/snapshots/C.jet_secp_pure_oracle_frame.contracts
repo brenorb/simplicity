@@ -1,0 +1,50 @@
+### C.jet_secp_pure_oracle_frame.separated_external_not_foot
+separated_external_not_foot
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (regs : list jet_sx_state.region) (m : Memory.Mem.mem) (ext : forall _ : Values.block, Prop)
+         (b : Values.block) (ofs : BinNums.Z) (_ : jet_sx_state.rep rho layout regs m)
+         (_ : jet_sx_exec.xsep ext layout) (_ : ext b),
+       not
+         (jet_sx_state.foot layout
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape regs)
+            b ofs)
+### C.jet_secp_pure_oracle_frame.pure_frame_external
+pure_frame_external
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout)
+         (regs : list jet_sx_state.region) (m mf : Memory.Mem.mem) (ext : forall _ : Values.block, Prop)
+         (_ : jet_sx_state.rep rho layout regs m) (_ : jet_sx_exec.xsep ext layout)
+         (_ : jet_sx_mem.lframe (jet_sx_exec.frame (fun _ : Values.block => False) layout regs m) m mf),
+       jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => ext b) m mf
+### C.jet_secp_pure_oracle_frame.pure_oracle_frame_lift
+pure_oracle_frame_lift
+     : forall (ge : Clight.genv) (fd : Clight.function) (oracle : jet_sx_exec.oracle)
+         (evok : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event), Prop)
+         (inv : forall (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem), Prop)
+         (ext : forall _ : Values.block, Prop)
+         (_ : jet_sx_exec.oracle_ok ge (fun (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event) => True)
+                (fun (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem) => True)
+                (fun _ : Values.block => False) fd oracle)
+         (_ : forall (rho : forall _ : nat, Integers.Int64.int) (log : list jet_sx_eval.event)
+                (m mf : Memory.Mem.mem) (_ : inv rho log m)
+                (_ : jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => ext b) m mf),
+              inv rho log mf)
+         (_ : forall (base : nat) (xs : list jet_sx_expr.sx) (regs regs' : list jet_sx_state.region)
+                (v : option jet_sx_expr.sx) (tag cnt : nat) (args : list jet_sx_expr.sx) (log : list jet_sx_eval.event)
+                (_ : @eq
+                       (option
+                          (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                             (list jet_sx_expr.sx))) (oracle base log xs regs)
+                       (@Some
+                          (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                             (list jet_sx_expr.sx))
+                          (@pair (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                             (list jet_sx_expr.sx)
+                             (@pair (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat
+                                (@pair (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat
+                                   (@pair (list jet_sx_state.region) (option jet_sx_expr.sx) regs' v) tag) cnt) args)))
+                (rho : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) (_ : inv rho log m),
+              inv rho
+                (@app jet_sx_eval.event log
+                   (@cons jet_sx_eval.event (jet_sx_eval.mkev tag base cnt args) (@nil jet_sx_eval.event))) m),
+       jet_sx_exec.oracle_ok ge evok inv ext fd oracle

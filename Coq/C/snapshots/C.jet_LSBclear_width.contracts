@@ -1,0 +1,16 @@
+### C.jet_LSBclear_width.entry_clear_width_ge
+entry_clear_width_ge
+     : forall (ge : Clight.genv) (m : Memory.Mem.mem) (w : Integers.Int64.int) (n : BinNums.Z),
+       Clight.function_entry2 ge jets.f_LSBclear
+         (@cons Values.val (Values.Vlong w) (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))
+         m Clight.empty_env (le_clear_width w n) m
+### C.jet_LSBclear_width.eval_clear_width_ge
+eval_clear_width_ge
+     : forall (ge : Clight.genv) (m : Memory.Mem.mem) (w : Integers.Int64.int) (n : BinNums.Z)
+         (_ : and (BinInt.Z.le (BinNums.Zpos BinNums.xH) n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function jets.f_LSBclear)
+         (@cons Values.val (Values.Vlong w) (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))
+         Events.E0 m (Values.Vlong (jet_word_bits.clear_low n w))

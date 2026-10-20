@@ -1,0 +1,113 @@
+### C.jet_borrow_unary_word.unary_borrow_spec_parametric
+unary_borrow_spec_parametric
+     : forall (k : unary_borrow_op) (n : nat),
+       @Alg.Core.Parametric (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+         (fun term : Alg.Core.Algebra => @unary_borrow_spec k n term)
+### C.jet_borrow_unary_word.unary_borrow_spec_numeric
+unary_borrow_spec_numeric
+     : forall (k : unary_borrow_op) (n : nat) (x : Ty.tySem (Word.Word n)),
+       @eq BinNums.Z (jet_subtract_spec.borrow_word_balance n (@unary_borrow_spec k n Alg.CoreFunSem x))
+         (unary_borrow_delta k (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+### C.jet_borrow_unary_word.unary_borrow_representation_matches
+unary_borrow_representation_matches
+     : forall (k : unary_borrow_op) (n : nat) (x payload : Ty.tySem (Word.Word n))
+         (_ : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ n) payload)
+                (BinInt.Z.modulo (unary_borrow_delta k (@Word.ToZ.Theory.toZ (Word.WordToZ n) x))
+                   (jet_predicate_spec.word_modulus n))),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word n)))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word n))
+            match
+              BinInt.Z.ltb (unary_borrow_delta k (@Word.ToZ.Theory.toZ (Word.WordToZ n) x)) BinNums.Z0
+              return (sum unit unit)
+            with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end payload) (@unary_borrow_spec k n Alg.CoreFunSem x)
+### C.jet_borrow_unary_word.wide_unary_values_denote_input
+wide_unary_values_denote_input
+     : forall (k : unary_borrow_op) (s : jet_wide.wide_size) (x : Ty.tySem (Word.Word (jet_wide.wide_log s)))
+         (r : Integers.Int64.int)
+         (_ : @eq BinNums.Z (Integers.Int64.unsigned r) (@Word.ToZ.Theory.toZ (Word.WordToZ (jet_wide.wide_log s)) x)),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log s))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (jet_wide.wide_log s)))
+            match wide_unary_borrow k r return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end (jet_wide_spec.decode_wide s (Integers.Int64.zero_ext (jet_wide.wide_bits s) (wide_unary_payload k r))))
+         (@unary_borrow_spec k (jet_wide.wide_log s) Alg.CoreFunSem x)
+### C.jet_borrow_unary_word.unary8_values_denote_spec
+unary8_values_denote_spec
+     : forall (k : unary_borrow_op) (payload : Integers.Int64.int),
+       @eq (prod (sum unit unit) (Ty.tySem (Word.Word (S (S (S O))))))
+         (@pair (sum unit unit) (Ty.tySem (Word.Word (S (S (S O)))))
+            match unary8_borrow k (jet_read8.read8_result payload) return (sum unit unit) with
+            | true => @inr unit unit tt
+            | false => @inl unit unit tt
+            end
+            (jet_spec.decode_word8
+               (Integers.Int64.repr (Integers.Int.unsigned (unary8_payload k (jet_read8.read8_result payload))))))
+         (@unary_borrow_spec k (S (S (S O))) Alg.CoreFunSem (jet_spec.decode_word8 payload))
+### C.jet_borrow_unary_word.unary_borrow_op
+Inductive unary_borrow_op : Set :=  UNegate : unary_borrow_op | UDecrement : unary_borrow_op.
+### C.jet_borrow_unary_word.unary_borrow_spec
+unary_borrow_spec =
+fun (k : unary_borrow_op) (n : nat) (term : Alg.Core.Algebra) =>
+match k return (Alg.Core.domain term (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))) with
+| UNegate => @jet_subtract_spec.negate_word_spec term n
+| UDecrement => @jet_subtract_spec.decrement_word_spec term n
+end
+     : forall (_ : unary_borrow_op) (n : nat) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Word.Word n) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Word.Word n))
+
+Arguments unary_borrow_spec k n%nat_scope {term}
+### C.jet_borrow_unary_word.unary_borrow_delta
+unary_borrow_delta =
+fun (k : unary_borrow_op) (a : BinNums.Z) =>
+match k return BinNums.Z with
+| UNegate => BinInt.Z.opp a
+| UDecrement => BinInt.Z.sub a (BinNums.Zpos BinNums.xH)
+end
+     : forall (_ : unary_borrow_op) (_ : BinNums.Z), BinNums.Z
+
+Arguments unary_borrow_delta k a%Z_scope
+### C.jet_borrow_unary_word.wide_unary_borrow
+wide_unary_borrow =
+fun (k : unary_borrow_op) (r : Integers.Int64.int) =>
+match k return bool with
+| UNegate => negb (Integers.Int64.eq r Integers.Int64.zero)
+| UDecrement => Integers.Int64.ltu r Integers.Int64.one
+end
+     : forall (_ : unary_borrow_op) (_ : Integers.Int64.int), bool
+
+Arguments wide_unary_borrow k r
+### C.jet_borrow_unary_word.wide_unary_payload
+wide_unary_payload =
+fun (k : unary_borrow_op) (r : Integers.Int64.int) =>
+match k return Integers.Int64.int with
+| UNegate => Integers.Int64.neg r
+| UDecrement => Integers.Int64.sub r Integers.Int64.one
+end
+     : forall (_ : unary_borrow_op) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments wide_unary_payload k r
+### C.jet_borrow_unary_word.unary8_borrow
+unary8_borrow =
+fun (k : unary_borrow_op) (r : Integers.Int.int) =>
+match k return bool with
+| UNegate => negb (Integers.Int.eq (jet_add8.add8_u r) Integers.Int.zero)
+| UDecrement => Integers.Int.lt (jet_add8.add8_u r) Integers.Int.one
+end
+     : forall (_ : unary_borrow_op) (_ : Integers.Int.int), bool
+
+Arguments unary8_borrow k r
+### C.jet_borrow_unary_word.unary8_payload
+unary8_payload =
+fun (k : unary_borrow_op) (r : Integers.Int.int) =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+  match k return Integers.Int.int with
+  | UNegate => Integers.Int.neg (Integers.Int.mul Integers.Int.one (jet_add8.add8_u r))
+  | UDecrement => Integers.Int.sub (Integers.Int.mul Integers.Int.one (jet_add8.add8_u r)) Integers.Int.one
+  end
+     : forall (_ : unary_borrow_op) (_ : Integers.Int.int), Integers.Int.int
+
+Arguments unary8_payload k r

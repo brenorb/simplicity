@@ -1,0 +1,67 @@
+### C.jet_secp_point_read_values.point_shift_eqb
+point_shift_eqb
+     : forall delta a b : BinNums.Z,
+       @eq bool (BinInt.Z.eqb (BinInt.Z.add delta a) (BinInt.Z.add delta b)) (BinInt.Z.eqb a b)
+### C.jet_secp_point_read_values.point_shift_zreg_checked
+point_shift_zreg_checked
+     : forall (bnd : forall _ : nat, prod BinNums.Z BinNums.Z) (delta : BinNums.Z) (cs : list jet_sx_state.cell)
+         (ofs : BinNums.Z),
+       @eq bool
+         (jet_sx_zrep.zreg_okb bnd (BinInt.Z.add delta ofs)
+            (@List.map jet_sx_state.cell jet_sx_state.cell (point_shift_cell delta) cs))
+         (jet_sx_zrep.zreg_okb bnd ofs cs)
+### C.jet_secp_point_read_values.point_shift_zcells
+point_shift_zcells
+     : forall (rho : forall _ : nat, BinNums.Z) (delta : BinNums.Z) (cs : list jet_sx_state.cell),
+       @eq (list BinNums.Z)
+         (jet_sx_zrep.zcells rho (@List.map jet_sx_state.cell jet_sx_state.cell (point_shift_cell delta) cs))
+         (jet_sx_zrep.zcells rho cs)
+### C.jet_secp_point_read_values.point_read_selected_cells
+point_read_selected_cells
+     : forall (k : jet_secp_point_write_run.point_coordinate) (bi : Values.block) (edge : Integers.Ptrofs.int)
+         (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (list jet_sx_state.cell)
+         (jet_secp_fe_nv.cells0
+            (@fst jet_sx_eval.sstate jet_sx_exec.xout
+               (jet_sx_exec.rsel rho layout (jet_secp_point_read_run.point_read_result k bi edge))))
+         (@List.map jet_sx_state.cell jet_sx_state.cell
+            (point_shift_cell (jet_secp_point_write_run.point_coordinate_offset k))
+            (jet_secp_fe_nv.cells0
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel rho layout (jet_secp_wrapper_run.read_fe_result bi edge)))))
+### C.jet_secp_point_read_values.point_read_selected_checked
+point_read_selected_checked
+     : forall (k : jet_secp_point_write_run.point_coordinate) (bi : Values.block) (edge : Integers.Ptrofs.int)
+         (rho : forall _ : nat, Integers.Int64.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq bool
+         (jet_sx_zrep.zreg_okb jet_secp_read_fe_numeric.read_bounds
+            (jet_secp_point_write_run.point_coordinate_offset k)
+            (jet_secp_fe_nv.cells0
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel rho layout (jet_secp_point_read_run.point_read_result k bi edge))))) true
+### C.jet_secp_point_read_values.point_read_selected_canonical
+point_read_selected_canonical
+     : forall (k : jet_secp_point_write_run.point_coordinate)
+         (value : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (rc : BinNums.Z)
+         (bi : Values.block) (edge : Integers.Ptrofs.int) (layout : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (list BinNums.Z)
+         (jet_sx_zrep.zcells
+            (jet_sx_zval.zrho
+               (jet_secp_wrapper_run.read_fe_rho
+                  (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc))
+            (jet_secp_fe_nv.cells0
+               (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                  (jet_sx_exec.rsel
+                     (jet_secp_wrapper_run.read_fe_rho
+                        (@jet_input_layout.frame_input_word_bits (S (S (S (S (S (S (S (S O)))))))) value) rc) layout
+                     (jet_secp_point_read_run.point_read_result k bi edge)))))
+         (jet_secp_fe_math.fe_limbs_of
+            (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+               (@jet_secp_canonical_normalize.canonical_fe_normalize Alg.CoreFunSem value)))
+### C.jet_secp_point_read_values.point_shift_cell
+point_shift_cell =
+fun (delta : BinNums.Z) (c : jet_sx_state.cell) =>
+jet_sx_state.mkcell (BinInt.Z.add delta (jet_sx_state.cofs c)) (jet_sx_state.cchunk c) (jet_sx_state.cval c)
+     : forall (_ : BinNums.Z) (_ : jet_sx_state.cell), jet_sx_state.cell
+
+Arguments point_shift_cell delta%Z_scope c

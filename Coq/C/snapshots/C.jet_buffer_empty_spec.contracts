@@ -1,0 +1,141 @@
+### C.jet_buffer_empty_spec.buffer_empty_spec_parametric
+buffer_empty_spec_parametric
+     : forall (X : Ty.Ty) (depth : nat) (A : Ty.Ty),
+       @Alg.Core.Parametric A (buffer_type X depth) (@buffer_empty_spec X depth A)
+### C.jet_buffer_empty_spec.buffer_empty_spec_value
+buffer_empty_spec_value
+     : forall (X : Ty.Ty) (depth : nat) (A : Ty.Ty) (a : Ty.tySem A),
+       @eq (Ty.tySem (buffer_type X depth)) (@buffer_empty_spec X depth A Alg.CoreFunSem a)
+         (buffer_empty_value X depth)
+### C.jet_buffer_empty_spec.encode_empty_sum
+encode_empty_sum
+     : forall X : Ty.Ty,
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (Ty.Sum Ty.Unit X)
+            (@inl unit
+               ((fix tySem (X0 : Ty.Ty) : Set :=
+                   match X0 return Set with
+                   | Ty.Unit => unit
+                   | Ty.Sum A B => sum (tySem A) (tySem B)
+                   | Ty.Prod A B => prod (tySem A) (tySem B)
+                   end) X) tt))
+         (@cons (option bool) (@Some bool false) (@List.repeat (option bool) (@None bool) (Translate.bitSize X)))
+### C.jet_buffer_empty_spec.buffer_empty_value_cells
+buffer_empty_value_cells
+     : forall (X : Ty.Ty) (depth : nat),
+       @eq (list BitMachine.Cell) (@Translate.encode (buffer_type X depth) (buffer_empty_value X depth))
+         (buffer_empty_cells X depth)
+### C.jet_buffer_empty_spec.buffer_empty_spec_cells
+buffer_empty_spec_cells
+     : forall (X : Ty.Ty) (depth : nat) (A : Ty.Ty) (a : Ty.tySem A),
+       @eq (list BitMachine.Cell)
+         (@Translate.encode (buffer_type X depth) (@buffer_empty_spec X depth A Alg.CoreFunSem a))
+         (buffer_empty_cells X depth)
+### C.jet_buffer_empty_spec.buffer63_byte_cells_length
+buffer63_byte_cells_length
+     : @eq nat (@length BitMachine.Cell (buffer_empty_cells (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+         (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))))
+### C.jet_buffer_empty_spec.buffer_type
+buffer_type =
+fix buffer_type (X : Ty.Ty) (depth : nat) {struct depth} : Ty.Ty :=
+  match depth return Ty.Ty with
+  | O => Ty.Sum Ty.Unit X
+  | S d => Ty.Prod (Ty.Sum Ty.Unit (Word.Vector X (S d))) (buffer_type X d)
+  end
+     : forall (_ : Ty.Ty) (_ : nat), Ty.Ty
+
+Arguments buffer_type X%ty_scope depth%nat_scope
+### C.jet_buffer_empty_spec.buffer_empty_spec
+buffer_empty_spec =
+fix buffer_empty_spec (X : Ty.Ty) (depth : nat) (A : Ty.Ty) (term : Alg.Core.Algebra) {struct depth} :
+    Alg.Core.domain term A (buffer_type X depth) :=
+  match depth as depth0 return (Alg.Core.domain term A (buffer_type X depth0)) with
+  | O => @AC.injl A Ty.Unit X term (@AC.unit A term)
+  | S d =>
+      @AC.pair A (Ty.Sum Ty.Unit (Word.Vector X (S d))) (buffer_type X d) term
+        (@AC.injl A Ty.Unit (Word.Vector X (S d)) term (@AC.unit A term)) (buffer_empty_spec X d A term)
+  end
+     : forall (X : Ty.Ty) (depth : nat) (A : Ty.Ty) (term : Alg.Core.Algebra),
+       Alg.Core.domain term A (buffer_type X depth)
+
+Arguments buffer_empty_spec X%ty_scope depth%nat_scope A%ty_scope {term}
+### C.jet_buffer_empty_spec.buffer_empty_value
+buffer_empty_value =
+fix buffer_empty_value (X : Ty.Ty) (depth : nat) {struct depth} : Ty.tySem (buffer_type X depth) :=
+  match depth as depth0 return (Ty.tySem (buffer_type X depth0)) with
+  | O =>
+      @inl unit
+        ((fix tySem (X0 : Ty.Ty) : Set :=
+            match X0 return Set with
+            | Ty.Unit => unit
+            | Ty.Sum A B => sum (tySem A) (tySem B)
+            | Ty.Prod A B => prod (tySem A) (tySem B)
+            end) X) tt
+  | S d =>
+      @pair
+        (sum unit
+           (prod
+              ((fix tySem (X0 : Ty.Ty) : Set :=
+                  match X0 return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X0 : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X0
+                     | S n0 => Ty.Prod (Vector X0 n0) (Vector X0 n0)
+                     end) X d))
+              ((fix tySem (X0 : Ty.Ty) : Set :=
+                  match X0 return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X0 : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X0
+                     | S n0 => Ty.Prod (Vector X0 n0) (Vector X0 n0)
+                     end) X d)))) (Ty.tySem (buffer_type X d))
+        (@inl unit
+           (prod
+              ((fix tySem (X0 : Ty.Ty) : Set :=
+                  match X0 return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X0 : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X0
+                     | S n0 => Ty.Prod (Vector X0 n0) (Vector X0 n0)
+                     end) X d))
+              ((fix tySem (X0 : Ty.Ty) : Set :=
+                  match X0 return Set with
+                  | Ty.Unit => unit
+                  | Ty.Sum A B => sum (tySem A) (tySem B)
+                  | Ty.Prod A B => prod (tySem A) (tySem B)
+                  end)
+                 ((fix Vector (X0 : Ty.Ty) (n : nat) {struct n} : Ty.Ty :=
+                     match n return Ty.Ty with
+                     | O => X0
+                     | S n0 => Ty.Prod (Vector X0 n0) (Vector X0 n0)
+                     end) X d))) tt) (buffer_empty_value X d)
+  end
+     : forall (X : Ty.Ty) (depth : nat), Ty.tySem (buffer_type X depth)
+
+Arguments buffer_empty_value X%ty_scope depth%nat_scope
+### C.jet_buffer_empty_spec.buffer_empty_cells
+buffer_empty_cells =
+fix buffer_empty_cells (X : Ty.Ty) (depth : nat) {struct depth} : list BitMachine.Cell :=
+  match depth return (list BitMachine.Cell) with
+  | O => @cons (option bool) (@Some bool false) (@List.repeat (option bool) (@None bool) (Translate.bitSize X))
+  | S d =>
+      @app (option bool)
+        (@cons (option bool) (@Some bool false)
+           (@List.repeat (option bool) (@None bool) (Translate.bitSize (Word.Vector X (S d)))))
+        (buffer_empty_cells X d)
+  end
+     : forall (_ : Ty.Ty) (_ : nat), list BitMachine.Cell
+
+Arguments buffer_empty_cells X%ty_scope depth%nat_scope

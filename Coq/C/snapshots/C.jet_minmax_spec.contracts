@@ -1,0 +1,61 @@
+### C.jet_minmax_spec.minmax_word_spec_parametric
+minmax_word_spec_parametric
+     : forall (n : nat) (maximum : bool),
+       @Alg.Core.Parametric (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) (@minmax_word_spec n maximum)
+### C.jet_minmax_spec.minmax_word_spec_le
+minmax_word_spec_le
+     : forall (n : nat) (maximum : bool) (x y : Ty.tySem (Word.Word n)),
+       @eq (Ty.tySem (Word.Word n))
+         (@minmax_word_spec n maximum Alg.CoreFunSem (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))
+         (@minmax_select (Ty.tySem (Word.Word n)) maximum
+            (Bit.toBool
+               (@jet_order_spec.le_word_spec Alg.CoreFunSem n
+                  (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))) x y)
+### C.jet_minmax_spec.minmax_word_spec_strict
+minmax_word_spec_strict
+     : forall (n : nat) (maximum : bool) (x y : Ty.tySem (Word.Word n)),
+       @eq (Ty.tySem (Word.Word n))
+         (@minmax_word_spec n maximum Alg.CoreFunSem (@pair (Ty.tySem (Word.Word n)) (Ty.tySem (Word.Word n)) x y))
+         (@minmax_select (Ty.tySem (Word.Word n)) maximum
+            (BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ n) x) (@Word.ToZ.Theory.toZ (Word.WordToZ n) y)) x y)
+### C.jet_minmax_spec.minmax_word_spec
+minmax_word_spec =
+fun (n : nat) (maximum : bool) (term : Alg.Core.Algebra) =>
+@AC.comp (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)))
+  (Word.Word n) term
+  (@AC.pair (Ty.Prod (Word.Word n) (Word.Word n)) (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n)) term
+     (@jet_order_spec.le_word_spec term n) (@AC.iden (Ty.Prod (Word.Word n) (Word.Word n)) term))
+  match
+    maximum
+    return
+      (Alg.Core.domain term (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Prod (Word.Word n) (Word.Word n))) (Word.Word n))
+  with
+  | true =>
+      @Bit.cond (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) term
+        (@AC.drop (Word.Word n) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+        (@AC.take (Word.Word n) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+  | false =>
+      @Bit.cond (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n) term
+        (@AC.take (Word.Word n) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+        (@AC.drop (Word.Word n) (Word.Word n) (Word.Word n) term (@AC.iden (Word.Word n) term))
+  end
+     : forall (n : nat) (_ : bool) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Ty.Prod (Word.Word n) (Word.Word n)) (Word.Word n)
+
+Arguments minmax_word_spec n%nat_scope maximum%bool_scope {term}
+### C.jet_minmax_spec.minmax_select
+minmax_select =
+fun (A : Type) (maximum less : bool) (x y : A) =>
+match less return A with
+| true => match maximum return A with
+          | true => y
+          | false => x
+          end
+| false => match maximum return A with
+           | true => x
+           | false => y
+           end
+end
+     : forall (A : Type) (_ : bool) (_ : bool) (_ : A) (_ : A), A
+
+Arguments minmax_select {A}%type_scope (maximum less)%bool_scope x y

@@ -1,0 +1,80 @@
+### C.jet_clight_readonly.readonly_readback_refl
+readonly_readback_refl
+     : forall m : Memory.Mem.mem, readonly_readback m m
+### C.jet_clight_readonly.readonly_readback_trans
+readonly_readback_trans
+     : forall (m mi mf : Memory.Mem.mem) (_ : readonly_readback m mi) (_ : readonly_readback mi mf),
+       readonly_readback m mf
+### C.jet_clight_readonly.readonly_readback_unchanged
+readonly_readback_unchanged
+     : forall (m mf : Memory.Mem.mem) (_ : jet_clight_forward.mem_forward m mf)
+         (_ : Memory.Mem.unchanged_on (Events.loc_not_writable m) m mf), readonly_readback m mf
+### C.jet_clight_readonly.store_readonly_readback
+store_readonly_readback
+     : forall (chunk : AST.memory_chunk) (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (v : Values.val) (mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.store chunk m b ofs v) (@Some Memory.Mem.mem mf)),
+       readonly_readback m mf
+### C.jet_clight_readonly.storebytes_readonly_readback
+storebytes_readonly_readback
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (bytes : list Memdata.memval)
+         (mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes m b ofs bytes) (@Some Memory.Mem.mem mf)),
+       readonly_readback m mf
+### C.jet_clight_readonly.alloc_readonly_readback
+alloc_readonly_readback
+     : forall (m : Memory.Mem.mem) (lo hi : BinNums.Z) (mf : Memory.Mem.mem') (fresh : Values.block)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m lo hi)
+                (@pair Memory.Mem.mem' Values.block mf fresh)), readonly_readback m mf
+### C.jet_clight_readonly.free_readonly_readback
+free_readonly_readback
+     : forall (m : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z) (mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free m b lo hi) (@Some Memory.Mem.mem mf)),
+       readonly_readback m mf
+### C.jet_clight_readonly.freelist_readonly_readback
+freelist_readonly_readback
+     : forall (blocks : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (m mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free_list m blocks) (@Some Memory.Mem.mem mf)),
+       readonly_readback m mf
+### C.jet_clight_readonly.external_readonly_readback
+external_readonly_readback
+     : forall (ef : AST.external_function) (ge : Globalenvs.Senv.t) (args : list Values.val)
+         (m : Memory.Mem.mem) (t : Events.trace) (result : Values.val) (mf : Memory.Mem.mem)
+         (_ : Events.external_call ef ge args m t result mf), readonly_readback m mf
+### C.jet_clight_readonly.alloc_variables_readonly_readback
+alloc_variables_readonly_readback
+     : forall (ge : Clight.genv) (e : Clight.env) (m : Memory.Mem.mem) (vars : list (prod AST.ident Ctypes.type))
+         (e' : Clight.env) (m' : Memory.Mem.mem) (_ : Clight.alloc_variables ge e m vars e' m'),
+       readonly_readback m m'
+### C.jet_clight_readonly.entry2_readonly_readback
+entry2_readonly_readback
+     : forall (ge : Clight.genv) (f : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (m' : Memory.Mem.mem) (_ : Clight.function_entry2 ge f args m e le m'),
+       readonly_readback m m'
+### C.jet_clight_readonly.assign_readonly_readback
+assign_readonly_readback
+     : forall (ce : Ctypes.composite_env) (ty : Ctypes.type) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (bf : Ctypes.bitfield) (v : Values.val) (m' : Memory.Mem.mem)
+         (_ : Clight.assign_loc ce ty m b ofs bf v m'), readonly_readback m m'
+### C.jet_clight_readonly.clight_exec_readonly_readback
+clight_exec_readonly_readback
+     : forall ge : Clight.genv,
+       and
+         (forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (s : Clight.statement)
+            (t : Events.trace) (le' : Clight.temp_env) (m' : Memory.Mem.mem) (out : ClightBigstep.outcome)
+            (_ : ClightBigstep.Clight2.exec_stmt ge e le m s t le' m' out), readonly_readback m m')
+         (forall (m : Memory.Mem.mem) (f : Clight.fundef) (args : list Values.val) (t : Events.trace)
+            (m' : Memory.Mem.mem) (result : Values.val)
+            (_ : ClightBigstep.Clight2.eval_funcall ge m f args t m' result), readonly_readback m m')
+### C.jet_clight_readonly.readonly_readback
+readonly_readback =
+fun m mf : Memory.Mem.mem =>
+and (jet_clight_forward.mem_forward m mf)
+  (forall (b : Values.block) (ofs n : BinNums.Z) (bytes : list Memdata.memval) (_ : Memory.Mem.valid_block m b)
+     (_ : @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes mf b ofs n) (@Some (list Memdata.memval) bytes))
+     (_ : forall (i : BinNums.Z) (_ : and (BinInt.Z.le ofs i) (BinInt.Z.lt i (BinInt.Z.add ofs n))),
+          not (Memory.Mem.perm m b i Memtype.Max Memtype.Writable)),
+   @eq (option (list Memdata.memval)) (Memory.Mem.loadbytes m b ofs n) (@Some (list Memdata.memval) bytes))
+     : forall (_ : Memory.Mem.mem) (_ : Memory.Mem.mem), Prop
+
+Arguments readonly_readback m mf

@@ -1,0 +1,126 @@
+### C.jet_copyBits_exec.copy_frame_entry
+copy_frame_entry
+     : forall (f : Clight.function) (m : Memory.Mem.mem) (bd : Values.block) (dofs : Integers.Ptrofs.int)
+         (bs : Values.block) (sofs : Integers.Ptrofs.int) (n : BinNums.Z)
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_vars f) (@nil (prod AST.ident Ctypes.type)))
+         (_ : @eq (list (prod AST.ident Ctypes.type)) (Clight.fn_params f)
+                (@cons (prod AST.ident Ctypes.type)
+                   (@pair AST.ident Ctypes.type jets._dst
+                      (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)))
+                   (@cons (prod AST.ident Ctypes.type)
+                      (@pair AST.ident Ctypes.type jets._src
+                         (Ctypesdefs.tptr (Ctypes.Tstruct jets._frameItem Ctypes.noattr)))
+                      (@cons (prod AST.ident Ctypes.type) (@pair AST.ident Ctypes.type jets._n Ctypesdefs.tulong)
+                         (@nil (prod AST.ident Ctypes.type))))))
+         (_ : @Coqlib.list_disjoint AST.ident
+                (@cons AST.ident jets._dst (@cons AST.ident jets._src (@cons AST.ident jets._n (@nil AST.ident))))
+                (@List.map (prod AST.ident Ctypes.type) AST.ident (@fst AST.ident Ctypes.type) (Clight.fn_temps f))),
+       Clight.function_entry2 jet_exec.ge0 f
+         (@cons Values.val (Values.Vptr bd dofs)
+            (@cons Values.val (Values.Vptr bs sofs)
+               (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) m Clight.empty_env
+         (copy_frame_env f bd dofs bs sofs n) m
+### C.jet_copyBits_exec.copyBits_entry
+copyBits_entry
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block)
+         (sofs : Integers.Ptrofs.int) (n : BinNums.Z),
+       Clight.function_entry2 jet_exec.ge0 jets.f_simplicity_copyBits
+         (@cons Values.val (Values.Vptr bd dofs)
+            (@cons Values.val (Values.Vptr bs sofs)
+               (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) m Clight.empty_env
+         (copy_frame_env jets.f_simplicity_copyBits bd dofs bs sofs n) m
+### C.jet_copyBits_exec.eval_copyBits_zero
+eval_copyBits_zero
+     : forall (m : Memory.Mem.mem) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block)
+         (sofs : Integers.Ptrofs.int),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_simplicity_copyBits)
+         (@cons Values.val (Values.Vptr bd dofs)
+            (@cons Values.val (Values.Vptr bs sofs)
+               (@cons Values.val (Values.Vlong Integers.Int64.zero) (@nil Values.val)))) Events.E0 m Values.Vundef
+### C.jet_copyBits_exec.symbol_copyBitsHelper
+symbol_copyBitsHelper
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0) jets._copyBitsHelper)
+         (@Some Values.block block_copyBitsHelper)
+### C.jet_copyBits_exec.funct_copyBitsHelper
+funct_copyBitsHelper
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_exec.ge0)
+            (Values.Vptr block_copyBitsHelper Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets.f_copyBitsHelper))
+### C.jet_copyBits_exec.eval_copyBits_nonzero_composes
+eval_copyBits_nonzero_composes
+     : forall (m mi mf : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sofs : Integers.Ptrofs.int) (cursor n : BinNums.Z) (_ : jet_frame_layout.frame_base_valid base)
+         (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n cursor))
+         (_ : BinInt.Z.le cursor Integers.Int64.max_unsigned)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function jets.f_copyBitsHelper)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vptr bs sofs)
+                      (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mi
+                Values.Vundef)
+         (_ : @eq (option Values.val)
+                (Memory.Mem.load AST.Mint64 mi bd
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some Values.val (Values.Vlong (Integers.Int64.repr cursor))))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 mi bd
+                   (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                   (Values.Vlong (Integers.Int64.repr (BinInt.Z.sub cursor n)))) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m (@Ctypes.Internal Clight.function jets.f_simplicity_copyBits)
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+            (@cons Values.val (Values.Vptr bs sofs)
+               (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf Values.Vundef
+### C.jet_copyBits_exec.eval_copyBits_nonzero_advances
+eval_copyBits_nonzero_advances
+     : forall (m mi : Memory.Mem.mem) (bd : Values.block) (base : BinNums.Z) (bs : Values.block)
+         (sofs : Integers.Ptrofs.int) (bw : Values.block) (edge cursor n : BinNums.Z)
+         (_ : jet_frame_layout.frame_base_valid base) (_ : and (BinInt.Z.lt BinNums.Z0 n) (BinInt.Z.le n cursor))
+         (_ : BinInt.Z.le cursor Integers.Int64.max_unsigned)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+                (@Ctypes.Internal Clight.function jets.f_copyBitsHelper)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                   (@cons Values.val (Values.Vptr bs sofs)
+                      (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mi
+                Values.Vundef) (_ : jet_frame_layout.frame_fields_at mi bd base bw edge cursor)
+         (_ : Memory.Mem.valid_access mi AST.Mint64 bd
+                (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_exec.ge0 m
+               (@Ctypes.Internal Clight.function jets.f_simplicity_copyBits)
+               (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr base))
+                  (@cons Values.val (Values.Vptr bs sofs)
+                     (@cons Values.val (Values.Vlong (Integers.Int64.repr n)) (@nil Values.val)))) Events.E0 mf
+               Values.Vundef)
+            (and (jet_frame_layout.frame_fields_at mf bd base bw edge (BinInt.Z.sub cursor n))
+               (and
+                  (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bd))
+                            (or
+                               (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                                  (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add base
+                                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk mi b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (kind : Memtype.perm_kind)
+                        (p : Memtype.permission) (_ : Memory.Mem.perm mi b ofs kind p), Memory.Mem.perm mf b ofs kind p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block mi b), Memory.Mem.valid_block mf b)))))
+### C.jet_copyBits_exec.copy_frame_env
+copy_frame_env =
+fun (f : Clight.function) (bd : Values.block) (dofs : Integers.Ptrofs.int) (bs : Values.block)
+  (sofs : Integers.Ptrofs.int) (n : BinNums.Z) =>
+@Maps.PTree.set Values.val jets._n (Values.Vlong (Integers.Int64.repr n))
+  (@Maps.PTree.set Values.val jets._src (Values.Vptr bs sofs)
+     (@Maps.PTree.set Values.val jets._dst (Values.Vptr bd dofs) (Clight.create_undef_temps (Clight.fn_temps f))))
+     : forall (_ : Clight.function) (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Values.block)
+         (_ : Integers.Ptrofs.int) (_ : BinNums.Z), Maps.PTree.tree Values.val
+
+Arguments copy_frame_env f bd dofs bs sofs n%Z_scope
+### C.jet_copyBits_exec.block_copyBitsHelper
+block_copyBitsHelper = jet_exec.jet_symbol_block jets._copyBitsHelper
+     : Values.block

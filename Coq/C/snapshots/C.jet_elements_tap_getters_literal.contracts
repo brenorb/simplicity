@@ -1,0 +1,117 @@
+### C.jet_elements_tap_getters_literal.haskell_encode_pubkey_matches
+haskell_encode_pubkey_matches
+     : forall h : Digest.hash256,
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (haskell_encode_pubkey h) (Word.from_hash256 h)
+### C.jet_elements_tap_getters_literal.elements_internal_key_literal_matches
+elements_internal_key_literal_matches
+     : forall (a : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@jet_elements_hash_field_jets.elements_internal_key_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (elements_internal_key_literal_spec a environment)
+### C.jet_elements_tap_getters_literal.nth_error_is_list_to_maybe_drop
+@nth_error_is_list_to_maybe_drop
+     : forall (A : Type) (xs : list A) (n : nat),
+       @eq (option A) (@List.nth_error A xs n) (@List.hd_error A (@List.skipn A n xs))
+### C.jet_elements_tap_getters_literal.word_indexed_digest_literal_matches
+word_indexed_digest_literal_matches
+     : forall (depth : nat) (values : list Digest.hash256) (a : Ty.tySem (Word.ToZ.obj (Word.WordToZ depth))),
+       @eq (option (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@Some (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+            match
+              @List.nth_error Digest.hash256 values (BinInt.Z.to_nat (@Word.ToZ.Theory.toZ (Word.WordToZ depth) a))
+              return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+            with
+            | Some h => @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.from_hash256 h)
+            | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) tt
+            end) (word_indexed_digest_literal depth values a)
+### C.jet_elements_tap_getters_literal.tappath_literal_index_range
+tappath_literal_index_range
+     : forall a : Ty.tySem (Word.Word (S (S (S O)))),
+       and (BinInt.Z.le BinNums.Z0 (jet_elements_sequence_literal.haskell_from_word (S (S (S O))) a))
+         (BinInt.Z.lt (jet_elements_sequence_literal.haskell_from_word (S (S (S O))) a)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_elements_tap_getters_literal.elements_tappath_literal_matches
+elements_tappath_literal_matches
+     : forall (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env),
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+         (@jet_elements_tappath_local.elements_tappath_spec
+            (jet_elements_prim.PrimitiveElements.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment) (elements_tappath_literal_spec a environment)
+### C.jet_elements_tap_getters_literal.elements_internal_key_literal_local_spec
+elements_internal_key_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_internal_key
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@jet_elements_hash_getter_local.hash_getter_rep jet_elements_prim.Elements.environment
+            (fun e : jet_elements_prim.Elements.environment =>
+             jet_elements_prim.tapInternalKey (jet_elements_prim.Elements.envTap e))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH)))))))
+            (BinNums.Zpos
+               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+         elements_internal_key_literal_spec
+### C.jet_elements_tap_getters_literal.elements_tappath_nullable_literal_local_spec
+elements_tappath_nullable_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_tappath
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         jet_elements_tappath_nullable.elements_tappath_env_rep_nullable elements_tappath_literal_spec
+### C.jet_elements_tap_getters_literal.elements_tappath_u8_literal_local_spec
+elements_tappath_u8_literal_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_elements.f_simplicity_tappath
+         jet_elements_linkage.elements_ge jet_elements_prim.Elements.env (Word.Word (S (S (S O))))
+         (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         jet_elements_tappath_nullable.elements_tappath_env_rep_u8 elements_tappath_literal_spec
+### C.jet_elements_tap_getters_literal.haskell_encode_pubkey
+haskell_encode_pubkey =
+fun h : Digest.hash256 =>
+jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+  (jet_haskell_hash_word.haskell_word256_integer
+     (jet_haskell_hash_word.haskell_be256_run (Digest.hash256_to_bytelist h)
+        (jet_haskell_hash_word.haskell_word256_from_integer BinNums.Z0)))
+     : forall _ : Digest.hash256, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments haskell_encode_pubkey h
+### C.jet_elements_tap_getters_literal.elements_internal_key_literal_spec
+elements_internal_key_literal_spec =
+fun (_ : Ty.tySem Ty.Unit) (environment : jet_elements_prim.Elements.env) =>
+@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (haskell_encode_pubkey (jet_elements_prim.tapInternalKey (jet_elements_prim.Elements.envTap environment)))
+     : forall (_ : Ty.tySem Ty.Unit) (_ : jet_elements_prim.Elements.env),
+       option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+
+Arguments elements_internal_key_literal_spec _ environment
+### C.jet_elements_tap_getters_literal.word_indexed_digest_literal
+word_indexed_digest_literal =
+fun (depth : nat) (values : list Digest.hash256) (a : Ty.tySem (Word.Word depth)) =>
+@Some (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+  match
+    @List.hd_error Digest.hash256
+      (@List.skipn Digest.hash256 (BinInt.Z.to_nat (jet_elements_sequence_literal.haskell_from_word depth a)) values)
+    return (sum unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+  with
+  | Some h =>
+      @inr unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+        (jet_haskell_word_conversion.haskell_to_word (S (S (S (S (S (S (S (S O))))))))
+           (jet_haskell_hash_word.haskell_integer_hash256 (Digest.hash256_to_bytelist h)))
+  | None => @inl unit (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) tt
+  end
+     : forall (depth : nat) (_ : list Digest.hash256) (_ : Ty.tySem (Word.Word depth)),
+       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments word_indexed_digest_literal depth%nat_scope values%list_scope a
+### C.jet_elements_tap_getters_literal.elements_tappath_literal_spec
+elements_tappath_literal_spec =
+fun (a : Ty.tySem (Word.Word (S (S (S O))))) (environment : jet_elements_prim.Elements.env) =>
+word_indexed_digest_literal (S (S (S O))) (jet_elements_prim.tappath (jet_elements_prim.Elements.envTap environment)) a
+     : forall (_ : Ty.tySem (Word.Word (S (S (S O))))) (_ : jet_elements_prim.Elements.env),
+       option (Ty.tySem (Ty.Sum Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+
+Arguments elements_tappath_literal_spec a environment

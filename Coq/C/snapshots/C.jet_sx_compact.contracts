@@ -1,0 +1,245 @@
+### C.jet_sx_compact.both_skip_true
+both_skip_true
+     : forall (a b : Clight.statement) (_ : @eq bool (both_skip a b) true),
+       and (@eq Clight.statement a Clight.Sskip) (@eq Clight.statement b Clight.Sskip)
+### C.jet_sx_compact.break_stmt_true
+break_stmt_true
+     : forall (s : Clight.statement) (_ : @eq bool (break_stmt s) true), @eq Clight.statement s Clight.Sbreak
+### C.jet_sx_compact.compact_stmt_lext
+compact_stmt_lext
+     : forall (ce : Ctypes.composite_env) (gv : jet_sx_eval.venv) (fns : list (prod AST.ident jet_sx_exec.fentry))
+         (n : nat) (s : Clight.statement) (ve : jet_sx_eval.venv) (st : jet_sx_eval.sstate)
+         (r : jet_sx_exec.res)
+         (_ : @eq (option jet_sx_exec.res) (compact_stmt ce gv fns n ve st s) (@Some jet_sx_exec.res r))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       jet_sx_exec.lext rho beta (jet_sx_eval.slog st) r
+### C.jet_sx_compact.compact_stmt_sound
+compact_stmt_sound
+     : forall (ge : Clight.genv) (gv : jet_sx_eval.venv) (fns : list (prod AST.ident jet_sx_exec.fentry))
+         (ev_ok : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event), Prop)
+         (inv : forall (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem), Prop)
+         (ext : forall _ : Values.block, Prop)
+         (_ : forall (rho : forall _ : nat, Integers.Int64.int) (log : list jet_sx_eval.event)
+                (m m' : Memory.Mem.mem) (_ : inv rho log m)
+                (_ : jet_sx_mem.lframe (fun (b : Values.block) (_ : BinNums.Z) => ext b) m m'),
+              inv rho log m')
+         (_ : forall (rho : forall _ : nat, Integers.Int64.int) (log : list jet_sx_eval.event)
+                (m : Memory.Mem.mem) (b : Values.block) (_ : inv rho log m) (_ : ext b), Memory.Mem.valid_block m b)
+         (_ : forall (id : AST.ident) (ent : jet_sx_exec.fentry)
+                (_ : @eq (option jet_sx_exec.fentry) (jet_sx_exec.flookup fns id) (@Some jet_sx_exec.fentry ent)),
+              and
+                (@ex Values.block
+                   (fun b : Values.block =>
+                    and
+                      (@eq (option Values.block)
+                         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+                         (@Some Values.block b))
+                      (@eq (option Clight.fundef)
+                         (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b)
+                         (@Some (Ctypes.fundef Clight.function)
+                            (@Ctypes.Internal Clight.function (jet_sx_exec.fentry_fd ent))))))
+                match ent return Prop with
+                | jet_sx_exec.FInt _ => True
+                | jet_sx_exec.FOra fd o => jet_sx_exec.oracle_ok ge ev_ok inv ext fd o
+                end) (n : nat), jet_sx_exec.sound_rec ge gv ev_ok inv ext (compact_stmt (Clight.genv_cenv ge) gv fns n)
+### C.jet_sx_compact.compact_fun_pure
+compact_fun_pure
+     : forall (ge : Clight.genv) (l : list (prod AST.ident Clight.function))
+         (_ : forall (id : AST.ident) (f : Clight.function)
+                (_ : @List.In (prod AST.ident Clight.function) (@pair AST.ident Clight.function id f) l),
+              @ex Values.block
+                (fun b : Values.block =>
+                 and
+                   (@eq (option Values.block)
+                      (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+                      (@Some Values.block b))
+                   (@eq (option Clight.fundef)
+                      (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b)
+                      (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function f)))))
+         (n : nat) (fd : Clight.function) (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region)
+         (nv : nat) (rr : jet_sx_exec.res)
+         (_ : @eq (option jet_sx_exec.res)
+                (compact_fun (Clight.genv_cenv ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+                   (jet_sx_pure.int_table l) n fd xs regs (@nil jet_sx_eval.event) nv) (@Some jet_sx_exec.res rr))
+         (_ : @eq bool (jet_sx_pure.leaves_log_nil rr) true) (rho : forall _ : nat, Integers.Int64.int)
+         (beta : jet_sx_state.layout) (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          @ex Values.val
+            (fun vres : Values.val =>
+             and
+               (ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function fd)
+                  (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) xs) Events.E0 mf
+                  vres)
+               (and
+                  (jet_sx_state.rep rho beta
+                     (jet_sx_eval.sregs
+                        (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho (jet_sx_state.lay beta) rr)))
+                     mf)
+                  (and
+                     match
+                       @Maps.PTree.get jet_sx_expr.sx BinNums.xH
+                         (jet_sx_eval.stemps
+                            (@fst jet_sx_eval.sstate jet_sx_exec.xout (jet_sx_exec.rsel rho (jet_sx_state.lay beta) rr)))
+                       return Prop
+                     with
+                     | Some x => @eq Values.val vres (jet_sx_expr.den rho (jet_sx_state.lay beta) x)
+                     | None => @eq Values.val vres Values.Vundef
+                     end
+                     (and
+                        (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape
+                              (jet_sx_eval.sregs
+                                 (@fst jet_sx_eval.sstate jet_sx_exec.xout
+                                    (jet_sx_exec.rsel rho (jet_sx_state.lay beta) rr))))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape regs))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape regs) b ofs)) m mf))))))
+### C.jet_sx_compact.both_skip
+both_skip =
+fun a b : Clight.statement =>
+match a return bool with
+| Clight.Sskip =>
+    match b return bool with
+    | Clight.Sskip => true
+    | Clight.Sassign _ _ => false
+    | Clight.Sset _ _ => false
+    | Clight.Scall _ _ _ => false
+    | Clight.Sbuiltin _ _ _ _ => false
+    | Clight.Ssequence _ _ => false
+    | Clight.Sifthenelse _ _ _ => false
+    | Clight.Sloop _ _ => false
+    | Clight.Sbreak => false
+    | Clight.Scontinue => false
+    | Clight.Sreturn _ => false
+    | Clight.Sswitch _ _ => false
+    | Clight.Slabel _ _ => false
+    | Clight.Sgoto _ => false
+    end
+| Clight.Sassign _ _ => false
+| Clight.Sset _ _ => false
+| Clight.Scall _ _ _ => false
+| Clight.Sbuiltin _ _ _ _ => false
+| Clight.Ssequence _ _ => false
+| Clight.Sifthenelse _ _ _ => false
+| Clight.Sloop _ _ => false
+| Clight.Sbreak => false
+| Clight.Scontinue => false
+| Clight.Sreturn _ => false
+| Clight.Sswitch _ _ => false
+| Clight.Slabel _ _ => false
+| Clight.Sgoto _ => false
+end
+     : forall (_ : Clight.statement) (_ : Clight.statement), bool
+
+Arguments both_skip a b
+### C.jet_sx_compact.break_stmt
+break_stmt =
+fun s : Clight.statement =>
+match s return bool with
+| Clight.Sskip => false
+| Clight.Sassign _ _ => false
+| Clight.Sset _ _ => false
+| Clight.Scall _ _ _ => false
+| Clight.Sbuiltin _ _ _ _ => false
+| Clight.Ssequence _ _ => false
+| Clight.Sifthenelse _ _ _ => false
+| Clight.Sloop _ _ => false
+| Clight.Sbreak => true
+| Clight.Scontinue => false
+| Clight.Sreturn _ => false
+| Clight.Sswitch _ _ => false
+| Clight.Slabel _ _ => false
+| Clight.Sgoto _ => false
+end
+     : forall _ : Clight.statement, bool
+
+Arguments break_stmt s
+### C.jet_sx_compact.compact_stmt
+compact_stmt =
+fun (ce : Ctypes.composite_env) (gv : jet_sx_eval.venv) (fns : list (prod AST.ident jet_sx_exec.fentry)) (n : nat) =>
+fix compact_stmt (ve : jet_sx_eval.venv) (st : jet_sx_eval.sstate) (s : Clight.statement) {struct s} :
+    option jet_sx_exec.res :=
+  match s return (option jet_sx_exec.res) with
+  | Clight.Sskip => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Sassign _ _ => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Sset _ _ => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Scall _ _ _ => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Sbuiltin _ _ _ _ => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Ssequence a b =>
+      match compact_stmt ve st a return (option jet_sx_exec.res) with
+      | Some r =>
+          jet_sx_exec.tbind r
+            (fun (st' : jet_sx_eval.sstate) (o : jet_sx_exec.xout) =>
+             match o return (option jet_sx_exec.res) with
+             | jet_sx_exec.ONormal => compact_stmt ve st' b
+             | jet_sx_exec.OBreak => @Some jet_sx_exec.res (jet_sx_exec.RDone st' o)
+             | jet_sx_exec.OContinue => @Some jet_sx_exec.res (jet_sx_exec.RDone st' o)
+             | jet_sx_exec.OReturn _ => @Some jet_sx_exec.res (jet_sx_exec.RDone st' o)
+             end)
+      | None => @None jet_sx_exec.res
+      end
+  | Clight.Sifthenelse a b c =>
+      match both_skip b c return (option jet_sx_exec.res) with
+      | true =>
+          match jet_sx_eval.xexpr ce ve gv st a return (option jet_sx_exec.res) with
+          | Some x =>
+              match jet_sx_expr.xbool x (Clight.typeof a) return (option jet_sx_exec.res) with
+              | Some _ => @Some jet_sx_exec.res (jet_sx_exec.RDone st jet_sx_exec.ONormal)
+              | None => @None jet_sx_exec.res
+              end
+          | None => @None jet_sx_exec.res
+          end
+      | false => jet_sx_exec.xstmt ce gv fns n ve st s
+      end
+  | Clight.Sloop a b =>
+      match break_stmt b return (option jet_sx_exec.res) with
+      | true =>
+          match compact_stmt ve st a return (option jet_sx_exec.res) with
+          | Some r =>
+              jet_sx_exec.tbind r
+                (fun (st' : jet_sx_eval.sstate) (o : jet_sx_exec.xout) =>
+                 match o return (option jet_sx_exec.res) with
+                 | jet_sx_exec.ONormal => @Some jet_sx_exec.res (jet_sx_exec.RDone st' jet_sx_exec.ONormal)
+                 | jet_sx_exec.OBreak => @Some jet_sx_exec.res (jet_sx_exec.RDone st' jet_sx_exec.ONormal)
+                 | jet_sx_exec.OContinue => @Some jet_sx_exec.res (jet_sx_exec.RDone st' jet_sx_exec.ONormal)
+                 | jet_sx_exec.OReturn v => @Some jet_sx_exec.res (jet_sx_exec.RDone st' (jet_sx_exec.OReturn v))
+                 end)
+          | None => @None jet_sx_exec.res
+          end
+      | false => jet_sx_exec.xstmt ce gv fns n ve st s
+      end
+  | Clight.Sbreak => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Scontinue => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Sreturn _ => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Sswitch _ _ => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Slabel _ _ => jet_sx_exec.xstmt ce gv fns n ve st s
+  | Clight.Sgoto _ => jet_sx_exec.xstmt ce gv fns n ve st s
+  end
+     : forall (_ : Ctypes.composite_env) (_ : jet_sx_eval.venv) (_ : list (prod AST.ident jet_sx_exec.fentry))
+         (_ : nat) (_ : jet_sx_eval.venv) (_ : jet_sx_eval.sstate) (_ : Clight.statement),
+       option jet_sx_exec.res
+
+Arguments compact_stmt ce gv fns%list_scope n%nat_scope ve st s
+### C.jet_sx_compact.compact_fun
+compact_fun =
+fun (ce : Ctypes.composite_env) (gv : jet_sx_eval.venv) (fns : list (prod AST.ident jet_sx_exec.fentry))
+  (n : nat) (fd : Clight.function) (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region)
+  (log : list jet_sx_eval.event) (nv : nat) =>
+jet_sx_exec.xfun_with ce (compact_stmt ce gv fns n) fd xs regs log nv
+  (jet_sx_exec.xcall_ret (@Some BinNums.positive BinNums.xH) (Maps.PTree.empty jet_sx_expr.sx)
+     (@length jet_sx_state.region regs) (Clight.fn_return fd))
+     : forall (_ : Ctypes.composite_env) (_ : jet_sx_eval.venv) (_ : list (prod AST.ident jet_sx_exec.fentry))
+         (_ : nat) (_ : Clight.function) (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region)
+         (_ : list jet_sx_eval.event) (_ : nat), option jet_sx_exec.res
+
+Arguments compact_fun ce gv fns%list_scope n%nat_scope fd (xs regs log)%list_scope nv%nat_scope

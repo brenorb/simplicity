@@ -1,0 +1,168 @@
+### C.jet_bitcoin_sig_all_hash.exec_bitcoin_env_hash_getter
+exec_bitcoin_env_hash_getter
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (mc me : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (be : Values.block)
+         (ebase : BinNums.Z) (hashfield : AST.ident) (hdelta : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_bitcoin._writeHash e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._env le)
+                (@Some Values.val (Values.Vptr be (Integers.Ptrofs.repr ebase))))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_bitcoin._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase)))) (_ : BinInt.Z.le BinNums.Z0 ebase)
+         (_ : BinInt.Z.le BinNums.Z0 hdelta) (_ : BinInt.Z.le (BinInt.Z.add ebase hdelta) Integers.Ptrofs.max_unsigned)
+         (_ : jet_bitcoin_field_eval.bitcoin_field_at jets_bitcoin._txEnv hashfield hdelta)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_bitcoin_linkage.bitcoin_ge mc
+                (@Ctypes.Internal Clight.function jets_bitcoin.f_writeHash)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr be (Integers.Ptrofs.repr (BinInt.Z.add ebase hdelta)))
+                      (@nil Values.val))) Events.E0 me Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_bitcoin_linkage.bitcoin_ge e le mc
+         (bitcoin_hash_mid_env_writeHash hashfield) Events.E0 le me ClightBigstep.Out_normal
+### C.jet_bitcoin_sig_all_hash.bitcoin_env_hash_getter_local
+@bitcoin_env_hash_getter_local
+     : forall (E : Set) (hash_of : forall _ : E, Digest.hash256) (hdelta : BinNums.Z) (hashfield : AST.ident)
+         (f : Clight.function)
+         (spec : forall (_ : Ty.tySem Ty.Unit) (_ : E), option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (_ : forall e : E,
+              @eq (option (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) (spec tt e)
+                (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.from_hash256 (hash_of e))))
+         (_ : jet_bitcoin_wrapper.bitcoin_wrapper_shape f
+                (jet_bitcoin_wrapper.bitcoin_simple_rest (bitcoin_hash_mid_env_writeHash hashfield)))
+         (_ : jet_bitcoin_field_eval.bitcoin_field_at jets_bitcoin._txEnv hashfield hdelta)
+         (_ : and (BinInt.Z.le BinNums.Z0 hdelta)
+                (BinInt.Z.le
+                   (BinInt.Z.add hdelta
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       jet_application_sep.application_jet_local_spec_sep f jet_bitcoin_linkage.bitcoin_ge E Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@env_hash_rep E hash_of hdelta) spec
+### C.jet_bitcoin_sig_all_hash.sig_all_hash_spec_parametric
+sig_all_hash_spec_parametric
+     : @jet_bitcoin_full_prim.PF.Parametric Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) (@sig_all_hash_spec)
+### C.jet_bitcoin_sig_all_hash.sig_all_hash_spec_sem
+sig_all_hash_spec_sem
+     : forall e : jet_bitcoin_full_prim.BitcoinFull.env,
+       @eq
+         (Monad.CIMonad.domain (Monad.MonadZero.to_Monad Option.option_Monad_Zero)
+            (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+         (@sig_all_hash_spec
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) tt
+            e) (@Some (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (Word.from_hash256 (sig_all_hash_of e)))
+### C.jet_bitcoin_sig_all_hash.bitcoin_sig_all_hash_local_spec
+bitcoin_sig_all_hash_local_spec
+     : jet_application_sep.application_jet_local_spec_sep jets_bitcoin.f_simplicity_bitcoin_sig_all_hash
+         jet_bitcoin_linkage.bitcoin_ge jet_bitcoin_ext_prim.ext_environment Ty.Unit
+         (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+         (@env_hash_rep jet_bitcoin_ext_prim.ext_environment sig_all_hash_of
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (fun (a : Ty.tySem Ty.Unit) (environment : jet_bitcoin_ext_prim.ext_environment) =>
+          @sig_all_hash_spec
+            (jet_bitcoin_full_prim.PrimitiveBitcoinFull.Primitive.Theory.PrimitivePrimSem Option.option_Monad_Zero) a
+            environment)
+### C.jet_bitcoin_sig_all_hash.bitcoin_hash_mid_env_writeHash
+bitcoin_hash_mid_env_writeHash =
+fun hashfield : AST.ident =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_bitcoin._writeHash
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr))
+           (Ctypes.Tcons (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sha256_midstate Ctypes.noattr)) Ctypes.Tnil))
+        Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Etempvar jets_bitcoin._dst (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._frameItem Ctypes.noattr)))
+     (@cons Clight.expr
+        (Clight.Eaddrof
+           (Clight.Efield
+              (Clight.Ederef
+                 (Clight.Etempvar jets_bitcoin._env
+                    (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._txEnv Ctypes.noattr)))
+                 (Ctypes.Tstruct jets_bitcoin._txEnv Ctypes.noattr)) hashfield
+              (Ctypes.Tstruct jets_bitcoin._sha256_midstate Ctypes.noattr))
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_bitcoin._sha256_midstate Ctypes.noattr)))
+        (@nil Clight.expr)))
+     : forall _ : AST.ident, Clight.statement
+
+Arguments bitcoin_hash_mid_env_writeHash hashfield
+### C.jet_bitcoin_sig_all_hash.env_hash_rep
+env_hash_rep =
+fun (E : Set) (hash_of : forall _ : E, Digest.hash256) (hdelta : BinNums.Z) (m : Memory.Mem.mem)
+  (env : Values.val) (e : E) (fp : list (prod (prod Values.block BinNums.Z) BinNums.Z)) =>
+@ex Values.block
+  (fun be : Values.block =>
+   @ex BinNums.Z
+     (fun ebase : BinNums.Z =>
+      and (@eq Values.val env (Values.Vptr be (Integers.Ptrofs.repr ebase)))
+        (and (BinInt.Z.le BinNums.Z0 ebase)
+           (and
+              (BinInt.Z.le
+                 (BinInt.Z.add ebase
+                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI BinNums.xH)))))))
+                 Integers.Ptrofs.max_unsigned)
+              (and
+                 (jet_uint32_array_init.uint32_array_at m be (BinInt.Z.add ebase hdelta)
+                    (Digest.hash256_reg (hash_of e)))
+                 (@eq (list (prod (prod Values.block BinNums.Z) BinNums.Z)) fp
+                    (@cons (prod (prod Values.block BinNums.Z) BinNums.Z)
+                       (@pair (prod Values.block BinNums.Z) BinNums.Z
+                          (@pair Values.block BinNums.Z be (BinInt.Z.add ebase hdelta))
+                          (BinInt.Z.add (BinInt.Z.add ebase hdelta)
+                             (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                       (@nil (prod (prod Values.block BinNums.Z) BinNums.Z)))))))))
+     : forall (E : Set) (_ : forall _ : E, Digest.hash256) (_ : BinNums.Z) (_ : Memory.Mem.mem)
+         (_ : Values.val) (_ : E) (_ : list (prod (prod Values.block BinNums.Z) BinNums.Z)), Prop
+
+Arguments env_hash_rep {E}%type_scope hash_of%function_scope hdelta%Z_scope m env e fp%list_scope
+### C.jet_bitcoin_sig_all_hash.sig_all_hash_spec
+sig_all_hash_spec =
+fun alg : jet_bitcoin_full_prim.PF.Algebra =>
+let term : Alg.Assertion.Algebra := jet_bitcoin_full_prim.PF.CanonicalStructures.toAssertion alg in
+let core : Alg.Core.Algebra := Alg.Assertion.toCore term in
+@jet_sha256_ctx8_init_spec.AC.comp Ty.Unit
+  (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S O)))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+  (@jet_sha256_ctx8_init_spec.AC.pair Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type
+     (Word.Word (S (S (S (S (S O)))))) core
+     (@jet_sha256_ctx8_init_spec.AC.comp Ty.Unit
+        (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))))
+        jet_sha256_ctx8_init_spec.sha256_ctx8_type core
+        (@jet_sha256_ctx8_init_spec.AC.pair Ty.Unit jet_sha256_ctx8_init_spec.sha256_ctx8_type
+           (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))) core
+           (@jet_sha256_ctx8_init_spec.sha256_ctx8_init_spec core)
+           (@jet_sha256_ctx8_init_spec.AC.pair Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+              (Word.Word (S (S (S (S (S (S (S (S O))))))))) core (@jet_bitcoin_tx_hash.tx_hash_spec alg)
+              (@jet_bitcoin_composite_hash.tap_env_hash_spec alg)))
+        (@jet_sha_ctx8_spec.ctx8_addn_spec (S (S (S (S (S (S O)))))) term))
+     (@jet_bitcoin_full_prim.PF.Combinators.prim Ty.Unit (Word.Word (S (S (S (S (S O)))))) alg
+        (@jet_bitcoin_full_prim.BitcoinFull.Base Ty.Unit (Word.Word (S (S (S (S (S O)))))) Bitcoin.Bitcoin.CurrentIndex)))
+  (@jet_sha256_ctx8_init_spec.AC.comp
+     (Ty.Prod jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Vector (Word.Word (S (S (S O)))) (S (S O))))
+     jet_sha256_ctx8_init_spec.sha256_ctx8_type (Word.Word (S (S (S (S (S (S (S (S O))))))))) core
+     (@jet_sha_ctx8_spec.ctx8_addn_spec (S (S O)) term) (@jet_sha_finalize_spec.ctx8_finalize_spec term))
+     : forall alg : jet_bitcoin_full_prim.PF.Algebra,
+       jet_bitcoin_full_prim.PF.domain alg Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments sig_all_hash_spec {alg}
+### C.jet_bitcoin_sig_all_hash.current_index_word
+current_index_word =
+fun e : jet_bitcoin_ext_prim.ext_environment =>
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+  (BinInt.Z.of_nat (Bitcoin.Bitcoin.envIx (jet_bitcoin_ext_prim.extBase e)))
+     : forall _ : jet_bitcoin_ext_prim.ext_environment, Ty.tySem (Word.Word (S (S (S (S (S O))))))
+
+Arguments current_index_word e
+### C.jet_bitcoin_sig_all_hash.sig_all_hash_of
+sig_all_hash_of =
+fun e : jet_bitcoin_ext_prim.ext_environment =>
+jet_bitcoin_composite_hash.sha256_bytes_of
+  (@app (Ty.tySem (Word.Word (S (S (S O)))))
+     (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S (S (S (S (S O))))))
+        (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+           (Word.from_hash256 (jet_bitcoin_tx_hash.tx_hash_of e))
+           (Word.from_hash256 (jet_bitcoin_composite_hash.tap_env_hash_of e))))
+     (jet_buffer_input.vector_values (Word.Word (S (S (S O)))) (S (S O)) (current_index_word e)))
+     : forall _ : jet_bitcoin_ext_prim.ext_environment, Digest.hash256
+
+Arguments sig_all_hash_of e

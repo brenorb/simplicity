@@ -1,0 +1,79 @@
+### C.jet_wide.wide_size
+Inductive wide_size : Set :=  W16 : wide_size | W32 : wide_size | W64 : wide_size.
+### C.jet_wide.wide_bits
+wide_bits =
+fun s : wide_size =>
+match s return BinNums.Z with
+| W16 => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+| W32 => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+| W64 => BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+end
+     : forall _ : wide_size, BinNums.Z
+
+Arguments wide_bits s
+### C.jet_wide.wide_log
+wide_log =
+fun s : wide_size =>
+match s return nat with
+| W16 => S (S (S (S O)))
+| W32 => S (S (S (S (S O))))
+| W64 => S (S (S (S (S (S O)))))
+end
+     : forall _ : wide_size, nat
+
+Arguments wide_log s
+### C.jet_wide.wide_writer
+wide_writer =
+fun s : wide_size =>
+match s return Clight.function with
+| W16 => jets.f_simplicity_write16
+| W32 => jets.f_simplicity_write32
+| W64 => jets.f_simplicity_write64
+end
+     : forall _ : wide_size, Clight.function
+
+Arguments wide_writer s
+### C.jet_wide.wide_writer_id
+wide_writer_id =
+fun s : wide_size =>
+match s return AST.ident with
+| W16 => jets._simplicity_write16
+| W32 => jets._simplicity_write32
+| W64 => jets._simplicity_write64
+end
+     : forall _ : wide_size, AST.ident
+
+Arguments wide_writer_id s
+### C.jet_wide.wide_reader
+wide_reader =
+fun s : wide_size =>
+match s return Clight.function with
+| W16 => jets.f_simplicity_read16
+| W32 => jets.f_simplicity_read32
+| W64 => jets.f_simplicity_read64
+end
+     : forall _ : wide_size, Clight.function
+
+Arguments wide_reader s
+### C.jet_wide.wide_reader_id
+wide_reader_id =
+fun s : wide_size =>
+match s return AST.ident with
+| W16 => jets._simplicity_read16
+| W32 => jets._simplicity_read32
+| W64 => jets._simplicity_read64
+end
+     : forall _ : wide_size, AST.ident
+
+Arguments wide_reader_id s
+### C.jet_wide.wide_one
+wide_one =
+fun s : wide_size =>
+match s return Clight.function with
+| W16 => jets.f_simplicity_one_16
+| W32 => jets.f_simplicity_one_32
+| W64 => jets.f_simplicity_one_64
+end
+     : forall _ : wide_size, Clight.function
+
+Arguments wide_one s
