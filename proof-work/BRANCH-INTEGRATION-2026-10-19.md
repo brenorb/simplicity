@@ -68,3 +68,21 @@ checkout's working tree:
 None of these files is a new jet proof, so none were imported. The registry files are
 regenerated during acceptance, and taking an older copy would conflict with the
 main agent's live edits.
+
+## Completed local continuation
+
+The main checkout's index and working source states were preserved by signed
+commits `d46f2c16` and `abc06c23` on `wip/codex-20261019`, then merged before
+rewriting the integration history. Both original working folders have also been
+checked byte-for-byte against that saved source state. No unique proof is lost.
+
+The selected primary endpoints are now ordinary modules
+`C.jet_secp_multiply_literal_jet.fe_multiply_literal_local_spec` and
+`C.jet_secp_square_local.fe_square_local_spec`. The alternative remains in
+`fe-multiply-parallel`; its ARCHIVE.md records equivalent logical scope, the
+source-review/downstream reasons for the choice, and its faster execution model.
+The current pending-jet reconciliation is in `Coq/C/JET_ACCEPTANCE.md`.
+
+Original side branches and worktrees remain available. Removing them requires
+separate user approval; the old hash references above identify the backup
+history and are intentionally preserved as provenance.

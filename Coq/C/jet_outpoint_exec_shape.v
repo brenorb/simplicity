@@ -1,0 +1,72 @@
+(** Exact original Elements outpoint_hash body, 36-byte local array, and entry/free layout. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Values Memory Events.
+Require Import C.jet_elements_support_sha_add_n_init C.jets_elements C.jet_elements_linkage.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate C.jet_sha256_ctx8_init_spec C.jet_nonce_context_shape.
+
+Definition op_input_type := Ty.Prod sha256_ctx8_type
+  (Ty.Prod (Ty.Sum Ty.Unit Word256) (Ty.Prod Word256 Word32)).
+Definition op_read (n : Z) : statement :=
+  Scall None (Evar _read8s (Tfunction (Tcons (tptr tuchar) (Tcons tulong (Tcons FRP Tnil))) tvoid cc_default))
+    [Evar _buf (tarray tuchar 36); Econst_int (Int.repr n) tint; Eaddrof (Evar _src nc_fr) FRP].
+Definition op_absorb (n : Z) : statement :=
+  Scall None (Evar _sha256_uchars (Tfunction (Tcons CTXP (Tcons (tptr tuchar) (Tcons tulong Tnil))) tbool cc_default))
+    [Eaddrof (Evar _ctx CTX) CTXP; Evar _buf (tarray tuchar 36); Econst_int (Int.repr n) tint].
+Definition op_skip : statement :=
+  Scall None (Evar _forwardBits (Tfunction (Tcons FRP (Tcons tulong Tnil)) tvoid cc_default))
+    [Eaddrof (Evar _src nc_fr) FRP; Econst_int (Int.repr 256) tint].
+Definition op_pegin : statement :=
+  Ssequence (nc_readbit _t'2)
+    (Sifthenelse (Etempvar _t'2 tbool)
+      (Ssequence (op_read 32) (Ssequence (nc_uchar 1) (op_absorb 32)))
+      (Ssequence (nc_uchar 0) op_skip)).
+Definition op_write : statement :=
+  Ssequence
+    (Scall (Some _t'3) (Evar _simplicity_write_sha256_context
+      (Tfunction (Tcons FRP (Tcons CTXP Tnil)) tbool cc_default))
+      [Etempvar _dst FRP; Eaddrof (Evar _ctx CTX) CTXP])
+    (Sreturn (Some (Etempvar _t'3 tbool))).
+Lemma op_body : fn_body f_simplicity_outpoint_hash =
+  Ssequence (Sassign (Evar _src nc_fr) (Etempvar _src nc_fr))
+    (an_init (Ssequence nc_context_read (Ssequence op_pegin (Ssequence (op_read 36) (Ssequence (op_absorb 36) op_write))))).
+Proof. reflexivity. Qed.
+Lemma op_input_bits : bitSize op_input_type = 1375%nat.
+Proof. reflexivity. Qed.
+Definition op_env bl bm bb bx : env :=
+  PTree.set _ctx (bx, CTX) (PTree.set _buf (bb, tarray tuchar 36)
+    (PTree.set _midstate (bm, MID) (PTree.set _src (bl, nc_fr) empty_env))).
+Definition op_temps (env : val) bd dbase bs sbase : temp_env :=
+  PTree.set _env env (PTree.set _src (Vptr bs (Ptrofs.repr sbase))
+    (PTree.set _dst (Vptr bd (Ptrofs.repr dbase)) (create_undef_temps (fn_temps f_simplicity_outpoint_hash)))).
+Lemma op_blocks bl bm bb bx :
+  blocks_of_env elements_ge (op_env bl bm bb bx) = [(bx, 0, 88); (bl, 0, 16); (bm, 0, 32); (bb, 0, 36)].
+Proof. vm_compute; reflexivity. Qed.
+
+Theorem op_entry env m m1 m2 m3 m4 bl bm bb bx bd dbase bs sbase :
+  Mem.alloc m 0 16 = (m1, bl) -> Mem.alloc m1 0 32 = (m2, bm) ->
+  Mem.alloc m2 0 36 = (m3, bb) -> Mem.alloc m3 0 88 = (m4, bx) ->
+  function_entry2 elements_ge f_simplicity_outpoint_hash
+    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] m
+    (op_env bl bm bb bx) (op_temps env bd dbase bs sbase) m4.
+Proof.
+  intros A1 A2 A3 A4. constructor.
+  - cbn. repeat constructor; cbn; intuition discriminate.
+  - cbn. repeat constructor; cbn; intuition discriminate.
+  - intros x y HX HY Hxy. cbn in HX, HY.
+    repeat match goal with H : _ \/ _ |- _ => destruct H end; subst;
+      first [contradiction | vm_compute in Hxy; discriminate | congruence].
+  - eapply alloc_variables_cons with (m1 := m1) (b1 := bl);
+      [change (Mem.alloc m 0 16 = (m1, bl)); exact A1|].
+    eapply alloc_variables_cons with (m1 := m2) (b1 := bm);
+      [change (Mem.alloc m1 0 32 = (m2, bm)); exact A2|].
+    eapply alloc_variables_cons with (m1 := m3) (b1 := bb);
+      [change (Mem.alloc m2 0 36 = (m3, bb)); exact A3|].
+    eapply alloc_variables_cons with (m1 := m4) (b1 := bx);
+      [change (Mem.alloc m3 0 88 = (m4, bx)); exact A4|constructor].
+  - reflexivity.
+Qed.

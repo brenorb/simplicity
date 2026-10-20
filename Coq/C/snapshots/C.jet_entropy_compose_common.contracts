@@ -1,0 +1,119 @@
+### C.jet_entropy_compose_common.calc_mid_align
+calc_mid_align
+     : @eq BinNums.Z (Ctypes.alignof_blockcopy (Clight.genv_cenv jet_elements_linkage.elements_ge) calc_mid)
+         (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+### C.jet_entropy_compose_common.calc_local_addr
+calc_local_addr
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (id : BinNums.positive) (b : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b calc_mid))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m (Clight.Eaddrof (Clight.Evar id calc_mid) calc_mid_ptr)
+         (Values.Vptr b Integers.Ptrofs.zero)
+### C.jet_entropy_compose_common.calc_local_array
+calc_local_array
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (id : BinNums.positive) (b : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b calc_mid))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m
+         (Clight.Efield (Clight.Evar id calc_mid) jets_elements._s
+            (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (Values.Vptr b Integers.Ptrofs.zero)
+### C.jet_entropy_compose_common.exec_calc_result_copy
+exec_calc_result_copy
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (br bt : Values.block) (bytes : list Memdata.memval)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._result e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type br calc_mid)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements.__res e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bt calc_mid)))
+         (_ : not (@eq Values.block br bt))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes m bt BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes m br BinNums.Z0 bytes) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m calc_copy_result Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_entropy_compose_common.exec_source_copy
+exec_source_copy
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mc : Memory.Mem.mem) (bl bs : Values.block) (sbase : BinNums.Z) (bytes : list Memdata.memval)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._src e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bl calc_fr)))
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : not (@eq Values.block bl bs))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._src le)
+                (@Some Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase))))
+         (_ : @eq (option (list Memdata.memval))
+                (Memory.Mem.loadbytes m bs sbase
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@Some (list Memdata.memval) bytes))
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes m bl BinNums.Z0 bytes) (@Some Memory.Mem.mem mc)),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m calc_copy_src Events.E0 le mc
+         ClightBigstep.Out_normal
+### C.jet_entropy_compose_common.calc_write_symbol
+calc_write_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            jets_elements._writeHash)
+         (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._writeHash))
+### C.jet_entropy_compose_common.calc_write_funct
+calc_write_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._writeHash) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_writeHash))
+### C.jet_entropy_compose_common.exec_calc_write
+exec_calc_write
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (br bd : Values.block) (dbase : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._writeHash e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._result e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type br calc_mid)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+                (@Ctypes.Internal Clight.function jets_elements.f_writeHash)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr br Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m calc_write Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_entropy_compose_common.calc_mid
+calc_mid = Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr
+     : Ctypes.type
+### C.jet_entropy_compose_common.calc_mid_ptr
+calc_mid_ptr = Ctypesdefs.tptr calc_mid
+     : Ctypes.type
+### C.jet_entropy_compose_common.calc_fr
+calc_fr = Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr
+     : Ctypes.type
+### C.jet_entropy_compose_common.calc_cc
+calc_cc = AST.mkcallconv (@None BinNums.Z) false true
+     : AST.calling_convention
+### C.jet_entropy_compose_common.calc_copy_src
+calc_copy_src =
+Clight.Sassign (Clight.Evar jets_elements._src calc_fr) (Clight.Etempvar jets_elements._src calc_fr)
+     : Clight.statement
+### C.jet_entropy_compose_common.calc_copy_result
+calc_copy_result =
+Clight.Sassign (Clight.Evar jets_elements._result calc_mid) (Clight.Evar jets_elements.__res calc_mid)
+     : Clight.statement
+### C.jet_entropy_compose_common.calc_write
+calc_write =
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._writeHash
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr calc_fr) (Ctypes.Tcons calc_mid_ptr Ctypes.Tnil))
+        Ctypesdefs.tvoid AST.cc_default))
+  (@cons Clight.expr (Clight.Etempvar jets_elements._dst (Ctypesdefs.tptr calc_fr))
+     (@cons Clight.expr (Clight.Eaddrof (Clight.Evar jets_elements._result calc_mid) calc_mid_ptr) (@nil Clight.expr)))
+     : Clight.statement

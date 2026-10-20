@@ -1,0 +1,73 @@
+### C.jet_calculation_lifecycle_read.calc_owned_preserved
+calc_owned_preserved
+     : forall (m mf : Memory.Mem.mem) (bs : list Values.block) (zs : list BinNums.Z)
+         (_ : forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm mf b ofs k p)
+         (_ : forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block mf b)
+         (_ : @List.Forall2 Values.block BinNums.Z
+                (fun (b : Values.block) (z : BinNums.Z) =>
+                 and (Memory.Mem.range_perm m b BinNums.Z0 z Memtype.Cur Memtype.Freeable) (Memory.Mem.valid_block m b))
+                bs zs),
+       @List.Forall2 Values.block BinNums.Z
+         (fun (b : Values.block) (z : BinNums.Z) =>
+          and (Memory.Mem.range_perm mf b BinNums.Z0 z Memtype.Cur Memtype.Freeable) (Memory.Mem.valid_block mf b)) bs
+         zs
+### C.jet_calculation_lifecycle_read.calc_read_prefix
+calc_read_prefix
+     : forall (m : Memory.Mem.mem) (bs : Values.block) (sbase : BinNums.Z) (bi : Values.block)
+         (edge rc : BinNums.Z) (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (_ : jet_frame_layout.frame_base_valid sbase)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+         (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge rc) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                Integers.Int64.max_unsigned)
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc
+                (@Translate.encode (Word.Word (S (S (S (S (S (S (S (S O))))))))) h)),
+       @ex Memory.Mem.mem'
+         (fun m1 : Memory.Mem.mem' =>
+          @ex Memory.Mem.mem'
+            (fun m2 : Memory.Mem.mem' =>
+             @ex Memory.Mem.mem'
+               (fun m3 : Memory.Mem.mem' =>
+                @ex Memory.Mem.mem'
+                  (fun m4 : Memory.Mem.mem' =>
+                   @ex Values.block
+                     (fun bl : Values.block =>
+                      @ex Values.block
+                        (fun bh : Values.block =>
+                         @ex Values.block
+                           (fun br : Values.block =>
+                            @ex Values.block
+                              (fun bt : Values.block =>
+                               @ex (list Memdata.memval)
+                                 (fun bytes : list Memdata.memval =>
+                                  @ex Memory.Mem.mem
+                                    (fun mcp : Memory.Mem.mem =>
+                                     @ex Memory.Mem.mem
+                                       (fun mr : Memory.Mem.mem =>
+                                        and
+                                          (@eq (prod Memory.Mem.mem' Values.block)
+                                             (Memory.Mem.alloc m BinNums.Z0
+                                                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO ...)))))
+                                             (@pair Memory.Mem.mem' Values.block m1 bl))
+                                          (and
+                                             (@eq (prod Memory.Mem.mem' Values.block)
+                                                (Memory.Mem.alloc m1 BinNums.Z0
+                                                   (BinNums.Zpos (BinNums.xO (BinNums.xO ...))))
+                                                (@pair Memory.Mem.mem' Values.block m2 bh))
+                                             (and
+                                                (@eq (prod Memory.Mem.mem' Values.block)
+                                                   (Memory.Mem.alloc m2 BinNums.Z0 (BinNums.Zpos (BinNums.xO ...)))
+                                                   (@pair Memory.Mem.mem' Values.block m3 br))
+                                                (and
+                                                   (@eq (prod Memory.Mem.mem' Values.block)
+                                                      (Memory.Mem.alloc m3 BinNums.Z0 (BinNums.Zpos ...))
+                                                      (@pair Memory.Mem.mem' Values.block m4 bt))
+                                                   (and
+                                                      (@eq (option ...) (Memory.Mem.loadbytes m4 bs sbase ...)
+                                                         (@Some ... bytes)) (and (@eq ... ... ...) (and ... ...)))))))))))))))))

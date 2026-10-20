@@ -1,0 +1,137 @@
+### C.jet_nonce_exec_calls.nonce_local_frame_base
+nonce_local_frame_base
+     : jet_frame_layout.frame_base_valid BinNums.Z0
+### C.jet_nonce_exec_calls.nonce_readbit_link
+nonce_readbit_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               jets_elements._readBit)
+            (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._readBit)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._readBit) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_readBit)))
+### C.jet_nonce_exec_calls.nonce_forward_link
+nonce_forward_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               jets_elements._forwardBits)
+            (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._forwardBits)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._forwardBits)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_forwardBits)))
+### C.jet_nonce_exec_calls.nonce_uchar_link
+nonce_uchar_link
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               jets_elements._sha256_uchar)
+            (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._sha256_uchar)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+               (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._sha256_uchar)
+                  Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_sha256_uchar)))
+### C.jet_nonce_exec_calls.nonce_bit_bool
+nonce_bit_bool
+     : forall (m : Memory.Mem.mem) (bit : bool),
+       @eq (option bool) (Cop.bool_val (Values.Vint (jet_readBit_layout.bit_int bit)) Ctypesdefs.tbool m)
+         (@Some bool bit)
+### C.jet_nonce_exec_calls.nonce_read_bit
+nonce_read_bit
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (bl bi : Values.block) (edge rc : BinNums.Z) (bit : bool) (id : AST.ident)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl jet_nonce_context_shape.nc_fr)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._readBit e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : and (BinInt.Z.le BinNums.Z0 rc)
+                (BinInt.Z.le rc (BinInt.Z.sub Integers.Int64.max_unsigned (BinNums.Zpos BinNums.xH))))
+         (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : jet_input_layout.frame_input_bit_at m bi edge rc bit)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               (jet_nonce_context_shape.nc_readbit id) Events.E0
+               (@Maps.PTree.set Values.val id (Values.Vint (jet_readBit_layout.bit_int bit)) le) mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)))
+               (jet_nonce_exec_effects.nonce_effects m mf (@cons Values.block bl (@nil Values.block)))))
+### C.jet_nonce_exec_calls.nonce_forward_one
+nonce_forward_one
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (bl bi : Values.block) (edge rc : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl jet_nonce_context_shape.nc_fr)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._forwardBits e)
+                (@None (prod Values.block Ctypes.type))) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)) Integers.Int64.max_unsigned)
+         (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m jet_nonce_context_shape.nc_forward
+               Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge (BinInt.Z.add rc (BinNums.Zpos BinNums.xH)))
+               (jet_nonce_exec_effects.nonce_effects m mf (@cons Values.block bl (@nil Values.block)))))
+### C.jet_nonce_exec_calls.nonce_add_byte
+nonce_add_byte
+     : forall (_ : jet_memcpy_model.memcpy_model) (e : Maps.PTree.tree (prod Values.block Ctypes.type))
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (bx bm : Values.block)
+         (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int) (c : Integers.Int64.int)
+         (ovf : bool) (x : Ty.tySem (Word.Word (S (S (S O))))) (z : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._ctx e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bx (Ctypes.Tstruct jets_elements._sha256_context Ctypes.noattr))))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._sha256_uchar e)
+                (@None (prod Values.block Ctypes.type))) (_ : not (@eq Values.block bm bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bm))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bx))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bm)) (_ : @eq Integers.Int.int (jet_read8s_layout.word8_array_value x) (Integers.Int.repr z))
+         (_ : jet_elements_support_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+               (jet_nonce_context_shape.nc_uchar z) Events.E0 le mf ClightBigstep.Out_normal)
+            (and
+               (jet_elements_support_sha_ctx_abs.ctx_abs mf bx bm
+                  (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs
+                        (@cons (Ty.tySem (Word.Word (S (S (S O))))) x (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                  (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs
+                        (@cons (Ty.tySem (Word.Word (S (S (S O))))) x (@nil (Ty.tySem (Word.Word (S (S (S O)))))))))
+                  (Integers.Int64.add c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+                  (jet_elements_support_sha_uchars_exec.uc_overflow ovf c
+                     (Integers.Int64.repr (BinNums.Zpos BinNums.xH))))
+               (jet_nonce_exec_effects.nonce_effects m mf
+                  (@cons Values.block bx (@cons Values.block bm (@nil Values.block))))))

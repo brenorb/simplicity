@@ -1,0 +1,28 @@
+### C.jet_entropy_frame_allocation.calc_alloc_list_props
+calc_alloc_list_props
+     : forall (zs : list BinNums.Z) (m m' : Memory.Mem.mem) (bs : list Values.block)
+         (_ : @eq (prod Memory.Mem.mem (list Values.block)) (calc_alloc_list m zs)
+                (@pair Memory.Mem.mem (list Values.block) m' bs)),
+       and (jet_elements_support_sha_compress_call.mext m m')
+         (and (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), not (@List.In Values.block b bs))
+            (and (@List.NoDup Values.block bs)
+               (@List.Forall2 Values.block BinNums.Z
+                  (fun (b : Values.block) (z : BinNums.Z) =>
+                   and (Memory.Mem.range_perm m' b BinNums.Z0 z Memtype.Cur Memtype.Freeable)
+                     (Memory.Mem.valid_block m' b)) bs zs)))
+### C.jet_entropy_frame_allocation.calc_alloc_list
+calc_alloc_list =
+fix calc_alloc_list (m : Memory.Mem.mem) (zs : list BinNums.Z) {struct zs} : prod Memory.Mem.mem (list Values.block) :=
+  match zs return (prod Memory.Mem.mem (list Values.block)) with
+  | nil => @pair Memory.Mem.mem (list Values.block) m (@nil Values.block)
+  | cons z zs0 =>
+      match Memory.Mem.alloc m BinNums.Z0 z return (prod Memory.Mem.mem (list Values.block)) with
+      | pair m1 b =>
+          match calc_alloc_list m1 zs0 return (prod Memory.Mem.mem (list Values.block)) with
+          | pair m2 bs => @pair Memory.Mem.mem (list Values.block) m2 (@cons Values.block b bs)
+          end
+      end
+  end
+     : forall (_ : Memory.Mem.mem) (_ : list BinNums.Z), prod Memory.Mem.mem (list Values.block)
+
+Arguments calc_alloc_list m zs%list_scope

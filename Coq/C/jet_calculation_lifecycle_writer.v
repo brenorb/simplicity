@@ -1,0 +1,102 @@
+(** The original static writeHash wrapper, from its input array and frame.
+    The existing core writer proves the loop; transport preserves its body. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight Maps ClightBigstep Memory Events Globalenvs.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Translate.
+Require Import C.jet_exec C.jet_frame_layout C.jet_write_layout C.jet_output_layout.
+Require Import C.jet_encoding C.jet_uint32_array_init C.jet_write32s_layout.
+Require Import C.jet_elements_support_sha_linkage C.jet_elements_support_sha_transport C.jet_elements_support_sha_block_local.
+Require Import C.jet_elements_calc_field_eval C.jet_elements_linkage C.jet_elements_sha_program C.jets_elements.
+Import Values Mem Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge sha_ge ge0.
+Set Default Timeout 10.
+
+Lemma calc_write32s_symbol :
+  Genv.find_symbol (Clight.genv_genv elements_ge) _write32s = Some (elements_symbol_block _write32s).
+Proof. vm_compute; reflexivity. Qed.
+Lemma calc_write32s_funct :
+  Genv.find_funct (Clight.genv_genv elements_ge) (Vptr (elements_symbol_block _write32s) Ptrofs.zero) =
+    Some (Internal jets.f_write32s).
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma calc_mid_arg e le m b :
+  le!_h = Some (Vptr b Ptrofs.zero) ->
+  eval_expr elements_ge e le m
+    (Efield (Ederef (Etempvar _h (tptr (Tstruct _sha256_midstate noattr))) (Tstruct _sha256_midstate noattr))
+      _s (tarray tuint 8)) (Vptr b Ptrofs.zero).
+Proof.
+  intros HH. rewrite <- elements_sha_genv.
+  change Ptrofs.zero with (Ptrofs.add Ptrofs.zero (Ptrofs.repr 0)).
+  eapply eval_envu_field_array with (sid := _sha256_midstate) (delta := 0).
+  - reflexivity.
+  - exact envu_sha256_midstate_s.
+  - intros ch; discriminate.
+  - reflexivity.
+  - apply eval_envu_deref_struct; exact HH.
+Qed.
+
+Lemma calc_writehash_wrap m mf br bd dbase :
+  Clight2.eval_funcall elements_ge m (Internal jets.f_write32s)
+    [Vptr bd (Ptrofs.repr dbase); Vptr br Ptrofs.zero; Vlong (Int64.repr 8)] E0 mf Vundef ->
+  Clight2.eval_funcall elements_ge m (Internal f_writeHash)
+    [Vptr bd (Ptrofs.repr dbase); Vptr br Ptrofs.zero] E0 mf Vundef.
+Proof.
+  intro HC.
+  set (le := PTree.set _h (Vptr br Ptrofs.zero)
+    (PTree.set _dst (Vptr bd (Ptrofs.repr dbase)) (create_undef_temps (fn_temps f_writeHash)))).
+  eapply eval_funcall_internal with (e := empty_env) (le1 := le) (le2 := le)
+    (m1 := m) (m2 := mf) (out := Out_normal).
+  - constructor.
+    + constructor.
+    + change (list_norepet [_dst; _h]). unfold _dst, _h. repeat constructor; simpl; intuition discriminate.
+    + intros i j HI HJ. cbn in HI, HJ. contradiction.
+    + constructor.
+    + reflexivity.
+  - unfold f_writeHash; cbn [fn_body].
+    change le with (set_opttemp None Vundef le) at 2.
+    eapply exec_Scall with (vf := Vptr (elements_symbol_block _write32s) Ptrofs.zero)
+      (f := Internal jets.f_write32s)
+      (vargs := [Vptr bd (Ptrofs.repr dbase); Vptr br Ptrofs.zero; Vlong (Int64.repr 8)]) (vres := Vundef).
+    + reflexivity.
+    + eapply eval_Elvalue; [apply eval_Evar_global; [reflexivity|exact calc_write32s_symbol]|
+        apply deref_loc_reference; reflexivity].
+    + eapply eval_Econs; [apply eval_Etempvar; reflexivity|reflexivity|].
+      eapply eval_Econs; [apply calc_mid_arg; reflexivity|reflexivity|].
+      eapply eval_Econs; [apply eval_Econst_int|reflexivity|apply eval_Enil].
+    + exact calc_write32s_funct.
+    + reflexivity.
+    + exact HC.
+  - reflexivity.
+  - reflexivity.
+Qed.
+
+Theorem calc_writehash_from_frame m br bd dbase bw edge cursor (h : Ty.tySem Word256) :
+  br <> bd -> br <> bw ->
+  uint32_array_at m br 0 (hash256_reg (to_hash256 h)) ->
+  write_frame_at m bd dbase bw edge cursor 256 ->
+  exists mf,
+    Clight2.eval_funcall elements_ge m (Internal f_writeHash)
+      [Vptr bd (Ptrofs.repr dbase); Vptr br Ptrofs.zero] E0 mf Vundef /\
+    frame_output_cells_at mf bw edge cursor (@encode Word256 h) /\
+    write_prefix_at m mf bw edge cursor /\
+    frame_fields_at mf bd dbase bw edge (cursor - 256) /\
+    loads_outside_ranges m mf bd (dbase + 8) (dbase + 16)
+      bw (edge + 8 * ((cursor - 256) / 64)) (write_word_address edge cursor + 8) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm mf b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+Proof.
+  intros HD HW HA HF.
+  pose proof (hash256_len (to_hash256 h)) as HL.
+  destruct (eval_write32s_layout m br 0 bd dbase bw edge cursor (hash256_reg (to_hash256 h))
+    ltac:(lia) ltac:(rewrite HL; change Ptrofs.max_unsigned with 18446744073709551615; lia)
+    HD HW HA ltac:(rewrite HL; exact HF))
+    as (mf & HC & HCells & HPrefix & HFields & HLoads & HP & HV).
+  rewrite HL in HC, HFields, HLoads.
+  change (32 * Z.of_nat 8) with 256 in HFields, HLoads.
+  exists mf. split.
+  - apply calc_writehash_wrap. rewrite <- elements_sha_genv.
+    eapply sha_transport_call; [|exact HC]. unfold sha_core_helpers. simpl. tauto.
+  - rewrite uint32_cells_from_hash256, from_to_hash256 in HCells.
+    exact (conj HCells (conj HPrefix (conj HFields (conj HLoads (conj HP HV))))).
+Qed.

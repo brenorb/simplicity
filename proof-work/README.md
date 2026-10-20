@@ -27,9 +27,9 @@ Run the archive integrity and exact patch replay check from the repository root:
 python3 proof-work/manage.py
 ```
 
-It checks source hashes and reconstructs every range commit and the field
-predicate candidate in a temporary Git index. The resulting tree IDs must match
-the recorded commits. It does not compile or accept those proofs, change the
+It checks preserved source hashes and the original scratch inventory. Duplicate
+source records point to the byte-identical kept file. Historical exact patch
+replay is optional (`--replay`) and requires the original backup history. It does not compile or accept those proofs, change the
 active sources, or apply candidate snapshot changes to the active build.
 
 To recover exact helper sources for further work outside the repository:
@@ -50,3 +50,12 @@ retained locally. The latter have no new closed-prefix declaration names beyond
 the integrated/archived sources. Generated artifacts, caches and raw logs remain
 local. The inherited fidelity review remains **partial**; consult
 `Coq/C/JET_INHERITED_REVIEW.md` for its separate obligations.
+
+## Promoted candidates
+
+See `Coq/C/JET_ACCEPTANCE.md` for the current registrations and their conditional
+scopes. The main field multiplication/square and recovered Elements calculation
+proofs are ordinary `Coq/C` modules; old candidate status prose is historical.
+The independent parallel multiplication/square archive remains an alternative.
+No source receipt or log is needed to accept a proof: rerun `check-jets.sh` on
+the commit. Original source archives retain their provenance and unique work.

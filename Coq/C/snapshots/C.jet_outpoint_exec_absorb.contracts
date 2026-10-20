@@ -1,0 +1,46 @@
+### C.jet_outpoint_exec_absorb.op_array_preserved
+op_array_preserved
+     : forall (m mf : Memory.Mem.mem) (changed : list Values.block) (b : Values.block) (base : BinNums.Z)
+         (xs : list Integers.Int.int) (_ : jet_nonce_exec_effects.nonce_effects m mf changed)
+         (_ : not (@List.In Values.block b changed)) (_ : jet_read8s_layout.uint8_array_at m b base xs),
+       jet_read8s_layout.uint8_array_at mf b base xs
+### C.jet_outpoint_exec_absorb.op_absorb_exec
+op_absorb_exec
+     : forall (_ : jet_memcpy_model.memcpy_model) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (bl bm bb bx : Values.block) (n : BinNums.Z) (l : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (regs : list Integers.Int.int) (xs : list (Ty.tySem (Word.Word (S (S (S O)))))) (c : Integers.Int64.int)
+         (ovf : bool) (_ : @eq BinNums.Z (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) xs)) n)
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         (_ : not (@eq Values.block bb bx)) (_ : not (@eq Values.block bb bm)) (_ : not (@eq Values.block bm bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bm))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bx))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bm))
+         (_ : jet_read8s_layout.uint8_array_at m bb BinNums.Z0
+                (@List.map (Ty.tySem (Word.Word (S (S (S O))))) Integers.Int.int jet_read8s_layout.word8_array_value xs))
+         (_ : jet_elements_support_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge
+               (jet_outpoint_exec_shape.op_env bl bm bb bx) le m (jet_outpoint_exec_shape.op_absorb n) Events.E0 le mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_elements_support_sha_ctx_abs.ctx_abs mf bx bm
+                  (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs xs))
+                  (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs xs)) (Integers.Int64.add c (Integers.Int64.repr n))
+                  (jet_elements_support_sha_uchars_exec.uc_overflow ovf c (Integers.Int64.repr n)))
+               (jet_nonce_exec_effects.nonce_effects m mf
+                  (@cons Values.block bx (@cons Values.block bm (@nil Values.block))))))

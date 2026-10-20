@@ -1,0 +1,182 @@
+(** Actual explicit and confidential amount branches, derived from input and live context. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Cop Clight ClightBigstep Maps Values Memory Events Globalenvs.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_frame_layout C.jet_input_layout C.jet_encoding.
+Require Import C.jet_buffer_input C.jet_readBit_layout C.jet_read8s_layout.
+Require Import C.jet_elements_support_sha_ctx_abs C.jet_sha_ctx8_model C.jet_elements_support_sha_uchars_exec C.jet_elements_support_sha_add_n_init.
+Require Import C.jet_elements_support_sha_linkage C.jet_elements_support_sha_transport C.jet_elements_support_sha_block_local C.jet_elements_sha_program.
+Require Import C.jets_elements C.jet_elements_linkage.
+Require Import C.jet_nonce_context_shape C.jet_nonce_exec_effects C.jet_nonce_exec_calls.
+Import Mem Values Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge sha_ge ge0.
+Set Default Timeout 10.
+
+Require Import C.jet_nonce_exec_payload C.jet_asset_exec_shape.
+
+Require Import C.jet_forwardBits_layout C.jet_nonce_context_spec C.jet_nonce_exec_prefix.
+
+Require Import C.jet_amount_exec_common C.jet_amount_exec_payload8 C.jet_nonce_exec_phase.
+
+Section Amount.
+Variable Hmodel : memcpy_model.
+Variables bl bm bb bx bi : block.
+Hypotheses (Hlx : bl <> bx) (Hlm : bl <> bm) (Hlg : bl <> GC) (Hlc : bl <> GM).
+Hypotheses (Hbx : bb <> bx) (Hbm : bb <> bm) (Hbg : bb <> GC) (Hbc : bb <> GM) (Hlb : bl <> bb).
+Hypotheses (Hil : bi <> bl) (Hib : bi <> bb) (Hix : bi <> bx) (Him : bi <> bm).
+Hypotheses (Hmx : bm <> bx) (Hgx : GC <> bx) (Hgm : GC <> bm) (Hcx : GM <> bx) (Hcm : GM <> bm).
+Let e := nc_env bl bm bb bx.
+
+Theorem amount_explicit_exec le m edge rc (v : Ty.tySem Word64) l regs c ovf :
+  0 <= rc -> rc + 258 <= Int64.max_unsigned ->
+  frame_fields_at m bl 0 bi edge rc -> Mem.valid_access m Mint64 bl 8 Writable ->
+  Mem.range_perm m bb 0 32 Cur Writable ->
+  frame_input_cells_at m bi edge rc (@encode amount_value_type (inr v)) -> ctx_abs m bx bm l regs c ovf ->
+  exists mf,
+    Clight2.exec_stmt elements_ge e le m amount_phase E0 (PTree.set _t'5 (Vint Int.one) le) mf Out_normal /\
+    frame_fields_at mf bl 0 bi edge (rc + 258) /\
+    ctx_abs mf bx bm (fst (absorb l regs (amount_bytes (inr v)))) (snd (absorb l regs (amount_bytes (inr v))))
+      (Int64.add c (Int64.repr 9)) (amount_overflow ovf c (inr v)) /\
+    nonce_effects m mf [bl; bb; bx; bm].
+Proof.
+  intros H0 HM HF PW PB HI HC. rewrite amount_explicit_encoding in HI.
+  destruct (nonce_read_cell bl bm bb bx bi Hlx Hlm Hlg Hlc Hil le m edge rc true
+    (repeat None 193 ++ encode v) l regs c ovf _t'5 ltac:(lia) HF PW HI HC)
+    as (m1 & HRead & HF1 & HI1 & HC1 & E1).
+  set (le1 := PTree.set _t'5 (Vint Int.one) le).
+  apply frame_input_cells_at_app in HI1. destruct HI1 as [HPad HData].
+  rewrite repeat_length in HData. change (Z.of_nat 193) with 193 in HData.
+  replace (rc + 1 + 193) with (rc + 194) in HData by lia.
+  destruct (nonce_add_byte Hmodel e le1 m1 bx bm l regs c ovf (nonce_byte 1) 1
+    eq_refl eq_refl Hmx Hgx Hgm Hcx Hcm (proj1 (proj2 nonce_prefix_ints)) HC1)
+    as (m2 & HAdd & HC2 & E2).
+  assert (HF2 : frame_fields_at m2 bl 0 bi edge (rc + 1)).
+  { eapply nonce_effects_fields; [exact E2|cbn; intuition congruence|exact HF1]. }
+  assert (PW2 : Mem.valid_access m2 Mint64 bl 8 Writable).
+  { eapply nonce_effects_access; [exact E2|]. eapply nonce_effects_access; eassumption. }
+  destruct (amount_skip_exec e le1 m2 bl bi edge (rc + 1) eq_refl eq_refl ltac:(lia) ltac:(lia) HF2 PW2)
+    as (m3 & HSkip & HF3 & E3).
+  replace (rc + 1 + 193) with (rc + 194) in HF3 by lia.
+  assert (HI2 : frame_input_cells_at m2 bi edge (rc + 194) (@encode Word64 v)).
+  { eapply nonce_effects_input; [exact E2|cbn; intuition congruence|exact HData]. }
+  assert (HI3 : frame_input_cells_at m3 bi edge (rc + 194) (@encode Word64 v)).
+  { eapply nonce_effects_input; [exact E3|cbn; intuition congruence|exact HI2]. }
+  assert (HC3 : ctx_abs m3 bx bm (fst (absorb l regs [nonce_byte 1]))
+    (snd (absorb l regs [nonce_byte 1])) (Int64.add c (Int64.repr 1)) (uc_overflow ovf c (Int64.repr 1))).
+  { eapply nonce_effects_ctx; [exact E3| | | | |exact HC2]; cbn; intuition congruence. }
+  assert (PW3 : Mem.valid_access m3 Mint64 bl 8 Writable) by (eapply nonce_effects_access; eassumption).
+  assert (PB3 : Mem.range_perm m3 bb 0 8 Cur Writable).
+  { intros ofs HO. apply (nonce_perms _ _ _ E3), (nonce_perms _ _ _ E2), (nonce_perms _ _ _ E1), PB. lia. }
+  destruct (amount_payload8_exec Hmodel le1 m3 bl bm bb bx bi edge (rc + 194) v
+    (fst (absorb l regs [nonce_byte 1])) (snd (absorb l regs [nonce_byte 1]))
+    (Int64.add c (Int64.repr 1)) (uc_overflow ovf c (Int64.repr 1))
+    Hlx Hlm Hlg Hlc Hbx Hbm Hbg Hbc Hlb ltac:(congruence) ltac:(congruence)
+    Hmx Hgx Hgm Hcx Hcm ltac:(lia) ltac:(lia) HF3 PW3 PB3 HI3 HC3)
+    as (mf & HPayload & HFields & HCtx & E4).
+  replace (rc + 194 + 64) with (rc + 258) in HFields by lia.
+  rewrite absorb_app, amount_counter_one_then_8 in HCtx.
+  exists mf. split.
+  - unfold amount_phase. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m1) (le1 := le1).
+    + exact HRead.
+    + eapply exec_Sifthenelse with (v1 := Vint Int.one) (b := true).
+      * apply eval_Etempvar. unfold le1. apply PTree.gss.
+      * reflexivity.
+      * eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m2) (le1 := le1); [exact HAdd|].
+        eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m3) (le1 := le1); eassumption.
+  - split; [exact HFields|]. split; [exact HCtx|].
+    eapply nonce_effects_trans with (m1 := m3); [|exact E4].
+    eapply nonce_effects_trans with (m1 := m2).
+    + eapply nonce_effects_trans with (m1 := m1).
+      * eapply nonce_effects_mono; [exact E1|]. intros b H. clear -H. cbn in H |- *. tauto.
+      * eapply nonce_effects_mono; [exact E2|]. intros b H. clear -H. cbn in H |- *. tauto.
+    + eapply nonce_effects_mono; [exact E3|]. intros b H. clear -H. cbn in H |- *. tauto.
+Qed.
+
+Theorem amount_confidential_exec le m edge rc (odd : bool) (h : Ty.tySem Word256) l regs c ovf :
+  0 <= rc -> rc + 258 <= Int64.max_unsigned ->
+  frame_fields_at m bl 0 bi edge rc -> Mem.valid_access m Mint64 bl 8 Writable ->
+  Mem.range_perm m bb 0 32 Cur Writable ->
+  frame_input_cells_at m bi edge rc (@encode amount_value_type (inl ((if odd then inr tt else inl tt), h))) ->
+  ctx_abs m bx bm l regs c ovf ->
+  let a : Ty.tySem amount_value_type := inl ((if odd then inr tt else inl tt), h) in
+  exists mf,
+    Clight2.exec_stmt elements_ge e le m amount_phase E0
+      (PTree.set _t'4 (Vint (bit_int odd)) (PTree.set _t'5 (Vint Int.zero) le)) mf Out_normal /\
+    frame_fields_at mf bl 0 bi edge (rc + 258) /\
+    ctx_abs mf bx bm (fst (absorb l regs (amount_bytes a))) (snd (absorb l regs (amount_bytes a)))
+      (Int64.add c (Int64.repr 33)) (amount_overflow ovf c a) /\
+    nonce_effects m mf [bl; bb; bx; bm].
+Proof.
+  intros H0 HM HF PW PB HI HC a. rewrite amount_confidential_encoding in HI.
+  destruct (nonce_read_cell bl bm bb bx bi Hlx Hlm Hlg Hlc Hil le m edge rc false
+    (Some odd :: encode h) l regs c ovf _t'5 ltac:(lia) HF PW HI HC)
+    as (m1 & HRead1 & HF1 & HI1 & HC1 & E1).
+  set (le1 := PTree.set _t'5 (Vint Int.zero) le).
+  assert (PW1 : Mem.valid_access m1 Mint64 bl 8 Writable) by (eapply nonce_effects_access; eassumption).
+  destruct (nonce_read_cell bl bm bb bx bi Hlx Hlm Hlg Hlc Hil le1 m1 edge (rc + 1) odd
+    (encode h) l regs c ovf _t'4 ltac:(lia) HF1 PW1 HI1 HC1)
+    as (m2 & HRead2 & HF2 & HI2 & HC2 & E2).
+  replace (rc + 1 + 1) with (rc + 2) in HF2, HI2 by lia.
+  set (le2 := PTree.set _t'4 (Vint (bit_int odd)) le1).
+  set (x := nonce_byte (if odd then 9 else 8)).
+  assert (HX : word8_array_value x = Int.repr (if odd then 9 else 8)).
+  { unfold x. destruct odd; [exact (proj2 amount_prefix_machine)|exact (proj1 amount_prefix_machine)]. }
+  destruct (nonce_add_byte Hmodel e le2 m2 bx bm l regs c ovf x (if odd then 9 else 8)
+    eq_refl eq_refl Hmx Hgx Hgm Hcx Hcm HX HC2) as (m3 & HAdd & HC3 & E3).
+  assert (HF3 : frame_fields_at m3 bl 0 bi edge (rc + 2)).
+  { eapply nonce_effects_fields; [exact E3|cbn; intuition congruence|exact HF2]. }
+  assert (HI3 : frame_input_cells_at m3 bi edge (rc + 2) (@encode Word256 h)).
+  { eapply nonce_effects_input; [exact E3|cbn; intuition congruence|exact HI2]. }
+  assert (PW3 : Mem.valid_access m3 Mint64 bl 8 Writable).
+  { eapply nonce_effects_access; [exact E3|]. eapply nonce_effects_access; [exact E2|exact PW1]. }
+  assert (PB3 : Mem.range_perm m3 bb 0 32 Cur Writable).
+  { intros ofs HO. apply (nonce_perms _ _ _ E3), (nonce_perms _ _ _ E2), (nonce_perms _ _ _ E1), PB, HO. }
+  destruct (nonce_payload_exec Hmodel le2 m3 bl bm bb bx bi edge (rc + 2) h
+    (fst (absorb l regs [x])) (snd (absorb l regs [x]))
+    (Int64.add c (Int64.repr 1)) (uc_overflow ovf c (Int64.repr 1))
+    Hlx Hlm Hlg Hlc Hbx Hbm Hbg Hbc Hlb ltac:(congruence) ltac:(congruence)
+    Hmx Hgx Hgm Hcx Hcm ltac:(lia) ltac:(lia) HF3 PW3 PB3 HI3 HC3)
+    as (mf & HPayload & HFields & HCtx & E4).
+  replace (rc + 2 + 256) with (rc + 258) in HFields by lia.
+  rewrite absorb_app, nonce_counter_one_then_32 in HCtx.
+  exists mf. split.
+  - unfold amount_phase. eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m1) (le1 := le1).
+    + exact HRead1.
+    + eapply exec_Sifthenelse with (v1 := Vint Int.zero) (b := false).
+      * apply eval_Etempvar. unfold le1. apply PTree.gss.
+      * reflexivity.
+      * eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m3) (le1 := le2); [|exact HPayload].
+        eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := m2) (le1 := le2); [exact HRead2|].
+        eapply exec_Sifthenelse with (v1 := Vint (bit_int odd)) (b := odd).
+        -- apply eval_Etempvar. unfold le2. apply PTree.gss.
+        -- apply nonce_bit_bool.
+        -- destruct odd; exact HAdd.
+  - split; [exact HFields|]. split.
+    + unfold a, amount_bytes. destruct odd; exact HCtx.
+    + eapply nonce_effects_trans with (m1 := m3); [|exact E4].
+      eapply nonce_effects_trans with (m1 := m2).
+      * eapply nonce_effects_trans with (m1 := m1).
+        -- eapply nonce_effects_mono; [exact E1|]. intros b H. clear -H. cbn in H |- *. tauto.
+        -- eapply nonce_effects_mono; [exact E2|]. intros b H. clear -H. cbn in H |- *. tauto.
+      * eapply nonce_effects_mono; [exact E3|]. intros b H. clear -H. cbn in H |- *. tauto.
+Qed.
+
+Theorem amount_phase_exec le m edge rc (a : Ty.tySem amount_value_type) l regs c ovf :
+  0 <= rc -> rc + 258 <= Int64.max_unsigned ->
+  frame_fields_at m bl 0 bi edge rc -> Mem.valid_access m Mint64 bl 8 Writable ->
+  Mem.range_perm m bb 0 32 Cur Writable ->
+  frame_input_cells_at m bi edge rc (@encode amount_value_type a) -> ctx_abs m bx bm l regs c ovf ->
+  exists mf,
+    Clight2.exec_stmt elements_ge e le m amount_phase E0 (amount_temps a le) mf Out_normal /\
+    frame_fields_at mf bl 0 bi edge (rc + 258) /\
+    ctx_abs mf bx bm (fst (absorb l regs (amount_bytes a))) (snd (absorb l regs (amount_bytes a)))
+      (Int64.add c (Int64.repr (amount_count a))) (amount_overflow ovf c a) /\
+    nonce_effects m mf [bl; bb; bx; bm].
+Proof.
+  intros H0 HM HF PW PB HI HC. destruct a as [[[[]|[]] h]|v].
+  - exact (amount_confidential_exec le m edge rc false h l regs c ovf H0 HM HF PW PB HI HC).
+  - exact (amount_confidential_exec le m edge rc true h l regs c ovf H0 HM HF PW PB HI HC).
+  - exact (amount_explicit_exec le m edge rc v l regs c ovf H0 HM HF PW PB HI HC).
+Qed.
+End Amount.

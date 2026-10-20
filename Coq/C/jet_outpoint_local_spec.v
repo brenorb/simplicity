@@ -1,0 +1,51 @@
+(** Literal Elements outpointHash and its option/stream bridge. *)
+From Coq Require Import ZArith List Lia.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Util.Option.
+Require Simplicity.Alg.
+Require Import C.jet_buffer_empty_spec C.jet_buffer_input C.jet_sha256_ctx8_init_spec C.jet_sha_ctx8_spec.
+Require Import C.jet_asset_local_buffer C.jet_asset_local_context_hashes C.jet_outpoint_exec_shape C.jet_outpoint_middle_common.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition elements_outpoint_hash_spec {term : Alg.Assertion.Algebra} :
+    @Alg.Assertion.domain term op_input_type sha256_ctx8_type :=
+  let core := Alg.Assertion.toCore term in
+  @AC.comp _ _ _ core
+    (@AC.pair _ _ _ core
+      (@AC.comp _ _ _ core
+        (@AC.pair _ _ _ core
+          (@AC.comp _ _ _ core (AC.pair (AC.take AC.iden) (AC.drop (AC.take AC.iden))) (@annex_hash_spec term))
+          (AC.drop (AC.drop (AC.take AC.iden))))
+        (@ctx8_addn_spec 5 term))
+      (AC.drop (AC.drop (AC.drop AC.iden))))
+    (@ctx8_addn_spec 2 term).
+
+Lemma elements_outpoint_hash_spec_parametric : Alg.Assertion.Parametric (@elements_outpoint_hash_spec).
+Proof.
+  intros alg1 alg2 R. pose proof (annex_hash_spec_parametric _ _ R) as HA.
+  pose proof (ctx8_addn_spec_parametric 5 _ _ R) as H32.
+  pose proof (ctx8_addn_spec_parametric 2 _ _ R) as H4.
+  destruct R as [R [HC HV]]. set (RC := Alg.Core.Parametric.Pack HC).
+  unfold elements_outpoint_hash_spec.
+  solve [repeat first [exact HA | exact H32 | exact H4 | apply (Alg.comp_Parametric RC) |
+    apply (Alg.pair_Parametric RC) | apply (Alg.take_Parametric RC) | apply (Alg.drop_Parametric RC) |
+    apply Alg.iden_Parametric]].
+Qed.
+
+Lemma op_annex_bytes a :
+  (match a with inl _ => [byte_zero] | inr h => byte_one :: vector_values Word8 5 h end) = op_bytes a.
+Proof. destruct a; reflexivity. Qed.
+
+Lemma elements_outpoint_hash_option c a h ix :
+  @elements_outpoint_hash_spec optalg (c, (a, (h, ix))) = ctx8_add_list c (op_full_bytes a h ix).
+Proof.
+  unfold elements_outpoint_hash_spec. opt_steps.
+  rewrite annex_hash_option, op_annex_bytes.
+  unfold op_full_bytes, op_outpoint_bytes.
+  rewrite ctx8_add_list_app.
+  destruct (ctx8_add_list c (op_bytes a)) as [c1|]; [|reflexivity].
+  opt_steps. rewrite (ctx8_addn_option 5), ctx8_add_list_app.
+  destruct (ctx8_add_list c1 (vector_values Word8 5 h)) as [c2|]; [|reflexivity].
+  opt_steps. apply (ctx8_addn_option 2).
+Qed.

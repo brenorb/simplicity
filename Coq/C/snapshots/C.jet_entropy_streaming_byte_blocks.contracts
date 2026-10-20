@@ -1,0 +1,39 @@
+### C.jet_entropy_streaming_byte_blocks.be32_bytes_to_Int
+be32_bytes_to_Int
+     : forall a b c d : Integers.Byte.int,
+       @eq Integers.Int.int (jet_sha_ctx8_model.be32 (byte_int a) (byte_int b) (byte_int c) (byte_int d))
+         (general_lemmas.bytes_to_Int a b c d)
+### C.jet_entropy_streaming_byte_blocks.be_words_bytes
+be_words_bytes
+     : forall l : list Integers.Byte.int,
+       @eq (list Integers.Int.int)
+         (jet_sha_ctx8_model.be_words (@List.map Integers.Byte.int Integers.Int.int byte_int l))
+         (general_lemmas.bytelist_to_intlist l)
+### C.jet_entropy_streaming_byte_blocks.be_words_app4
+be_words_app4
+     : forall (n : nat) (b1 b2 : list Integers.Int.int)
+         (_ : @eq nat (@length Integers.Int.int b1) (Nat.mul (S (S (S (S O)))) n)),
+       @eq (list Integers.Int.int) (jet_sha_ctx8_model.be_words (@app Integers.Int.int b1 b2))
+         (@app Integers.Int.int (jet_sha_ctx8_model.be_words b1) (jet_sha_ctx8_model.be_words b2))
+### C.jet_entropy_streaming_byte_blocks.hash_blocks_app
+hash_blocks_app
+     : forall (r W1 W2 : list Integers.Int.int)
+         (_ : @eq nat (@length Integers.Int.int W1) (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))),
+       @eq SHA256.registers (SHA256.hash_blocks r (@app Integers.Int.int W1 W2))
+         (SHA256.hash_blocks (SHA256.hash_block r W1) W2)
+### C.jet_entropy_streaming_byte_blocks.absorb_blocks
+absorb_blocks
+     : forall (k : nat) (B r : list Integers.Int.int)
+         (_ : @eq nat (@length Integers.Int.int r) (S (S (S (S (S (S (S (S O)))))))))
+         (_ : @eq nat (@length Integers.Int.int B)
+                (Nat.mul (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))) k)),
+       @eq (prod (list Integers.Int.int) (list Integers.Int.int))
+         (jet_elements_support_sha_uchars_prep.absorb_i (@nil Integers.Int.int) r B)
+         (@pair (list Integers.Int.int) SHA256.registers (@nil Integers.Int.int)
+            (SHA256.hash_blocks r (jet_sha_ctx8_model.be_words B)))
+### C.jet_entropy_streaming_byte_blocks.byte_int
+byte_int =
+fun b : Integers.Byte.int => Integers.Int.repr (Integers.Byte.unsigned b)
+     : forall _ : Integers.Byte.int, Integers.Int.int
+
+Arguments byte_int b

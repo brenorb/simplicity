@@ -1,0 +1,85 @@
+(** Exact original asset_amount_hash body, type width and four-local entry. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate Simplicity.BitMachine.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_frame_layout C.jet_input_layout C.jet_encoding.
+Require Import C.jet_readBit_layout C.jet_read8s_layout C.jet_elements_support_sha_ctx_abs C.jet_sha_ctx8_model.
+Require Import C.jet_elements_support_sha_uchars_exec C.jet_elements_support_sha_add_n_init C.jet_elements_support_sha_linkage C.jet_elements_support_sha_block_local.
+Require Import C.jets_elements C.jet_elements_linkage.
+Require Import C.jet_nonce_context_spec C.jet_nonce_context_shape C.jet_nonce_exec_effects C.jet_nonce_exec_calls.
+Import Mem Values Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Require Import C.jet_nonce_exec_prefix.
+
+Require Import C.jet_sha256_ctx8_init_spec C.jet_asset_exec_prefix.
+
+Definition asset_amount_input_type := Ty.Prod sha256_ctx8_type
+  (Ty.Prod nonce_conf_type (Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) Word64)).
+Definition asset_prefix := tagged_prefix _t'3 _t'2 10 11.
+Definition amount_read8 :=
+  Scall None (Evar _read8s (Tfunction (Tcons (tptr tuchar) (Tcons tulong (Tcons FRP Tnil))) tvoid cc_default))
+    [Evar _buf (tarray tuchar 32); Econst_int (Int.repr 8) tint; Eaddrof (Evar _src nc_fr) FRP].
+Definition amount_absorb8 :=
+  Scall None (Evar _sha256_uchars (Tfunction (Tcons CTXP (Tcons (tptr tuchar) (Tcons tulong Tnil))) tbool cc_default))
+    [Eaddrof (Evar _ctx CTX) CTXP; Evar _buf (tarray tuchar 32); Econst_int (Int.repr 8) tint].
+Definition amount_skip :=
+  Scall None (Evar _forwardBits (Tfunction (Tcons FRP (Tcons tulong Tnil)) tvoid cc_default))
+    [Eaddrof (Evar _src nc_fr) FRP;
+     Ebinop Osub (Econst_int (Int.repr 257) tint) (Econst_int (Int.repr 64) tint) tint].
+Definition amount_phase :=
+  Ssequence (nc_readbit _t'5)
+    (Sifthenelse (Etempvar _t'5 tbool)
+      (Ssequence (nc_uchar 1) (Ssequence amount_skip (Ssequence amount_read8 amount_absorb8)))
+      (Ssequence
+        (Ssequence (nc_readbit _t'4)
+          (Sifthenelse (Etempvar _t'4 tbool) (nc_uchar 9) (nc_uchar 8)))
+        (Ssequence nc_readbytes nc_uchars))).
+Definition asset_amount_write :=
+  Ssequence
+    (Scall (Some _t'6) (Evar _simplicity_write_sha256_context
+      (Tfunction (Tcons FRP (Tcons CTXP Tnil)) tbool cc_default))
+      [Etempvar _dst FRP; Eaddrof (Evar _ctx CTX) CTXP])
+    (Sreturn (Some (Etempvar _t'6 tbool))).
+Definition asset_phase := Ssequence asset_prefix (Ssequence nc_readbytes nc_uchars).
+
+Lemma asset_amount_body : fn_body f_simplicity_asset_amount_hash =
+  Ssequence (Sassign (Evar _src nc_fr) (Etempvar _src nc_fr))
+    (an_init (Ssequence nc_context_read
+      (Ssequence asset_prefix
+        (Ssequence nc_readbytes (Ssequence nc_uchars (Ssequence amount_phase asset_amount_write)))))).
+Proof. reflexivity. Qed.
+
+Lemma asset_amount_input_bits : bitSize asset_amount_input_type = 1346%nat.
+Proof. reflexivity. Qed.
+
+Definition asset_amount_temps (env : val) bd dbase bs sbase : temp_env :=
+  PTree.set _env env (PTree.set _src (Vptr bs (Ptrofs.repr sbase))
+    (PTree.set _dst (Vptr bd (Ptrofs.repr dbase))
+      (create_undef_temps (fn_temps f_simplicity_asset_amount_hash)))).
+
+Theorem asset_amount_entry env m m1 m2 m3 m4 bl bm bb bx bd dbase bs sbase :
+  Mem.alloc m 0 16 = (m1, bl) -> Mem.alloc m1 0 32 = (m2, bm) ->
+  Mem.alloc m2 0 32 = (m3, bb) -> Mem.alloc m3 0 88 = (m4, bx) ->
+  function_entry2 elements_ge f_simplicity_asset_amount_hash
+    [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] m
+    (nc_env bl bm bb bx) (asset_amount_temps env bd dbase bs sbase) m4.
+Proof.
+  intros A1 A2 A3 A4. constructor.
+  - cbn. repeat constructor; cbn; intuition discriminate.
+  - cbn. repeat constructor; cbn; intuition discriminate.
+  - intros x y HX HY Hxy. cbn in HX, HY.
+    repeat match goal with H : _ \/ _ |- _ => destruct H end; subst;
+      first [contradiction | vm_compute in Hxy; discriminate | congruence].
+  - eapply alloc_variables_cons with (m1 := m1) (b1 := bl);
+      [change (Mem.alloc m 0 16 = (m1, bl)); exact A1|].
+    eapply alloc_variables_cons with (m1 := m2) (b1 := bm);
+      [change (Mem.alloc m1 0 32 = (m2, bm)); exact A2|].
+    eapply alloc_variables_cons with (m1 := m3) (b1 := bb);
+      [change (Mem.alloc m2 0 32 = (m3, bb)); exact A3|].
+    eapply alloc_variables_cons with (m1 := m4) (b1 := bx);
+      [change (Mem.alloc m3 0 88 = (m4, bx)); exact A4|constructor].
+  - reflexivity.
+Qed.

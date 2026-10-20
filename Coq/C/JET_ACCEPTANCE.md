@@ -1,218 +1,107 @@
-# Current integration status
+# Integration and pending-jet reconciliation
 
-The literal field-negation candidate passed separate full acceptance with
-exit 0 (57174), `/tmp/jet-negate-accept.ftWsqQ/accept.log`, SHA-256
-`367e6e59bd7d9d1805894a647c22c4c6214c89c81bb1cbcde02cbe6137b33427`.
-Its 626-module kernel check, reviewed assumptions/contracts, negative tests,
-four original-source AST comparisons and final fingerprint check all pass.
-The 42 guarded files are now integrated byte-for-byte: 23 proof modules,
-nine gated review/checker files, eight infrastructure/inventory files and two
-reviewed generated snapshots. All 3583 prior assumption records and the entire
-prior printed contract snapshot remain unchanged. The recursive checker has
-only its reviewed reference-hash pin adaptation relative to its archive.
+The history cleanup preserves the implementation and canonical specification.
+Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
+The current candidate registry contains 430/533 jets (319 without an extra libc
+premise; 111 conditional on `memcpy_model`). Final acceptance is pending.
 
-The checkout registry is provisionally **350/533** (246 without an extra libc
-premise, 104 conditional, 183 missing). Its separate full checkout acceptance
-still needs to pass; the last successful checkout receipt remains 349/533.
-Pre-run integrated input SHA-256:
-`f87884d8fcd444670dcd1824e0cd616b2c78fac29bae7da90d2ebfe158724c85`.
-Unrelated user changes and the unregistered math experiment are preserved.
-No commit or push is claimed. This does not close the inherited fidelity or
-shared-domain/evaluator obligations.
+Reproduce acceptance from the repository root:
 
-The shared-frame range correction is now integrated as 149 exact guarded
-files, after the reconciled candidate independently passed full acceptance
-(54683, exit 0). Candidate SHA-256:
-`dccfcbcd42e6b7c419992597362ebf4a2c2df407769183a217a27599718e8f07`;
-603 kernel modules, 3583 assumption records (1860 closed), reviewed snapshots,
-negative gates and all four AST comparisons pass. This widens the existing
-frame domain and adds six support results, not jet coverage.
+```sh
+bash Coq/check-jets.sh --accept
+```
 
-The actual checkout's separate acceptance **passes with exit 0**:
-24458, `/tmp/jet-range-integrated-accept.log`, input SHA-256
-`a4a8c23458e98da8a41e9fb3c8ae644400ed081652b238147387150d7e02fb37`.
-Unrelated user files, including the unregistered math experiment, are preserved.
-This actual-checkout run passes kernel checking on all 603 modules, the
-3583-record assumption gate (1860 closed), reviewed contracts, negative gates,
-all four AST comparisons and the final input-fingerprint check. The current
-checkout fingerprint was independently rechecked and still matches this receipt.
-This is the actual checkout's receipt, separate from the candidate receipt.
-The registry remains 349/533. No new commit or push is claimed.
+The commit and this command are the evidence. Logs stay outside the repository.
 
-Commit `cafb9b31` integrates the canonical `fe_is_odd` and `fe_is_zero` public
-contracts. The current registry is **349/533**: 245 entries without an extra
-libc premise, 104 conditional on `memcpy_model`, and 184 missing. This is not
-completion of the every-jet goal or of the inherited fidelity review.
+## Candidate reconciliation
 
-Fresh kernel checks of both public modules pass. The source correspondence gate
-rejects 34 meaningful mutations. Review confirms all 3,534 previous assumption
-records and all previous printed types/definitions are unchanged; the extension
-adds 43 results and three frozen definitions, with no new axiom names or kernel
-allowlist changes. Independent full acceptance now passes with exit 0, observed
-2026-10-09. The exact run is `/tmp/jet-secp-predicate-accept.OU8h0c/audit.log`:
-601 kernel modules, 3,577 assumption records (1,860 closed), reviewed public
-contracts, negative fixtures and all four original-source AST regenerations
-pass without snapshot-update flags. Audited input SHA-256:
-`6868621c6ba1d84ad9995f163cf83d3a863dff18004ba608cb3070607469a093`.
-This supersedes the historical 347-entry receipt below, not the unresolved
-shared-frame/domain and exhaustive fidelity review. See
-`JET_PROOF_BACKLOG.md` for the integrated sources and remaining obligations.
+Claude’s approximate pending list contained three partial-name search hits.
+The 33 actual jets plus the overlooked entropy and beta endpoints are accounted
+for below. Twenty-five were already in the separately verified 420-jet integration;
+ten are new registrations awaiting final acceptance.
 
-# Latest repository consolidation acceptance (before the predicate extension)
+| Jet | Registration |
+| --- | --- |
+| `asset_amount_hash` | New candidate registration |
+| `broken_do_not_use_check_lock_distance` | Existing verified integration |
+| `broken_do_not_use_check_lock_duration` | Existing verified integration |
+| `calculate_asset` | New candidate registration |
+| `calculate_confidential_token` | New candidate registration |
+| `calculate_explicit_token` | New candidate registration |
+| `check_lock_height` | Existing verified integration |
+| `check_lock_time` | Existing verified integration |
+| `current_sequence` | Existing verified integration |
+| `fe_add` | Existing verified integration |
+| `fe_is_odd` | Existing verified integration |
+| `fe_is_zero` | Existing verified integration |
+| `fe_multiply` | New candidate registration |
+| `fe_negate` | Existing verified integration |
+| `fe_normalize` | Existing verified integration |
+| `fe_square` | New candidate registration |
+| `ge_negate` | Existing verified integration |
+| `gej_infinity` | Existing verified integration |
+| `gej_is_infinity` | Existing verified integration |
+| `gej_negate` | Existing verified integration |
+| `input_sequence` | Existing verified integration |
+| `nonce_hash` | New candidate registration |
+| `num_inputs` | Existing verified integration |
+| `num_outputs` | Existing verified integration |
+| `outpoint_hash` | New candidate registration |
+| `scalar_add` | Existing verified integration |
+| `scalar_is_zero` | Existing verified integration |
+| `scalar_multiply` | Existing verified integration |
+| `scalar_negate` | Existing verified integration |
+| `scalar_normalize` | Existing verified integration |
+| `scalar_square` | Existing verified integration |
+| `tx_is_final` | Existing verified integration |
+| `version` | Existing verified integration |
+| `calculate_issuance_entropy` | New candidate registration |
+| `fe_multiply_beta` | New candidate registration |
 
-The scoped endpoint correction is accepted with exit 0, observed
-2026-10-06 18:58:55 UTC.
-The inherited fidelity review remains **partially complete**. No new jet is
-registered. Build, 583 kernel modules, 3,534 assumption records, reviewed
-contracts, negative tests and four AST comparisons pass.
+## Scope and remaining obligations
 
-Audited and integrated input SHA-256: `c92e9fba3f64de4713a8fcb317f9982f07f85afd162ee892af7e740d5679280c`.
-See `JET_CONSOLIDATION_2026-10-06.md` and its JSON for the precise source
-comparison, retained local artifacts and deferred range/secp candidates.
-The prior acceptance record below is historical. Its old temporary original
-consolidation log is unavailable; published Git receipts preserve that history.
+- Every entry is a local Clight implementation-to-canonical-program contract,
+  with its declared frame/environment preconditions. The target is LP64 Linux.
+- The seven new Elements results retain `memcpy_model` and concrete initialized
+  SHA dispatch/counter facts. They do not prove the linked libc implementation
+  or general caller startup. Beta multiplication retains `beta_initialized`.
+- The main multiply and square proofs are promoted. The independently checked
+  parallel proofs remain an alternative archive, as requested.
+- The Elements SHA proof copies name the actual Elements AST explicitly. They
+  do not identify the ordinary SHA translation unit with the Elements program.
+- Shared frame/evaluator admissibility and exhaustive inherited canonical
+  fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
+- The remaining 103 header declarations have no registered final contract.
+  Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
+  and operational boundaries meet the public coverage requirements.
 
-# Prior consolidation acceptance record
+## Recovered canonical boundaries
 
-Verification status: **accepted**, observed 2026-10-06 01:00:50 UTC.
-Inherited-work fidelity review: **partially complete**. See
-`JET_INHERITED_REVIEW.md` for the eight-criterion assessment. This receipt does
-not certify an exhaustive individual canonical review of every registered jet.
-`check-jets.sh --accept` completes with **exit 0**, without snapshot updates.
-Build, all 583 kernel modules, all 3,534 assumption records, reviewed public
-contracts/definitions, negative tests and all four AST regenerations pass.
+The calculation ports retain the literal hash-block programs: issuance entropy
+uses the double-SHA outpoint digest plus the contract word; asset and token
+calculations use the entropy word and the original zero/explicit/confidential
+suffix block. The existing typed byte/word bridges preserve the index ordering,
+SHA padding and word widths.
 
-Final audited input SHA-256:
-`5d01956807ea2f325ca099e65818f5e23d521e31ac994863c1f5fd09deeb6eae`.
+`asset_amount_hash` preserves the Haskell asset/amount branch order, prefixes
+0x0a/0x0b and 0x08/0x09, explicit prefix 0x01, and the distinct 32/8-byte payloads.
+`nonce_hash` retains absence/explicit/even/odd prefixes 0/1/2/3. `outpoint_hash`
+retains the optional parent-chain hash followed by the 32-byte hash and four-byte
+index. Each is a complete context-update success/failure contract over the
+original C body; the literal ports and framing/global predicates are included
+in the reviewed definition snapshots. These are scoped source/contract reviews,
+not a verified Haskell compiler or a claim of completing inherited fidelity.
 
-This supersedes the published receipt at `5c2958d5` (346 entries), whose
-acceptance hash was `a566e6bfc17b188b9377c0993284b555f6364e56f8c17801833d4b0e203572b6`.
-The original consolidation and subsequent continuation evidence below is
-preserved as historical review; the current coverage includes the field jet
-accepted in this round.
+## Module and history accounting
 
-## Scope
+All jet modules, including the twenty former regression-only modules, enter the
+jet build and recursive kernel check. Incomplete derived trees and the five
+failing support modules are explicitly archived in `proof-work/derived-trees`
+and `proof-work/unbuilt-support`. The original upstream secp/modinv verification
+sources retain their original paths and separate full-Coq build; they are not
+additional jet registrations (see `../JET_BUILD.md`).
 
-The common base is `ebf1749340f623be7e0e43a1a6b3a7cccf560e2e`. The experimental
-branch tip is `76923ec0`, contributing 101 commits and 126 added files. The
-integration preserves that history and the original `feat/jet-equivalence`
-branch. Publication is scoped to `brenorb/simplicity:feat/jet-equivalence`.
-
-The production C/canonical Haskell target is
-`e3b670103101108faa238df012676ff5d8b77cf9`; generation remains the pinned
-x86-64/Linux LP64 configuration in `JET_TARGET.md`. The implementation change
-introduced in `b058d5a6` is reversed. No replacement helper or external-call
-substitution is used.
-
-## Original-target correction review
-
-- All 2,016 surviving old public assumption records are unchanged.
-- Four obsolete `copyWords` execution/linkage records are removed; byte-copy
-  memory support is preserved.
-- 1,315 newly registered public results bring the inventory to 3,331; 1,683
-  are closed under the global context. No new axiom name is introduced.
-- Changed existing theorem/lemma statements comprise 92 restored final libc
-  premises, 12 helper premises and five genuine external-call adaptations.
-  Their output and memory conclusions are preserved.
-- Bitcoin record/value semantics now permit the full Word64 domain, modular
-  totals, positive fees and zero outputs. LockTime uses canonical `lockTime`.
-- Raw input data, serialization and independently computed hashes are related
-  to the cached C representations. Seven existing coverage rows use these raw
-  contracts. The C constructor's supplied txid is an explicit representation
-  boundary; no verified serializer in that constructor is claimed.
-
-The candidate full audit, with a 65,520 KiB native stack, passes with exit 0:
-`/tmp/jet-bitcoin-raw-candidate-stack64-audit.log`. The default macOS stack caused
-a recorded earlier failure; the script now raises the soft limit without
-disabling kernel checks. The final run uses `check-jets.sh --accept`, with no
-snapshot update flags. Its original consolidation log is `/tmp/jet-consolidation-final-accept.log`.
-
-## Previously accepted canonical continuation
-
-The continuation preserves all 3,331 existing assumption records and every
-existing printed type/definition byte-for-byte. Three annex results and five
-newly frozen definitions bring the inventory to 3,334 (1,683 closed), without
-a new axiom name or library-level axiom. The raw annex semantics retain the
-nested missing-input/absent-annex distinction.
-
-Source review justifies 27 additional final registrations: twelve original-C
-64-bit full shifts, conditional on libc, and fifteen Bitcoin contracts (raw
-tappath/annex, modular totals/fee and TimeLock). The full_shift catalog dispatcher
-and recursive literal programs match the concrete Coq specializations; a new
-negative-tested gate checks all 36 bindings. The four TimeLock assertions retain
-the entire success/failure/output/framing contract over the precise linked
-program and logical environment. No execution/output premise is added.
-
-The candidate run `/tmp/jet-next-canonical-candidate.log` passes with exit 0.
-Its snapshot-excluding input hash is
-`fe314944ebc695177ae320275b540ba5b8611b06092f9ce50e8528c78903488c`.
-After actual snapshot review, the separate final run
-`/tmp/jet-next-canonical-final-accept.log` passes `--accept` with exit 0.
-Its hash `a566e6bfc17b188b9377c0993284b555f6364e56f8c17801833d4b0e203572b6`
-includes the reviewed snapshots; both hashes describe unchanged inputs within
-their respective modes. Build, kernel, assumptions, contract
-comparisons, negative fixtures and all four original-source AST checks pass.
-
-## Original fe_normalize accepted against its canonical program
-
-The 16 new proof modules contribute 200 audited results: 199 support results
-and the complete `fe_normalize_local_spec` jet contract. All 3,334 previous
-assumption records and every previous printed type/definition are unchanged.
-There are 151 new closed results, bringing the total to 1,834. The remaining
-new results retain only inherited Coq/CompCert assumptions; no axiom name or
-library-level axiom is added.
-
-The canonical port preserves the pinned Haskell subtraction, projections and
-conditional at the complete Word256 domain. The real C reader derives the
-big-endian bytes, limb values and normalization branches from the input frame;
-the writer derives its real calls and the encoded canonical output. The public
-proof derives local allocation, the actual by-value source-frame copy, helper
-execution, return and freeing from the initial memory contract. Its output,
-prefix, cursor and outside-memory conclusions are the complete common jet
-contract, with the original secp linked environment as the sole change. It does
-not assume a helper execution, output, or final freeing fact, and has no extra
-`memcpy_model` premise.
-
-The source correspondence gate rejects 11 mutations. The metadata gate rejects
-added impossible premises, weaker conclusions and unrelated secp functions.
-Actual definition/type/axiom snapshot diffs were reviewed after the candidate
-run `/tmp/jet-secp-normalize-candidate-audit.log` (exit 0, snapshot-excluding
-hash `cfa390055b3d83d986af7ed5541003219351a873d84acc4225a6fcd449fe4176`).
-The separate final run `/tmp/jet-secp-normalize-final-accept.log` completes with
-exit 0 without update flags, using the snapshot-inclusive hash above. All four
-ASTs are independently regenerated from the unchanged original C inputs.
-
-## Conservative coverage and limits
-
-| Surface | Without an extra libc premise | Conditional on libc | Unregistered | Declared |
-| --- | ---: | ---: | ---: | ---: |
-| Core | 207 | 104 | 59 | 370 |
-| Bitcoin | 36 | 0 | 24 | 60 |
-| Elements | 0 | 0 | 103 | 103 |
-| Total | 243 | 104 | 186 | 533 |
-
-The denominator is the public header surface; it includes two secp declarations
-without primitive jet-node registrations. The 104 conditional proofs leave the
-actual linked libc implementation outside the proof. The 243 other entries
-still have their stated initial frame/environment representation contracts and
-inherited Coq/CompCert assumptions.
-
-Symbolic execution, interval analysis and byte/limb conversion remain support.
-Only the complete canonical `fe_normalize` contract adds a jet equivalence in
-this round; individual normalizer or conversion lemmas add no coverage.
-Experimental SHA/Bitcoin contracts needing startup-global preservation or canonical raw-data
-bridges remain outside this coverage registry. The full every-jet goal remains
-unfinished; the specific obligations are in `JET_FIDELITY_REVIEW.md`.
-
-Native C correctness tests pass: 96 successes, zero failures
-(`/tmp/jet-original-c-native-tests.log`). This native macOS run is additional
-regression evidence, not a test of every x86-64/Linux build configuration.
-The two modified Nix expressions parse successfully; a Nix build and remote CI
-have not been run as part of this local acceptance.
-
-Further SHA startup preservation and two complete canonical field predicate
-proofs (`fe_is_odd` and `fe_is_zero`) are developed in an isolated scratch
-directory. The two predicates have compilation, kernel and statement/assumption
-review receipts, but are outside this acceptance and add no registered coverage.
-Scalar canonical and helper proofs are likewise isolated support. Their actual
-remaining links are recorded in `JET_PROOF_BACKLOG.md`.
+The rewritten integration history removes 2,028 log/receipt/duplicate files
+and 1,116,250 lines. Original branch and WIP histories remain under backup refs.
+Pushing, upstream filing, and deleting branches/worktrees/backups require user
+approval and are not part of local acceptance.

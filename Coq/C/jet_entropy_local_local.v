@@ -1,0 +1,154 @@
+(** Complete original entropy frame jet against its canonical word program. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Memory Maps Values Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import C.jet_memcpy_model C.jet_exec C.jet_frame_layout C.jet_input_layout C.jet_output_layout.
+Require Import C.jet_write_layout C.jet_encoding C.jet_constant_layout C.jet_bitmachine_rep.
+Require Import C.jet_struct_copy_loads C.jet_uint32_array_init C.jet_elements_support_sha_compress_call C.jet_elements_support_sha_block_local.
+Require Import C.jet_elements_support_sha_uchars_exec.
+Require Import C.jets_elements C.jet_elements_linkage C.jet_elements_issuance_calc_spec.
+Require Import C.jet_entropy_streaming_calls.
+Require Import C.jet_entropy_frame_entry C.jet_entropy_frame_read_txid C.jet_entropy_frame_read.
+Require Import C.jet_entropy_compose_shape C.jet_entropy_compose_writer.
+Import Values Mem Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Definition entropy_word_spec h ix con :=
+  @calculate_issuance_entropy_spec Alg.CoreFunSem ((h, ix), con).
+
+Definition entropy_jet_local_spec : Prop :=
+  forall env m bd dbase bs sbase bi bw edge outedge cursor rc
+      (h : Ty.tySem Word256) (ix : Ty.tySem Word32) (con : Ty.tySem Word256),
+    Mem.load Mptr m (elements_symbol_block _simplicity_sha256_compression) 0 =
+      Some (Vptr (elements_symbol_block _sha256_compression_portable) Ptrofs.zero) ->
+    Mem.load Mint64 m (elements_symbol_block _sha256_max_counter) 0 = Some (Vlong sha_max_counter) ->
+    frame_base_valid sbase -> (8 | sbase) -> frame_fields_at m bs sbase bi edge rc ->
+    0 <= rc -> rc + 544 <= Int64.max_unsigned ->
+    frame_input_cells_at m bi edge rc (@encode entropy_input_type ((h, ix), con)) ->
+    write_frame_at m bd dbase bw outedge cursor 256 ->
+    exists mf,
+      Clight2.eval_funcall elements_ge m (Internal f_simplicity_calculate_issuance_entropy)
+        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env] E0 mf (Vint Int.one) /\
+      frame_output_cells_at mf bw outedge cursor (@encode Word256 (entropy_word_spec h ix con)) /\
+      write_prefix_at m mf bw outedge cursor /\
+      frame_fields_at mf bd dbase bw outedge (cursor - 256) /\
+      (forall ch b ofs, Mem.valid_block m b ->
+        (b <> bd \/ ofs + size_chunk ch <= dbase + 8 \/ dbase + 16 <= ofs) ->
+        (b <> bw \/ ofs + size_chunk ch <= outedge + 8 * ((cursor - 256) / 64) \/
+          write_word_address outedge cursor + 8 <= ofs) ->
+        Mem.load ch mf b ofs = Mem.load ch m b ofs).
+
+Theorem calculate_issuance_entropy_local_spec (Hmodel : memcpy_model) : entropy_jet_local_spec.
+Proof.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc h ix con HD HMax HB HA HF H0 HM HI HO.
+  assert (Vs : Mem.valid_block m bs) by (eapply load_valid_block; exact (proj1 HF)).
+  pose proof HO as [HDB [[HDE HDO] HRest]].
+  assert (Vd : Mem.valid_block m bd) by (eapply load_valid_block; exact HDE).
+  destruct (write_frame_at_head m bd dbase bw outedge cursor 256 ltac:(lia) HO)
+    as [_ [_ [_ [initialword HInitialWord]]]].
+  assert (Vw : Mem.valid_block m bw) by (eapply load_valid_block; exact HInitialWord).
+  assert (Vg : Mem.valid_block m (elements_symbol_block _simplicity_sha256_compression))
+    by (eapply load_valid_block; exact HD).
+  assert (Vm : Mem.valid_block m (elements_symbol_block _sha256_max_counter))
+    by (eapply load_valid_block; exact HMax).
+  destruct (entropy_read_prefix m bs sbase bi edge rc h ix con HB HA HF H0 HM HI)
+    as (m1 & m2 & m3 & m4 & m5 & bl & bo & bc & br & bt & bytes0 & mcp & mtx & mi & ms & mr &
+        A1 & A2 & A3 & A4 & A5 & B0 & S0 & HCReadTX & HCReadIX & SIX & HCReadCON &
+        HInput & HIndex & HContract & HSource & XR & Fresh & ND & Owned).
+  destruct XR as (VR & KR & PR & AR).
+  pose proof Owned as Own. repeat rewrite Forall2_cons_iff in Own.
+  destruct Own as [[PL VL] [[PO VO] [[PC VC] [[PRl VRl] [[PT VT] _]]]]].
+  destruct (elements_entropy_helper_word_call Hmodel mr bt 0 bo 0 bc Ptrofs.zero h ix con
+    ltac:(lia) ltac:(change Ptrofs.max_unsigned with 18446744073709551615; lia)
+    ltac:(exists 0; reflexivity)
+    ltac:(intros ofs Hr; eapply Mem.perm_implies; [apply PT; lia|constructor])
+    ltac:(lia) ltac:(change Ptrofs.max_unsigned with 18446744073709551615; lia)
+    HInput HIndex
+    ltac:(change (0 + 32 <= Ptrofs.max_unsigned); change Ptrofs.max_unsigned with 18446744073709551615; lia)
+    HContract ltac:(rewrite KR by exact Vg; exact HD) ltac:(rewrite KR by exact Vm; exact HMax))
+    as (mt & HCHelper & HResult & Kt & Phelp & HVt).
+  assert (Kt0 : forall ch b ofs, Mem.valid_block m b -> Mem.load ch mt b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs V. rewrite Kt; [apply KR; exact V|apply VR; exact V|].
+    left. intro E; subst b. apply (Fresh bt V). cbn. tauto. }
+  assert (PTR : Mem.range_perm mt bt 0 (0 + 32) Cur Readable).
+  { intros ofs Hr. apply Phelp. eapply Mem.perm_implies; [apply PT; lia|constructor; constructor]. }
+  destruct (Mem.range_perm_loadbytes mt bt 0 32 PTR) as [bytes1 B1].
+  pose proof (Mem.loadbytes_length _ _ _ _ _ B1) as HLen.
+  assert (PRW : Mem.range_perm mt br 0 (0 + Z.of_nat (length bytes1)) Cur Writable).
+  { rewrite HLen. change (Mem.range_perm mt br 0 32 Cur Writable).
+    intros ofs Hr. apply Phelp. eapply Mem.perm_implies; [apply PRl; exact Hr|constructor]. }
+  destruct (Mem.range_perm_storebytes mt br 0 bytes1 PRW) as [mc S1].
+  assert (BC : Mem.loadbytes mc br 0 32 = Some bytes1).
+  { pose proof (Mem.loadbytes_storebytes_same _ _ _ _ _ S1) as H. rewrite HLen in H. exact H. }
+  assert (HResultC : uint32_array_at mc br 0 (hash256_reg (to_hash256 (entropy_word_spec h ix con)))).
+  { intros j x Hx. assert (Hj : (j < 8)%nat).
+    { rewrite <- (hash256_len (to_hash256 (entropy_word_spec h ix con))).
+      apply nth_error_Some. rewrite Hx; discriminate. }
+    eapply equal_loadbytes_field with (m1 := mt) (b1 := bt) (base1 := 0) (base2 := 0)
+      (n := 32) (delta := 4 * Z.of_nat j) (bytes := bytes1).
+    - lia.
+    - change (size_chunk Mint32) with 4. lia.
+    - exact B1.
+    - exact BC.
+    - change (4 | 0 + 4 * Z.of_nat j). exists (Z.of_nat j); lia.
+    - exact (HResult j x Hx). }
+  assert (Pc : forall b ofs k q, Mem.perm mr b ofs k q -> Mem.perm mc b ofs k q).
+  { intros b ofs k q H. eapply Mem.perm_storebytes_1; [exact S1|apply Phelp; exact H]. }
+  assert (Vc : forall b, Mem.valid_block mr b -> Mem.valid_block mc b).
+  { intros b V. eapply Mem.storebytes_valid_block_1; [exact S1|apply HVt; exact V]. }
+  assert (Kc : forall ch b ofs, Mem.valid_block m b -> Mem.load ch mc b ofs = Mem.load ch m b ofs).
+  { intros ch b ofs V. erewrite Mem.load_storebytes_other; [apply Kt0; exact V|exact S1|].
+    left. intro E; subst b. apply (Fresh br V). cbn. tauto. }
+  assert (HOc : write_frame_at mc bd dbase bw outedge cursor 256).
+  { eapply write_frame_at_preserved; [| |exact HO].
+    - intros ch b ofs v E HL. rewrite Kc; [exact HL|destruct E; subst; assumption].
+    - intros b ofs k q H. apply Pc, PR; exact H. }
+  assert (Hrd : br <> bd).
+  { intro E; subst bd. apply (Fresh br Vd). cbn. tauto. }
+  assert (Hrw : br <> bw).
+  { intro E; subst bw. apply (Fresh br Vw). cbn. tauto. }
+  destruct (calc_writehash_from_frame mc br bd dbase bw outedge cursor (entropy_word_spec h ix con)
+    Hrd Hrw HResultC HOc) as (me & HCWrite & HCells & HPrefix & HFields & HLoads & HPe & HVe).
+  assert (OwnedE : Forall2 (fun b z => Mem.range_perm me b 0 z Cur Freeable /\ Mem.valid_block me b)
+    [bl; bo; bc; br; bt] [16; 40; 32; 32; 32]).
+  { eapply entropy_owned_preserved; [| |exact Owned].
+    - intros b ofs k q H. apply HPe, Pc; exact H.
+    - intros b V. apply HVe, Vc; exact V. }
+  repeat rewrite Forall2_cons_iff in OwnedE.
+  destruct OwnedE as [[PLE VLE] [[POE VOE] [[PCE VCE] [[PRE VRE] [[PTE VTE] _]]]]].
+  assert (PF : forall b lo hi,
+    In (b, lo, hi) [(bo, 0, 40); (bc, 0, 32); (bl, 0, 16); (bt, 0, 32); (br, 0, 32)] ->
+    Mem.range_perm me b lo hi Cur Freeable).
+  { intros b lo hi H. cbn in H.
+    destruct H as [E|[E|[E|[E|[E|[]]]]]]; injection E as <- <- <-; assumption. }
+  destruct (free_list_blocks [(bo, 0, 40); (bc, 0, 32); (bl, 0, 16); (bt, 0, 32); (br, 0, 32)] me PF)
+    as (mf & HFree & KFree & PFree & VFree).
+  { change (NoDup [bo; bc; bl; bt; br]).
+    pose proof ND as N. repeat rewrite NoDup_cons_iff in N.
+    repeat rewrite NoDup_cons_iff. clear -N. cbn in N |- *. intuition congruence. }
+  assert (Kf : forall ch b ofs, Mem.valid_block m b -> Mem.load ch mf b ofs = Mem.load ch me b ofs).
+  { intros ch b ofs V. apply KFree. change (~ In b [bo; bc; bl; bt; br]).
+    intro H. apply (Fresh b V). clear -H. cbn in H |- *. tauto. }
+  exists mf. split.
+  - eapply entropy_function_composes with
+      (m1 := m1) (m2 := m2) (m3 := m3) (m4 := m4) (m5 := m5)
+      (mcp := mcp) (mtx := mtx) (mi := mi) (ms := ms) (mr := mr)
+      (mt := mt) (mc := mc) (me := me) (bl := bl) (bo := bo) (bc := bc) (br := br) (bt := bt)
+      (r := Int64.repr (@toZ (WordToZ 5) ix)) (bytes0 := bytes0) (bytes1 := bytes1); try eassumption.
+    + intro E; subst bs. apply (Fresh bl Vs). cbn. tauto.
+    + repeat rewrite NoDup_cons_iff in ND. cbn in ND. intuition congruence.
+  - split.
+    + eapply frame_output_cells_preserved; [|exact HCells].
+      intros ofs w HL. rewrite Kf by exact Vw. exact HL.
+    + split.
+      * eapply write_prefix_at_preserved; [| |exact HPrefix].
+        -- intros ofs w HL. rewrite Kc by exact Vw. exact HL.
+        -- intros ofs w HL. rewrite Kf by exact Vw. exact HL.
+      * split.
+        -- destruct HFields as [HE HC]. split; rewrite Kf by exact Vd; assumption.
+        -- intros ch b ofs V Hbd Hbw. rewrite Kf by exact V.
+           rewrite HLoads by assumption. apply Kc; exact V.
+Qed.

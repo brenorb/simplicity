@@ -21,7 +21,7 @@ The parallel proofs and the main proofs have **the same public statements**:
 
 | Jet | Registered proof | This archived proof |
 | --- | --- | --- |
-| `simplicity_fe_multiply` | `fe_multiply_literal_local_spec` in `proof-work/secp-field-literal` | `C.jet_parallel_fe_mul_local.fe_multiply_literal_local_spec` |
+| `simplicity_fe_multiply` | `C.jet_secp_multiply_literal_jet.fe_multiply_literal_local_spec` (`proof-work/secp-field-literal` origin) | `C.jet_parallel_fe_mul_local.fe_multiply_literal_local_spec` |
 | `simplicity_fe_square` | `C.jet_secp_square_local.fe_square_local_spec` (`proof-work/secp-square-*`) | `C.jet_parallel_fe_sqr_local.fe_square_literal_local_spec` |
 
 Each states `secp_jet_local_spec f_simplicity_fe_… … (@literal_fe_… Alg.CoreFunSem)`
@@ -31,17 +31,24 @@ iden &&& iden >>> literal_fe_multiply`. Both have unrestricted inputs, the origi
 unchanged C, no `memcpy_model` premise, and the same six inherited
 assumptions. Neither is logically stronger.
 
-The main proofs are registered and this one is archived because:
+The main proofs are selected for integration and this one is retained as the
+checked alternative because:
 
-1. **Your decision (2026-10-19)**, recorded in [HANDOFF.md](HANDOFF.md): register
-   the main agent's proofs, keep this one as a checked alternative, and do not
-   register both.
+1. **Equal logical scope.** Both alternatives prove the complete original-C
+   local contracts over arbitrary inputs, with the same inherited assumptions.
+   Neither is selected by weakening its statement or adding premises. The
+   earlier user preference is also recorded in [HANDOFF.md](HANDOFF.md).
 2. **More source-correspondence evidence.** The main multiply packet reruns the
    recursive-port, literal-add, foundation, normalization and wiring gates
    (173 rejected mutations). `mul-review` here rejects 41.
 3. **Downstream work builds on the main proofs.** That includes the
    separate-output square (`proof-work/secp-square-separate`) and the beta
    multiply (`proof-work/secp-beta-*`). Switching would mean re-basing that work.
+
+The choice favors source-correspondence coverage and downstream reuse; it is
+not a claim that the alternative is logically weaker. The parallel execution
+model is faster and remains available for comparison and reuse. Final coverage
+comes only from the selected endpoint after the standard acceptance command.
 
 Reasons to keep this copy:
 

@@ -1,0 +1,907 @@
+### C.jet_elements_support_sha_interp.upd_length
+@upd_length
+     : forall (A : Type) (l : list A) (i : nat) (v : A), @eq nat (@length A (@upd A l i v)) (@length A l)
+### C.jet_elements_support_sha_interp.nth_upd_same
+@nth_upd_same
+     : forall (A : Type) (l : list A) (i : nat) (v d : A) (_ : lt i (@length A l)),
+       @eq A (@List.nth A i (@upd A l i v) d) v
+### C.jet_elements_support_sha_interp.nth_upd_other
+@nth_upd_other
+     : forall (A : Type) (l : list A) (i j : nat) (v d : A) (_ : not (@eq nat i j)),
+       @eq A (@List.nth A j (@upd A l i v) d) (@List.nth A j l d)
+### C.jet_elements_support_sha_interp.index_of_nth
+index_of_nth
+     : forall (x : AST.ident) (l : list AST.ident) (i : nat) (_ : @eq (option nat) (index_of x l) (@Some nat i)),
+       @eq (option AST.ident) (@List.nth_error AST.ident l i) (@Some AST.ident x)
+### C.jet_elements_support_sha_interp.index_of_lt
+index_of_lt
+     : forall (x : AST.ident) (l : list AST.ident) (i : nat) (_ : @eq (option nat) (index_of x l) (@Some nat i)),
+       lt i (@length AST.ident l)
+### C.jet_elements_support_sha_interp.index_of_none
+index_of_none
+     : forall (x : AST.ident) (l : list AST.ident) (_ : @eq (option nat) (index_of x l) (@None nat)),
+       not (@List.In AST.ident x l)
+### C.jet_elements_support_sha_interp.nth_error_inj_nodup
+@nth_error_inj_nodup
+     : forall (A : Type) (l : list A) (i j : nat) (x : A) (_ : @List.NoDup A l)
+         (_ : @eq (option A) (@List.nth_error A l i) (@Some A x))
+         (_ : @eq (option A) (@List.nth_error A l j) (@Some A x)), @eq nat i j
+### C.jet_elements_support_sha_interp.wids_nodup
+wids_nodup
+     : @List.NoDup AST.ident wids
+### C.jet_elements_support_sha_interp.lids_nodup
+lids_nodup
+     : @List.NoDup AST.ident lids
+### C.jet_elements_support_sha_interp.wids
+wids =
+@cons AST.ident jets_elements._w0
+  (@cons AST.ident jets_elements._w1
+     (@cons AST.ident jets_elements._w2
+        (@cons AST.ident jets_elements._w3
+           (@cons AST.ident jets_elements._w4
+              (@cons AST.ident jets_elements._w5
+                 (@cons AST.ident jets_elements._w6
+                    (@cons AST.ident jets_elements._w7
+                       (@cons AST.ident jets_elements._w8
+                          (@cons AST.ident jets_elements._w9
+                             (@cons AST.ident jets_elements._w10
+                                (@cons AST.ident jets_elements._w11
+                                   (@cons AST.ident jets_elements._w12
+                                      (@cons AST.ident jets_elements._w13
+                                         (@cons AST.ident jets_elements._w14
+                                            (@cons AST.ident jets_elements._w15 (@nil AST.ident))))))))))))))))
+     : list AST.ident
+### C.jet_elements_support_sha_interp.lids
+lids =
+@cons AST.ident jets_elements._a
+  (@cons AST.ident jets_elements._b
+     (@cons AST.ident jets_elements._c
+        (@cons AST.ident jets_elements._d
+           (@cons AST.ident jets_elements._e
+              (@cons AST.ident jets_elements._f
+                 (@cons AST.ident jets_elements._g (@cons AST.ident jets_elements._h (@nil AST.ident))))))))
+     : list AST.ident
+### C.jet_elements_support_sha_interp.index_of
+index_of =
+fix index_of (x : AST.ident) (l : list AST.ident) {struct l} : option nat :=
+  match l return (option nat) with
+  | nil => @None nat
+  | cons y t =>
+      match BinPos.Pos.eqb x y return (option nat) with
+      | true => @Some nat O
+      | false => @Coqlib.option_map nat nat S (index_of x t)
+      end
+  end
+     : forall (_ : AST.ident) (_ : list AST.ident), option nat
+
+Arguments index_of x l%list_scope
+### C.jet_elements_support_sha_interp.alookup
+alookup =
+fix alookup (l : list (prod AST.ident Integers.Int.int)) (x : AST.ident) {struct l} : option Integers.Int.int :=
+  match l return (option Integers.Int.int) with
+  | nil => @None Integers.Int.int
+  | cons p t =>
+      match p return (option Integers.Int.int) with
+      | pair y v =>
+          match BinPos.Pos.eqb x y return (option Integers.Int.int) with
+          | true => @Some Integers.Int.int v
+          | false => alookup t x
+          end
+      end
+  end
+     : forall (_ : list (prod AST.ident Integers.Int.int)) (_ : AST.ident), option Integers.Int.int
+
+Arguments alookup l%list_scope x
+### C.jet_elements_support_sha_interp.upd
+upd =
+fix upd (A : Type) (l : list A) (i : nat) (v : A) {struct l} : list A :=
+  match l return (list A) with
+  | nil => @nil A
+  | cons x t => match i return (list A) with
+                | O => @cons A v t
+                | S i0 => @cons A x (upd A t i0 v)
+                end
+  end
+     : forall (A : Type) (_ : list A) (_ : nat) (_ : A), list A
+
+Arguments upd {A}%type_scope l%list_scope i%nat_scope v
+### C.jet_elements_support_sha_interp.cst
+Variant cst : Set :=
+    mk_cst : forall (_ : list Integers.Int.int) (_ : nat) (_ : list Integers.Int.int) (_ : nat)
+               (_ : list (prod AST.ident Integers.Int.int)) (_ : list Integers.Int.int) (_ : list Integers.Int.int),
+             cst.
+
+Arguments mk_cst wv%list_scope wdef%nat_scope lv%list_scope ldef%nat_scope (scratch sarr chunk)%list_scope
+### C.jet_elements_support_sha_interp.attr_noattrb
+attr_noattrb =
+fun a : Ctypes.attr =>
+andb (negb (Ctypes.attr_volatile a)) match Ctypes.attr_alignas a return bool with
+                                     | Some _ => false
+                                     | None => true
+                                     end
+     : forall _ : Ctypes.attr, bool
+
+Arguments attr_noattrb a
+### C.jet_elements_support_sha_interp.is_tuint
+is_tuint =
+fun ty : Ctypes.type =>
+match ty return bool with
+| Ctypes.Tvoid => false
+| Ctypes.Tint i s a =>
+    match i return bool with
+    | Ctypes.I8 => false
+    | Ctypes.I16 => false
+    | Ctypes.I32 => match s return bool with
+                    | Ctypes.Signed => false
+                    | Ctypes.Unsigned => attr_noattrb a
+                    end
+    | Ctypes.IBool => false
+    end
+| Ctypes.Tlong _ _ => false
+| Ctypes.Tfloat _ _ => false
+| Ctypes.Tpointer _ _ => false
+| Ctypes.Tarray _ _ _ => false
+| Ctypes.Tfunction _ _ _ => false
+| Ctypes.Tstruct _ _ => false
+| Ctypes.Tunion _ _ => false
+end
+     : forall _ : Ctypes.type, bool
+
+Arguments is_tuint ty
+### C.jet_elements_support_sha_interp.is_tint
+is_tint =
+fun ty : Ctypes.type =>
+match ty return bool with
+| Ctypes.Tvoid => false
+| Ctypes.Tint i s a =>
+    match i return bool with
+    | Ctypes.I8 => false
+    | Ctypes.I16 => false
+    | Ctypes.I32 => match s return bool with
+                    | Ctypes.Signed => attr_noattrb a
+                    | Ctypes.Unsigned => false
+                    end
+    | Ctypes.IBool => false
+    end
+| Ctypes.Tlong _ _ => false
+| Ctypes.Tfloat _ _ => false
+| Ctypes.Tpointer _ _ => false
+| Ctypes.Tarray _ _ _ => false
+| Ctypes.Tfunction _ _ _ => false
+| Ctypes.Tstruct _ _ => false
+| Ctypes.Tunion _ _ => false
+end
+     : forall _ : Ctypes.type, bool
+
+Arguments is_tint ty
+### C.jet_elements_support_sha_interp.is_ptuint
+is_ptuint =
+fun ty : Ctypes.type =>
+match ty return bool with
+| Ctypes.Tvoid => false
+| Ctypes.Tint _ _ _ => false
+| Ctypes.Tlong _ _ => false
+| Ctypes.Tfloat _ _ => false
+| Ctypes.Tpointer t a => andb (is_tuint t) (attr_noattrb a)
+| Ctypes.Tarray _ _ _ => false
+| Ctypes.Tfunction _ _ _ => false
+| Ctypes.Tstruct _ _ => false
+| Ctypes.Tunion _ _ => false
+end
+     : forall _ : Ctypes.type, bool
+
+Arguments is_ptuint ty
+### C.jet_elements_support_sha_interp.is_cc_default
+is_cc_default =
+fun cc : AST.calling_convention =>
+match AST.cc_vararg cc return bool with
+| Some _ => false
+| None => andb (negb (AST.cc_unproto cc)) (negb (AST.cc_structret cc))
+end
+     : forall _ : AST.calling_convention, bool
+
+Arguments is_cc_default cc
+### C.jet_elements_support_sha_interp.is_sigma_ty
+is_sigma_ty =
+fun ty : Ctypes.type =>
+match ty return bool with
+| Ctypes.Tvoid => false
+| Ctypes.Tint _ _ _ => false
+| Ctypes.Tlong _ _ => false
+| Ctypes.Tfloat _ _ => false
+| Ctypes.Tpointer _ _ => false
+| Ctypes.Tarray _ _ _ => false
+| Ctypes.Tfunction t r cc =>
+    match t return bool with
+    | Ctypes.Tnil => false
+    | Ctypes.Tcons a t0 =>
+        match t0 return bool with
+        | Ctypes.Tnil => andb (andb (is_tuint a) (is_tuint r)) (is_cc_default cc)
+        | Ctypes.Tcons _ _ => false
+        end
+    end
+| Ctypes.Tstruct _ _ => false
+| Ctypes.Tunion _ _ => false
+end
+     : forall _ : Ctypes.type, bool
+
+Arguments is_sigma_ty ty
+### C.jet_elements_support_sha_interp.is_round_ty
+is_round_ty =
+fun ty : Ctypes.type =>
+match ty return bool with
+| Ctypes.Tvoid => false
+| Ctypes.Tint _ _ _ => false
+| Ctypes.Tlong _ _ => false
+| Ctypes.Tfloat _ _ => false
+| Ctypes.Tpointer _ _ => false
+| Ctypes.Tarray _ _ _ => false
+| Ctypes.Tfunction t t0 cc =>
+    match t return bool with
+    | Ctypes.Tnil => false
+    | Ctypes.Tcons a t1 =>
+        match t1 return bool with
+        | Ctypes.Tnil => false
+        | Ctypes.Tcons b t2 =>
+            match t2 return bool with
+            | Ctypes.Tnil => false
+            | Ctypes.Tcons c t3 =>
+                match t3 return bool with
+                | Ctypes.Tnil => false
+                | Ctypes.Tcons d t4 =>
+                    match t4 return bool with
+                    | Ctypes.Tnil => false
+                    | Ctypes.Tcons e t5 =>
+                        match t5 return bool with
+                        | Ctypes.Tnil => false
+                        | Ctypes.Tcons f t6 =>
+                            match t6 return bool with
+                            | Ctypes.Tnil => false
+                            | Ctypes.Tcons g t7 =>
+                                match t7 return bool with
+                                | Ctypes.Tnil => false
+                                | Ctypes.Tcons h t8 =>
+                                    match t8 return bool with
+                                    | Ctypes.Tnil => false
+                                    | Ctypes.Tcons k t9 =>
+                                        match t9 return bool with
+                                        | Ctypes.Tnil =>
+                                            match t0 return bool with
+                                            | Ctypes.Tvoid =>
+                                                andb
+                                                  (andb
+                                                     (andb
+                                                        (andb
+                                                           (andb
+                                                              (andb
+                                                                 (andb
+                                                                    (andb (andb (is_tuint a) (is_tuint b)) (is_tuint c))
+                                                                    (is_ptuint d)) (is_tuint e))
+                                                              (is_tuint f)) (is_tuint g)) (is_ptuint h))
+                                                     (is_tuint k)) (is_cc_default cc)
+                                            | Ctypes.Tint _ _ _ => false
+                                            | Ctypes.Tlong _ _ => false
+                                            | Ctypes.Tfloat _ _ => false
+                                            | Ctypes.Tpointer _ _ => false
+                                            | Ctypes.Tarray _ _ _ => false
+                                            | Ctypes.Tfunction _ _ _ => false
+                                            | Ctypes.Tstruct _ _ => false
+                                            | Ctypes.Tunion _ _ => false
+                                            end
+                                        | Ctypes.Tcons _ _ => false
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+| Ctypes.Tstruct _ _ => false
+| Ctypes.Tunion _ _ => false
+end
+     : forall _ : Ctypes.type, bool
+
+Arguments is_round_ty ty
+### C.jet_elements_support_sha_interp.arr_read
+arr_read =
+fun (st : cst) (p : AST.ident) (i : Integers.Int.int) =>
+let k : nat := BinInt.Z.to_nat (Integers.Int.unsigned i) in
+match BinPos.Pos.eqb p jets_elements._s return (option Integers.Int.int) with
+| true =>
+    match PeanoNat.Nat.ltb k (S (S (S (S (S (S (S (S O)))))))) return (option Integers.Int.int) with
+    | true => @Some Integers.Int.int (@List.nth Integers.Int.int k (sarr st) Integers.Int.zero)
+    | false => @None Integers.Int.int
+    end
+| false =>
+    match BinPos.Pos.eqb p jets_elements._chunk return (option Integers.Int.int) with
+    | true =>
+        match
+          PeanoNat.Nat.ltb k (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))
+          return (option Integers.Int.int)
+        with
+        | true => @Some Integers.Int.int (@List.nth Integers.Int.int k (chunk st) Integers.Int.zero)
+        | false => @None Integers.Int.int
+        end
+    | false => @None Integers.Int.int
+    end
+end
+     : forall (_ : cst) (_ : AST.ident) (_ : Integers.Int.int), option Integers.Int.int
+
+Arguments arr_read st p i
+### C.jet_elements_support_sha_interp.arr_expr
+arr_expr =
+fun e : Clight.expr =>
+match e return (option (prod AST.ident Integers.Int.int)) with
+| Clight.Econst_int _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Econst_float _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Econst_single _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Econst_long _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Evar _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Etempvar _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Ederef _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Eaddrof _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Eunop _ _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Ebinop b e0 e1 aty =>
+    match b return (option (prod AST.ident Integers.Int.int)) with
+    | Cop.Oadd =>
+        match e0 return (option (prod AST.ident Integers.Int.int)) with
+        | Clight.Econst_int _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Econst_float _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Econst_single _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Econst_long _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Evar _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Etempvar p pty =>
+            match e1 return (option (prod AST.ident Integers.Int.int)) with
+            | Clight.Econst_int i ity =>
+                match
+                  andb (andb (is_ptuint pty) (is_tint ity)) (is_ptuint aty)
+                  return (option (prod AST.ident Integers.Int.int))
+                with
+                | true => @Some (prod AST.ident Integers.Int.int) (@pair AST.ident Integers.Int.int p i)
+                | false => @None (prod AST.ident Integers.Int.int)
+                end
+            | Clight.Econst_float _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Econst_single _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Econst_long _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Evar _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Etempvar _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Ederef _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Eaddrof _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Eunop _ _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Ebinop _ _ _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Ecast _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Efield _ _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Esizeof _ _ => @None (prod AST.ident Integers.Int.int)
+            | Clight.Ealignof _ _ => @None (prod AST.ident Integers.Int.int)
+            end
+        | Clight.Ederef _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Eaddrof _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Eunop _ _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Ebinop _ _ _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Ecast _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Efield _ _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Esizeof _ _ => @None (prod AST.ident Integers.Int.int)
+        | Clight.Ealignof _ _ => @None (prod AST.ident Integers.Int.int)
+        end
+    | Cop.Osub => @None (prod AST.ident Integers.Int.int)
+    | Cop.Omul => @None (prod AST.ident Integers.Int.int)
+    | Cop.Odiv => @None (prod AST.ident Integers.Int.int)
+    | Cop.Omod => @None (prod AST.ident Integers.Int.int)
+    | Cop.Oand => @None (prod AST.ident Integers.Int.int)
+    | Cop.Oor => @None (prod AST.ident Integers.Int.int)
+    | Cop.Oxor => @None (prod AST.ident Integers.Int.int)
+    | Cop.Oshl => @None (prod AST.ident Integers.Int.int)
+    | Cop.Oshr => @None (prod AST.ident Integers.Int.int)
+    | Cop.Oeq => @None (prod AST.ident Integers.Int.int)
+    | Cop.One => @None (prod AST.ident Integers.Int.int)
+    | Cop.Olt => @None (prod AST.ident Integers.Int.int)
+    | Cop.Ogt => @None (prod AST.ident Integers.Int.int)
+    | Cop.Ole => @None (prod AST.ident Integers.Int.int)
+    | Cop.Oge => @None (prod AST.ident Integers.Int.int)
+    end
+| Clight.Ecast _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Efield _ _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Esizeof _ _ => @None (prod AST.ident Integers.Int.int)
+| Clight.Ealignof _ _ => @None (prod AST.ident Integers.Int.int)
+end
+     : forall _ : Clight.expr, option (prod AST.ident Integers.Int.int)
+
+Arguments arr_expr e
+### C.jet_elements_support_sha_interp.addr_local
+addr_local =
+fun e : Clight.expr =>
+match e return (option nat) with
+| Clight.Econst_int _ _ => @None nat
+| Clight.Econst_float _ _ => @None nat
+| Clight.Econst_single _ _ => @None nat
+| Clight.Econst_long _ _ => @None nat
+| Clight.Evar _ _ => @None nat
+| Clight.Etempvar _ _ => @None nat
+| Clight.Ederef _ _ => @None nat
+| Clight.Eaddrof e0 pty =>
+    match e0 return (option nat) with
+    | Clight.Econst_int _ _ => @None nat
+    | Clight.Econst_float _ _ => @None nat
+    | Clight.Econst_single _ _ => @None nat
+    | Clight.Econst_long _ _ => @None nat
+    | Clight.Evar x ty =>
+        match andb (is_tuint ty) (is_ptuint pty) return (option nat) with
+        | true => index_of x lids
+        | false => @None nat
+        end
+    | Clight.Etempvar _ _ => @None nat
+    | Clight.Ederef _ _ => @None nat
+    | Clight.Eaddrof _ _ => @None nat
+    | Clight.Eunop _ _ _ => @None nat
+    | Clight.Ebinop _ _ _ _ => @None nat
+    | Clight.Ecast _ _ => @None nat
+    | Clight.Efield _ _ _ => @None nat
+    | Clight.Esizeof _ _ => @None nat
+    | Clight.Ealignof _ _ => @None nat
+    end
+| Clight.Eunop _ _ _ => @None nat
+| Clight.Ebinop _ _ _ _ => @None nat
+| Clight.Ecast _ _ => @None nat
+| Clight.Efield _ _ _ => @None nat
+| Clight.Esizeof _ _ => @None nat
+| Clight.Ealignof _ _ => @None nat
+end
+     : forall _ : Clight.expr, option nat
+
+Arguments addr_local e
+### C.jet_elements_support_sha_interp.eval_ie
+eval_ie =
+fix eval_ie (st : cst) (e : Clight.expr) {struct e} : option Integers.Int.int :=
+  match e return (option Integers.Int.int) with
+  | Clight.Econst_int n ty =>
+      match is_tuint ty return (option Integers.Int.int) with
+      | true => @Some Integers.Int.int n
+      | false => @None Integers.Int.int
+      end
+  | Clight.Econst_float _ _ => @None Integers.Int.int
+  | Clight.Econst_single _ _ => @None Integers.Int.int
+  | Clight.Econst_long _ _ => @None Integers.Int.int
+  | Clight.Evar x ty =>
+      match is_tuint ty return (option Integers.Int.int) with
+      | true =>
+          match index_of x lids return (option Integers.Int.int) with
+          | Some i =>
+              match PeanoNat.Nat.ltb i (ldef st) return (option Integers.Int.int) with
+              | true => @Some Integers.Int.int (@List.nth Integers.Int.int i (lv st) Integers.Int.zero)
+              | false => @None Integers.Int.int
+              end
+          | None => @None Integers.Int.int
+          end
+      | false => @None Integers.Int.int
+      end
+  | Clight.Etempvar t ty =>
+      match is_tuint ty return (option Integers.Int.int) with
+      | true =>
+          match index_of t wids return (option Integers.Int.int) with
+          | Some i =>
+              match PeanoNat.Nat.ltb i (wdef st) return (option Integers.Int.int) with
+              | true => @Some Integers.Int.int (@List.nth Integers.Int.int i (wv st) Integers.Int.zero)
+              | false => @None Integers.Int.int
+              end
+          | None => alookup (scratch st) t
+          end
+      | false => @None Integers.Int.int
+      end
+  | Clight.Ederef a ty =>
+      match is_tuint ty return (option Integers.Int.int) with
+      | true =>
+          match arr_expr a return (option Integers.Int.int) with
+          | Some p0 => match p0 return (option Integers.Int.int) with
+                       | pair p i => arr_read st p i
+                       end
+          | None => @None Integers.Int.int
+          end
+      | false => @None Integers.Int.int
+      end
+  | Clight.Eaddrof _ _ => @None Integers.Int.int
+  | Clight.Eunop _ _ _ => @None Integers.Int.int
+  | Clight.Ebinop op a b ty =>
+      match is_tuint ty return (option Integers.Int.int) with
+      | true =>
+          match eval_ie st a return (option Integers.Int.int) with
+          | Some va =>
+              match eval_ie st b return (option Integers.Int.int) with
+              | Some vb =>
+                  match op return (option Integers.Int.int) with
+                  | Cop.Oadd => @Some Integers.Int.int (Integers.Int.add va vb)
+                  | Cop.Osub => @None Integers.Int.int
+                  | Cop.Omul => @Some Integers.Int.int (Integers.Int.mul va vb)
+                  | Cop.Odiv => @None Integers.Int.int
+                  | Cop.Omod => @None Integers.Int.int
+                  | Cop.Oand => @None Integers.Int.int
+                  | Cop.Oor => @None Integers.Int.int
+                  | Cop.Oxor => @None Integers.Int.int
+                  | Cop.Oshl => @None Integers.Int.int
+                  | Cop.Oshr => @None Integers.Int.int
+                  | Cop.Oeq => @None Integers.Int.int
+                  | Cop.One => @None Integers.Int.int
+                  | Cop.Olt => @None Integers.Int.int
+                  | Cop.Ogt => @None Integers.Int.int
+                  | Cop.Ole => @None Integers.Int.int
+                  | Cop.Oge => @None Integers.Int.int
+                  end
+              | None => @None Integers.Int.int
+              end
+          | None => @None Integers.Int.int
+          end
+      | false => @None Integers.Int.int
+      end
+  | Clight.Ecast a ty =>
+      match is_tuint ty return (option Integers.Int.int) with
+      | true => eval_ie st a
+      | false => @None Integers.Int.int
+      end
+  | Clight.Efield _ _ _ => @None Integers.Int.int
+  | Clight.Esizeof _ _ => @None Integers.Int.int
+  | Clight.Ealignof _ _ => @None Integers.Int.int
+  end
+     : forall (_ : cst) (_ : Clight.expr), option Integers.Int.int
+
+Arguments eval_ie st e
+### C.jet_elements_support_sha_interp.set_temp
+set_temp =
+fun (st : cst) (t : AST.ident) (v : Integers.Int.int) =>
+match index_of t wids return (option cst) with
+| Some i =>
+    match PeanoNat.Nat.leb i (wdef st) return (option cst) with
+    | true =>
+        @Some cst
+          (mk_cst (@upd Integers.Int.int (wv st) i v) (PeanoNat.Nat.max (wdef st) (S i)) (lv st)
+             (ldef st) (scratch st) (sarr st) (chunk st))
+    | false => @None cst
+    end
+| None =>
+    match orb (BinPos.Pos.eqb t jets_elements._s) (BinPos.Pos.eqb t jets_elements._chunk) return (option cst) with
+    | true => @None cst
+    | false =>
+        @Some cst
+          (mk_cst (wv st) (wdef st) (lv st) (ldef st)
+             (@cons (prod AST.ident Integers.Int.int) (@pair AST.ident Integers.Int.int t v) (scratch st))
+             (sarr st) (chunk st))
+    end
+end
+     : forall (_ : cst) (_ : AST.ident) (_ : Integers.Int.int), option cst
+
+Arguments set_temp st t v
+### C.jet_elements_support_sha_interp.set_local
+set_local =
+fun (st : cst) (i : nat) (v : Integers.Int.int) =>
+mk_cst (wv st) (wdef st) (@upd Integers.Int.int (lv st) i v) (PeanoNat.Nat.max (ldef st) (S i))
+  (scratch st) (sarr st) (chunk st)
+     : forall (_ : cst) (_ : nat) (_ : Integers.Int.int), cst
+
+Arguments set_local st i%nat_scope v
+### C.jet_elements_support_sha_interp.sigma_ty
+sigma_ty =
+Ctypes.Tfunction (Ctypes.Tcons Ctypesdefs.tuint Ctypes.Tnil) Ctypesdefs.tuint AST.cc_default
+     : Ctypes.type
+### C.jet_elements_support_sha_interp.round_ty
+round_ty =
+Ctypes.Tfunction
+  (Ctypes.Tcons Ctypesdefs.tuint
+     (Ctypes.Tcons Ctypesdefs.tuint
+        (Ctypes.Tcons Ctypesdefs.tuint
+           (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuint)
+              (Ctypes.Tcons Ctypesdefs.tuint
+                 (Ctypes.Tcons Ctypesdefs.tuint
+                    (Ctypes.Tcons Ctypesdefs.tuint
+                       (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuint) (Ctypes.Tcons Ctypesdefs.tuint Ctypes.Tnil)))))))))
+  Ctypesdefs.tvoid AST.cc_default
+     : Ctypes.type
+### C.jet_elements_support_sha_interp.interp_assign
+interp_assign =
+fun (st : cst) (lhs e : Clight.expr) =>
+match lhs return (option cst) with
+| Clight.Econst_int _ _ => @None cst
+| Clight.Econst_float _ _ => @None cst
+| Clight.Econst_single _ _ => @None cst
+| Clight.Econst_long _ _ => @None cst
+| Clight.Evar x ty =>
+    match is_tuint ty return (option cst) with
+    | true =>
+        match index_of x lids return (option cst) with
+        | Some i =>
+            match eval_ie st e return (option cst) with
+            | Some v =>
+                match PeanoNat.Nat.leb i (ldef st) return (option cst) with
+                | true => @Some cst (set_local st i v)
+                | false => @None cst
+                end
+            | None => @None cst
+            end
+        | None => @None cst
+        end
+    | false => @None cst
+    end
+| Clight.Etempvar _ _ => @None cst
+| Clight.Ederef a ty =>
+    match is_tuint ty return (option cst) with
+    | true =>
+        match arr_expr a return (option cst) with
+        | Some p0 =>
+            match p0 return (option cst) with
+            | pair p i =>
+                match eval_ie st e return (option cst) with
+                | Some v =>
+                    let k : nat := BinInt.Z.to_nat (Integers.Int.unsigned i) in
+                    match
+                      andb (BinPos.Pos.eqb p jets_elements._s) (PeanoNat.Nat.ltb k (S (S (S (S (S (S (S (S O)))))))))
+                      return (option cst)
+                    with
+                    | true =>
+                        @Some cst
+                          (mk_cst (wv st) (wdef st) (lv st) (ldef st) (scratch st)
+                             (@upd Integers.Int.int (sarr st) k v) (chunk st))
+                    | false => @None cst
+                    end
+                | None => @None cst
+                end
+            end
+        | None => @None cst
+        end
+    | false => @None cst
+    end
+| Clight.Eaddrof _ _ => @None cst
+| Clight.Eunop _ _ _ => @None cst
+| Clight.Ebinop _ _ _ _ => @None cst
+| Clight.Ecast _ _ => @None cst
+| Clight.Efield _ _ _ => @None cst
+| Clight.Esizeof _ _ => @None cst
+| Clight.Ealignof _ _ => @None cst
+end
+     : forall (_ : cst) (_ : Clight.expr) (_ : Clight.expr), option cst
+
+Arguments interp_assign st lhs e
+### C.jet_elements_support_sha_interp.interp_sigma
+interp_sigma =
+fun (st : cst) (t f : AST.ident) (fty : Ctypes.type) (a : Clight.expr) =>
+match is_sigma_ty fty return (option cst) with
+| true =>
+    match eval_ie st a return (option cst) with
+    | Some v =>
+        match BinPos.Pos.eqb f jets_elements._sigma0 return (option cst) with
+        | true => set_temp st t (jet_elements_support_sha_linkage.c_sigma0 v)
+        | false =>
+            match BinPos.Pos.eqb f jets_elements._sigma1 return (option cst) with
+            | true => set_temp st t (jet_elements_support_sha_linkage.c_sigma1 v)
+            | false => @None cst
+            end
+        end
+    | None => @None cst
+    end
+| false => @None cst
+end
+     : forall (_ : cst) (_ : AST.ident) (_ : AST.ident) (_ : Ctypes.type) (_ : Clight.expr), option cst
+
+Arguments interp_sigma st t f fty a
+### C.jet_elements_support_sha_interp.interp_round
+interp_round =
+fun (st : cst) (f : AST.ident) (fty : Ctypes.type) (a b c d e f' g h k : Clight.expr) =>
+match is_round_ty fty return (option cst) with
+| true =>
+    match BinPos.Pos.eqb f jets_elements._Round return (option cst) with
+    | true =>
+        match eval_ie st a return (option cst) with
+        | Some va =>
+            match eval_ie st b return (option cst) with
+            | Some vb =>
+                match eval_ie st c return (option cst) with
+                | Some vc =>
+                    match eval_ie st e return (option cst) with
+                    | Some ve =>
+                        match eval_ie st f' return (option cst) with
+                        | Some vf =>
+                            match eval_ie st g return (option cst) with
+                            | Some vg =>
+                                match eval_ie st k return (option cst) with
+                                | Some vk =>
+                                    match addr_local d return (option cst) with
+                                    | Some id =>
+                                        match addr_local h return (option cst) with
+                                        | Some ih =>
+                                            match
+                                              andb
+                                                (andb (PeanoNat.Nat.ltb id (ldef st)) (PeanoNat.Nat.ltb ih (ldef st)))
+                                                (negb (PeanoNat.Nat.eqb id ih)) return (option cst)
+                                            with
+                                            | true =>
+                                                let dv : Integers.Int.int :=
+                                                  @List.nth Integers.Int.int id (lv st) Integers.Int.zero in
+                                                let hv : Integers.Int.int :=
+                                                  @List.nth Integers.Int.int ih (lv st) Integers.Int.zero in
+                                                let t1 : Integers.Int.int :=
+                                                  jet_elements_support_sha_round.c_T1 hv ve vf vg vk in
+                                                @Some cst
+                                                  (mk_cst (wv st) (wdef st)
+                                                     (@upd Integers.Int.int
+                                                        (@upd Integers.Int.int (lv st) id (Integers.Int.add dv t1)) ih
+                                                        (Integers.Int.add t1
+                                                           (jet_elements_support_sha_round.c_T2 va vb vc)))
+                                                     (ldef st) (scratch st) (sarr st) (chunk st))
+                                            | false => @None cst
+                                            end
+                                        | None => @None cst
+                                        end
+                                    | None => @None cst
+                                    end
+                                | None => @None cst
+                                end
+                            | None => @None cst
+                            end
+                        | None => @None cst
+                        end
+                    | None => @None cst
+                    end
+                | None => @None cst
+                end
+            | None => @None cst
+            end
+        | None => @None cst
+        end
+    | false => @None cst
+    end
+| false => @None cst
+end
+     : forall (_ : cst) (_ : AST.ident) (_ : Ctypes.type) (_ : Clight.expr) (_ : Clight.expr)
+         (_ : Clight.expr) (_ : Clight.expr) (_ : Clight.expr) (_ : Clight.expr) (_ : Clight.expr)
+         (_ : Clight.expr) (_ : Clight.expr), option cst
+
+Arguments interp_round st f fty a b c d e f' g h k
+### C.jet_elements_support_sha_interp.interp
+interp =
+fix interp (s : Clight.statement) (st : cst) {struct s} : option cst :=
+  match s return (option cst) with
+  | Clight.Sskip => @None cst
+  | Clight.Sassign lhs e => interp_assign st lhs e
+  | Clight.Sset t e => match eval_ie st e return (option cst) with
+                       | Some v => set_temp st t v
+                       | None => @None cst
+                       end
+  | Clight.Scall o e0 l =>
+      match o return (option cst) with
+      | Some t =>
+          match e0 return (option cst) with
+          | Clight.Econst_int _ _ => @None cst
+          | Clight.Econst_float _ _ => @None cst
+          | Clight.Econst_single _ _ => @None cst
+          | Clight.Econst_long _ _ => @None cst
+          | Clight.Evar f fty =>
+              match l return (option cst) with
+              | nil => @None cst
+              | cons a l0 =>
+                  match l0 return (option cst) with
+                  | nil => interp_sigma st t f fty a
+                  | cons _ _ => @None cst
+                  end
+              end
+          | Clight.Etempvar _ _ => @None cst
+          | Clight.Ederef _ _ => @None cst
+          | Clight.Eaddrof _ _ => @None cst
+          | Clight.Eunop _ _ _ => @None cst
+          | Clight.Ebinop _ _ _ _ => @None cst
+          | Clight.Ecast _ _ => @None cst
+          | Clight.Efield _ _ _ => @None cst
+          | Clight.Esizeof _ _ => @None cst
+          | Clight.Ealignof _ _ => @None cst
+          end
+      | None =>
+          match e0 return (option cst) with
+          | Clight.Econst_int _ _ => @None cst
+          | Clight.Econst_float _ _ => @None cst
+          | Clight.Econst_single _ _ => @None cst
+          | Clight.Econst_long _ _ => @None cst
+          | Clight.Evar f fty =>
+              match l return (option cst) with
+              | nil => @None cst
+              | cons a l0 =>
+                  match l0 return (option cst) with
+                  | nil => @None cst
+                  | cons b l1 =>
+                      match l1 return (option cst) with
+                      | nil => @None cst
+                      | cons c l2 =>
+                          match l2 return (option cst) with
+                          | nil => @None cst
+                          | cons d l3 =>
+                              match l3 return (option cst) with
+                              | nil => @None cst
+                              | cons e l4 =>
+                                  match l4 return (option cst) with
+                                  | nil => @None cst
+                                  | cons f' l5 =>
+                                      match l5 return (option cst) with
+                                      | nil => @None cst
+                                      | cons g l6 =>
+                                          match l6 return (option cst) with
+                                          | nil => @None cst
+                                          | cons h l7 =>
+                                              match l7 return (option cst) with
+                                              | nil => @None cst
+                                              | cons k l8 =>
+                                                  match l8 return (option cst) with
+                                                  | nil => interp_round st f fty a b c d e f' g h k
+                                                  | cons _ _ => @None cst
+                                                  end
+                                              end
+                                          end
+                                      end
+                                  end
+                              end
+                          end
+                      end
+                  end
+              end
+          | Clight.Etempvar _ _ => @None cst
+          | Clight.Ederef _ _ => @None cst
+          | Clight.Eaddrof _ _ => @None cst
+          | Clight.Eunop _ _ _ => @None cst
+          | Clight.Ebinop _ _ _ _ => @None cst
+          | Clight.Ecast _ _ => @None cst
+          | Clight.Efield _ _ _ => @None cst
+          | Clight.Esizeof _ _ => @None cst
+          | Clight.Ealignof _ _ => @None cst
+          end
+      end
+  | Clight.Sbuiltin _ _ _ _ => @None cst
+  | Clight.Ssequence a b =>
+      match interp a st return (option cst) with
+      | Some st1 => interp b st1
+      | None => @None cst
+      end
+  | Clight.Sifthenelse _ _ _ => @None cst
+  | Clight.Sloop _ _ => @None cst
+  | Clight.Sbreak => @None cst
+  | Clight.Scontinue => @None cst
+  | Clight.Sreturn _ => @None cst
+  | Clight.Sswitch _ _ => @None cst
+  | Clight.Slabel _ _ => @None cst
+  | Clight.Sgoto _ => @None cst
+  end
+     : forall (_ : Clight.statement) (_ : cst), option cst
+
+Arguments interp s st
+### C.jet_elements_support_sha_interp.reset
+reset =
+fun st : cst =>
+mk_cst (wv st) (wdef st) (lv st) (ldef st) (@nil (prod AST.ident Integers.Int.int)) (sarr st) (chunk st)
+     : forall _ : cst, cst
+
+Arguments reset st
+### C.jet_elements_support_sha_interp.interp_spine
+interp_spine =
+fix interp_spine (fuel : nat) (s : Clight.statement) (st : cst) {struct fuel} : option cst :=
+  match fuel return (option cst) with
+  | O => interp s (reset st)
+  | S fuel0 =>
+      match s return (option cst) with
+      | Clight.Sskip => interp s (reset st)
+      | Clight.Sassign _ _ => interp s (reset st)
+      | Clight.Sset _ _ => interp s (reset st)
+      | Clight.Scall _ _ _ => interp s (reset st)
+      | Clight.Sbuiltin _ _ _ _ => interp s (reset st)
+      | Clight.Ssequence a b =>
+          match interp a (reset st) return (option cst) with
+          | Some st1 => interp_spine fuel0 b st1
+          | None => @None cst
+          end
+      | Clight.Sifthenelse _ _ _ => interp s (reset st)
+      | Clight.Sloop _ _ => interp s (reset st)
+      | Clight.Sbreak => interp s (reset st)
+      | Clight.Scontinue => interp s (reset st)
+      | Clight.Sreturn _ => interp s (reset st)
+      | Clight.Sswitch _ _ => interp s (reset st)
+      | Clight.Slabel _ _ => interp s (reset st)
+      | Clight.Sgoto _ => interp s (reset st)
+      end
+  end
+     : forall (_ : nat) (_ : Clight.statement) (_ : cst), option cst
+
+Arguments interp_spine fuel%nat_scope s st

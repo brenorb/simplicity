@@ -1,0 +1,278 @@
+### C.jet_elements_support_sha_ctx8_bridge.buffer_values_list
+buffer_values_list
+     : forall (depth : nat) (buf : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) depth)),
+       @eq (list (Ty.tySem (Word.Word (S (S (S O))))))
+         (jet_buffer_chunks.byte_chunks_values (jet_buffer_input.buffer_byte_chunks depth buf))
+         (jet_sha_ctx8_spec.buffer_list (Word.Word (S (S (S O)))) depth buf)
+### C.jet_elements_support_sha_ctx8_bridge.buffer_exists
+buffer_exists
+     : forall (X : Ty.Ty) (depth : nat) (l : list (Ty.tySem X))
+         (_ : lt (@length (Ty.tySem X) l) (PeanoNat.Nat.pow (S (S O)) (S depth))),
+       @ex (Ty.tySem (jet_buffer_empty_spec.buffer_type X depth))
+         (fun buf : Ty.tySem (jet_buffer_empty_spec.buffer_type X depth) =>
+          @eq (list (Ty.tySem X)) (jet_sha_ctx8_spec.buffer_list X depth buf) l)
+### C.jet_elements_support_sha_ctx8_bridge.word32_of_int
+word32_of_int
+     : forall x : Integers.Int.int,
+       @eq Integers.Int.int
+         (jet_read32s_layout.word32_array_value
+            (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O)))))) (Integers.Int.unsigned x))) x
+### C.jet_elements_support_sha_ctx8_bridge.state_exists
+state_exists
+     : forall (regs : list Integers.Int.int)
+         (_ : @eq nat (@length Integers.Int.int regs) (S (S (S (S (S (S (S (S O))))))))),
+       @ex (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (fun h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))) =>
+          @eq (list Integers.Int.int) (jet_sha_ctx8_model.state_regs h) regs)
+### C.jet_elements_support_sha_ctx8_bridge.absorb_length
+absorb_length
+     : forall (bs l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int)
+         (_ : lt (@length (Ty.tySem (Word.Word (S (S (S O))))) l)
+                (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))),
+       and
+         (@eq BinNums.Z
+            (BinInt.Z.of_nat
+               (@length (Ty.tySem (Word.Word (S (S (S O)))))
+                  (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb l regs bs))))
+            (BinInt.Z.modulo
+               (BinInt.Z.add (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) l))
+                  (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) bs)))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (lt
+            (@length (Ty.tySem (Word.Word (S (S (S O)))))
+               (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                  (jet_sha_ctx8_model.absorb l regs bs)))
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+### C.jet_elements_support_sha_ctx8_bridge.add_counter_c
+add_counter_c
+     : forall (r : Integers.Int64.int) (len : BinNums.Z)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned r)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 len)
+                (BinInt.Z.lt len
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq BinNums.Z
+         (Integers.Int64.unsigned (jet_read_sha256_counter.sha256_read_counter r (Integers.Int64.repr len)))
+         (BinInt.Z.add
+            (BinInt.Z.mul
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               (Integers.Int64.unsigned r)) len)
+### C.jet_elements_support_sha_ctx8_bridge.add_counter_sum
+add_counter_sum
+     : forall (r : Integers.Int64.int) (len n : BinNums.Z)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned r)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 len)
+                (BinInt.Z.lt len
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.add (jet_read_sha256_counter.sha256_read_counter r (Integers.Int64.repr len))
+               (Integers.Int64.repr n)))
+         (BinInt.Z.add
+            (BinInt.Z.add
+               (BinInt.Z.mul
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (Integers.Int64.unsigned r)) len) n)
+### C.jet_elements_support_sha_ctx8_bridge.add_counter_overflow
+add_counter_overflow
+     : forall (r : Integers.Int64.int) (len n : BinNums.Z)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned r)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 len)
+                (BinInt.Z.lt len
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       @eq bool
+         (jet_elements_support_sha_uchars_exec.uc_overflow false
+            (jet_read_sha256_counter.sha256_read_counter r (Integers.Int64.repr len)) (Integers.Int64.repr n))
+         (negb
+            (BinInt.Z.ltb
+               (BinInt.Z.add (Integers.Int64.unsigned r)
+                  (BinInt.Z.div (BinInt.Z.add len n)
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               jet_sha_ctx8_spec.ctx8_limit))
+### C.jet_elements_support_sha_ctx8_bridge.add_counter_modu
+add_counter_modu
+     : forall (r : Integers.Int64.int) (len n : BinNums.Z)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned r)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 len)
+                (BinInt.Z.lt len
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))),
+       @eq Integers.Int64.int
+         (Integers.Int64.modu
+            (Integers.Int64.add (jet_read_sha256_counter.sha256_read_counter r (Integers.Int64.repr len))
+               (Integers.Int64.repr n))
+            (Integers.Int64.repr
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (Integers.Int64.repr
+            (BinInt.Z.modulo (BinInt.Z.add len n)
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+### C.jet_elements_support_sha_ctx8_bridge.add_counter_count
+add_counter_count
+     : forall (r : Integers.Int64.int) (len n : BinNums.Z)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned r)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 len)
+                (BinInt.Z.lt len
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+         (_ : and (BinInt.Z.le BinNums.Z0 n)
+                (BinInt.Z.le n
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))))
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add (Integers.Int64.unsigned r)
+                   (BinInt.Z.div (BinInt.Z.add len n)
+                      (BinNums.Zpos
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                jet_sha_ctx8_spec.ctx8_limit),
+       @eq (Ty.tySem (Word.Word (jet_wide.wide_log jet_wide.W64)))
+         (jet_wide_spec.decode_wide jet_wide.W64
+            (Integers.Int64.zero_ext
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+               (Integers.Int64.shru
+                  (Integers.Int64.add (jet_read_sha256_counter.sha256_read_counter r (Integers.Int64.repr len))
+                     (Integers.Int64.repr n)) (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xI BinNums.xH)))))))
+         (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O)))))))
+            (BinInt.Z.add (Integers.Int64.unsigned r)
+               (BinInt.Z.div (BinInt.Z.add len n)
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))

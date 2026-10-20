@@ -1,0 +1,121 @@
+### C.jet_amount_exec_compose.asset_amount_middle_exec
+asset_amount_middle_exec
+     : forall (_ : jet_memcpy_model.memcpy_model) (bl bm bb bx bi : Values.block) (_ : not (@eq Values.block bl bx))
+         (_ : not (@eq Values.block bl bm))
+         (_ : not
+                (@eq Values.block bl
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression)))
+         (_ : not
+                (@eq Values.block bl
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)))
+         (_ : not (@eq Values.block bb bx)) (_ : not (@eq Values.block bb bm))
+         (_ : not
+                (@eq Values.block bb
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression)))
+         (_ : not
+                (@eq Values.block bb
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)))
+         (_ : not (@eq Values.block bl bb)) (_ : not (@eq Values.block bi bl)) (_ : not (@eq Values.block bi bb))
+         (_ : not (@eq Values.block bi bx)) (_ : not (@eq Values.block bi bm)) (_ : not (@eq Values.block bm bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bx))
+         (_ : not
+                (@eq Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bm))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bx))
+         (_ : not
+                (@eq Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter)
+                   bm)) (le : Clight.temp_env) (m : Memory.Mem.mem) (edge rc : BinNums.Z)
+         (p : Ty.tySem jet_nonce_context_spec.nonce_conf_type) (a : Ty.tySem jet_amount_exec_common.amount_value_type)
+         (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int) (c : Integers.Int64.int)
+         (ovf : bool) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xI
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                Integers.Int64.max_unsigned) (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : Memory.Mem.valid_access m AST.Mint64 bl (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Writable)
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Writable)
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc
+                (@Translate.encode
+                   (Ty.Prod jet_nonce_context_spec.nonce_conf_type jet_amount_exec_common.amount_value_type)
+                   (@pair (Ty.tySem jet_nonce_context_spec.nonce_conf_type)
+                      (Ty.tySem jet_amount_exec_common.amount_value_type) p a)))
+         (_ : jet_elements_support_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge
+               (jet_nonce_context_shape.nc_env bl bm bb bx) le m asset_amount_middle Events.E0
+               (jet_amount_exec_common.amount_temps a (jet_nonce_exec_phase.nonce_present_temps p le)) mf
+               ClightBigstep.Out_normal)
+            (and
+               (jet_frame_layout.frame_fields_at mf bl BinNums.Z0 bi edge
+                  (BinInt.Z.add rc
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xI
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+               (and
+                  (jet_elements_support_sha_ctx_abs.ctx_abs mf bx bm
+                     (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                        (jet_sha_ctx8_model.absorb l regs
+                           (@app (Ty.tySem (Word.Word (S (S (S O))))) (jet_asset_exec_asset.asset_bytes p)
+                              (jet_amount_exec_common.amount_bytes a))))
+                     (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                        (jet_sha_ctx8_model.absorb l regs
+                           (@app (Ty.tySem (Word.Word (S (S (S O))))) (jet_asset_exec_asset.asset_bytes p)
+                              (jet_amount_exec_common.amount_bytes a))))
+                     (Integers.Int64.add
+                        (Integers.Int64.add c
+                           (Integers.Int64.repr
+                              (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                        (Integers.Int64.repr (jet_amount_exec_common.amount_count a)))
+                     (jet_amount_exec_common.amount_overflow (asset_overflow ovf c)
+                        (Integers.Int64.add c
+                           (Integers.Int64.repr
+                              (BinNums.Zpos (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+                        a))
+                  (jet_nonce_exec_effects.nonce_effects m mf
+                     (@cons Values.block bl
+                        (@cons Values.block bb (@cons Values.block bx (@cons Values.block bm (@nil Values.block)))))))))
+### C.jet_amount_exec_compose.asset_amount_middle_then
+asset_amount_middle_then
+     : forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (le' : Clight.temp_env)
+         (m' : Memory.Mem.mem) (le'' : Clight.temp_env) (mf : Memory.Mem.mem) (rest : Clight.statement)
+         (out : ClightBigstep.outcome)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m asset_amount_middle Events.E0 le'
+                m' ClightBigstep.Out_normal)
+         (_ : ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le' m' rest Events.E0 le'' mf out),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m
+         (Clight.Ssequence jet_asset_exec_shape.asset_prefix
+            (Clight.Ssequence jet_nonce_context_shape.nc_readbytes
+               (Clight.Ssequence jet_nonce_context_shape.nc_uchars
+                  (Clight.Ssequence jet_asset_exec_shape.amount_phase rest)))) Events.E0 le'' mf out
+### C.jet_amount_exec_compose.asset_amount_middle
+asset_amount_middle =
+Clight.Ssequence jet_asset_exec_shape.asset_prefix
+  (Clight.Ssequence jet_nonce_context_shape.nc_readbytes
+     (Clight.Ssequence jet_nonce_context_shape.nc_uchars jet_asset_exec_shape.amount_phase))
+     : Clight.statement
+### C.jet_amount_exec_compose.asset_overflow
+asset_overflow =
+fun (ovf : bool) (c : Integers.Int64.int) =>
+jet_elements_support_sha_uchars_exec.uc_overflow
+  (jet_elements_support_sha_uchars_exec.uc_overflow ovf c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+  (Integers.Int64.add c (Integers.Int64.repr (BinNums.Zpos BinNums.xH)))
+  (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+     : forall (_ : bool) (_ : Integers.Int64.int), bool
+
+Arguments asset_overflow ovf%bool_scope c

@@ -1,0 +1,78 @@
+### C.jet_asset_local_actual.asset_globals_equiv
+asset_globals_equiv
+     : forall m : Memory.Mem.mem,
+       iff (asset_elements_globals_ok m) (jet_elements_support_sha_add_n_exec.sha_globals_ok m)
+### C.jet_asset_local_actual.asset_amount_hash_local_spec
+asset_amount_hash_local_spec
+     : forall _ : jet_memcpy_model.memcpy_model,
+       asset_elements_partial_local_spec jets_elements.f_simplicity_asset_amount_hash
+         jet_asset_exec_shape.asset_amount_input_type jet_sha256_ctx8_init_spec.sha256_ctx8_type
+         (fun a : Ty.tySem jet_asset_exec_shape.asset_amount_input_type =>
+          @jet_asset_local_spec.elements_asset_amount_hash_spec (Alg.AssertionSem Option.option_Monad_Zero) a)
+### C.jet_asset_local_actual.asset_elements_globals_ok
+asset_elements_globals_ok =
+fun m : Memory.Mem.mem =>
+and
+  (@eq (option Values.val)
+     (Memory.Mem.load AST.Mptr m
+        (jet_elements_linkage.elements_symbol_block jets_elements._simplicity_sha256_compression) BinNums.Z0)
+     (@Some Values.val
+        (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._sha256_compression_portable)
+           Integers.Ptrofs.zero)))
+  (@eq (option Values.val)
+     (Memory.Mem.load AST.Mint64 m (jet_elements_linkage.elements_symbol_block jets_elements._sha256_max_counter)
+        BinNums.Z0) (@Some Values.val (Values.Vlong jet_elements_support_sha_uchars_exec.sha_max_counter)))
+     : forall _ : Memory.Mem.mem, Prop
+
+Arguments asset_elements_globals_ok m
+### C.jet_asset_local_actual.asset_elements_partial_local_spec
+asset_elements_partial_local_spec =
+fun (f : Clight.function) (A B : Ty.Ty) (spec : forall _ : Ty.tySem A, option (Ty.tySem B)) =>
+forall (env : Values.val) (m : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block)
+  (sbase : BinNums.Z) (bi bw : Values.block) (edge outedge cursor read_cursor : BinNums.Z)
+  (a : Ty.tySem A) (_ : asset_elements_globals_ok m) (_ : jet_frame_layout.frame_base_valid sbase)
+  (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) sbase)
+  (_ : jet_frame_layout.frame_fields_at m bs sbase bi edge read_cursor) (_ : BinInt.Z.le BinNums.Z0 read_cursor)
+  (_ : BinInt.Z.le (BinInt.Z.add read_cursor (BinInt.Z.of_nat (Translate.bitSize A))) Integers.Int64.max_unsigned)
+  (_ : jet_encoding.frame_input_cells_at m bi edge read_cursor (@Translate.encode A a))
+  (_ : jet_output_layout.write_frame_at m bd dbase bw outedge cursor (BinInt.Z.of_nat (Translate.bitSize B))),
+@ex Memory.Mem.mem
+  (fun mf : Memory.Mem.mem =>
+   and
+     (ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m (@Ctypes.Internal Clight.function f)
+        (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+           (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+        Events.E0 mf (@jet_partial.jet_partial_return (Ty.tySem B) (spec a)))
+     (and
+        match spec a return Prop with
+        | Some b =>
+            and (jet_encoding.frame_output_cells_at mf bw outedge cursor (@Translate.encode B b))
+              (and (jet_output_layout.write_prefix_at m mf bw outedge cursor)
+                 (jet_frame_layout.frame_fields_at mf bd dbase bw outedge
+                    (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize B)))))
+        | None => True
+        end
+        (forall (chunk : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z) (_ : Memory.Mem.valid_block m b)
+           (_ : or (not (@eq Values.block b bd))
+                  (or
+                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                        (BinInt.Z.add dbase (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                     (BinInt.Z.le
+                        (BinInt.Z.add dbase
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) ofs)))
+           (_ : or (not (@eq Values.block b bw))
+                  (or
+                     (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk))
+                        (BinInt.Z.add outedge
+                           (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                              (BinInt.Z.div (BinInt.Z.sub cursor (BinInt.Z.of_nat (Translate.bitSize B)))
+                                 (BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                     (BinInt.Z.le
+                        (BinInt.Z.add (jet_write_layout.write_word_address outedge cursor)
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) ofs))),
+         @eq (option Values.val) (Memory.Mem.load chunk mf b ofs) (Memory.Mem.load chunk m b ofs))))
+     : forall (_ : Clight.function) (A B : Ty.Ty) (_ : forall _ : Ty.tySem A, option (Ty.tySem B)), Prop
+
+Arguments asset_elements_partial_local_spec f (A B)%ty_scope spec%function_scope

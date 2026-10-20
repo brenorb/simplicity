@@ -1,0 +1,70 @@
+(** Original C entropy helper against its canonical calculation program.
+    This is the helper boundary, not the enclosing Boolean frame jet yet. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Values Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest.
+Require Simplicity.Alg.
+Require Import C.jet_memcpy_model C.jet_uint32_array_init C.jet_elements_support_sha_linkage C.jet_elements_support_sha_block_local.
+Require Import C.jet_elements_support_sha_uchars_exec C.jet_elements_support_sha_ctx_abs.
+Require Import C.jet_elements_linkage C.jet_elements_sha_program C.jet_elements_issuance_calc_spec.
+Require Import C.jet_elements_env_entropy.
+Require Import C.jet_entropy_streaming_short.
+Require C.jets_elements.
+Import Values Mem Ctypes ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma entropy_symbol_block id : sha_symbol_block id = elements_symbol_block id.
+Proof. unfold sha_symbol_block, elements_symbol_block. rewrite elements_sha_genv. reflexivity. Qed.
+
+Local Opaque sha_ge elements_ge sha_symbol_block elements_symbol_block.
+
+Definition entropy_helper_word_call : Prop :=
+  forall m bres ores bop oop bcon ocon (h : Ty.tySem Word256) (ix : Ty.tySem Word32) (contract : Ty.tySem Word256),
+  0 <= ores -> ores + 32 <= Ptrofs.max_unsigned -> (4 | ores) ->
+  Mem.range_perm m bres ores (ores + 32) Cur Writable ->
+  0 <= oop -> oop + 40 <= Ptrofs.max_unsigned ->
+  uint32_array_at m bop oop (hash256_reg (to_hash256 h)) ->
+  Mem.load Mint64 m bop (oop + 32) = Some (Vlong (Int64.repr (@toZ (WordToZ 5) ix))) ->
+  Ptrofs.unsigned ocon + 32 <= Ptrofs.max_unsigned ->
+  uint32_array_at m bcon (Ptrofs.unsigned ocon) (hash256_reg (to_hash256 contract)) ->
+  Mem.load Mptr m (elements_symbol_block jets_elements._simplicity_sha256_compression) 0 =
+    Some (Vptr (elements_symbol_block jets_elements._sha256_compression_portable) Ptrofs.zero) ->
+  Mem.load Mint64 m (elements_symbol_block jets_elements._sha256_max_counter) 0 = Some (Vlong sha_max_counter) ->
+  exists mf,
+    Clight2.eval_funcall elements_ge m (Internal jets_elements.f_simplicity_generateIssuanceEntropy)
+      [Vptr bres (Ptrofs.repr ores); Vptr bop (Ptrofs.repr oop); Vptr bcon ocon] E0 mf Vundef /\
+    uint32_array_at mf bres ores
+      (hash256_reg (to_hash256 (@calculate_issuance_entropy_spec Alg.CoreFunSem ((h, ix), contract)))) /\
+    (forall ch b ofs, Mem.valid_block m b ->
+      (b <> bres \/ ofs + size_chunk ch <= ores \/ ores + 32 <= ofs) ->
+      Mem.load ch mf b ofs = Mem.load ch m b ofs) /\
+    (forall b ofs k p, Mem.perm m b ofs k p -> Mem.perm mf b ofs k p) /\
+    (forall b, Mem.valid_block m b -> Mem.valid_block mf b).
+
+Theorem elements_entropy_helper_word_call (Hmodel : memcpy_model) : entropy_helper_word_call.
+Proof.
+  intros m bres ores bop oop bcon ocon h ix contract H0 HM HA HP HO HOP HTX HIX HCM HCON HD HC.
+  assert (HDs : sha_dispatch_ok m).
+  { unfold sha_dispatch_ok.
+    rewrite (entropy_symbol_block jets_elements._simplicity_sha256_compression),
+      (entropy_symbol_block jets_elements._sha256_compression_portable). exact HD. }
+  assert (HCs : Mem.load Mint64 m (sha_symbol_block jets_elements._sha256_max_counter) 0 = Some (Vlong sha_max_counter)).
+  { rewrite entropy_symbol_block. exact HC. }
+  destruct (eval_generateIssuanceEntropy Hmodel m bres ores bop oop bcon ocon
+    (hash256_reg (to_hash256 h)) (hash256_reg (to_hash256 contract)) (Int64.repr (@toZ (WordToZ 5) ix))
+    H0 HM HA HP HO HOP (hash256_len _) ltac:(intros j Hj; apply HTX, nth_error_nth'; rewrite hash256_len; exact Hj)
+    HIX (hash256_len _) HCM ltac:(intros j Hj; apply HCON, nth_error_nth'; rewrite hash256_len; exact Hj)
+    HDs HCs) as (mf & HCall & HOut & HLoads & HPerm & HValid).
+  exists mf. split.
+  - rewrite <- elements_sha_genv. exact HCall.
+  - split.
+    + rewrite stream_entropy_registers in HOut.
+      intros j x Hj.
+      assert (Hj8 : (j < 8)%nat).
+      { rewrite <- (hash256_len (to_hash256 (@calculate_issuance_entropy_spec Alg.CoreFunSem ((h, ix), contract)))).
+        apply nth_error_Some. rewrite Hj. discriminate. }
+      rewrite <- (nth_error_nth _ j Int.zero Hj). exact (HOut j Hj8).
+    + split; [exact HLoads|]. split; [|exact HValid].
+      intros b ofs k p HP0. apply HPerm; [eapply Mem.perm_valid_block; exact HP0|exact HP0].
+Qed.

@@ -1,0 +1,83 @@
+### C.jet_env_store_words.store_words_perm
+store_words_perm
+     : forall (ws : list Integers.Int.int) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (m' : Memory.Mem.mem) (_ : @eq (option Memory.Mem.mem) (store_words m b base ws) (@Some Memory.Mem.mem m'))
+         (b' : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission),
+       iff (Memory.Mem.perm m' b' ofs k p) (Memory.Mem.perm m b' ofs k p)
+### C.jet_env_store_words.store_words_nextblock
+store_words_nextblock
+     : forall (ws : list Integers.Int.int) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (m' : Memory.Mem.mem) (_ : @eq (option Memory.Mem.mem) (store_words m b base ws) (@Some Memory.Mem.mem m')),
+       @eq Values.block (Memory.Mem.nextblock m') (Memory.Mem.nextblock m)
+### C.jet_env_store_words.store_words_load_other
+store_words_load_other
+     : forall (ws : list Integers.Int.int) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (m' : Memory.Mem.mem) (_ : @eq (option Memory.Mem.mem) (store_words m b base ws) (@Some Memory.Mem.mem m'))
+         (chunk : AST.memory_chunk) (b' : Values.block) (ofs : BinNums.Z)
+         (_ : or (not (@eq Values.block b' b))
+                (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk chunk)) base)
+                   (BinInt.Z.le
+                      (BinInt.Z.add base
+                         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                            (BinInt.Z.of_nat (@length Integers.Int.int ws)))) ofs))),
+       @eq (option Values.val) (Memory.Mem.load chunk m' b' ofs) (Memory.Mem.load chunk m b' ofs)
+### C.jet_env_store_words.store_words_loads
+store_words_loads
+     : forall (ws : list Integers.Int.int) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (m' : Memory.Mem.mem) (_ : @eq (option Memory.Mem.mem) (store_words m b base ws) (@Some Memory.Mem.mem m')),
+       jet_uint32_array_init.uint32_array_at m' b base ws
+### C.jet_env_store_words.store_words_exists
+store_words_exists
+     : forall (ws : list Integers.Int.int) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (_ : Memory.Mem.range_perm m b base
+                (BinInt.Z.add base
+                   (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                      (BinInt.Z.of_nat (@length Integers.Int.int ws)))) Memtype.Cur Memtype.Writable)
+         (_ : BinInt.Z.divide (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))) base),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem => @eq (option Memory.Mem.mem) (store_words m b base ws) (@Some Memory.Mem.mem m'))
+### C.jet_env_store_words.store_words_app
+store_words_app
+     : forall (ws1 ws2 : list Integers.Int.int) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (m1 m2 : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (store_words m b base ws1) (@Some Memory.Mem.mem m1))
+         (_ : @eq (option Memory.Mem.mem)
+                (store_words m1 b
+                   (BinInt.Z.add base
+                      (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                         (BinInt.Z.of_nat (@length Integers.Int.int ws1)))) ws2) (@Some Memory.Mem.mem m2)),
+       @eq (option Memory.Mem.mem) (store_words m b base (@app Integers.Int.int ws1 ws2)) (@Some Memory.Mem.mem m2)
+### C.jet_env_store_words.store_words_app_inv
+store_words_app_inv
+     : forall (ws1 ws2 : list Integers.Int.int) (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z)
+         (m2 : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (store_words m b base (@app Integers.Int.int ws1 ws2))
+                (@Some Memory.Mem.mem m2)),
+       @ex Memory.Mem.mem
+         (fun m1 : Memory.Mem.mem =>
+          and (@eq (option Memory.Mem.mem) (store_words m b base ws1) (@Some Memory.Mem.mem m1))
+            (@eq (option Memory.Mem.mem)
+               (store_words m1 b
+                  (BinInt.Z.add base
+                     (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))
+                        (BinInt.Z.of_nat (@length Integers.Int.int ws1)))) ws2) (@Some Memory.Mem.mem m2)))
+### C.jet_env_store_words.repeat_snoc
+@repeat_snoc
+     : forall (A : Type) (x : A) (n : nat),
+       @eq (list A) (@List.repeat A x (S n)) (@app A (@List.repeat A x n) (@cons A x (@nil A)))
+### C.jet_env_store_words.store_words
+store_words =
+fix store_words (m : Memory.Mem.mem) (b : Values.block) (base : BinNums.Z) (ws : list Integers.Int.int) {struct ws} :
+    option Memory.Mem.mem :=
+  match ws return (option Memory.Mem.mem) with
+  | nil => @Some Memory.Mem.mem m
+  | cons w rest =>
+      match Memory.Mem.store AST.Mint32 m b base (Values.Vint w) return (option Memory.Mem.mem) with
+      | Some m1 => store_words m1 b (BinInt.Z.add base (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))) rest
+      | None => @None Memory.Mem.mem
+      end
+  end
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z) (_ : list Integers.Int.int),
+       option Memory.Mem.mem
+
+Arguments store_words m b base%Z_scope ws%list_scope

@@ -1,0 +1,166 @@
+(** C streaming SHA for the two short entropy phases. No memory execution
+    is assumed here: these lemmas bridge its checked byte/register model. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require sha.SHA256 sha.common_lemmas.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Digest.
+Require Import C.jet_sha256_iv_init C.jet_sha_ctx8_model C.jet_elements_support_sha_uchars_prep.
+Require Import C.jet_elements_support_sha_be32_write C.jet_elements_support_sha_be32_exec C.jet_elements_support_sha_finalize_exec C.jet_word_repr.
+Require Import C.jet_predicate_spec C.jet_read8s_layout.
+Require Import C.jet_elements_entropy_hash_model C.jet_elements_env_le32_write.
+Require Import C.jet_elements_env_entropy C.jet_read32s_layout C.jet_elements_issuance_calc_spec.
+Require Simplicity.Alg.
+Require Import C.jet_entropy_streaming_byte_blocks C.jet_entropy_registers_registers.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma stream_hash_single r W : length W = 16%nat ->
+  SHA256.hash_blocks r W = SHA256.hash_block r W.
+Proof.
+  intro HW. pose proof (hash_blocks_app r W [] HW) as H.
+  rewrite app_nil_r in H. rewrite H, SHA256.hash_blocks_equation. reflexivity.
+Qed.
+
+Lemma stream_pad32_length : length (sha_pad (Int64.repr 32)) = 32%nat.
+Proof. vm_compute; reflexivity. Qed.
+Lemma stream_pad36_length : length (sha_pad (Int64.repr 36)) = 28%nat.
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma stream_short_hash bs : length bs = 32%nat \/ length bs = 36%nat ->
+  hash_buffer_regs bs = SHA256.hash_block sha256_iv_words
+    (be_words (bs ++ sha_pad (Int64.repr (Z.of_nat (length bs))))).
+Proof.
+  intro HLen.
+  assert (HB : length (bs ++ sha_pad (Int64.repr (Z.of_nat (length bs)))) = 64%nat).
+  { rewrite app_length. destruct HLen as [HL|HL]; rewrite HL.
+    - change (32 + length (sha_pad (Int64.repr 32)) = 64)%nat.
+      rewrite stream_pad32_length. reflexivity.
+    - change (36 + length (sha_pad (Int64.repr 36)) = 64)%nat.
+      rewrite stream_pad36_length. reflexivity. }
+  unfold hash_buffer_regs. rewrite <- absorb_i_app.
+  rewrite (absorb_blocks 1 _ sha256_iv_words eq_refl HB).
+  cbn [snd]. apply stream_hash_single. apply be_words_length. exact HB.
+Qed.
+
+Lemma stream_little_endian_word32 (ix : Ty.tySem Word32) :
+  c_le32_bytes (Int64.repr (@toZ (WordToZ 5) ix)) =
+    map word8_array_value (word_bytes (entropy_swapped_index ix)).
+Proof.
+  destruct ix as [[a b] [c d]].
+  unfold c_le32_bytes. rewrite !le32_byte_value by lia.
+  change (2 ^ 0) with 1. change (2 ^ 8) with 256.
+  change (2 ^ 16) with 65536. change (2 ^ 24) with 16777216.
+  pose proof (word_value_bounds 5 ((a, b), (c, d))) as HT.
+  change (word_modulus 5) with 4294967296 in HT.
+  assert (HR : 0 <= @toZ (WordToZ 5) ((a, b), (c, d)) <= Int64.max_unsigned).
+  { split; [exact (proj1 HT)|]. eapply Z.le_trans.
+    - apply Z.lt_le_incl. exact (proj2 HT).
+    - change (4294967296 <= 18446744073709551615); lia. }
+  rewrite Int64.unsigned_repr by exact HR.
+  change (map word8_array_value (word_bytes (entropy_swapped_index ((a, b), (c, d)))))
+    with [Int.repr (@toZ (WordToZ 3) d); Int.repr (@toZ (WordToZ 3) c);
+          Int.repr (@toZ (WordToZ 3) b); Int.repr (@toZ (WordToZ 3) a)].
+  pose proof (word_value_bounds 3 a) as Ha. pose proof (word_value_bounds 3 b) as Hb.
+  pose proof (word_value_bounds 3 c) as Hc. pose proof (word_value_bounds 3 d) as Hd.
+  change (word_modulus 3) with 256 in Ha, Hb, Hc, Hd.
+  pose proof (@toZ_Pair (PairToZ (WordToZ 3) (WordToZ 3))
+    (PairToZ (WordToZ 3) (WordToZ 3)) (a, b) (c, d)) as E1.
+  pose proof (@toZ_Pair (WordToZ 3) (WordToZ 3) a b) as E2.
+  pose proof (@toZ_Pair (WordToZ 3) (WordToZ 3) c d) as E3.
+  match type of E1 with _ = ?A * ?P + ?B =>
+    assert (EA : A = @toZ (WordToZ 3) a * 256 + @toZ (WordToZ 3) b) by exact E2;
+    assert (EB : B = @toZ (WordToZ 3) c * 256 + @toZ (WordToZ 3) d) by exact E3;
+    assert (EP : P = 65536) by reflexivity;
+    rewrite EA, EB, EP in E1
+  end.
+  set (A := @toZ (WordToZ 3) a) in *. set (B := @toZ (WordToZ 3) b) in *.
+  set (C := @toZ (WordToZ 3) c) in *. set (D := @toZ (WordToZ 3) d) in *.
+  set (T := @toZ (WordToZ 5) ((a, b), (c, d))) in *.
+  change (T = (A * 256 + B) * 65536 + (C * 256 + D)) in E1.
+  change ([Int.repr ((T / 1) mod 256); Int.repr ((T / 256) mod 256);
+    Int.repr ((T / 65536) mod 256); Int.repr ((T / 16777216) mod 256)] =
+    [Int.repr D; Int.repr C; Int.repr B; Int.repr A]).
+  assert (E0 : T mod 256 = D).
+  { symmetry. apply Z.mod_unique with (q := A * 65536 + B * 256 + C); lia. }
+  assert (E8 : T / 256 = A * 65536 + B * 256 + C).
+  { symmetry. apply Z.div_unique with (r := D); lia. }
+  assert (E16 : T / 65536 = A * 256 + B).
+  { symmetry. apply Z.div_unique with (r := C * 256 + D); lia. }
+  assert (E24 : T / 16777216 = A).
+  { symmetry. apply Z.div_unique with (r := B * 65536 + C * 256 + D); lia. }
+  rewrite Z.div_1_r, E0, E8, E16, E24.
+  assert (M8 : (A * 65536 + B * 256 + C) mod 256 = C).
+  { symmetry. apply Z.mod_unique with (q := A * 256 + B); lia. }
+  assert (M16 : (A * 256 + B) mod 256 = B).
+  { symmetry. apply Z.mod_unique with (q := A); lia. }
+  rewrite M8, M16, Z.mod_small by exact Ha. reflexivity.
+Qed.
+
+Lemma stream_pad32_words : be_words (sha_pad (Int64.repr 32)) =
+  Int.repr 2147483648 :: repeat Int.zero 6 ++ [Int.repr 256].
+Proof. vm_compute; reflexivity. Qed.
+Lemma stream_pad36_words : be_words (sha_pad (Int64.repr 36)) =
+  Int.repr 2147483648 :: repeat Int.zero 5 ++ [Int.repr 288].
+Proof. vm_compute; reflexivity. Qed.
+
+Lemma stream_first_words regs ix : length regs = 8%nat ->
+  be_words (be_bytes regs ++ (c_le32_bytes (Int64.repr (@toZ (WordToZ 5) ix)) ++ sha_pad (Int64.repr 36))) =
+  regs ++ entropy_index_register ix :: Int.repr 2147483648 :: repeat Int.zero 5 ++ [Int.repr 288].
+Proof.
+  intro HL. rewrite (be_words_app4 8 (be_bytes regs)) by (rewrite be_bytes_length, HL; reflexivity).
+  rewrite be_words_be_bytes, (be_words_app4 1 (c_le32_bytes _)) by reflexivity.
+  rewrite stream_little_endian_word32, word32_from_bytes, stream_pad36_words.
+  reflexivity.
+Qed.
+
+Lemma stream_second_words regs : length regs = 8%nat ->
+  be_words (be_bytes regs ++ sha_pad (Int64.repr 32)) =
+  regs ++ Int.repr 2147483648 :: repeat Int.zero 6 ++ [Int.repr 256].
+Proof.
+  intro HL. rewrite (be_words_app4 8 (be_bytes regs)) by (rewrite be_bytes_length, HL; reflexivity).
+  rewrite be_words_be_bytes, stream_pad32_words. reflexivity.
+Qed.
+
+Lemma stream_first_hash regs ix : length regs = 8%nat ->
+  hash_buffer_regs (be_bytes regs ++ c_le32_bytes (Int64.repr (@toZ (WordToZ 5) ix))) =
+  SHA256.hash_block sha256_iv_words
+    (regs ++ entropy_index_register ix :: Int.repr 2147483648 :: repeat Int.zero 5 ++ [Int.repr 288]).
+Proof.
+  intro HL.
+  assert (HLen : length (be_bytes regs ++ c_le32_bytes (Int64.repr (@toZ (WordToZ 5) ix))) = 36%nat).
+  { rewrite app_length, be_bytes_length, HL, c_le32_bytes_length. reflexivity. }
+  rewrite stream_short_hash by (right; exact HLen). rewrite HLen.
+  change (Int64.repr (Z.of_nat 36)) with (Int64.repr 36).
+  rewrite <- app_assoc, stream_first_words by exact HL. reflexivity.
+Qed.
+
+Lemma stream_hash_be_bytes regs : length regs = 8%nat ->
+  hash_buffer_regs (be_bytes regs) = SHA256.hash_block sha256_iv_words
+    (regs ++ Int.repr 2147483648 :: repeat Int.zero 6 ++ [Int.repr 256]).
+Proof.
+  intro HL.
+  assert (HLen : length (be_bytes regs) = 32%nat) by (rewrite be_bytes_length, HL; reflexivity).
+  rewrite stream_short_hash by (left; exact HLen). rewrite HLen.
+  change (Int64.repr (Z.of_nat 32)) with (Int64.repr 32).
+  rewrite stream_second_words by exact HL. reflexivity.
+Qed.
+
+Lemma stream_outpoint_model regs ix : length regs = 8%nat ->
+  hash_buffer_regs (be_bytes (hash_buffer_regs
+    (be_bytes regs ++ c_le32_bytes (Int64.repr (@toZ (WordToZ 5) ix))))) =
+  entropy_outpoint_registers regs ix.
+Proof.
+  intro HL. rewrite stream_hash_be_bytes by apply hash_buffer_regs_length.
+  rewrite stream_first_hash by exact HL. reflexivity.
+Qed.
+
+Theorem stream_entropy_registers h ix contract :
+  entropy_regs (hash256_reg (to_hash256 h)) (Int64.repr (@toZ (WordToZ 5) ix))
+    (hash256_reg (to_hash256 contract)) =
+  hash256_reg (to_hash256 (@calculate_issuance_entropy_spec Alg.CoreFunSem ((h, ix), contract))).
+Proof.
+  unfold entropy_regs, entropy_h1.
+  rewrite stream_outpoint_model by apply hash256_len.
+  rewrite calculate_issuance_entropy_registers. reflexivity.
+Qed.

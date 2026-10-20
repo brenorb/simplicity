@@ -1,0 +1,75 @@
+(** Original outpoint tag read and 256-bit padding-skip execution. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Maps Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate Simplicity.BitMachine.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_frame_layout C.jet_input_layout C.jet_encoding.
+Require Import C.jet_readBit_layout C.jet_read8s_layout C.jet_elements_support_sha_ctx_abs C.jet_sha_ctx8_model.
+Require Import C.jet_elements_support_sha_uchars_exec C.jet_elements_support_sha_add_n_init C.jet_elements_support_sha_linkage C.jet_elements_support_sha_block_local.
+Require Import C.jets_elements C.jet_elements_linkage.
+Require Import C.jet_nonce_context_spec C.jet_nonce_context_shape C.jet_nonce_exec_effects C.jet_nonce_exec_calls.
+Import Mem Values Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge.
+Set Default Timeout 10.
+
+Require Import C.jet_forwardBits_layout C.jet_elements_support_sha_transport C.jet_elements_sha_program C.jet_nonce_exec_prefix C.jet_outpoint_exec_shape.
+
+Section FrameRead.
+Variables bl bm bb bx bi : block.
+Hypotheses (Hlx : bl <> bx) (Hlm : bl <> bm) (Hlg : bl <> GC) (Hlc : bl <> GM).
+Hypotheses (Hil : bi <> bl) (Hix : bi <> bx) (Him : bi <> bm).
+Hypotheses (Hmx : bm <> bx) (Hgx : GC <> bx) (Hgm : GC <> bm) (Hcx : GM <> bx) (Hcm : GM <> bm).
+Let e := op_env bl bm bb bx.
+
+Lemma op_read_cell le m edge rc bit cells l regs c ovf id :
+  0 <= rc <= Int64.max_unsigned - 1 ->
+  frame_fields_at m bl 0 bi edge rc -> Mem.valid_access m Mint64 bl 8 Writable ->
+  frame_input_cells_at m bi edge rc (Some bit :: cells) -> ctx_abs m bx bm l regs c ovf ->
+  exists mf,
+    Clight2.exec_stmt elements_ge e le m (nc_readbit id) E0
+      (PTree.set id (Vint (bit_int bit)) le) mf Out_normal /\
+    frame_fields_at mf bl 0 bi edge (rc + 1) /\
+    frame_input_cells_at mf bi edge (rc + 1) cells /\
+    ctx_abs mf bx bm l regs c ovf /\ nonce_effects m mf [bl].
+Proof.
+  intros HR HF PW HI HC.
+  destruct (nonce_read_bit e le m bl bi edge rc bit id eq_refl eq_refl HR HF
+    (nonce_cells_head m bi edge rc bit cells HI) PW) as (mf & HRead & HFields & EF).
+  exists mf. split; [exact HRead|]. split; [exact HFields|]. split.
+  - eapply nonce_effects_input; [exact EF|cbn; intuition|].
+    exact (nonce_cells_tail m bi edge rc (Some bit) cells HI).
+  - split; [|exact EF]. eapply nonce_effects_ctx; [exact EF| | | | |exact HC]; cbn; intuition congruence.
+Qed.
+
+End FrameRead.
+
+Theorem op_skip_exec e le m bl bi edge rc :
+  e!_src = Some (bl, nc_fr) -> e!_forwardBits = None ->
+  0 <= rc -> rc + 256 <= Int64.max_unsigned ->
+  frame_fields_at m bl 0 bi edge rc -> Mem.valid_access m Mint64 bl 8 Writable ->
+  exists mf,
+    Clight2.exec_stmt elements_ge e le m op_skip E0 le mf Out_normal /\
+    frame_fields_at mf bl 0 bi edge (rc + 256) /\ nonce_effects m mf [bl].
+Proof.
+  intros HL HNone H0 HM HF PW.
+  destruct (eval_forwardBits_layout m bl 0 bi edge rc 256 nonce_local_frame_base H0 ltac:(lia) HM HF PW)
+    as (mf & HC & HFields & HLoads & HPerm & HValid).
+  assert (HCall : Clight2.eval_funcall elements_ge m (Internal f_forwardBits)
+    [Vptr bl Ptrofs.zero; Vlong (Int64.repr 256)] E0 mf Vundef).
+  { rewrite <- elements_sha_genv. eapply sha_transport_call; [|exact HC].
+    unfold sha_core_helpers. simpl. tauto. }
+  exists mf. split.
+  - destruct nonce_forward_link as [HS HFun]. unfold op_skip.
+    change le with (set_opttemp None Vundef le) at 2.
+    eapply exec_Scall with (vf := Vptr (elements_symbol_block _forwardBits) Ptrofs.zero)
+      (f := Internal f_forwardBits) (vargs := [Vptr bl Ptrofs.zero; Vlong (Int64.repr 256)]) (vres := Vundef).
+    + reflexivity.
+    + eapply eval_Elvalue; [apply eval_Evar_global; [exact HNone|exact HS]|apply deref_loc_reference; reflexivity].
+    + eapply eval_Econs; [apply eval_Eaddrof, eval_Evar_local; exact HL|reflexivity|].
+      eapply eval_Econs; [apply eval_Econst_int|reflexivity|apply eval_Enil].
+    + exact HFun.
+    + reflexivity.
+    + exact HCall.
+  - split; [exact HFields|]. constructor; [|exact HPerm|exact HValid].
+    intros ch b ofs V N. apply HLoads. left. intro E; subst b. apply N. left; reflexivity.
+Qed.

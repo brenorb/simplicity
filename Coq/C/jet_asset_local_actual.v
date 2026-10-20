@@ -1,0 +1,77 @@
+(** Public original Elements asset_amount_hash C-to-literal-Simplicity theorem. *)
+From Coq Require Import ZArith List Lia PeanoNat.
+From compcert Require Import Coqlib Integers AST Ctypes Cop Clight ClightBigstep Maps Globalenvs Errors Values Memory Events.
+Require sha.SHA256.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate Simplicity.BitMachine.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_readBit_layout C.jet_partial.
+Require Import C.jet_frame_copy C.jet_frame_copy_layout C.jet_frame_layout.
+Require Import C.jet_input_layout C.jet_output_layout C.jet_write_layout C.jet_encoding.
+Require Import C.jet_constant_layout C.jet_bitmachine_rep.
+Require Import C.jet_buffer_empty_spec C.jet_buffer_input C.jet_buffer_chunks C.jet_sha256_ctx8_init_spec.
+Require Import C.jet_read8s_layout C.jet_read32s_layout C.jet_word32_chunks C.jet_uint32_array_init.
+Require Import C.jet_wide C.jet_wide_spec.
+Require Import C.jet_write_sha256_context_layout.
+Require Import C.jet_read_sha256_counter C.jet_read_sha256_overflow C.jet_sha256_counter_representation.
+Require C.jets.
+Require Import C.jets_elements C.jet_elements_support_sha_linkage C.jet_elements_support_sha_transport C.jet_elements_support_sha_compress_call C.jet_elements_support_sha_block_local.
+Require Import C.jet_sha_ctx8_spec C.jet_sha_ctx8_model C.jet_elements_support_sha_uchars_prep C.jet_elements_support_sha_uchars_loop C.jet_elements_support_sha_uchars_exec.
+Require Import C.jet_elements_support_sha_read_context_layout C.jet_elements_support_sha_ctx8_bridge.
+Require Import C.jet_elements_support_sha_add_n_init C.jet_elements_support_sha_add_n_calls C.jet_elements_support_sha_add_n_exec.
+Require Import C.jet_elements_support_sha_finalize_exec.
+Require Import C.jet_elements_support_sha_tapdata_prep.
+Require Import C.jet_elements_support_sha_uchar_exec C.jet_elements_support_sha_ctx_abs.
+Import Ctypes Values ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Transparent Archi.ptr64.
+Set Default Timeout 10.
+
+
+Require Import C.jets_elements C.jet_elements_linkage C.jet_elements_sha_program.
+Require Import C.jet_nonce_context_spec C.jet_nonce_context_shape C.jet_nonce_exec_effects C.jet_nonce_exec_phase.
+Local Opaque elements_ge.
+
+Require Import C.jet_nonce_local_common C.jet_asset_local_local C.jet_asset_local_bridges C.jet_asset_local_spec C.jet_asset_exec_shape.
+
+Definition asset_elements_globals_ok m : Prop :=
+  Mem.load Mptr m (elements_symbol_block _simplicity_sha256_compression) 0 =
+    Some (Vptr (elements_symbol_block _sha256_compression_portable) Ptrofs.zero) /\
+  Mem.load Mint64 m (elements_symbol_block _sha256_max_counter) 0 = Some (Vlong sha_max_counter).
+
+Lemma asset_globals_equiv m : asset_elements_globals_ok m <-> sha_globals_ok m.
+Proof. reflexivity. Qed.
+
+Definition asset_elements_partial_local_spec (f : function) (A B : Ty) (spec : A -> option B) : Prop :=
+  forall env m bd dbase bs sbase bi bw edge outedge cursor read_cursor (a : A),
+    asset_elements_globals_ok m ->
+    frame_base_valid sbase -> (8 | sbase) ->
+    frame_fields_at m bs sbase bi edge read_cursor ->
+    0 <= read_cursor -> read_cursor + Z.of_nat (bitSize A) <= Int64.max_unsigned ->
+    frame_input_cells_at m bi edge read_cursor (encode a) ->
+    write_frame_at m bd dbase bw outedge cursor (Z.of_nat (bitSize B)) ->
+    exists mf,
+      Clight2.eval_funcall elements_ge m (Internal f)
+        [Vptr bd (Ptrofs.repr dbase); Vptr bs (Ptrofs.repr sbase); env]
+        E0 mf (jet_partial_return (spec a)) /\
+      (match spec a with
+       | Some b => frame_output_cells_at mf bw outedge cursor (encode b) /\
+           write_prefix_at m mf bw outedge cursor /\
+           frame_fields_at mf bd dbase bw outedge (cursor - Z.of_nat (bitSize B))
+       | None => True
+       end) /\
+      (forall chunk b ofs, Mem.valid_block m b ->
+        (b <> bd \/ ofs + size_chunk chunk <= dbase + 8 \/ dbase + 16 <= ofs) ->
+        (b <> bw \/
+          ofs + size_chunk chunk <= outedge + 8 * ((cursor - Z.of_nat (bitSize B)) / 64) \/
+          write_word_address outedge cursor + 8 <= ofs) ->
+        Mem.load chunk mf b ofs = Mem.load chunk m b ofs).
+
+Theorem asset_amount_hash_local_spec : memcpy_model ->
+  asset_elements_partial_local_spec f_simplicity_asset_amount_hash asset_amount_input_type sha256_ctx8_type
+    (fun a => @elements_asset_amount_hash_spec optalg a).
+Proof.
+  intros HM env m bd dbase bs sbase bi bw edge outedge cursor rc a HG HB HA HF H0 HMax HI HO.
+  apply asset_globals_equiv in HG.
+  pose proof (asset_amount_hash_sha_local_spec HM env m bd dbase bs sbase bi bw edge outedge cursor rc a
+    HG HB HA HF H0 HMax HI HO) as HC.
+  rewrite elements_sha_genv in HC. exact HC.
+Qed.

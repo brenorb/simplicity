@@ -6,15 +6,18 @@ the active Coq tree. Unaccepted corrections, candidate registrations, helper
 sources and review witnesses are versioned in `../../proof-work/`, outside the
 accepted build. Consolidation is source preservation, not proof acceptance.
 
-The latest full-acceptance receipt covers **349/533**. Commit `cafb9b31`
-registers two further canonical field predicates, bringing the current registry
-to **349/533** (245 without an extra libc premise, 104 conditional on the
-explicit original `memcpy_model`, 184 missing). Independent full acceptance of
-this extension passes with exit 0 on 2026-10-09; its exact fingerprint and
-completed checks are recorded in `JET_ACCEPTANCE.md`.
-The inherited fidelity review is still
-**partial**. `JET_INHERITED_REVIEW.md` is the authoritative eight-criterion
-assessment; compilation, snapshots and absence of admissions do not complete it.
+Current integration coverage and the reconciliation of the previously pending
+jets are in [JET_ACCEPTANCE.md](JET_ACCEPTANCE.md). The new batch is awaiting
+final acceptance; its source registrations alone are not a proof-check result.
+
+The inherited fidelity review remains partial. [JET_INHERITED_REVIEW.md](JET_INHERITED_REVIEW.md)
+records the separate frame-domain, evaluator and exhaustive canonical-review
+obligations. No upstream mismatch is corrected to make a proof work.
+
+The sections below are historical development notes, including support that has
+since been integrated. Their temporary paths, session numbers and receipts are
+not current acceptance evidence. The active registry, source modules and one
+reproducible acceptance command determine current status.
 
 ## Existing accepted correction and review evidence
 

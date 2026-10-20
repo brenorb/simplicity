@@ -1,0 +1,79 @@
+### C.jet_nonce_exec_effects.nonce_effects_refl
+nonce_effects_refl
+     : forall (m : Memory.Mem.mem) (bs : list Values.block), nonce_effects m m bs
+### C.jet_nonce_exec_effects.nonce_effects_mono
+nonce_effects_mono
+     : forall (m mf : Memory.Mem.mem) (bs cs : list Values.block) (_ : nonce_effects m mf bs)
+         (_ : forall (b : Values.block) (_ : @List.In Values.block b bs), @List.In Values.block b cs),
+       nonce_effects m mf cs
+### C.jet_nonce_exec_effects.nonce_effects_trans
+nonce_effects_trans
+     : forall (m m1 mf : Memory.Mem.mem) (bs : list Values.block) (_ : nonce_effects m m1 bs)
+         (_ : nonce_effects m1 mf bs), nonce_effects m mf bs
+### C.jet_nonce_exec_effects.nonce_effects_access
+nonce_effects_access
+     : forall (m mf : Memory.Mem.mem) (bs : list Values.block) (ch : AST.memory_chunk) (b : Values.block)
+         (ofs : BinNums.Z) (p : Memtype.permission) (_ : nonce_effects m mf bs)
+         (_ : Memory.Mem.valid_access m ch b ofs p), Memory.Mem.valid_access mf ch b ofs p
+### C.jet_nonce_exec_effects.nonce_effects_union
+nonce_effects_union
+     : forall (m m1 mf : Memory.Mem.mem) (bs cs : list Values.block) (_ : nonce_effects m m1 bs)
+         (_ : nonce_effects m1 mf cs), nonce_effects m mf (@app Values.block bs cs)
+### C.jet_nonce_exec_effects.nonce_effects_fields
+nonce_effects_fields
+     : forall (m mf : Memory.Mem.mem) (bs : list Values.block) (bf : Values.block) (base : BinNums.Z)
+         (bi : Values.block) (edge rc : BinNums.Z) (_ : nonce_effects m mf bs) (_ : not (@List.In Values.block bf bs))
+         (_ : jet_frame_layout.frame_fields_at m bf base bi edge rc),
+       jet_frame_layout.frame_fields_at mf bf base bi edge rc
+### C.jet_nonce_exec_effects.nonce_effects_input
+nonce_effects_input
+     : forall (m mf : Memory.Mem.mem) (bs : list Values.block) (bi : Values.block) (edge rc : BinNums.Z)
+         (cells : list BitMachine.Cell) (_ : nonce_effects m mf bs) (_ : not (@List.In Values.block bi bs))
+         (_ : jet_encoding.frame_input_cells_at m bi edge rc cells),
+       jet_encoding.frame_input_cells_at mf bi edge rc cells
+### C.jet_nonce_exec_effects.nonce_ctx_other
+nonce_ctx_other
+     : forall (m mf : Memory.Mem.mem) (bx bm : Values.block) (l : list (Ty.tySem (Word.Word (S (S (S O))))))
+         (regs : list Integers.Int.int) (c : Integers.Int64.int) (ovf : bool)
+         (_ : jet_elements_support_sha_ctx_abs.ctx_abs m bx bm l regs c ovf)
+         (_ : forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                (_ : or (@eq Values.block b bx)
+                       (or (@eq Values.block b bm)
+                          (or
+                             (@eq Values.block b
+                                (jet_elements_support_sha_linkage.sha_symbol_block
+                                   jets_elements._simplicity_sha256_compression))
+                             (@eq Values.block b
+                                (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter))))),
+              @eq (option Values.val) (Memory.Mem.load ch mf b ofs) (Memory.Mem.load ch m b ofs))
+         (_ : forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm mf b ofs k p),
+       jet_elements_support_sha_ctx_abs.ctx_abs mf bx bm l regs c ovf
+### C.jet_nonce_exec_effects.nonce_effects_ctx
+nonce_effects_ctx
+     : forall (m mf : Memory.Mem.mem) (bs : list Values.block) (bx bm : Values.block)
+         (l : list (Ty.tySem (Word.Word (S (S (S O)))))) (regs : list Integers.Int.int) (c : Integers.Int64.int)
+         (ovf : bool) (_ : nonce_effects m mf bs) (_ : not (@List.In Values.block bx bs))
+         (_ : not (@List.In Values.block bm bs))
+         (_ : not
+                (@List.In Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._simplicity_sha256_compression) bs))
+         (_ : not
+                (@List.In Values.block
+                   (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._sha256_max_counter) bs))
+         (_ : jet_elements_support_sha_ctx_abs.ctx_abs m bx bm l regs c ovf),
+       jet_elements_support_sha_ctx_abs.ctx_abs mf bx bm l regs c ovf
+### C.jet_nonce_exec_effects.nonce_effects
+Variant nonce_effects (m mf : Memory.Mem.mem) (changed : list Values.block) : Prop :=
+    Build_nonce_effects : forall
+                            (_ : forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                                   (_ : Memory.Mem.valid_block m b) (_ : not (@List.In Values.block b changed)),
+                                 @eq (option Values.val) (Memory.Mem.load ch mf b ofs) (Memory.Mem.load ch m b ofs))
+                            (_ : forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind)
+                                   (p : Memtype.permission) (_ : Memory.Mem.perm m b ofs k p),
+                                 Memory.Mem.perm mf b ofs k p)
+                            (_ : forall (b : Values.block) (_ : Memory.Mem.valid_block m b),
+                                 Memory.Mem.valid_block mf b), nonce_effects m mf changed.
+
+Arguments nonce_effects m mf changed%list_scope
+Arguments Build_nonce_effects m mf changed%list_scope (nonce_loads nonce_perms nonce_valid)%function_scope

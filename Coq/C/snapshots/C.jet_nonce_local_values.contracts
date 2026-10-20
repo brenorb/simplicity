@@ -1,0 +1,118 @@
+### C.jet_nonce_local_values.nonce_ctx8_add_values
+nonce_ctx8_add_values
+     : forall (buf : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+         (count : Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+         (state : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (vs : list (Ty.tySem (Word.Word (S (S (S O)))))),
+       let lbuf : list (Ty.tySem (Word.Word (S (S (S O))))) :=
+         jet_sha_ctx8_spec.buffer_list (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) buf in
+       let regs : list Integers.Int.int := jet_sha_ctx8_model.state_regs state in
+       let total : BinNums.Z :=
+         BinInt.Z.add (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count)
+           (BinInt.Z.div
+              (BinInt.Z.add (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) lbuf))
+                 (BinInt.Z.of_nat (@length (Ty.tySem (Word.Word (S (S (S O))))) vs)))
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+         in
+       let result :
+         option
+           (prod (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+              (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))) :=
+         match
+           vs
+           return
+             (option
+                (prod (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                   (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+         with
+         | nil =>
+             match
+               BinInt.Z.ltb (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S O))))))) count)
+                 jet_sha_ctx8_spec.ctx8_limit
+               return
+                 (option
+                    (prod
+                       (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                       (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                          (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+             with
+             | true =>
+                 @Some
+                   (prod (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                      (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                   (@pair
+                      (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                      (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) buf
+                      (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) count state))
+             | false =>
+                 @None
+                   (prod (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                      (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                         (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+             end
+         | cons _ _ =>
+             jet_sha_ctx8_spec.ctx8_add_list
+               (@pair (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                  (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) buf
+                  (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) count state)) vs
+         end in
+       @ex (Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+         (fun buf' : Ty.tySem (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))) =>
+          @ex (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+            (fun h' : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))) =>
+             and
+               (@eq (list (Ty.tySem (Word.Word (S (S (S O))))))
+                  (jet_sha_ctx8_spec.buffer_list (Word.Word (S (S (S O)))) (S (S (S (S (S O))))) buf')
+                  (@fst (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                     (jet_sha_ctx8_model.absorb lbuf regs vs)))
+               (and
+                  (@eq (list Integers.Int.int) (jet_sha_ctx8_model.state_regs h')
+                     (@snd (list (Ty.tySem (Word.Word (S (S (S O)))))) (list Integers.Int.int)
+                        (jet_sha_ctx8_model.absorb lbuf regs vs)))
+                  (@eq
+                     (option
+                        (prod
+                           (Ty.tySem
+                              (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                           (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                              (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))) result
+                     match
+                       BinInt.Z.ltb total jet_sha_ctx8_spec.ctx8_limit
+                       return
+                         (option
+                            (prod
+                               (Ty.tySem
+                                  (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                               (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                                  (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))))))
+                     with
+                     | true =>
+                         @Some
+                           (prod
+                              (Ty.tySem
+                                 (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                              (prod (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                           (@pair
+                              (Ty.tySem
+                                 (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                              (prod (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))) buf'
+                              (@pair (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S O)))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                                 (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S O))))))) total) h'))
+                     | false =>
+                         @None
+                           (prod
+                              (Ty.tySem
+                                 (jet_buffer_empty_spec.buffer_type (Word.Word (S (S (S O)))) (S (S (S (S (S O)))))))
+                              (prod (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+                                 (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))))
+                     end))))

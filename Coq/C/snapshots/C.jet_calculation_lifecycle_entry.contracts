@@ -1,0 +1,105 @@
+### C.jet_calculation_lifecycle_entry.calculate_asset_frame_header
+calculate_asset_frame_header
+     : calculation_frame_header jets_elements.f_simplicity_calculate_asset
+### C.jet_calculation_lifecycle_entry.calculate_explicit_token_frame_header
+calculate_explicit_token_frame_header
+     : calculation_frame_header jets_elements.f_simplicity_calculate_explicit_token
+### C.jet_calculation_lifecycle_entry.calculate_confidential_token_frame_header
+calculate_confidential_token_frame_header
+     : calculation_frame_header jets_elements.f_simplicity_calculate_confidential_token
+### C.jet_calculation_lifecycle_entry.calculation_frame_size
+calculation_frame_size
+     : @eq BinNums.Z
+         (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge)
+            (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+### C.jet_calculation_lifecycle_entry.calculation_midstate_size
+calculation_midstate_size
+     : @eq BinNums.Z
+         (Ctypes.sizeof (Clight.genv_cenv jet_elements_linkage.elements_ge)
+            (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+         (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+### C.jet_calculation_lifecycle_entry.calculation_frame_entry
+calculation_frame_entry
+     : forall (f : Clight.function) (env : Values.val) (m : Memory.Mem.mem) (m1 m2 m3 m4 : Memory.Mem.mem')
+         (bl bh br bt bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z)
+         (_ : calculation_frame_header f)
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                (@pair Memory.Mem.mem' Values.block m1 bl))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m1 BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block m2 bh))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m2 BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block m3 br))
+         (_ : @eq (prod Memory.Mem.mem' Values.block)
+                (Memory.Mem.alloc m3 BinNums.Z0
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                (@pair Memory.Mem.mem' Values.block m4 bt)),
+       Clight.function_entry2 jet_elements_linkage.elements_ge f
+         (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+            (@cons Values.val (Values.Vptr bs (Integers.Ptrofs.repr sbase)) (@cons Values.val env (@nil Values.val))))
+         m (calculation_frame_env bl bh br bt) (calculation_frame_temps env bd dbase bs sbase) m4
+### C.jet_calculation_lifecycle_entry.calculation_frame_vars
+calculation_frame_vars =
+@cons (prod AST.ident Ctypes.type)
+  (@pair AST.ident Ctypes.type jets_elements._src (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+  (@cons (prod AST.ident Ctypes.type)
+     (@pair AST.ident Ctypes.type jets_elements._entropy (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+     (@cons (prod AST.ident Ctypes.type)
+        (@pair AST.ident Ctypes.type jets_elements._result
+           (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+        (@cons (prod AST.ident Ctypes.type)
+           (@pair AST.ident Ctypes.type jets_elements.__res
+              (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr)) (@nil (prod AST.ident Ctypes.type)))))
+     : list (prod AST.ident Ctypes.type)
+### C.jet_calculation_lifecycle_entry.calculation_frame_params
+calculation_frame_params =
+@cons (prod AST.ident Ctypes.type)
+  (@pair AST.ident Ctypes.type jets_elements._dst
+     (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)))
+  (@cons (prod AST.ident Ctypes.type)
+     (@pair AST.ident Ctypes.type jets_elements._src (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr))
+     (@cons (prod AST.ident Ctypes.type)
+        (@pair AST.ident Ctypes.type jets_elements._env
+           (Ctypesdefs.tptr (Ctypes.Tstruct jets_elements._txEnv Ctypes.noattr))) (@nil (prod AST.ident Ctypes.type))))
+     : list (prod AST.ident Ctypes.type)
+### C.jet_calculation_lifecycle_entry.calculation_frame_header
+calculation_frame_header =
+fun f : Clight.function =>
+and (@eq (list (prod AST.ident Ctypes.type)) (Clight.fn_vars f) calculation_frame_vars)
+  (and (@eq (list (prod AST.ident Ctypes.type)) (Clight.fn_params f) calculation_frame_params)
+     (and (@eq (list (prod AST.ident Ctypes.type)) (Clight.fn_temps f) (@nil (prod AST.ident Ctypes.type)))
+        (and (@eq Ctypes.type (Clight.fn_return f) Ctypesdefs.tbool)
+           (@eq AST.calling_convention (Clight.fn_callconv f) AST.cc_default))))
+     : forall _ : Clight.function, Prop
+
+Arguments calculation_frame_header f
+### C.jet_calculation_lifecycle_entry.calculation_frame_env
+calculation_frame_env =
+fun bl bh br bt : Values.block =>
+@Maps.PTree.set (prod Values.block Ctypes.type) jets_elements.__res
+  (@pair Values.block Ctypes.type bt (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+  (@Maps.PTree.set (prod Values.block Ctypes.type) jets_elements._result
+     (@pair Values.block Ctypes.type br (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+     (@Maps.PTree.set (prod Values.block Ctypes.type) jets_elements._entropy
+        (@pair Values.block Ctypes.type bh (Ctypes.Tstruct jets_elements._sha256_midstate Ctypes.noattr))
+        (@Maps.PTree.set (prod Values.block Ctypes.type) jets_elements._src
+           (@pair Values.block Ctypes.type bl (Ctypes.Tstruct jets_elements._frameItem Ctypes.noattr)) Clight.empty_env)))
+     : forall (_ : Values.block) (_ : Values.block) (_ : Values.block) (_ : Values.block), Clight.env
+
+Arguments calculation_frame_env bl bh br bt
+### C.jet_calculation_lifecycle_entry.calculation_frame_temps
+calculation_frame_temps =
+fun (env : Values.val) (bd : Values.block) (dbase : BinNums.Z) (bs : Values.block) (sbase : BinNums.Z) =>
+@Maps.PTree.set Values.val jets_elements._env env
+  (@Maps.PTree.set Values.val jets_elements._src (Values.Vptr bs (Integers.Ptrofs.repr sbase))
+     (@Maps.PTree.set Values.val jets_elements._dst (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+        (Maps.PTree.empty Values.val)))
+     : forall (_ : Values.val) (_ : Values.block) (_ : BinNums.Z) (_ : Values.block) (_ : BinNums.Z), Clight.temp_env
+
+Arguments calculation_frame_temps env bd dbase%Z_scope bs sbase%Z_scope

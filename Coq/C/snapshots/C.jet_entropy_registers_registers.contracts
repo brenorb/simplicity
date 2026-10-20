@@ -1,0 +1,353 @@
+### C.jet_entropy_registers_registers.entropy_first_tail_registers
+entropy_first_tail_registers
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S O)))))),
+       @eq SHA256.registers (Digest.hash256_reg (Word.to_hash256 (entropy_first_tail x)))
+         (@cons Integers.Int.int (entropy_index_register x)
+            (@cons Integers.Int.int
+               (Integers.Int.repr
+                  (BinNums.Zpos
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))
+               (@app Integers.Int.int (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S O))))))
+                  (@cons Integers.Int.int
+                     (Integers.Int.repr
+                        (BinNums.Zpos
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                     (@nil Integers.Int.int)))))
+### C.jet_entropy_registers_registers.entropy_second_tail_registers
+entropy_second_tail_registers
+     : @eq SHA256.registers
+         (Digest.hash256_reg
+            (Word.to_hash256
+               (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+                  (BinInt.Z.add
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos
+                           (BinNums.xI
+                              (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))))
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))))
+         (@cons Integers.Int.int
+            (Integers.Int.repr
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))))
+            (@app Integers.Int.int (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S O)))))))
+               (@cons Integers.Int.int
+                  (Integers.Int.repr
+                     (BinNums.Zpos
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                  (@nil Integers.Int.int))))
+### C.jet_entropy_registers_registers.issuance_outpoint_hash_registers
+issuance_outpoint_hash_registers
+     : forall (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (ix : Ty.tySem (Word.Word (S (S (S (S (S O))))))),
+       @eq SHA256.registers
+         (Digest.hash256_reg
+            (Word.to_hash256
+               (@jet_elements_issuance_calc_spec.issuance_op_hash_spec Alg.CoreFunSem
+                  (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S O))))))) h ix))))
+         (entropy_outpoint_registers (Digest.hash256_reg (Word.to_hash256 h)) ix)
+### C.jet_entropy_registers_registers.calculate_issuance_entropy_registers
+calculate_issuance_entropy_registers
+     : forall (h : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (ix : Ty.tySem (Word.Word (S (S (S (S (S O)))))))
+         (contract : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))),
+       @eq SHA256.registers
+         (Digest.hash256_reg
+            (Word.to_hash256
+               (@jet_elements_issuance_calc_spec.calculate_issuance_entropy_spec Alg.CoreFunSem
+                  (@pair
+                     (prod (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S O))))))))
+                     (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                     (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (Ty.tySem (Word.Word (S (S (S (S (S O))))))) h ix) contract))))
+         (SHA256.hash_block jet_sha256_iv_init.sha256_iv_words
+            (@app Integers.Int.int (entropy_outpoint_registers (Digest.hash256_reg (Word.to_hash256 h)) ix)
+               (Digest.hash256_reg (Word.to_hash256 contract))))
+### C.jet_entropy_registers_registers.entropy_swapped_index
+entropy_swapped_index =
+fun x : Ty.tySem (Word.Word (S (S (S (S (S O)))))) =>
+match x return (Ty.tySem (Word.Word (S (S (S (S (S O))))))) with
+| pair t t0 =>
+    match t return (Ty.tySem (Word.Word (S (S (S (S (S O))))))) with
+    | pair a b =>
+        match t0 return (Ty.tySem (Word.Word (S (S (S (S (S O))))))) with
+        | pair c d =>
+            @pair
+              (prod
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)))))
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))))
+              (prod
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)))))
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))))
+              (@pair
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)))))
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))) d c)
+              (@pair
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit)))))
+                 (prod
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))
+                    ((fix tySem (X : Ty.Ty) : Set :=
+                        match X return Set with
+                        | Ty.Unit => unit
+                        | Ty.Sum A B => sum (tySem A) (tySem B)
+                        | Ty.Prod A B => prod (tySem A) (tySem B)
+                        end)
+                       (Ty.Prod (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))
+                          (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) (Ty.Sum Ty.Unit Ty.Unit))))) b a)
+        end
+    end
+end
+     : forall _ : Ty.tySem (Word.Word (S (S (S (S (S O)))))), Ty.tySem (Word.Word (S (S (S (S (S O))))))
+
+Arguments entropy_swapped_index x
+### C.jet_entropy_registers_registers.entropy_index_register
+entropy_index_register =
+fun x : Ty.tySem (Word.Word (S (S (S (S (S O)))))) =>
+Integers.Int.repr (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S O)))))) (entropy_swapped_index x))
+     : forall _ : Ty.tySem (Word.Word (S (S (S (S (S O)))))), Integers.Int.int
+
+Arguments entropy_index_register x
+### C.jet_entropy_registers_registers.entropy_first_tail
+entropy_first_tail =
+fun x : Ty.tySem (Word.Word (S (S (S (S (S O)))))) =>
+@pair
+  (prod
+     (prod (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O)))))))))
+     (Ty.tySem (Word.Word (S (S (S (S (S (S O)))))))))
+  (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S (S (S O))))))))))
+  (@pair
+     (prod (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O)))))))))
+     (Ty.tySem (Word.Word (S (S (S (S (S (S O))))))))
+     (@pair (Ty.tySem (Word.Word (S (S (S (S (S O))))))) (Ty.tySem (Word.ToZ.obj (Word.WordToZ (S (S (S (S (S O))))))))
+        (entropy_swapped_index x)
+        (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S O))))))
+           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+              (BinNums.Zpos (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH))))))))
+     (@Word.zero (S (S (S (S (S (S O)))))) Alg.CoreFunSem tt))
+  (@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S O))))))))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+     : forall _ : Ty.tySem (Word.Word (S (S (S (S (S O)))))), Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments entropy_first_tail x
+### C.jet_entropy_registers_registers.entropy_outpoint_registers
+entropy_outpoint_registers =
+fun (txid : list Integers.Int.int) (ix : Ty.tySem (Word.Word (S (S (S (S (S O))))))) =>
+SHA256.hash_block jet_sha256_iv_init.sha256_iv_words
+  (@app Integers.Int.int
+     (SHA256.hash_block jet_sha256_iv_init.sha256_iv_words
+        (@app Integers.Int.int txid
+           (@cons Integers.Int.int (entropy_index_register ix)
+              (@cons Integers.Int.int
+                 (Integers.Int.repr
+                    (BinNums.Zpos
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))
+                 (@app Integers.Int.int (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S O))))))
+                    (@cons Integers.Int.int
+                       (Integers.Int.repr
+                          (BinNums.Zpos
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                       (@nil Integers.Int.int)))))))
+     (@cons Integers.Int.int
+        (Integers.Int.repr
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))
+        (@app Integers.Int.int (@List.repeat Integers.Int.int Integers.Int.zero (S (S (S (S (S (S O)))))))
+           (@cons Integers.Int.int
+              (Integers.Int.repr
+                 (BinNums.Zpos
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+              (@nil Integers.Int.int)))))
+     : forall (_ : list Integers.Int.int) (_ : Ty.tySem (Word.Word (S (S (S (S (S O))))))), list Integers.Int.int
+
+Arguments entropy_outpoint_registers txid%list_scope ix

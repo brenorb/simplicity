@@ -12,16 +12,20 @@ The target is the original production C and canonical Haskell at
 `memcpy`. Previous acceptance of that helper was about modified C and does not
 establish equivalence for the original library.
 
-Current source bookkeeping finds **346/533 registered entries: 242 without an
-extra libc premise, 104 conditional on `memcpy_model`, and 187 missing**. The
-restored target has passed full compilation, four AST regeneration comparisons,
-the source/configuration pin, and 96 native correctness tests with zero failures.
-Final acceptance against reviewed snapshots completes with exit 0: 567 kernel
-modules, 3,334 assumption records (1,683 closed), public types/definitions,
-negative tests and four ASTs. See [C/JET_ACCEPTANCE.md](C/JET_ACCEPTANCE.md) for
-the receipt and audited input fingerprint. Integer models, arithmetic and symbolic-executor results are
-support until their canonical jet-equivalence chains close. Do not read historical
-counts below as completion of the every-jet goal.
+Current integration counts, conditional scopes and remaining obligations are in
+[C/JET_ACCEPTANCE.md](C/JET_ACCEPTANCE.md). Reproduce acceptance on the commit
+with `bash Coq/check-jets.sh --accept`; the commit and command are the evidence.
+Run output belongs in a temporary directory, not in the repository.
+
+Acceptance checks every module of `_CoqProject.jets`, including the regression
+modules, with the kernel and reviewed per-module type/definition and assumption
+records. It regenerates all five original ASTs. Source/mutation checks run in
+bounded parallel jobs; every command must succeed before proof checking starts.
+
+For an independent batch, use
+`bash Coq/check-jets.sh --accept --jets=simplicity_fe_multiply,simplicity_fe_square`.
+This checks the selected dependency closure with the same source, kernel and
+contract requirements. It does not accept or increase coverage for other jets.
 
 `memcpy_model` remains an explicit premise, with valid source/destination blocks,
 readability, destination permissions, positive representable sizes, non-overlap
@@ -33,7 +37,7 @@ physical/logical environment and global-state boundaries remain explicit.
 The extended Bitcoin module preserves primitive names/types/tags. Its cached-hash
 fields still require a semantic projection from canonical raw transaction/taproot
 data. The inherited Bitcoin environment also imposes domain restrictions that
-need correction; see [C/JET_FIDELITY_REVIEW.md](C/JET_FIDELITY_REVIEW.md). Treat its
+are reported in [C/JET_BITCOIN_MODEL_MISMATCHES.md](C/JET_BITCOIN_MODEL_MISMATCHES.md); the frozen model is unchanged. See [C/JET_FIDELITY_REVIEW.md](C/JET_FIDELITY_REVIEW.md). Treat its
 current registered contracts as pending that review.
 
 Final acceptance runs `bash Coq/check-jets.sh --accept` on frozen inputs, without
@@ -223,6 +227,10 @@ Only `jet_write_wide_layout.v` was raised, to 30 s. The bounds stay in place
 so a runaway reduction still fails quickly.
 
 ## Verification record
+
+The following sections preserve historical proof explanations. Their old run
+records and counts are not current acceptance evidence; logs and receipts were
+removed from the branch history. Use the commit and command above.
 
 Independently reproduced, macOS/arm64 host, Coq 8.17.1, OCaml 4.14.1, on a fresh
 `git clone` of `feat/jet-equivalence` with an empty `JET_DEPS`, using only the

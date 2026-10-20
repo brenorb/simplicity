@@ -1,0 +1,92 @@
+(** Amount representation, exact padding skip and small counter facts. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Cop Clight ClightBigstep Maps Values Memory Events Globalenvs.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Import C.jet_exec C.jet_memcpy_model C.jet_frame_layout C.jet_input_layout C.jet_encoding.
+Require Import C.jet_buffer_input C.jet_readBit_layout C.jet_read8s_layout.
+Require Import C.jet_elements_support_sha_ctx_abs C.jet_sha_ctx8_model C.jet_elements_support_sha_uchars_exec C.jet_elements_support_sha_add_n_init.
+Require Import C.jet_elements_support_sha_linkage C.jet_elements_support_sha_transport C.jet_elements_support_sha_block_local C.jet_elements_sha_program.
+Require Import C.jets_elements C.jet_elements_linkage.
+Require Import C.jet_nonce_context_shape C.jet_nonce_exec_effects C.jet_nonce_exec_calls.
+Import Mem Values Ctypes ListNotations Clightdefs.
+Local Open Scope Z_scope.
+Local Opaque elements_ge sha_ge ge0.
+Set Default Timeout 10.
+
+Require Import C.jet_nonce_exec_payload C.jet_asset_exec_shape.
+
+Require Import C.jet_forwardBits_layout C.jet_nonce_context_spec C.jet_nonce_exec_prefix.
+
+Definition amount_value_type := Ty.Sum (Ty.Prod (Ty.Sum Ty.Unit Ty.Unit) Word256) Word64.
+Definition amount_bytes (a : Ty.tySem amount_value_type) : list (Ty.tySem Word8) :=
+  match a with
+  | inl (odd, h) => nonce_byte (match odd with inl _ => 8 | inr _ => 9 end) :: vector_values Word8 5 h
+  | inr v => nonce_byte 1 :: vector_values Word8 3 v
+  end.
+Definition amount_count (a : Ty.tySem amount_value_type) : Z :=
+  match a with inl _ => 33 | inr _ => 9 end.
+Definition amount_payload_count (a : Ty.tySem amount_value_type) : Z :=
+  match a with inl _ => 32 | inr _ => 8 end.
+Definition amount_overflow ovf c (a : Ty.tySem amount_value_type) :=
+  uc_overflow (uc_overflow ovf c (Int64.repr 1)) (Int64.add c (Int64.repr 1))
+    (Int64.repr (amount_payload_count a)).
+Definition amount_temps (a : Ty.tySem amount_value_type) le :=
+  match a with
+  | inl (odd, _) => PTree.set _t'4 (Vint (bit_int (match odd with inl _ => false | inr _ => true end)))
+                     (PTree.set _t'5 (Vint Int.zero) le)
+  | inr _ => PTree.set _t'5 (Vint Int.one) le
+  end.
+
+Lemma amount_explicit_encoding v : @encode amount_value_type (inr v) =
+  Some true :: repeat None 193 ++ @encode Word64 v.
+Proof. reflexivity. Qed.
+Lemma amount_confidential_encoding (odd : bool) h :
+  @encode amount_value_type (inl ((if odd then inr tt else inl tt), h)) =
+    Some false :: Some odd :: @encode Word256 h.
+Proof. destruct odd; reflexivity. Qed.
+Lemma amount_prefix_machine :
+  word8_array_value (nonce_byte 8) = Int.repr 8 /\
+  word8_array_value (nonce_byte 9) = Int.repr 9.
+Proof. vm_compute; split; reflexivity. Qed.
+Lemma amount_bytes_length a : Z.of_nat (length (amount_bytes a)) = amount_count a.
+Proof.
+  destruct a as [[odd h]|v]; unfold amount_bytes; cbn [length amount_count];
+    rewrite vector_values_length; reflexivity.
+Qed.
+Lemma amount_counter_one_then_8 c :
+  Int64.add (Int64.add c (Int64.repr 1)) (Int64.repr 8) = Int64.add c (Int64.repr 9).
+Proof. rewrite Int64.add_assoc. reflexivity. Qed.
+
+Theorem amount_skip_exec e le m bl bi edge rc :
+  e!_src = Some (bl, nc_fr) -> e!_forwardBits = None ->
+  0 <= rc -> rc + 193 <= Int64.max_unsigned ->
+  frame_fields_at m bl 0 bi edge rc -> Mem.valid_access m Mint64 bl 8 Writable ->
+  exists mf,
+    Clight2.exec_stmt elements_ge e le m amount_skip E0 le mf Out_normal /\
+    frame_fields_at mf bl 0 bi edge (rc + 193) /\ nonce_effects m mf [bl].
+Proof.
+  intros HL HNone H0 HM HF PW.
+  destruct (eval_forwardBits_layout m bl 0 bi edge rc 193 nonce_local_frame_base H0 ltac:(lia) HM HF PW)
+    as (mf & HC & HFields & HLoads & HPerm & HValid).
+  assert (HCall : Clight2.eval_funcall elements_ge m (Internal f_forwardBits)
+    [Vptr bl Ptrofs.zero; Vlong (Int64.repr 193)] E0 mf Vundef).
+  { rewrite <- elements_sha_genv. eapply sha_transport_call; [|exact HC].
+    unfold sha_core_helpers. simpl. tauto. }
+  exists mf. split.
+  - destruct nonce_forward_link as [HS HFun]. unfold amount_skip.
+    change le with (set_opttemp None Vundef le) at 2.
+    eapply exec_Scall with (vf := Vptr (elements_symbol_block _forwardBits) Ptrofs.zero)
+      (f := Internal f_forwardBits) (vargs := [Vptr bl Ptrofs.zero; Vlong (Int64.repr 193)]) (vres := Vundef).
+    + reflexivity.
+    + eapply eval_Elvalue; [apply eval_Evar_global; [exact HNone|exact HS]|apply deref_loc_reference; reflexivity].
+    + eapply eval_Econs; [apply eval_Eaddrof, eval_Evar_local; exact HL|reflexivity|].
+      eapply eval_Econs.
+      { eapply eval_Ebinop; [apply eval_Econst_int|apply eval_Econst_int|reflexivity]. }
+      { reflexivity. }
+      { apply eval_Enil. }
+    + exact HFun.
+    + reflexivity.
+    + exact HCall.
+  - split; [exact HFields|]. constructor; [|exact HPerm|exact HValid].
+    intros ch b ofs V N. apply HLoads. left. intro E; subst b. apply N. left; reflexivity.
+Qed.

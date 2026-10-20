@@ -1,0 +1,12 @@
+### C.jet_amount_exec_seq.amount_seq_normal_inv
+amount_seq_normal_inv
+     : forall (ge : Clight.genv) (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (a b : Clight.statement) (le' : Clight.temp_env) (mf : Memory.Mem.mem)
+         (_ : ClightBigstep.Clight2.exec_stmt ge e le m (Clight.Ssequence a b) Events.E0 le' mf
+                ClightBigstep.Out_normal),
+       @ex Clight.temp_env
+         (fun le1 : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun m1 : Memory.Mem.mem =>
+             and (ClightBigstep.Clight2.exec_stmt ge e le m a Events.E0 le1 m1 ClightBigstep.Out_normal)
+               (ClightBigstep.Clight2.exec_stmt ge e le1 m1 b Events.E0 le' mf ClightBigstep.Out_normal)))

@@ -1,0 +1,54 @@
+(** Reused sticky-overflow composition and exact outpoint total-count normalization. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers.
+Require Import C.jet_elements_support_sha_uchars_exec C.jet_elements_support_sha_uchars_loop C.jet_elements_support_sha_ctx8_bridge.
+Require Import C.jet_read_sha256_counter C.jet_elements_support_sha_ctx_abs.
+Require Import C.jet_outpoint_middle_common.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma sha_chain_overflow c m n :
+  Int64.unsigned c < 2305843009213693952 -> 0 <= m <= 4096 -> 0 <= n <= 4096 ->
+  uc_overflow (uc_overflow false c (Int64.repr m)) (Int64.add c (Int64.repr m)) (Int64.repr n) =
+    uc_overflow false c (Int64.repr (m + n)).
+Proof.
+  intros HC HM HN. pose proof (Int64.unsigned_range c) as HR.
+  assert (HS : Int64.unsigned (Int64.add c (Int64.repr m)) = Int64.unsigned c + m).
+  { unfold Int64.add. rewrite (Int64.unsigned_repr m) by
+      (change Int64.max_unsigned with 18446744073709551615; lia).
+    apply Int64.unsigned_repr. change Int64.max_unsigned with 18446744073709551615; lia. }
+  unfold uc_overflow. cbn [orb]. rewrite !cmpu_le_bool.
+  rewrite (long_sub_unsigned sha_max_counter c) by
+    (change (Int64.unsigned sha_max_counter) with 2305843009213693952; lia).
+  change (Int64.unsigned sha_max_counter) with 2305843009213693952.
+  rewrite (Int64.unsigned_repr m), (Int64.unsigned_repr n), (Int64.unsigned_repr (m + n)) by
+    (change Int64.max_unsigned with 18446744073709551615; lia).
+  destruct (Z.leb_spec (2305843009213693952 - Int64.unsigned c) m) as [HY|HY].
+  - cbn [orb]. symmetry. apply Z.leb_le. lia.
+  - cbn [orb]. rewrite long_sub_unsigned by
+      (change (Int64.unsigned sha_max_counter) with 2305843009213693952; rewrite HS; lia).
+    change (Int64.unsigned sha_max_counter) with 2305843009213693952. rewrite HS.
+    destruct (Z.leb_spec (2305843009213693952 - (Int64.unsigned c + m)) n);
+      destruct (Z.leb_spec (2305843009213693952 - Int64.unsigned c) (m + n));
+      try reflexivity; lia.
+Qed.
+
+Lemma op_counter_total c a :
+  Int64.add (Int64.add c (Int64.repr (op_count a))) (Int64.repr 36) =
+    Int64.add c (Int64.repr (op_total_count a)).
+Proof. rewrite Int64.add_assoc. destruct a; reflexivity. Qed.
+
+Lemma op_overflow_total c a :
+  Int64.unsigned c < 2305843009213693952 ->
+  uc_overflow (op_overflow false c a) (Int64.add c (Int64.repr (op_count a))) (Int64.repr 36) =
+    uc_overflow false c (Int64.repr (op_total_count a)).
+Proof.
+  intro HC. destruct a as [u|h].
+  - exact (sha_chain_overflow c 1 36 HC ltac:(lia) ltac:(lia)).
+  - change (uc_overflow
+      (uc_overflow (uc_overflow false c (Int64.repr 1)) (Int64.add c (Int64.repr 1)) (Int64.repr 32))
+      (Int64.add c (Int64.repr 33)) (Int64.repr 36) = uc_overflow false c (Int64.repr 69)).
+    rewrite (sha_chain_overflow c 1 32 HC ltac:(lia) ltac:(lia)).
+    change (Int64.repr (1 + 32)) with (Int64.repr 33).
+    exact (sha_chain_overflow c 33 36 HC ltac:(lia) ltac:(lia)).
+Qed.

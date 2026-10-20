@@ -1,0 +1,140 @@
+### C.jet_entropy_compose_inputs.entropy_local_txid
+entropy_local_txid
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m : Memory.Mem.mem) (bo : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._op e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bo entropy_op))),
+       Clight.eval_expr jet_elements_linkage.elements_ge e le m entropy_txid_array
+         (Values.Vptr bo Integers.Ptrofs.zero)
+### C.jet_entropy_compose_inputs.entropy_read_symbol
+entropy_read_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            jets_elements._read32s)
+         (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._read32s))
+### C.jet_entropy_compose_inputs.entropy_read_funct
+entropy_read_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._read32s) Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_read32s))
+### C.jet_entropy_compose_inputs.exec_entropy_read_array
+exec_entropy_read_array
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (bl bx : Values.block) (arg : Clight.expr)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._read32s e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl jet_entropy_compose_common.calc_fr)))
+         (_ : @eq Ctypes.type (Clight.typeof arg)
+                (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+         (_ : Clight.eval_expr jet_elements_linkage.elements_ge e le m arg (Values.Vptr bx Integers.Ptrofs.zero))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+                (@Ctypes.Internal Clight.function jets_elements.f_read32s)
+                (@cons Values.val (Values.Vptr bx Integers.Ptrofs.zero)
+                   (@cons Values.val
+                      (Values.Vlong
+                         (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                      (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m (entropy_read_array arg) Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_entropy_compose_inputs.entropy_index_symbol
+entropy_index_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            jets_elements._simplicity_read32)
+         (@Some Values.block (jet_elements_linkage.elements_symbol_block jets_elements._simplicity_read32))
+### C.jet_entropy_compose_inputs.entropy_index_funct
+entropy_index_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_elements_linkage.elements_ge)
+            (Values.Vptr (jet_elements_linkage.elements_symbol_block jets_elements._simplicity_read32)
+               Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_simplicity_read32))
+### C.jet_entropy_compose_inputs.exec_entropy_read_index
+exec_entropy_read_index
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (bl : Values.block) (r : Integers.Int64.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._simplicity_read32 e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl jet_entropy_compose_common.calc_fr)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_elements_linkage.elements_ge m
+                (@Ctypes.Internal Clight.function jets_elements.f_simplicity_read32)
+                (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val)) Events.E0 mf
+                (Values.Vlong r)),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m entropy_read_index Events.E0
+         (@Maps.PTree.set Values.val jets_elements._t'1 (Values.Vlong r) le) mf ClightBigstep.Out_normal
+### C.jet_entropy_compose_inputs.exec_entropy_store_index
+exec_entropy_store_index
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (bo : Values.block) (r : Integers.Int64.int)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_elements._op e)
+                (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type bo entropy_op)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_elements._t'1 le)
+                (@Some Values.val (Values.Vlong r)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint64 m bo
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                   (Values.Vlong r)) (@Some Memory.Mem.mem mf)),
+       ClightBigstep.Clight2.exec_stmt jet_elements_linkage.elements_ge e le m entropy_store_index Events.E0 le mf
+         ClightBigstep.Out_normal
+### C.jet_entropy_compose_inputs.entropy_op
+entropy_op = Ctypes.Tstruct jets_elements._outpoint Ctypes.noattr
+     : Ctypes.type
+### C.jet_entropy_compose_inputs.entropy_txid_array
+entropy_txid_array =
+Clight.Efield
+  (Clight.Efield (Clight.Evar jets_elements._op entropy_op) jets_elements._txid jet_entropy_compose_common.calc_mid)
+  jets_elements._s
+  (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     : Clight.expr
+### C.jet_entropy_compose_inputs.entropy_contract_array
+entropy_contract_array =
+Clight.Efield (Clight.Evar jets_elements._contract jet_entropy_compose_common.calc_mid) jets_elements._s
+  (Ctypesdefs.tarray Ctypesdefs.tuint (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     : Clight.expr
+### C.jet_entropy_compose_inputs.entropy_read_array
+entropy_read_array =
+fun arg : Clight.expr =>
+Clight.Scall (@None AST.ident)
+  (Clight.Evar jets_elements._read32s
+     (Ctypes.Tfunction
+        (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tuint)
+           (Ctypes.Tcons Ctypesdefs.tulong
+              (Ctypes.Tcons (Ctypesdefs.tptr jet_entropy_compose_common.calc_fr) Ctypes.Tnil))) Ctypesdefs.tvoid
+        AST.cc_default))
+  (@cons Clight.expr arg
+     (@cons Clight.expr
+        (Clight.Econst_int (Integers.Int.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+           Ctypesdefs.tint)
+        (@cons Clight.expr
+           (Clight.Eaddrof (Clight.Evar jets_elements._src jet_entropy_compose_common.calc_fr)
+              (Ctypesdefs.tptr jet_entropy_compose_common.calc_fr)) (@nil Clight.expr))))
+     : forall _ : Clight.expr, Clight.statement
+
+Arguments entropy_read_array arg
+### C.jet_entropy_compose_inputs.entropy_read_index
+entropy_read_index =
+Clight.Scall (@Some AST.ident jets_elements._t'1)
+  (Clight.Evar jets_elements._simplicity_read32
+     (Ctypes.Tfunction (Ctypes.Tcons (Ctypesdefs.tptr jet_entropy_compose_common.calc_fr) Ctypes.Tnil)
+        Ctypesdefs.tulong AST.cc_default))
+  (@cons Clight.expr
+     (Clight.Eaddrof (Clight.Evar jets_elements._src jet_entropy_compose_common.calc_fr)
+        (Ctypesdefs.tptr jet_entropy_compose_common.calc_fr)) (@nil Clight.expr))
+     : Clight.statement
+### C.jet_entropy_compose_inputs.entropy_store_index
+entropy_store_index =
+Clight.Sassign (Clight.Efield (Clight.Evar jets_elements._op entropy_op) jets_elements._ix Ctypesdefs.tulong)
+  (Clight.Etempvar jets_elements._t'1 Ctypesdefs.tulong)
+     : Clight.statement

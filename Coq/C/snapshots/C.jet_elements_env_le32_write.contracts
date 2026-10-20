@@ -1,0 +1,125 @@
+### C.jet_elements_env_le32_write.sha_WriteLE32_symbol
+sha_WriteLE32_symbol
+     : @eq (option Values.block)
+         (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type
+            (Clight.genv_genv jet_elements_support_sha_linkage.sha_ge) jets_elements._WriteLE32)
+         (@Some Values.block (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._WriteLE32))
+### C.jet_elements_env_le32_write.sha_WriteLE32_funct
+sha_WriteLE32_funct
+     : @eq (option Clight.fundef)
+         (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type
+            (Clight.genv_genv jet_elements_support_sha_linkage.sha_ge)
+            (Values.Vptr (jet_elements_support_sha_linkage.sha_symbol_block jets_elements._WriteLE32)
+               Integers.Ptrofs.zero))
+         (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function jets_elements.f_WriteLE32))
+### C.jet_elements_env_le32_write.wle32_assign
+wle32_assign
+     : forall (bp : Values.block) (op : Integers.Ptrofs.int) (x : Integers.Int64.int) (m m' : Memory.Mem.mem)
+         (i : BinNums.Z) (rhs : Clight.expr) (v : Values.val) (w : Integers.Int.int)
+         (_ : and (BinInt.Z.le BinNums.Z0 i) (BinInt.Z.le i (BinNums.Zpos (BinNums.xI BinNums.xH))))
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned op) (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Clight.eval_expr jet_elements_support_sha_linkage.sha_ge Clight.empty_env (wle32_le bp op x) m rhs v)
+         (_ : @eq (option Values.val) (Cop.sem_cast v (Clight.typeof rhs) Ctypesdefs.tuchar m)
+                (@Some Values.val (Values.Vint w)))
+         (_ : @eq (option Memory.Mem.mem)
+                (Memory.Mem.store AST.Mint8unsigned m bp (BinInt.Z.add (Integers.Ptrofs.unsigned op) i) (Values.Vint w))
+                (@Some Memory.Mem.mem m')),
+       ClightBigstep.Clight2.exec_stmt jet_elements_support_sha_linkage.sha_ge Clight.empty_env
+         (wle32_le bp op x) m (Clight.Sassign (jet_elements_support_sha_be64_exec.wbe_lhs i) rhs) Events.E0
+         (wle32_le bp op x) m' ClightBigstep.Out_normal
+### C.jet_elements_env_le32_write.eval_WriteLE32
+eval_WriteLE32
+     : forall (m : Memory.Mem.mem) (bp : Values.block) (op : Integers.Ptrofs.int) (x : Integers.Int64.int)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add (Integers.Ptrofs.unsigned op) (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+                Integers.Ptrofs.max_unsigned)
+         (_ : Memory.Mem.range_perm m bp (Integers.Ptrofs.unsigned op)
+                (BinInt.Z.add (Integers.Ptrofs.unsigned op) (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+                Memtype.Cur Memtype.Writable),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_elements_support_sha_linkage.sha_ge m
+               (@Ctypes.Internal Clight.function jets_elements.f_WriteLE32)
+               (@cons Values.val (Values.Vptr bp op) (@cons Values.val (Values.Vlong x) (@nil Values.val))) Events.E0
+               m' Values.Vundef)
+            (and
+               (forall (i : nat) (_ : lt i (S (S (S (S O))))),
+                @eq (option Values.val)
+                  (Memory.Mem.load AST.Mint8unsigned m' bp
+                     (BinInt.Z.add (Integers.Ptrofs.unsigned op) (BinInt.Z.of_nat i)))
+                  (@Some Values.val (Values.Vint (@List.nth Integers.Int.int i (c_le32_bytes x) Integers.Int.zero))))
+               (and
+                  (forall (ch : AST.memory_chunk) (b : Values.block) (ofs : BinNums.Z)
+                     (_ : or (not (@eq Values.block b bp))
+                            (or (BinInt.Z.le (BinInt.Z.add ofs (Memdata.size_chunk ch)) (Integers.Ptrofs.unsigned op))
+                               (BinInt.Z.le
+                                  (BinInt.Z.add (Integers.Ptrofs.unsigned op)
+                                     (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))) ofs))),
+                   @eq (option Values.val) (Memory.Mem.load ch m' b ofs) (Memory.Mem.load ch m b ofs))
+                  (and
+                     (forall (b : Values.block) (ofs : BinNums.Z) (k : Memtype.perm_kind) (p : Memtype.permission)
+                        (_ : Memory.Mem.perm m b ofs k p), Memory.Mem.perm m' b ofs k p)
+                     (forall (b : Values.block) (_ : Memory.Mem.valid_block m b), Memory.Mem.valid_block m' b)))))
+### C.jet_elements_env_le32_write.le32_byte_value
+le32_byte_value
+     : forall (x : Integers.Int64.int) (k : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 k)
+                (BinInt.Z.lt k
+                   (BinNums.Zpos
+                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))),
+       @eq Integers.Int.int (le32_byte x k)
+         (Integers.Int.repr
+            (BinInt.Z.modulo
+               (BinInt.Z.div (Integers.Int64.unsigned x) (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH)) k))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+### C.jet_elements_env_le32_write.c_le32_bytes_length
+c_le32_bytes_length
+     : forall x : Integers.Int64.int, @eq nat (@length Integers.Int.int (c_le32_bytes x)) (S (S (S (S O))))
+### C.jet_elements_env_le32_write.le32_long
+le32_long =
+fun (x : Integers.Int64.int) (k : BinNums.Z) =>
+Integers.Int64.and jet_elements_support_sha_be64_exec.c255
+  (Integers.Int64.shru x (Integers.Int64.repr (Integers.Int.unsigned (Integers.Int.repr k))))
+     : forall (_ : Integers.Int64.int) (_ : BinNums.Z), Integers.Int64.int
+
+Arguments le32_long x k%Z_scope
+### C.jet_elements_env_le32_write.le32_byte
+le32_byte =
+fun (x : Integers.Int64.int) (k : BinNums.Z) =>
+Integers.Int.zero_ext (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+  (Integers.Int64.loword
+     match BinInt.Z.eqb k BinNums.Z0 return Integers.Int64.int with
+     | true => Integers.Int64.and jet_elements_support_sha_be64_exec.c255 x
+     | false => le32_long x k
+     end)
+     : forall (_ : Integers.Int64.int) (_ : BinNums.Z), Integers.Int.int
+
+Arguments le32_byte x k%Z_scope
+### C.jet_elements_env_le32_write.c_le32_bytes
+c_le32_bytes =
+fun x : Integers.Int64.int =>
+@cons Integers.Int.int (le32_byte x BinNums.Z0)
+  (@cons Integers.Int.int (le32_byte x (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+     (@cons Integers.Int.int
+        (le32_byte x (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+        (@cons Integers.Int.int
+           (le32_byte x (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+           (@nil Integers.Int.int))))
+     : forall _ : Integers.Int64.int, list Integers.Int.int
+
+Arguments c_le32_bytes x
+### C.jet_elements_env_le32_write.wle32_le
+wle32_le =
+fun (bp : Values.block) (op : Integers.Ptrofs.int) (x : Integers.Int64.int) =>
+@Maps.PTree.set Values.val jets_elements._x (Values.Vlong x)
+  (@Maps.PTree.set Values.val jets_elements._ptr (Values.Vptr bp op)
+     (Clight.create_undef_temps (Clight.fn_temps jets_elements.f_WriteLE32)))
+     : forall (_ : Values.block) (_ : Integers.Ptrofs.int) (_ : Integers.Int64.int), Clight.temp_env
+
+Arguments wle32_le bp op x
