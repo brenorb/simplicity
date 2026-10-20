@@ -1,0 +1,136 @@
+### C.jet_sha_block_literal_word.literal_sha_rotate32_matches
+literal_sha_rotate32_matches
+     : forall (term : Alg.Core.Algebra) (z : BinNums.Z)
+         (_ : @List.In BinNums.Z z
+                (@cons BinNums.Z (BinNums.Zneg (BinNums.xI (BinNums.xI BinNums.xH)))
+                   (@cons BinNums.Z (BinNums.Zneg (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))
+                      (@cons BinNums.Z (BinNums.Zneg (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                         (@cons BinNums.Z (BinNums.Zneg (BinNums.xI (BinNums.xI (BinNums.xO (BinNums.xO BinNums.xH)))))
+                            (@cons BinNums.Z (BinNums.Zneg (BinNums.xO BinNums.xH))
+                               (@cons BinNums.Z (BinNums.Zneg (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))
+                                  (@cons BinNums.Z
+                                     (BinNums.Zneg (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH)))))
+                                     (@cons BinNums.Z (BinNums.Zneg (BinNums.xO (BinNums.xI BinNums.xH)))
+                                        (@cons BinNums.Z
+                                           (BinNums.Zneg (BinNums.xI (BinNums.xI (BinNums.xO BinNums.xH))))
+                                           (@cons BinNums.Z
+                                              (BinNums.Zneg
+                                                 (BinNums.xI (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+                                              (@nil BinNums.Z)))))))))))),
+       @eq (Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (@literal_sha_rotate32 z term) (@SHA256.rotate32 z term)
+### C.jet_sha_block_literal_word.literal_sha_right_shift32_matches
+literal_sha_right_shift32_matches
+     : forall (term : Alg.Core.Algebra) (amount : BinNums.Z)
+         (_ : @List.In BinNums.Z amount
+                (@cons BinNums.Z (BinNums.Zpos (BinNums.xI BinNums.xH))
+                   (@cons BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))) (@nil BinNums.Z)))),
+       @eq (Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+         (@literal_sha_right_shift32 amount term) (@SHA256.shift32 (BinInt.Z.opp amount) term)
+### C.jet_sha_block_literal_word.sha_haskell_rotate_list
+sha_haskell_rotate_list =
+fix sha_haskell_rotate_list (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) (z : BinNums.Z) {struct n} :
+    list (Alg.Core.domain term (Word.Vector X n) (Word.Vector X n)) :=
+  match n as n0 return (list (Alg.Core.domain term (Word.Vector X n0) (Word.Vector X n0))) with
+  | O => @nil (Alg.Core.domain term (Word.Vector X O) (Word.Vector X O))
+  | S k =>
+      match BinInt.Z.even z return (list (Alg.Core.domain term (Word.Vector X (S k)) (Word.Vector X (S k)))) with
+      | true =>
+          @eq_rect Ty.Ty (Word.Vector (Ty.Prod X X) k) (fun T : Ty.Ty => list (Alg.Core.domain term T T))
+            (sha_haskell_rotate_list (Ty.Prod X X) k term (BinInt.Z.div z (BinNums.Zpos (BinNums.xO BinNums.xH))))
+            (Word.Vector X (S k))
+            (@eq_sym Ty.Ty (Word.Vector X (S k)) (Word.Vector (Ty.Prod X X) k) (@Word.VectorPromote X k))
+      | false =>
+          match
+            BinInt.Z.eqb (BinInt.Z.modulo z (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+              (BinNums.Zpos BinNums.xH)
+            return (list (Alg.Core.domain term (Word.Vector X (S k)) (Word.Vector X (S k))))
+          with
+          | true =>
+              @cons (Alg.Core.domain term (Word.Vector X (S k)) (Word.Vector X (S k)))
+                (@Word.left_rotate1 X (S k) term)
+                (@eq_rect Ty.Ty (Word.Vector (Ty.Prod X X) k) (fun T : Ty.Ty => list (Alg.Core.domain term T T))
+                   (sha_haskell_rotate_list (Ty.Prod X X) k term
+                      (BinInt.Z.div (BinInt.Z.sub z (BinNums.Zpos BinNums.xH)) (BinNums.Zpos (BinNums.xO BinNums.xH))))
+                   (Word.Vector X (S k))
+                   (@eq_sym Ty.Ty (Word.Vector X (S k)) (Word.Vector (Ty.Prod X X) k) (@Word.VectorPromote X k)))
+          | false =>
+              match
+                BinInt.Z.eqb (BinInt.Z.modulo z (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+                  (BinNums.Zpos (BinNums.xI BinNums.xH))
+                return (list (Alg.Core.domain term (Word.Vector X (S k)) (Word.Vector X (S k))))
+              with
+              | true =>
+                  @cons (Alg.Core.domain term (Word.Vector X (S k)) (Word.Vector X (S k)))
+                    (@Word.right_rotate1 X (S k) term)
+                    (@eq_rect Ty.Ty (Word.Vector (Ty.Prod X X) k) (fun T : Ty.Ty => list (Alg.Core.domain term T T))
+                       (sha_haskell_rotate_list (Ty.Prod X X) k term
+                          (BinInt.Z.div (BinInt.Z.add z (BinNums.Zpos BinNums.xH))
+                             (BinNums.Zpos (BinNums.xO BinNums.xH)))) (Word.Vector X (S k))
+                       (@eq_sym Ty.Ty (Word.Vector X (S k)) (Word.Vector (Ty.Prod X X) k) (@Word.VectorPromote X k)))
+              | false => @nil (Alg.Core.domain term (Word.Vector X (S k)) (Word.Vector X (S k)))
+              end
+          end
+      end
+  end
+     : forall (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) (_ : BinNums.Z),
+       list (Alg.Core.domain term (Word.Vector X n) (Word.Vector X n))
+
+Arguments sha_haskell_rotate_list {X}%ty_scope {n}%nat_scope {term} z%Z_scope
+### C.jet_sha_block_literal_word.literal_sha_rotate32
+literal_sha_rotate32 =
+fun (z : BinNums.Z) (term : Alg.Core.Algebra) =>
+@Word.foldr_comp (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))) term
+  (@sha_haskell_rotate_list (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))) term z)
+     : forall (_ : BinNums.Z) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+
+Arguments literal_sha_rotate32 z%Z_scope {term}
+### C.jet_sha_block_literal_word.sha_haskell_right_shift_list
+sha_haskell_right_shift_list =
+fix sha_haskell_right_shift_list
+  (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) (t : Alg.Core.domain term Ty.Unit X) (amount : BinNums.Z) {struct n} :
+    list (Alg.Core.domain term (Word.Vector X n) (Word.Vector X n)) :=
+  match n as n0 return (list (Alg.Core.domain term (Word.Vector X n0) (Word.Vector X n0))) with
+  | O => @nil (Alg.Core.domain term (Word.Vector X O) (Word.Vector X O))
+  | S k =>
+      match BinInt.Z.even amount return (list (Alg.Core.domain term (Word.Vector X (S k)) (Word.Vector X (S k)))) with
+      | true =>
+          @eq_rect Ty.Ty (Word.Vector (Ty.Prod X X) k) (fun T : Ty.Ty => list (Alg.Core.domain term T T))
+            (sha_haskell_right_shift_list (Ty.Prod X X) k term (@Alg.Core.Combinators.pair Ty.Unit X X term t t)
+               (BinInt.Z.div amount (BinNums.Zpos (BinNums.xO BinNums.xH)))) (Word.Vector X (S k))
+            (@eq_sym Ty.Ty (Word.Vector X (S k)) (Word.Vector (Ty.Prod X X) k) (@Word.VectorPromote X k))
+      | false =>
+          @cons (Alg.Core.domain term (Word.Vector X (S k)) (Word.Vector X (S k))) (@Word.right_shift1 X (S k) term t)
+            (@eq_rect Ty.Ty (Word.Vector (Ty.Prod X X) k) (fun T : Ty.Ty => list (Alg.Core.domain term T T))
+               (sha_haskell_right_shift_list (Ty.Prod X X) k term (@Alg.Core.Combinators.pair Ty.Unit X X term t t)
+                  (BinInt.Z.div (BinInt.Z.sub amount (BinNums.Zpos BinNums.xH)) (BinNums.Zpos (BinNums.xO BinNums.xH))))
+               (Word.Vector X (S k))
+               (@eq_sym Ty.Ty (Word.Vector X (S k)) (Word.Vector (Ty.Prod X X) k) (@Word.VectorPromote X k)))
+      end
+  end
+     : forall (X : Ty.Ty) (n : nat) (term : Alg.Core.Algebra) (_ : Alg.Core.domain term Ty.Unit X) (_ : BinNums.Z),
+       list (Alg.Core.domain term (Word.Vector X n) (Word.Vector X n))
+
+Arguments sha_haskell_right_shift_list {X}%ty_scope {n}%nat_scope {term} t amount%Z_scope
+### C.jet_sha_block_literal_word.literal_sha_right_shift32
+literal_sha_right_shift32 =
+fun (amount : BinNums.Z) (term : Alg.Core.Algebra) =>
+match
+  BinInt.Z.leb (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))) amount
+  return (Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O)))))))
+with
+| true =>
+    @Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S O)))))) Ty.Unit
+      (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))) term
+      (@Alg.Core.Combinators.unit (Word.Word (S (S (S (S (S O)))))) term)
+      (@Word.fill Ty.Unit (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))) term (@Bit.false Ty.Unit term))
+| false =>
+    @Word.foldr_comp (Word.Vector (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O)))))) term
+      (@sha_haskell_right_shift_list (Ty.Sum Ty.Unit Ty.Unit) (S (S (S (S (S O))))) term (@Bit.false Ty.Unit term)
+         amount)
+end
+     : forall (_ : BinNums.Z) (term : Alg.Core.Algebra),
+       Alg.Core.domain term (Word.Word (S (S (S (S (S O)))))) (Word.Word (S (S (S (S (S O))))))
+
+Arguments literal_sha_right_shift32 amount%Z_scope {term}

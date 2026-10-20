@@ -145,15 +145,26 @@ adapter; both local and persistent-startup contracts compile. The existing
 SHA/startup dependency closure (including `sha_init_mem_exists`) was rebuilt
 from source in a clean temporary tree under Coq 8.17.1/OCaml 4.14.4.
 
-This is an unregistered candidate, not completed canonical acceptance. Next
-finish source correspondence for the actual Haskell block tree, its 64
-constants and all reused word/bit operations; review the initialized portable
-dispatch/caller scope, then consider registration. The old C compression and
-reader/writer proofs are reused rather than reimplemented. Focused builds use
+The literal constant-rotation and right-shift generators are now ported from
+Haskell. Their SHA specializations equal the older Coq wiring in every Core
+algebra, with closed program-equality proofs. The source-correspondence gate
+compares the actual block Core trees, all 64 constants and reused word/bit
+dependencies; 86 mutations exercise those checks and the exact public contracts.
+This supplements, rather than replaces, the kernel-checked C proof.
+
+The lifecycle endpoint derives dispatch from the existing caller lifecycle,
+which starts at actual `Genv.init_mem` and preserves startup state through
+owned memory operations and verified jet calls. Existence of this initial
+memory/lifecycle is also imported and kernel-checked. The C dispatch pointer
+is mutable: these results cover its initialized portable implementation,
+not arbitrary externally installed optimized callbacks.
+
+This remains unregistered until ordinary acceptance. The old C compression
+and reader/writer proofs are reused rather than reimplemented. Focused builds use
 `JET_TARGETS=C/jet_sha_block_literal_local.vo bash Coq/build-jets.sh -j2`.
 The candidate and actual initial-memory existence proof passed recursive
 kernel checking with
 `bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_sha_block_literal_local C.jet_sha_startup_init`.
-Reviewed records match: the local endpoint inherits six assumptions and the
-stronger startup endpoint eight, all within the existing Coq/CompCert
-allowlist. Neither result is an additional registry entry.
+The local endpoint inherits six assumptions and the stronger startup/lifecycle
+endpoints eight, all within the existing Coq/CompCert allowlist. None is an
+additional registry entry yet.

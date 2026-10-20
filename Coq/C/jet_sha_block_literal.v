@@ -6,6 +6,8 @@ From Coq Require Import ZArith List FunctionalExtensionality.
 Require Import Simplicity.Ty Simplicity.Alg Simplicity.Word.
 Require Simplicity.SHA256.
 Require Import C.jet_canonical_add_adapter.
+Require Import C.jet_sha_block_literal_word.
+Require C.jet_haskell_word_conversion.
 Import ListNotations.
 Local Open Scope Z_scope.
 Local Open Scope term_scope.
@@ -31,14 +33,14 @@ let odiag := O diag in
 let idiag := I diag in
 let bigDiag := O I I H &&& I O O H in
 let part1Schedule := odiag &&& bigDiag in
-let smallSigma0 := @SHA256.rotate32 (-7) term &&& @SHA256.rotate32 (-18) term &&& @SHA256.shift32 (-3) term >>> x32 in
-let smallSigma1 := @SHA256.rotate32 (-17) term &&& @SHA256.rotate32 (-19) term &&& @SHA256.shift32 (-10) term >>> x32 in
+let smallSigma0 := @literal_sha_rotate32 (-7) term &&& @literal_sha_rotate32 (-18) term &&& @literal_sha_right_shift32 3 term >>> x32 in
+let smallSigma1 := @literal_sha_rotate32 (-17) term &&& @literal_sha_rotate32 (-19) term &&& @literal_sha_right_shift32 10 term >>> x32 in
 let smallSigma := (O O O (O H &&& (I H >>> smallSigma0)) >>> a32)
              &&& (I (O O I H &&& (I I O H >>> smallSigma1)) >>> a32) >>> a32 in
 let schedule := (O part1Schedule &&& (O idiag &&& (O I I I H &&& I (O O O H))))
            &&& (I part1Schedule &&& (I idiag &&& (I I I I H &&& smallSigma))) in
-let bigSigma0 := @SHA256.rotate32 (-2) term &&& @SHA256.rotate32 (-13) term &&& @SHA256.rotate32 (-22) term >>> x32 in
-let bigSigma1 := @SHA256.rotate32 (-6) term &&& @SHA256.rotate32 (-11) term &&& @SHA256.rotate32 (-25) term >>> x32 in
+let bigSigma0 := @literal_sha_rotate32 (-2) term &&& @literal_sha_rotate32 (-13) term &&& @literal_sha_rotate32 (-22) term >>> x32 in
+let bigSigma1 := @literal_sha_rotate32 (-6) term &&& @literal_sha_rotate32 (-11) term &&& @literal_sha_rotate32 (-25) term >>> x32 in
 let t1 := (O H &&& I I O O O O H >>> a32) &&& I O (I (I I H &&& ((O O H >>> bigSigma1) &&& (O O H &&& diag >>> @SHA256.chWord32 term) >>> a32)) >>> a32) >>> a32 in
 let t12 := O ((O I H &&& I H >>> @SHA256.majWord32 term) &&& (O (O H &&& (I H >>> bigSigma0)) >>> a32)) >>> a32 in
 let t1d := O O O H &&& I O O H >>> a32 in
@@ -77,7 +79,12 @@ let collate (x : term Word256 Word32) := O x &&& I x >>> a32 in
 
 Lemma sha_block_tree_existing (term : Alg.Core.Algebra) :
   @sha_block_tree term (@SHA256.add32 term) = @SHA256.hashBlock term.
-Proof. reflexivity. Qed.
+Proof.
+  unfold sha_block_tree.
+  rewrite !literal_sha_rotate32_matches by (cbn; tauto).
+  rewrite !literal_sha_right_shift32_matches by (cbn; tauto).
+  reflexivity.
+Qed.
 
 Definition literal_sha_256_block {term : Alg.Core.Algebra} : term (Ty.Prod Word256 Word512) Word256 :=
   @sha_block_tree term (@literal_sha_add32 term).

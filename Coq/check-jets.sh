@@ -148,6 +148,7 @@ static_check python3 elements-null-data-source/check-source.py "${JET_C_REPO:-..
 static_check python3 elements-null-data-source/test-source.py "${JET_C_REPO:-..}"
 static_check python3 check-fullshift-specification.py
 static_check python3 test-fullshift-specification.py
+static_check python3 check-sha-block-specification.py
 static_check python3 check-secp-normalize-specification.py
 static_check python3 test-secp-normalize-specification.py
 static_check python3 check-secp-predicates-specification.py
