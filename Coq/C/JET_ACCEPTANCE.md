@@ -2,7 +2,7 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 467/533 jets (338 without an extra libc
+The local-contract registry contains 472/533 jets (343 without an extra libc
 premise; 129 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
@@ -17,6 +17,8 @@ The three input outpoint/annex/combined-hash registrations then passed ordinary
 scoped acceptance below.
 The single-input Bitcoin hash and seven Elements array-hash registrations then
 passed ordinary scoped acceptance below.
+The five further Elements input/taproot hash registrations then passed ordinary
+scoped acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -590,4 +592,45 @@ bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_input_hash,simplicity_
 ```
 
 This does not assert a fresh full 467-entry audit or discharge of the remaining
+shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.
+
+## Elements input and taproot hash getters
+
+`jet_elements_inputs_hash_literal.v` composes three complete original C cache
+getters with the canonical primitive-bearing input-outpoints, input-annexes and
+combined-input hash programs. Both outpoint primitive lookups and early exits,
+the absent/present-annex encoding and the full SHA composition are retained.
+Nine bridges are closed. The C contracts keep `hash_getter_rep` at offsets
+216, 376 and 440 in the 760-byte transaction.
+
+`jet_elements_tap_hash_literal.v` composes the complete original tapleaf and
+tap-environment getters with canonical programs using TapleafVersion,
+ScriptCMR, Tappath and InternalKey primitives. Seven bridges are closed,
+including fixed host serialization and the exact `"TapLeaf/elements"` tag.
+Native `Schnorr.PubKey` contains `Word256`, not a field element. The C contracts
+keep offsets 8 and 72 in the 176-byte taproot environment.
+
+All five final contracts have the same six inherited library assumptions and
+no extra libc premise. Six preserved support modules were restored unchanged;
+the generic Reader/loop results and existing complete C getter proofs are
+reused, without an assumed execution or arbitrary cached-hash primitive.
+Normal compilation, reviewed snapshots for 55 theorem records and 32
+definitions, and comparisons without update flags pass. The existing source
+checker rejects 36 additional input-tree/boundary mutations and 32
+taproot/tag/native-key/boundary mutations. Existing negative tests remain
+unchanged.
+
+Caller cache construction, the existing model/domain/path bounds and general
+host-library fidelity remain separate obligations. No production C, original
+specification or generation configuration changed.
+
+Ordinary scoped acceptance passed: 324 kernel-checked modules, 193 assumption
+records and 217 contract records, followed by the unchanged gate negative tests
+and all five AST regenerations:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_input_outpoints_hash,simplicity_input_annexes_hash,simplicity_inputs_hash,simplicity_tapleaf_hash,simplicity_tap_env_hash
+```
+
+This does not assert a fresh full 472-entry audit or discharge of the remaining
 shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.

@@ -148,6 +148,15 @@ for stem, k, w, ptr, offset, size in [
         f"(hash_getter_rep (fun e => elements_words_hash_of {k} {w} (elements_{stem}_words e)) {ptr} {offset} {size}) "
         f"(fun a environment => @literal_elements_{stem}_hash elements_hash_alg a environment).")
 
+for stem, ptr, offset, size in [
+    ("input_outpoints", 0, 216, 760), ("input_annexes", 0, 376, 760), ("inputs", 0, 440, 760),
+    ("tapleaf", 8, 8, 176), ("tap_env", 8, 72, 176),
+]:
+    RECOVERED_CONTRACTS[f"simplicity_{stem}_hash"] = (
+        f"application_jet_local_spec_sep f_simplicity_{stem}_hash elements_ge Elements.env Ty.Unit Word256 "
+        f"(hash_getter_rep elements_{stem}_hash_of {ptr} {offset} {size}) "
+        f"(fun a environment => @literal_elements_{stem}_hash elements_hash_alg a environment).")
+
 for stem, offset in [("input_outpoints", 112), ("input_annexes", 272), ("inputs", 336)]:
     RECOVERED_CONTRACTS[f"simplicity_bitcoin_{stem}_hash"] = (
         f"application_jet_local_spec_sep f_simplicity_bitcoin_{stem}_hash bitcoin_ge raw_bitcoin_environment "
