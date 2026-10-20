@@ -1,0 +1,43 @@
+(** Compact machine observations for the fourth actual C slice. *)
+From Coq Require Import ZArith.
+From compcert Require Import Integers Values.
+Require Import C.jet_sx_expr.
+Require Import C.jet_secp_multiply_checkpoint_machine C.jet_secp_multiply_checkpoint_ops C.jet_secp_multiply_fourth_state.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition fourth_base_c_machine (digits : nat -> int64) (c : int64 * int64) :=
+  machine_accum (machine_accum c (digits 0%nat) (digits 6%nat)) (digits 1%nat) (digits 5%nat).
+Definition fourth_fold_d_machine (digits : nat -> int64) (d : int64 * int64) :=
+  machine_accum (machine_accum (machine_accum d (digits 2%nat) (digits 9%nat)) (digits 3%nat) (digits 8%nat))
+    (digits 4%nat) (digits 7%nat).
+Definition fourth_before_machine digits d := Int64.and (fst (fourth_fold_d_machine digits d)) (Int64.repr 4503599627370495).
+Definition fourth_fold_c_machine digits c d := machine_accum (fourth_base_c_machine digits c)
+  (fourth_before_machine digits d) (Int64.repr 68719492368).
+Definition fourth_final_c_machine digits c d := machine_shift52 (fourth_fold_c_machine digits c d).
+Definition fourth_final_d_machine digits d := machine_shift52 (fourth_fold_d_machine digits d).
+Definition fourth_r1_machine digits c d := Int64.and (fst (fourth_fold_c_machine digits c d)) (Int64.repr 4503599627370495).
+
+Lemma fourth_base_c_den rho beta digits c : pair_den rho beta (fourth_base_c_sy digits c) = fourth_base_c_machine digits c.
+Proof. unfold fourth_base_c_sy, fourth_base_c_machine; rewrite !sx_accum_machine; reflexivity. Qed.
+Lemma fourth_fold_d_den rho beta digits d : pair_den rho beta (fourth_fold_d_sy digits d) = fourth_fold_d_machine digits d.
+Proof. unfold fourth_fold_d_sy, fourth_fold_d_machine; rewrite !sx_accum_machine; reflexivity. Qed.
+Lemma fourth_fold_c_den rho beta digits c d : pair_den rho beta (fourth_fold_c_sy digits c d) = fourth_fold_c_machine digits c d.
+Proof.
+  unfold fourth_fold_c_sy, fourth_fold_c_machine; rewrite sx_accum_machine, fourth_base_c_den.
+  change (machine_accum (fourth_base_c_machine digits c)
+      (Int64.and (fst (pair_den rho beta (fourth_fold_d_sy digits d))) (Int64.repr 4503599627370495)) (Int64.repr 68719492368) =
+    machine_accum (fourth_base_c_machine digits c) (fourth_before_machine digits d) (Int64.repr 68719492368)).
+  rewrite fourth_fold_d_den; reflexivity.
+Qed.
+Lemma fourth_final_c_den rho beta digits c d : pair_den rho beta (fourth_final_c_sy digits c d) = fourth_final_c_machine digits c d.
+Proof. unfold fourth_final_c_sy, fourth_final_c_machine; rewrite sx_shift52_machine, fourth_fold_c_den; reflexivity. Qed.
+Lemma fourth_final_d_den rho beta digits d : pair_den rho beta (fourth_final_d_sy digits d) = fourth_final_d_machine digits d.
+Proof. unfold fourth_final_d_sy, fourth_final_d_machine; rewrite sx_shift52_machine, fourth_fold_d_den; reflexivity. Qed.
+Lemma fourth_r1_den rho beta digits c d : den rho beta (fourth_r1_sy digits c d) = Vlong (fourth_r1_machine digits c d).
+Proof.
+  unfold fourth_r1_sy, fourth_r1_machine.
+  change (Vlong (Int64.and (fst (pair_den rho beta (fourth_fold_c_sy digits c d))) (Int64.repr 4503599627370495)) =
+    Vlong (Int64.and (fst (fourth_fold_c_machine digits c d)) (Int64.repr 4503599627370495))).
+  rewrite fourth_fold_c_den; reflexivity.
+Qed.

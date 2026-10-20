@@ -1,0 +1,103 @@
+(** Exact machine equalities for the optimized square's symmetric columns. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers.
+Require Import C.jet_secp_multiply_checkpoint_machine C.jet_secp_multiply_checkpoint_bridge.
+Require Import C.jet_secp_multiply_first_arithmetic C.jet_secp_multiply_second_machine.
+Require Import C.jet_secp_multiply_third_values C.jet_secp_multiply_fourth_values C.jet_secp_multiply_fifth_values.
+Require Import C.jet_secp_multiply_secondvalues_accum C.jet_secp_square_accum_algebra.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition diagonal (rho : nat -> int64) n := rho (n mod 5)%nat.
+Definition square_input_bounds (rho : nat -> int64) := forall i, (i < 5)%nat ->
+  Int64.unsigned (rho i) < if Nat.eqb i 4 then 4503599627370496 else 72057594037927936.
+Lemma square_input56 rho : square_input_bounds rho -> forall i, (i < 5)%nat ->
+  Int64.unsigned (rho i) < 72057594037927936.
+Proof. intros HB i HI; specialize (HB i HI); destruct (Nat.eqb i 4); lia. Qed.
+Lemma diagonal_input_bounds rho : square_input_bounds rho -> field_input_bounds (diagonal rho).
+Proof.
+  intros HB i HI; destruct i as [|[|[|[|[|[|[|[|[|[|i]]]]]]]]]]; try lia.
+  all: unfold diagonal; cbn; apply HB; lia.
+Qed.
+
+Lemma square_column3 rho : square_input_bounds rho ->
+  machine_accum (machine_product (twice (rho 0%nat)) (rho 3%nat))
+    (twice (rho 1%nat)) (rho 2%nat) = first_d_machine (diagonal rho).
+Proof.
+  intro HB; unfold first_d_machine; rewrite !product_as_accumulate.
+  change (accumulate (Int64.zero,Int64.zero)
+    [(twice (rho 0%nat),rho 3%nat);(twice (rho 1%nat),rho 2%nat)] =
+    accumulate (Int64.zero,Int64.zero)
+    [(rho 0%nat,rho 3%nat);(rho 1%nat,rho 2%nat);(rho 2%nat,rho 1%nat);(rho 3%nat,rho 0%nat)]).
+  apply accumulate_products_equal; cbn [products].
+  rewrite !twice_unsigned by (apply (square_input56 rho HB); lia); ring.
+Qed.
+
+Lemma square_column4 rho c d : square_input_bounds rho ->
+  machine_accum
+    (machine_accum (machine_accum (machine_accum d (rho 0%nat) (twice (rho 4%nat)))
+      (twice (rho 1%nat)) (rho 3%nat)) (rho 2%nat) (rho 2%nat))
+    (Int64.shl (Int64.repr 68719492368) (Int64.repr 12)) (fst c) =
+  second_fold_machine (diagonal rho) c d.
+Proof.
+  intro HB; unfold second_fold_machine; f_equal.
+  change (accumulate d [(rho 0%nat,twice (rho 4%nat));(twice (rho 1%nat),rho 3%nat);(rho 2%nat,rho 2%nat)] =
+    accumulate d [(rho 0%nat,rho 4%nat);(rho 1%nat,rho 3%nat);(rho 2%nat,rho 2%nat);
+      (rho 3%nat,rho 1%nat);(rho 4%nat,rho 0%nat)]).
+  apply accumulate_products_equal; cbn [products].
+  rewrite !twice_unsigned by (apply (square_input56 rho HB); lia); ring.
+Qed.
+
+Lemma square_column5 rho d : square_input_bounds rho ->
+  machine_accum (machine_accum d (rho 1%nat) (twice (rho 4%nat)))
+    (twice (rho 2%nat)) (rho 3%nat) = third_fold_d_machine (diagonal rho) d.
+Proof.
+  intro HB; unfold third_fold_d_machine.
+  change (accumulate d [(rho 1%nat,twice (rho 4%nat));(twice (rho 2%nat),rho 3%nat)] =
+    accumulate d [(rho 1%nat,rho 4%nat);(rho 2%nat,rho 3%nat);(rho 3%nat,rho 2%nat);(rho 4%nat,rho 1%nat)]).
+  apply accumulate_products_equal; cbn [products].
+  rewrite !twice_unsigned by (apply (square_input56 rho HB); lia); ring.
+Qed.
+
+Lemma square_column1 rho c : square_input_bounds rho ->
+  machine_accum c (twice (rho 0%nat)) (rho 1%nat) = fourth_base_c_machine (diagonal rho) c.
+Proof.
+  intro HB; unfold fourth_base_c_machine.
+  change (accumulate c [(twice (rho 0%nat),rho 1%nat)] =
+    accumulate c [(rho 0%nat,rho 1%nat);(rho 1%nat,rho 0%nat)]).
+  apply accumulate_products_equal; cbn [products].
+  rewrite twice_unsigned by (apply (square_input56 rho HB); lia); ring.
+Qed.
+
+Lemma square_column6 rho d : square_input_bounds rho ->
+  machine_accum (machine_accum d (rho 2%nat) (twice (rho 4%nat))) (rho 3%nat) (rho 3%nat) =
+  fourth_fold_d_machine (diagonal rho) d.
+Proof.
+  intro HB; unfold fourth_fold_d_machine.
+  change (accumulate d [(rho 2%nat,twice (rho 4%nat));(rho 3%nat,rho 3%nat)] =
+    accumulate d [(rho 2%nat,rho 4%nat);(rho 3%nat,rho 3%nat);(rho 4%nat,rho 2%nat)]).
+  apply accumulate_products_equal; cbn [products].
+  rewrite twice_unsigned by (apply (square_input56 rho HB); lia); ring.
+Qed.
+
+Lemma square_column2 rho c : square_input_bounds rho ->
+  machine_accum (machine_accum c (twice (rho 0%nat)) (rho 2%nat)) (rho 1%nat) (rho 1%nat) =
+  fifth_base_c_machine (diagonal rho) c.
+Proof.
+  intro HB; unfold fifth_base_c_machine.
+  change (accumulate c [(twice (rho 0%nat),rho 2%nat);(rho 1%nat,rho 1%nat)] =
+    accumulate c [(rho 0%nat,rho 2%nat);(rho 1%nat,rho 1%nat);(rho 2%nat,rho 0%nat)]).
+  apply accumulate_products_equal; cbn [products].
+  rewrite twice_unsigned by (apply (square_input56 rho HB); lia); ring.
+Qed.
+
+Lemma square_column7 rho d : square_input_bounds rho ->
+  machine_accum d (rho 3%nat) (twice (rho 4%nat)) = fifth_fold_d_machine (diagonal rho) d.
+Proof.
+  intro HB; unfold fifth_fold_d_machine.
+  change (accumulate d [(rho 3%nat,twice (rho 4%nat))] =
+    accumulate d [(rho 3%nat,rho 4%nat);(rho 4%nat,rho 3%nat)]).
+  apply accumulate_products_equal; cbn [products].
+  rewrite twice_unsigned by (apply (square_input56 rho HB); lia); ring.
+Qed.

@@ -1,0 +1,70 @@
+(** Original multiplier heads 50..67, including its first aliased output store. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs Maps Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix.
+Require Import C.jet_secp_multiply_run_run C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_ops.
+Require Import C.jet_secp_multiply_second_state C.jet_secp_multiply_second_temps C.jet_secp_multiply_second_entry.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition third_spine := firstn 18 (skipn 50 mul_spine).
+Definition third_statement := statement_sequence third_spine Sskip.
+Definition through_third := statement_sequence (firstn 68 mul_spine) Sskip.
+Definition after_third := statement_sequence (skipn 68 mul_spine) mul_last.
+Lemma through_third_suffix_source : statement_sequence (firstn 68 mul_spine) after_third = fn_body f_secp256k1_fe_mul_inner.
+Proof. reflexivity. Qed.
+Lemma second_third_source : statement_sequence (firstn 50 mul_spine) third_statement = through_third.
+Proof. reflexivity. Qed.
+
+Definition third_bindings (digits : nat -> int64) t3 t4 tx :=
+  second_bindings digits t3 ++ [(_t4, XL t4); (_tx, XL tx)].
+Definition third_temps digits t3 t4 tx := temps_of (third_bindings digits t3 t4 tx).
+Definition third_initial digits c d t3 t4 tx := mkst (third_temps digits t3 t4 tx) (second_regs digits c d) [] 10.
+Definition third_run digits c d t3 t4 tx := xstmt (genv_cenv secp_ge) [] field_table 160
+  (snd mul_allocated) (third_initial digits c d t3 t4 tx) third_statement.
+Lemma third_completes digits c d t3 t4 tx :
+  match third_run digits c d t3 t4 tx with Some (RDone _ ONormal) => true | _ => false end = true.
+Proof. vm_compute; reflexivity. Qed.
+Definition third_state digits c d t3 t4 tx := match third_run digits c d t3 t4 tx with
+  | Some (RDone st _) => st | _ => third_initial digits c d t3 t4 tx end.
+Lemma third_run_eq digits c d t3 t4 tx :
+  third_run digits c d t3 t4 tx = Some (RDone (third_state digits c d t3 t4 tx) ONormal).
+Proof.
+  pose proof (third_completes digits c d t3 t4 tx) as H; unfold third_state.
+  destruct (third_run digits c d t3 t4 tx) as [r|]; [|discriminate].
+  destruct r; [destruct o; try discriminate; reflexivity|discriminate].
+Qed.
+
+Definition third_fold_d_sy (digits : nat -> int64) (d : int64 * int64) :=
+  sx_accum (sx_accum (sx_accum (sx_accum (XL (fst d), XL (snd d))
+    (XL (digits 1%nat)) (XL (digits 9%nat))) (XL (digits 2%nat)) (XL (digits 8%nat)))
+    (XL (digits 3%nat)) (XL (digits 7%nat))) (XL (digits 4%nat)) (XL (digits 6%nat)).
+Definition third_final_d_sy digits d := sx_shift52 (third_fold_d_sy digits d).
+Definition third_before_sy digits d := XLb Band (fst (third_fold_d_sy digits d)) (XLc (Int64.repr 4503599627370495)).
+Definition third_u0_sy digits d tx := XLb Bor (XLsh Hshl (third_before_sy digits d) 4) (XL tx).
+Definition third_fold_c_sy (digits : nat -> int64) d tx :=
+  sx_accum (sx_product (XL (digits 0%nat)) (XL (digits 5%nat))) (third_u0_sy digits d tx)
+    (XLsh Hshru (XLc (Int64.repr 68719492368)) 4).
+Definition third_final_c_sy digits d tx := sx_shift52 (third_fold_c_sy digits d tx).
+Definition third_r0_sy digits d tx := XLb Band (fst (third_fold_c_sy digits d tx)) (XLc (Int64.repr 4503599627370495)).
+
+Lemma third_c_low digits c d t3 t4 tx : xload (sregs (third_state digits c d t3 t4 tx)) 2 0 tulong = Some (fst (third_final_c_sy digits d tx)).
+Proof. reflexivity. Qed.
+Lemma third_c_high digits c d t3 t4 tx : xload (sregs (third_state digits c d t3 t4 tx)) 2 8 tulong = Some (snd (third_final_c_sy digits d tx)).
+Proof. reflexivity. Qed.
+Lemma third_d_low digits c d t3 t4 tx : xload (sregs (third_state digits c d t3 t4 tx)) 3 0 tulong = Some (fst (third_final_d_sy digits d)).
+Proof. reflexivity. Qed.
+Lemma third_d_high digits c d t3 t4 tx : xload (sregs (third_state digits c d t3 t4 tx)) 3 8 tulong = Some (snd (third_final_d_sy digits d)).
+Proof. reflexivity. Qed.
+Lemma third_r0 digits c d t3 t4 tx : xload (sregs (third_state digits c d t3 t4 tx)) 0 0 tulong = Some (third_r0_sy digits d tx).
+Proof. reflexivity. Qed.
+Lemma third_t3 digits c d t3 t4 tx : (stemps (third_state digits c d t3 t4 tx))!_t3 = Some (XL t3).
+Proof. reflexivity. Qed.
+Lemma third_t4 digits c d t3 t4 tx : (stemps (third_state digits c d t3 t4 tx))!_t4 = Some (XL t4).
+Proof. reflexivity. Qed.
+Lemma third_u0 digits c d t3 t4 tx : (stemps (third_state digits c d t3 t4 tx))!_u0 = Some (third_u0_sy digits d tx).
+Proof. reflexivity. Qed.
+Lemma third_cached_a0 digits c d t3 t4 tx : (stemps (third_state digits c d t3 t4 tx))!_a0 = Some (XL (digits 0%nat)).
+Proof. reflexivity. Qed.

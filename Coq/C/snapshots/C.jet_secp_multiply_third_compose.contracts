@@ -1,0 +1,79 @@
+### C.jet_secp_multiply_third_compose.third_initial_shape
+third_initial_shape
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 tx : Integers.Int64.int),
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs (jet_secp_multiply_third_state.third_initial digits c d t3 t4 tx)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial))
+### C.jet_secp_multiply_third_compose.exec_original_through_third
+exec_original_through_third
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps jet_secp_multiply_checkpoint_prefix.prefix_initial) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  jet_secp_multiply_third_state.through_third Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (composed_third_observations rho beta le' mf)
+                  (and
+                     (jet_sx_state.rep rho beta
+                        (jet_sx_eval.sregs
+                           (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta (composed_third_state rho))) mf)
+                     (and
+                        (jet_sx_eval.tmatch rho beta
+                           (jet_sx_eval.stemps
+                              (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta (composed_third_state rho)))
+                           le')
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape
+                                    (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial)) b ofs)) m
+                           mf))))))
+### C.jet_secp_multiply_third_compose.composed_third_state
+composed_third_state =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_multiply_third_state.third_state rho (jet_secp_multiply_checkpoint_bridge.first_final_c_machine rho)
+  (jet_secp_multiply_second_machine.second_final_machine rho
+     (jet_secp_multiply_checkpoint_bridge.first_final_c_machine rho)
+     (jet_secp_multiply_checkpoint_bridge.first_final_d_machine rho))
+  (jet_secp_multiply_checkpoint_bridge.first_t3_machine rho)
+  (jet_secp_multiply_second_machine.second_t4_machine rho
+     (jet_secp_multiply_checkpoint_bridge.first_final_c_machine rho)
+     (jet_secp_multiply_checkpoint_bridge.first_final_d_machine rho))
+  (jet_secp_multiply_second_machine.second_tx_machine rho
+     (jet_secp_multiply_checkpoint_bridge.first_final_c_machine rho)
+     (jet_secp_multiply_checkpoint_bridge.first_final_d_machine rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_sx_eval.sstate
+
+Arguments composed_third_state rho%function_scope
+### C.jet_secp_multiply_third_compose.composed_third_observations
+composed_third_observations =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val)
+  (m : Memory.Mem.mem) =>
+jet_secp_multiply_third_machine.third_observations rho
+  (jet_secp_multiply_second_machine.second_final_machine rho
+     (jet_secp_multiply_checkpoint_bridge.first_final_c_machine rho)
+     (jet_secp_multiply_checkpoint_bridge.first_final_d_machine rho))
+  (jet_secp_multiply_checkpoint_bridge.first_t3_machine rho)
+  (jet_secp_multiply_second_machine.second_t4_machine rho
+     (jet_secp_multiply_checkpoint_bridge.first_final_c_machine rho)
+     (jet_secp_multiply_checkpoint_bridge.first_final_d_machine rho))
+  (jet_secp_multiply_second_machine.second_tx_machine rho
+     (jet_secp_multiply_checkpoint_bridge.first_final_c_machine rho)
+     (jet_secp_multiply_checkpoint_bridge.first_final_d_machine rho)) beta le m
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : Maps.PTree.tree Values.val)
+         (_ : Memory.Mem.mem), Prop
+
+Arguments composed_third_observations rho%function_scope beta le m

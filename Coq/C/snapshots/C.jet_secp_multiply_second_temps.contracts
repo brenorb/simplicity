@@ -1,0 +1,53 @@
+### C.jet_secp_multiply_second_temps.tmatch_set_live
+tmatch_set_live
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val)
+         (id : BinNums.positive) (x : jet_sx_expr.sx) (ts : Maps.PTree.t jet_sx_expr.sx)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le)
+                (@Some Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) x)))
+         (_ : jet_sx_eval.tmatch rho beta ts le),
+       jet_sx_eval.tmatch rho beta (@Maps.PTree.set jet_sx_expr.sx id x ts) le
+### C.jet_secp_multiply_second_temps.tmatch_bindings
+tmatch_bindings
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val)
+         (xs : list (prod BinNums.positive jet_sx_expr.sx))
+         (_ : @List.Forall (prod BinNums.positive jet_sx_expr.sx) (binding_actual rho beta le) xs),
+       jet_sx_eval.tmatch rho beta (temps_of xs) le
+### C.jet_secp_multiply_second_temps.bindings_transfer
+bindings_transfer
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val)
+         (xs : list (prod BinNums.positive jet_sx_expr.sx)) (ys : list (prod AST.ident jet_sx_expr.sx))
+         (_ : @List.Forall (prod BinNums.positive jet_sx_expr.sx) (binding_actual rho beta le) xs)
+         (_ : @eq (list (prod AST.ident Values.val)) (binding_values rho beta xs) (binding_values rho beta ys)),
+       @List.Forall (prod BinNums.positive jet_sx_expr.sx) (binding_actual rho beta le) ys
+### C.jet_secp_multiply_second_temps.temps_of
+temps_of =
+fun xs : list (prod AST.ident jet_sx_expr.sx) =>
+@List.fold_right (Maps.PTree.tree jet_sx_expr.sx) (prod BinNums.positive jet_sx_expr.sx)
+  (fun (p : prod BinNums.positive jet_sx_expr.sx) (ts : Maps.PTree.tree jet_sx_expr.sx) =>
+   @Maps.PTree.set jet_sx_expr.sx (@fst BinNums.positive jet_sx_expr.sx p) (@snd BinNums.positive jet_sx_expr.sx p) ts)
+  (Maps.PTree.empty jet_sx_expr.sx) xs
+     : forall _ : list (prod AST.ident jet_sx_expr.sx), Maps.PTree.tree jet_sx_expr.sx
+
+Arguments temps_of xs%list_scope
+### C.jet_secp_multiply_second_temps.binding_actual
+binding_actual =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val)
+  (p : prod BinNums.positive jet_sx_expr.sx) =>
+@eq (option Values.val) (@Maps.PTree.get Values.val (@fst BinNums.positive jet_sx_expr.sx p) le)
+  (@Some Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) (@snd BinNums.positive jet_sx_expr.sx p)))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : Maps.PTree.tree Values.val)
+         (_ : prod BinNums.positive jet_sx_expr.sx), Prop
+
+Arguments binding_actual rho%function_scope beta le p
+### C.jet_secp_multiply_second_temps.binding_values
+binding_values =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (xs : list (prod AST.ident jet_sx_expr.sx))
+=>
+@List.map (prod AST.ident jet_sx_expr.sx) (prod AST.ident Values.val)
+  (fun p : prod AST.ident jet_sx_expr.sx =>
+   @pair AST.ident Values.val (@fst AST.ident jet_sx_expr.sx p)
+     (jet_sx_expr.den rho (jet_sx_state.lay beta) (@snd AST.ident jet_sx_expr.sx p))) xs
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout)
+         (_ : list (prod AST.ident jet_sx_expr.sx)), list (prod AST.ident Values.val)
+
+Arguments binding_values rho%function_scope beta xs%list_scope

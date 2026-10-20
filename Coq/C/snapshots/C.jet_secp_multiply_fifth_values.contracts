@@ -1,0 +1,142 @@
+### C.jet_secp_multiply_fifth_values.fifth_base_c_den
+fifth_base_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (digits : forall _ : nat, Integers.Int64.int) (c : prod Integers.Int64.int Integers.Int64.int),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta
+            (jet_secp_multiply_fifth_state.fifth_base_c_sy digits c)) (fifth_base_c_machine digits c)
+### C.jet_secp_multiply_fifth_values.fifth_fold_d_den
+fifth_fold_d_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (digits : forall _ : nat, Integers.Int64.int) (d : prod Integers.Int64.int Integers.Int64.int),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta
+            (jet_secp_multiply_fifth_state.fifth_fold_d_sy digits d)) (fifth_fold_d_machine digits d)
+### C.jet_secp_multiply_fifth_values.fifth_fold_c_den
+fifth_fold_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta
+            (jet_secp_multiply_fifth_state.fifth_fold_c_sy digits c d)) (fifth_fold_c_machine digits c d)
+### C.jet_secp_multiply_fifth_values.fifth_final_c_den
+fifth_final_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta
+            (jet_secp_multiply_fifth_state.fifth_final_c_sy digits c d)) (fifth_final_c_machine digits c d)
+### C.jet_secp_multiply_fifth_values.fifth_final_d_den
+fifth_final_d_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (digits : forall _ : nat, Integers.Int64.int) (d : prod Integers.Int64.int Integers.Int64.int),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta
+            (jet_secp_multiply_fifth_state.fifth_final_d_sy digits d)) (fifth_final_d_machine digits d)
+### C.jet_secp_multiply_fifth_values.fifth_r2_den
+fifth_r2_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int),
+       @eq Values.val (jet_sx_expr.den rho beta (jet_secp_multiply_fifth_state.fifth_r2_sy digits c d))
+         (Values.Vlong (fifth_r2_machine digits c d))
+### C.jet_secp_multiply_fifth_values.fifth_base_c_machine
+fifth_base_c_machine =
+fun (digits : forall _ : nat, Integers.Int64.int) (c : prod Integers.Int64.int Integers.Int64.int) =>
+jet_secp_multiply_checkpoint_machine.machine_accum
+  (jet_secp_multiply_checkpoint_machine.machine_accum
+     (jet_secp_multiply_checkpoint_machine.machine_accum c (digits O) (digits (S (S (S (S (S (S (S O)))))))))
+     (digits (S O)) (digits (S (S (S (S (S (S O)))))))) (digits (S (S O))) (digits (S (S (S (S (S O))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments fifth_base_c_machine digits%function_scope c
+### C.jet_secp_multiply_fifth_values.fifth_fold_d_machine
+fifth_fold_d_machine =
+fun (digits : forall _ : nat, Integers.Int64.int) (d : prod Integers.Int64.int Integers.Int64.int) =>
+jet_secp_multiply_checkpoint_machine.machine_accum
+  (jet_secp_multiply_checkpoint_machine.machine_accum d (digits (S (S (S O))))
+     (digits (S (S (S (S (S (S (S (S (S O))))))))))) (digits (S (S (S (S O)))))
+  (digits (S (S (S (S (S (S (S (S O)))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments fifth_fold_d_machine digits%function_scope d
+### C.jet_secp_multiply_fifth_values.fifth_before_machine
+fifth_before_machine =
+fun (digits : forall _ : nat, Integers.Int64.int) (d : prod Integers.Int64.int Integers.Int64.int) =>
+@fst Integers.Int64.int Integers.Int64.int (fifth_fold_d_machine digits d)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int),
+       Integers.Int64.int
+
+Arguments fifth_before_machine digits%function_scope d
+### C.jet_secp_multiply_fifth_values.fifth_fold_c_machine
+fifth_fold_c_machine =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+jet_secp_multiply_checkpoint_machine.machine_accum (fifth_base_c_machine digits c)
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))))
+  (fifth_before_machine digits d)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int), prod Integers.Int64.int Integers.Int64.int
+
+Arguments fifth_fold_c_machine digits%function_scope c d
+### C.jet_secp_multiply_fifth_values.fifth_final_c_machine
+fifth_final_c_machine =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+jet_secp_multiply_checkpoint_machine.machine_shift52 (fifth_fold_c_machine digits c d)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int), prod Integers.Int64.int Integers.Int64.int
+
+Arguments fifth_final_c_machine digits%function_scope c d
+### C.jet_secp_multiply_fifth_values.fifth_final_d_machine
+fifth_final_d_machine =
+fun (digits : forall _ : nat, Integers.Int64.int) (d : prod Integers.Int64.int Integers.Int64.int) =>
+jet_secp_multiply_checkpoint_machine.machine_shift64 (fifth_fold_d_machine digits d)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments fifth_final_d_machine digits%function_scope d
+### C.jet_secp_multiply_fifth_values.fifth_r2_machine
+fifth_r2_machine =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+Integers.Int64.and (@fst Integers.Int64.int Integers.Int64.int (fifth_fold_c_machine digits c d))
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int), Integers.Int64.int
+
+Arguments fifth_r2_machine digits%function_scope c d

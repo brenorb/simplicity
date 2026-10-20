@@ -1,0 +1,230 @@
+### C.jet_secp_multiply_checkpoint_machine.sx_product_machine
+sx_product_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (a b : jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (pair_den rho beta (jet_secp_multiply_checkpoint_ops.sx_product a b))
+         (machine_product (word_den rho beta a) (word_den rho beta b))
+### C.jet_secp_multiply_checkpoint_machine.sx_accum_machine
+sx_accum_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx) (a b : jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (pair_den rho beta (jet_secp_multiply_checkpoint_ops.sx_accum s a b))
+         (machine_accum (pair_den rho beta s) (word_den rho beta a) (word_den rho beta b))
+### C.jet_secp_multiply_checkpoint_machine.sx_accum_word_machine
+sx_accum_word_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx) (a : jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (pair_den rho beta (jet_secp_multiply_checkpoint_ops.sx_accum_word s a))
+         (machine_accum_word (pair_den rho beta s) (word_den rho beta a))
+### C.jet_secp_multiply_checkpoint_machine.sx_shift52_machine
+sx_shift52_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (pair_den rho beta (jet_secp_multiply_checkpoint_ops.sx_shift52 s)) (machine_shift52 (pair_den rho beta s))
+### C.jet_secp_multiply_checkpoint_machine.sx_shift64_machine
+sx_shift64_machine
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (pair_den rho beta (jet_secp_multiply_checkpoint_ops.sx_shift64 s)) (machine_shift64 (pair_den rho beta s))
+### C.jet_secp_multiply_checkpoint_machine.pair_low_den
+pair_low_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx) (ma : prod Integers.Int64.int Integers.Int64.int)
+         (_ : @eq (prod Integers.Int64.int Integers.Int64.int) (pair_den rho beta s) ma)
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL (@fst jet_sx_expr.sx jet_sx_expr.sx s)) true),
+       @eq Values.val (jet_sx_expr.den rho beta (@fst jet_sx_expr.sx jet_sx_expr.sx s))
+         (Values.Vlong (@fst Integers.Int64.int Integers.Int64.int ma))
+### C.jet_secp_multiply_checkpoint_machine.pair_high_den
+pair_high_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (s : prod jet_sx_expr.sx jet_sx_expr.sx) (ma : prod Integers.Int64.int Integers.Int64.int)
+         (_ : @eq (prod Integers.Int64.int Integers.Int64.int) (pair_den rho beta s) ma)
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL (@snd jet_sx_expr.sx jet_sx_expr.sx s)) true),
+       @eq Values.val (jet_sx_expr.den rho beta (@snd jet_sx_expr.sx jet_sx_expr.sx s))
+         (Values.Vlong (@snd Integers.Int64.int Integers.Int64.int ma))
+### C.jet_secp_multiply_checkpoint_machine.pair_value_range
+pair_value_range
+     : forall s : prod Integers.Int64.int Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (pair_value s))
+         (BinInt.Z.lt (pair_value s) (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+### C.jet_secp_multiply_checkpoint_machine.machine_product_value
+machine_product_value
+     : forall a b : Integers.Int64.int,
+       @eq BinNums.Z (pair_value (machine_product a b))
+         (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b))
+### C.jet_secp_multiply_checkpoint_machine.machine_accum_value
+machine_accum_value
+     : forall (s : prod Integers.Int64.int Integers.Int64.int) (a b : Integers.Int64.int),
+       @eq BinNums.Z (pair_value (machine_accum s a b))
+         (BinInt.Z.modulo
+            (BinInt.Z.add (pair_value s) (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+            (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+### C.jet_secp_multiply_checkpoint_machine.machine_accum_exact
+machine_accum_exact
+     : forall (s : prod Integers.Int64.int Integers.Int64.int) (a b : Integers.Int64.int)
+         (_ : BinInt.Z.lt
+                (BinInt.Z.add (pair_value s) (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z (pair_value (machine_accum s a b))
+         (BinInt.Z.add (pair_value s) (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)))
+### C.jet_secp_multiply_checkpoint_machine.machine_shift52_value
+machine_shift52_value
+     : forall s : prod Integers.Int64.int Integers.Int64.int,
+       @eq BinNums.Z (pair_value (machine_shift52 s))
+         (BinInt.Z.div (pair_value s)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+### C.jet_secp_multiply_checkpoint_machine.machine_shift64_value
+machine_shift64_value
+     : forall s : prod Integers.Int64.int Integers.Int64.int,
+       @eq BinNums.Z (pair_value (machine_shift64 s)) (BinInt.Z.div (pair_value s) Integers.Int64.modulus)
+### C.jet_secp_multiply_checkpoint_machine.machine_mask52_value
+machine_mask52_value
+     : forall x : Integers.Int64.int,
+       @eq BinNums.Z
+         (Integers.Int64.unsigned
+            (Integers.Int64.and x
+               (Integers.Int64.repr
+                  (BinNums.Zpos
+                     (BinNums.xI
+                        (BinNums.xI
+                           (BinNums.xI
+                              (BinNums.xI
+                                 (BinNums.xI
+                                    (BinNums.xI
+                                       (BinNums.xI
+                                          (BinNums.xI
+                                             (BinNums.xI
+                                                (BinNums.xI
+                                                   (BinNums.xI
+                                                      (BinNums.xI
+                                                         (BinNums.xI
+                                                            (BinNums.xI
+                                                               (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+         (BinInt.Z.modulo (Integers.Int64.unsigned x)
+            (BinNums.Zpos
+               (BinNums.xO
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+### C.jet_secp_multiply_checkpoint_machine.word_den
+word_den =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+  (x : jet_sx_expr.sx) => jet_sx_expr.il (jet_sx_expr.den rho beta x)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : jet_sx_expr.sx), Integers.Int64.int
+
+Arguments word_den (rho beta)%function_scope x
+### C.jet_secp_multiply_checkpoint_machine.pair_den
+pair_den =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+  (s : prod jet_sx_expr.sx jet_sx_expr.sx) =>
+@pair Integers.Int64.int Integers.Int64.int (word_den rho beta (@fst jet_sx_expr.sx jet_sx_expr.sx s))
+  (word_den rho beta (@snd jet_sx_expr.sx jet_sx_expr.sx s))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : prod jet_sx_expr.sx jet_sx_expr.sx), prod Integers.Int64.int Integers.Int64.int
+
+Arguments pair_den (rho beta)%function_scope s
+### C.jet_secp_multiply_checkpoint_machine.pair_value
+pair_value =
+fun s : prod Integers.Int64.int Integers.Int64.int =>
+BinInt.Z.add (Integers.Int64.unsigned (@fst Integers.Int64.int Integers.Int64.int s))
+  (BinInt.Z.mul Integers.Int64.modulus (Integers.Int64.unsigned (@snd Integers.Int64.int Integers.Int64.int s)))
+     : forall _ : prod Integers.Int64.int Integers.Int64.int, BinNums.Z
+
+Arguments pair_value s
+### C.jet_secp_multiply_checkpoint_machine.machine_product
+machine_product =
+fun a b : Integers.Int64.int =>
+@pair Integers.Int64.int Integers.Int64.int (jet_secp_umul128_numeric.umul128_lo_machine a b)
+  (jet_secp_umul128_numeric.umul128_hi_machine a b)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), prod Integers.Int64.int Integers.Int64.int
+
+Arguments machine_product a b
+### C.jet_secp_multiply_checkpoint_machine.machine_carry
+machine_carry =
+fun lo a : Integers.Int64.int =>
+Integers.Int64.repr
+  (Integers.Int.signed
+     match Integers.Int64.ltu lo a return Integers.Int.int with
+     | true => Integers.Int.one
+     | false => Integers.Int.zero
+     end)
+     : forall (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments machine_carry lo a
+### C.jet_secp_multiply_checkpoint_machine.machine_accum
+machine_accum =
+fun (s : prod Integers.Int64.int Integers.Int64.int) (a b : Integers.Int64.int) =>
+let p : prod Integers.Int64.int Integers.Int64.int := machine_product a b in
+let lo : Integers.Int64.int :=
+  Integers.Int64.add (@fst Integers.Int64.int Integers.Int64.int s) (@fst Integers.Int64.int Integers.Int64.int p) in
+@pair Integers.Int64.int Integers.Int64.int lo
+  (Integers.Int64.add (@snd Integers.Int64.int Integers.Int64.int s)
+     (Integers.Int64.add (@snd Integers.Int64.int Integers.Int64.int p)
+        (machine_carry lo (@fst Integers.Int64.int Integers.Int64.int p))))
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments machine_accum s a b
+### C.jet_secp_multiply_checkpoint_machine.machine_accum_word
+machine_accum_word =
+fun (s : prod Integers.Int64.int Integers.Int64.int) (a : Integers.Int64.int) =>
+let lo : Integers.Int64.int := Integers.Int64.add (@fst Integers.Int64.int Integers.Int64.int s) a in
+@pair Integers.Int64.int Integers.Int64.int lo
+  (Integers.Int64.add (@snd Integers.Int64.int Integers.Int64.int s) (machine_carry lo a))
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments machine_accum_word s a
+### C.jet_secp_multiply_checkpoint_machine.machine_shift52
+machine_shift52 =
+fun s : prod Integers.Int64.int Integers.Int64.int =>
+@pair Integers.Int64.int Integers.Int64.int
+  (jet_secp_multiply_shift_shift.shift52_low (@fst Integers.Int64.int Integers.Int64.int s)
+     (@snd Integers.Int64.int Integers.Int64.int s))
+  (jet_secp_multiply_shift_shift.shift52_high (@snd Integers.Int64.int Integers.Int64.int s))
+     : forall _ : prod Integers.Int64.int Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments machine_shift52 s
+### C.jet_secp_multiply_checkpoint_machine.machine_shift64
+machine_shift64 =
+fun s : prod Integers.Int64.int Integers.Int64.int =>
+@pair Integers.Int64.int Integers.Int64.int (@snd Integers.Int64.int Integers.Int64.int s) Integers.Int64.zero
+     : forall _ : prod Integers.Int64.int Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments machine_shift64 s

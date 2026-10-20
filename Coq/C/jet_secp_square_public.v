@@ -1,0 +1,78 @@
+(** Complete original square jet: entry/copy/read/square/write/return/free. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight Clightdefs ClightBigstep Integers Values Memory Events.
+Require Import Simplicity.Word Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_encoding C.jet_frame_inv.
+Require Import C.jet_sx_exec C.jet_sx_mem C.jet_secp_frame C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_public_copy C.jet_secp_public_body C.jet_secp_public_lifecycle.
+Require Import C.jet_secp_square_execution C.jet_secp_square_rest.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge literal_fe_square Simplicity.Translate.encode.
+
+Lemma square_entry v_env m ma mb bl ba bd dbase bs sbase :
+  Mem.alloc m 0 16 = (ma,bl) -> Mem.alloc ma 0 40 = (mb,ba) ->
+  function_entry2 secp_ge f_simplicity_fe_square
+    [Vptr bd (Ptrofs.repr dbase);Vptr bs (Ptrofs.repr sbase);v_env] m
+    (secp_public_env bl ba) (secp_public_temps v_env bd dbase bs sbase) mb.
+Proof.
+  intros HA HB; pose proof (secp_fe_normalize_entry v_env m ma mb bl ba bd dbase bs sbase HA HB) as HE.
+  inversion HE; subst; constructor; assumption.
+Qed.
+Lemma square_public_body : fn_body f_simplicity_fe_square =
+  Ssequence (Sassign (Evar _src secp_frame_type) (Etempvar _src secp_frame_type)) square_rest.
+Proof. reflexivity. Qed.
+
+Theorem eval_public_square v_env m0 bd dbase bs sbase bw outedge cursor N bi edge rc
+    (value : Ty.tySem (Word 8)) :
+  write_frame_at m0 bd dbase bw outedge cursor N -> 256 <= N ->
+  frame_base_valid sbase -> (8 | sbase) -> frame_fields_at m0 bs sbase bi edge rc ->
+  frame_input_cells_at m0 bi edge rc (map Some (frame_input_word_bits value)) ->
+  0 <= rc -> rc + 256 <= Int64.max_unsigned ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m0 (Internal f_simplicity_fe_square)
+      [Vptr bd (Ptrofs.repr dbase);Vptr bs (Ptrofs.repr sbase);v_env] E0 mf (Vint Int.one) /\
+    finv m0 bd dbase bw outedge cursor N bi mf true
+      (Simplicity.Translate.encode (@literal_fe_square Alg.CoreFunSem value)) /\
+    lframe (fun b _ => ~ extA m0 bd bw bi b) m0 mf.
+Proof.
+  intros HO HCap HBase HAlign HFields HI Hrc HM.
+  destruct (Mem.alloc m0 0 16) as [ma bl] eqn:HA.
+  destruct (Mem.alloc ma 0 40) as [mb ba] eqn:HB.
+  destruct (secp_prepare_public_locals v_env m0 ma bl ba mb bd dbase bs sbase bw outedge cursor N bi edge rc value
+    HA HB HO HCap HBase HAlign HFields)
+    as (mc & HCopy & HFreeA & HFreeL & HLocalFields & HSeparate & HSep & HInv & HPrepFrame & HFreshA & HFreshL).
+  destruct (exec_square_rest (secp_public_temps v_env bd dbase bs sbase)
+    m0 bd dbase bw outedge cursor N bi edge rc value mc ba bl
+    eq_refl HO HI Hrc HM HFreeA HFreeL HLocalFields HSeparate HSep HInv)
+    as (mw & HRest & HFinal & HFinalFreeA & HFinalFreeL & HRestFrame).
+  destruct (secp_free_public_locals mw bl ba HSeparate HFinalFreeL HFinalFreeA)
+    as (mf & HFree & HFreeFrame).
+  assert (HFreeExt : eqext m0 bd bw bi mw mf).
+  { eapply lframe_implies; [exact HFreeFrame|].
+    intros b pos [_ HV] HValid; split; intro HEq; subst b; contradiction. }
+  exists mf; split.
+  - eapply eval_funcall_internal with (e := secp_public_env bl ba)
+      (le1 := secp_public_temps v_env bd dbase bs sbase) (le2 := secp_public_temps v_env bd dbase bs sbase)
+      (m1 := mb) (m2 := mw) (out := Out_return (Some (Vint Int.one,tint))).
+    + eapply square_entry; eassumption.
+    + rewrite square_public_body.
+      eapply exec_Sseq_1 with (t1 := E0) (t2 := E0) (m1 := mc)
+        (le1 := secp_public_temps v_env bd dbase bs sbase); eassumption.
+    + cbn; split; [discriminate|reflexivity].
+    + exact HFree.
+  - split; [eapply finv_stable; [exact HO|exact HFinal|exact HFreeExt]|].
+    assert (HOutside : lframe (fun b _ => Mem.valid_block m0 b /\ ~ extA m0 bd bw bi b) m0 mf).
+    { eapply lframe_trans.
+      - eapply lframe_implies; [exact HPrepFrame|].
+        intros b pos [HV HE] HValid; split; intro HEq; subst b; contradiction.
+      - eapply lframe_trans.
+        + eapply lframe_implies; [exact HRestFrame|].
+          intros b pos [HV HE] HValid; unfold secp_locals_outside.
+          split; [intro HEq; subst b; contradiction|]; split; [intro HEq; subst b; contradiction|exact HE].
+        + eapply lframe_implies; [exact HFreeFrame|].
+          intros b pos [HV HE] HValid; split; intro HEq; subst b; contradiction. }
+    eapply lframe_implies; [exact HOutside|]; intros b pos HE HV; split; assumption.
+Qed.

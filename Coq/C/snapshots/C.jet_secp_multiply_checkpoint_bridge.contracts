@@ -1,0 +1,189 @@
+### C.jet_secp_multiply_checkpoint_bridge.first_c_den
+first_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta jet_secp_multiply_checkpoint_prefix.first_c)
+         (first_c_machine rho)
+### C.jet_secp_multiply_checkpoint_bridge.first_d_den
+first_d_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta jet_secp_multiply_checkpoint_prefix.first_d)
+         (first_d_machine rho)
+### C.jet_secp_multiply_checkpoint_bridge.first_fold_den
+first_fold_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta jet_secp_multiply_checkpoint_prefix.first_fold_d)
+         (first_fold_machine rho)
+### C.jet_secp_multiply_checkpoint_bridge.first_final_c_den
+first_final_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta jet_secp_multiply_checkpoint_prefix.first_final_c)
+         (first_final_c_machine rho)
+### C.jet_secp_multiply_checkpoint_bridge.first_final_d_den
+first_final_d_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta jet_secp_multiply_checkpoint_prefix.first_final_d)
+         (first_final_d_machine rho)
+### C.jet_secp_multiply_checkpoint_bridge.first_t3_den
+first_t3_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z),
+       @eq Values.val (jet_sx_expr.den rho beta jet_secp_multiply_checkpoint_prefix.first_t3)
+         (Values.Vlong (first_t3_machine rho))
+### C.jet_secp_multiply_checkpoint_bridge.exec_first_machine_atomic
+exec_first_machine_atomic
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps jet_secp_multiply_checkpoint_prefix.prefix_initial) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  jet_secp_multiply_checkpoint_prefix.prefix_statement Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (first_machine_observations rho beta le' mf)
+                  (and
+                     (jet_sx_state.rep rho beta
+                        (jet_sx_eval.sregs
+                           (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+                              jet_secp_multiply_checkpoint_prefix.prefix_state)) mf)
+                     (and
+                        (jet_sx_eval.tmatch rho beta
+                           (jet_sx_eval.stemps
+                              (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+                                 jet_secp_multiply_checkpoint_prefix.prefix_state)) le')
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape
+                                    (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial)) b ofs)) m
+                           mf))))))
+### C.jet_secp_multiply_checkpoint_bridge.first_c_machine
+first_c_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_multiply_checkpoint_machine.machine_product (rho (S (S (S (S O)))))
+  (rho (S (S (S (S (S (S (S (S (S O))))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments first_c_machine rho%function_scope
+### C.jet_secp_multiply_checkpoint_bridge.first_d_machine
+first_d_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_multiply_checkpoint_machine.machine_accum
+  (jet_secp_multiply_checkpoint_machine.machine_accum
+     (jet_secp_multiply_checkpoint_machine.machine_accum
+        (jet_secp_multiply_checkpoint_machine.machine_product (rho O) (rho (S (S (S (S (S (S (S (S O))))))))))
+        (rho (S O)) (rho (S (S (S (S (S (S (S O))))))))) (rho (S (S O))) (rho (S (S (S (S (S (S O))))))))
+  (rho (S (S (S O)))) (rho (S (S (S (S (S O))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments first_d_machine rho%function_scope
+### C.jet_secp_multiply_checkpoint_bridge.first_fold_machine
+first_fold_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_multiply_checkpoint_machine.machine_accum (first_d_machine rho)
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))))
+  (@fst Integers.Int64.int Integers.Int64.int (first_c_machine rho))
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments first_fold_machine rho%function_scope
+### C.jet_secp_multiply_checkpoint_bridge.first_final_c_machine
+first_final_c_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_multiply_checkpoint_machine.machine_shift64 (first_c_machine rho)
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments first_final_c_machine rho%function_scope
+### C.jet_secp_multiply_checkpoint_bridge.first_final_d_machine
+first_final_d_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_multiply_checkpoint_machine.machine_shift52 (first_fold_machine rho)
+     : forall _ : forall _ : nat, Integers.Int64.int, prod Integers.Int64.int Integers.Int64.int
+
+Arguments first_final_d_machine rho%function_scope
+### C.jet_secp_multiply_checkpoint_bridge.first_t3_machine
+first_t3_machine =
+fun rho : forall _ : nat, Integers.Int64.int =>
+Integers.Int64.and (@fst Integers.Int64.int Integers.Int64.int (first_fold_machine rho))
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, Integers.Int64.int
+
+Arguments first_t3_machine rho%function_scope
+### C.jet_secp_multiply_checkpoint_bridge.first_machine_observations
+first_machine_observations =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val)
+  (m : Memory.Mem.mem) =>
+and
+  (@eq (option Values.val)
+     (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S O)))
+        (BinInt.Z.add (jet_sx_state.bas beta (S (S O))) BinNums.Z0))
+     (@Some Values.val (Values.Vlong (@fst Integers.Int64.int Integers.Int64.int (first_final_c_machine rho)))))
+  (and
+     (@eq (option Values.val)
+        (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S O)))
+           (BinInt.Z.add (jet_sx_state.bas beta (S (S O)))
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+        (@Some Values.val (Values.Vlong (@snd Integers.Int64.int Integers.Int64.int (first_final_c_machine rho)))))
+     (and
+        (@eq (option Values.val)
+           (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S (S O))))
+              (BinInt.Z.add (jet_sx_state.bas beta (S (S (S O)))) BinNums.Z0))
+           (@Some Values.val (Values.Vlong (@fst Integers.Int64.int Integers.Int64.int (first_final_d_machine rho)))))
+        (and
+           (@eq (option Values.val)
+              (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S (S O))))
+                 (BinInt.Z.add (jet_sx_state.bas beta (S (S (S O))))
+                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+              (@Some Values.val (Values.Vlong (@snd Integers.Int64.int Integers.Int64.int (first_final_d_machine rho)))))
+           (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t3 le)
+              (@Some Values.val (Values.Vlong (first_t3_machine rho)))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : Maps.PTree.tree Values.val)
+         (_ : Memory.Mem.mem), Prop
+
+Arguments first_machine_observations rho%function_scope beta le m

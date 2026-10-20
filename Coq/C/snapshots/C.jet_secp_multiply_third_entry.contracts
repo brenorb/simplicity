@@ -1,0 +1,106 @@
+### C.jet_secp_multiply_third_entry.second_regions_exact
+second_regions_exact
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (list jet_sx_state.region) (jet_sx_eval.sregs (jet_secp_multiply_second_state.second_state digits c d t3))
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg
+               (jet_sx_rep.u64_cells BinNums.Z0
+                  (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits O))
+                     (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S O)))
+                        (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S O))))
+                           (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S O)))))
+                              (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S O)))))) (@nil jet_sx_expr.sx)))))))
+               true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@cons jet_sx_state.region
+               (jet_sx_state.mkreg
+                  (jet_sx_rep.u64_cells BinNums.Z0
+                     (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S O)))))))
+                        (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S O))))))))
+                           (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S O)))))))))
+                              (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S O))))))))))
+                                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S (S O)))))))))))
+                                    (@nil jet_sx_expr.sx))))))) true
+                  (@Some BinNums.Z
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (@cons jet_sx_state.region
+                  (jet_sx_state.mkreg
+                     (jet_sx_rep.u64_cells BinNums.Z0
+                        (@cons jet_sx_expr.sx (jet_sx_expr.XL (@fst Integers.Int64.int Integers.Int64.int c))
+                           (@cons jet_sx_expr.sx (jet_sx_expr.XL (@snd Integers.Int64.int Integers.Int64.int c))
+                              (@nil jet_sx_expr.sx)))) true
+                     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg
+                        (jet_sx_rep.u64_cells BinNums.Z0
+                           (@cons jet_sx_expr.sx
+                              (@fst jet_sx_expr.sx jet_sx_expr.sx
+                                 (jet_secp_multiply_second_state.second_final_sy digits c d))
+                              (@cons jet_sx_expr.sx
+                                 (@snd jet_sx_expr.sx jet_sx_expr.sx
+                                    (jet_secp_multiply_second_state.second_final_sy digits c d))
+                                 (@nil jet_sx_expr.sx)))) true
+                        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                     (@nil jet_sx_state.region)))))
+### C.jet_secp_multiply_third_entry.second_live_lookup
+second_live_lookup
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int) (id : AST.ident) (x : jet_sx_expr.sx)
+         (_ : @List.In (prod AST.ident jet_sx_expr.sx) (@pair AST.ident jet_sx_expr.sx id x)
+                (second_live_bindings digits c d t3)),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx id
+            (jet_sx_eval.stemps (jet_secp_multiply_second_state.second_state digits c d t3)))
+         (@Some jet_sx_expr.sx x)
+### C.jet_secp_multiply_third_entry.second_live_values
+second_live_values
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (list (prod AST.ident Values.val))
+         (jet_secp_multiply_second_temps.binding_values rho beta (second_live_bindings digits c d t3))
+         (jet_secp_multiply_second_temps.binding_values rho beta
+            (jet_secp_multiply_third_state.third_bindings digits t3
+               (jet_secp_multiply_second_machine.second_t4_machine digits c d)
+               (jet_secp_multiply_second_machine.second_tx_machine digits c d)))
+### C.jet_secp_multiply_third_entry.second_to_third_tmatch
+second_to_third_tmatch
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int) (le : Clight.temp_env)
+         (_ : jet_sx_eval.tmatch rho beta
+                (jet_sx_eval.stemps
+                   (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+                      (jet_secp_multiply_second_state.second_state digits c d t3))) le),
+       jet_sx_eval.tmatch rho beta
+         (jet_secp_multiply_third_state.third_temps digits t3
+            (jet_secp_multiply_second_machine.second_t4_machine digits c d)
+            (jet_secp_multiply_second_machine.second_tx_machine digits c d)) le
+### C.jet_secp_multiply_third_entry.second_atomic_regs_exact
+second_atomic_regs_exact
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (list jet_sx_state.region)
+         (jet_sx_eval.sregs
+            (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+               (jet_secp_multiply_second_state.second_state digits c d t3)))
+         (jet_secp_multiply_second_state.second_regs digits c
+            (jet_secp_multiply_second_machine.second_final_machine digits c d))
+### C.jet_secp_multiply_third_entry.second_live_bindings
+second_live_bindings =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+  (t3 : Integers.Int64.int) =>
+@app (prod AST.ident jet_sx_expr.sx) (jet_secp_multiply_second_entry.second_bindings digits t3)
+  (@cons (prod AST.ident jet_sx_expr.sx)
+     (@pair AST.ident jet_sx_expr.sx jets_secp._t4 (jet_secp_multiply_second_state.second_t4_sy digits c d))
+     (@cons (prod AST.ident jet_sx_expr.sx)
+        (@pair AST.ident jet_sx_expr.sx jets_secp._tx (jet_secp_multiply_second_state.second_tx_sy digits c d))
+        (@nil (prod AST.ident jet_sx_expr.sx))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int),
+       list (prod AST.ident jet_sx_expr.sx)
+
+Arguments second_live_bindings digits%function_scope c d t3

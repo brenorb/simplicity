@@ -1,0 +1,107 @@
+(** Actual original struct-field wrapper around the proved multiplier call. *)
+From Coq Require Import ZArith List.
+From compcert Require Import AST Ctypes Cop Clight Clightdefs ClightBigstep Integers Values Maps Memory Events Globalenvs.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_multiply_run_run C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_columns C.jet_secp_multiply_first_arithmetic.
+Require Import C.jet_secp_multiply_finish_execute C.jet_secp_multiply_finish_product C.jet_secp_multiply_call_lifecycle C.jet_secp_multiply_call_call.
+Require Import C.jet_secp_multiply_wrapper_layout.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Local Opaque secp_ge original_finish_words.
+Lemma exec_wrapper_call rho beta e le m mf : tmatch rho beta prefix_temps le -> ematch beta [] e ->
+  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul_inner)
+    [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+     Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef ->
+  Clight2.exec_stmt secp_ge e le m (fn_body f_secp256k1_fe_mul) E0 le mf Out_normal.
+Proof.
+  intros HT HE HCall; destruct inner_symbols as [HS HF].
+  pose proof (HT _r (XP 0 0) eq_refl) as HR.
+  pose proof (HT _a (XP 0 0) eq_refl) as HA.
+  pose proof (HT _b (XP 1 0) eq_refl) as HB.
+  change (le!_r = Some (Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0)))) in HR.
+  change (le!_a = Some (Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0)))) in HA.
+  change (le!_b = Some (Vptr (blk beta 1) (Ptrofs.repr (bas beta 1 + 0)))) in HB.
+  rewrite !Z.add_0_r in HR, HA, HB.
+  rewrite wrapper_body_source.
+  eapply exec_Scall with (vf := Vptr (secp_symbol_block _secp256k1_fe_mul_inner) Ptrofs.zero)
+    (vargs := [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+      Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))]) (f := Internal f_secp256k1_fe_mul_inner) (vres := Vundef).
+  - reflexivity.
+  - eapply eval_Elvalue.
+    + eapply eval_Evar_global; [exact (proj1 (HE _secp256k1_fe_mul_inner))|exact HS].
+    + apply deref_loc_reference; reflexivity.
+  - eapply eval_Econs.
+    + apply eval_fe_array_expr; exact HR.
+    + reflexivity.
+    + eapply eval_Econs.
+      * apply eval_fe_array_expr; exact HA.
+      * reflexivity.
+      * eapply eval_Econs.
+        -- apply eval_fe_array_expr; exact HB.
+        -- reflexivity.
+        -- apply eval_Enil.
+  - exact HF.
+  - reflexivity.
+  - exact HCall.
+Qed.
+
+Lemma wrapper_function_ok : fn_okb f_secp256k1_fe_mul = true.
+Proof. vm_compute; reflexivity. Qed.
+Lemma wrapper_binding_model : xbind (fn_params f_secp256k1_fe_mul)
+  [XP 0 0; XP 0 0; XP 1 0] (PTree.empty sx) = Some prefix_temps.
+Proof. reflexivity. Qed.
+Lemma wrapper_output_shape rho : map rshape (field_output_regs rho) = map rshape (field_mul_regs ++ []).
+Proof. reflexivity. Qed.
+Lemma wrapper_body_for_call rho beta e le m :
+  rep rho beta (field_mul_regs ++ []) m -> tmatch rho beta prefix_temps le -> ematch beta [] e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m (fn_body f_secp256k1_fe_mul) E0 le' mf Out_normal /\
+    rep rho beta (field_output_regs rho) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape (field_mul_regs ++ [])) b ofs) m mf.
+Proof.
+  intros HR HT HE; rewrite app_nil_r in HR.
+  destruct (eval_original_field_mul_inner rho beta m HR) as (mf & HX & HRep & HO & HF).
+  exists le, mf; split; [eapply exec_wrapper_call; eauto|].
+  split; [exact HRep|rewrite app_nil_r; exact HF].
+Qed.
+
+Theorem eval_original_field_mul_wrapper rho beta m : rep rho beta field_mul_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef /\
+    rep rho beta (field_output_regs rho) mf /\ output_words beta (original_finish_words rho) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape field_mul_regs) b ofs) m mf.
+Proof.
+  intro HR.
+  destruct (owned_void_call secp_ge f_secp256k1_fe_mul [XP 0 0; XP 0 0; XP 1 0]
+    field_mul_regs [] [] prefix_temps field_output_regs wrapper_function_ok eq_refl eq_refl eq_refl
+    wrapper_binding_model wrapper_output_shape wrapper_body_for_call rho beta m HR) as (mf & HX & HRep & HF).
+  change (map (den rho (lay beta)) [XP 0 0; XP 0 0; XP 1 0]) with
+    [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0));
+     Vptr (blk beta 1) (Ptrofs.repr (bas beta 1 + 0))] in HX.
+  rewrite !Z.add_0_r in HX.
+  change (rep rho beta (firstn 2 (field_output_regs rho)) mf) in HRep.
+  change (rep rho beta (field_output_regs rho) mf) in HRep.
+  exists mf; split; [exact HX|]; split; [exact HRep|]; split; [apply field_output_loads; exact HRep|exact HF].
+Qed.
+
+Theorem eval_original_field_mul_wrapper_product rho beta m :
+  field_input_bounds rho -> rep rho beta field_mul_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef /\
+    rep rho beta (field_output_regs rho) mf /\ output_words beta (original_finish_words rho) mf /\
+    radix_value (original_finish_words rho) mod field_prime = (radix_value rho * radix_value (second_input rho)) mod field_prime /\
+    (forall i, (i < 5)%nat -> 0 <= Int64.unsigned (original_finish_words rho i) <
+      if Nat.eqb i 4 then 562949953421312 else 4503599627370496) /\
+    lframe (fun b ofs => ~ foot beta (map rshape field_mul_regs) b ofs) m mf.
+Proof.
+  intros HB HR; destruct (eval_original_field_mul_wrapper rho beta m HR) as (mf & HX & HRep & HO & HF).
+  exists mf; split; [exact HX|]; split; [exact HRep|]; split; [exact HO|];
+    split; [apply original_outputs_product; exact HB|]; split; [apply original_outputs_bounds; exact HB|exact HF].
+Qed.

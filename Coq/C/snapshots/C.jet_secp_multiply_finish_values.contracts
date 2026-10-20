@@ -1,0 +1,113 @@
+### C.jet_secp_multiply_finish_values.finish_base_c_den
+finish_base_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (c d : prod Integers.Int64.int Integers.Int64.int),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta (jet_secp_multiply_finish_state.finish_base_c_sy c d))
+         (finish_base_c_machine c d)
+### C.jet_secp_multiply_finish_values.finish_fold_c_den
+finish_fold_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (c d : prod Integers.Int64.int Integers.Int64.int) (t3 : Integers.Int64.int),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta
+            (jet_secp_multiply_finish_state.finish_fold_c_sy c d t3)) (finish_fold_c_machine c d t3)
+### C.jet_secp_multiply_finish_values.finish_final_c_den
+finish_final_c_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (c d : prod Integers.Int64.int Integers.Int64.int) (t3 : Integers.Int64.int),
+       @eq (prod Integers.Int64.int Integers.Int64.int)
+         (jet_secp_multiply_checkpoint_machine.pair_den rho beta
+            (jet_secp_multiply_finish_state.finish_final_c_sy c d t3)) (finish_final_c_machine c d t3)
+### C.jet_secp_multiply_finish_values.finish_r3_den
+finish_r3_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (c d : prod Integers.Int64.int Integers.Int64.int) (t3 : Integers.Int64.int),
+       @eq Values.val (jet_sx_expr.den rho beta (jet_secp_multiply_finish_state.finish_r3_sy c d t3))
+         (Values.Vlong (finish_r3_machine c d t3))
+### C.jet_secp_multiply_finish_values.finish_r4_den
+finish_r4_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (c d : prod Integers.Int64.int Integers.Int64.int) (t3 t4 : Integers.Int64.int),
+       @eq Values.val (jet_sx_expr.den rho beta (jet_secp_multiply_finish_state.finish_r4_sy c d t3 t4))
+         (Values.Vlong (finish_r4_machine c d t3 t4))
+### C.jet_secp_multiply_finish_values.finish_base_c_machine
+finish_base_c_machine =
+fun c d : prod Integers.Int64.int Integers.Int64.int =>
+jet_secp_multiply_checkpoint_machine.machine_accum c
+  (Integers.Int64.shl
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))))))
+     (Integers.Int64.repr (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+  (@fst Integers.Int64.int Integers.Int64.int d)
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments finish_base_c_machine c d
+### C.jet_secp_multiply_finish_values.finish_fold_c_machine
+finish_fold_c_machine =
+fun (c d : prod Integers.Int64.int Integers.Int64.int) (t3 : Integers.Int64.int) =>
+jet_secp_multiply_checkpoint_machine.machine_accum_word (finish_base_c_machine c d) t3
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : Integers.Int64.int), prod Integers.Int64.int Integers.Int64.int
+
+Arguments finish_fold_c_machine c d t3
+### C.jet_secp_multiply_finish_values.finish_final_c_machine
+finish_final_c_machine =
+fun (c d : prod Integers.Int64.int Integers.Int64.int) (t3 : Integers.Int64.int) =>
+jet_secp_multiply_checkpoint_machine.machine_shift52 (finish_fold_c_machine c d t3)
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : Integers.Int64.int), prod Integers.Int64.int Integers.Int64.int
+
+Arguments finish_final_c_machine c d t3
+### C.jet_secp_multiply_finish_values.finish_r3_machine
+finish_r3_machine =
+fun (c d : prod Integers.Int64.int Integers.Int64.int) (t3 : Integers.Int64.int) =>
+Integers.Int64.and (@fst Integers.Int64.int Integers.Int64.int (finish_fold_c_machine c d t3))
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))))
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments finish_r3_machine c d t3
+### C.jet_secp_multiply_finish_values.finish_r4_machine
+finish_r4_machine =
+fun (c d : prod Integers.Int64.int Integers.Int64.int) (t3 t4 : Integers.Int64.int) =>
+Integers.Int64.add (@fst Integers.Int64.int Integers.Int64.int (finish_final_c_machine c d t3)) t4
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), Integers.Int64.int
+
+Arguments finish_r4_machine c d t3 t4

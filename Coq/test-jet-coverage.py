@@ -44,6 +44,32 @@ def main():
         manifest = project / "C/jet_coverage.tsv"
         original = manifest.read_text()
         assert coverage.inventory() == rows
+        # Recovered proofs keep their exact complete public boundary. These
+        # mutations test bookkeeping only; real sources still require Coq.
+        for function in coverage.RECOVERED_CONTRACTS:
+            row = next(r for r in rows if r["function"] == function)
+            if not row["proof"]:
+                continue  # A future batch has not registered this approved boundary yet.
+            module, theorem = row["proof"].rsplit(".", 1)
+            target = project / (module.replace(".", "/") + ".v")
+            intact = target.read_text()
+            declaration = "Theorem " + theorem + " :"
+            start = intact.index(declaration)
+            prefix, tail = intact[:start], intact[start:]
+            variants = [tail.replace("f_" + function, "f_simplicity_verify", 1),
+                        tail.replace(declaration, declaration + " False ->", 1),
+                        tail.replace(".\nProof.", " -> True.\nProof.", 1)]
+            if "memcpy_model ->" in tail:
+                variants += [tail.replace("memcpy_model ->", "different_library_model ->", 1),
+                             tail.replace("memcpy_model ->", "", 1)]
+            if "beta_initialized" in tail:
+                variants.append(tail.replace("beta_initialized", "(fun _ => True)", 1))
+            for changed in variants:
+                assert changed != tail
+                target.write_text(prefix + changed)
+                rejects(coverage.inventory, "not a direct canonical jet theorem")
+            target.write_text(intact)
+        assert coverage.inventory() == rows
         # Regression for a contract merely occurring inside a weaker/vacuous
         # proposition. These are metadata tests, not compiled fake proofs.
         direct = project / "C/jet_constant_layout.v"

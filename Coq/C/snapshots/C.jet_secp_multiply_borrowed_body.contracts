@@ -1,0 +1,68 @@
+### C.jet_secp_multiply_borrowed_body.borrowed_stage
+borrowed_stage
+     : forall (fuel : nat) (ve : jet_sx_eval.venv) (st : jet_sx_eval.sstate) (stmt : Clight.statement)
+         (st' : jet_sx_eval.sstate)
+         (_ : @eq (option jet_sx_exec.res)
+                (jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+                   (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_multiply_run_run.field_table fuel ve
+                   (jet_secp_multiply_borrowed_transport.borrow_state (S O) st) stmt)
+                (@Some jet_sx_exec.res
+                   (jet_sx_exec.RDone (jet_secp_multiply_borrowed_transport.borrow_state (S O) st') jet_sx_exec.ONormal)))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_borrowed_region.borrow_at (S O) (jet_sx_eval.sregs st)) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st) le) (_ : jet_sx_eval.ematch beta ve e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m stmt Events.E0 le' mf
+                  ClightBigstep.Out_normal)
+               (and
+                  (jet_sx_state.rep rho beta
+                     (jet_borrowed_region.borrow_at (S O)
+                        (jet_sx_eval.sregs (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta st'))) mf)
+                  (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st') le')
+                     (and
+                        (jet_sx_eval.tmatch rho beta
+                           (jet_sx_eval.stemps (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta st')) le')
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape (jet_sx_eval.sregs st)) b ofs)) m mf))))))
+### C.jet_secp_multiply_borrowed_body.borrowed_original_body
+borrowed_original_body
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta
+                (jet_borrowed_region.borrow_at (S O)
+                   (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial)) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps jet_secp_multiply_checkpoint_prefix.prefix_initial) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner) Events.E0 le' mf ClightBigstep.Out_normal)
+               (and
+                  (jet_sx_state.rep rho beta
+                     (jet_borrowed_region.borrow_at (S O)
+                        (jet_sx_eval.sregs (jet_secp_multiply_finish_execute.original_finish_checkpoint rho))) mf)
+                  (and
+                     (jet_sx_eval.tmatch rho beta
+                        (jet_sx_eval.stemps (jet_secp_multiply_finish_execute.original_finish_checkpoint rho)) le')
+                     (jet_sx_mem.lframe
+                        (fun (b : Values.block) (ofs : BinNums.Z) =>
+                         not
+                           (jet_sx_state.foot beta
+                              (@List.map jet_sx_state.region
+                                 (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                 jet_sx_state.rshape
+                                 (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial)) b ofs)) m mf)))))

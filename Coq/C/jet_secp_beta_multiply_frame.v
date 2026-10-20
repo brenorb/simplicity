@@ -1,0 +1,98 @@
+(** Discharge the closed-callgraph premise for the original field multiplier;
+    recover full readonly framing, not just its five numeric word observations. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events Globalenvs.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_rep C.jet_sx_mem.
+Require Import C.jet_clight_readonly C.jet_clight_readonly_frame.
+Require Import C.jets_secp C.jet_secp_linkage C.jet_secp_fns.
+Require Import C.jet_secp_multiply_borrowed_call C.jet_secp_beta_global C.jet_secp_beta_inputs C.jet_clight_internal_frame.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition multiply_internal_table : list (ident * function) :=
+  [(_secp256k1_fe_mul, f_secp256k1_fe_mul);
+   (_secp256k1_fe_mul_inner, f_secp256k1_fe_mul_inner);
+   (_secp256k1_u128_mul, f_secp256k1_u128_mul);
+   (_secp256k1_u128_accum_mul, f_secp256k1_u128_accum_mul);
+   (_secp256k1_u128_accum_u64, f_secp256k1_u128_accum_u64);
+   (_secp256k1_u128_rshift, f_secp256k1_u128_rshift);
+   (_secp256k1_u128_to_u64, f_secp256k1_u128_to_u64);
+   (_secp256k1_umul128, f_secp256k1_umul128)].
+
+Lemma multiply_internal_table_correct : internal_table_ok secp_ge multiply_internal_table.
+Proof.
+  intros id fd HL; apply internal_lookup_in in HL.
+  cbn [multiply_internal_table In] in HL.
+  repeat destruct HL as [HE|HL]; try contradiction;
+    inversion HE; subst id fd; clear HE.
+  all: split.
+  all: try solve [apply secp_pure_ok; unfold secp_pure;
+    repeat first [left; reflexivity|right]].
+  all: split; timeout 10 vm_compute; reflexivity.
+Qed.
+Lemma multiply_internal_allowed : allowed_call multiply_internal_table (Internal f_secp256k1_fe_mul).
+Proof. exists _secp256k1_fe_mul, f_secp256k1_fe_mul; split; reflexivity. Qed.
+
+Theorem multiply_readonly_readback m args t mf result :
+  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul) args t mf result -> readonly_readback m mf.
+Proof.
+  intro HC; exact (proj2 (internal_exec_readback secp_ge multiply_internal_table multiply_internal_table_correct)
+    m (Internal f_secp256k1_fe_mul) args t mf result HC multiply_internal_allowed).
+Qed.
+
+Local Opaque beta_block secp_ge.
+Lemma beta_output_global x ba mf :
+  rep (beta_input_rho x) [(ba,0);(beta_block,0)] (borrowed_output_regs (beta_input_rho x)) mf ->
+  beta_global_rep mf.
+Proof.
+  intro HR; pose proof (rep_region _ _ _ mf 1 _ HR eq_refl) as HBR.
+  change (region_ok (beta_input_rho x) [(ba,0);(beta_block,0)] mf 1
+    (mkreg (u64_cells 0 [XL (beta_digits 0);XL (beta_digits 1);XL (beta_digits 2);
+      XL (beta_digits 3);XL (beta_digits 4)]) false None)) in HBR.
+  pose proof HBR as (_ & HV & _ & HC & _).
+  change (Mem.valid_block mf beta_block) in HV.
+  assert (HP : forall i, (i < 5)%nat ->
+    Mem.range_perm mf beta_block (8 * Z.of_nat i) (8 * Z.of_nat i + 8) Cur Readable).
+  { intros i HI.
+    assert (HN : nth_error [XL (beta_digits 0);XL (beta_digits 1);XL (beta_digits 2);
+      XL (beta_digits 3);XL (beta_digits 4)] i = Some (XL (beta_digits i))).
+    { destruct i as [|[|[|[|[|i]]]]]; try reflexivity; lia. }
+    pose proof (u64_cells_nth _ 0 i _ HN) as HCell.
+    pose proof (proj1 (Forall_forall _ _) HC _ HCell) as (_ & _ & HPerm & _).
+    change (Mem.range_perm mf beta_block (0+(0+8*Z.of_nat i)) (0+(0+8*Z.of_nat i)+8) Cur Readable) in HPerm.
+    rewrite !Z.add_0_l in HPerm; exact HPerm. }
+  split; [exact HV|]; split.
+  - intros ofs HO.
+    destruct (Z_lt_ge_dec ofs 8) as [H8|H8]; [apply (HP 0%nat ltac:(lia)); cbn; lia|].
+    destruct (Z_lt_ge_dec ofs 16) as [H16|H16]; [apply (HP 1%nat ltac:(lia)); cbn; lia|].
+    destruct (Z_lt_ge_dec ofs 24) as [H24|H24]; [apply (HP 2%nat ltac:(lia)); cbn; lia|].
+    destruct (Z_lt_ge_dec ofs 32) as [H32|H32]; [apply (HP 3%nat ltac:(lia)); cbn; lia|].
+    apply (HP 4%nat ltac:(lia)); cbn; lia.
+  - intros i w HNth.
+    assert (HI : (i < 5)%nat) by (rewrite <- beta_words_count; apply nth_error_Some; congruence).
+    assert (HN : nth_error [XL (beta_digits 0);XL (beta_digits 1);XL (beta_digits 2);
+      XL (beta_digits 3);XL (beta_digits 4)] i = Some (XL w)).
+    { destruct i as [|[|[|[|[|i]]]]]; cbn [beta_words nth_error] in HNth;
+        try lia; injection HNth as <-; reflexivity. }
+    pose proof (u64_cells_nth _ 0 i _ HN) as HCell.
+    pose proof (region_load _ _ _ _ _ _ _ _ HBR HCell) as HL.
+    change (Mem.load Mint64 mf beta_block (0+(0+8*Z.of_nat i)) = Some (Vlong w)) in HL.
+    rewrite !Z.add_0_l in HL; exact HL.
+Qed.
+
+Theorem beta_multiply_full_readonly_frame x ba m mf :
+  beta_initialized m ->
+  Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul)
+    [Vptr ba Ptrofs.zero;Vptr ba Ptrofs.zero;Vptr beta_block Ptrofs.zero] E0 mf Vundef ->
+  rep (beta_input_rho x) [(ba,0);(beta_block,0)] (borrowed_output_regs (beta_input_rho x)) mf ->
+  beta_initialized mf /\ lframe (fun block _ => block = beta_block) m mf.
+Proof.
+  intros [[HV [HP HL]] HB] HC HR.
+  pose proof (beta_output_global x ba mf HR) as HG.
+  assert (HBounds : readonly_region_bounds m beta_block 0 40) by exact HB.
+  pose proof (multiply_readonly_readback _ _ _ _ _ HC) as HBack.
+  pose proof (readonly_region_lframe m mf beta_block 0 40 HV HBounds (proj1 (proj2 HG)) HBack) as HF.
+  split; [|exact HF]; split; [exact HG|].
+  exact (readonly_bounds_transport m mf beta_block 0 40 HV HBounds (proj1 HBack) (proj1 (proj2 HG))).
+Qed.

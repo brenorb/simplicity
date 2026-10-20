@@ -1,0 +1,76 @@
+### C.jet_clight_internal_preserve.preserved_refl
+preserved_refl
+     : forall m : Memory.Mem.mem, readonly_preserved m m
+### C.jet_clight_internal_preserve.preserved_trans
+preserved_trans
+     : forall (m mi mf : Memory.Mem.mem) (_ : readonly_preserved m mi) (_ : readonly_preserved mi mf),
+       readonly_preserved m mf
+### C.jet_clight_internal_preserve.store_preserved
+store_preserved
+     : forall (chunk : AST.memory_chunk) (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z)
+         (v : Values.val) (mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.store chunk m b ofs v) (@Some Memory.Mem.mem mf)),
+       readonly_preserved m mf
+### C.jet_clight_internal_preserve.storebytes_preserved
+storebytes_preserved
+     : forall (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (bytes : list Memdata.memval)
+         (mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.storebytes m b ofs bytes) (@Some Memory.Mem.mem mf)),
+       readonly_preserved m mf
+### C.jet_clight_internal_preserve.alloc_preserved
+alloc_preserved
+     : forall (m : Memory.Mem.mem) (lo hi : BinNums.Z) (mf : Memory.Mem.mem') (fresh : Values.block)
+         (_ : @eq (prod Memory.Mem.mem' Values.block) (Memory.Mem.alloc m lo hi)
+                (@pair Memory.Mem.mem' Values.block mf fresh)), readonly_preserved m mf
+### C.jet_clight_internal_preserve.free_preserved
+free_preserved
+     : forall (m : Memory.Mem.mem) (b : Values.block) (lo hi : BinNums.Z) (mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free m b lo hi) (@Some Memory.Mem.mem mf)),
+       readonly_preserved m mf
+### C.jet_clight_internal_preserve.freelist_preserved
+freelist_preserved
+     : forall (blocks : list (prod (prod Values.block BinNums.Z) BinNums.Z)) (m mf : Memory.Mem.mem)
+         (_ : @eq (option Memory.Mem.mem) (Memory.Mem.free_list m blocks) (@Some Memory.Mem.mem mf)),
+       readonly_preserved m mf
+### C.jet_clight_internal_preserve.alloc_variables_preserved
+alloc_variables_preserved
+     : forall (ge : Clight.genv) (e : Clight.env) (m : Memory.Mem.mem) (vars : list (prod AST.ident Ctypes.type))
+         (e' : Clight.env) (m' : Memory.Mem.mem) (_ : Clight.alloc_variables ge e m vars e' m'),
+       readonly_preserved m m'
+### C.jet_clight_internal_preserve.entry_preserved
+entry_preserved
+     : forall (ge : Clight.genv) (f : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (m' : Memory.Mem.mem) (_ : Clight.function_entry2 ge f args m e le m'),
+       readonly_preserved m m'
+### C.jet_clight_internal_preserve.assign_preserved
+assign_preserved
+     : forall (ce : Ctypes.composite_env) (ty : Ctypes.type) (m : Memory.Mem.mem) (b : Values.block)
+         (ofs : Integers.Ptrofs.int) (bf : Ctypes.bitfield) (v : Values.val) (m' : Memory.Mem.mem)
+         (_ : Clight.assign_loc ce ty m b ofs bf v m'), readonly_preserved m m'
+### C.jet_clight_internal_preserve.internal_exec_preserved
+internal_exec_preserved
+     : forall (ge : Clight.genv) (table : list (prod AST.ident Clight.function))
+         (_ : jet_clight_internal_frame.internal_table_ok ge table),
+       and
+         (forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (stmt : Clight.statement)
+            (t : Events.trace) (le' : Clight.temp_env) (m' : Memory.Mem.mem) (out : ClightBigstep.outcome)
+            (_ : ClightBigstep.Clight2.exec_stmt ge e le m stmt t le' m' out)
+            (_ : jet_clight_internal_frame.plain_env e)
+            (_ : @eq bool (jet_clight_internal_frame.closed_stmtb table stmt) true), readonly_preserved m m')
+         (forall (m : Memory.Mem.mem) (f : Clight.fundef) (args : list Values.val) (t : Events.trace)
+            (m' : Memory.Mem.mem) (result : Values.val)
+            (_ : ClightBigstep.Clight2.eval_funcall ge m f args t m' result)
+            (_ : jet_clight_internal_frame.allowed_call table f), readonly_preserved m m')
+### C.jet_clight_internal_preserve.old_readonly
+old_readonly =
+fun (m : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) =>
+and (Memory.Mem.valid_block m b) (not (Memory.Mem.perm m b ofs Memtype.Max Memtype.Writable))
+     : forall (_ : Memory.Mem.mem) (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments old_readonly m b ofs%Z_scope
+### C.jet_clight_internal_preserve.readonly_preserved
+readonly_preserved =
+fun m mf : Memory.Mem.mem => and (jet_clight_forward.mem_forward m mf) (Memory.Mem.unchanged_on (old_readonly m) m mf)
+     : forall (_ : Memory.Mem.mem) (_ : Memory.Mem.mem), Prop
+
+Arguments readonly_preserved m mf

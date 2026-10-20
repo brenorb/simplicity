@@ -1,0 +1,353 @@
+### C.jet_secp_multiply_second_state.through_second_suffix_source
+through_second_suffix_source
+     : @eq Clight.statement
+         (jet_secp_statement_prefix.statement_sequence
+            (@List.firstn Clight.statement
+               (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))
+               jet_secp_multiply_checkpoint_prefix.mul_spine) after_second)
+         (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner)
+### C.jet_secp_multiply_second_state.first_second_source
+first_second_source
+     : @eq Clight.statement
+         (jet_secp_statement_prefix.statement_sequence jet_secp_multiply_checkpoint_prefix.prefix_spine
+            second_statement) through_second
+### C.jet_secp_multiply_second_state.second_completes
+second_completes
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq bool
+         match second_run digits c d t3 return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_multiply_second_state.second_run_eq
+second_run_eq
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (option jet_sx_exec.res) (second_run digits c d t3)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone (second_state digits c d t3) jet_sx_exec.ONormal))
+### C.jet_secp_multiply_second_state.second_c_unchanged
+second_c_unchanged
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (option jet_sx_state.region)
+         (@List.nth_error jet_sx_state.region (jet_sx_eval.sregs (second_state digits c d t3)) (S (S O)))
+         (@Some jet_sx_state.region
+            (jet_sx_state.mkreg
+               (jet_sx_rep.u64_cells BinNums.Z0
+                  (@cons jet_sx_expr.sx (jet_sx_expr.XL (@fst Integers.Int64.int Integers.Int64.int c))
+                     (@cons jet_sx_expr.sx (jet_sx_expr.XL (@snd Integers.Int64.int Integers.Int64.int c))
+                        (@nil jet_sx_expr.sx)))) true
+               (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_multiply_second_state.second_d_low
+second_d_low
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs (second_state digits c d t3)) (S (S (S O))) BinNums.Z0
+            Ctypesdefs.tulong) (@Some jet_sx_expr.sx (@fst jet_sx_expr.sx jet_sx_expr.sx (second_final_sy digits c d)))
+### C.jet_secp_multiply_second_state.second_d_high
+second_d_high
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs (second_state digits c d t3)) (S (S (S O)))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (@snd jet_sx_expr.sx jet_sx_expr.sx (second_final_sy digits c d)))
+### C.jet_secp_multiply_second_state.second_tx
+second_tx
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._tx (jet_sx_eval.stemps (second_state digits c d t3)))
+         (@Some jet_sx_expr.sx (second_tx_sy digits c d))
+### C.jet_secp_multiply_second_state.second_t4
+second_t4
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._t4 (jet_sx_eval.stemps (second_state digits c d t3)))
+         (@Some jet_sx_expr.sx (second_t4_sy digits c d))
+### C.jet_secp_multiply_second_state.second_t3_preserved
+second_t3_preserved
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 : Integers.Int64.int),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx jets_secp._t3 (jet_sx_eval.stemps (second_state digits c d t3)))
+         (@Some jet_sx_expr.sx (jet_sx_expr.XL t3))
+### C.jet_secp_multiply_second_state.second_spine
+second_spine =
+@List.firstn Clight.statement (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S O))))))))))))))))))
+  (@List.skipn Clight.statement
+     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+     jet_secp_multiply_checkpoint_prefix.mul_spine)
+     : list Clight.statement
+### C.jet_secp_multiply_second_state.second_statement
+second_statement = jet_secp_statement_prefix.statement_sequence second_spine Clight.Sskip
+     : Clight.statement
+### C.jet_secp_multiply_second_state.through_second
+through_second =
+jet_secp_statement_prefix.statement_sequence
+  (@List.firstn Clight.statement
+     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+     jet_secp_multiply_checkpoint_prefix.mul_spine) Clight.Sskip
+     : Clight.statement
+### C.jet_secp_multiply_second_state.after_second
+after_second =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement
+     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+     jet_secp_multiply_checkpoint_prefix.mul_spine) jet_secp_multiply_checkpoint_prefix.mul_last
+     : Clight.statement
+### C.jet_secp_multiply_second_state.second_regs
+second_regs =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells BinNums.Z0
+        (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits O))
+           (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S O)))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S O))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S O)))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S O)))))) (@nil jet_sx_expr.sx))))))) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg
+        (jet_sx_rep.u64_cells BinNums.Z0
+           (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S O)))))))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S O))))))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S O)))))))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S O))))))))))
+                       (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S (S O)))))))))))
+                          (@nil jet_sx_expr.sx))))))) true
+        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     (@cons jet_sx_state.region
+        (jet_sx_state.mkreg
+           (jet_sx_rep.u64_cells BinNums.Z0
+              (@cons jet_sx_expr.sx (jet_sx_expr.XL (@fst Integers.Int64.int Integers.Int64.int c))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (@snd Integers.Int64.int Integers.Int64.int c))
+                    (@nil jet_sx_expr.sx)))) true
+           (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+        (@cons jet_sx_state.region
+           (jet_sx_state.mkreg
+              (jet_sx_rep.u64_cells BinNums.Z0
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (@fst Integers.Int64.int Integers.Int64.int d))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XL (@snd Integers.Int64.int Integers.Int64.int d))
+                       (@nil jet_sx_expr.sx)))) true
+              (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+           (@nil jet_sx_state.region))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int), list jet_sx_state.region
+
+Arguments second_regs digits%function_scope c d
+### C.jet_secp_multiply_second_state.second_temps
+second_temps =
+fun (digits : forall _ : nat, Integers.Int64.int) (t3 : Integers.Int64.int) =>
+@Maps.PTree.set jet_sx_expr.sx jets_secp._r (jet_sx_expr.XP O BinNums.Z0)
+  (@Maps.PTree.set jet_sx_expr.sx jets_secp._a (jet_sx_expr.XP O BinNums.Z0)
+     (@Maps.PTree.set jet_sx_expr.sx jets_secp._b (jet_sx_expr.XP (S O) BinNums.Z0)
+        (@Maps.PTree.set jet_sx_expr.sx jets_secp._M
+           (jet_sx_expr.XLc
+              (Integers.Int64.repr
+                 (BinNums.Zpos
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))
+           (@Maps.PTree.set jet_sx_expr.sx jets_secp._R
+              (jet_sx_expr.XLc
+                 (Integers.Int64.repr
+                    (BinNums.Zpos
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xO ...))))))))))))))))))
+              (@Maps.PTree.set jet_sx_expr.sx jets_secp._a0 (jet_sx_expr.XL (digits O))
+                 (@Maps.PTree.set jet_sx_expr.sx jets_secp._a1 (jet_sx_expr.XL (digits (S O)))
+                    (@Maps.PTree.set jet_sx_expr.sx jets_secp._a2 (jet_sx_expr.XL (digits (S (S O))))
+                       (@Maps.PTree.set jet_sx_expr.sx jets_secp._a3 (jet_sx_expr.XL (digits (S (S (S O)))))
+                          (@Maps.PTree.set jet_sx_expr.sx jets_secp._a4 (jet_sx_expr.XL (digits (S (S (S (S O))))))
+                             (@Maps.PTree.set jet_sx_expr.sx jets_secp._t3 (jet_sx_expr.XL t3)
+                                (Maps.PTree.empty jet_sx_expr.sx)))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), Maps.PTree.tree jet_sx_expr.sx
+
+Arguments second_temps digits%function_scope t3
+### C.jet_secp_multiply_second_state.second_initial
+second_initial =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+  (t3 : Integers.Int64.int) =>
+jet_sx_eval.mkst (second_temps digits t3) (second_regs digits c d) (@nil jet_sx_eval.event)
+  (S (S (S (S (S (S (S (S (S (S O))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int), jet_sx_eval.sstate
+
+Arguments second_initial digits%function_scope c d t3
+### C.jet_secp_multiply_second_state.second_run
+second_run =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+  (t3 : Integers.Int64.int) =>
+jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_multiply_run_run.field_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated)
+  (second_initial digits c d t3) second_statement
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int), option jet_sx_exec.res
+
+Arguments second_run digits%function_scope c d t3
+### C.jet_secp_multiply_second_state.second_state
+second_state =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+  (t3 : Integers.Int64.int) =>
+match second_run digits c d t3 return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ => second_initial digits c d t3
+    end
+| None => second_initial digits c d t3
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int), jet_sx_eval.sstate
+
+Arguments second_state digits%function_scope c d t3
+### C.jet_secp_multiply_second_state.second_fold_sy
+second_fold_sy =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+jet_secp_multiply_checkpoint_ops.sx_accum
+  (jet_secp_multiply_checkpoint_ops.sx_accum
+     (jet_secp_multiply_checkpoint_ops.sx_accum
+        (jet_secp_multiply_checkpoint_ops.sx_accum
+           (jet_secp_multiply_checkpoint_ops.sx_accum
+              (jet_secp_multiply_checkpoint_ops.sx_accum
+                 (@pair jet_sx_expr.sx jet_sx_expr.sx (jet_sx_expr.XL (@fst Integers.Int64.int Integers.Int64.int d))
+                    (jet_sx_expr.XL (@snd Integers.Int64.int Integers.Int64.int d))) (jet_sx_expr.XL (digits O))
+                 (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S (S O)))))))))))) (jet_sx_expr.XL (digits (S O)))
+              (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S O))))))))))) (jet_sx_expr.XL (digits (S (S O))))
+           (jet_sx_expr.XL (digits (S (S (S (S (S (S (S O)))))))))) (jet_sx_expr.XL (digits (S (S (S O)))))
+        (jet_sx_expr.XL (digits (S (S (S (S (S (S O))))))))) (jet_sx_expr.XL (digits (S (S (S (S O))))))
+     (jet_sx_expr.XL (digits (S (S (S (S (S O))))))))
+  (jet_sx_expr.XLsh jet_sx_expr.Hshl
+     (jet_sx_expr.XLc
+        (Integers.Int64.repr
+           (BinNums.Zpos
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xI
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))))))))))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+  (jet_sx_expr.XL (@fst Integers.Int64.int Integers.Int64.int c))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int), prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments second_fold_sy digits%function_scope c d
+### C.jet_secp_multiply_second_state.second_final_sy
+second_final_sy =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+jet_secp_multiply_checkpoint_ops.sx_shift52 (second_fold_sy digits c d)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int), prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments second_final_sy digits%function_scope c d
+### C.jet_secp_multiply_second_state.second_t4_before
+second_t4_before =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+jet_sx_expr.XLb jet_sx_expr.Band (@fst jet_sx_expr.sx jet_sx_expr.sx (second_fold_sy digits c d))
+  (jet_sx_expr.XLc
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int), jet_sx_expr.sx
+
+Arguments second_t4_before digits%function_scope c d
+### C.jet_secp_multiply_second_state.second_tx_sy
+second_tx_sy =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+jet_sx_expr.XLsh jet_sx_expr.Hshru (second_t4_before digits c d)
+  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int), jet_sx_expr.sx
+
+Arguments second_tx_sy digits%function_scope c d
+### C.jet_secp_multiply_second_state.second_t4_sy
+second_t4_sy =
+fun (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+jet_sx_expr.XLb jet_sx_expr.Band (second_t4_before digits c d)
+  (jet_sx_expr.XLsh jet_sx_expr.Hshru
+     (jet_sx_expr.XLc
+        (Integers.Int64.repr
+           (BinNums.Zpos
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))))
+     (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int), jet_sx_expr.sx
+
+Arguments second_t4_sy digits%function_scope c d

@@ -1,0 +1,40 @@
+(** Full existing initialized public frame/memory contract; Word256 unrestricted. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import AST Ctypes Clight ClightBigstep Integers Values Memory Events.
+Require Import Simplicity.Ty Simplicity.Word Simplicity.Translate.
+Require Simplicity.Alg.
+Require Import C.jet_frame_layout C.jet_input_layout C.jet_write_layout C.jet_output_layout
+  C.jet_encoding C.jet_frame_inv C.jet_sx_mem C.jet_secp_frame C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_initialized_contract.
+Require Import C.jet_secp_beta_global C.jet_secp_beta_spec C.jet_secp_beta_public.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+Local Opaque secp_ge beta_block literal_fe_multiply_beta Simplicity.Translate.encode.
+
+Theorem fe_multiply_beta_initialized_local_spec :
+  secp_jet_initialized_local_spec beta_initialized f_simplicity_fe_multiply_beta (Word 8) (Word 8)
+    (@literal_fe_multiply_beta Alg.CoreFunSem).
+Proof.
+  intros env m bd dbase bs sbase bi bw edge outedge cursor rc a
+    HG HBase HAlign HSource HCursor HMax HInput HOutput.
+  change (rc + 256 <= Int64.max_unsigned) in HMax.
+  change (write_frame_at m bd dbase bw outedge cursor 256) in HOutput.
+  rewrite encode_word in HInput.
+  destruct (eval_public_beta env m bd dbase bs sbase bw outedge cursor 256 bi edge rc a
+    HG HOutput ltac:(lia) HBase HAlign HSource HInput HCursor HMax)
+    as (mf & HCall & HFinal & HFrame & HGF).
+  destruct HFinal as [HV [HF [HN [[HCells [HPrefix [HFields [HLoads HPerms]]]] Hw]]]].
+  rewrite encode_length in HFields, HLoads.
+  exists mf; split; [exact HCall|]; split; [exact HCells|]; split; [exact HPrefix|];
+    split; [exact HFields|]; split; [|exact HGF].
+  intros chunk b ofs HValid HFrameOther HOutputOther.
+  destruct (Pos.eq_dec b bd) as [HD|HD];
+    [apply HLoads; [split; [left; exact HD|exact HValid]|assumption|assumption]|].
+  destruct (Pos.eq_dec b bw) as [HW|HW];
+    [apply HLoads; [split; [right; left; exact HW|exact HValid]|assumption|assumption]|].
+  destruct (Pos.eq_dec b bi) as [HI|HI];
+    [apply HLoads; [split; [right; right; exact HI|exact HValid]|assumption|assumption]|].
+  apply (proj1 HFrame); [exact HValid|]; intros pos HPos.
+  unfold extA, fext; intros [[H|[H|H]] _]; contradiction.
+Qed.

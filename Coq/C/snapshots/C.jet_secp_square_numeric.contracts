@@ -1,0 +1,84 @@
+### C.jet_secp_square_numeric.square_output_den
+square_output_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (_ : jet_secp_square_columns.square_input_bounds rho) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq Values.val
+         (jet_sx_expr.den rho beta
+            (@List.nth jet_sx_expr.sx i jet_secp_square_execution.square_limbs (jet_sx_expr.XLv O)))
+         (Values.Vlong (square_words rho i))
+### C.jet_secp_square_numeric.diagonal_radix
+diagonal_radix
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (jet_secp_square_columns.diagonal rho))
+         (jet_secp_multiply_finish_product.radix_value rho)
+### C.jet_secp_square_numeric.diagonal_second_radix
+diagonal_second_radix
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z
+         (jet_secp_multiply_finish_product.radix_value
+            (jet_secp_multiply_finish_product.second_input (jet_secp_square_columns.diagonal rho)))
+         (jet_secp_multiply_finish_product.radix_value rho)
+### C.jet_secp_square_numeric.square_output_numeric
+square_output_numeric
+     : forall (rho : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds rho),
+       @eq BinNums.Z
+         (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value (square_words rho))
+            jet_secp_multiply_checkpoint_columns.field_prime)
+         (BinInt.Z.modulo
+            (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value rho)
+               (jet_secp_multiply_finish_product.radix_value rho)) jet_secp_multiply_checkpoint_columns.field_prime)
+### C.jet_secp_square_numeric.square_output_bounds
+square_output_bounds
+     : forall (rho : forall _ : nat, Integers.Int64.int) (_ : jet_secp_square_columns.square_input_bounds rho)
+         (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned (square_words rho i)))
+         (BinInt.Z.lt (Integers.Int64.unsigned (square_words rho i))
+            match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+            | true =>
+                BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))
+            | false =>
+                BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO
+                                                                  (BinNums.xO
+                                                                     (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))
+            end)
+### C.jet_secp_square_numeric.square_words
+square_words =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_multiply_finish_execute.original_finish_words (jet_secp_square_columns.diagonal rho)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments square_words rho%function_scope n%nat_scope

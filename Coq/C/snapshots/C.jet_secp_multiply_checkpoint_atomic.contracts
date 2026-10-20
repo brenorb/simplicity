@@ -1,0 +1,86 @@
+### C.jet_secp_multiply_checkpoint_atomic.atomic_sx_den
+atomic_sx_den
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (x : jet_sx_expr.sx),
+       @eq Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) (atomic_sx rho beta x))
+         (jet_sx_expr.den rho (jet_sx_state.lay beta) x)
+### C.jet_secp_multiply_checkpoint_atomic.atomic_sx_xp
+atomic_sx_xp
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (r : nat)
+         (x : jet_sx_expr.sx) (_ : @eq bool (jet_sx_state.xp_le r x) true),
+       @eq bool (jet_sx_state.xp_le r (atomic_sx rho beta x)) true
+### C.jet_secp_multiply_checkpoint_atomic.atomic_region
+atomic_region
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (reg : jet_sx_state.region) (_ : jet_sx_state.region_ok rho beta m r reg),
+       jet_sx_state.region_ok rho beta m r (jet_sx_revalue_cells.revalue_region (atomic_sx rho beta) reg)
+### C.jet_secp_multiply_checkpoint_atomic.atomic_regs_shape
+atomic_regs_shape
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (regs : list jet_sx_state.region),
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (atomic_regs rho beta regs))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape regs)
+### C.jet_secp_multiply_checkpoint_atomic.atomic_rep
+atomic_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (regs : list jet_sx_state.region)
+         (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta regs m),
+       jet_sx_state.rep rho beta (atomic_regs rho beta regs) m
+### C.jet_secp_multiply_checkpoint_atomic.atomic_tmatch
+atomic_tmatch
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (ts : Maps.PTree.t jet_sx_expr.sx) (le : Clight.temp_env) (_ : jet_sx_eval.tmatch rho beta ts le),
+       jet_sx_eval.tmatch rho beta (atomic_temps rho beta ts) le
+### C.jet_secp_multiply_checkpoint_atomic.atomic_checkpoint
+atomic_checkpoint
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (st : jet_sx_eval.sstate)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs st) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st) le),
+       and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (atomic_state rho beta st)) m)
+         (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (atomic_state rho beta st)) le)
+            (and
+               (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                  (@List.map jet_sx_state.region
+                     (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                     (jet_sx_eval.sregs (atomic_state rho beta st)))
+                  (@List.map jet_sx_state.region
+                     (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                     (jet_sx_eval.sregs st)))
+               (and (@eq (list jet_sx_eval.event) (jet_sx_eval.slog (atomic_state rho beta st)) (jet_sx_eval.slog st))
+                  (@eq nat (jet_sx_eval.snv (atomic_state rho beta st)) (jet_sx_eval.snv st)))))
+### C.jet_secp_multiply_checkpoint_atomic.atomic_sx
+atomic_sx =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (x : jet_sx_expr.sx) =>
+match jet_sx_expr.isk jet_sx_expr.KL x return jet_sx_expr.sx with
+| true => jet_sx_revalue_cells.revalue_u64 rho beta x
+| false => x
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments atomic_sx rho%function_scope beta x
+### C.jet_secp_multiply_checkpoint_atomic.atomic_regs
+atomic_regs =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (regs : list jet_sx_state.region) =>
+@List.map jet_sx_state.region jet_sx_state.region (jet_sx_revalue_cells.revalue_region (atomic_sx rho beta)) regs
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : list jet_sx_state.region),
+       list jet_sx_state.region
+
+Arguments atomic_regs rho%function_scope beta regs%list_scope
+### C.jet_secp_multiply_checkpoint_atomic.atomic_temps
+atomic_temps =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (ts : Maps.PTree.tree jet_sx_expr.sx) =>
+@Maps.PTree.map jet_sx_expr.sx jet_sx_expr.sx (fun (_ : BinNums.positive) (x : jet_sx_expr.sx) => atomic_sx rho beta x)
+  ts
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : Maps.PTree.tree jet_sx_expr.sx),
+       Maps.PTree.tree jet_sx_expr.sx
+
+Arguments atomic_temps rho%function_scope beta ts
+### C.jet_secp_multiply_checkpoint_atomic.atomic_state
+atomic_state =
+fun (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (st : jet_sx_eval.sstate) =>
+jet_sx_eval.mkst (atomic_temps rho beta (jet_sx_eval.stemps st)) (atomic_regs rho beta (jet_sx_eval.sregs st))
+  (jet_sx_eval.slog st) (jet_sx_eval.snv st)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_state.layout) (_ : jet_sx_eval.sstate),
+       jet_sx_eval.sstate
+
+Arguments atomic_state rho%function_scope beta st

@@ -1,0 +1,82 @@
+### C.jet_secp_beta_inputs.beta_mixed_left
+beta_mixed_left
+     : forall (rho : forall _ : nat, Integers.Int64.int) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       @eq Integers.Int64.int (beta_mixed_rho rho i) (rho i)
+### C.jet_secp_beta_inputs.beta_mixed_right
+beta_mixed_right
+     : forall (rho : forall _ : nat, Integers.Int64.int) (i : nat),
+       @eq Integers.Int64.int (beta_mixed_rho rho (Nat.add i (S (S (S (S (S O)))))))
+         (jet_secp_beta_global.beta_digits i)
+### C.jet_secp_beta_inputs.beta_rhs_nth
+beta_rhs_nth
+     : forall (i : nat) (x : jet_sx_expr.sx)
+         (_ : @eq (option jet_sx_expr.sx)
+                (@List.nth_error jet_sx_expr.sx (jet_secp_fe_nv.vars5 (S (S (S (S (S O)))))) i)
+                (@Some jet_sx_expr.sx x)),
+       and (lt i (S (S (S (S (S O)))))) (@eq jet_sx_expr.sx x (jet_sx_expr.XLv (Nat.add i (S (S (S (S (S O))))))))
+### C.jet_secp_beta_inputs.beta_borrowed_region
+beta_borrowed_region
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat)
+         (_ : @eq (prod Values.block BinNums.Z) (jet_sx_state.lay layout r)
+                (@pair Values.block BinNums.Z jet_secp_beta_global.beta_block BinNums.Z0))
+         (_ : jet_secp_beta_global.beta_global_rep m),
+       jet_sx_state.region_ok (beta_mixed_rho rho) layout m r
+         (jet_borrowed_region.borrowed_region
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 (jet_secp_fe_nv.vars5 (S (S (S (S (S O))))))) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_beta_inputs.beta_not_freeable
+beta_not_freeable
+     : forall (m : Memory.Mem.mem) (ba : Values.block) (_ : jet_secp_beta_global.beta_readonly_bounds m)
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable), not (@eq Values.block ba jet_secp_beta_global.beta_block)
+### C.jet_secp_beta_inputs.beta_inputs_from_storage
+beta_inputs_from_storage
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (m : Memory.Mem.mem)
+         (ba : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m ba BinNums.Z0
+                (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                   (jet_secp_fe_math.fe_limbs_of (jet_secp_multiply_input_input.normalized_value x))))
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable) (_ : not (@eq Values.block ba jet_secp_beta_global.beta_block))
+         (_ : jet_secp_beta_global.beta_global_rep m),
+       jet_sx_state.rep (beta_input_rho x)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+            (@cons (prod Values.block BinNums.Z)
+               (@pair Values.block BinNums.Z jet_secp_beta_global.beta_block BinNums.Z0)
+               (@nil (prod Values.block BinNums.Z)))) jet_secp_multiply_borrowed_call.borrowed_mul_regs m
+### C.jet_secp_beta_inputs.beta_input_bounds
+beta_input_bounds
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       jet_secp_multiply_first_arithmetic.field_input_bounds (beta_input_rho x)
+### C.jet_secp_beta_inputs.beta_input_left_value
+beta_input_left_value
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z (jet_secp_multiply_finish_product.radix_value (beta_input_rho x))
+         (jet_secp_multiply_input_input.normalized_value x)
+### C.jet_secp_beta_inputs.beta_input_right_value
+beta_input_right_value
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (jet_secp_multiply_finish_product.radix_value
+            (jet_secp_multiply_finish_product.second_input (beta_input_rho x))) jet_secp_beta_global.beta_value
+### C.jet_secp_beta_inputs.beta_mixed_rho
+beta_mixed_rho =
+fun (rho : forall _ : nat, Integers.Int64.int) (i : nat) =>
+match PeanoNat.Nat.ltb i (S (S (S (S (S O))))) return Integers.Int64.int with
+| true => rho i
+| false => jet_secp_beta_global.beta_digits (Nat.sub i (S (S (S (S (S O))))))
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments beta_mixed_rho rho%function_scope i%nat_scope
+### C.jet_secp_beta_inputs.beta_input_rho
+beta_input_rho =
+fun x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))) =>
+beta_mixed_rho (jet_secp_b32_exec.limb_rho (jet_secp_multiply_input_input.normalized_value x))
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : nat), Integers.Int64.int
+
+Arguments beta_input_rho x i%nat_scope

@@ -1,0 +1,60 @@
+(** Compose all original statement heads through the first r[0] store/shift. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_secp_linkage.
+Require Import C.jet_secp_statement_prefix.
+Require Import C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic C.jet_secp_multiply_checkpoint_bridge.
+Require Import C.jet_secp_multiply_second_state C.jet_secp_multiply_second_machine C.jet_secp_multiply_second_compose.
+Require Import C.jet_secp_multiply_third_state C.jet_secp_multiply_third_entry C.jet_secp_multiply_third_values C.jet_secp_multiply_third_machine.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma third_initial_shape digits c d t3 t4 tx :
+  map rshape (sregs (third_initial digits c d t3 t4 tx)) = map rshape (sregs prefix_initial).
+Proof. reflexivity. Qed.
+Definition composed_third_state rho := third_state rho (first_final_c_machine rho)
+  (second_final_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+  (first_t3_machine rho) (second_t4_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+  (second_tx_machine rho (first_final_c_machine rho) (first_final_d_machine rho)).
+Definition composed_third_observations rho beta le m := third_observations rho
+  (second_final_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+  (first_t3_machine rho) (second_t4_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+  (second_tx_machine rho (first_final_c_machine rho) (first_final_d_machine rho)) beta le m.
+
+Local Opaque xstmt prefix_initial second_state third_state.
+Theorem exec_original_through_third rho beta e le m :
+  rep rho beta (sregs prefix_initial) m -> tmatch rho beta (stemps prefix_initial) le ->
+  ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m through_third E0 le' mf Out_normal /\
+    composed_third_observations rho beta le' mf /\
+    rep rho beta (sregs (atomic_state rho beta (composed_third_state rho))) mf /\
+    tmatch rho beta (stemps (atomic_state rho beta (composed_third_state rho))) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs prefix_initial)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (exec_original_through_second rho beta e le m HR HT HE)
+    as (le1 & m1 & HX1 & HM1 & HR1 & HT1 & HF1).
+  assert (HR2 : rep rho beta (sregs (third_initial rho (first_final_c_machine rho)
+      (second_final_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+      (first_t3_machine rho) (second_t4_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+      (second_tx_machine rho (first_final_c_machine rho) (first_final_d_machine rho)))) m1).
+  { change (rep rho beta (C.jet_secp_multiply_second_state.second_regs rho (first_final_c_machine rho)
+      (second_final_machine rho (first_final_c_machine rho) (first_final_d_machine rho))) m1).
+    rewrite <- (second_atomic_regs_exact rho beta rho (first_final_c_machine rho) (first_final_d_machine rho) (first_t3_machine rho)); exact HR1. }
+  assert (HT2 : tmatch rho beta (stemps (third_initial rho (first_final_c_machine rho)
+      (second_final_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+      (first_t3_machine rho) (second_t4_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+      (second_tx_machine rho (first_final_c_machine rho) (first_final_d_machine rho)))) le1).
+  { apply second_to_third_tmatch; exact HT1. }
+  destruct (exec_third_machine_atomic rho (first_final_c_machine rho)
+      (second_final_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+      (first_t3_machine rho) (second_t4_machine rho (first_final_c_machine rho) (first_final_d_machine rho))
+      (second_tx_machine rho (first_final_c_machine rho) (first_final_d_machine rho)) rho beta e le1 m1 HR2 HT2 HE)
+    as (le2 & m2 & HX2 & HM2 & HR3 & HT3 & HF2).
+  exists le2, m2; split.
+  - rewrite <- second_third_source.
+    eapply exec_statement_prefix_then_last; [exact HX1|exact HX2].
+  - split; [exact HM2|]; split; [exact HR3|]; split; [exact HT3|].
+    eapply lframe_trans; [exact HF1|]. rewrite third_initial_shape in HF2; exact HF2.
+Qed.

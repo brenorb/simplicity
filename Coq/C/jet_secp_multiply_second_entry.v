@@ -1,0 +1,91 @@
+(** Derive the next original slice's entry from the actual previous state. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs Maps Values Memory.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_sx_rep C.jet_sx_revalue_cells.
+Require Import C.jets_secp C.jet_secp_multiply_run_run.
+Require Import C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic C.jet_secp_multiply_checkpoint_bridge C.jet_secp_multiply_checkpoint_machine.
+Require Import C.jet_secp_multiply_second_state C.jet_secp_multiply_second_temps.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma first_regions_exact : sregs prefix_state =
+  [mkreg (u64_cells 0 [XLv 0; XLv 1; XLv 2; XLv 3; XLv 4]) true (Some 40);
+   mkreg (u64_cells 0 [XLv 5; XLv 6; XLv 7; XLv 8; XLv 9]) true (Some 40);
+   mkreg (u64_cells 0 [fst first_final_c; snd first_final_c]) true (Some 16);
+   mkreg (u64_cells 0 [fst first_final_d; snd first_final_d]) true (Some 16)].
+Proof. Timeout 10 reflexivity. Qed.
+
+Lemma atomic_values rho beta xs ys :
+  forallb (isk KL) xs = true -> map (den rho (lay beta)) xs = map Vlong ys ->
+  map (atomic_sx rho beta) xs = map XL ys.
+Proof.
+  intros HK HM; rewrite <- (revalue_u64_machine_map rho beta xs ys HM).
+  apply map_ext_in; intros x HX; unfold atomic_sx.
+  rewrite forallb_forall in HK; rewrite (HK x HX); reflexivity.
+Qed.
+
+Definition first_live_bindings : list (ident * sx) :=
+  [(_r, XP 0 0); (_a, XP 0 0); (_b, XP 1 0);
+   (_M, XLc (Int64.repr 4503599627370495)); (_R, XLc (Int64.repr 68719492368));
+   (_a0, XLv 0); (_a1, XLv 1); (_a2, XLv 2); (_a3, XLv 3); (_a4, XLv 4); (_t3, first_t3)].
+Definition second_bindings (digits : nat -> int64) t3 : list (ident * sx) :=
+  [(_r, XP 0 0); (_a, XP 0 0); (_b, XP 1 0);
+   (_M, XLc (Int64.repr 4503599627370495)); (_R, XLc (Int64.repr 68719492368));
+   (_a0, XL (digits 0%nat)); (_a1, XL (digits 1%nat)); (_a2, XL (digits 2%nat));
+   (_a3, XL (digits 3%nat)); (_a4, XL (digits 4%nat)); (_t3, XL t3)].
+Lemma second_temps_bindings digits t3 : second_temps digits t3 = temps_of (second_bindings digits t3).
+Proof. reflexivity. Qed.
+Lemma first_live_lookup id x : In (id, x) first_live_bindings -> (stemps prefix_state)!id = Some x.
+Proof.
+  intro H; cbn [first_live_bindings In] in H.
+  repeat destruct H as [H|H]; try contradiction; inversion H; subst; timeout 10 reflexivity.
+Qed.
+Lemma first_live_values rho beta : binding_values rho beta first_live_bindings =
+  binding_values rho beta (second_bindings rho (first_t3_machine rho)).
+Proof.
+  unfold binding_values, first_live_bindings, second_bindings; cbn [map fst snd].
+  rewrite first_t3_den; reflexivity.
+Qed.
+
+Lemma atomic_tmatch_inverse rho beta ts le : tmatch rho beta (atomic_temps rho beta ts) le -> tmatch rho beta ts le.
+Proof.
+  intros HT id x HX.
+  assert (HL : (atomic_temps rho beta ts)!id = Some (atomic_sx rho beta x)).
+  { unfold atomic_temps; rewrite PTree.gmap, HX; reflexivity. }
+  pose proof (HT id _ HL) as H; rewrite atomic_sx_den in H; exact H.
+Qed.
+
+Local Opaque prefix_state prefix_initial.
+Lemma first_to_second_tmatch rho beta le :
+  tmatch rho beta (stemps (atomic_state rho beta prefix_state)) le ->
+  tmatch rho beta (second_temps rho (first_t3_machine rho)) le.
+Proof.
+  intro HT; change (tmatch rho beta (atomic_temps rho beta (stemps prefix_state)) le) in HT.
+  pose proof (atomic_tmatch_inverse rho beta (stemps prefix_state) le HT) as HR.
+  rewrite second_temps_bindings; apply tmatch_bindings.
+  eapply bindings_transfer; [|apply first_live_values].
+  apply Forall_forall; intros [id x] HI; exact (HR id x (first_live_lookup id x HI)).
+Qed.
+
+Lemma first_atomic_regs_exact rho beta :
+  sregs (atomic_state rho beta prefix_state) =
+    second_regs rho (first_final_c_machine rho) (first_final_d_machine rho).
+Proof.
+  cbn [atomic_state sregs]; unfold atomic_regs; rewrite first_regions_exact.
+  cbn [map revalue_region rcells rw rfree].
+  change ([mkreg (u64_cells 0 [XL (rho 0%nat); XL (rho 1%nat); XL (rho 2%nat); XL (rho 3%nat); XL (rho 4%nat)]) true (Some 40);
+    mkreg (u64_cells 0 [XL (rho 5%nat); XL (rho 6%nat); XL (rho 7%nat); XL (rho 8%nat); XL (rho 9%nat)]) true (Some 40);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst first_final_c; snd first_final_c])) true (Some 16);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst first_final_d; snd first_final_d])) true (Some 16)] =
+    second_regs rho (first_final_c_machine rho) (first_final_d_machine rho)).
+  rewrite (atomic_values rho beta [fst first_final_c; snd first_final_c]
+    [fst (first_final_c_machine rho); snd (first_final_c_machine rho)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (first_final_c_den rho (lay beta)) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (first_final_c_den rho (lay beta)) eq_refl); reflexivity. }
+  rewrite (atomic_values rho beta [fst first_final_d; snd first_final_d]
+    [fst (first_final_d_machine rho); snd (first_final_d_machine rho)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (first_final_d_den rho (lay beta)) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (first_final_d_den rho (lay beta)) eq_refl); reflexivity. }
+  reflexivity.
+Qed.

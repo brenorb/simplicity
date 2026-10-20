@@ -1,0 +1,116 @@
+### C.jet_secp_multiply_writer_bridge.product_writer_output
+product_writer_output
+     : forall (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_multiply_first_arithmetic.field_input_bounds rho),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_write_fe_wide_exec.wide_fe_output (jet_secp_multiply_finish_execute.original_finish_words rho O)
+            (jet_secp_multiply_finish_execute.original_finish_words rho (S O))
+            (jet_secp_multiply_finish_execute.original_finish_words rho (S (S O)))
+            (jet_secp_multiply_finish_execute.original_finish_words rho (S (S (S O))))
+            (jet_secp_multiply_finish_execute.original_finish_words rho (S (S (S (S O))))))
+         (product_word rho)
+### C.jet_secp_multiply_writer_bridge.wide_initial_from_owned_words
+wide_initial_from_owned_words
+     : forall (t0 t1 t2 t3 t4 : Integers.Int64.int) (rc : BinNums.Z) (m : Memory.Mem.mem) (b : Values.block)
+         (_ : jet_secp_fe_nv.fe_at m b BinNums.Z0
+                (@cons Integers.Int64.int t0
+                   (@cons Integers.Int64.int t1
+                      (@cons Integers.Int64.int t2
+                         (@cons Integers.Int64.int t3 (@cons Integers.Int64.int t4 (@nil Integers.Int64.int)))))))
+         (_ : Memory.Mem.range_perm m b BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable),
+       jet_sx_state.rep (jet_secp_write_fe_wide_values.wide_fe_rho t0 t1 t2 t3 t4 rc)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+            (@nil (prod Values.block BinNums.Z))) jet_secp_local_regions.local_write_initial_regs m
+### C.jet_secp_multiply_writer_bridge.multiplier_output_storage
+multiplier_output_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_secp_multiply_call_call.field_output_regs rho) m),
+       and (@eq BinNums.Z (jet_sx_state.bas beta O) BinNums.Z0)
+         (Memory.Mem.range_perm m (jet_sx_state.blk beta O) BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+            Memtype.Freeable)
+### C.jet_secp_multiply_writer_bridge.multiplier_second_storage
+multiplier_second_storage
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_secp_multiply_call_call.field_output_regs rho) m),
+       and (@eq BinNums.Z (jet_sx_state.bas beta (S O)) BinNums.Z0)
+         (Memory.Mem.range_perm m (jet_sx_state.blk beta (S O)) BinNums.Z0
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+            Memtype.Freeable)
+### C.jet_secp_multiply_writer_bridge.multiplier_writer_rep
+multiplier_writer_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (rc : BinNums.Z) (_ : jet_sx_state.rep rho beta (jet_secp_multiply_call_call.field_output_regs rho) m),
+       jet_sx_state.rep (product_writer_rho rho rc)
+         (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z (jet_sx_state.blk beta O) BinNums.Z0)
+            (@nil (prod Values.block BinNums.Z))) jet_secp_local_regions.local_write_initial_regs m
+### C.jet_secp_multiply_writer_bridge.foot_disjoint_external
+foot_disjoint_external
+     : forall (ext : forall _ : Values.block, Prop) (beta : list (prod Values.block BinNums.Z))
+         (regs : list jet_sx_state.region)
+         (_ : @eq nat (@length (prod Values.block BinNums.Z) beta) (@length jet_sx_state.region regs))
+         (_ : jet_sx_exec.xsep ext beta) (b : Values.block) (o : BinNums.Z) (_ : ext b),
+       not
+         (jet_sx_state.foot beta
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape regs)
+            b o)
+### C.jet_secp_multiply_writer_bridge.local_writer_foot_owner
+local_writer_foot_owner
+     : forall (b b' : Values.block) (o : BinNums.Z)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z b BinNums.Z0)
+                   (@nil (prod Values.block BinNums.Z)))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   jet_secp_local_regions.local_write_initial_regs) b' o), @eq Values.block b' b
+### C.jet_secp_multiply_writer_bridge.local_writer_foot_in_multiplier
+local_writer_foot_in_multiplier
+     : forall (beta : jet_sx_state.layout) (b : Values.block) (o : BinNums.Z)
+         (_ : @eq BinNums.Z (jet_sx_state.bas beta O) BinNums.Z0)
+         (_ : jet_sx_state.foot
+                (@cons (prod Values.block BinNums.Z)
+                   (@pair Values.block BinNums.Z (jet_sx_state.blk beta O) BinNums.Z0)
+                   (@nil (prod Values.block BinNums.Z)))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   jet_secp_local_regions.local_write_initial_regs) b o),
+       jet_sx_state.foot beta
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape jet_secp_multiply_run_run.field_mul_regs) b o
+### C.jet_secp_multiply_writer_bridge.fe_at_on_unchanged_block
+fe_at_on_unchanged_block
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (words : list Integers.Int64.int)
+         (_ : jet_secp_fe_nv.fe_at m b ofs words)
+         (_ : jet_sx_mem.lframe (fun (other : Values.block) (_ : BinNums.Z) => @eq Values.block other b) m mf),
+       jet_secp_fe_nv.fe_at mf b ofs words
+### C.jet_secp_multiply_writer_bridge.product_word
+product_word =
+fun rho : forall _ : nat, Integers.Int64.int =>
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+  (BinInt.Z.modulo
+     (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value rho)
+        (jet_secp_multiply_finish_product.radix_value (jet_secp_multiply_finish_product.second_input rho)))
+     jet_secp_multiply_checkpoint_columns.field_prime)
+     : forall _ : forall _ : nat, Integers.Int64.int, Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments product_word rho%function_scope
+### C.jet_secp_multiply_writer_bridge.product_writer_rho
+product_writer_rho =
+fun (rho : forall _ : nat, Integers.Int64.int) (rc : BinNums.Z) =>
+jet_secp_write_fe_wide_values.wide_fe_rho (jet_secp_multiply_finish_execute.original_finish_words rho O)
+  (jet_secp_multiply_finish_execute.original_finish_words rho (S O))
+  (jet_secp_multiply_finish_execute.original_finish_words rho (S (S O)))
+  (jet_secp_multiply_finish_execute.original_finish_words rho (S (S (S O))))
+  (jet_secp_multiply_finish_execute.original_finish_words rho (S (S (S (S O))))) rc
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : BinNums.Z) (_ : nat), Integers.Int64.int
+
+Arguments product_writer_rho rho%function_scope rc%Z_scope n%nat_scope
+### C.jet_secp_multiply_writer_bridge.cursor_rho
+cursor_rho =
+fun (rc : BinNums.Z) (_ : nat) => Integers.Int64.repr rc
+     : forall (_ : BinNums.Z) (_ : nat), Integers.Int64.int
+
+Arguments cursor_rho rc%Z_scope _%nat_scope

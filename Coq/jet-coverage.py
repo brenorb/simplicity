@@ -34,6 +34,38 @@ SPECIFICATIONS = {
 }
 
 
+# Exact reviewed public boundaries of the recovered candidate batch.
+RECOVERED_CONTRACTS = {'simplicity_asset_amount_hash': 'memcpy_model -> asset_elements_partial_local_spec '
+                                 'f_simplicity_asset_amount_hash asset_amount_input_type '
+                                 'sha256_ctx8_type (fun a => @elements_asset_amount_hash_spec '
+                                 'optalg a).',
+ 'simplicity_calculate_asset': 'memcpy_model -> calculation_jet_local_spec '
+                               'f_simplicity_calculate_asset (@calculate_asset_spec '
+                               'Alg.CoreFunSem).',
+ 'simplicity_calculate_confidential_token': 'memcpy_model -> calculation_jet_local_spec '
+                                            'f_simplicity_calculate_confidential_token '
+                                            '(@calculate_confidential_token_spec Alg.CoreFunSem).',
+ 'simplicity_calculate_explicit_token': 'memcpy_model -> calculation_jet_local_spec '
+                                        'f_simplicity_calculate_explicit_token '
+                                        '(@calculate_explicit_token_spec Alg.CoreFunSem).',
+ 'simplicity_calculate_issuance_entropy': 'memcpy_model -> elements_entropy_local_spec '
+                                          'f_simplicity_calculate_issuance_entropy (fun a => '
+                                          '@calculate_issuance_entropy_spec Alg.CoreFunSem a).',
+ 'simplicity_fe_multiply': 'secp_jet_local_spec f_simplicity_fe_multiply (Ty.Prod (Word 8) (Word '
+                           '8)) (Word 8) (@literal_fe_multiply Alg.CoreFunSem).',
+ 'simplicity_fe_multiply_beta': 'secp_jet_initialized_local_spec beta_initialized '
+                                'f_simplicity_fe_multiply_beta (Word 8) (Word 8) '
+                                '(@literal_fe_multiply_beta Alg.CoreFunSem).',
+ 'simplicity_fe_square': 'secp_jet_local_spec f_simplicity_fe_square (Word 8) (Word 8) '
+                         '(@literal_fe_square Alg.CoreFunSem).',
+ 'simplicity_nonce_hash': 'memcpy_model -> nonce_elements_partial_local_spec '
+                          'f_simplicity_nonce_hash nonce_hash_input_type sha256_ctx8_type (fun a '
+                          '=> @nonce_hash_spec optalg a).',
+ 'simplicity_outpoint_hash': 'memcpy_model -> outpoint_elements_partial_local_spec '
+                             'f_simplicity_outpoint_hash op_input_type sha256_ctx8_type (fun a => '
+                             '@elements_outpoint_hash_spec optalg a).'}
+
+
 def records(path, fields):
     result = []
     for number, line in enumerate(path.read_text().splitlines(), 1):
@@ -117,6 +149,14 @@ def inventory():
             raise ValueError(f"coverage theorem not publicly audited: {module}.{theorem}")
         code = checked_source_code((COQ / (module.replace(".", "/") + ".v")).read_text())
         statement = re.search(rf"\b(?:Theorem|Lemma|Corollary)\s+{re.escape(theorem)}\s*:(.*?)\bProof\.", code, re.S)
+        if name in RECOVERED_CONTRACTS:
+            body = statement[1].strip() if statement else ""
+            compact = lambda text: re.sub(r"\s+", "", text)
+            if compact(body) != compact(RECOVERED_CONTRACTS[name]):
+                raise ValueError(f"coverage entry is not a direct canonical jet theorem: {module}.{theorem}")
+            jets[name]["proof"] = f"{module}.{theorem}"
+            jets[name]["condition"] = "memcpy_model" if body.startswith("memcpy_model") else ""
+            continue
         # Application functions execute in their own linked global environment,
         # not the core ge0. Counting a core contract for them would lose the
         # physical/logical primitive-environment correspondence.

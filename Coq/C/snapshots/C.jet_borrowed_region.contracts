@@ -1,0 +1,59 @@
+### C.jet_borrowed_region.borrow_at_cells
+borrow_at_cells
+     : forall (q : nat) (regs : list jet_sx_state.region),
+       @eq (list (list jet_sx_state.cell))
+         (@List.map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells (borrow_at q regs))
+         (@List.map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells regs)
+### C.jet_borrowed_region.nth_error_cells
+nth_error_cells
+     : forall (regs regs' : list jet_sx_state.region) (r : nat)
+         (_ : @eq (list (list jet_sx_state.cell))
+                (@List.map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells regs)
+                (@List.map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells regs')),
+       @eq (option (list jet_sx_state.cell))
+         (@option_map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells
+            (@List.nth_error jet_sx_state.region regs r))
+         (@option_map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells
+            (@List.nth_error jet_sx_state.region regs' r))
+### C.jet_borrowed_region.xload_cells
+xload_cells
+     : forall (regs regs' : list jet_sx_state.region) (r : nat) (d : BinNums.Z) (ty : Ctypes.type)
+         (_ : @eq (list (list jet_sx_state.cell))
+                (@List.map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells regs)
+                (@List.map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells regs')),
+       @eq (option jet_sx_expr.sx) (jet_sx_state.xload regs r d ty) (jet_sx_state.xload regs' r d ty)
+### C.jet_borrowed_region.xload_borrow_at
+xload_borrow_at
+     : forall (q : nat) (regs : list jet_sx_state.region) (r : nat) (d : BinNums.Z) (ty : Ctypes.type),
+       @eq (option jet_sx_expr.sx) (jet_sx_state.xload (borrow_at q regs) r d ty) (jet_sx_state.xload regs r d ty)
+### C.jet_borrowed_region.borrowed_store_rejected
+borrowed_store_rejected
+     : forall (q : nat) (regs : list jet_sx_state.region) (d : BinNums.Z) (ch : AST.memory_chunk) (x : jet_sx_expr.sx),
+       @eq (option (list jet_sx_state.region)) (jet_sx_state.xstore (borrow_at q regs) q d ch x)
+         (@None (list jet_sx_state.region))
+### C.jet_borrowed_region.cell_ok_borrow
+cell_ok_borrow
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (w : bool) (c : jet_sx_state.cell) (_ : jet_sx_state.cell_ok rho beta m r w c),
+       jet_sx_state.cell_ok rho beta m r false c
+### C.jet_borrowed_region.region_ok_borrow
+region_ok_borrow
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (reg : jet_sx_state.region) (_ : jet_sx_state.region_ok rho beta m r reg),
+       jet_sx_state.region_ok rho beta m r (borrowed_region reg)
+### C.jet_borrowed_region.borrowed_region
+borrowed_region =
+fun reg : jet_sx_state.region => jet_sx_state.mkreg (jet_sx_state.rcells reg) false (@None BinNums.Z)
+     : forall _ : jet_sx_state.region, jet_sx_state.region
+
+Arguments borrowed_region reg
+### C.jet_borrowed_region.borrow_at
+borrow_at =
+fun (q : nat) (regs : list jet_sx_state.region) =>
+match @List.nth_error jet_sx_state.region regs q return (list jet_sx_state.region) with
+| Some reg => @jet_sx_state.upd jet_sx_state.region regs q (borrowed_region reg)
+| None => regs
+end
+     : forall (_ : nat) (_ : list jet_sx_state.region), list jet_sx_state.region
+
+Arguments borrow_at q%nat_scope regs%list_scope

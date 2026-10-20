@@ -1,0 +1,161 @@
+(** Actual original multiplier body with a borrowed rhs. Old value/range
+    models are reused unchanged; no intermediate execution is assumed. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Values Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix.
+Require Import C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic.
+Require Import C.jet_secp_multiply_checkpoint_bridge C.jet_secp_multiply_second_entry.
+Require Import C.jet_secp_multiply_second_state C.jet_secp_multiply_second_machine C.jet_secp_multiply_second_compose.
+Require Import C.jet_secp_multiply_secondvalues_arithmetic C.jet_secp_multiply_third_state.
+Require Import C.jet_secp_multiply_third_entry C.jet_secp_multiply_third_values C.jet_secp_multiply_third_compose.
+Require Import C.jet_secp_multiply_third_arithmetic.
+Require Import C.jet_secp_multiply_next_checkpoint C.jet_secp_multiply_fourth_state C.jet_secp_multiply_fourth_execute.
+Require Import C.jet_secp_multiply_fourth_arithmetic C.jet_secp_multiply_fifth_state C.jet_secp_multiply_fifth_execute.
+Require Import C.jet_secp_multiply_fifth_arithmetic C.jet_secp_multiply_finish_state C.jet_secp_multiply_finish_execute.
+Require Import C.jet_borrowed_region C.jet_secp_multiply_borrowed_transport C.jet_secp_multiply_borrowed_runs.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Theorem borrowed_stage fuel ve st stmt st' :
+  xstmt (genv_cenv secp_ge) [] C.jet_secp_multiply_run_run.field_table fuel ve
+    (borrow_state 1 st) stmt = Some (RDone (borrow_state 1 st') ONormal) ->
+  forall rho beta e le m,
+  rep rho beta (borrow_at 1 (sregs st)) m -> tmatch rho beta (stemps st) le -> ematch beta ve e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m stmt E0 le' mf Out_normal /\
+    rep rho beta (borrow_at 1 (sregs (atomic_state rho beta st'))) mf /\
+    tmatch rho beta (stemps st') le' /\
+    tmatch rho beta (stemps (atomic_state rho beta st')) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs st)) b ofs) m mf.
+Proof.
+  intros HRun rho beta e le m HR HT HE.
+  destruct (field_stmt_normal fuel ve (borrow_state 1 st) stmt (borrow_state 1 st') HRun
+    rho beta e le m HR HT HE) as (le' & mf & HX & HP & HT' & HS & HF).
+  pose proof (atomic_rep rho beta _ mf HP) as HA.
+  change (rep rho beta (atomic_regs rho beta (borrow_at 1 (sregs st'))) mf) in HA.
+  rewrite atomic_regs_borrow in HA.
+  exists le', mf; split; [exact HX|]; split; [exact HA|]; split; [exact HT'|]; split.
+  - apply atomic_tmatch; exact HT'.
+  - apply lframe_borrow in HF; exact HF.
+Qed.
+
+Theorem borrowed_original_body rho beta e le m :
+  rep rho beta (borrow_at 1 (sregs prefix_initial)) m ->
+  tmatch rho beta (stemps prefix_initial) le -> ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m (fn_body f_secp256k1_fe_mul_inner) E0 le' mf Out_normal /\
+    rep rho beta (borrow_at 1 (sregs (original_finish_checkpoint rho))) mf /\
+    tmatch rho beta (stemps (original_finish_checkpoint rho)) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs prefix_initial)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (borrowed_stage 200 (snd mul_allocated) prefix_initial prefix_statement prefix_state
+    borrowed_prefix_run rho beta e le m HR HT HE)
+    as (le1 & m1 & HX1 & HR1 & HT1 & HA1 & HF1).
+  assert (HE2 : rep rho beta (borrow_at 1 (sregs (second_initial rho
+    (first_final_c_machine rho) (first_final_d_machine rho) (first_t3_machine rho)))) m1).
+  { change (rep rho beta (borrow_at 1 (second_regs rho (first_final_c_machine rho) (first_final_d_machine rho))) m1).
+    rewrite <- (first_atomic_regs_exact rho beta); exact HR1. }
+  assert (HT2 : tmatch rho beta (stemps (second_initial rho
+    (first_final_c_machine rho) (first_final_d_machine rho) (first_t3_machine rho))) le1).
+  { apply first_to_second_tmatch; exact HA1. }
+  destruct (borrowed_stage 160 (snd mul_allocated)
+    (second_initial rho (first_final_c_machine rho) (first_final_d_machine rho) (first_t3_machine rho))
+    second_statement (second_state rho (first_final_c_machine rho) (first_final_d_machine rho) (first_t3_machine rho))
+    (borrowed_second_run _ _ _ _) rho beta e le1 m1 HE2 HT2 HE)
+    as (le2 & m2 & HX2 & HR2 & HT2' & HA2 & HF2).
+  assert (HE3 : rep rho beta (borrow_at 1 (sregs (third_initial rho (first_final_c_machine rho)
+    (original_second_final rho) (first_t3_machine rho) (original_second_t4 rho) (original_second_tx rho)))) m2).
+  { change (rep rho beta (borrow_at 1 (second_regs rho (first_final_c_machine rho) (original_second_final rho))) m2).
+    unfold original_second_final.
+    rewrite <- (second_atomic_regs_exact rho beta rho (first_final_c_machine rho)
+      (first_final_d_machine rho) (first_t3_machine rho)); exact HR2. }
+  assert (HT3 : tmatch rho beta (stemps (third_initial rho (first_final_c_machine rho)
+    (original_second_final rho) (first_t3_machine rho) (original_second_t4 rho) (original_second_tx rho))) le2).
+  { exact (second_to_third_tmatch rho beta rho (first_final_c_machine rho)
+      (first_final_d_machine rho) (first_t3_machine rho) le2 HA2). }
+  destruct (borrowed_stage 160 (snd mul_allocated)
+    (third_initial rho (first_final_c_machine rho) (original_second_final rho)
+      (first_t3_machine rho) (original_second_t4 rho) (original_second_tx rho))
+    third_statement (third_state rho (first_final_c_machine rho) (original_second_final rho)
+      (first_t3_machine rho) (original_second_t4 rho) (original_second_tx rho))
+    (borrowed_third_run _ _ _ _ _ _) rho beta e le2 m2 HE3 HT3 HE)
+    as (le3 & m3 & HX3 & HR3 & HT3' & HA3 & HF3).
+  assert (HE4 : rep rho beta (borrow_at 1 (sregs (original_third_checkpoint rho))) m3).
+  { pose proof (third_atomic_regs_exact rho beta rho (first_final_c_machine rho)
+      (original_second_final rho) (first_t3_machine rho) (original_second_t4 rho) (original_second_tx rho)) as HS.
+    change (sregs (atomic_state rho beta (third_state rho (first_final_c_machine rho)
+      (original_second_final rho) (first_t3_machine rho) (original_second_t4 rho) (original_second_tx rho))) =
+      sregs (original_third_checkpoint rho)) in HS.
+    rewrite <- HS; exact HR3. }
+  assert (HT4 : tmatch rho beta (stemps (original_third_checkpoint rho)) le3).
+  { exact (third_to_checkpoint_tmatch rho beta rho (first_final_c_machine rho)
+      (original_second_final rho) (first_t3_machine rho) (original_second_t4 rho)
+      (original_second_tx rho) le3 HA3). }
+  destruct (borrowed_stage 160 (snd mul_allocated) (original_third_checkpoint rho) fourth_statement
+    (fourth_state rho (written_r0 rho (original_third_r0 rho)) (original_third_final_c rho)
+      (original_third_final_d rho) (first_t3_machine rho) (original_second_t4 rho))
+    (borrowed_fourth_run _ _ _ _ _ _) rho beta e le3 m3 HE4 HT4 HE)
+    as (le4 & m4 & HX4 & HR4 & HT4' & HA4 & HF4).
+  assert (HE5 : rep rho beta (borrow_at 1 (sregs (original_fourth_checkpoint rho))) m4).
+  { pose proof (fourth_atomic_regs_exact rho beta rho (written_r0 rho (original_third_r0 rho))
+      (original_third_final_c rho) (original_third_final_d rho) (first_t3_machine rho) (original_second_t4 rho)) as HS.
+    change (sregs (atomic_state rho beta (fourth_state rho (written_r0 rho (original_third_r0 rho))
+      (original_third_final_c rho) (original_third_final_d rho) (first_t3_machine rho) (original_second_t4 rho))) =
+      sregs (original_fourth_checkpoint rho)) in HS.
+    rewrite <- HS; exact HR4. }
+  assert (HT5 : tmatch rho beta (stemps (original_fourth_checkpoint rho)) le4).
+  { exact (fourth_checkpoint_tmatch rho beta rho (written_r0 rho (original_third_r0 rho))
+      (original_third_final_c rho) (original_third_final_d rho) (first_t3_machine rho)
+      (original_second_t4 rho) le4 HT4'). }
+  destruct (borrowed_stage 160 (snd mul_allocated) (original_fourth_checkpoint rho) fifth_statement
+    (fifth_state rho (written_before_fifth rho) (original_fourth_final_c rho)
+      (original_fourth_final_d rho) (first_t3_machine rho) (original_second_t4 rho))
+    (borrowed_fifth_run _ _ _ _ _ _) rho beta e le4 m4 HE5 HT5 HE)
+    as (le5 & m5 & HX5 & HR5 & HT5' & HA5 & HF5).
+  assert (HE6 : rep rho beta (borrow_at 1 (sregs (original_fifth_checkpoint rho))) m5).
+  { pose proof (fifth_atomic_regs_exact rho beta rho (written_before_fifth rho)
+      (original_fourth_final_c rho) (original_fourth_final_d rho) (first_t3_machine rho) (original_second_t4 rho)) as HS.
+    change (sregs (atomic_state rho beta (fifth_state rho (written_before_fifth rho)
+      (original_fourth_final_c rho) (original_fourth_final_d rho) (first_t3_machine rho) (original_second_t4 rho))) =
+      sregs (original_fifth_checkpoint rho)) in HS.
+    rewrite <- HS; exact HR5. }
+  assert (HT6 : tmatch rho beta (stemps (original_fifth_checkpoint rho)) le5).
+  { exact (fifth_checkpoint_tmatch rho beta rho (written_before_fifth rho)
+      (original_fourth_final_c rho) (original_fourth_final_d rho) (first_t3_machine rho)
+      (original_second_t4 rho) le5 HT5'). }
+  destruct (borrowed_stage 160 (snd mul_allocated) (original_fifth_checkpoint rho) finish_statement
+    (finish_state rho (written_before_finish rho) (original_fifth_final_c rho)
+      (original_fifth_final_d rho) (first_t3_machine rho) (original_second_t4 rho))
+    (borrowed_finish_run _ _ _ _ _ _) rho beta e le5 m5 HE6 HT6 HE)
+    as (le6 & m6 & HX6 & HR6 & HT6' & HA6 & HF6).
+  assert (HEnd : rep rho beta (borrow_at 1 (sregs (original_finish_checkpoint rho))) m6).
+  { pose proof (finish_atomic_regs_exact rho beta rho (written_before_finish rho)
+      (original_fifth_final_c rho) (original_fifth_final_d rho) (first_t3_machine rho) (original_second_t4 rho)) as HS.
+    change (sregs (atomic_state rho beta (finish_state rho (written_before_finish rho)
+      (original_fifth_final_c rho) (original_fifth_final_d rho) (first_t3_machine rho) (original_second_t4 rho))) =
+      sregs (original_finish_checkpoint rho)) in HS.
+    rewrite <- HS; exact HR6. }
+  assert (H12 : Clight2.exec_stmt secp_ge e le m through_second E0 le2 m2 Out_normal).
+  { rewrite <- first_second_source; eapply exec_statement_prefix_then_last; [exact HX1|exact HX2]. }
+  assert (H123 : Clight2.exec_stmt secp_ge e le m through_third E0 le3 m3 Out_normal).
+  { rewrite <- second_third_source; eapply exec_statement_prefix_then_last; [exact H12|exact HX3]. }
+  assert (H1234 : Clight2.exec_stmt secp_ge e le m through_fourth E0 le4 m4 Out_normal).
+  { rewrite <- third_fourth_source; eapply exec_statement_prefix_then_last; [exact H123|exact HX4]. }
+  assert (H12345 : Clight2.exec_stmt secp_ge e le m through_fifth E0 le5 m5 Out_normal).
+  { rewrite <- fourth_fifth_source; eapply exec_statement_prefix_then_last; [exact H1234|exact HX5]. }
+  exists le6, m6; split.
+  - rewrite <- original_body_source; eapply exec_statement_prefix_then_last; [exact H12345|exact HX6].
+  - split; [exact HEnd|]; split.
+    + exact (finish_checkpoint_tmatch rho beta rho (written_before_finish rho)
+        (original_fifth_final_c rho) (original_fifth_final_d rho) (first_t3_machine rho)
+        (original_second_t4 rho) le6 HT6').
+    + eapply lframe_trans; [exact HF1|].
+      rewrite second_initial_shape in HF2; eapply lframe_trans; [exact HF2|].
+      rewrite third_initial_shape in HF3; eapply lframe_trans; [exact HF3|].
+      unfold original_third_checkpoint in HF4; rewrite checkpoint_shape in HF4; eapply lframe_trans; [exact HF4|].
+      unfold original_fourth_checkpoint, fourth_checkpoint in HF5; rewrite checkpoint_shape in HF5; eapply lframe_trans; [exact HF5|].
+      unfold original_fifth_checkpoint, fifth_checkpoint in HF6; rewrite checkpoint_shape in HF6; exact HF6.
+Qed.

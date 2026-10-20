@@ -1,0 +1,21 @@
+### C.jet_secp_multiply_run_dispatch.field_shift_oracle_correct
+field_shift_oracle_correct
+     : jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge
+         (fun (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event) => True)
+         (fun (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem) => True)
+         (fun _ : Values.block => False) jets_secp.f_secp256k1_u128_rshift field_shift_oracle
+### C.jet_secp_multiply_run_dispatch.field_shift_oracle
+field_shift_oracle =
+fun (base : nat) (log : list jet_sx_eval.event) (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) =>
+match
+  jet_secp_multiply_shift_oracle.shift52_oracle base log xs regs
+  return
+    (option
+       (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx)))
+with
+| Some result =>
+    @Some (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx))
+      result
+| None => jet_secp_u128_shift64_oracle.u128_shift64_oracle base log xs regs
+end
+     : jet_sx_exec.oracle

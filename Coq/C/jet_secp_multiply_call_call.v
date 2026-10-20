@@ -1,0 +1,78 @@
+(** Concrete original C function call: actual entry, body and final freeing. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Coqlib Integers AST Ctypes Clight ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_multiply_run_run C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_next_checkpoint.
+Require Import C.jet_secp_multiply_finish_execute C.jet_secp_multiply_finish_product C.jet_secp_multiply_call_lifecycle.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition field_output_regs (rho : nat -> int64) :=
+  [mkreg (u64_cells 0 [XL (original_finish_words rho 0%nat); XL (original_finish_words rho 1%nat);
+    XL (original_finish_words rho 2%nat); XL (original_finish_words rho 3%nat); XL (original_finish_words rho 4%nat)]) true (Some 40);
+   mkreg (u64_cells 0 [XL (rho 5%nat); XL (rho 6%nat); XL (rho 7%nat); XL (rho 8%nat); XL (rho 9%nat)]) true (Some 40)].
+
+Lemma field_function_ok : fn_okb f_secp256k1_fe_mul_inner = true.
+Proof. vm_compute; reflexivity. Qed.
+Lemma field_allocation_model : xalloc (std_cells (genv_cenv secp_ge)) (genv_cenv secp_ge)
+  (fn_vars f_secp256k1_fe_mul_inner) 2 = Some (fst mul_allocated, snd mul_allocated).
+Proof. reflexivity. Qed.
+Lemma field_binding_model : xbind (fn_params f_secp256k1_fe_mul_inner)
+  [XP 0 0; XP 0 0; XP 1 0] (PTree.empty sx) = Some prefix_temps.
+Proof. reflexivity. Qed.
+Lemma field_final_shape rho : map rshape (sregs (original_finish_checkpoint rho)) =
+  map rshape (field_mul_regs ++ fst mul_allocated).
+Proof. reflexivity. Qed.
+Lemma field_final_prefix rho : firstn 2 (sregs (original_finish_checkpoint rho)) = field_output_regs rho.
+Proof. reflexivity. Qed.
+
+Lemma field_body_for_call rho beta e le m :
+  rep rho beta (field_mul_regs ++ fst mul_allocated) m -> tmatch rho beta prefix_temps le ->
+  ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m (fn_body f_secp256k1_fe_mul_inner) E0 le' mf Out_normal /\
+    rep rho beta (sregs (original_finish_checkpoint rho)) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape (field_mul_regs ++ fst mul_allocated)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (exec_original_field_body rho beta e le m HR HT HE) as (le' & mf & HX & HRep & HTm & HO & HF).
+  exists le', mf; split; [exact HX|]; split; assumption.
+Qed.
+
+Lemma field_output_loads rho beta m : rep rho beta (field_output_regs rho) m -> output_words beta (original_finish_words rho) m.
+Proof.
+  intro HR; pose proof (rep_region rho beta _ m 0 _ HR eq_refl) as H0.
+  intros i HI.
+  assert (HM : In (mkcell (8 * Z.of_nat i) Mint64 (Some (XL (original_finish_words rho i))))
+    (u64_cells 0 [XL (original_finish_words rho 0%nat); XL (original_finish_words rho 1%nat);
+      XL (original_finish_words rho 2%nat); XL (original_finish_words rho 3%nat); XL (original_finish_words rho 4%nat)])).
+  { destruct i as [|[|[|[|[|i]]]]]; cbn [Nat.lt] in HI; try lia; cbn [Z.of_nat Z.mul u64_cells In]; auto 8. }
+  exact (region_load rho beta m 0 _ _ Mint64 (XL (original_finish_words rho i)) H0 HM).
+Qed.
+
+Local Opaque prefix_initial original_finish_checkpoint original_finish_words.
+Theorem eval_original_field_mul_inner rho beta m : rep rho beta field_mul_regs m ->
+  exists mf,
+    Clight2.eval_funcall secp_ge m (Internal f_secp256k1_fe_mul_inner)
+      [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0));
+       Vptr (blk beta 1) (Ptrofs.repr (bas beta 1))] E0 mf Vundef /\
+    rep rho beta (field_output_regs rho) mf /\
+    output_words beta (original_finish_words rho) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape field_mul_regs) b ofs) m mf.
+Proof.
+  intro HR.
+  destruct (owned_void_call secp_ge f_secp256k1_fe_mul_inner [XP 0 0; XP 0 0; XP 1 0]
+    field_mul_regs (fst mul_allocated) (snd mul_allocated) prefix_temps
+    (fun rho => sregs (original_finish_checkpoint rho)) field_function_ok eq_refl eq_refl
+    field_allocation_model field_binding_model field_final_shape field_body_for_call rho beta m HR)
+    as (mf & HX & HRep & HF).
+  change (map (den rho (lay beta)) [XP 0 0; XP 0 0; XP 1 0]) with
+    [Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0)); Vptr (blk beta 0) (Ptrofs.repr (bas beta 0 + 0));
+     Vptr (blk beta 1) (Ptrofs.repr (bas beta 1 + 0))] in HX.
+  rewrite !Z.add_0_r in HX.
+  change (rep rho beta (firstn 2 (sregs (original_finish_checkpoint rho))) mf) in HRep.
+  rewrite field_final_prefix in HRep.
+  exists mf; split; [exact HX|]; split; [exact HRep|]; split; [apply field_output_loads; exact HRep|exact HF].
+Qed.

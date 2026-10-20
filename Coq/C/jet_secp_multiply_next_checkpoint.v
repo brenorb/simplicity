@@ -1,0 +1,105 @@
+(** Shared checkpoint layout: stored output limbs are distinct from cached inputs. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Values Memory Events.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_sx_rep C.jet_sx_revalue_cells.
+Require Import C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic C.jet_secp_multiply_checkpoint_machine C.jet_secp_multiply_checkpoint_bridge.
+Require Import C.jet_secp_multiply_second_state C.jet_secp_multiply_second_temps C.jet_secp_multiply_second_entry.
+Require Import C.jet_secp_multiply_third_state C.jet_secp_multiply_third_values C.jet_secp_multiply_third_compose C.jet_secp_multiply_third_arithmetic.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition checkpoint_regs (digits written : nat -> int64) (c d : int64 * int64) :=
+  [mkreg (u64_cells 0 [XL (written 0%nat); XL (written 1%nat); XL (written 2%nat); XL (written 3%nat); XL (written 4%nat)]) true (Some 40);
+   mkreg (u64_cells 0 [XL (digits 5%nat); XL (digits 6%nat); XL (digits 7%nat); XL (digits 8%nat); XL (digits 9%nat)]) true (Some 40);
+   mkreg (u64_cells 0 [XL (fst c); XL (snd c)]) true (Some 16);
+   mkreg (u64_cells 0 [XL (fst d); XL (snd d)]) true (Some 16)].
+Definition checkpoint_bindings digits t3 t4 := second_bindings digits t3 ++ [(_t4, XL t4)].
+Definition checkpoint_temps digits t3 t4 := temps_of (checkpoint_bindings digits t3 t4).
+Definition checkpoint_state digits written c d t3 t4 :=
+  mkst (checkpoint_temps digits t3 t4) (checkpoint_regs digits written c d) [] 10.
+Definition written_r0 (digits : nat -> int64) (r0 : int64) n := match n with O => r0 | _ => digits n end.
+
+Lemma checkpoint_shape digits written c d t3 t4 :
+  map rshape (sregs (checkpoint_state digits written c d t3 t4)) = map rshape (sregs prefix_initial).
+Proof. reflexivity. Qed.
+Lemma atomic_long_value rho beta x ma : isk KL x = true -> den rho (lay beta) x = Vlong ma -> atomic_sx rho beta x = XL ma.
+Proof. intros HK HD; unfold atomic_sx; rewrite HK; unfold revalue_u64; rewrite HD; reflexivity. Qed.
+
+Lemma third_regions_exact digits c d t3 t4 tx : sregs (third_state digits c d t3 t4 tx) =
+  [mkreg (u64_cells 0 [third_r0_sy digits d tx; XL (digits 1%nat); XL (digits 2%nat); XL (digits 3%nat); XL (digits 4%nat)]) true (Some 40);
+   mkreg (u64_cells 0 [XL (digits 5%nat); XL (digits 6%nat); XL (digits 7%nat); XL (digits 8%nat); XL (digits 9%nat)]) true (Some 40);
+   mkreg (u64_cells 0 [fst (third_final_c_sy digits d tx); snd (third_final_c_sy digits d tx)]) true (Some 16);
+   mkreg (u64_cells 0 [fst (third_final_d_sy digits d); snd (third_final_d_sy digits d)]) true (Some 16)].
+Proof. reflexivity. Qed.
+
+Local Opaque third_state.
+Lemma third_atomic_regs_exact rho beta digits c d t3 t4 tx :
+  sregs (atomic_state rho beta (third_state digits c d t3 t4 tx)) =
+  checkpoint_regs digits (written_r0 digits (third_r0_machine digits d tx)) (third_final_c_machine digits d tx) (third_final_d_machine digits d).
+Proof.
+  cbn [atomic_state sregs]; unfold atomic_regs; rewrite third_regions_exact.
+  cbn [map revalue_region rcells rw rfree].
+  change ([mkreg (u64_cells 0 [atomic_sx rho beta (third_r0_sy digits d tx); XL (digits 1%nat); XL (digits 2%nat); XL (digits 3%nat); XL (digits 4%nat)]) true (Some 40);
+    mkreg (u64_cells 0 [XL (digits 5%nat); XL (digits 6%nat); XL (digits 7%nat); XL (digits 8%nat); XL (digits 9%nat)]) true (Some 40);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst (third_final_c_sy digits d tx); snd (third_final_c_sy digits d tx)])) true (Some 16);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst (third_final_d_sy digits d); snd (third_final_d_sy digits d)])) true (Some 16)] =
+    checkpoint_regs digits (written_r0 digits (third_r0_machine digits d tx)) (third_final_c_machine digits d tx) (third_final_d_machine digits d)).
+  rewrite (atomic_long_value rho beta (third_r0_sy digits d tx) (third_r0_machine digits d tx) eq_refl (third_r0_den rho (lay beta) digits d tx)).
+  rewrite (atomic_values rho beta [fst (third_final_c_sy digits d tx); snd (third_final_c_sy digits d tx)]
+    [fst (third_final_c_machine digits d tx); snd (third_final_c_machine digits d tx)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (third_final_c_den rho (lay beta) digits d tx) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (third_final_c_den rho (lay beta) digits d tx) eq_refl); reflexivity. }
+  rewrite (atomic_values rho beta [fst (third_final_d_sy digits d); snd (third_final_d_sy digits d)]
+    [fst (third_final_d_machine digits d); snd (third_final_d_machine digits d)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (third_final_d_den rho (lay beta) digits d) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (third_final_d_den rho (lay beta) digits d) eq_refl); reflexivity. }
+  reflexivity.
+Qed.
+
+Local Transparent third_state.
+Lemma third_live_lookup digits c d t3 t4 tx id x :
+  In (id,x) (checkpoint_bindings digits t3 t4) -> (stemps (third_state digits c d t3 t4 tx))!id = Some x.
+Proof.
+  intro H; cbn [checkpoint_bindings second_bindings app In] in H.
+  repeat destruct H as [H|H]; try contradiction; inversion H; subst; timeout 10 reflexivity.
+Qed.
+Local Opaque third_state.
+Lemma third_to_checkpoint_tmatch rho beta digits c d t3 t4 tx le :
+  tmatch rho beta (stemps (atomic_state rho beta (third_state digits c d t3 t4 tx))) le ->
+  tmatch rho beta (checkpoint_temps digits t3 t4) le.
+Proof.
+  intro HT; change (tmatch rho beta (atomic_temps rho beta (stemps (third_state digits c d t3 t4 tx))) le) in HT.
+  pose proof (atomic_tmatch_inverse rho beta _ le HT) as HR.
+  unfold checkpoint_temps; apply tmatch_bindings.
+  apply Forall_forall; intros [id x] HI; exact (HR id x (third_live_lookup digits c d t3 t4 tx id x HI)).
+Qed.
+
+Definition original_third_checkpoint rho := checkpoint_state rho (written_r0 rho (original_third_r0 rho))
+  (original_third_final_c rho) (original_third_final_d rho) (first_t3_machine rho) (C.jet_secp_multiply_secondvalues_arithmetic.original_second_t4 rho).
+
+Local Opaque third_state prefix_initial.
+Theorem exec_original_third_checkpoint rho beta e le m :
+  rep rho beta (sregs prefix_initial) m -> tmatch rho beta (stemps prefix_initial) le ->
+  ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m through_third E0 le' mf Out_normal /\
+    composed_third_observations rho beta le' mf /\
+    rep rho beta (sregs (original_third_checkpoint rho)) mf /\
+    tmatch rho beta (stemps (original_third_checkpoint rho)) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs prefix_initial)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (exec_original_through_third rho beta e le m HR HT HE) as (le' & mf & HX & HM & HRep & HTm & HF).
+  exists le', mf; split; [exact HX|]; split; [exact HM|]; split.
+  - pose proof (third_atomic_regs_exact rho beta rho (first_final_c_machine rho)
+      (C.jet_secp_multiply_secondvalues_arithmetic.original_second_final rho) (first_t3_machine rho)
+      (C.jet_secp_multiply_secondvalues_arithmetic.original_second_t4 rho) (C.jet_secp_multiply_secondvalues_arithmetic.original_second_tx rho)) as HEq.
+    change (sregs (atomic_state rho beta (composed_third_state rho)) = sregs (original_third_checkpoint rho)) in HEq.
+    rewrite <- HEq; exact HRep.
+  - split; [|exact HF].
+    exact (third_to_checkpoint_tmatch rho beta rho (first_final_c_machine rho)
+      (C.jet_secp_multiply_secondvalues_arithmetic.original_second_final rho) (first_t3_machine rho)
+      (C.jet_secp_multiply_secondvalues_arithmetic.original_second_t4 rho) (C.jet_secp_multiply_secondvalues_arithmetic.original_second_tx rho) le' HTm).
+Qed.

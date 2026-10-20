@@ -1,0 +1,188 @@
+### C.jet_secp_multiply_finish_execute.finish_typed_run
+finish_typed_run
+     : forall (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 : Integers.Int64.int),
+       @eq (option jet_sx_exec.res)
+         (jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+            jet_secp_multiply_run_run.field_table
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated)
+            (jet_secp_multiply_next_checkpoint.checkpoint_state digits written c d t3 t4)
+            jet_secp_multiply_finish_state.finish_statement)
+         (@Some jet_sx_exec.res
+            (jet_sx_exec.RDone (jet_secp_multiply_finish_state.finish_state digits written c d t3 t4)
+               jet_sx_exec.ONormal))
+### C.jet_secp_multiply_finish_execute.finish_atomic_regs_exact
+finish_atomic_regs_exact
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 : Integers.Int64.int),
+       @eq (list jet_sx_state.region)
+         (jet_sx_eval.sregs
+            (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+               (jet_secp_multiply_finish_state.finish_state digits written c d t3 t4)))
+         (jet_secp_multiply_next_checkpoint.checkpoint_regs digits (finish_written written c d t3 t4)
+            (jet_secp_multiply_finish_values.finish_final_c_machine c d t3) d)
+### C.jet_secp_multiply_finish_execute.finish_checkpoint_rep
+finish_checkpoint_rep
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 : Integers.Int64.int) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta
+                (jet_sx_eval.sregs (jet_secp_multiply_finish_state.finish_state digits written c d t3 t4)) m),
+       jet_sx_state.rep rho beta (jet_sx_eval.sregs (finish_checkpoint digits written c d t3 t4)) m
+### C.jet_secp_multiply_finish_execute.finish_checkpoint_tmatch
+finish_checkpoint_tmatch
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 : Integers.Int64.int) (le : Clight.temp_env)
+         (_ : jet_sx_eval.tmatch rho beta
+                (jet_sx_eval.stemps (jet_secp_multiply_finish_state.finish_state digits written c d t3 t4)) le),
+       jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (finish_checkpoint digits written c d t3 t4)) le
+### C.jet_secp_multiply_finish_execute.checkpoint_output_words
+checkpoint_output_words
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 : Integers.Int64.int) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta
+                (jet_sx_eval.sregs (jet_secp_multiply_next_checkpoint.checkpoint_state digits written c d t3 t4)) m),
+       output_words beta written m
+### C.jet_secp_multiply_finish_execute.exec_finish_checkpoint
+exec_finish_checkpoint
+     : forall (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 : Integers.Int64.int) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta
+                (jet_sx_eval.sregs (jet_secp_multiply_next_checkpoint.checkpoint_state digits written c d t3 t4)) m)
+         (_ : jet_sx_eval.tmatch rho beta
+                (jet_sx_eval.stemps (jet_secp_multiply_next_checkpoint.checkpoint_state digits written c d t3 t4)) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  jet_secp_multiply_finish_state.finish_statement Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (finish_checkpoint digits written c d t3 t4)) mf)
+                  (and
+                     (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (finish_checkpoint digits written c d t3 t4)) le')
+                     (and (output_words beta (finish_written written c d t3 t4) mf)
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape
+                                    (jet_sx_eval.sregs
+                                       (jet_secp_multiply_next_checkpoint.checkpoint_state digits written c d t3 t4)))
+                                 b ofs)) m mf))))))
+### C.jet_secp_multiply_finish_execute.exec_original_field_body
+exec_original_field_body
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps jet_secp_multiply_checkpoint_prefix.prefix_initial) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner) Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (original_finish_checkpoint rho)) mf)
+                  (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (original_finish_checkpoint rho)) le')
+                     (and (output_words beta (original_finish_words rho) mf)
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape
+                                    (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial)) b ofs)) m
+                           mf))))))
+### C.jet_secp_multiply_finish_execute.finish_written
+finish_written =
+fun (written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+  (t3 t4 : Integers.Int64.int) (n : nat) =>
+match n return Integers.Int64.int with
+| O => written n
+| S n0 =>
+    match n0 return Integers.Int64.int with
+    | O => written n
+    | S n1 =>
+        match n1 return Integers.Int64.int with
+        | O => written n
+        | S n2 =>
+            match n2 return Integers.Int64.int with
+            | O => jet_secp_multiply_finish_values.finish_r3_machine c d t3
+            | S n3 =>
+                match n3 return Integers.Int64.int with
+                | O => jet_secp_multiply_finish_values.finish_r4_machine c d t3 t4
+                | S _ => written n
+                end
+            end
+        end
+    end
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int)
+         (_ : nat), Integers.Int64.int
+
+Arguments finish_written written%function_scope c d t3 t4 n%nat_scope
+### C.jet_secp_multiply_finish_execute.finish_checkpoint
+finish_checkpoint =
+fun (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+  (t3 t4 : Integers.Int64.int) =>
+jet_secp_multiply_next_checkpoint.checkpoint_state digits (finish_written written c d t3 t4)
+  (jet_secp_multiply_finish_values.finish_final_c_machine c d t3) d t3 t4
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), jet_sx_eval.sstate
+
+Arguments finish_checkpoint (digits written)%function_scope c d t3 t4
+### C.jet_secp_multiply_finish_execute.output_words
+output_words =
+fun (beta : jet_sx_state.layout) (words : forall _ : nat, Integers.Int64.int) (m : Memory.Mem.mem) =>
+forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+@eq (option Values.val)
+  (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta O)
+     (BinInt.Z.add (jet_sx_state.bas beta O)
+        (BinInt.Z.mul (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) (BinInt.Z.of_nat i))))
+  (@Some Values.val (Values.Vlong (words i)))
+     : forall (_ : jet_sx_state.layout) (_ : forall _ : nat, Integers.Int64.int) (_ : Memory.Mem.mem), Prop
+
+Arguments output_words beta words%function_scope m
+### C.jet_secp_multiply_finish_execute.written_before_finish
+written_before_finish =
+fun rho : forall _ : nat, Integers.Int64.int =>
+jet_secp_multiply_fifth_execute.written_r2 (jet_secp_multiply_fifth_execute.written_before_fifth rho)
+  (jet_secp_multiply_fifth_arithmetic.original_fifth_r2 rho)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments written_before_finish rho%function_scope n%nat_scope
+### C.jet_secp_multiply_finish_execute.original_finish_checkpoint
+original_finish_checkpoint =
+fun rho : forall _ : nat, Integers.Int64.int =>
+finish_checkpoint rho (written_before_finish rho) (jet_secp_multiply_fifth_arithmetic.original_fifth_final_c rho)
+  (jet_secp_multiply_fifth_arithmetic.original_fifth_final_d rho)
+  (jet_secp_multiply_checkpoint_bridge.first_t3_machine rho)
+  (jet_secp_multiply_secondvalues_arithmetic.original_second_t4 rho)
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_sx_eval.sstate
+
+Arguments original_finish_checkpoint rho%function_scope
+### C.jet_secp_multiply_finish_execute.original_finish_words
+original_finish_words =
+fun rho : forall _ : nat, Integers.Int64.int =>
+finish_written (written_before_finish rho) (jet_secp_multiply_fifth_arithmetic.original_fifth_final_c rho)
+  (jet_secp_multiply_fifth_arithmetic.original_fifth_final_d rho)
+  (jet_secp_multiply_checkpoint_bridge.first_t3_machine rho)
+  (jet_secp_multiply_secondvalues_arithmetic.original_second_t4 rho)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments original_finish_words rho%function_scope n%nat_scope

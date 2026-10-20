@@ -1,0 +1,117 @@
+(** Complete original multiplier body, with all five current output loads. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep C.jet_sx_revalue_cells.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix.
+Require Import C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic C.jet_secp_multiply_checkpoint_bridge C.jet_secp_multiply_checkpoint_machine.
+Require Import C.jet_secp_multiply_second_entry C.jet_secp_multiply_second_temps C.jet_secp_multiply_secondvalues_arithmetic C.jet_secp_multiply_next_checkpoint.
+Require Import C.jet_secp_multiply_fifth_arithmetic C.jet_secp_multiply_fifth_execute C.jet_secp_multiply_finish_state C.jet_secp_multiply_finish_values.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition finish_written (written : nat -> int64) c d t3 t4 n := match n with
+  | S (S (S O)) => finish_r3_machine c d t3
+  | S (S (S (S O))) => finish_r4_machine c d t3 t4
+  | _ => written n end.
+Definition finish_checkpoint digits written c d t3 t4 := checkpoint_state digits
+  (finish_written written c d t3 t4) (finish_final_c_machine c d t3) d t3 t4.
+Definition output_words beta (words : nat -> int64) m := forall i, (i < 5)%nat ->
+  Mem.load Mint64 m (blk beta 0) (bas beta 0 + 8 * Z.of_nat i) = Some (Vlong (words i)).
+
+Local Opaque xstmt finish_state checkpoint_state finish_statement mul_allocated.
+Lemma finish_typed_run digits written c d t3 t4 : xstmt (genv_cenv secp_ge) [] C.jet_secp_multiply_run_run.field_table 160
+  (snd mul_allocated) (checkpoint_state digits written c d t3 t4) finish_statement = Some (RDone (finish_state digits written c d t3 t4) ONormal).
+Proof. change (finish_run digits written c d t3 t4 = Some (RDone (finish_state digits written c d t3 t4) ONormal)); apply finish_run_eq. Qed.
+
+Lemma finish_atomic_regs_exact rho beta digits written c d t3 t4 :
+  sregs (atomic_state rho beta (finish_state digits written c d t3 t4)) =
+  checkpoint_regs digits (finish_written written c d t3 t4) (finish_final_c_machine c d t3) d.
+Proof.
+  cbn [atomic_state sregs]; unfold atomic_regs; rewrite finish_regions_exact.
+  cbn [map revalue_region rcells rw rfree].
+  change ([mkreg (u64_cells 0 [XL (written 0%nat); XL (written 1%nat); XL (written 2%nat);
+      atomic_sx rho beta (finish_r3_sy c d t3); atomic_sx rho beta (finish_r4_sy c d t3 t4)]) true (Some 40);
+    mkreg (u64_cells 0 [XL (digits 5%nat); XL (digits 6%nat); XL (digits 7%nat); XL (digits 8%nat); XL (digits 9%nat)]) true (Some 40);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst (finish_final_c_sy c d t3); snd (finish_final_c_sy c d t3)])) true (Some 16);
+    mkreg (u64_cells 0 [XL (fst d); XL (snd d)]) true (Some 16)] =
+    checkpoint_regs digits (finish_written written c d t3 t4) (finish_final_c_machine c d t3) d).
+  rewrite (atomic_long_value rho beta (finish_r3_sy c d t3) (finish_r3_machine c d t3) eq_refl (finish_r3_den rho (lay beta) c d t3)).
+  rewrite (atomic_long_value rho beta (finish_r4_sy c d t3 t4) (finish_r4_machine c d t3 t4) eq_refl (finish_r4_den rho (lay beta) c d t3 t4)).
+  rewrite (atomic_values rho beta [fst (finish_final_c_sy c d t3); snd (finish_final_c_sy c d t3)]
+    [fst (finish_final_c_machine c d t3); snd (finish_final_c_machine c d t3)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (finish_final_c_den rho (lay beta) c d t3) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (finish_final_c_den rho (lay beta) c d t3) eq_refl); reflexivity. }
+  reflexivity.
+Qed.
+Lemma finish_checkpoint_rep rho beta digits written c d t3 t4 m :
+  rep rho beta (sregs (finish_state digits written c d t3 t4)) m ->
+  rep rho beta (sregs (finish_checkpoint digits written c d t3 t4)) m.
+Proof.
+  intro HR; pose proof (atomic_rep rho beta _ m HR) as HA.
+  change (rep rho beta (sregs (atomic_state rho beta (finish_state digits written c d t3 t4))) m) in HA.
+  rewrite finish_atomic_regs_exact in HA; exact HA.
+Qed.
+Lemma finish_checkpoint_tmatch rho beta digits written c d t3 t4 le :
+  tmatch rho beta (stemps (finish_state digits written c d t3 t4)) le ->
+  tmatch rho beta (stemps (finish_checkpoint digits written c d t3 t4)) le.
+Proof.
+  intro HT; change (tmatch rho beta (checkpoint_temps digits t3 t4) le).
+  unfold checkpoint_temps; apply tmatch_bindings; apply Forall_forall; intros [id x] HI.
+  exact (HT id x (finish_live_lookup digits written c d t3 t4 id x HI)).
+Qed.
+Lemma checkpoint_output_words rho beta digits written c d t3 t4 m :
+  rep rho beta (sregs (checkpoint_state digits written c d t3 t4)) m -> output_words beta written m.
+Proof.
+  intro HR; pose proof (rep_region rho beta _ m 0 _ HR eq_refl) as H0.
+  intros i HI.
+  assert (HM : In (mkcell (8 * Z.of_nat i) Mint64 (Some (XL (written i))))
+    (u64_cells 0 [XL (written 0%nat); XL (written 1%nat); XL (written 2%nat); XL (written 3%nat); XL (written 4%nat)])).
+  { destruct i as [|[|[|[|[|i]]]]]; cbn in *; auto 8; lia. }
+  exact (region_load rho beta m 0 _ _ Mint64 (XL (written i)) H0 HM).
+Qed.
+
+Theorem exec_finish_checkpoint digits written c d t3 t4 rho beta e le m :
+  rep rho beta (sregs (checkpoint_state digits written c d t3 t4)) m ->
+  tmatch rho beta (stemps (checkpoint_state digits written c d t3 t4)) le -> ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m finish_statement E0 le' mf Out_normal /\
+    rep rho beta (sregs (finish_checkpoint digits written c d t3 t4)) mf /\
+    tmatch rho beta (stemps (finish_checkpoint digits written c d t3 t4)) le' /\
+    output_words beta (finish_written written c d t3 t4) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs (checkpoint_state digits written c d t3 t4))) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (field_stmt_normal 160 (snd mul_allocated) (checkpoint_state digits written c d t3 t4) finish_statement
+    (finish_state digits written c d t3 t4) (finish_typed_run digits written c d t3 t4) rho beta e le m HR HT HE)
+    as (le' & mf & HX & HRep & HTm & HS & HF).
+  pose proof (finish_checkpoint_rep rho beta digits written c d t3 t4 mf HRep) as HN.
+  exists le', mf; split; [exact HX|]; split; [exact HN|]; split; [apply finish_checkpoint_tmatch; exact HTm|].
+  split; [exact (checkpoint_output_words rho beta digits (finish_written written c d t3 t4) (finish_final_c_machine c d t3) d t3 t4 mf HN)|exact HF].
+Qed.
+
+Definition written_before_finish rho := written_r2 (written_before_fifth rho) (original_fifth_r2 rho).
+Definition original_finish_checkpoint rho := finish_checkpoint rho (written_before_finish rho)
+  (original_fifth_final_c rho) (original_fifth_final_d rho) (first_t3_machine rho) (original_second_t4 rho).
+Definition original_finish_words rho := finish_written (written_before_finish rho)
+  (original_fifth_final_c rho) (original_fifth_final_d rho) (first_t3_machine rho) (original_second_t4 rho).
+Local Opaque prefix_initial.
+Theorem exec_original_field_body rho beta e le m :
+  rep rho beta (sregs prefix_initial) m -> tmatch rho beta (stemps prefix_initial) le -> ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m (fn_body f_secp256k1_fe_mul_inner) E0 le' mf Out_normal /\
+    rep rho beta (sregs (original_finish_checkpoint rho)) mf /\
+    tmatch rho beta (stemps (original_finish_checkpoint rho)) le' /\
+    output_words beta (original_finish_words rho) mf /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs prefix_initial)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (exec_original_through_fifth rho beta e le m HR HT HE) as (le1 & m1 & HX1 & HR1 & HT1 & H01 & H11 & H21 & HF1).
+  destruct (exec_finish_checkpoint rho (written_before_finish rho)
+    (original_fifth_final_c rho) (original_fifth_final_d rho) (first_t3_machine rho) (original_second_t4 rho)
+    rho beta e le1 m1 HR1 HT1 HE) as (le2 & m2 & HX2 & HR2 & HT2 & HO & HF2).
+  exists le2, m2; split.
+  - rewrite <- original_body_source; eapply exec_statement_prefix_then_last; [exact HX1|exact HX2].
+  - split; [exact HR2|]; split; [exact HT2|]; split; [exact HO|].
+    eapply lframe_trans; [exact HF1|]. rewrite checkpoint_shape in HF2; exact HF2.
+Qed.

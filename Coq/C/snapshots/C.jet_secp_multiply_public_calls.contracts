@@ -1,0 +1,96 @@
+### C.jet_secp_multiply_public_calls.exec_read_call
+exec_read_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (id : BinNums.positive) (b bl : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type b jet_secp_multiply_public_layout.field_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._src e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bl jet_secp_multiply_public_layout.frame_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._read_fe e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+                (@cons Values.val (Values.Vptr b Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m (jet_secp_multiply_public_layout.read_stmt id)
+         Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_multiply_public_calls.exec_mul_call
+exec_mul_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Clight.temp_env)
+         (m mf : Memory.Mem.mem) (ba bb : Values.block)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._a e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba jet_secp_multiply_public_layout.field_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._b e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type bb jet_secp_multiply_public_layout.field_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._secp256k1_fe_mul e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_multiply_public_layout.mul_stmt
+         Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_multiply_public_calls.exec_write_call
+exec_write_call
+     : forall (e : Maps.PTree.tree (prod Values.block Ctypes.type)) (le : Maps.PTree.tree Values.val)
+         (m mf : Memory.Mem.mem) (ba bd : Values.block) (dbase : BinNums.Z)
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._a e)
+                (@Some (prod Values.block Ctypes.type)
+                   (@pair Values.block Ctypes.type ba jet_secp_multiply_public_layout.field_type)))
+         (_ : @eq (option (prod Values.block Ctypes.type))
+                (@Maps.PTree.get (prod Values.block Ctypes.type) jets_secp._write_fe e)
+                (@None (prod Values.block Ctypes.type)))
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_write_fe)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m jet_secp_multiply_public_layout.write_stmt
+         Events.E0 le mf ClightBigstep.Out_normal
+### C.jet_secp_multiply_public_calls.exec_four_call_body
+exec_four_call_body
+     : forall (le : Maps.PTree.tree Values.val) (m ma mr mm mf : Memory.Mem.mem) (bl ba bb bd : Values.block)
+         (dbase : BinNums.Z)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._dst le)
+                (@Some Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))))
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 ma
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ma
+                (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+                (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mr
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mr
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero) (@nil Values.val)))) Events.E0 mm
+                Values.Vundef)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge mm
+                (@Ctypes.Internal Clight.function jets_secp.f_write_fe)
+                (@cons Values.val (Values.Vptr bd (Integers.Ptrofs.repr dbase))
+                   (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mf
+                Values.Vundef),
+       ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge (jet_secp_multiply_public_layout.public_env bl ba bb)
+         le m jet_secp_multiply_public_layout.rest_stmt Events.E0 le mf
+         (ClightBigstep.Out_return
+            (@Some (prod Values.val Ctypes.type)
+               (@pair Values.val Ctypes.type (Values.Vint Integers.Int.one) Ctypesdefs.tint)))

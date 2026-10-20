@@ -1,0 +1,60 @@
+### C.jet_secp_multiply_call_lifecycle.owned_void_call
+owned_void_call
+     : forall (ge : Clight.genv) (fd : Clight.function) (xs : list jet_sx_expr.sx)
+         (regs regsN : list jet_sx_state.region) (veN : jet_sx_eval.venv) (ts0 : Maps.PTree.t jet_sx_expr.sx)
+         (final_regs : forall _ : forall _ : nat, Integers.Int64.int, list jet_sx_state.region)
+         (_ : @eq bool (jet_sx_exec.fn_okb fd) true) (_ : @eq Ctypes.type (Clight.fn_return fd) Ctypes.Tvoid)
+         (_ : @eq bool (@List.forallb jet_sx_expr.sx (jet_sx_mem.xp_lt (@length jet_sx_state.region regs)) xs) true)
+         (_ : @eq (option (prod (list jet_sx_state.region) jet_sx_eval.venv))
+                (jet_sx_mem.xalloc (jet_sx_mem.std_cells (Clight.genv_cenv ge)) (Clight.genv_cenv ge)
+                   (Clight.fn_vars fd) (@length jet_sx_state.region regs))
+                (@Some (prod (list jet_sx_state.region) jet_sx_eval.venv)
+                   (@pair (list jet_sx_state.region) jet_sx_eval.venv regsN veN)))
+         (_ : @eq (option (Maps.PTree.t jet_sx_expr.sx))
+                (jet_sx_mem.xbind (Clight.fn_params fd) xs (Maps.PTree.empty jet_sx_expr.sx))
+                (@Some (Maps.PTree.t jet_sx_expr.sx) ts0))
+         (_ : forall rho : forall _ : nat, Integers.Int64.int,
+              @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   (final_regs rho))
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   (@app jet_sx_state.region regs regsN)))
+         (_ : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+                (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+                (_ : jet_sx_state.rep rho beta (@app jet_sx_state.region regs regsN) m)
+                (_ : jet_sx_eval.tmatch rho beta ts0 le) (_ : jet_sx_eval.ematch beta veN e),
+              @ex Clight.temp_env
+                (fun le' : Clight.temp_env =>
+                 @ex Memory.Mem.mem
+                   (fun mf : Memory.Mem.mem =>
+                    and
+                      (ClightBigstep.Clight2.exec_stmt ge e le m (Clight.fn_body fd) Events.E0 le' mf
+                         ClightBigstep.Out_normal)
+                      (and (jet_sx_state.rep rho beta (final_regs rho) mf)
+                         (jet_sx_mem.lframe
+                            (fun (b : Values.block) (ofs : BinNums.Z) =>
+                             not
+                               (jet_sx_state.foot beta
+                                  (@List.map jet_sx_state.region
+                                     (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                     jet_sx_state.rshape (@app jet_sx_state.region regs regsN)) b ofs)) m mf)))))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall ge m (@Ctypes.Internal Clight.function fd)
+               (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) xs) Events.E0 mf
+               Values.Vundef)
+            (and
+               (jet_sx_state.rep rho beta
+                  (@List.firstn jet_sx_state.region (@length jet_sx_state.region regs) (final_regs rho)) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot beta
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape regs) b ofs)) m mf)))

@@ -1,0 +1,199 @@
+### C.jet_secp_square_schedule.doubled
+doubled =
+fun x : jet_sx_expr.sx =>
+jet_sx_expr.XLb jet_sx_expr.Bmul x
+  (jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XIc (Integers.Int.repr (BinNums.Zpos (BinNums.xO BinNums.xH)))))
+     : forall _ : jet_sx_expr.sx, jet_sx_expr.sx
+
+Arguments doubled x
+### C.jet_secp_square_schedule.mask
+mask =
+jet_sx_expr.XLc
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xI
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.red
+red =
+jet_sx_expr.XLc
+  (Integers.Int64.repr
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xI
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xI
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.masked
+masked =
+fun s : prod jet_sx_expr.sx jet_sx_expr.sx =>
+jet_sx_expr.XLb jet_sx_expr.Band (@fst jet_sx_expr.sx jet_sx_expr.sx s) mask
+     : forall _ : prod jet_sx_expr.sx jet_sx_expr.sx, jet_sx_expr.sx
+
+Arguments masked s
+### C.jet_secp_square_schedule.sq_c8
+sq_c8 =
+jet_secp_multiply_checkpoint_ops.sx_product (jet_sx_expr.XLv (S (S (S (S O))))) (jet_sx_expr.XLv (S (S (S (S O)))))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d3
+sq_d3 =
+jet_secp_multiply_checkpoint_ops.sx_accum
+  (jet_secp_multiply_checkpoint_ops.sx_product (doubled (jet_sx_expr.XLv O)) (jet_sx_expr.XLv (S (S (S O)))))
+  (doubled (jet_sx_expr.XLv (S O))) (jet_sx_expr.XLv (S (S O)))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_fold3
+sq_fold3 =
+jet_secp_multiply_checkpoint_ops.sx_accum sq_d3 red (@fst jet_sx_expr.sx jet_sx_expr.sx sq_c8)
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_t3
+sq_t3 = masked sq_fold3
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_c8_hi
+sq_c8_hi = jet_secp_multiply_checkpoint_ops.sx_shift64 sq_c8
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d3_hi
+sq_d3_hi = jet_secp_multiply_checkpoint_ops.sx_shift52 sq_fold3
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d4
+sq_d4 =
+jet_secp_multiply_checkpoint_ops.sx_accum
+  (jet_secp_multiply_checkpoint_ops.sx_accum
+     (jet_secp_multiply_checkpoint_ops.sx_accum sq_d3_hi (jet_sx_expr.XLv O)
+        (doubled (jet_sx_expr.XLv (S (S (S (S O))))))) (doubled (jet_sx_expr.XLv (S O)))
+     (jet_sx_expr.XLv (S (S (S O))))) (jet_sx_expr.XLv (S (S O))) (jet_sx_expr.XLv (S (S O)))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_fold4
+sq_fold4 =
+jet_secp_multiply_checkpoint_ops.sx_accum sq_d4
+  (jet_sx_expr.XLsh jet_sx_expr.Hshl red (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+  (@fst jet_sx_expr.sx jet_sx_expr.sx sq_c8_hi)
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d4_hi
+sq_d4_hi = jet_secp_multiply_checkpoint_ops.sx_shift52 sq_fold4
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_tx
+sq_tx =
+jet_sx_expr.XLsh jet_sx_expr.Hshr (masked sq_fold4)
+  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))))
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_t4
+sq_t4 =
+jet_sx_expr.XLb jet_sx_expr.Band (masked sq_fold4)
+  (jet_sx_expr.XLsh jet_sx_expr.Hshru mask (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d5
+sq_d5 =
+jet_secp_multiply_checkpoint_ops.sx_accum
+  (jet_secp_multiply_checkpoint_ops.sx_accum sq_d4_hi (jet_sx_expr.XLv (S O))
+     (doubled (jet_sx_expr.XLv (S (S (S (S O))))))) (doubled (jet_sx_expr.XLv (S (S O))))
+  (jet_sx_expr.XLv (S (S (S O))))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_u0
+sq_u0 =
+jet_sx_expr.XLb jet_sx_expr.Bor
+  (jet_sx_expr.XLsh jet_sx_expr.Hshl (masked sq_d5) (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH)))) sq_tx
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_c0
+sq_c0 =
+jet_secp_multiply_checkpoint_ops.sx_accum
+  (jet_secp_multiply_checkpoint_ops.sx_product (jet_sx_expr.XLv O) (jet_sx_expr.XLv O)) sq_u0
+  (jet_sx_expr.XLsh jet_sx_expr.Hshru red (BinNums.Zpos (BinNums.xO (BinNums.xO BinNums.xH))))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_r0
+sq_r0 = masked sq_c0
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_c0_hi
+sq_c0_hi = jet_secp_multiply_checkpoint_ops.sx_shift52 sq_c0
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d5_hi
+sq_d5_hi = jet_secp_multiply_checkpoint_ops.sx_shift52 sq_d5
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_c1
+sq_c1 =
+jet_secp_multiply_checkpoint_ops.sx_accum sq_c0_hi (doubled (jet_sx_expr.XLv O)) (jet_sx_expr.XLv (S O))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d6
+sq_d6 =
+jet_secp_multiply_checkpoint_ops.sx_accum
+  (jet_secp_multiply_checkpoint_ops.sx_accum sq_d5_hi (jet_sx_expr.XLv (S (S O)))
+     (doubled (jet_sx_expr.XLv (S (S (S (S O))))))) (jet_sx_expr.XLv (S (S (S O)))) (jet_sx_expr.XLv (S (S (S O))))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_fold1
+sq_fold1 = jet_secp_multiply_checkpoint_ops.sx_accum sq_c1 (masked sq_d6) red
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_r1
+sq_r1 = masked sq_fold1
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_c1_hi
+sq_c1_hi = jet_secp_multiply_checkpoint_ops.sx_shift52 sq_fold1
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d6_hi
+sq_d6_hi = jet_secp_multiply_checkpoint_ops.sx_shift52 sq_d6
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_c2
+sq_c2 =
+jet_secp_multiply_checkpoint_ops.sx_accum
+  (jet_secp_multiply_checkpoint_ops.sx_accum sq_c1_hi (doubled (jet_sx_expr.XLv O)) (jet_sx_expr.XLv (S (S O))))
+  (jet_sx_expr.XLv (S O)) (jet_sx_expr.XLv (S O))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d7
+sq_d7 =
+jet_secp_multiply_checkpoint_ops.sx_accum sq_d6_hi (jet_sx_expr.XLv (S (S (S O))))
+  (doubled (jet_sx_expr.XLv (S (S (S (S O))))))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_fold2
+sq_fold2 =
+jet_secp_multiply_checkpoint_ops.sx_accum sq_c2 red (@fst jet_sx_expr.sx jet_sx_expr.sx sq_d7)
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_r2
+sq_r2 = masked sq_fold2
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_c2_hi
+sq_c2_hi = jet_secp_multiply_checkpoint_ops.sx_shift52 sq_fold2
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_d7_hi
+sq_d7_hi = jet_secp_multiply_checkpoint_ops.sx_shift64 sq_d7
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_c3
+sq_c3 =
+jet_secp_multiply_checkpoint_ops.sx_accum_word
+  (jet_secp_multiply_checkpoint_ops.sx_accum sq_c2_hi
+     (jet_sx_expr.XLsh jet_sx_expr.Hshl red (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH)))))
+     (@fst jet_sx_expr.sx jet_sx_expr.sx sq_d7_hi)) sq_t3
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_r3
+sq_r3 = masked sq_c3
+     : jet_sx_expr.sx
+### C.jet_secp_square_schedule.sq_r4
+sq_r4 =
+jet_sx_expr.XLb jet_sx_expr.Badd
+  (@fst jet_sx_expr.sx jet_sx_expr.sx (jet_secp_multiply_checkpoint_ops.sx_shift52 sq_c3)) sq_t4
+     : jet_sx_expr.sx

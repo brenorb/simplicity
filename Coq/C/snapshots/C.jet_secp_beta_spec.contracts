@@ -1,0 +1,60 @@
+### C.jet_secp_beta_spec.beta_value_range
+beta_value_range
+     : and
+         (and (BinInt.Z.le BinNums.Z0 jet_secp_beta_global.beta_value)
+            (BinInt.Z.lt jet_secp_beta_global.beta_value jet_secp_fe_math.feP))
+         (BinInt.Z.lt jet_secp_beta_global.beta_value
+            (jet_predicate_spec.word_modulus (S (S (S (S (S (S (S (S O))))))))))
+### C.jet_secp_beta_spec.beta_word_value
+beta_word_value
+     : @eq BinNums.Z (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) beta_word)
+         jet_secp_beta_global.beta_value
+### C.jet_secp_beta_spec.beta_literal_step
+beta_literal_step
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@literal_fe_multiply_beta Alg.CoreFunSem x)
+         (@jet_secp_negate_literal_contract.literal_fe_multiply Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) beta_word x))
+### C.jet_secp_beta_spec.beta_literal_numeric
+beta_literal_numeric
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O)))))))))
+            (@literal_fe_multiply_beta Alg.CoreFunSem x))
+         (BinInt.Z.modulo
+            (BinInt.Z.mul jet_secp_beta_global.beta_value
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)) jet_secp_fe_math.feP)
+### C.jet_secp_beta_spec.beta_product_matches_literal
+beta_product_matches_literal
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_multiply_writer_bridge.product_word (jet_secp_beta_inputs.beta_input_rho x))
+         (@literal_fe_multiply_beta Alg.CoreFunSem x)
+### C.jet_secp_beta_spec.beta_word
+beta_word =
+@Word.ToZ.Theory.fromZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) jet_secp_beta_global.beta_value
+     : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+### C.jet_secp_beta_spec.literal_fe_beta
+literal_fe_beta =
+fun term : Alg.Core.Algebra => @Alg.scribe Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) beta_word term
+     : forall term : Alg.Core.Algebra, Alg.Core.domain term Ty.Unit (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_fe_beta {term}
+### C.jet_secp_beta_spec.literal_fe_multiply_beta
+literal_fe_multiply_beta =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O))))))))) Ty.Unit
+        (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+        (@Alg.Core.Combinators.unit (Word.Word (S (S (S (S (S (S (S (S O))))))))) term) (@literal_fe_beta term))
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+  (@jet_secp_negate_literal_contract.literal_fe_multiply term)
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_fe_multiply_beta {term}

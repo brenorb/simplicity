@@ -1,0 +1,109 @@
+### C.jet_secp_multiply_normalize_bridge.field_prime_matches_normalizer
+field_prime_matches_normalizer
+     : @eq BinNums.Z jet_secp_multiply_checkpoint_columns.field_prime jet_secp_fe_math.feP
+### C.jet_secp_multiply_normalize_bridge.radix_value_matches_normalizer
+radix_value_matches_normalizer
+     : forall words : forall _ : nat, Integers.Int64.int,
+       @eq BinNums.Z (jet_secp_multiply_finish_product.radix_value words)
+         (jet_secp_fe_math.fe_val (Integers.Int64.unsigned (words O)) (Integers.Int64.unsigned (words (S O)))
+            (Integers.Int64.unsigned (words (S (S O)))) (Integers.Int64.unsigned (words (S (S (S O)))))
+            (Integers.Int64.unsigned (words (S (S (S (S O)))))))
+### C.jet_secp_multiply_normalize_bridge.multiplier_normalizer_bounds
+multiplier_normalizer_bounds
+     : forall (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_multiply_first_arithmetic.field_input_bounds rho) (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+       BinInt.Z.le (Integers.Int64.unsigned (jet_secp_multiply_finish_execute.original_finish_words rho i))
+         (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))
+### C.jet_secp_multiply_normalize_bridge.bounded_normalized_words
+bounded_normalized_words
+     : forall (words : forall _ : nat, Integers.Int64.int)
+         (_ : forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+              BinInt.Z.le (Integers.Int64.unsigned (words i))
+                (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                   (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xI (BinNums.xI BinNums.xH)))))))),
+       @eq (list BinNums.Z) (normalized_words words)
+         (jet_secp_fe_math.fe_limbs_of
+            (BinInt.Z.modulo (jet_secp_multiply_finish_product.radix_value words) jet_secp_fe_math.feP))
+### C.jet_secp_multiply_normalize_bridge.multiplier_normalized_product
+multiplier_normalized_product
+     : forall (rho : forall _ : nat, Integers.Int64.int)
+         (_ : jet_secp_multiply_first_arithmetic.field_input_bounds rho),
+       @eq (list BinNums.Z) (normalized_words (jet_secp_multiply_finish_execute.original_finish_words rho))
+         (jet_secp_fe_math.fe_limbs_of
+            (BinInt.Z.modulo
+               (BinInt.Z.mul (jet_secp_multiply_finish_product.radix_value rho)
+                  (jet_secp_multiply_finish_product.radix_value (jet_secp_multiply_finish_product.second_input rho)))
+               jet_secp_multiply_checkpoint_columns.field_prime))
+### C.jet_secp_multiply_normalize_bridge.u64_region_fe_at
+u64_region_fe_at
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (r : nat) (words : forall _ : nat, Integers.Int64.int) (free : option BinNums.Z)
+         (_ : jet_sx_state.region_ok rho beta m r
+                (jet_sx_state.mkreg
+                   (jet_sx_rep.u64_cells BinNums.Z0
+                      (@List.map Integers.Int64.int jet_sx_expr.sx jet_sx_expr.XL (words5 words))) true free)),
+       jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta r) (jet_sx_state.bas beta r) (words5 words)
+### C.jet_secp_multiply_normalize_bridge.multiplier_output_fe_at
+multiplier_output_fe_at
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_secp_multiply_call_call.field_output_regs rho) m),
+       jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta O) (jet_sx_state.bas beta O)
+         (words5 (jet_secp_multiply_finish_execute.original_finish_words rho))
+### C.jet_secp_multiply_normalize_bridge.multiplier_second_fe_at
+multiplier_second_fe_at
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_secp_multiply_call_call.field_output_regs rho) m),
+       jet_secp_fe_nv.fe_at m (jet_sx_state.blk beta (S O)) (jet_sx_state.bas beta (S O))
+         (words5 (jet_secp_multiply_finish_product.second_input rho))
+### C.jet_secp_multiply_normalize_bridge.multiplier_output_blocks_distinct
+multiplier_output_blocks_distinct
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_secp_multiply_call_call.field_output_regs rho) m),
+       not (@eq Values.block (jet_sx_state.blk beta O) (jet_sx_state.blk beta (S O)))
+### C.jet_secp_multiply_normalize_bridge.fe_at_other_block
+fe_at_other_block
+     : forall (m mf : Memory.Mem.mem) (b : Values.block) (ofs : BinNums.Z) (words : list Integers.Int64.int)
+         (changed : Values.block) (base : BinNums.Z) (_ : not (@eq Values.block b changed))
+         (_ : jet_secp_fe_nv.fe_at m b ofs words)
+         (_ : jet_sx_mem.lframe
+                (fun (b' : Values.block) (o : BinNums.Z) =>
+                 not
+                   (and (@eq Values.block b' changed)
+                      (and (BinInt.Z.le base o)
+                         (BinInt.Z.lt o
+                            (BinInt.Z.add base
+                               (BinNums.Zpos
+                                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))))) m
+                mf), jet_secp_fe_nv.fe_at mf b ofs words
+### C.jet_secp_multiply_normalize_bridge.field_first_range_in_foot
+field_first_range_in_foot
+     : forall (beta : jet_sx_state.layout) (b : Values.block) (o : BinNums.Z)
+         (_ : @eq Values.block b (jet_sx_state.blk beta O))
+         (_ : and (BinInt.Z.le (jet_sx_state.bas beta O) o)
+                (BinInt.Z.lt o
+                   (BinInt.Z.add (jet_sx_state.bas beta O)
+                      (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))),
+       jet_sx_state.foot beta
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape jet_secp_multiply_run_run.field_mul_regs) b o
+### C.jet_secp_multiply_normalize_bridge.words5
+words5 =
+fun words : forall _ : nat, Integers.Int64.int =>
+@cons Integers.Int64.int (words O)
+  (@cons Integers.Int64.int (words (S O))
+     (@cons Integers.Int64.int (words (S (S O)))
+        (@cons Integers.Int64.int (words (S (S (S O))))
+           (@cons Integers.Int64.int (words (S (S (S (S O))))) (@nil Integers.Int64.int)))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list Integers.Int64.int
+
+Arguments words5 words%function_scope
+### C.jet_secp_multiply_normalize_bridge.normalized_words
+normalized_words =
+fun words : forall _ : nat, Integers.Int64.int =>
+jet_secp_fe_nv.nvz_list (Integers.Int64.unsigned (words O)) (Integers.Int64.unsigned (words (S O)))
+  (Integers.Int64.unsigned (words (S (S O)))) (Integers.Int64.unsigned (words (S (S (S O)))))
+  (Integers.Int64.unsigned (words (S (S (S (S O))))))
+     : forall _ : forall _ : nat, Integers.Int64.int, list BinNums.Z
+
+Arguments normalized_words words%function_scope

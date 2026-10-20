@@ -1,0 +1,118 @@
+(** The third original output store, preserving both previous output words. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep C.jet_sx_revalue_cells.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix.
+Require Import C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic C.jet_secp_multiply_checkpoint_bridge C.jet_secp_multiply_checkpoint_machine.
+Require Import C.jet_secp_multiply_second_entry C.jet_secp_multiply_second_temps C.jet_secp_multiply_secondvalues_arithmetic.
+Require Import C.jet_secp_multiply_third_arithmetic C.jet_secp_multiply_next_checkpoint C.jet_secp_multiply_fourth_arithmetic C.jet_secp_multiply_fourth_execute.
+Require Import C.jet_secp_multiply_fifth_state C.jet_secp_multiply_fifth_values.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition written_r2 (written : nat -> int64) (r2 : int64) n := match n with S (S O) => r2 | _ => written n end.
+Definition fifth_checkpoint digits written c d t3 t4 := checkpoint_state digits
+  (written_r2 written (fifth_r2_machine digits c d)) (fifth_final_c_machine digits c d) (fifth_final_d_machine digits d) t3 t4.
+
+Local Opaque xstmt fifth_state checkpoint_state fifth_statement mul_allocated.
+Lemma fifth_typed_run digits written c d t3 t4 : xstmt (genv_cenv secp_ge) [] C.jet_secp_multiply_run_run.field_table 160
+  (snd mul_allocated) (checkpoint_state digits written c d t3 t4) fifth_statement = Some (RDone (fifth_state digits written c d t3 t4) ONormal).
+Proof. change (fifth_run digits written c d t3 t4 = Some (RDone (fifth_state digits written c d t3 t4) ONormal)); apply fifth_run_eq. Qed.
+
+Lemma fifth_atomic_regs_exact rho beta digits written c d t3 t4 :
+  sregs (atomic_state rho beta (fifth_state digits written c d t3 t4)) =
+  checkpoint_regs digits (written_r2 written (fifth_r2_machine digits c d)) (fifth_final_c_machine digits c d) (fifth_final_d_machine digits d).
+Proof.
+  cbn [atomic_state sregs]; unfold atomic_regs; rewrite fifth_regions_exact.
+  cbn [map revalue_region rcells rw rfree].
+  change ([mkreg (u64_cells 0 [XL (written 0%nat); XL (written 1%nat); atomic_sx rho beta (fifth_r2_sy digits c d); XL (written 3%nat); XL (written 4%nat)]) true (Some 40);
+    mkreg (u64_cells 0 [XL (digits 5%nat); XL (digits 6%nat); XL (digits 7%nat); XL (digits 8%nat); XL (digits 9%nat)]) true (Some 40);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst (fifth_final_c_sy digits c d); snd (fifth_final_c_sy digits c d)])) true (Some 16);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst (fifth_final_d_sy digits d); snd (fifth_final_d_sy digits d)])) true (Some 16)] =
+    checkpoint_regs digits (written_r2 written (fifth_r2_machine digits c d)) (fifth_final_c_machine digits c d) (fifth_final_d_machine digits d)).
+  rewrite (atomic_long_value rho beta (fifth_r2_sy digits c d) (fifth_r2_machine digits c d) eq_refl (fifth_r2_den rho (lay beta) digits c d)).
+  rewrite (atomic_values rho beta [fst (fifth_final_c_sy digits c d); snd (fifth_final_c_sy digits c d)]
+    [fst (fifth_final_c_machine digits c d); snd (fifth_final_c_machine digits c d)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (fifth_final_c_den rho (lay beta) digits c d) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (fifth_final_c_den rho (lay beta) digits c d) eq_refl); reflexivity. }
+  rewrite (atomic_values rho beta [fst (fifth_final_d_sy digits d); snd (fifth_final_d_sy digits d)]
+    [fst (fifth_final_d_machine digits d); snd (fifth_final_d_machine digits d)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (fifth_final_d_den rho (lay beta) digits d) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (fifth_final_d_den rho (lay beta) digits d) eq_refl); reflexivity. }
+  reflexivity.
+Qed.
+Lemma fifth_checkpoint_rep rho beta digits written c d t3 t4 m :
+  rep rho beta (sregs (fifth_state digits written c d t3 t4)) m ->
+  rep rho beta (sregs (fifth_checkpoint digits written c d t3 t4)) m.
+Proof.
+  intro HR; pose proof (atomic_rep rho beta _ m HR) as HA.
+  change (rep rho beta (sregs (atomic_state rho beta (fifth_state digits written c d t3 t4))) m) in HA.
+  rewrite fifth_atomic_regs_exact in HA; exact HA.
+Qed.
+Lemma fifth_checkpoint_tmatch rho beta digits written c d t3 t4 le :
+  tmatch rho beta (stemps (fifth_state digits written c d t3 t4)) le ->
+  tmatch rho beta (stemps (fifth_checkpoint digits written c d t3 t4)) le.
+Proof.
+  intro HT; change (tmatch rho beta (checkpoint_temps digits t3 t4) le).
+  unfold checkpoint_temps; apply tmatch_bindings; apply Forall_forall; intros [id x] HI.
+  exact (HT id x (fifth_live_lookup digits written c d t3 t4 id x HI)).
+Qed.
+Lemma checkpoint_output_load2 rho beta digits written c d t3 t4 m :
+  rep rho beta (sregs (checkpoint_state digits written c d t3 t4)) m ->
+  Mem.load Mint64 m (blk beta 0) (bas beta 0 + 16) = Some (Vlong (written 2%nat)).
+Proof.
+  intro HR; pose proof (rep_region rho beta _ m 0 _ HR eq_refl) as H0.
+  exact (region_load rho beta m 0 _ 16 Mint64 (XL (written 2%nat)) H0 ltac:(right; right; left; reflexivity)).
+Qed.
+
+Theorem exec_fifth_checkpoint digits written c d t3 t4 rho beta e le m :
+  rep rho beta (sregs (checkpoint_state digits written c d t3 t4)) m ->
+  tmatch rho beta (stemps (checkpoint_state digits written c d t3 t4)) le -> ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m fifth_statement E0 le' mf Out_normal /\
+    rep rho beta (sregs (fifth_checkpoint digits written c d t3 t4)) mf /\
+    tmatch rho beta (stemps (fifth_checkpoint digits written c d t3 t4)) le' /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 0) = Some (Vlong (written 0%nat)) /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 8) = Some (Vlong (written 1%nat)) /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 16) = Some (Vlong (fifth_r2_machine digits c d)) /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs (checkpoint_state digits written c d t3 t4))) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (field_stmt_normal 160 (snd mul_allocated) (checkpoint_state digits written c d t3 t4) fifth_statement
+    (fifth_state digits written c d t3 t4) (fifth_typed_run digits written c d t3 t4) rho beta e le m HR HT HE)
+    as (le' & mf & HX & HRep & HTm & HS & HF).
+  pose proof (fifth_checkpoint_rep rho beta digits written c d t3 t4 mf HRep) as HN.
+  pose proof (checkpoint_output_loads rho beta digits (written_r2 written (fifth_r2_machine digits c d))
+    (fifth_final_c_machine digits c d) (fifth_final_d_machine digits d) t3 t4 mf HN) as [H0 H1].
+  pose proof (checkpoint_output_load2 rho beta digits (written_r2 written (fifth_r2_machine digits c d))
+    (fifth_final_c_machine digits c d) (fifth_final_d_machine digits d) t3 t4 mf HN) as H2.
+  exists le', mf; split; [exact HX|]; split; [exact HN|]; split; [apply fifth_checkpoint_tmatch; exact HTm|].
+  split; [exact H0|]; split; [exact H1|]; split; assumption.
+Qed.
+
+Definition written_before_fifth rho := written_r1 (written_r0 rho (original_third_r0 rho)) (original_fourth_r1 rho).
+Definition original_fifth_checkpoint rho := fifth_checkpoint rho (written_before_fifth rho)
+  (original_fourth_final_c rho) (original_fourth_final_d rho) (first_t3_machine rho) (original_second_t4 rho).
+Local Opaque prefix_initial.
+Theorem exec_original_through_fifth rho beta e le m :
+  rep rho beta (sregs prefix_initial) m -> tmatch rho beta (stemps prefix_initial) le -> ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m through_fifth E0 le' mf Out_normal /\
+    rep rho beta (sregs (original_fifth_checkpoint rho)) mf /\
+    tmatch rho beta (stemps (original_fifth_checkpoint rho)) le' /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 0) = Some (Vlong (original_third_r0 rho)) /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 8) = Some (Vlong (original_fourth_r1 rho)) /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 16) = Some (Vlong (fifth_r2_machine rho (original_fourth_final_c rho) (original_fourth_final_d rho))) /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs prefix_initial)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (exec_original_through_fourth rho beta e le m HR HT HE) as (le1 & m1 & HX1 & HR1 & HT1 & H01 & H11 & HF1).
+  destruct (exec_fifth_checkpoint rho (written_before_fifth rho)
+    (original_fourth_final_c rho) (original_fourth_final_d rho) (first_t3_machine rho) (original_second_t4 rho)
+    rho beta e le1 m1 HR1 HT1 HE) as (le2 & m2 & HX2 & HR2 & HT2 & H0 & H1 & H2 & HF2).
+  exists le2, m2; split.
+  - rewrite <- fourth_fifth_source; eapply exec_statement_prefix_then_last; [exact HX1|exact HX2].
+  - split; [exact HR2|]; split; [exact HT2|]; split; [exact H0|]; split; [exact H1|]; split; [exact H2|].
+    eapply lframe_trans; [exact HF1|]. rewrite checkpoint_shape in HF2; exact HF2.
+Qed.

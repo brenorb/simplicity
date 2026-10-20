@@ -1,0 +1,108 @@
+### C.jet_secp_multiply_secondvalues_accum.products_nonnegative
+products_nonnegative
+     : forall ps : list (prod Integers.Int64.int Integers.Int64.int), BinInt.Z.le BinNums.Z0 (products ps)
+### C.jet_secp_multiply_secondvalues_accum.accumulate_exact
+accumulate_exact
+     : forall (ps : list (prod Integers.Int64.int Integers.Int64.int)) (s : prod Integers.Int64.int Integers.Int64.int)
+         (_ : BinInt.Z.lt (BinInt.Z.add (jet_secp_multiply_checkpoint_machine.pair_value s) (products ps))
+                (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus)),
+       @eq BinNums.Z (jet_secp_multiply_checkpoint_machine.pair_value (accumulate s ps))
+         (BinInt.Z.add (jet_secp_multiply_checkpoint_machine.pair_value s) (products ps))
+### C.jet_secp_multiply_secondvalues_accum.products56_bound
+products56_bound
+     : forall (ps : list (prod Integers.Int64.int Integers.Int64.int))
+         (_ : @List.Forall (prod Integers.Int64.int Integers.Int64.int) pair56 ps),
+       and (BinInt.Z.le BinNums.Z0 (products ps))
+         (BinInt.Z.le (products ps)
+            (BinInt.Z.mul (BinInt.Z.of_nat (@length (prod Integers.Int64.int Integers.Int64.int) ps))
+               (BinNums.Zpos
+                  (BinNums.xO
+                     (BinNums.xO
+                        (BinNums.xO
+                           (BinNums.xO
+                              (BinNums.xO
+                                 (BinNums.xO
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+### C.jet_secp_multiply_secondvalues_accum.products
+products =
+fix products (ps : list (prod Integers.Int64.int Integers.Int64.int)) : BinNums.Z :=
+  match ps return BinNums.Z with
+  | nil => BinNums.Z0
+  | cons p rest =>
+      match p return BinNums.Z with
+      | pair a b => BinInt.Z.add (BinInt.Z.mul (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)) (products rest)
+      end
+  end
+     : forall _ : list (prod Integers.Int64.int Integers.Int64.int), BinNums.Z
+
+Arguments products ps%list_scope
+### C.jet_secp_multiply_secondvalues_accum.accumulate
+accumulate =
+fix accumulate
+  (s : prod Integers.Int64.int Integers.Int64.int) (ps : list (prod Integers.Int64.int Integers.Int64.int)) {struct ps} :
+    prod Integers.Int64.int Integers.Int64.int :=
+  match ps return (prod Integers.Int64.int Integers.Int64.int) with
+  | nil => s
+  | cons p rest =>
+      match p return (prod Integers.Int64.int Integers.Int64.int) with
+      | pair a b => accumulate (jet_secp_multiply_checkpoint_machine.machine_accum s a b) rest
+      end
+  end
+     : forall (_ : prod Integers.Int64.int Integers.Int64.int) (_ : list (prod Integers.Int64.int Integers.Int64.int)),
+       prod Integers.Int64.int Integers.Int64.int
+
+Arguments accumulate s ps%list_scope
+### C.jet_secp_multiply_secondvalues_accum.pair56
+pair56 =
+fun p : prod Integers.Int64.int Integers.Int64.int =>
+and
+  (BinInt.Z.lt (Integers.Int64.unsigned (@fst Integers.Int64.int Integers.Int64.int p))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))))
+  (BinInt.Z.lt (Integers.Int64.unsigned (@snd Integers.Int64.int Integers.Int64.int p))
+     (BinNums.Zpos
+        (BinNums.xO
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xO
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xO
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xO
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...))))))))))))))))))))))
+     : forall _ : prod Integers.Int64.int Integers.Int64.int, Prop
+
+Arguments pair56 p

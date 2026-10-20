@@ -1,0 +1,83 @@
+(** Two actual original reader calls on the same local source-frame copy. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers Values Memory AST Ctypes Clight ClightBigstep Events.
+Require Import Simplicity.Word.
+Require Simplicity.Translate.
+Require Import C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem.
+Require Import C.jet_encoding C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_frame_inv.
+Require Import C.jet_secp_frame C.jet_secp_fe_nv C.jet_secp_fe_math C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_local_regions.
+Require Import C.jet_secp_multiply_writer_bridge C.jet_secp_multiply_input_input C.jet_secp_multiply_input_reader.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition pair_locals_outside (ext : block -> Prop) (ba bb bl b : block) (_ : Z) :=
+  b <> ba /\ b <> bb /\ b <> bl /\ ~ ext b.
+
+Theorem eval_read_field_pair m0 bd dbase bw outedge cursor N bi edge rc
+    (x y : Ty.tySem (Word 8)) m ba bb bl :
+  write_frame_at m0 bd dbase bw outedge cursor N -> 256 <= N ->
+  frame_input_cells_at m0 bi edge rc
+    (@Simplicity.Translate.encode (Ty.Prod (Word 8) (Word 8)) (x, y)) ->
+  0 <= rc -> rc + 512 <= Int64.max_unsigned ->
+  Mem.range_perm m ba 0 40 Cur Freeable -> Mem.range_perm m bb 0 40 Cur Freeable ->
+  Mem.range_perm m bl 0 16 Cur Freeable -> frame_fields_at m bl 0 bi edge rc ->
+  ba <> bb -> ba <> bl -> bb <> bl ->
+  xsep (extA m0 bd bw bi) [(ba, 0); (bb, 0); (bl, 0)] ->
+  finv m0 bd dbase bw outedge cursor N bi m false [] ->
+  exists ma mr,
+    Clight2.eval_funcall secp_ge m (Internal f_read_fe)
+      [Vptr ba Ptrofs.zero; Vptr bl Ptrofs.zero] E0 ma Vundef /\
+    Clight2.eval_funcall secp_ge ma (Internal f_read_fe)
+      [Vptr bb Ptrofs.zero; Vptr bl Ptrofs.zero] E0 mr Vundef /\
+    fe_at mr ba 0 (map Int64.repr (fe_limbs_of (normalized_value x))) /\
+    fe_at mr bb 0 (map Int64.repr (fe_limbs_of (normalized_value y))) /\
+    Mem.range_perm mr ba 0 40 Cur Freeable /\ Mem.range_perm mr bb 0 40 Cur Freeable /\
+    Mem.range_perm mr bl 0 16 Cur Freeable /\ frame_fields_at mr bl 0 bi edge (rc + 512) /\
+    finv m0 bd dbase bw outedge cursor N bi mr false [] /\
+    lframe (pair_locals_outside (extA m0 bd bw bi) ba bb bl) m mr.
+Proof.
+  intros HO HC HInput HCursor HMax HFA HFB HFL HFields HDAB HDAL HDBL HS HInv.
+  destruct (pair_input_windows m0 bi edge rc x y HInput) as [HX HY].
+  assert (HSA : xsep (extA m0 bd bw bi) [(ba, 0); (bl, 0)]).
+  { intros r Hr; destruct r as [|[|r]].
+    - exact (HS 0%nat ltac:(cbn; lia)).
+    - exact (HS 2%nat ltac:(cbn; lia)).
+    - cbn in Hr; lia. }
+  assert (HSB : xsep (extA m0 bd bw bi) [(bb, 0); (bl, 0)]).
+  { intros r Hr; destruct r as [|[|r]].
+    - exact (HS 1%nat ltac:(cbn; lia)).
+    - exact (HS 2%nat ltac:(cbn; lia)).
+    - cbn in Hr; lia. }
+  destruct (eval_read_fe_with_cursor m0 bd dbase bw outedge cursor N bi edge rc x
+    m ba bl HO HC HX HCursor ltac:(lia) HFA HFL HFields HDAL HSA HInv)
+    as (ma & HCallA & HFieldA & HFA1 & HFL1 & HFields1 & HInv1 & HF1).
+  assert (HVB : Mem.valid_block m bb) by (eapply Mem.perm_valid_block; apply (HFB 0); lia).
+  pose proof (reader_preserves_other (extA m0 bd bw bi) ba bl bi (Ptrofs.repr edge)
+    m ma bb ltac:(congruence) HDBL (HS 1%nat ltac:(cbn; lia)) HVB HF1) as HOtherB.
+  assert (HFB1 : Mem.range_perm ma bb 0 40 Cur Freeable).
+  { intros pos HP; eapply (proj1 (proj2 HOtherB)); [exact HVB|reflexivity|apply HFB; exact HP]. }
+  destruct (eval_read_fe_with_cursor m0 bd dbase bw outedge cursor N bi edge (rc + 256) y
+    ma bb bl HO HC HY ltac:(lia) ltac:(lia) HFB1 HFL1 HFields1 HDBL HSB HInv1)
+    as (mr & HCallB & HFieldB & HFB2 & HFL2 & HFields2 & HInv2 & HF2).
+  assert (HVA : Mem.valid_block ma ba) by (eapply Mem.perm_valid_block; apply (HFA1 0); lia).
+  pose proof (reader_preserves_other (extA m0 bd bw bi) bb bl bi (Ptrofs.repr edge)
+    ma mr ba HDAB HDAL (HS 0%nat ltac:(cbn; lia)) HVA HF2) as HOtherA.
+  pose proof (fe_at_on_unchanged_block ma mr ba 0 _ HFieldA HOtherA) as HFieldA2.
+  assert (HFA2 : Mem.range_perm mr ba 0 40 Cur Freeable).
+  { intros pos HP; eapply (proj1 (proj2 HOtherA)); [exact HVA|reflexivity|apply HFA1; exact HP]. }
+  replace (rc + 256 + 256) with (rc + 512) in HFields2 by lia.
+  assert (HOutside1 : lframe (pair_locals_outside (extA m0 bd bw bi) ba bb bl) m ma).
+  { eapply lframe_implies; [exact HF1|].
+    intros b pos [HBA [HBB [HBL HE]]] HV; split; [exact HV|]; split; [|exact HE].
+    intro HFoot; apply two_read_foot_owner in HFoot; destruct HFoot; contradiction. }
+  assert (HOutside2 : lframe (pair_locals_outside (extA m0 bd bw bi) ba bb bl) ma mr).
+  { eapply lframe_implies; [exact HF2|].
+    intros b pos [HBA [HBB [HBL HE]]] HV; split; [exact HV|]; split; [|exact HE].
+    intro HFoot; apply two_read_foot_owner in HFoot; destruct HFoot; contradiction. }
+  exists ma, mr; split; [exact HCallA|]; split; [exact HCallB|];
+    split; [exact HFieldA2|]; split; [exact HFieldB|]; split; [exact HFA2|];
+    split; [exact HFB2|]; split; [exact HFL2|]; split; [exact HFields2|]; split; [exact HInv2|].
+  eapply lframe_trans; eassumption.
+Qed.

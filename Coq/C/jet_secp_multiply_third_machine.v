@@ -1,0 +1,58 @@
+(** Actual third-slice C execution, including its current aliased output load. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_u128_shift64_rep.
+Require Import C.jet_secp_multiply_checkpoint_machine C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic.
+Require Import C.jet_secp_multiply_third_state C.jet_secp_multiply_third_values.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition third_observations digits d t3 t4 tx beta le m :=
+  Mem.load Mint64 m (blk beta 0) (bas beta 0 + 0) = Some (Vlong (third_r0_machine digits d tx)) /\
+  Mem.load Mint64 m (blk beta 2) (bas beta 2 + 0) = Some (Vlong (fst (third_final_c_machine digits d tx))) /\
+  Mem.load Mint64 m (blk beta 2) (bas beta 2 + 8) = Some (Vlong (snd (third_final_c_machine digits d tx))) /\
+  Mem.load Mint64 m (blk beta 3) (bas beta 3 + 0) = Some (Vlong (fst (third_final_d_machine digits d))) /\
+  Mem.load Mint64 m (blk beta 3) (bas beta 3 + 8) = Some (Vlong (snd (third_final_d_machine digits d))) /\
+  le!_t3 = Some (Vlong t3) /\ le!_t4 = Some (Vlong t4) /\
+  le!_u0 = Some (Vlong (third_u0_machine digits d tx)) /\ le!_a0 = Some (Vlong (digits 0%nat)).
+
+Local Opaque xstmt third_state third_initial third_statement mul_allocated.
+Lemma third_typed_run digits c d t3 t4 tx : xstmt (genv_cenv secp_ge) [] C.jet_secp_multiply_run_run.field_table 160
+  (snd mul_allocated) (third_initial digits c d t3 t4 tx) third_statement = Some (RDone (third_state digits c d t3 t4 tx) ONormal).
+Proof. change (third_run digits c d t3 t4 tx = Some (RDone (third_state digits c d t3 t4 tx) ONormal)); apply third_run_eq. Qed.
+
+Theorem exec_third_machine_atomic digits c d t3 t4 tx rho beta e le m :
+  rep rho beta (sregs (third_initial digits c d t3 t4 tx)) m ->
+  tmatch rho beta (stemps (third_initial digits c d t3 t4 tx)) le -> ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m third_statement E0 le' mf Out_normal /\
+    third_observations digits d t3 t4 tx beta le' mf /\
+    rep rho beta (sregs (atomic_state rho beta (third_state digits c d t3 t4 tx))) mf /\
+    tmatch rho beta (stemps (atomic_state rho beta (third_state digits c d t3 t4 tx))) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs (third_initial digits c d t3 t4 tx))) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (field_stmt_normal 160 (snd mul_allocated) (third_initial digits c d t3 t4 tx) third_statement
+    (third_state digits c d t3 t4 tx) (third_typed_run digits c d t3 t4 tx) rho beta e le m HR HT HE)
+    as (le' & mf & HX & HRep & HTm & HS & HF).
+  pose proof (xload_u64_defined_sound rho beta _ mf 0 0 (third_r0_sy digits d tx) HRep (third_r0 digits c d t3 t4 tx)) as HR0.
+  rewrite third_r0_den in HR0.
+  pose proof (xload_u64_defined_sound rho beta _ mf 2 0 (fst (third_final_c_sy digits d tx)) HRep (third_c_low digits c d t3 t4 tx)) as HCL.
+  pose proof (xload_u64_defined_sound rho beta _ mf 2 8 (snd (third_final_c_sy digits d tx)) HRep (third_c_high digits c d t3 t4 tx)) as HCH.
+  pose proof (xload_u64_defined_sound rho beta _ mf 3 0 (fst (third_final_d_sy digits d)) HRep (third_d_low digits c d t3 t4 tx)) as HDL.
+  pose proof (xload_u64_defined_sound rho beta _ mf 3 8 (snd (third_final_d_sy digits d)) HRep (third_d_high digits c d t3 t4 tx)) as HDH.
+  rewrite (pair_low_den rho (lay beta) _ _ (third_final_c_den rho (lay beta) digits d tx) eq_refl) in HCL.
+  rewrite (pair_high_den rho (lay beta) _ _ (third_final_c_den rho (lay beta) digits d tx) eq_refl) in HCH.
+  rewrite (pair_low_den rho (lay beta) _ _ (third_final_d_den rho (lay beta) digits d) eq_refl) in HDL.
+  rewrite (pair_high_den rho (lay beta) _ _ (third_final_d_den rho (lay beta) digits d) eq_refl) in HDH.
+  pose proof (HTm _ _ (third_t3 digits c d t3 t4 tx)) as HT3.
+  pose proof (HTm _ _ (third_t4 digits c d t3 t4 tx)) as HT4.
+  pose proof (HTm _ _ (third_u0 digits c d t3 t4 tx)) as HU; rewrite third_u0_den in HU.
+  pose proof (HTm _ _ (third_cached_a0 digits c d t3 t4 tx)) as HA.
+  exists le', mf; split; [exact HX|]; split.
+  - unfold third_observations; split; [exact HR0|]; split; [exact HCL|]; split; [exact HCH|];
+      split; [exact HDL|]; split; [exact HDH|]; split; [exact HT3|]; split; [exact HT4|]; split; assumption.
+  - split; [apply atomic_rep; exact HRep|]; split; [apply atomic_tmatch; exact HTm|exact HF].
+Qed.

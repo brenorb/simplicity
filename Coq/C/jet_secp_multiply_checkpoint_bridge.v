@@ -1,0 +1,78 @@
+(** First original-C checkpoint observed as compact machine values and then
+    revalued for the next slice. No unbounded-product assumption. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_u128_shift64_rep.
+Require Import C.jet_secp_multiply_checkpoint_ops C.jet_secp_multiply_checkpoint_machine C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition first_c_machine (rho : nat -> int64) := machine_product (rho 4%nat) (rho 9%nat).
+Definition first_d_machine (rho : nat -> int64) :=
+  machine_accum (machine_accum (machine_accum (machine_product (rho 0%nat) (rho 8%nat))
+    (rho 1%nat) (rho 7%nat)) (rho 2%nat) (rho 6%nat)) (rho 3%nat) (rho 5%nat).
+Definition first_fold_machine rho := machine_accum (first_d_machine rho) (Int64.repr 68719492368) (fst (first_c_machine rho)).
+Definition first_final_c_machine rho := machine_shift64 (first_c_machine rho).
+Definition first_final_d_machine rho := machine_shift52 (first_fold_machine rho).
+Definition first_t3_machine rho := Int64.and (fst (first_fold_machine rho)) (Int64.repr 4503599627370495).
+
+Lemma first_c_den rho beta : pair_den rho beta first_c = first_c_machine rho.
+Proof. unfold first_c, first_c_machine; rewrite sx_product_machine; reflexivity. Qed.
+Lemma first_d_den rho beta : pair_den rho beta first_d = first_d_machine rho.
+Proof. unfold first_d, first_d_machine; rewrite !sx_accum_machine, sx_product_machine; reflexivity. Qed.
+Lemma first_fold_den rho beta : pair_den rho beta first_fold_d = first_fold_machine rho.
+Proof.
+  unfold first_fold_d, first_fold_machine; rewrite sx_accum_machine, first_d_den.
+  change (machine_accum (first_d_machine rho) (Int64.repr 68719492368)
+    (fst (pair_den rho beta first_c)) = machine_accum (first_d_machine rho)
+      (Int64.repr 68719492368) (fst (first_c_machine rho))).
+  rewrite first_c_den; reflexivity.
+Qed.
+Lemma first_final_c_den rho beta : pair_den rho beta first_final_c = first_final_c_machine rho.
+Proof. unfold first_final_c, first_final_c_machine; rewrite sx_shift64_machine, first_c_den; reflexivity. Qed.
+Lemma first_final_d_den rho beta : pair_den rho beta first_final_d = first_final_d_machine rho.
+Proof. unfold first_final_d, first_final_d_machine; rewrite sx_shift52_machine, first_fold_den; reflexivity. Qed.
+Lemma first_t3_den rho beta : den rho beta first_t3 = Vlong (first_t3_machine rho).
+Proof.
+  unfold first_t3, first_t3_machine.
+  change (Vlong (Int64.and (fst (pair_den rho beta first_fold_d)) (Int64.repr 4503599627370495)) =
+    Vlong (Int64.and (fst (first_fold_machine rho)) (Int64.repr 4503599627370495))).
+  rewrite first_fold_den; reflexivity.
+Qed.
+
+Definition first_machine_observations rho beta le m :=
+  Mem.load Mint64 m (blk beta 2) (bas beta 2 + 0) = Some (Vlong (fst (first_final_c_machine rho))) /\
+  Mem.load Mint64 m (blk beta 2) (bas beta 2 + 8) = Some (Vlong (snd (first_final_c_machine rho))) /\
+  Mem.load Mint64 m (blk beta 3) (bas beta 3 + 0) = Some (Vlong (fst (first_final_d_machine rho))) /\
+  Mem.load Mint64 m (blk beta 3) (bas beta 3 + 8) = Some (Vlong (snd (first_final_d_machine rho))) /\
+  le!jets_secp._t3 = Some (Vlong (first_t3_machine rho)).
+
+Local Opaque xstmt prefix_state prefix_initial prefix_statement mul_allocated.
+Theorem exec_first_machine_atomic rho beta e le m :
+  rep rho beta (sregs prefix_initial) m -> tmatch rho beta (stemps prefix_initial) le ->
+  ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m prefix_statement E0 le' mf Out_normal /\
+    first_machine_observations rho beta le' mf /\
+    rep rho beta (sregs (atomic_state rho beta prefix_state)) mf /\
+    tmatch rho beta (stemps (atomic_state rho beta prefix_state)) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs prefix_initial)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (exec_field_first_checkpoint rho beta e le m HR HT HE)
+    as (le' & mf & HX & HRep & HTm & HS & HF).
+  pose proof (xload_u64_defined_sound rho beta _ mf 2 0 (fst first_final_c) HRep prefix_c_low) as HCL.
+  pose proof (xload_u64_defined_sound rho beta _ mf 2 8 (snd first_final_c) HRep prefix_c_high) as HCH.
+  pose proof (xload_u64_defined_sound rho beta _ mf 3 0 (fst first_final_d) HRep prefix_d_low) as HDL.
+  pose proof (xload_u64_defined_sound rho beta _ mf 3 8 (snd first_final_d) HRep prefix_d_high) as HDH.
+  rewrite (pair_low_den rho (lay beta) first_final_c _ (first_final_c_den rho (lay beta)) eq_refl) in HCL.
+  rewrite (pair_high_den rho (lay beta) first_final_c _ (first_final_c_den rho (lay beta)) eq_refl) in HCH.
+  rewrite (pair_low_den rho (lay beta) first_final_d _ (first_final_d_den rho (lay beta)) eq_refl) in HDL.
+  rewrite (pair_high_den rho (lay beta) first_final_d _ (first_final_d_den rho (lay beta)) eq_refl) in HDH.
+  pose proof (HTm _ _ prefix_t3) as HT3; rewrite first_t3_den in HT3.
+  exists le', mf; split; [exact HX|]; split.
+  - unfold first_machine_observations; split; [exact HCL|]; split; [exact HCH|];
+      split; [exact HDL|]; split; assumption.
+  - split; [apply atomic_rep; exact HRep|]; split; [apply atomic_tmatch; exact HTm|exact HF].
+Qed.

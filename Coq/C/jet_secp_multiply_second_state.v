@@ -1,0 +1,73 @@
+(** Actual original field multiplier, statement heads 32 through 49.
+    Entries are atomic existing machine words, not a fresh physical layout. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs Maps Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix.
+Require Import C.jet_secp_multiply_run_run C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_ops.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition second_spine := firstn 18 (skipn 32 mul_spine).
+Definition second_statement := statement_sequence second_spine Sskip.
+Definition through_second := statement_sequence (firstn 50 mul_spine) Sskip.
+Definition after_second := statement_sequence (skipn 50 mul_spine) mul_last.
+Lemma through_second_suffix_source : statement_sequence (firstn 50 mul_spine) after_second = fn_body f_secp256k1_fe_mul_inner.
+Proof. Timeout 10 reflexivity. Qed.
+Lemma first_second_source : statement_sequence prefix_spine second_statement = through_second.
+Proof. Timeout 10 reflexivity. Qed.
+
+Definition second_regs (digits : nat -> int64) (c d : int64 * int64) :=
+  [mkreg (u64_cells 0 [XL (digits 0%nat); XL (digits 1%nat); XL (digits 2%nat); XL (digits 3%nat); XL (digits 4%nat)]) true (Some 40);
+   mkreg (u64_cells 0 [XL (digits 5%nat); XL (digits 6%nat); XL (digits 7%nat); XL (digits 8%nat); XL (digits 9%nat)]) true (Some 40);
+   mkreg (u64_cells 0 [XL (fst c); XL (snd c)]) true (Some 16);
+   mkreg (u64_cells 0 [XL (fst d); XL (snd d)]) true (Some 16)].
+Definition second_temps (digits : nat -> int64) (t3 : int64) :=
+  PTree.set _r (XP 0 0) (PTree.set _a (XP 0 0) (PTree.set _b (XP 1 0)
+  (PTree.set _M (XLc (Int64.repr 4503599627370495)) (PTree.set _R (XLc (Int64.repr 68719492368))
+  (PTree.set _a0 (XL (digits 0%nat)) (PTree.set _a1 (XL (digits 1%nat))
+  (PTree.set _a2 (XL (digits 2%nat)) (PTree.set _a3 (XL (digits 3%nat))
+  (PTree.set _a4 (XL (digits 4%nat)) (PTree.set _t3 (XL t3) (PTree.empty sx))))))))))).
+Definition second_initial digits c d t3 := mkst (second_temps digits t3) (second_regs digits c d) [] 10.
+Definition second_run digits c d t3 := xstmt (genv_cenv secp_ge) [] field_table 160
+  (snd mul_allocated) (second_initial digits c d t3) second_statement.
+Lemma second_completes digits c d t3 :
+  match second_run digits c d t3 with Some (RDone _ ONormal) => true | _ => false end = true.
+Proof. Timeout 10 vm_compute; reflexivity. Qed.
+Definition second_state digits c d t3 := match second_run digits c d t3 with
+  | Some (RDone st _) => st | _ => second_initial digits c d t3 end.
+Lemma second_run_eq digits c d t3 :
+  second_run digits c d t3 = Some (RDone (second_state digits c d t3) ONormal).
+Proof.
+  pose proof (second_completes digits c d t3) as H; unfold second_state.
+  destruct (second_run digits c d t3) as [r|]; [|discriminate].
+  destruct r; [destruct o; try discriminate; reflexivity|discriminate].
+Qed.
+
+Definition second_fold_sy (digits : nat -> int64) (c d : int64 * int64) :=
+  sx_accum
+    (sx_accum (sx_accum (sx_accum (sx_accum (sx_accum (XL (fst d), XL (snd d))
+      (XL (digits 0%nat)) (XL (digits 9%nat))) (XL (digits 1%nat)) (XL (digits 8%nat)))
+      (XL (digits 2%nat)) (XL (digits 7%nat))) (XL (digits 3%nat)) (XL (digits 6%nat)))
+      (XL (digits 4%nat)) (XL (digits 5%nat)))
+    (XLsh Hshl (XLc (Int64.repr 68719492368)) 12) (XL (fst c)).
+Definition second_final_sy digits c d := sx_shift52 (second_fold_sy digits c d).
+Definition second_t4_before digits c d := XLb Band (fst (second_fold_sy digits c d)) (XLc (Int64.repr 4503599627370495)).
+Definition second_tx_sy digits c d := XLsh Hshru (second_t4_before digits c d) 48.
+Definition second_t4_sy digits c d := XLb Band (second_t4_before digits c d)
+  (XLsh Hshru (XLc (Int64.repr 4503599627370495)) 4).
+
+Lemma second_c_unchanged digits c d t3 : nth_error (sregs (second_state digits c d t3)) 2 =
+  Some (mkreg (u64_cells 0 [XL (fst c); XL (snd c)]) true (Some 16)).
+Proof. Timeout 10 reflexivity. Qed.
+Lemma second_d_low digits c d t3 : xload (sregs (second_state digits c d t3)) 3 0 tulong = Some (fst (second_final_sy digits c d)).
+Proof. Timeout 10 reflexivity. Qed.
+Lemma second_d_high digits c d t3 : xload (sregs (second_state digits c d t3)) 3 8 tulong = Some (snd (second_final_sy digits c d)).
+Proof. Timeout 10 reflexivity. Qed.
+Lemma second_tx digits c d t3 : (stemps (second_state digits c d t3))!_tx = Some (second_tx_sy digits c d).
+Proof. Timeout 10 reflexivity. Qed.
+Lemma second_t4 digits c d t3 : (stemps (second_state digits c d t3))!_t4 = Some (second_t4_sy digits c d).
+Proof. Timeout 10 reflexivity. Qed.
+Lemma second_t3_preserved digits c d t3 : (stemps (second_state digits c d t3))!_t3 = Some (XL t3).
+Proof. Timeout 10 reflexivity. Qed.

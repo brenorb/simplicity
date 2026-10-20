@@ -1,0 +1,101 @@
+### C.jet_secp_square_spec_bridge.square_reader_bounds
+square_reader_bounds
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       jet_secp_square_columns.square_input_bounds (square_reader_rho x)
+### C.jet_secp_square_spec_bridge.square_product_matches_literal
+square_product_matches_literal
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_multiply_writer_bridge.product_word (jet_secp_square_columns.diagonal (square_reader_rho x)))
+         (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem x)
+### C.jet_secp_square_spec_bridge.square_writer_output_matches_literal
+square_writer_output_matches_literal
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+         (jet_secp_write_fe_wide_exec.wide_fe_output (jet_secp_square_numeric.square_words (square_reader_rho x) O)
+            (jet_secp_square_numeric.square_words (square_reader_rho x) (S O))
+            (jet_secp_square_numeric.square_words (square_reader_rho x) (S (S O)))
+            (jet_secp_square_numeric.square_words (square_reader_rho x) (S (S (S O))))
+            (jet_secp_square_numeric.square_words (square_reader_rho x) (S (S (S (S O))))))
+         (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem x)
+### C.jet_secp_square_spec_bridge.eval_original_square_literal_from_reader
+eval_original_square_literal_from_reader
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (layout : jet_sx_state.layout)
+         (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep (square_reader_rho x) layout jet_secp_square_execution.square_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_sqr)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep (square_reader_rho x) layout
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 jet_secp_square_execution.square_limbs) true
+                        (@Some BinNums.Z
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (@nil jet_sx_state.region)) mf)
+               (and
+                  (jet_secp_multiply_finish_execute.output_words layout
+                     (jet_secp_square_numeric.square_words (square_reader_rho x)) mf)
+                  (and
+                     (@eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                        (jet_secp_write_fe_wide_exec.wide_fe_output
+                           (jet_secp_square_numeric.square_words (square_reader_rho x) O)
+                           (jet_secp_square_numeric.square_words (square_reader_rho x) (S O))
+                           (jet_secp_square_numeric.square_words (square_reader_rho x) (S (S O)))
+                           (jet_secp_square_numeric.square_words (square_reader_rho x) (S (S (S O))))
+                           (jet_secp_square_numeric.square_words (square_reader_rho x) (S (S (S (S O))))))
+                        (@jet_secp_square_execution.literal_fe_square Alg.CoreFunSem x))
+                     (and
+                        (forall (i : nat) (_ : lt i (S (S (S (S (S O)))))),
+                         and
+                           (BinInt.Z.le BinNums.Z0
+                              (Integers.Int64.unsigned (jet_secp_square_numeric.square_words (square_reader_rho x) i)))
+                           (BinInt.Z.lt
+                              (Integers.Int64.unsigned (jet_secp_square_numeric.square_words (square_reader_rho x) i))
+                              match PeanoNat.Nat.eqb i (S (S (S (S O)))) return BinNums.Z with
+                              | true =>
+                                  BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))
+                              | false =>
+                                  BinNums.Zpos
+                                    (BinNums.xO
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO ...)))))))))))))
+                              end))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot layout
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape jet_secp_square_execution.square_regs) b ofs)) m mf))))))
+### C.jet_secp_square_spec_bridge.square_reader_rho
+square_reader_rho =
+fun x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))) =>
+jet_secp_b32_exec.limb_rho (jet_secp_multiply_input_input.normalized_value x)
+     : forall (_ : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (_ : nat), Integers.Int64.int
+
+Arguments square_reader_rho x n%nat_scope

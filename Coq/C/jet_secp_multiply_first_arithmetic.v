@@ -1,0 +1,152 @@
+(** First C checkpoint's integer observations from the implementation's
+    56-/52-bit limb bounds. These bounds must come from the real caller. *)
+From Coq Require Import ZArith List Lia Bool.
+From compcert Require Import Integers AST Ctypes Clight ClightBigstep Memory Events.
+Require Import C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_secp_linkage.
+Require Import C.jet_secp_multiply_checkpoint_machine C.jet_secp_multiply_checkpoint_bridge C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic.
+Require Import C.jet_secp_umul128_numeric.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition field_input_bounds (rho : nat -> int64) := forall i, (i < 10)%nat ->
+  Int64.unsigned (rho i) < if (Nat.eqb i 4 || Nat.eqb i 9)%bool then 4503599627370496 else 72057594037927936.
+Definition column3 (rho : nat -> int64) := Int64.unsigned (rho 0%nat) * Int64.unsigned (rho 8%nat) +
+  Int64.unsigned (rho 1%nat) * Int64.unsigned (rho 7%nat) +
+  Int64.unsigned (rho 2%nat) * Int64.unsigned (rho 6%nat) +
+  Int64.unsigned (rho 3%nat) * Int64.unsigned (rho 5%nat).
+Definition column8 (rho : nat -> int64) := Int64.unsigned (rho 4%nat) * Int64.unsigned (rho 9%nat).
+
+Lemma product56_range a b : Int64.unsigned a < 72057594037927936 -> Int64.unsigned b < 72057594037927936 ->
+  0 <= Int64.unsigned a * Int64.unsigned b < 5192296858534827628530496329220096.
+Proof. intros HA HB; pose proof (Int64.unsigned_range a); pose proof (Int64.unsigned_range b); nia. Qed.
+
+Lemma column3_bounds rho : field_input_bounds rho -> 0 <= column3 rho < 20769187434139310514121985316880384.
+Proof.
+  intro HB.
+  assert (H0 := HB 0%nat ltac:(lia)); assert (H1 := HB 1%nat ltac:(lia)).
+  assert (H2 := HB 2%nat ltac:(lia)); assert (H3 := HB 3%nat ltac:(lia)).
+  assert (H5 := HB 5%nat ltac:(lia)); assert (H6 := HB 6%nat ltac:(lia)).
+  assert (H7 := HB 7%nat ltac:(lia)); assert (H8 := HB 8%nat ltac:(lia)).
+  cbn in H0, H1, H2, H3, H5, H6, H7, H8.
+  pose proof (product56_range _ _ H0 H8); pose proof (product56_range _ _ H1 H7).
+  pose proof (product56_range _ _ H2 H6); pose proof (product56_range _ _ H3 H5).
+  unfold column3; lia.
+Qed.
+
+Lemma first_d_value rho : field_input_bounds rho -> pair_value (first_d_machine rho) = column3 rho.
+Proof.
+  intro HB.
+  pose proof (HB 0%nat ltac:(lia)) as H0; pose proof (HB 1%nat ltac:(lia)) as H1.
+  pose proof (HB 2%nat ltac:(lia)) as H2; pose proof (HB 3%nat ltac:(lia)) as H3.
+  pose proof (HB 5%nat ltac:(lia)) as H5; pose proof (HB 6%nat ltac:(lia)) as H6.
+  pose proof (HB 7%nat ltac:(lia)) as H7; pose proof (HB 8%nat ltac:(lia)) as H8.
+  cbn in H0, H1, H2, H3, H5, H6, H7, H8.
+  pose proof (product56_range _ _ H0 H8) as P0; pose proof (product56_range _ _ H1 H7) as P1.
+  pose proof (product56_range _ _ H2 H6) as P2; pose proof (product56_range _ _ H3 H5) as P3.
+  set (d0 := machine_product (rho 0%nat) (rho 8%nat)).
+  assert (V0 : pair_value d0 = Int64.unsigned (rho 0%nat) * Int64.unsigned (rho 8%nat)) by apply machine_product_value.
+  set (d1 := machine_accum d0 (rho 1%nat) (rho 7%nat)).
+  assert (V1 : pair_value d1 = pair_value d0 + Int64.unsigned (rho 1%nat) * Int64.unsigned (rho 7%nat)).
+  { apply machine_accum_exact. rewrite V0; change (Int64.modulus * Int64.modulus) with 340282366920938463463374607431768211456; lia. }
+  set (d2 := machine_accum d1 (rho 2%nat) (rho 6%nat)).
+  assert (V2 : pair_value d2 = pair_value d1 + Int64.unsigned (rho 2%nat) * Int64.unsigned (rho 6%nat)).
+  { apply machine_accum_exact. rewrite V1, V0; change (Int64.modulus * Int64.modulus) with 340282366920938463463374607431768211456; lia. }
+  change (pair_value (machine_accum d2 (rho 3%nat) (rho 5%nat)) = column3 rho).
+  rewrite machine_accum_exact.
+  - rewrite V2, V1, V0; reflexivity.
+  - rewrite V2, V1, V0; change (Int64.modulus * Int64.modulus) with 340282366920938463463374607431768211456; lia.
+Qed.
+
+Lemma first_c_low_value rho : Int64.unsigned (fst (first_c_machine rho)) = column8 rho mod Int64.modulus.
+Proof. exact (proj2 (umul128_unsigned_outputs (rho 4%nat) (rho 9%nat))). Qed.
+Lemma first_c_value rho : pair_value (first_c_machine rho) = column8 rho.
+Proof. unfold first_c_machine, column8; exact (machine_product_value (rho 4%nat) (rho 9%nat)). Qed.
+
+Lemma first_fold_value rho : field_input_bounds rho -> pair_value (first_fold_machine rho) =
+  column3 rho + 68719492368 * (column8 rho mod Int64.modulus).
+Proof.
+  intro HB; pose proof (column3_bounds rho HB) as HC.
+  pose proof (Int64.unsigned_range (fst (first_c_machine rho))) as HL.
+  unfold first_fold_machine; rewrite machine_accum_exact.
+  - rewrite first_d_value by exact HB; rewrite first_c_low_value; reflexivity.
+  - rewrite first_d_value by exact HB.
+    change (Int64.unsigned (Int64.repr 68719492368)) with 68719492368.
+    change Int64.modulus with 18446744073709551616 in HL.
+    change (Int64.modulus * Int64.modulus) with 340282366920938463463374607431768211456; lia.
+Qed.
+
+Lemma first_fold_bound rho : field_input_bounds rho ->
+  0 <= pair_value (first_fold_machine rho) < 41538374868278621028243970633760768.
+Proof.
+  intro HB; rewrite first_fold_value by exact HB.
+  pose proof (column3_bounds rho HB).
+  pose proof (Z.mod_pos_bound (column8 rho) Int64.modulus ltac:(pose proof Int64.modulus_pos; lia)).
+  change Int64.modulus with 18446744073709551616 in *; lia.
+Qed.
+Lemma first_final_d_value rho : field_input_bounds rho -> pair_value (first_final_d_machine rho) =
+  (column3 rho + 68719492368 * (column8 rho mod Int64.modulus)) / 4503599627370496.
+Proof. intro HB; unfold first_final_d_machine; rewrite machine_shift52_value, first_fold_value by exact HB; reflexivity. Qed.
+Lemma first_final_c_value rho : pair_value (first_final_c_machine rho) = column8 rho / Int64.modulus.
+Proof. unfold first_final_c_machine; rewrite machine_shift64_value, first_c_value; reflexivity. Qed.
+
+Lemma pair_low_mod52 s : Int64.unsigned (fst s) mod 4503599627370496 = pair_value s mod 4503599627370496.
+Proof.
+  unfold pair_value.
+  replace (Int64.unsigned (fst s) + Int64.modulus * Int64.unsigned (snd s)) with
+    (Int64.unsigned (fst s) + (4096 * Int64.unsigned (snd s)) * 4503599627370496)
+    by (change Int64.modulus with 18446744073709551616; ring).
+  rewrite Z.mod_add by lia; reflexivity.
+Qed.
+Lemma first_t3_value rho : field_input_bounds rho -> Int64.unsigned (first_t3_machine rho) =
+  (column3 rho + 68719492368 * (column8 rho mod Int64.modulus)) mod 4503599627370496.
+Proof.
+  intro HB; unfold first_t3_machine; rewrite machine_mask52_value, pair_low_mod52, first_fold_value by exact HB; reflexivity.
+Qed.
+
+Lemma column8_bound rho : field_input_bounds rho -> 0 <= column8 rho < 20282409603651670423947251286016.
+Proof.
+  intro HB; pose proof (HB 4%nat ltac:(lia)) as HA; pose proof (HB 9%nat ltac:(lia)) as HH.
+  cbn in HA, HH. unfold column8.
+  pose proof (Int64.unsigned_range (rho 4%nat)); pose proof (Int64.unsigned_range (rho 9%nat)); nia.
+Qed.
+Lemma first_final_d_bound rho : field_input_bounds rho ->
+  0 <= pair_value (first_final_d_machine rho) < 9223372036854775808.
+Proof.
+  intro HB; pose proof (first_fold_bound rho HB) as HF.
+  unfold first_final_d_machine; rewrite machine_shift52_value.
+  split; [apply Z.div_pos; lia|apply Z.div_lt_upper_bound; lia].
+Qed.
+Lemma first_final_c_bound rho : field_input_bounds rho ->
+  0 <= pair_value (first_final_c_machine rho) < 1099511627776.
+Proof.
+  intro HB; pose proof (column8_bound rho HB) as HC.
+  rewrite first_final_c_value; change Int64.modulus with 18446744073709551616.
+  split; [apply Z.div_pos; lia|apply Z.div_lt_upper_bound; lia].
+Qed.
+
+Local Opaque xstmt prefix_state prefix_initial prefix_statement mul_allocated.
+Theorem exec_first_integer_atomic rho beta e le m :
+  field_input_bounds rho ->
+  rep rho beta (sregs prefix_initial) m -> tmatch rho beta (stemps prefix_initial) le ->
+  ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m prefix_statement E0 le' mf Out_normal /\
+    first_machine_observations rho beta le' mf /\
+    pair_value (first_final_c_machine rho) = column8 rho / Int64.modulus /\
+    pair_value (first_final_d_machine rho) =
+      (column3 rho + 68719492368 * (column8 rho mod Int64.modulus)) / 4503599627370496 /\
+    Int64.unsigned (first_t3_machine rho) =
+      (column3 rho + 68719492368 * (column8 rho mod Int64.modulus)) mod 4503599627370496 /\
+    0 <= pair_value (first_final_c_machine rho) < 1099511627776 /\
+    0 <= pair_value (first_final_d_machine rho) < 9223372036854775808 /\
+    rep rho beta (sregs (atomic_state rho beta prefix_state)) mf /\
+    tmatch rho beta (stemps (atomic_state rho beta prefix_state)) le' /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs prefix_initial)) b ofs) m mf.
+Proof.
+  intros HB HR HT HE.
+  destruct (exec_first_machine_atomic rho beta e le m HR HT HE) as (le' & mf & HX & HM & HRep & HTm & HF).
+  exists le', mf; split; [exact HX|]; split; [exact HM|]; split; [apply first_final_c_value|];
+    split; [apply first_final_d_value; exact HB|]; split; [apply first_t3_value; exact HB|];
+    split; [apply first_final_c_bound; exact HB|]; split; [apply first_final_d_bound; exact HB|];
+    split; [exact HRep|]; split; assumption.
+Qed.

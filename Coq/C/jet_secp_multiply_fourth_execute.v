@@ -1,0 +1,115 @@
+(** Compose the actual second store and hand over the updated checkpoint. *)
+From Coq Require Import ZArith List.
+From compcert Require Import Integers AST Ctypes Clight Clightdefs ClightBigstep Maps Memory Events Values.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep C.jet_sx_revalue_cells.
+Require Import C.jet_secp_linkage C.jets_secp C.jet_secp_statement_prefix.
+Require Import C.jet_secp_multiply_checkpoint_prefix C.jet_secp_multiply_checkpoint_atomic C.jet_secp_multiply_checkpoint_bridge C.jet_secp_multiply_checkpoint_machine.
+Require Import C.jet_secp_multiply_second_entry C.jet_secp_multiply_second_temps C.jet_secp_multiply_secondvalues_arithmetic.
+Require Import C.jet_secp_multiply_third_state C.jet_secp_multiply_third_arithmetic C.jet_secp_multiply_next_checkpoint.
+Require Import C.jet_secp_multiply_fourth_state C.jet_secp_multiply_fourth_values.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition written_r1 (written : nat -> int64) (r1 : int64) n := match n with S O => r1 | _ => written n end.
+Definition fourth_checkpoint digits written c d t3 t4 := checkpoint_state digits
+  (written_r1 written (fourth_r1_machine digits c d)) (fourth_final_c_machine digits c d) (fourth_final_d_machine digits d) t3 t4.
+
+Local Opaque xstmt fourth_state checkpoint_state fourth_statement mul_allocated.
+Lemma fourth_typed_run digits written c d t3 t4 : xstmt (genv_cenv secp_ge) [] C.jet_secp_multiply_run_run.field_table 160
+  (snd mul_allocated) (checkpoint_state digits written c d t3 t4) fourth_statement = Some (RDone (fourth_state digits written c d t3 t4) ONormal).
+Proof. change (fourth_run digits written c d t3 t4 = Some (RDone (fourth_state digits written c d t3 t4) ONormal)); apply fourth_run_eq. Qed.
+
+Lemma fourth_atomic_regs_exact rho beta digits written c d t3 t4 :
+  sregs (atomic_state rho beta (fourth_state digits written c d t3 t4)) =
+  checkpoint_regs digits (written_r1 written (fourth_r1_machine digits c d)) (fourth_final_c_machine digits c d) (fourth_final_d_machine digits d).
+Proof.
+  cbn [atomic_state sregs]; unfold atomic_regs; rewrite fourth_regions_exact.
+  cbn [map revalue_region rcells rw rfree].
+  change ([mkreg (u64_cells 0 [XL (written 0%nat); atomic_sx rho beta (fourth_r1_sy digits c d); XL (written 2%nat); XL (written 3%nat); XL (written 4%nat)]) true (Some 40);
+    mkreg (u64_cells 0 [XL (digits 5%nat); XL (digits 6%nat); XL (digits 7%nat); XL (digits 8%nat); XL (digits 9%nat)]) true (Some 40);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst (fourth_final_c_sy digits c d); snd (fourth_final_c_sy digits c d)])) true (Some 16);
+    mkreg (u64_cells 0 (map (atomic_sx rho beta) [fst (fourth_final_d_sy digits d); snd (fourth_final_d_sy digits d)])) true (Some 16)] =
+    checkpoint_regs digits (written_r1 written (fourth_r1_machine digits c d)) (fourth_final_c_machine digits c d) (fourth_final_d_machine digits d)).
+  rewrite (atomic_long_value rho beta (fourth_r1_sy digits c d) (fourth_r1_machine digits c d) eq_refl (fourth_r1_den rho (lay beta) digits c d)).
+  rewrite (atomic_values rho beta [fst (fourth_final_c_sy digits c d); snd (fourth_final_c_sy digits c d)]
+    [fst (fourth_final_c_machine digits c d); snd (fourth_final_c_machine digits c d)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (fourth_final_c_den rho (lay beta) digits c d) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (fourth_final_c_den rho (lay beta) digits c d) eq_refl); reflexivity. }
+  rewrite (atomic_values rho beta [fst (fourth_final_d_sy digits d); snd (fourth_final_d_sy digits d)]
+    [fst (fourth_final_d_machine digits d); snd (fourth_final_d_machine digits d)] eq_refl).
+  2: { cbn [map]; rewrite (pair_low_den rho (lay beta) _ _ (fourth_final_d_den rho (lay beta) digits d) eq_refl),
+       (pair_high_den rho (lay beta) _ _ (fourth_final_d_den rho (lay beta) digits d) eq_refl); reflexivity. }
+  reflexivity.
+Qed.
+Lemma fourth_checkpoint_rep rho beta digits written c d t3 t4 m :
+  rep rho beta (sregs (fourth_state digits written c d t3 t4)) m ->
+  rep rho beta (sregs (fourth_checkpoint digits written c d t3 t4)) m.
+Proof.
+  intro HR; pose proof (atomic_rep rho beta _ m HR) as HA.
+  change (rep rho beta (sregs (atomic_state rho beta (fourth_state digits written c d t3 t4))) m) in HA.
+  rewrite fourth_atomic_regs_exact in HA; exact HA.
+Qed.
+Lemma fourth_checkpoint_tmatch rho beta digits written c d t3 t4 le :
+  tmatch rho beta (stemps (fourth_state digits written c d t3 t4)) le ->
+  tmatch rho beta (stemps (fourth_checkpoint digits written c d t3 t4)) le.
+Proof.
+  intro HT; change (tmatch rho beta (checkpoint_temps digits t3 t4) le).
+  unfold checkpoint_temps; apply tmatch_bindings; apply Forall_forall; intros [id x] HI.
+  exact (HT id x (fourth_live_lookup digits written c d t3 t4 id x HI)).
+Qed.
+Lemma checkpoint_output_loads rho beta digits written c d t3 t4 m :
+  rep rho beta (sregs (checkpoint_state digits written c d t3 t4)) m ->
+  Mem.load Mint64 m (blk beta 0) (bas beta 0 + 0) = Some (Vlong (written 0%nat)) /\
+  Mem.load Mint64 m (blk beta 0) (bas beta 0 + 8) = Some (Vlong (written 1%nat)).
+Proof.
+  intro HR; pose proof (rep_region rho beta _ m 0 _ HR eq_refl) as H0; split.
+  - exact (region_load rho beta m 0 _ 0 Mint64 (XL (written 0%nat)) H0 ltac:(left; reflexivity)).
+  - exact (region_load rho beta m 0 _ 8 Mint64 (XL (written 1%nat)) H0 ltac:(right; left; reflexivity)).
+Qed.
+
+Theorem exec_fourth_checkpoint digits written c d t3 t4 rho beta e le m :
+  rep rho beta (sregs (checkpoint_state digits written c d t3 t4)) m ->
+  tmatch rho beta (stemps (checkpoint_state digits written c d t3 t4)) le -> ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m fourth_statement E0 le' mf Out_normal /\
+    rep rho beta (sregs (fourth_checkpoint digits written c d t3 t4)) mf /\
+    tmatch rho beta (stemps (fourth_checkpoint digits written c d t3 t4)) le' /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 0) = Some (Vlong (written 0%nat)) /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 8) = Some (Vlong (fourth_r1_machine digits c d)) /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs (checkpoint_state digits written c d t3 t4))) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (field_stmt_normal 160 (snd mul_allocated) (checkpoint_state digits written c d t3 t4) fourth_statement
+    (fourth_state digits written c d t3 t4) (fourth_typed_run digits written c d t3 t4) rho beta e le m HR HT HE)
+    as (le' & mf & HX & HRep & HTm & HS & HF).
+  pose proof (fourth_checkpoint_rep rho beta digits written c d t3 t4 mf HRep) as HN.
+  pose proof (checkpoint_output_loads rho beta digits (written_r1 written (fourth_r1_machine digits c d))
+    (fourth_final_c_machine digits c d) (fourth_final_d_machine digits d) t3 t4 mf HN) as [H0 H1].
+  exists le', mf; split; [exact HX|]; split; [exact HN|]; split; [apply fourth_checkpoint_tmatch; exact HTm|].
+  split; [exact H0|]; split; assumption.
+Qed.
+
+Definition original_fourth_checkpoint rho := fourth_checkpoint rho (written_r0 rho (original_third_r0 rho))
+  (original_third_final_c rho) (original_third_final_d rho) (first_t3_machine rho) (original_second_t4 rho).
+Local Opaque prefix_initial.
+Theorem exec_original_through_fourth rho beta e le m :
+  rep rho beta (sregs prefix_initial) m -> tmatch rho beta (stemps prefix_initial) le -> ematch beta (snd mul_allocated) e ->
+  exists le' mf,
+    Clight2.exec_stmt secp_ge e le m through_fourth E0 le' mf Out_normal /\
+    rep rho beta (sregs (original_fourth_checkpoint rho)) mf /\
+    tmatch rho beta (stemps (original_fourth_checkpoint rho)) le' /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 0) = Some (Vlong (original_third_r0 rho)) /\
+    Mem.load Mint64 mf (blk beta 0) (bas beta 0 + 8) = Some (Vlong (fourth_r1_machine rho (original_third_final_c rho) (original_third_final_d rho))) /\
+    lframe (fun b ofs => ~ foot beta (map rshape (sregs prefix_initial)) b ofs) m mf.
+Proof.
+  intros HR HT HE.
+  destruct (exec_original_third_checkpoint rho beta e le m HR HT HE) as (le1 & m1 & HX1 & HM1 & HR1 & HT1 & HF1).
+  destruct (exec_fourth_checkpoint rho (written_r0 rho (original_third_r0 rho))
+    (original_third_final_c rho) (original_third_final_d rho) (first_t3_machine rho) (original_second_t4 rho)
+    rho beta e le1 m1 HR1 HT1 HE) as (le2 & m2 & HX2 & HR2 & HT2 & H0 & H1 & HF2).
+  exists le2, m2; split.
+  - rewrite <- third_fourth_source; eapply exec_statement_prefix_then_last; [exact HX1|exact HX2].
+  - split; [exact HR2|]; split; [exact HT2|]; split; [exact H0|]; split; [exact H1|].
+    eapply lframe_trans; [exact HF1|]. rewrite checkpoint_shape in HF2; exact HF2.
+Qed.

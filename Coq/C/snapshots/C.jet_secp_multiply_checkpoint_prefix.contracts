@@ -1,0 +1,262 @@
+### C.jet_secp_multiply_checkpoint_prefix.prefix_suffix_source
+prefix_suffix_source
+     : @eq Clight.statement (jet_secp_statement_prefix.statement_sequence prefix_spine suffix_statement)
+         (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner)
+### C.jet_secp_multiply_checkpoint_prefix.prefix_completes
+prefix_completes
+     : @eq bool
+         match prefix_run return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_multiply_checkpoint_prefix.prefix_run_eq
+prefix_run_eq
+     : @eq (option jet_sx_exec.res) prefix_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone prefix_state jet_sx_exec.ONormal))
+### C.jet_secp_multiply_checkpoint_prefix.prefix_c_low
+prefix_c_low
+     : @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs prefix_state) (S (S O)) BinNums.Z0 Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (@fst jet_sx_expr.sx jet_sx_expr.sx first_final_c))
+### C.jet_secp_multiply_checkpoint_prefix.prefix_c_high
+prefix_c_high
+     : @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs prefix_state) (S (S O))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (@snd jet_sx_expr.sx jet_sx_expr.sx first_final_c))
+### C.jet_secp_multiply_checkpoint_prefix.prefix_d_low
+prefix_d_low
+     : @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs prefix_state) (S (S (S O))) BinNums.Z0 Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (@fst jet_sx_expr.sx jet_sx_expr.sx first_final_d))
+### C.jet_secp_multiply_checkpoint_prefix.prefix_d_high
+prefix_d_high
+     : @eq (option jet_sx_expr.sx)
+         (jet_sx_state.xload (jet_sx_eval.sregs prefix_state) (S (S (S O)))
+            (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) Ctypesdefs.tulong)
+         (@Some jet_sx_expr.sx (@snd jet_sx_expr.sx jet_sx_expr.sx first_final_d))
+### C.jet_secp_multiply_checkpoint_prefix.prefix_t3
+prefix_t3
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx jets_secp._t3 (jet_sx_eval.stemps prefix_state))
+         (@Some jet_sx_expr.sx first_t3)
+### C.jet_secp_multiply_checkpoint_prefix.field_stmt_normal
+field_stmt_normal
+     : forall (fuel : nat) (ve : jet_sx_eval.venv) (st : jet_sx_eval.sstate) (stmt : Clight.statement)
+         (st' : jet_sx_eval.sstate)
+         (_ : @eq (option jet_sx_exec.res)
+                (jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge)
+                   (@nil (prod AST.ident (prod nat Ctypes.type))) jet_secp_multiply_run_run.field_table fuel ve st stmt)
+                (@Some jet_sx_exec.res (jet_sx_exec.RDone st' jet_sx_exec.ONormal)))
+         (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs st) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st) le) (_ : jet_sx_eval.ematch beta ve e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m stmt Events.E0 le' mf
+                  ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs st') mf)
+                  (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps st') le')
+                     (and
+                        (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_sx_eval.sregs st'))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_sx_eval.sregs st)))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape (jet_sx_eval.sregs st)) b ofs)) m mf))))))
+### C.jet_secp_multiply_checkpoint_prefix.prefix_typed_run
+prefix_typed_run
+     : @eq (option jet_sx_exec.res)
+         (jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+            jet_secp_multiply_run_run.field_table
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...))))))))))))))))))))))
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv mul_allocated) prefix_initial prefix_statement)
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone prefix_state jet_sx_exec.ONormal))
+### C.jet_secp_multiply_checkpoint_prefix.exec_field_first_checkpoint
+exec_field_first_checkpoint
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs prefix_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps prefix_initial) le)
+         (_ : jet_sx_eval.ematch beta (@snd (list jet_sx_state.region) jet_sx_eval.venv mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m prefix_statement Events.E0 le' mf
+                  ClightBigstep.Out_normal)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs prefix_state) mf)
+                  (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps prefix_state) le')
+                     (and
+                        (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_sx_eval.sregs prefix_state))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_sx_eval.sregs prefix_initial)))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape (jet_sx_eval.sregs prefix_initial)) b ofs)) m mf))))))
+### C.jet_secp_multiply_checkpoint_prefix.mul_spine
+mul_spine =
+@fst (list Clight.statement) Clight.statement
+  (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner))
+     : list Clight.statement
+### C.jet_secp_multiply_checkpoint_prefix.mul_last
+mul_last =
+@snd (list Clight.statement) Clight.statement
+  (jet_secp_statement_prefix.split_statement_last (Clight.fn_body jets_secp.f_secp256k1_fe_mul_inner))
+     : Clight.statement
+### C.jet_secp_multiply_checkpoint_prefix.prefix_spine
+prefix_spine =
+@List.firstn Clight.statement
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))) mul_spine
+     : list Clight.statement
+### C.jet_secp_multiply_checkpoint_prefix.prefix_statement
+prefix_statement = jet_secp_statement_prefix.statement_sequence prefix_spine Clight.Sskip
+     : Clight.statement
+### C.jet_secp_multiply_checkpoint_prefix.suffix_statement
+suffix_statement =
+jet_secp_statement_prefix.statement_sequence
+  (@List.skipn Clight.statement
+     (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))) mul_spine) mul_last
+     : Clight.statement
+### C.jet_secp_multiply_checkpoint_prefix.mul_allocated
+mul_allocated =
+match
+  jet_sx_mem.xalloc (jet_sx_mem.std_cells (Clight.genv_cenv jet_secp_linkage.secp_ge))
+    (Clight.genv_cenv jet_secp_linkage.secp_ge) (Clight.fn_vars jets_secp.f_secp256k1_fe_mul_inner)
+    (S (S O)) return (prod (list jet_sx_state.region) jet_sx_eval.venv)
+with
+| Some p => p
+| None =>
+    @pair (list jet_sx_state.region) (list (prod AST.ident (prod nat Ctypes.type))) (@nil jet_sx_state.region)
+      (@nil (prod AST.ident (prod nat Ctypes.type)))
+end
+     : prod (list jet_sx_state.region) jet_sx_eval.venv
+### C.jet_secp_multiply_checkpoint_prefix.prefix_temps
+prefix_temps =
+@Maps.PTree.set jet_sx_expr.sx jets_secp._b (jet_sx_expr.XP (S O) BinNums.Z0)
+  (@Maps.PTree.set jet_sx_expr.sx jets_secp._a (jet_sx_expr.XP O BinNums.Z0)
+     (@Maps.PTree.set jet_sx_expr.sx jets_secp._r (jet_sx_expr.XP O BinNums.Z0) (Maps.PTree.empty jet_sx_expr.sx)))
+     : Maps.PTree.tree jet_sx_expr.sx
+### C.jet_secp_multiply_checkpoint_prefix.prefix_initial
+prefix_initial =
+jet_sx_eval.mkst prefix_temps
+  (@app jet_sx_state.region jet_secp_multiply_run_run.field_mul_regs
+     (@fst (list jet_sx_state.region) jet_sx_eval.venv mul_allocated)) (@nil jet_sx_eval.event)
+  (S (S (S (S (S (S (S (S (S (S O))))))))))
+     : jet_sx_eval.sstate
+### C.jet_secp_multiply_checkpoint_prefix.prefix_run
+prefix_run =
+jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_multiply_run_run.field_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  (@snd (list jet_sx_state.region) jet_sx_eval.venv mul_allocated) prefix_initial prefix_statement
+     : option jet_sx_exec.res
+### C.jet_secp_multiply_checkpoint_prefix.prefix_state
+prefix_state =
+match prefix_run return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ => prefix_initial
+    end
+| None => prefix_initial
+end
+     : jet_sx_eval.sstate
+### C.jet_secp_multiply_checkpoint_prefix.first_c
+first_c =
+jet_secp_multiply_checkpoint_ops.sx_product (jet_sx_expr.XLv (S (S (S (S O)))))
+  (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S O))))))))))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_multiply_checkpoint_prefix.first_d
+first_d =
+jet_secp_multiply_checkpoint_ops.sx_accum
+  (jet_secp_multiply_checkpoint_ops.sx_accum
+     (jet_secp_multiply_checkpoint_ops.sx_accum
+        (jet_secp_multiply_checkpoint_ops.sx_product (jet_sx_expr.XLv O)
+           (jet_sx_expr.XLv (S (S (S (S (S (S (S (S O)))))))))) (jet_sx_expr.XLv (S O))
+        (jet_sx_expr.XLv (S (S (S (S (S (S (S O))))))))) (jet_sx_expr.XLv (S (S O)))
+     (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))) (jet_sx_expr.XLv (S (S (S O))))
+  (jet_sx_expr.XLv (S (S (S (S (S O))))))
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_multiply_checkpoint_prefix.first_fold_d
+first_fold_d =
+jet_secp_multiply_checkpoint_ops.sx_accum first_d
+  (jet_sx_expr.XLc
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xO
+              (BinNums.xO
+                 (BinNums.xO
+                    (BinNums.xO
+                       (BinNums.xI
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xI
+                                      (BinNums.xO
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (...)))))))))))))))))))))))
+  (@fst jet_sx_expr.sx jet_sx_expr.sx first_c)
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_multiply_checkpoint_prefix.first_t3
+first_t3 =
+jet_sx_expr.XLb jet_sx_expr.Band (@fst jet_sx_expr.sx jet_sx_expr.sx first_fold_d)
+  (jet_sx_expr.XLc
+     (Integers.Int64.repr
+        (BinNums.Zpos
+           (BinNums.xI
+              (BinNums.xI
+                 (BinNums.xI
+                    (BinNums.xI
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))))))
+     : jet_sx_expr.sx
+### C.jet_secp_multiply_checkpoint_prefix.first_final_c
+first_final_c = jet_secp_multiply_checkpoint_ops.sx_shift64 first_c
+     : prod jet_sx_expr.sx jet_sx_expr.sx
+### C.jet_secp_multiply_checkpoint_prefix.first_final_d
+first_final_d = jet_secp_multiply_checkpoint_ops.sx_shift52 first_fold_d
+     : prod jet_sx_expr.sx jet_sx_expr.sx

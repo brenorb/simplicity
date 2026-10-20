@@ -1,0 +1,64 @@
+### C.jet_secp_beta_multiply_frame.multiply_internal_table_correct
+multiply_internal_table_correct
+     : jet_clight_internal_frame.internal_table_ok jet_secp_linkage.secp_ge multiply_internal_table
+### C.jet_secp_beta_multiply_frame.multiply_internal_allowed
+multiply_internal_allowed
+     : jet_clight_internal_frame.allowed_call multiply_internal_table
+         (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+### C.jet_secp_beta_multiply_frame.multiply_readonly_readback
+multiply_readonly_readback
+     : forall (m : Memory.Mem.mem) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul) args t mf result),
+       jet_clight_readonly.readonly_readback m mf
+### C.jet_secp_beta_multiply_frame.beta_output_global
+beta_output_global
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (ba : Values.block)
+         (mf : Memory.Mem.mem)
+         (_ : jet_sx_state.rep (jet_secp_beta_inputs.beta_input_rho x)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z)
+                      (@pair Values.block BinNums.Z jet_secp_beta_global.beta_block BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z))))
+                (jet_secp_multiply_borrowed_call.borrowed_output_regs (jet_secp_beta_inputs.beta_input_rho x)) mf),
+       jet_secp_beta_global.beta_global_rep mf
+### C.jet_secp_beta_multiply_frame.beta_multiply_full_readonly_frame
+beta_multiply_full_readonly_frame
+     : forall (x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (ba : Values.block)
+         (m mf : Memory.Mem.mem) (_ : jet_secp_beta_global.beta_initialized m)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul)
+                (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                   (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                      (@cons Values.val (Values.Vptr jet_secp_beta_global.beta_block Integers.Ptrofs.zero)
+                         (@nil Values.val)))) Events.E0 mf Values.Vundef)
+         (_ : jet_sx_state.rep (jet_secp_beta_inputs.beta_input_rho x)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z)
+                      (@pair Values.block BinNums.Z jet_secp_beta_global.beta_block BinNums.Z0)
+                      (@nil (prod Values.block BinNums.Z))))
+                (jet_secp_multiply_borrowed_call.borrowed_output_regs (jet_secp_beta_inputs.beta_input_rho x)) mf),
+       and (jet_secp_beta_global.beta_initialized mf)
+         (jet_sx_mem.lframe
+            (fun (block : Values.block) (_ : BinNums.Z) => @eq Values.block block jet_secp_beta_global.beta_block) m mf)
+### C.jet_secp_beta_multiply_frame.multiply_internal_table
+multiply_internal_table =
+@cons (prod AST.ident Clight.function)
+  (@pair AST.ident Clight.function jets_secp._secp256k1_fe_mul jets_secp.f_secp256k1_fe_mul)
+  (@cons (prod AST.ident Clight.function)
+     (@pair AST.ident Clight.function jets_secp._secp256k1_fe_mul_inner jets_secp.f_secp256k1_fe_mul_inner)
+     (@cons (prod AST.ident Clight.function)
+        (@pair AST.ident Clight.function jets_secp._secp256k1_u128_mul jets_secp.f_secp256k1_u128_mul)
+        (@cons (prod AST.ident Clight.function)
+           (@pair AST.ident Clight.function jets_secp._secp256k1_u128_accum_mul jets_secp.f_secp256k1_u128_accum_mul)
+           (@cons (prod AST.ident Clight.function)
+              (@pair AST.ident Clight.function jets_secp._secp256k1_u128_accum_u64 jets_secp.f_secp256k1_u128_accum_u64)
+              (@cons (prod AST.ident Clight.function)
+                 (@pair AST.ident Clight.function jets_secp._secp256k1_u128_rshift jets_secp.f_secp256k1_u128_rshift)
+                 (@cons (prod AST.ident Clight.function)
+                    (@pair AST.ident Clight.function jets_secp._secp256k1_u128_to_u64 jets_secp.f_secp256k1_u128_to_u64)
+                    (@cons (prod AST.ident Clight.function)
+                       (@pair AST.ident Clight.function jets_secp._secp256k1_umul128 jets_secp.f_secp256k1_umul128)
+                       (@nil (prod AST.ident Clight.function)))))))))
+     : list (prod AST.ident Clight.function)

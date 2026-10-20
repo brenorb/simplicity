@@ -1,0 +1,207 @@
+### C.jet_secp_multiply_second_entry.first_regions_exact
+first_regions_exact
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_state)
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg
+               (jet_sx_rep.u64_cells BinNums.Z0
+                  (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+                     (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+                        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O))))
+                              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S O))))) (@nil jet_sx_expr.sx)))))))
+               true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@cons jet_sx_state.region
+               (jet_sx_state.mkreg
+                  (jet_sx_rep.u64_cells BinNums.Z0
+                     (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S O))))))
+                        (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S O)))))))
+                           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S O))))))))
+                              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S O)))))))))
+                                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S (S (S (S (S (S O))))))))))
+                                    (@nil jet_sx_expr.sx))))))) true
+                  (@Some BinNums.Z
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (@cons jet_sx_state.region
+                  (jet_sx_state.mkreg
+                     (jet_sx_rep.u64_cells BinNums.Z0
+                        (@cons jet_sx_expr.sx
+                           (@fst jet_sx_expr.sx jet_sx_expr.sx jet_secp_multiply_checkpoint_prefix.first_final_c)
+                           (@cons jet_sx_expr.sx
+                              (@snd jet_sx_expr.sx jet_sx_expr.sx jet_secp_multiply_checkpoint_prefix.first_final_c)
+                              (@nil jet_sx_expr.sx)))) true
+                     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg
+                        (jet_sx_rep.u64_cells BinNums.Z0
+                           (@cons jet_sx_expr.sx
+                              (@fst jet_sx_expr.sx jet_sx_expr.sx jet_secp_multiply_checkpoint_prefix.first_final_d)
+                              (@cons jet_sx_expr.sx
+                                 (@snd jet_sx_expr.sx jet_sx_expr.sx jet_secp_multiply_checkpoint_prefix.first_final_d)
+                                 (@nil jet_sx_expr.sx)))) true
+                        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                     (@nil jet_sx_state.region)))))
+### C.jet_secp_multiply_second_entry.atomic_values
+atomic_values
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (xs : list jet_sx_expr.sx)
+         (ys : list Integers.Int64.int)
+         (_ : @eq bool (@List.forallb jet_sx_expr.sx (jet_sx_expr.isk jet_sx_expr.KL) xs) true)
+         (_ : @eq (list Values.val)
+                (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) xs)
+                (@List.map Integers.Int64.int Values.val Values.Vlong ys)),
+       @eq (list jet_sx_expr.sx)
+         (@List.map jet_sx_expr.sx jet_sx_expr.sx (jet_secp_multiply_checkpoint_atomic.atomic_sx rho beta) xs)
+         (@List.map Integers.Int64.int jet_sx_expr.sx jet_sx_expr.XL ys)
+### C.jet_secp_multiply_second_entry.second_temps_bindings
+second_temps_bindings
+     : forall (digits : forall _ : nat, Integers.Int64.int) (t3 : Integers.Int64.int),
+       @eq (Maps.PTree.tree jet_sx_expr.sx) (jet_secp_multiply_second_state.second_temps digits t3)
+         (jet_secp_multiply_second_temps.temps_of (second_bindings digits t3))
+### C.jet_secp_multiply_second_entry.first_live_lookup
+first_live_lookup
+     : forall (id : AST.ident) (x : jet_sx_expr.sx)
+         (_ : @List.In (prod AST.ident jet_sx_expr.sx) (@pair AST.ident jet_sx_expr.sx id x) first_live_bindings),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx id (jet_sx_eval.stemps jet_secp_multiply_checkpoint_prefix.prefix_state))
+         (@Some jet_sx_expr.sx x)
+### C.jet_secp_multiply_second_entry.first_live_values
+first_live_values
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (list (prod AST.ident Values.val))
+         (jet_secp_multiply_second_temps.binding_values rho beta first_live_bindings)
+         (jet_secp_multiply_second_temps.binding_values rho beta
+            (second_bindings rho (jet_secp_multiply_checkpoint_bridge.first_t3_machine rho)))
+### C.jet_secp_multiply_second_entry.atomic_tmatch_inverse
+atomic_tmatch_inverse
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (ts : Maps.PTree.tree jet_sx_expr.sx) (le : Clight.temp_env)
+         (_ : jet_sx_eval.tmatch rho beta (jet_secp_multiply_checkpoint_atomic.atomic_temps rho beta ts) le),
+       jet_sx_eval.tmatch rho beta ts le
+### C.jet_secp_multiply_second_entry.first_to_second_tmatch
+first_to_second_tmatch
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (le : Clight.temp_env)
+         (_ : jet_sx_eval.tmatch rho beta
+                (jet_sx_eval.stemps
+                   (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+                      jet_secp_multiply_checkpoint_prefix.prefix_state)) le),
+       jet_sx_eval.tmatch rho beta
+         (jet_secp_multiply_second_state.second_temps rho (jet_secp_multiply_checkpoint_bridge.first_t3_machine rho))
+         le
+### C.jet_secp_multiply_second_entry.first_atomic_regs_exact
+first_atomic_regs_exact
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout),
+       @eq (list jet_sx_state.region)
+         (jet_sx_eval.sregs
+            (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta jet_secp_multiply_checkpoint_prefix.prefix_state))
+         (jet_secp_multiply_second_state.second_regs rho
+            (jet_secp_multiply_checkpoint_bridge.first_final_c_machine rho)
+            (jet_secp_multiply_checkpoint_bridge.first_final_d_machine rho))
+### C.jet_secp_multiply_second_entry.first_live_bindings
+first_live_bindings =
+@cons (prod AST.ident jet_sx_expr.sx) (@pair AST.ident jet_sx_expr.sx jets_secp._r (jet_sx_expr.XP O BinNums.Z0))
+  (@cons (prod AST.ident jet_sx_expr.sx) (@pair AST.ident jet_sx_expr.sx jets_secp._a (jet_sx_expr.XP O BinNums.Z0))
+     (@cons (prod AST.ident jet_sx_expr.sx)
+        (@pair AST.ident jet_sx_expr.sx jets_secp._b (jet_sx_expr.XP (S O) BinNums.Z0))
+        (@cons (prod AST.ident jet_sx_expr.sx)
+           (@pair AST.ident jet_sx_expr.sx jets_secp._M
+              (jet_sx_expr.XLc
+                 (Integers.Int64.repr
+                    (BinNums.Zpos
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...))))))))))))))))))))
+           (@cons (prod AST.ident jet_sx_expr.sx)
+              (@pair AST.ident jet_sx_expr.sx jets_secp._R
+                 (jet_sx_expr.XLc
+                    (Integers.Int64.repr
+                       (BinNums.Zpos
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI (...)))))))))))))))))))
+              (@cons (prod AST.ident jet_sx_expr.sx) (@pair AST.ident jet_sx_expr.sx jets_secp._a0 (jet_sx_expr.XLv O))
+                 (@cons (prod AST.ident jet_sx_expr.sx)
+                    (@pair AST.ident jet_sx_expr.sx jets_secp._a1 (jet_sx_expr.XLv (S O)))
+                    (@cons (prod AST.ident jet_sx_expr.sx)
+                       (@pair AST.ident jet_sx_expr.sx jets_secp._a2 (jet_sx_expr.XLv (S (S O))))
+                       (@cons (prod AST.ident jet_sx_expr.sx)
+                          (@pair AST.ident jet_sx_expr.sx jets_secp._a3 (jet_sx_expr.XLv (S (S (S O)))))
+                          (@cons (prod AST.ident jet_sx_expr.sx)
+                             (@pair AST.ident jet_sx_expr.sx jets_secp._a4 (jet_sx_expr.XLv (S (S (S (S O))))))
+                             (@cons (prod AST.ident jet_sx_expr.sx)
+                                (@pair AST.ident jet_sx_expr.sx jets_secp._t3
+                                   jet_secp_multiply_checkpoint_prefix.first_t3) (@nil (prod AST.ident jet_sx_expr.sx))))))))))))
+     : list (prod AST.ident jet_sx_expr.sx)
+### C.jet_secp_multiply_second_entry.second_bindings
+second_bindings =
+fun (digits : forall _ : nat, Integers.Int64.int) (t3 : Integers.Int64.int) =>
+@cons (prod AST.ident jet_sx_expr.sx) (@pair AST.ident jet_sx_expr.sx jets_secp._r (jet_sx_expr.XP O BinNums.Z0))
+  (@cons (prod AST.ident jet_sx_expr.sx) (@pair AST.ident jet_sx_expr.sx jets_secp._a (jet_sx_expr.XP O BinNums.Z0))
+     (@cons (prod AST.ident jet_sx_expr.sx)
+        (@pair AST.ident jet_sx_expr.sx jets_secp._b (jet_sx_expr.XP (S O) BinNums.Z0))
+        (@cons (prod AST.ident jet_sx_expr.sx)
+           (@pair AST.ident jet_sx_expr.sx jets_secp._M
+              (jet_sx_expr.XLc
+                 (Integers.Int64.repr
+                    (BinNums.Zpos
+                       (BinNums.xI
+                          (BinNums.xI
+                             (BinNums.xI
+                                (BinNums.xI
+                                   (BinNums.xI
+                                      (BinNums.xI
+                                         (BinNums.xI
+                                            (BinNums.xI
+                                               (BinNums.xI
+                                                  (BinNums.xI
+                                                     (BinNums.xI
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...)))))))))))))))))))
+           (@cons (prod AST.ident jet_sx_expr.sx)
+              (@pair AST.ident jet_sx_expr.sx jets_secp._R
+                 (jet_sx_expr.XLc
+                    (Integers.Int64.repr
+                       (BinNums.Zpos
+                          (BinNums.xO
+                             (BinNums.xO
+                                (BinNums.xO
+                                   (BinNums.xO
+                                      (BinNums.xI
+                                         (BinNums.xO
+                                            (BinNums.xO
+                                               (BinNums.xO
+                                                  (BinNums.xI
+                                                     (BinNums.xO
+                                                        (BinNums.xI (BinNums.xI (BinNums.xI (BinNums.xI ...))))))))))))))))))
+              (@cons (prod AST.ident jet_sx_expr.sx)
+                 (@pair AST.ident jet_sx_expr.sx jets_secp._a0 (jet_sx_expr.XL (digits O)))
+                 (@cons (prod AST.ident jet_sx_expr.sx)
+                    (@pair AST.ident jet_sx_expr.sx jets_secp._a1 (jet_sx_expr.XL (digits (S O))))
+                    (@cons (prod AST.ident jet_sx_expr.sx)
+                       (@pair AST.ident jet_sx_expr.sx jets_secp._a2 (jet_sx_expr.XL (digits (S (S O)))))
+                       (@cons (prod AST.ident jet_sx_expr.sx)
+                          (@pair AST.ident jet_sx_expr.sx jets_secp._a3 (jet_sx_expr.XL (digits (S (S (S O))))))
+                          (@cons (prod AST.ident jet_sx_expr.sx)
+                             (@pair AST.ident jet_sx_expr.sx jets_secp._a4 (jet_sx_expr.XL (digits (S (S (S (S O)))))))
+                             (@cons (prod AST.ident jet_sx_expr.sx)
+                                (@pair AST.ident jet_sx_expr.sx jets_secp._t3 (jet_sx_expr.XL t3))
+                                (@nil (prod AST.ident jet_sx_expr.sx))))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int), list (prod AST.ident jet_sx_expr.sx)
+
+Arguments second_bindings digits%function_scope t3

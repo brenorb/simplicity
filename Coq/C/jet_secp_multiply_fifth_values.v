@@ -1,0 +1,42 @@
+(** Compact machine observations for the fifth actual C slice. *)
+From Coq Require Import ZArith.
+From compcert Require Import Integers Values.
+Require Import C.jet_sx_expr.
+Require Import C.jet_secp_multiply_checkpoint_machine C.jet_secp_multiply_checkpoint_ops C.jet_secp_multiply_fifth_state.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition fifth_base_c_machine (digits : nat -> int64) (c : int64 * int64) :=
+  machine_accum (machine_accum (machine_accum c (digits 0%nat) (digits 7%nat)) (digits 1%nat) (digits 6%nat)) (digits 2%nat) (digits 5%nat).
+Definition fifth_fold_d_machine (digits : nat -> int64) (d : int64 * int64) :=
+  machine_accum (machine_accum d (digits 3%nat) (digits 9%nat)) (digits 4%nat) (digits 8%nat).
+Definition fifth_before_machine digits d := fst (fifth_fold_d_machine digits d).
+Definition fifth_fold_c_machine digits c d := machine_accum (fifth_base_c_machine digits c)
+  (Int64.repr 68719492368) (fifth_before_machine digits d).
+Definition fifth_final_c_machine digits c d := machine_shift52 (fifth_fold_c_machine digits c d).
+Definition fifth_final_d_machine digits d := machine_shift64 (fifth_fold_d_machine digits d).
+Definition fifth_r2_machine digits c d := Int64.and (fst (fifth_fold_c_machine digits c d)) (Int64.repr 4503599627370495).
+
+Lemma fifth_base_c_den rho beta digits c : pair_den rho beta (fifth_base_c_sy digits c) = fifth_base_c_machine digits c.
+Proof. unfold fifth_base_c_sy, fifth_base_c_machine; rewrite !sx_accum_machine; reflexivity. Qed.
+Lemma fifth_fold_d_den rho beta digits d : pair_den rho beta (fifth_fold_d_sy digits d) = fifth_fold_d_machine digits d.
+Proof. unfold fifth_fold_d_sy, fifth_fold_d_machine; rewrite !sx_accum_machine; reflexivity. Qed.
+Lemma fifth_fold_c_den rho beta digits c d : pair_den rho beta (fifth_fold_c_sy digits c d) = fifth_fold_c_machine digits c d.
+Proof.
+  unfold fifth_fold_c_sy, fifth_fold_c_machine; rewrite sx_accum_machine, fifth_base_c_den.
+  change (machine_accum (fifth_base_c_machine digits c) (Int64.repr 68719492368)
+      (fst (pair_den rho beta (fifth_fold_d_sy digits d))) =
+    machine_accum (fifth_base_c_machine digits c) (Int64.repr 68719492368) (fifth_before_machine digits d)).
+  rewrite fifth_fold_d_den; reflexivity.
+Qed.
+Lemma fifth_final_c_den rho beta digits c d : pair_den rho beta (fifth_final_c_sy digits c d) = fifth_final_c_machine digits c d.
+Proof. unfold fifth_final_c_sy, fifth_final_c_machine; rewrite sx_shift52_machine, fifth_fold_c_den; reflexivity. Qed.
+Lemma fifth_final_d_den rho beta digits d : pair_den rho beta (fifth_final_d_sy digits d) = fifth_final_d_machine digits d.
+Proof. unfold fifth_final_d_sy, fifth_final_d_machine; rewrite sx_shift64_machine, fifth_fold_d_den; reflexivity. Qed.
+Lemma fifth_r2_den rho beta digits c d : den rho beta (fifth_r2_sy digits c d) = Vlong (fifth_r2_machine digits c d).
+Proof.
+  unfold fifth_r2_sy, fifth_r2_machine.
+  change (Vlong (Int64.and (fst (pair_den rho beta (fifth_fold_c_sy digits c d))) (Int64.repr 4503599627370495)) =
+    Vlong (Int64.and (fst (fifth_fold_c_machine digits c d)) (Int64.repr 4503599627370495))).
+  rewrite fifth_fold_c_den; reflexivity.
+Qed.

@@ -1,0 +1,34 @@
+(** Final machine values, including wrap until numeric bounds are established. *)
+From Coq Require Import ZArith.
+From compcert Require Import Integers Values.
+Require Import C.jet_sx_expr C.jet_secp_multiply_checkpoint_machine C.jet_secp_multiply_checkpoint_ops C.jet_secp_multiply_finish_state.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition finish_base_c_machine (c d : int64 * int64) := machine_accum c
+  (Int64.shl (Int64.repr 68719492368) (Int64.repr 12)) (fst d).
+Definition finish_fold_c_machine c d t3 := machine_accum_word (finish_base_c_machine c d) t3.
+Definition finish_final_c_machine c d t3 := machine_shift52 (finish_fold_c_machine c d t3).
+Definition finish_r3_machine c d t3 := Int64.and (fst (finish_fold_c_machine c d t3)) (Int64.repr 4503599627370495).
+Definition finish_r4_machine c d t3 t4 := Int64.add (fst (finish_final_c_machine c d t3)) t4.
+
+Lemma finish_base_c_den rho beta c d : pair_den rho beta (finish_base_c_sy c d) = finish_base_c_machine c d.
+Proof. unfold finish_base_c_sy, finish_base_c_machine; rewrite sx_accum_machine; reflexivity. Qed.
+Lemma finish_fold_c_den rho beta c d t3 : pair_den rho beta (finish_fold_c_sy c d t3) = finish_fold_c_machine c d t3.
+Proof. unfold finish_fold_c_sy, finish_fold_c_machine; rewrite sx_accum_word_machine, finish_base_c_den; reflexivity. Qed.
+Lemma finish_final_c_den rho beta c d t3 : pair_den rho beta (finish_final_c_sy c d t3) = finish_final_c_machine c d t3.
+Proof. unfold finish_final_c_sy, finish_final_c_machine; rewrite sx_shift52_machine, finish_fold_c_den; reflexivity. Qed.
+Lemma finish_r3_den rho beta c d t3 : den rho beta (finish_r3_sy c d t3) = Vlong (finish_r3_machine c d t3).
+Proof.
+  unfold finish_r3_sy, finish_r3_machine.
+  change (Vlong (Int64.and (fst (pair_den rho beta (finish_fold_c_sy c d t3))) (Int64.repr 4503599627370495)) =
+    Vlong (Int64.and (fst (finish_fold_c_machine c d t3)) (Int64.repr 4503599627370495))).
+  rewrite finish_fold_c_den; reflexivity.
+Qed.
+Lemma finish_r4_den rho beta c d t3 t4 : den rho beta (finish_r4_sy c d t3 t4) = Vlong (finish_r4_machine c d t3 t4).
+Proof.
+  unfold finish_r4_sy, finish_r4_machine.
+  change (Vlong (Int64.add (fst (pair_den rho beta (finish_final_c_sy c d t3))) t4) =
+    Vlong (Int64.add (fst (finish_final_c_machine c d t3)) t4)).
+  rewrite finish_final_c_den; reflexivity.
+Qed.

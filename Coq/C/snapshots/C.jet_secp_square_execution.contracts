@@ -1,0 +1,171 @@
+### C.jet_secp_square_execution.square_completes
+square_completes
+     : @eq bool
+         match square_run return bool with
+         | Some r =>
+             match r return bool with
+             | jet_sx_exec.RDone _ o =>
+                 match o return bool with
+                 | jet_sx_exec.ONormal => true
+                 | jet_sx_exec.OBreak => false
+                 | jet_sx_exec.OContinue => false
+                 | jet_sx_exec.OReturn _ => false
+                 end
+             | jet_sx_exec.RIf _ _ _ => false
+             end
+         | None => false
+         end true
+### C.jet_secp_square_execution.square_run_eq
+square_run_eq
+     : @eq (option jet_sx_exec.res) square_run
+         (@Some jet_sx_exec.res (jet_sx_exec.RDone square_state jet_sx_exec.ONormal))
+### C.jet_secp_square_execution.square_return
+square_return
+     : @eq (option jet_sx_expr.sx) (@Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps square_state))
+         (@None jet_sx_expr.sx)
+### C.jet_secp_square_execution.square_regions_count
+square_regions_count
+     : @eq nat (@length jet_sx_state.region (jet_sx_eval.sregs square_state)) (S O)
+### C.jet_secp_square_execution.square_out_shape
+square_out_shape
+     : @eq (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+         (jet_sx_state.rshape square_out)
+         (@pair (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)
+            (@pair (list (prod BinNums.Z AST.memory_chunk)) bool
+               (@cons (prod BinNums.Z AST.memory_chunk) (@pair BinNums.Z AST.memory_chunk BinNums.Z0 AST.Mint64)
+                  (@cons (prod BinNums.Z AST.memory_chunk)
+                     (@pair BinNums.Z AST.memory_chunk (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                        AST.Mint64)
+                     (@cons (prod BinNums.Z AST.memory_chunk)
+                        (@pair BinNums.Z AST.memory_chunk
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) AST.Mint64)
+                        (@cons (prod BinNums.Z AST.memory_chunk)
+                           (@pair BinNums.Z AST.memory_chunk
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI BinNums.xH))))) AST.Mint64)
+                           (@cons (prod BinNums.Z AST.memory_chunk)
+                              (@pair BinNums.Z AST.memory_chunk
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                                 AST.Mint64) (@nil (prod BinNums.Z AST.memory_chunk))))))) true)
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_square_execution.square_out_defined
+square_out_defined
+     : @eq bool (jet_secp_multiply_run_run.field_cells_defined (jet_sx_state.rcells square_out)) true
+### C.jet_secp_square_execution.square_limbs_count
+square_limbs_count
+     : @eq nat (@length jet_sx_expr.sx square_limbs) (S (S (S (S (S O)))))
+### C.jet_secp_square_execution.square_out_rebuild
+square_out_rebuild
+     : @eq jet_sx_state.region square_out
+         (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 square_limbs) true
+            (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+### C.jet_secp_square_execution.square_output
+square_output
+     : @eq (list jet_sx_state.region) (jet_sx_eval.sregs square_state)
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 square_limbs) true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@nil jet_sx_state.region))
+### C.jet_secp_square_execution.eval_original_square_owned_inplace
+eval_original_square_owned_inplace
+     : forall (rho : forall _ : nat, Integers.Int64.int) (layout : jet_sx_state.layout) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho layout square_regs m),
+       @ex Memory.Mem.mem
+         (fun mf : Memory.Mem.mem =>
+          and
+            (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_sqr)
+               (@cons Values.val
+                  (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                  (@cons Values.val
+                     (Values.Vptr (jet_sx_state.blk layout O) (Integers.Ptrofs.repr (jet_sx_state.bas layout O)))
+                     (@nil Values.val))) Events.E0 mf Values.Vundef)
+            (and
+               (jet_sx_state.rep rho layout
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg (jet_sx_rep.u64_cells BinNums.Z0 square_limbs) true
+                        (@Some BinNums.Z
+                           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+                     (@nil jet_sx_state.region)) mf)
+               (jet_sx_mem.lframe
+                  (fun (b : Values.block) (ofs : BinNums.Z) =>
+                   not
+                     (jet_sx_state.foot layout
+                        (@List.map jet_sx_state.region
+                           (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                           jet_sx_state.rshape square_regs) b ofs)) m mf)))
+### C.jet_secp_square_execution.literal_square_step
+literal_square_step
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (@literal_fe_square Alg.CoreFunSem x)
+         (@jet_secp_negate_literal_contract.literal_fe_multiply Alg.CoreFunSem
+            (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+               (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) x x))
+### C.jet_secp_square_execution.literal_square_numeric
+literal_square_numeric
+     : forall x : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))),
+       @eq BinNums.Z
+         (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) (@literal_fe_square Alg.CoreFunSem x))
+         (BinInt.Z.modulo
+            (BinInt.Z.mul (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)
+               (@Word.ToZ.Theory.toZ (Word.WordToZ (S (S (S (S (S (S (S (S O))))))))) x)) jet_secp_fe_math.feP)
+### C.jet_secp_square_execution.square_regs
+square_regs =
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells BinNums.Z0
+        (@cons jet_sx_expr.sx (jet_sx_expr.XLv O)
+           (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S O))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S O)))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S O))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XLv (S (S (S (S O))))) (@nil jet_sx_expr.sx))))))) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@nil jet_sx_state.region)
+     : list jet_sx_state.region
+### C.jet_secp_square_execution.square_run
+square_run =
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  jet_secp_multiply_run_run.field_table
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+  jets_secp.f_secp256k1_fe_sqr
+  (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0)
+     (@cons jet_sx_expr.sx (jet_sx_expr.XP O BinNums.Z0) (@nil jet_sx_expr.sx))) square_regs
+  (@nil jet_sx_eval.event) (S (S (S (S (S O)))))
+     : option jet_sx_exec.res
+### C.jet_secp_square_execution.square_state
+square_state =
+match square_run return jet_sx_eval.sstate with
+| Some r =>
+    match r return jet_sx_eval.sstate with
+    | jet_sx_exec.RDone st _ => st
+    | jet_sx_exec.RIf _ _ _ =>
+        jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+    end
+| None => jet_sx_eval.mkst (Maps.PTree.empty jet_sx_expr.sx) (@nil jet_sx_state.region) (@nil jet_sx_eval.event) O
+end
+     : jet_sx_eval.sstate
+### C.jet_secp_square_execution.square_out
+square_out =
+@List.hd jet_sx_state.region (jet_sx_state.mkreg (@nil jet_sx_state.cell) false (@None BinNums.Z))
+  (jet_sx_eval.sregs square_state)
+     : jet_sx_state.region
+### C.jet_secp_square_execution.square_limbs
+square_limbs =
+@List.map jet_sx_state.cell jet_sx_expr.sx jet_secp_multiply_run_run.field_cell_value (jet_sx_state.rcells square_out)
+     : list jet_sx_expr.sx
+### C.jet_secp_square_execution.literal_fe_square
+literal_fe_square =
+fun term : Alg.Core.Algebra =>
+@Alg.Core.Combinators.comp (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+  (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+  (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+  (@Alg.Core.Combinators.pair (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+     (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))) term
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term)
+     (@Alg.Core.Combinators.iden (Word.Word (S (S (S (S (S (S (S (S O))))))))) term))
+  (@jet_secp_negate_literal_contract.literal_fe_multiply term)
+     : forall term : Alg.Core.Algebra,
+       Alg.Core.domain term (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O)))))))))
+
+Arguments literal_fe_square {term}

@@ -1,0 +1,64 @@
+### C.jet_secp_multiply_wrapper_layout.wrapper_body_source
+wrapper_body_source
+     : @eq Clight.statement (Clight.fn_body jets_secp.f_secp256k1_fe_mul)
+         (Clight.Scall (@None AST.ident) (Clight.Evar jets_secp._secp256k1_fe_mul_inner inner_call_type)
+            (@cons Clight.expr (fe_array_expr jets_secp._r)
+               (@cons Clight.expr (fe_array_expr jets_secp._a)
+                  (@cons Clight.expr (fe_array_expr jets_secp._b) (@nil Clight.expr)))))
+### C.jet_secp_multiply_wrapper_layout.fe_members
+fe_members
+     : @eq (option Ctypes.members)
+         (@option_map Ctypes.composite Ctypes.members Ctypes.co_members
+            (@Maps.PTree.get Ctypes.composite jets_secp.__5467 (Clight.genv_cenv jet_secp_linkage.secp_ge)))
+         (@Some (list Ctypes.member)
+            (@cons Ctypes.member
+               (Ctypes.Member_plain jets_secp._n
+                  (Ctypesdefs.tarray Ctypesdefs.tulong (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH)))))
+               (@nil Ctypes.member)))
+### C.jet_secp_multiply_wrapper_layout.fe_n_layout
+fe_n_layout
+     : @ex Ctypes.composite
+         (fun co : Ctypes.composite =>
+          and
+            (@eq (option Ctypes.composite)
+               (@Maps.PTree.get Ctypes.composite jets_secp.__5467 (Clight.genv_cenv jet_secp_linkage.secp_ge))
+               (@Some Ctypes.composite co))
+            (@eq (Errors.res (prod BinNums.Z Ctypes.bitfield))
+               (Ctypes.field_offset (Clight.genv_cenv jet_secp_linkage.secp_ge) jets_secp._n (Ctypes.co_members co))
+               (@Errors.OK (prod BinNums.Z Ctypes.bitfield) (@pair BinNums.Z Ctypes.bitfield BinNums.Z0 Ctypes.Full))))
+### C.jet_secp_multiply_wrapper_layout.inner_symbols
+inner_symbols
+     : and
+         (@eq (option Values.block)
+            (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               jets_secp._secp256k1_fe_mul_inner)
+            (@Some Values.block (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_fe_mul_inner)))
+         (@eq (option Clight.fundef)
+            (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv jet_secp_linkage.secp_ge)
+               (Values.Vptr (jet_secp_linkage.secp_symbol_block jets_secp._secp256k1_fe_mul_inner) Integers.Ptrofs.zero))
+            (@Some (Ctypes.fundef Clight.function)
+               (@Ctypes.Internal Clight.function jets_secp.f_secp256k1_fe_mul_inner)))
+### C.jet_secp_multiply_wrapper_layout.eval_fe_array_expr
+eval_fe_array_expr
+     : forall (e : Clight.env) (le : Maps.PTree.tree Values.val) (m : Memory.Mem.mem) (id : BinNums.positive)
+         (b : Values.block) (ofs : Integers.Ptrofs.int)
+         (_ : @eq (option Values.val) (@Maps.PTree.get Values.val id le) (@Some Values.val (Values.Vptr b ofs))),
+       Clight.eval_expr jet_secp_linkage.secp_ge e le m (fe_array_expr id) (Values.Vptr b ofs)
+### C.jet_secp_multiply_wrapper_layout.fe_type
+fe_type = Ctypes.Tstruct jets_secp.__5467 Ctypes.noattr
+     : Ctypes.type
+### C.jet_secp_multiply_wrapper_layout.fe_array_expr
+fe_array_expr =
+fun id : AST.ident =>
+Clight.Efield (Clight.Ederef (Clight.Etempvar id (Ctypesdefs.tptr fe_type)) fe_type) jets_secp._n
+  (Ctypesdefs.tarray Ctypesdefs.tulong (BinNums.Zpos (BinNums.xI (BinNums.xO BinNums.xH))))
+     : forall _ : AST.ident, Clight.expr
+
+Arguments fe_array_expr id
+### C.jet_secp_multiply_wrapper_layout.inner_call_type
+inner_call_type =
+Ctypes.Tfunction
+  (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tulong)
+     (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tulong) (Ctypes.Tcons (Ctypesdefs.tptr Ctypesdefs.tulong) Ctypes.Tnil)))
+  Ctypesdefs.tvoid AST.cc_default
+     : Ctypes.type

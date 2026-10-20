@@ -187,6 +187,9 @@ static_check python3 scalar-square-review/check-square-public.py --repo "${JET_C
 static_check python3 scalar-square-review/test-square-public.py "${JET_C_REPO:-..}" .
 static_check python3 scalar-lambda-integration/check-lambda-public.py --repo "${JET_C_REPO:-..}" --coq .
 static_check python3 scalar-lambda-integration/test-lambda-public.py "${JET_C_REPO:-..}" .
+static_check python3 secp-field-integration/check-multiply.py
+static_check python3 secp-field-integration/check-square.py
+static_check python3 secp-field-integration/check-beta.py
 static_check python3 check-bitcoin-primitive-identity.py
 static_check python3 test-bitcoin-primitive-identity.py
 static_check python3 test-jet-audit-inputs.py

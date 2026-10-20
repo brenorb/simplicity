@@ -1,0 +1,123 @@
+(** The original reader with its current source-frame cursor made explicit. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers Values Memory AST Ctypes Clight ClightBigstep Events.
+Require Import Simplicity.Word.
+Require Simplicity.Translate.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_exec C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_encoding C.jet_frame_layout C.jet_input_layout C.jet_output_layout C.jet_frame_inv.
+Require Import C.jet_secp_frame C.jet_secp_fe_nv C.jet_secp_fe_math C.jet_secp_linkage C.jets_secp.
+Require Import C.jet_secp_wrapper_run C.jet_secp_local_regions C.jet_secp_local_call.
+Require Import C.jet_secp_multiply_input_input.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Lemma pair_input_windows m bi edge rc (x y : Ty.tySem (Word 8)) :
+  frame_input_cells_at m bi edge rc (@Simplicity.Translate.encode (Ty.Prod (Word 8) (Word 8)) (x, y)) ->
+  frame_input_cells_at m bi edge rc (map Some (frame_input_word_bits x)) /\
+  frame_input_cells_at m bi edge (rc + 256) (map Some (frame_input_word_bits y)).
+Proof.
+  change (@Simplicity.Translate.encode (Ty.Prod (Word 8) (Word 8)) (x, y)) with
+    (@Simplicity.Translate.encode (Word 8) x ++ @Simplicity.Translate.encode (Word 8) y).
+  rewrite frame_input_cells_at_app, encode_word_length.
+  change (Z.of_nat (Nat.pow 2 8)) with 256.
+  rewrite !encode_word; trivial.
+Qed.
+
+Lemma local_read_selected_frame rho layout bi edge :
+  rcells (nth 1 (sregs (fst (rsel rho layout (local_read_result bi edge))))
+    (mkreg [] true None)) = mk_frame_cells (XA bi edge) (Int64.repr 256).
+Proof.
+  apply (all_leaf_property_selected (fun state =>
+    rcells (nth 1 (sregs state) (mkreg [] true None)) =
+      mk_frame_cells (XA bi edge) (Int64.repr 256)) (local_read_result bi edge)).
+  split; [split; reflexivity|reflexivity].
+Qed.
+
+Lemma local_read_final_cursor bits rc m ba bl bi edge :
+  rep (read_fe_rho bits rc) [(ba, 0); (bl, 0)]
+    (sregs (fst (rsel (read_fe_rho bits rc) (lay [(ba, 0); (bl, 0)])
+      (local_read_result bi (Ptrofs.repr edge))))) m ->
+  frame_fields_at m bl 0 bi edge (rc + 256).
+Proof.
+  intro HR.
+  pose proof (proj1 (local_read_selected_storage (read_fe_rho bits rc)
+    (lay [(ba, 0); (bl, 0)]) bi (Ptrofs.repr edge))) as HCount.
+  assert (HIndex : (1 < length
+    (sregs (fst (rsel (read_fe_rho bits rc) (lay [(ba, 0%Z); (bl, 0%Z)])
+      (local_read_result bi (Ptrofs.repr edge))))))%nat) by (rewrite HCount; lia).
+  pose proof (nth_error_nth'
+    (sregs (fst (rsel (read_fe_rho bits rc) (lay [(ba, 0); (bl, 0)])
+      (local_read_result bi (Ptrofs.repr edge))))) (mkreg [] true None)
+    HIndex) as HN.
+  pose proof (rep_region _ _ _ _ 1 _ HR HN) as HRegion.
+  pose proof (local_read_selected_frame (read_fe_rho bits rc)
+    (lay [(ba, 0); (bl, 0)]) bi (Ptrofs.repr edge)) as HCells.
+  split.
+  - pose proof (region_load _ _ _ 1 _ 0 Mint64 (XA bi (Ptrofs.repr edge)) HRegion
+      ltac:(rewrite HCells; left; reflexivity)) as HL.
+    exact HL.
+  - pose proof (region_load _ _ _ 1 _ 8 Mint64
+      (XLb Badd (XLv 0%nat) (XLc (Int64.repr 256))) HRegion
+      ltac:(rewrite HCells; right; left; reflexivity)) as HL.
+    change (Mem.load Mint64 m bl 8 =
+      Some (Vlong (Int64.add (Int64.repr rc) (Int64.repr 256)))) in HL.
+    rewrite i64_add_repr in HL; exact HL.
+Qed.
+
+Lemma two_read_foot_owner a l bi edge b pos :
+  foot [(a, 0); (l, 0)] (map rshape (local_read_initial_regs bi edge)) b pos -> b = a \/ b = l.
+Proof.
+  intros (r & sh & d & ch & HN & HC & HB & HO).
+  destruct r as [|[|r]]; [left; exact HB|right; exact HB|destruct r; discriminate].
+Qed.
+
+Lemma reader_preserves_other ext a l bi edge m mf other :
+  other <> a -> other <> l -> ~ ext other -> Mem.valid_block m other ->
+  lframe (frame ext [(a, 0); (l, 0)] (local_read_initial_regs bi edge) m) m mf ->
+  lframe (fun b _ => b = other) m mf.
+Proof.
+  intros HA HL HE HV HF; eapply lframe_implies; [exact HF|].
+  intros b pos -> HValid; split; [exact HV|]; split; [|exact HE].
+  intro HFoot; apply two_read_foot_owner in HFoot; destruct HFoot; contradiction.
+Qed.
+
+Theorem eval_read_fe_with_cursor m0 bd dbase bw outedge cursor N bi edge rc
+    (x : Ty.tySem (Word 8)) m ba bl :
+  write_frame_at m0 bd dbase bw outedge cursor N -> 256 <= N ->
+  frame_input_cells_at m0 bi edge rc (map Some (frame_input_word_bits x)) ->
+  0 <= rc -> rc + 256 <= Int64.max_unsigned ->
+  Mem.range_perm m ba 0 40 Cur Freeable -> Mem.range_perm m bl 0 16 Cur Freeable ->
+  frame_fields_at m bl 0 bi edge rc -> ba <> bl ->
+  xsep (extA m0 bd bw bi) [(ba, 0); (bl, 0)] ->
+  finv m0 bd dbase bw outedge cursor N bi m false [] ->
+  exists mr,
+    Clight2.eval_funcall secp_ge m (Internal f_read_fe)
+      [Vptr ba Ptrofs.zero; Vptr bl Ptrofs.zero] E0 mr Vundef /\
+    fe_at mr ba 0 (map Int64.repr (fe_limbs_of (normalized_value x))) /\
+    Mem.range_perm mr ba 0 40 Cur Freeable /\ Mem.range_perm mr bl 0 16 Cur Freeable /\
+    frame_fields_at mr bl 0 bi edge (rc + 256) /\
+    finv m0 bd dbase bw outedge cursor N bi mr false [] /\
+    lframe (frame (extA m0 bd bw bi) [(ba, 0); (bl, 0)]
+      (local_read_initial_regs bi (Ptrofs.repr edge)) m) m mr.
+Proof.
+  intros HO HC HX HCursor HMax HFA HFL HFields HD HS HFinv.
+  assert (HI : invA m0 bd dbase bw outedge cursor N bi rc false [] 256
+    (read_fe_rho (frame_input_word_bits x) rc) [] m).
+  { change (Int64.repr rc = Int64.repr rc /\
+      finv m0 bd dbase bw outedge cursor N bi m false [] /\ 256 <= N /\ 0 <= 256).
+    split; [reflexivity|]; split; [exact HFinv|]; split; [exact HC|lia]. }
+  pose proof (local_read_initial_rep_from_storage (frame_input_word_bits x) rc m ba bl bi edge
+    HFA HFL HFields HD) as HR.
+  destruct (eval_local_read_fe m0 bd dbase bw outedge cursor N bi edge rc
+    (frame_input_word_bits x) [] 256 HO HX HCursor
+    ltac:(rewrite frame_input_word_bits_length; exact HMax)
+    ltac:(rewrite frame_input_word_bits_length; reflexivity)
+    m [(ba, 0); (bl, 0)] HR HS HI) as (mr & HCall & HRep & HInv & HF).
+  destruct (local_read_final_field mr ba bl bi edge rc x HRep) as (HValue & HFreeA & HFreeL).
+  pose proof (local_read_final_cursor (frame_input_word_bits x) rc mr ba bl bi edge HRep) as HNext.
+  change (Int64.repr rc = Int64.repr rc /\
+    finv m0 bd dbase bw outedge cursor N bi mr false [] /\ 256 <= N /\ 0 <= 256) in HInv.
+  exists mr; split; [exact HCall|]; split; [exact HValue|]; split; [exact HFreeA|];
+    split; [exact HFreeL|]; split; [exact HNext|]; split; [exact (proj1 (proj2 HInv))|exact HF].
+Qed.

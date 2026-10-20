@@ -1,0 +1,158 @@
+(** Contracts connecting the actual multiplier's caller-owned output to the
+    existing C normalizer. No normalizer execution or output is assumed. *)
+From Coq Require Import ZArith List Lia.
+From compcert Require Import Integers Values Memory AST.
+Require Import C.jet_sx_expr C.jet_sx_state C.jet_sx_eval C.jet_sx_mem C.jet_sx_rep.
+Require Import C.jet_secp_fe_math C.jet_secp_fe_nv.
+Require Import C.jet_secp_multiply_run_run C.jet_secp_multiply_checkpoint_columns C.jet_secp_multiply_first_arithmetic.
+Require Import C.jet_secp_multiply_finish_execute C.jet_secp_multiply_finish_product C.jet_secp_multiply_call_call.
+Import ListNotations.
+Local Open Scope Z_scope.
+Set Default Timeout 10.
+
+Definition words5 (words : nat -> int64) :=
+  [words 0%nat; words 1%nat; words 2%nat; words 3%nat; words 4%nat].
+Definition normalized_words (words : nat -> int64) :=
+  nvz_list (Int64.unsigned (words 0%nat)) (Int64.unsigned (words 1%nat))
+    (Int64.unsigned (words 2%nat)) (Int64.unsigned (words 3%nat))
+    (Int64.unsigned (words 4%nat)).
+
+Lemma field_prime_matches_normalizer : field_prime = feP.
+Proof. reflexivity. Qed.
+Lemma radix_value_matches_normalizer words :
+  radix_value words = fe_val (Int64.unsigned (words 0%nat))
+    (Int64.unsigned (words 1%nat)) (Int64.unsigned (words 2%nat))
+    (Int64.unsigned (words 3%nat)) (Int64.unsigned (words 4%nat)).
+Proof. unfold radix_value, fe_val, radix; ring. Qed.
+
+Local Opaque original_finish_words.
+Lemma multiplier_normalizer_bounds rho : field_input_bounds rho ->
+  forall i, (i < 5)%nat -> Int64.unsigned (original_finish_words rho i) <= 2 ^ 60.
+Proof.
+  intros HB i HI; pose proof (original_outputs_bounds rho HB i HI) as H.
+  destruct (Nat.eqb i 4); change (2 ^ 60) with 1152921504606846976; lia.
+Qed.
+
+Lemma bounded_normalized_words words :
+  (forall i, (i < 5)%nat -> Int64.unsigned (words i) <= 2 ^ 60) ->
+  normalized_words words = fe_limbs_of (radix_value words mod feP).
+Proof.
+  intro HB.
+  pose proof (nvz_spec (Int64.unsigned (words 0%nat)) (Int64.unsigned (words 1%nat))
+    (Int64.unsigned (words 2%nat)) (Int64.unsigned (words 3%nat)) (Int64.unsigned (words 4%nat))
+    ltac:(split; [apply Int64.unsigned_range|apply HB; lia])
+    ltac:(split; [apply Int64.unsigned_range|apply HB; lia])
+    ltac:(split; [apply Int64.unsigned_range|apply HB; lia])
+    ltac:(split; [apply Int64.unsigned_range|apply HB; lia])
+    ltac:(split; [apply Int64.unsigned_range|apply HB; lia])) as H.
+  unfold normalized_words, nvz_list.
+  destruct (nvz (Int64.unsigned (words 0%nat)) (Int64.unsigned (words 1%nat))
+    (Int64.unsigned (words 2%nat)) (Int64.unsigned (words 3%nat))
+    (Int64.unsigned (words 4%nat))) as [[[[r0 r1] r2] r3] r4].
+  destruct H as [HBnd HValue]. apply fe_limbs_unique; [exact HBnd|].
+  rewrite radix_value_matches_normalizer; exact HValue.
+Qed.
+
+Lemma multiplier_normalized_product rho : field_input_bounds rho ->
+  normalized_words (original_finish_words rho) =
+  fe_limbs_of ((radix_value rho * radix_value (second_input rho)) mod field_prime).
+Proof.
+  intro HB. rewrite bounded_normalized_words by (apply multiplier_normalizer_bounds; exact HB).
+  rewrite <- field_prime_matches_normalizer, original_outputs_product by exact HB.
+  reflexivity.
+Qed.
+
+Lemma u64_region_fe_at rho beta m r words free :
+  region_ok rho beta m r (mkreg (u64_cells 0 (map XL (words5 words))) true free) ->
+  fe_at m (blk beta r) (bas beta r) (words5 words).
+Proof.
+  intro HR; destruct HR as (H0 & HV & HS & HC & HF).
+  cbn [words5 map u64_cells] in HC.
+  inversion HC as [|? ? Hc0 Hcs1]; subst.
+  inversion Hcs1 as [|? ? Hc1 Hcs2]; subst.
+  inversion Hcs2 as [|? ? Hc2 Hcs3]; subst.
+  inversion Hcs3 as [|? ? Hc3 Hcs4]; subst.
+  inversion Hcs4 as [|? ? Hc4 Hcs5]; subst.
+  cbv beta iota zeta delta [cell_ok cofs cchunk cval den rw] in Hc0, Hc1, Hc2, Hc3, Hc4.
+  change (size_chunk Mint64) with 8 in Hc0, Hc1, Hc2, Hc3, Hc4.
+  change (align_chunk Mint64) with 8 in Hc0.
+  destruct Hc0 as (HM0 & HA & HP0 & HL0).
+  destruct Hc1 as (HM1 & HA1 & HP1 & HL1).
+  destruct Hc2 as (HM2 & HA2 & HP2 & HL2).
+  destruct Hc3 as (HM3 & HA3 & HP3 & HL3).
+  destruct Hc4 as (HM4 & HA4 & HP4 & HL4).
+  unfold fe_at; split; [exact H0|]; split; [rewrite Z.add_0_r in HA; exact HA|].
+  split; [lia|]; split.
+  - intros o HO.
+    destruct (Z_lt_dec o (bas beta r + 8)); [apply HP0; lia|].
+    destruct (Z_lt_dec o (bas beta r + 16)); [apply HP1; lia|].
+    destruct (Z_lt_dec o (bas beta r + 24)); [apply HP2; lia|].
+    destruct (Z_lt_dec o (bas beta r + 32)); [apply HP3; lia|].
+    apply HP4; lia.
+  - intros i x HN; unfold words5 in HN.
+    destruct i as [|[|[|[|[|i]]]]]; cbn in HN; try solve [destruct i; discriminate];
+      inversion HN; subst x; cbn [Z.of_nat Z.mul];
+      first [exact (proj1 (HL0 _ eq_refl))|exact (proj1 (HL1 _ eq_refl))|
+        exact (proj1 (HL2 _ eq_refl))|exact (proj1 (HL3 _ eq_refl))|
+        exact (proj1 (HL4 _ eq_refl))].
+Qed.
+
+Lemma multiplier_output_fe_at rho beta m : rep rho beta (field_output_regs rho) m ->
+  fe_at m (blk beta 0) (bas beta 0) (words5 (original_finish_words rho)).
+Proof.
+  intro HR; apply (u64_region_fe_at rho beta m 0 _ (Some 40)).
+  exact (rep_region rho beta _ m 0 _ HR eq_refl).
+Qed.
+
+Lemma multiplier_second_fe_at rho beta m : rep rho beta (field_output_regs rho) m ->
+  fe_at m (blk beta 1) (bas beta 1) (words5 (second_input rho)).
+Proof.
+  intro HR; apply (u64_region_fe_at rho beta m 1 _ (Some 40)).
+  exact (rep_region rho beta _ m 1 _ HR eq_refl).
+Qed.
+
+Lemma multiplier_output_blocks_distinct rho beta m :
+  rep rho beta (field_output_regs rho) m -> blk beta 0 <> blk beta 1.
+Proof.
+  intros (_ & HS & _).
+  destruct (HS 0%nat 1%nat _ _ ltac:(lia) eq_refl eq_refl) as [HD|[HF _]];
+    [exact HD|discriminate].
+Qed.
+
+Lemma fe_at_other_block m mf b ofs words changed base :
+  b <> changed -> fe_at m b ofs words ->
+  lframe (fun b' o => ~ (b' = changed /\ base <= o < base + 40)) m mf ->
+  fe_at mf b ofs words.
+Proof.
+  intros HD (H0 & HA & HM & HP & HL) (HLoad & HPerm & HValid).
+  assert (HV : Mem.valid_block m b).
+  { eapply Mem.perm_valid_block; apply (HP ofs); lia. }
+  unfold fe_at; split; [exact H0|]; split; [exact HA|]; split; [exact HM|]; split.
+  - intros o HO. eapply HPerm; [exact HV| |apply HP; exact HO].
+    intros [HE _]; contradiction.
+  - intros i x HN; rewrite HLoad; [apply HL; exact HN|exact HV|].
+    intros o HO [HE _]; contradiction.
+Qed.
+
+Lemma field_first_range_in_foot beta b o :
+  b = blk beta 0 -> bas beta 0 <= o < bas beta 0 + 40 ->
+  foot beta (map rshape field_mul_regs) b o.
+Proof.
+  intros -> HO.
+  assert (HC : exists d, In (d, Mint64) (fst (fst (rshape (hd (mkreg [] true None) field_mul_regs)))) /\
+    bas beta 0 + d <= o < bas beta 0 + d + 8).
+  { change (exists d, In (d, Mint64) [(0, Mint64); (8, Mint64); (16, Mint64); (24, Mint64); (32, Mint64)] /\
+      bas beta 0 + d <= o < bas beta 0 + d + 8).
+    destruct (Z_lt_dec o (bas beta 0 + 8)); [exists 0|].
+    - split; [cbn [In]; auto|lia].
+    - destruct (Z_lt_dec o (bas beta 0 + 16)); [exists 8|].
+      + split; [cbn [In]; auto|lia].
+      + destruct (Z_lt_dec o (bas beta 0 + 24)); [exists 16|].
+        * split; [cbn [In]; auto|lia].
+        * destruct (Z_lt_dec o (bas beta 0 + 32)).
+          -- exists 24; split; [cbn [In]; auto 8|lia].
+          -- exists 32; split; [cbn [In]; auto 8|lia]. }
+  destruct HC as (d & HI & HR).
+  exists 0%nat, (rshape (hd (mkreg [] true None) field_mul_regs)), d, Mint64.
+  split; [reflexivity|]; split; [exact HI|]; split; [reflexivity|exact HR].
+Qed.

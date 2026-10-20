@@ -1,0 +1,197 @@
+### C.jet_clight_internal_frame.internal_lookup_in
+internal_lookup_in
+     : forall (table : list (prod AST.ident Clight.function)) (id : BinNums.positive) (fd : Clight.function)
+         (_ : @eq (option Clight.function) (internal_lookup table id) (@Some Clight.function fd)),
+       @List.In (prod BinNums.positive Clight.function) (@pair BinNums.positive Clight.function id fd) table
+### C.jet_clight_internal_frame.plain_empty
+plain_empty
+     : plain_env Clight.empty_env
+### C.jet_clight_internal_frame.plain_set
+plain_set
+     : forall (e : Clight.env) (id : BinNums.positive) (b : Values.block) (ty : Ctypes.type)
+         (_ : plain_env e) (_ : @eq bool (nonfunction_type ty) true),
+       plain_env (@Maps.PTree.set (prod Values.block Ctypes.type) id (@pair Values.block Ctypes.type b ty) e)
+### C.jet_clight_internal_frame.alloc_plain
+alloc_plain
+     : forall (ge : Clight.genv) (e : Clight.env) (m : Memory.Mem.mem) (vars : list (prod AST.ident Ctypes.type))
+         (e' : Clight.env) (m' : Memory.Mem.mem) (_ : Clight.alloc_variables ge e m vars e' m')
+         (_ : plain_env e)
+         (_ : @eq bool
+                (@List.forallb (prod AST.ident Ctypes.type)
+                   (fun it : prod AST.ident Ctypes.type => nonfunction_type (@snd AST.ident Ctypes.type it)) vars) true),
+       plain_env e'
+### C.jet_clight_internal_frame.entry_plain
+entry_plain
+     : forall (ge : Clight.genv) (fd : Clight.function) (args : list Values.val) (m : Memory.Mem.mem)
+         (e : Clight.env) (le : Clight.temp_env) (m' : Memory.Mem.mem)
+         (_ : Clight.function_entry2 ge fd args m e le m')
+         (_ : @eq bool
+                (@List.forallb (prod AST.ident Ctypes.type)
+                   (fun it : prod AST.ident Ctypes.type => nonfunction_type (@snd AST.ident Ctypes.type it))
+                   (Clight.fn_vars fd)) true), plain_env e
+### C.jet_clight_internal_frame.direct_internal_call
+direct_internal_call
+     : forall (ge : Clight.genv) (table : list (prod AST.ident Clight.function)) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem) (a : Clight.expr) (vf : Values.val) (f : Clight.fundef)
+         (_ : internal_table_ok ge table) (_ : plain_env e) (_ : @eq bool (closed_callb table a) true)
+         (_ : Clight.eval_expr ge e le m a vf)
+         (_ : @eq (option Clight.fundef)
+                (@Globalenvs.Genv.find_funct Clight.fundef Ctypes.type (Clight.genv_genv ge) vf)
+                (@Some Clight.fundef f)), allowed_call table f
+### C.jet_clight_internal_frame.internal_exec_readback
+internal_exec_readback
+     : forall (ge : Clight.genv) (table : list (prod AST.ident Clight.function)) (_ : internal_table_ok ge table),
+       and
+         (forall (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem) (stmt : Clight.statement)
+            (t : Events.trace) (le' : Clight.temp_env) (m' : Memory.Mem.mem) (out : ClightBigstep.outcome)
+            (_ : ClightBigstep.Clight2.exec_stmt ge e le m stmt t le' m' out) (_ : plain_env e)
+            (_ : @eq bool (closed_stmtb table stmt) true), jet_clight_readonly.readonly_readback m m')
+         (forall (m : Memory.Mem.mem) (f : Clight.fundef) (args : list Values.val) (t : Events.trace)
+            (m' : Memory.Mem.mem) (result : Values.val)
+            (_ : ClightBigstep.Clight2.eval_funcall ge m f args t m' result) (_ : allowed_call table f),
+          jet_clight_readonly.readonly_readback m m')
+### C.jet_clight_internal_frame.internal_funcall_readonly_lframe
+internal_funcall_readonly_lframe
+     : forall (ge : Clight.genv) (table : list (prod AST.ident Clight.function)) (m : Memory.Mem.mem)
+         (f : Clight.fundef) (args : list Values.val) (t : Events.trace) (mf : Memory.Mem.mem)
+         (result : Values.val) (b : Values.block) (lo hi : BinNums.Z) (_ : internal_table_ok ge table)
+         (_ : allowed_call table f) (_ : ClightBigstep.Clight2.eval_funcall ge m f args t mf result)
+         (_ : Memory.Mem.valid_block m b) (_ : jet_clight_readonly_frame.readonly_region_bounds m b lo hi)
+         (_ : Memory.Mem.range_perm mf b lo hi Memtype.Cur Memtype.Readable),
+       jet_sx_mem.lframe (fun (block : Values.block) (_ : BinNums.Z) => @eq Values.block block b) m mf
+### C.jet_clight_internal_frame.nonfunction_type
+nonfunction_type =
+fun ty : Ctypes.type =>
+match ty return bool with
+| Ctypes.Tvoid => true
+| Ctypes.Tint _ _ _ => true
+| Ctypes.Tlong _ _ => true
+| Ctypes.Tfloat _ _ => true
+| Ctypes.Tpointer _ _ => true
+| Ctypes.Tarray _ _ _ => true
+| Ctypes.Tfunction _ _ _ => false
+| Ctypes.Tstruct _ _ => true
+| Ctypes.Tunion _ _ => true
+end
+     : forall _ : Ctypes.type, bool
+
+Arguments nonfunction_type ty
+### C.jet_clight_internal_frame.plain_env
+plain_env =
+fun e : Clight.env =>
+forall (id : BinNums.positive) (b : Values.block) (ty : Ctypes.type)
+  (_ : @eq (option (prod Values.block Ctypes.type)) (@Maps.PTree.get (prod Values.block Ctypes.type) id e)
+         (@Some (prod Values.block Ctypes.type) (@pair Values.block Ctypes.type b ty))),
+@eq bool (nonfunction_type ty) true
+     : forall _ : Clight.env, Prop
+
+Arguments plain_env e
+### C.jet_clight_internal_frame.internal_lookup
+internal_lookup =
+fix internal_lookup (table : list (prod AST.ident Clight.function)) (id : BinNums.positive) {struct table} :
+    option Clight.function :=
+  match table return (option Clight.function) with
+  | nil => @None Clight.function
+  | cons p rest =>
+      match p return (option Clight.function) with
+      | pair key fd =>
+          match BinPos.Pos.eqb key id return (option Clight.function) with
+          | true => @Some Clight.function fd
+          | false => internal_lookup rest id
+          end
+      end
+  end
+     : forall (_ : list (prod AST.ident Clight.function)) (_ : BinNums.positive), option Clight.function
+
+Arguments internal_lookup table%list_scope id%positive_scope
+### C.jet_clight_internal_frame.closed_callb
+closed_callb =
+fun (table : list (prod AST.ident Clight.function)) (a : Clight.expr) =>
+match a return bool with
+| Clight.Econst_int _ _ => false
+| Clight.Econst_float _ _ => false
+| Clight.Econst_single _ _ => false
+| Clight.Econst_long _ _ => false
+| Clight.Evar id t =>
+    match t return bool with
+    | Ctypes.Tvoid => false
+    | Ctypes.Tint _ _ _ => false
+    | Ctypes.Tlong _ _ => false
+    | Ctypes.Tfloat _ _ => false
+    | Ctypes.Tpointer _ _ => false
+    | Ctypes.Tarray _ _ _ => false
+    | Ctypes.Tfunction _ _ _ => match internal_lookup table id return bool with
+                                | Some _ => true
+                                | None => false
+                                end
+    | Ctypes.Tstruct _ _ => false
+    | Ctypes.Tunion _ _ => false
+    end
+| Clight.Etempvar _ _ => false
+| Clight.Ederef _ _ => false
+| Clight.Eaddrof _ _ => false
+| Clight.Eunop _ _ _ => false
+| Clight.Ebinop _ _ _ _ => false
+| Clight.Ecast _ _ => false
+| Clight.Efield _ _ _ => false
+| Clight.Esizeof _ _ => false
+| Clight.Ealignof _ _ => false
+end
+     : forall (_ : list (prod AST.ident Clight.function)) (_ : Clight.expr), bool
+
+Arguments closed_callb table%list_scope a
+### C.jet_clight_internal_frame.closed_stmtb
+closed_stmtb =
+fix closed_stmtb (table : list (prod AST.ident Clight.function)) (s : Clight.statement) {struct s} : bool :=
+  match s return bool with
+  | Clight.Sskip => true
+  | Clight.Sassign _ _ => true
+  | Clight.Sset _ _ => true
+  | Clight.Scall _ a _ => closed_callb table a
+  | Clight.Sbuiltin _ _ _ _ => false
+  | Clight.Ssequence s1 s2 => andb (closed_stmtb table s1) (closed_stmtb table s2)
+  | Clight.Sifthenelse _ s1 s2 => andb (closed_stmtb table s1) (closed_stmtb table s2)
+  | Clight.Sloop s1 s2 => andb (closed_stmtb table s1) (closed_stmtb table s2)
+  | Clight.Sbreak => true
+  | Clight.Scontinue => true
+  | Clight.Sreturn _ => true
+  | Clight.Sswitch _ _ => false
+  | Clight.Slabel _ _ => false
+  | Clight.Sgoto _ => false
+  end
+     : forall (_ : list (prod AST.ident Clight.function)) (_ : Clight.statement), bool
+
+Arguments closed_stmtb table%list_scope s
+### C.jet_clight_internal_frame.allowed_call
+allowed_call =
+fun (table : list (prod AST.ident Clight.function)) (f : Clight.fundef) =>
+@ex BinNums.positive
+  (fun id : BinNums.positive =>
+   @ex Clight.function
+     (fun fd : Clight.function =>
+      and (@eq (option Clight.function) (internal_lookup table id) (@Some Clight.function fd))
+        (@eq Clight.fundef f (@Ctypes.Internal Clight.function fd))))
+     : forall (_ : list (prod AST.ident Clight.function)) (_ : Clight.fundef), Prop
+
+Arguments allowed_call table%list_scope f
+### C.jet_clight_internal_frame.internal_table_ok
+internal_table_ok =
+fun (ge : Clight.genv) (table : list (prod AST.ident Clight.function)) =>
+forall (id : BinNums.positive) (fd : Clight.function)
+  (_ : @eq (option Clight.function) (internal_lookup table id) (@Some Clight.function fd)),
+and
+  (@ex Values.block
+     (fun b : Values.block =>
+      and
+        (@eq (option Values.block) (@Globalenvs.Genv.find_symbol Clight.fundef Ctypes.type (Clight.genv_genv ge) id)
+           (@Some Values.block b))
+        (@eq (option Clight.fundef) (@Globalenvs.Genv.find_funct_ptr Clight.fundef Ctypes.type (Clight.genv_genv ge) b)
+           (@Some (Ctypes.fundef Clight.function) (@Ctypes.Internal Clight.function fd)))))
+  (and (@eq bool (closed_stmtb table (Clight.fn_body fd)) true)
+     (@eq bool
+        (@List.forallb (prod AST.ident Ctypes.type)
+           (fun it : prod AST.ident Ctypes.type => nonfunction_type (@snd AST.ident Ctypes.type it))
+           (Clight.fn_vars fd)) true))
+     : forall (_ : Clight.genv) (_ : list (prod AST.ident Clight.function)), Prop
+
+Arguments internal_table_ok ge table%list_scope

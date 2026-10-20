@@ -1,0 +1,121 @@
+### C.jet_secp_multiply_borrowed_transport.borrow_at_length
+borrow_at_length
+     : forall (q : nat) (regs : list jet_sx_state.region),
+       @eq nat (@length jet_sx_state.region (jet_borrowed_region.borrow_at q regs)) (@length jet_sx_state.region regs)
+### C.jet_secp_multiply_borrowed_transport.map_upd
+@map_upd
+     : forall (A B : Type) (f : forall _ : A, B) (xs : list A) (q : nat) (value : A),
+       @eq (list B) (@List.map A B f (@jet_sx_state.upd A xs q value))
+         (@jet_sx_state.upd B (@List.map A B f xs) q (f value))
+### C.jet_secp_multiply_borrowed_transport.borrow_map
+borrow_map
+     : forall (f : forall _ : jet_sx_state.region, jet_sx_state.region) (q : nat) (regs : list jet_sx_state.region)
+         (_ : forall reg : jet_sx_state.region,
+              @eq jet_sx_state.region (f (jet_borrowed_region.borrowed_region reg))
+                (jet_borrowed_region.borrowed_region (f reg))),
+       @eq (list jet_sx_state.region)
+         (@List.map jet_sx_state.region jet_sx_state.region f (jet_borrowed_region.borrow_at q regs))
+         (jet_borrowed_region.borrow_at q (@List.map jet_sx_state.region jet_sx_state.region f regs))
+### C.jet_secp_multiply_borrowed_transport.revalue_borrow
+revalue_borrow
+     : forall (f : forall _ : jet_sx_expr.sx, jet_sx_expr.sx) (reg : jet_sx_state.region),
+       @eq jet_sx_state.region (jet_sx_revalue_cells.revalue_region f (jet_borrowed_region.borrowed_region reg))
+         (jet_borrowed_region.borrowed_region (jet_sx_revalue_cells.revalue_region f reg))
+### C.jet_secp_multiply_borrowed_transport.atomic_regs_borrow
+atomic_regs_borrow
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (q : nat)
+         (regs : list jet_sx_state.region),
+       @eq (list jet_sx_state.region)
+         (jet_secp_multiply_checkpoint_atomic.atomic_regs rho beta (jet_borrowed_region.borrow_at q regs))
+         (jet_borrowed_region.borrow_at q (jet_secp_multiply_checkpoint_atomic.atomic_regs rho beta regs))
+### C.jet_secp_multiply_borrowed_transport.atomic_state_borrow
+atomic_state_borrow
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (q : nat)
+         (st : jet_sx_eval.sstate),
+       @eq jet_sx_eval.sstate (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta (borrow_state q st))
+         (borrow_state q (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta st))
+### C.jet_secp_multiply_borrowed_transport.borrow_head
+borrow_head
+     : forall (a b : jet_sx_state.region) (rest : list jet_sx_state.region),
+       @eq (list jet_sx_state.region)
+         (jet_borrowed_region.borrow_at (S O) (@cons jet_sx_state.region a (@cons jet_sx_state.region b rest)))
+         (@cons jet_sx_state.region a (@cons jet_sx_state.region (jet_borrowed_region.borrowed_region b) rest))
+### C.jet_secp_multiply_borrowed_transport.foot_regions
+foot_regions
+     : forall (beta : jet_sx_state.layout) (regs : list jet_sx_state.region) (b : Values.block) (ofs : BinNums.Z),
+       iff
+         (jet_sx_state.foot beta
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape regs)
+            b ofs)
+         (@ex nat
+            (fun r : nat =>
+             @ex jet_sx_state.region
+               (fun reg : jet_sx_state.region =>
+                @ex BinNums.Z
+                  (fun d : BinNums.Z =>
+                   @ex AST.memory_chunk
+                     (fun ch : AST.memory_chunk =>
+                      and
+                        (@eq (option jet_sx_state.region) (@List.nth_error jet_sx_state.region regs r)
+                           (@Some jet_sx_state.region reg))
+                        (and
+                           (@List.In (prod BinNums.Z AST.memory_chunk) (@pair BinNums.Z AST.memory_chunk d ch)
+                              (@List.map jet_sx_state.cell (prod BinNums.Z AST.memory_chunk) jet_sx_state.cshape
+                                 (jet_sx_state.rcells reg)))
+                           (and (@eq Values.block b (jet_sx_state.blk beta r))
+                              (and (BinInt.Z.le (BinInt.Z.add (jet_sx_state.bas beta r) d) ofs)
+                                 (BinInt.Z.lt ofs
+                                    (BinInt.Z.add (BinInt.Z.add (jet_sx_state.bas beta r) d) (Memdata.size_chunk ch)))))))))))
+### C.jet_secp_multiply_borrowed_transport.foot_cells
+foot_cells
+     : forall (beta : jet_sx_state.layout) (regs regs' : list jet_sx_state.region) (b : Values.block)
+         (ofs : BinNums.Z)
+         (_ : @eq (list (list jet_sx_state.cell))
+                (@List.map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells regs)
+                (@List.map jet_sx_state.region (list jet_sx_state.cell) jet_sx_state.rcells regs'))
+         (_ : jet_sx_state.foot beta
+                (@List.map jet_sx_state.region
+                   (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                   regs) b ofs),
+       jet_sx_state.foot beta
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape regs') b ofs
+### C.jet_secp_multiply_borrowed_transport.foot_borrow
+foot_borrow
+     : forall (beta : jet_sx_state.layout) (q : nat) (regs : list jet_sx_state.region) (b : Values.block)
+         (ofs : BinNums.Z),
+       iff
+         (jet_sx_state.foot beta
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+               (jet_borrowed_region.borrow_at q regs)) b ofs)
+         (jet_sx_state.foot beta
+            (@List.map jet_sx_state.region
+               (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape regs)
+            b ofs)
+### C.jet_secp_multiply_borrowed_transport.lframe_borrow
+lframe_borrow
+     : forall (beta : jet_sx_state.layout) (q : nat) (regs : list jet_sx_state.region) (m mf : Memory.Mem.mem)
+         (_ : jet_sx_mem.lframe
+                (fun (b : Values.block) (ofs : BinNums.Z) =>
+                 not
+                   (jet_sx_state.foot beta
+                      (@List.map jet_sx_state.region
+                         (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                         jet_sx_state.rshape (jet_borrowed_region.borrow_at q regs)) b ofs)) m mf),
+       jet_sx_mem.lframe
+         (fun (b : Values.block) (ofs : BinNums.Z) =>
+          not
+            (jet_sx_state.foot beta
+               (@List.map jet_sx_state.region
+                  (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)) jet_sx_state.rshape
+                  regs) b ofs)) m mf
+### C.jet_secp_multiply_borrowed_transport.borrow_state
+borrow_state =
+fun (q : nat) (st : jet_sx_eval.sstate) =>
+jet_sx_eval.mkst (jet_sx_eval.stemps st) (jet_borrowed_region.borrow_at q (jet_sx_eval.sregs st))
+  (jet_sx_eval.slog st) (jet_sx_eval.snv st)
+     : forall (_ : nat) (_ : jet_sx_eval.sstate), jet_sx_eval.sstate
+
+Arguments borrow_state q%nat_scope st

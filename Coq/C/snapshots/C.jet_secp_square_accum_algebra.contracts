@@ -1,0 +1,62 @@
+### C.jet_secp_square_accum_algebra.pair_value_injective
+pair_value_injective
+     : forall (a b : prod Integers.Int64.int Integers.Int64.int)
+         (_ : @eq BinNums.Z (jet_secp_multiply_checkpoint_machine.pair_value a)
+                (jet_secp_multiply_checkpoint_machine.pair_value b)),
+       @eq (prod Integers.Int64.int Integers.Int64.int) a b
+### C.jet_secp_square_accum_algebra.accumulate_mod
+accumulate_mod
+     : forall (ps : list (prod Integers.Int64.int Integers.Int64.int)) (s : prod Integers.Int64.int Integers.Int64.int),
+       @eq BinNums.Z
+         (jet_secp_multiply_checkpoint_machine.pair_value (jet_secp_multiply_secondvalues_accum.accumulate s ps))
+         (BinInt.Z.modulo
+            (BinInt.Z.add (jet_secp_multiply_checkpoint_machine.pair_value s)
+               (jet_secp_multiply_secondvalues_accum.products ps))
+            (BinInt.Z.mul Integers.Int64.modulus Integers.Int64.modulus))
+### C.jet_secp_square_accum_algebra.accumulate_products_equal
+accumulate_products_equal
+     : forall (ps qs : list (prod Integers.Int64.int Integers.Int64.int))
+         (s : prod Integers.Int64.int Integers.Int64.int)
+         (_ : @eq BinNums.Z (jet_secp_multiply_secondvalues_accum.products ps)
+                (jet_secp_multiply_secondvalues_accum.products qs)),
+       @eq (prod Integers.Int64.int Integers.Int64.int) (jet_secp_multiply_secondvalues_accum.accumulate s ps)
+         (jet_secp_multiply_secondvalues_accum.accumulate s qs)
+### C.jet_secp_square_accum_algebra.product_as_accumulate
+product_as_accumulate
+     : forall a b : Integers.Int64.int,
+       @eq (prod Integers.Int64.int Integers.Int64.int) (jet_secp_multiply_checkpoint_machine.machine_product a b)
+         (jet_secp_multiply_secondvalues_accum.accumulate
+            (@pair Integers.Int64.int Integers.Int64.int Integers.Int64.zero Integers.Int64.zero)
+            (@cons (prod Integers.Int64.int Integers.Int64.int) (@pair Integers.Int64.int Integers.Int64.int a b)
+               (@nil (prod Integers.Int64.int Integers.Int64.int))))
+### C.jet_secp_square_accum_algebra.twice_unsigned
+twice_unsigned
+     : forall (a : Integers.Int64.int)
+         (_ : BinInt.Z.lt (Integers.Int64.unsigned a)
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO
+                                  (BinNums.xO
+                                     (BinNums.xO
+                                        (BinNums.xO
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO
+                                                          (BinNums.xO
+                                                             (BinNums.xO
+                                                                (BinNums.xO
+                                                                   (BinNums.xO
+                                                                      (BinNums.xO (BinNums.xO (BinNums.xO (...))))))))))))))))))))))),
+       @eq BinNums.Z (Integers.Int64.unsigned (twice a))
+         (BinInt.Z.mul (BinNums.Zpos (BinNums.xO BinNums.xH)) (Integers.Int64.unsigned a))
+### C.jet_secp_square_accum_algebra.twice
+twice =
+fun a : Integers.Int64.int => Integers.Int64.mul a (Integers.Int64.repr (BinNums.Zpos (BinNums.xO BinNums.xH)))
+     : forall _ : Integers.Int64.int, Integers.Int64.int
+
+Arguments twice a

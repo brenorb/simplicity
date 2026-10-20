@@ -1,0 +1,217 @@
+### C.jet_secp_multiply_next_checkpoint.checkpoint_shape
+checkpoint_shape
+     : forall (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 : Integers.Int64.int),
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs (checkpoint_state digits written c d t3 t4)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial))
+### C.jet_secp_multiply_next_checkpoint.atomic_long_value
+atomic_long_value
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (x : jet_sx_expr.sx)
+         (ma : Integers.Int64.int) (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL x) true)
+         (_ : @eq Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) x) (Values.Vlong ma)),
+       @eq jet_sx_expr.sx (jet_secp_multiply_checkpoint_atomic.atomic_sx rho beta x) (jet_sx_expr.XL ma)
+### C.jet_secp_multiply_next_checkpoint.third_regions_exact
+third_regions_exact
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 tx : Integers.Int64.int),
+       @eq (list jet_sx_state.region)
+         (jet_sx_eval.sregs (jet_secp_multiply_third_state.third_state digits c d t3 t4 tx))
+         (@cons jet_sx_state.region
+            (jet_sx_state.mkreg
+               (jet_sx_rep.u64_cells BinNums.Z0
+                  (@cons jet_sx_expr.sx (jet_secp_multiply_third_state.third_r0_sy digits d tx)
+                     (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S O)))
+                        (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S O))))
+                           (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S O)))))
+                              (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S O)))))) (@nil jet_sx_expr.sx)))))))
+               true
+               (@Some BinNums.Z
+                  (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+            (@cons jet_sx_state.region
+               (jet_sx_state.mkreg
+                  (jet_sx_rep.u64_cells BinNums.Z0
+                     (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S O)))))))
+                        (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S O))))))))
+                           (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S O)))))))))
+                              (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S O))))))))))
+                                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S (S O)))))))))))
+                                    (@nil jet_sx_expr.sx))))))) true
+                  (@Some BinNums.Z
+                     (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+               (@cons jet_sx_state.region
+                  (jet_sx_state.mkreg
+                     (jet_sx_rep.u64_cells BinNums.Z0
+                        (@cons jet_sx_expr.sx
+                           (@fst jet_sx_expr.sx jet_sx_expr.sx
+                              (jet_secp_multiply_third_state.third_final_c_sy digits d tx))
+                           (@cons jet_sx_expr.sx
+                              (@snd jet_sx_expr.sx jet_sx_expr.sx
+                                 (jet_secp_multiply_third_state.third_final_c_sy digits d tx))
+                              (@nil jet_sx_expr.sx)))) true
+                     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                  (@cons jet_sx_state.region
+                     (jet_sx_state.mkreg
+                        (jet_sx_rep.u64_cells BinNums.Z0
+                           (@cons jet_sx_expr.sx
+                              (@fst jet_sx_expr.sx jet_sx_expr.sx
+                                 (jet_secp_multiply_third_state.third_final_d_sy digits d))
+                              (@cons jet_sx_expr.sx
+                                 (@snd jet_sx_expr.sx jet_sx_expr.sx
+                                    (jet_secp_multiply_third_state.third_final_d_sy digits d))
+                                 (@nil jet_sx_expr.sx)))) true
+                        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+                     (@nil jet_sx_state.region)))))
+### C.jet_secp_multiply_next_checkpoint.third_atomic_regs_exact
+third_atomic_regs_exact
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 tx : Integers.Int64.int),
+       @eq (list jet_sx_state.region)
+         (jet_sx_eval.sregs
+            (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+               (jet_secp_multiply_third_state.third_state digits c d t3 t4 tx)))
+         (checkpoint_regs digits (written_r0 digits (jet_secp_multiply_third_values.third_r0_machine digits d tx))
+            (jet_secp_multiply_third_values.third_final_c_machine digits d tx)
+            (jet_secp_multiply_third_values.third_final_d_machine digits d))
+### C.jet_secp_multiply_next_checkpoint.third_live_lookup
+third_live_lookup
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 tx : Integers.Int64.int) (id : AST.ident) (x : jet_sx_expr.sx)
+         (_ : @List.In (prod AST.ident jet_sx_expr.sx) (@pair AST.ident jet_sx_expr.sx id x)
+                (checkpoint_bindings digits t3 t4)),
+       @eq (option jet_sx_expr.sx)
+         (@Maps.PTree.get jet_sx_expr.sx id
+            (jet_sx_eval.stemps (jet_secp_multiply_third_state.third_state digits c d t3 t4 tx)))
+         (@Some jet_sx_expr.sx x)
+### C.jet_secp_multiply_next_checkpoint.third_to_checkpoint_tmatch
+third_to_checkpoint_tmatch
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 tx : Integers.Int64.int) (le : Clight.temp_env)
+         (_ : jet_sx_eval.tmatch rho beta
+                (jet_sx_eval.stemps
+                   (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+                      (jet_secp_multiply_third_state.third_state digits c d t3 t4 tx))) le),
+       jet_sx_eval.tmatch rho beta (checkpoint_temps digits t3 t4) le
+### C.jet_secp_multiply_next_checkpoint.exec_original_third_checkpoint
+exec_original_third_checkpoint
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (e : Clight.env)
+         (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial) m)
+         (_ : jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps jet_secp_multiply_checkpoint_prefix.prefix_initial) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  jet_secp_multiply_third_state.through_third Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (jet_secp_multiply_third_compose.composed_third_observations rho beta le' mf)
+                  (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs (original_third_checkpoint rho)) mf)
+                     (and (jet_sx_eval.tmatch rho beta (jet_sx_eval.stemps (original_third_checkpoint rho)) le')
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape
+                                    (jet_sx_eval.sregs jet_secp_multiply_checkpoint_prefix.prefix_initial)) b ofs)) m
+                           mf))))))
+### C.jet_secp_multiply_next_checkpoint.checkpoint_regs
+checkpoint_regs =
+fun (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int) =>
+@cons jet_sx_state.region
+  (jet_sx_state.mkreg
+     (jet_sx_rep.u64_cells BinNums.Z0
+        (@cons jet_sx_expr.sx (jet_sx_expr.XL (written O))
+           (@cons jet_sx_expr.sx (jet_sx_expr.XL (written (S O)))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XL (written (S (S O))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (written (S (S (S O)))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XL (written (S (S (S (S O)))))) (@nil jet_sx_expr.sx))))))) true
+     (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+  (@cons jet_sx_state.region
+     (jet_sx_state.mkreg
+        (jet_sx_rep.u64_cells BinNums.Z0
+           (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S O)))))))
+              (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S O))))))))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S O)))))))))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S O))))))))))
+                       (@cons jet_sx_expr.sx (jet_sx_expr.XL (digits (S (S (S (S (S (S (S (S (S O)))))))))))
+                          (@nil jet_sx_expr.sx))))))) true
+        (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))))
+     (@cons jet_sx_state.region
+        (jet_sx_state.mkreg
+           (jet_sx_rep.u64_cells BinNums.Z0
+              (@cons jet_sx_expr.sx (jet_sx_expr.XL (@fst Integers.Int64.int Integers.Int64.int c))
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (@snd Integers.Int64.int Integers.Int64.int c))
+                    (@nil jet_sx_expr.sx)))) true
+           (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+        (@cons jet_sx_state.region
+           (jet_sx_state.mkreg
+              (jet_sx_rep.u64_cells BinNums.Z0
+                 (@cons jet_sx_expr.sx (jet_sx_expr.XL (@fst Integers.Int64.int Integers.Int64.int d))
+                    (@cons jet_sx_expr.sx (jet_sx_expr.XL (@snd Integers.Int64.int Integers.Int64.int d))
+                       (@nil jet_sx_expr.sx)))) true
+              (@Some BinNums.Z (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+           (@nil jet_sx_state.region))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int),
+       list jet_sx_state.region
+
+Arguments checkpoint_regs (digits written)%function_scope c d
+### C.jet_secp_multiply_next_checkpoint.checkpoint_bindings
+checkpoint_bindings =
+fun (digits : forall _ : nat, Integers.Int64.int) (t3 t4 : Integers.Int64.int) =>
+@app (prod AST.ident jet_sx_expr.sx) (jet_secp_multiply_second_entry.second_bindings digits t3)
+  (@cons (prod AST.ident jet_sx_expr.sx) (@pair AST.ident jet_sx_expr.sx jets_secp._t4 (jet_sx_expr.XL t4))
+     (@nil (prod AST.ident jet_sx_expr.sx)))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       list (prod AST.ident jet_sx_expr.sx)
+
+Arguments checkpoint_bindings digits%function_scope t3 t4
+### C.jet_secp_multiply_next_checkpoint.checkpoint_temps
+checkpoint_temps =
+fun (digits : forall _ : nat, Integers.Int64.int) (t3 t4 : Integers.Int64.int) =>
+jet_secp_multiply_second_temps.temps_of (checkpoint_bindings digits t3 t4)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int),
+       Maps.PTree.tree jet_sx_expr.sx
+
+Arguments checkpoint_temps digits%function_scope t3 t4
+### C.jet_secp_multiply_next_checkpoint.checkpoint_state
+checkpoint_state =
+fun (digits written : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+  (t3 t4 : Integers.Int64.int) =>
+jet_sx_eval.mkst (checkpoint_temps digits t3 t4) (checkpoint_regs digits written c d) (@nil jet_sx_eval.event)
+  (S (S (S (S (S (S (S (S (S (S O))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : forall _ : nat, Integers.Int64.int)
+         (_ : prod Integers.Int64.int Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int), jet_sx_eval.sstate
+
+Arguments checkpoint_state (digits written)%function_scope c d t3 t4
+### C.jet_secp_multiply_next_checkpoint.written_r0
+written_r0 =
+fun (digits : forall _ : nat, Integers.Int64.int) (r0 : Integers.Int64.int) (n : nat) =>
+match n return Integers.Int64.int with
+| O => r0
+| S _ => digits n
+end
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : Integers.Int64.int) (_ : nat), Integers.Int64.int
+
+Arguments written_r0 digits%function_scope r0 n%nat_scope
+### C.jet_secp_multiply_next_checkpoint.original_third_checkpoint
+original_third_checkpoint =
+fun rho : forall _ : nat, Integers.Int64.int =>
+checkpoint_state rho (written_r0 rho (jet_secp_multiply_third_arithmetic.original_third_r0 rho))
+  (jet_secp_multiply_third_arithmetic.original_third_final_c rho)
+  (jet_secp_multiply_third_arithmetic.original_third_final_d rho)
+  (jet_secp_multiply_checkpoint_bridge.first_t3_machine rho)
+  (jet_secp_multiply_secondvalues_arithmetic.original_second_t4 rho)
+     : forall _ : forall _ : nat, Integers.Int64.int, jet_sx_eval.sstate
+
+Arguments original_third_checkpoint rho%function_scope

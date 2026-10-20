@@ -1,0 +1,111 @@
+### C.jet_secp_multiply_third_machine.third_typed_run
+third_typed_run
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 tx : Integers.Int64.int),
+       @eq (option jet_sx_exec.res)
+         (jet_sx_exec.xstmt (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+            jet_secp_multiply_run_run.field_table
+            (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...))))))))))))))))))))))
+            (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated)
+            (jet_secp_multiply_third_state.third_initial digits c d t3 t4 tx)
+            jet_secp_multiply_third_state.third_statement)
+         (@Some jet_sx_exec.res
+            (jet_sx_exec.RDone (jet_secp_multiply_third_state.third_state digits c d t3 t4 tx) jet_sx_exec.ONormal))
+### C.jet_secp_multiply_third_machine.exec_third_machine_atomic
+exec_third_machine_atomic
+     : forall (digits : forall _ : nat, Integers.Int64.int) (c d : prod Integers.Int64.int Integers.Int64.int)
+         (t3 t4 tx : Integers.Int64.int) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (e : Clight.env) (le : Clight.temp_env) (m : Memory.Mem.mem)
+         (_ : jet_sx_state.rep rho beta
+                (jet_sx_eval.sregs (jet_secp_multiply_third_state.third_initial digits c d t3 t4 tx)) m)
+         (_ : jet_sx_eval.tmatch rho beta
+                (jet_sx_eval.stemps (jet_secp_multiply_third_state.third_initial digits c d t3 t4 tx)) le)
+         (_ : jet_sx_eval.ematch beta
+                (@snd (list jet_sx_state.region) jet_sx_eval.venv jet_secp_multiply_checkpoint_prefix.mul_allocated) e),
+       @ex Clight.temp_env
+         (fun le' : Clight.temp_env =>
+          @ex Memory.Mem.mem
+            (fun mf : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.exec_stmt jet_secp_linkage.secp_ge e le m
+                  jet_secp_multiply_third_state.third_statement Events.E0 le' mf ClightBigstep.Out_normal)
+               (and (third_observations digits d t3 t4 tx beta le' mf)
+                  (and
+                     (jet_sx_state.rep rho beta
+                        (jet_sx_eval.sregs
+                           (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+                              (jet_secp_multiply_third_state.third_state digits c d t3 t4 tx))) mf)
+                     (and
+                        (jet_sx_eval.tmatch rho beta
+                           (jet_sx_eval.stemps
+                              (jet_secp_multiply_checkpoint_atomic.atomic_state rho beta
+                                 (jet_secp_multiply_third_state.third_state digits c d t3 t4 tx))) le')
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (ofs : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape
+                                    (jet_sx_eval.sregs
+                                       (jet_secp_multiply_third_state.third_initial digits c d t3 t4 tx))) b ofs)) m mf))))))
+### C.jet_secp_multiply_third_machine.third_observations
+third_observations =
+fun (digits : forall _ : nat, Integers.Int64.int) (d : prod Integers.Int64.int Integers.Int64.int)
+  (t3 t4 tx : Integers.Int64.int) (beta : jet_sx_state.layout) (le : Maps.PTree.tree Values.val)
+  (m : Memory.Mem.mem) =>
+and
+  (@eq (option Values.val)
+     (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta O) (BinInt.Z.add (jet_sx_state.bas beta O) BinNums.Z0))
+     (@Some Values.val (Values.Vlong (jet_secp_multiply_third_values.third_r0_machine digits d tx))))
+  (and
+     (@eq (option Values.val)
+        (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S O)))
+           (BinInt.Z.add (jet_sx_state.bas beta (S (S O))) BinNums.Z0))
+        (@Some Values.val
+           (Values.Vlong
+              (@fst Integers.Int64.int Integers.Int64.int
+                 (jet_secp_multiply_third_values.third_final_c_machine digits d tx)))))
+     (and
+        (@eq (option Values.val)
+           (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S O)))
+              (BinInt.Z.add (jet_sx_state.bas beta (S (S O)))
+                 (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+           (@Some Values.val
+              (Values.Vlong
+                 (@snd Integers.Int64.int Integers.Int64.int
+                    (jet_secp_multiply_third_values.third_final_c_machine digits d tx)))))
+        (and
+           (@eq (option Values.val)
+              (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S (S O))))
+                 (BinInt.Z.add (jet_sx_state.bas beta (S (S (S O)))) BinNums.Z0))
+              (@Some Values.val
+                 (Values.Vlong
+                    (@fst Integers.Int64.int Integers.Int64.int
+                       (jet_secp_multiply_third_values.third_final_d_machine digits d)))))
+           (and
+              (@eq (option Values.val)
+                 (Memory.Mem.load AST.Mint64 m (jet_sx_state.blk beta (S (S (S O))))
+                    (BinInt.Z.add (jet_sx_state.bas beta (S (S (S O))))
+                       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))
+                 (@Some Values.val
+                    (Values.Vlong
+                       (@snd Integers.Int64.int Integers.Int64.int
+                          (jet_secp_multiply_third_values.third_final_d_machine digits d)))))
+              (and
+                 (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t3 le)
+                    (@Some Values.val (Values.Vlong t3)))
+                 (and
+                    (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._t4 le)
+                       (@Some Values.val (Values.Vlong t4)))
+                    (and
+                       (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._u0 le)
+                          (@Some Values.val
+                             (Values.Vlong (jet_secp_multiply_third_values.third_u0_machine digits d tx))))
+                       (@eq (option Values.val) (@Maps.PTree.get Values.val jets_secp._a0 le)
+                          (@Some Values.val (Values.Vlong (digits O)))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : prod Integers.Int64.int Integers.Int64.int)
+         (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : Integers.Int64.int) (_ : jet_sx_state.layout)
+         (_ : Maps.PTree.tree Values.val) (_ : Memory.Mem.mem), Prop
+
+Arguments third_observations digits%function_scope d t3 t4 tx beta le m

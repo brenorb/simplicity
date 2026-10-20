@@ -1,0 +1,94 @@
+### C.jet_secp_multiply_checkpoint_ops.sx_low32
+sx_low32 =
+fun a : jet_sx_expr.sx => jet_sx_expr.XI2L Ctypes.Unsigned (jet_sx_expr.XL2I a)
+     : forall _ : jet_sx_expr.sx, jet_sx_expr.sx
+
+Arguments sx_low32 a
+### C.jet_secp_multiply_checkpoint_ops.sx_product
+sx_product =
+fun a b : jet_sx_expr.sx =>
+let ll : jet_sx_expr.sx := jet_sx_expr.XLb jet_sx_expr.Bmul (sx_low32 a) (sx_low32 b) in
+let lh : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Bmul (sx_low32 a)
+    (jet_sx_expr.XLsh jet_sx_expr.Hshru b
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) in
+let hl : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Bmul
+    (jet_sx_expr.XLsh jet_sx_expr.Hshru a
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+    (sx_low32 b) in
+let hh : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Bmul
+    (jet_sx_expr.XLsh jet_sx_expr.Hshru a
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+    (jet_sx_expr.XLsh jet_sx_expr.Hshru b
+       (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))) in
+let mid : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Badd
+    (jet_sx_expr.XLb jet_sx_expr.Badd
+       (jet_sx_expr.XLsh jet_sx_expr.Hshru ll
+          (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+       (sx_low32 lh)) (sx_low32 hl) in
+@pair jet_sx_expr.sx jet_sx_expr.sx
+  (jet_sx_expr.XLb jet_sx_expr.Badd
+     (jet_sx_expr.XLsh jet_sx_expr.Hshl mid
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))
+     (sx_low32 ll))
+  (jet_sx_expr.XLb jet_sx_expr.Badd
+     (jet_sx_expr.XLb jet_sx_expr.Badd
+        (jet_sx_expr.XLb jet_sx_expr.Badd hh
+           (jet_sx_expr.XLsh jet_sx_expr.Hshru lh
+              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+        (jet_sx_expr.XLsh jet_sx_expr.Hshru hl
+           (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+     (jet_sx_expr.XLsh jet_sx_expr.Hshru mid
+        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments sx_product a b
+### C.jet_secp_multiply_checkpoint_ops.sx_carry
+sx_carry =
+fun lo a : jet_sx_expr.sx => jet_sx_expr.XI2L Ctypes.Signed (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned lo a)
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), jet_sx_expr.sx
+
+Arguments sx_carry lo a
+### C.jet_secp_multiply_checkpoint_ops.sx_accum
+sx_accum =
+fun (s : prod jet_sx_expr.sx jet_sx_expr.sx) (a b : jet_sx_expr.sx) =>
+let p : prod jet_sx_expr.sx jet_sx_expr.sx := sx_product a b in
+let lo : jet_sx_expr.sx :=
+  jet_sx_expr.XLb jet_sx_expr.Badd (@fst jet_sx_expr.sx jet_sx_expr.sx s) (@fst jet_sx_expr.sx jet_sx_expr.sx p) in
+@pair jet_sx_expr.sx jet_sx_expr.sx lo
+  (jet_sx_expr.XLb jet_sx_expr.Badd (@snd jet_sx_expr.sx jet_sx_expr.sx s)
+     (jet_sx_expr.XLb jet_sx_expr.Badd (@snd jet_sx_expr.sx jet_sx_expr.sx p)
+        (sx_carry lo (@fst jet_sx_expr.sx jet_sx_expr.sx p))))
+     : forall (_ : prod jet_sx_expr.sx jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx),
+       prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments sx_accum s a b
+### C.jet_secp_multiply_checkpoint_ops.sx_accum_word
+sx_accum_word =
+fun (s : prod jet_sx_expr.sx jet_sx_expr.sx) (a : jet_sx_expr.sx) =>
+let lo : jet_sx_expr.sx := jet_sx_expr.XLb jet_sx_expr.Badd (@fst jet_sx_expr.sx jet_sx_expr.sx s) a in
+@pair jet_sx_expr.sx jet_sx_expr.sx lo
+  (jet_sx_expr.XLb jet_sx_expr.Badd (@snd jet_sx_expr.sx jet_sx_expr.sx s) (sx_carry lo a))
+     : forall (_ : prod jet_sx_expr.sx jet_sx_expr.sx) (_ : jet_sx_expr.sx), prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments sx_accum_word s a
+### C.jet_secp_multiply_checkpoint_ops.sx_shift52
+sx_shift52 =
+fun s : prod jet_sx_expr.sx jet_sx_expr.sx =>
+@pair jet_sx_expr.sx jet_sx_expr.sx
+  (jet_secp_multiply_shift_rep.shift52_lo_sx (@fst jet_sx_expr.sx jet_sx_expr.sx s)
+     (@snd jet_sx_expr.sx jet_sx_expr.sx s))
+  (jet_secp_multiply_shift_rep.shift52_hi_sx (@snd jet_sx_expr.sx jet_sx_expr.sx s))
+     : forall _ : prod jet_sx_expr.sx jet_sx_expr.sx, prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments sx_shift52 s
+### C.jet_secp_multiply_checkpoint_ops.sx_shift64
+sx_shift64 =
+fun s : prod jet_sx_expr.sx jet_sx_expr.sx =>
+@pair jet_sx_expr.sx jet_sx_expr.sx (@snd jet_sx_expr.sx jet_sx_expr.sx s) (jet_sx_expr.XLc Integers.Int64.zero)
+     : forall _ : prod jet_sx_expr.sx jet_sx_expr.sx, prod jet_sx_expr.sx jet_sx_expr.sx
+
+Arguments sx_shift64 s

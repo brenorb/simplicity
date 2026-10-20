@@ -1,0 +1,12 @@
+### C.jet_secp_beta_state.beta_initialized_preserved
+beta_initialized_preserved
+     : forall (m mf : Memory.Mem.mem) (_ : jet_secp_beta_global.beta_initialized m)
+         (_ : jet_clight_internal_preserve.readonly_preserved m mf), jet_secp_beta_global.beta_initialized mf
+### C.jet_secp_beta_state.beta_graph_keeps_state
+beta_graph_keeps_state
+     : forall (m : Memory.Mem.mem) (f : Clight.fundef) (args : list Values.val) (t : Events.trace)
+         (mf : Memory.Mem.mem) (result : Values.val)
+         (_ : jet_clight_internal_frame.allowed_call jet_secp_beta_graph.beta_internal_table f)
+         (_ : jet_secp_beta_global.beta_initialized m)
+         (_ : ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m f args t mf result),
+       jet_secp_beta_global.beta_initialized mf

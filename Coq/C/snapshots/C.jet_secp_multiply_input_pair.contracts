@@ -1,0 +1,101 @@
+### C.jet_secp_multiply_input_pair.eval_read_field_pair
+eval_read_field_pair
+     : forall (m0 : Memory.Mem.mem) (bd : Values.block) (dbase : BinNums.Z) (bw : Values.block)
+         (outedge cursor N : BinNums.Z) (bi : Values.block) (edge rc : BinNums.Z)
+         (x y : Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) (m : Memory.Mem.mem)
+         (ba bb bl : Values.block) (_ : jet_output_layout.write_frame_at m0 bd dbase bw outedge cursor N)
+         (_ : BinInt.Z.le
+                (BinNums.Zpos
+                   (BinNums.xO
+                      (BinNums.xO
+                         (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))) N)
+         (_ : jet_encoding.frame_input_cells_at m0 bi edge rc
+                (@Translate.encode
+                   (Ty.Prod (Word.Word (S (S (S (S (S (S (S (S O))))))))) (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                   (@pair (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O))))))))))
+                      (Ty.tySem (Word.Word (S (S (S (S (S (S (S (S O)))))))))) x y))) (_ : BinInt.Z.le BinNums.Z0 rc)
+         (_ : BinInt.Z.le
+                (BinInt.Z.add rc
+                   (BinNums.Zpos
+                      (BinNums.xO
+                         (BinNums.xO
+                            (BinNums.xO
+                               (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+                Integers.Int64.max_unsigned)
+         (_ : Memory.Mem.range_perm m ba BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bb BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH)))))) Memtype.Cur
+                Memtype.Freeable)
+         (_ : Memory.Mem.range_perm m bl BinNums.Z0
+                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))) Memtype.Cur
+                Memtype.Freeable) (_ : jet_frame_layout.frame_fields_at m bl BinNums.Z0 bi edge rc)
+         (_ : not (@eq Values.block ba bb)) (_ : not (@eq Values.block ba bl)) (_ : not (@eq Values.block bb bl))
+         (_ : jet_sx_exec.xsep (jet_secp_frame.extA m0 bd bw bi)
+                (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z ba BinNums.Z0)
+                   (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bb BinNums.Z0)
+                      (@cons (prod Values.block BinNums.Z) (@pair Values.block BinNums.Z bl BinNums.Z0)
+                         (@nil (prod Values.block BinNums.Z))))))
+         (_ : jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi m false (@nil BitMachine.Cell)),
+       @ex Memory.Mem.mem
+         (fun ma : Memory.Mem.mem =>
+          @ex Memory.Mem.mem
+            (fun mr : Memory.Mem.mem =>
+             and
+               (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge m
+                  (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+                  (@cons Values.val (Values.Vptr ba Integers.Ptrofs.zero)
+                     (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 ma
+                  Values.Vundef)
+               (and
+                  (ClightBigstep.Clight2.eval_funcall jet_secp_linkage.secp_ge ma
+                     (@Ctypes.Internal Clight.function jets_secp.f_read_fe)
+                     (@cons Values.val (Values.Vptr bb Integers.Ptrofs.zero)
+                        (@cons Values.val (Values.Vptr bl Integers.Ptrofs.zero) (@nil Values.val))) Events.E0 mr
+                     Values.Vundef)
+                  (and
+                     (jet_secp_fe_nv.fe_at mr ba BinNums.Z0
+                        (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                           (jet_secp_fe_math.fe_limbs_of (jet_secp_multiply_input_input.normalized_value x))))
+                     (and
+                        (jet_secp_fe_nv.fe_at mr bb BinNums.Z0
+                           (@List.map BinNums.Z Integers.Int64.int Integers.Int64.repr
+                              (jet_secp_fe_math.fe_limbs_of (jet_secp_multiply_input_input.normalized_value y))))
+                        (and
+                           (Memory.Mem.range_perm mr ba BinNums.Z0
+                              (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                              Memtype.Cur Memtype.Freeable)
+                           (and
+                              (Memory.Mem.range_perm mr bb BinNums.Z0
+                                 (BinNums.Zpos
+                                    (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO BinNums.xH))))))
+                                 Memtype.Cur Memtype.Freeable)
+                              (and
+                                 (Memory.Mem.range_perm mr bl BinNums.Z0
+                                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))
+                                    Memtype.Cur Memtype.Freeable)
+                                 (and
+                                    (jet_frame_layout.frame_fields_at mr bl BinNums.Z0 bi edge
+                                       (BinInt.Z.add rc
+                                          (BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO
+                                                         (BinNums.xO
+                                                            (BinNums.xO
+                                                               (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))
+                                    (and
+                                       (jet_frame_inv.finv m0 bd dbase bw outedge cursor N bi mr false
+                                          (@nil BitMachine.Cell))
+                                       (jet_sx_mem.lframe
+                                          (pair_locals_outside (jet_secp_frame.extA m0 bd bw bi) ba bb bl) m mr)))))))))))
+### C.jet_secp_multiply_input_pair.pair_locals_outside
+pair_locals_outside =
+fun (ext : forall _ : Values.block, Prop) (ba bb bl b : Values.block) (_ : BinNums.Z) =>
+and (not (@eq Values.block b ba)) (and (not (@eq Values.block b bb)) (and (not (@eq Values.block b bl)) (not (ext b))))
+     : forall (_ : forall _ : Values.block, Prop) (_ : Values.block) (_ : Values.block) (_ : Values.block)
+         (_ : Values.block) (_ : BinNums.Z), Prop
+
+Arguments pair_locals_outside ext%function_scope ba bb bl b _%Z_scope
