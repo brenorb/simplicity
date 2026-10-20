@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 430 of the 533 header declarations.
-The ten recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 103 declarations remain unregistered.
+The current local-contract registry contains 431 of the 533 header declarations.
+The recently completed registrations and their conditions are listed in
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 102 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -24,16 +24,17 @@ Their presence does not register or accept additional jets. Current acceptance
 is reproduced with `bash Coq/check-jets.sh --accept`; old run records and
 continuation journals are not required.
 
-## Current target: `simplicity_gej_rescale`
+## Completed: `simplicity_gej_rescale`
 
 `C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
 complete original public jet against the literal canonical Simplicity tree.
 It covers unrestricted Word256 coordinates and scale (including zero), the
 standard local-frame contract, actual reads and writes, return value and
 local frees. No curve, nonzero, initialized-global or libc-model premise is
-added. Compilation, recursive kernel checking, and reviewed assumption and
-contract comparisons passed; registration/scoped acceptance is next. The
-unregistered registry count above has not yet changed.
+added. Its registration passed ordinary scoped acceptance, including all 291
+kernel-checked dependency modules, reviewed assumption/contract comparisons,
+negative tests and all five AST regenerations. Reproduce with
+`bash Coq/check-jets.sh --accept --jets=simplicity_gej_rescale`.
 
 The separate-output square support is now in the ordinary
 `jet_secp_square_separate_{layout,exec,numeric,caller}.v` modules. It executes
@@ -48,7 +49,7 @@ into local `zz`. The numeric endpoint preserves the scalar field, the point's
 128-byte allocation permissions and `zz`'s 40-byte allocation permissions,
 and supplies the square value and reusable limb bounds. There is no nonzero
 scale premise. These are prefix/helper results, not a completed jet contract;
-coverage remains 430/533.
+these prefix results alone did not increase coverage.
 
 `jet_secp_rescale_entry.v` constructs the input representation from concrete
 caller storage and proves actual function entry, parameter binding and fresh
@@ -116,7 +117,7 @@ types, Haskell rescale/cube/zinv trees, literal port and exact final contract;
 12 targeted mutations are rejected. It supplements rather than replaces the
 formal execution proof and is included in the ordinary acceptance command.
 
-Next register the final endpoint and run scoped acceptance. Coordinates live at offsets 0, 40 and 80 inside
+Coordinates live at offsets 0, 40 and 80 inside
 one owned 128-byte point allocation. The existing owned multiply contract
 requires each owned region's base to be zero; it cannot directly represent
 a fictitious 40-byte allocation at offset 40 or 80. Reuse the whole-point
@@ -124,3 +125,14 @@ region pattern in `jet_secp_point_write_run.v` when extending execution
 support. Claude's checked u128 helper oracles remain available in the
 parallel-proof archive if needed; do not register the alternative
 `fe_multiply` or `fe_square` endpoints as well as the selected ones.
+
+## Next review candidate: `simplicity_sha_256_block`
+
+There is already a complete C execution theorem in `jet_sha_block_local.v`
+and a startup-invariant/preservation adapter in `jet_sha_startup_jets.v`.
+Review the literal canonical Haskell hashBlock program and its word-operation
+dependencies, and the actual startup/caller boundary, before considering a
+registration. In particular the older Coq SHA program uses `Word.adder` where
+Haskell uses `Arith.add`; reuse `canonical_add_word_matches_adder` rather than
+equating these syntactically. Do not repeat the completed C compression proof
+or count an unreviewed startup/specification premise as discharged.

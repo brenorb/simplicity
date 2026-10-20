@@ -58,6 +58,10 @@ RECOVERED_CONTRACTS = {'simplicity_asset_amount_hash': 'memcpy_model -> asset_el
                                 '(@literal_fe_multiply_beta Alg.CoreFunSem).',
  'simplicity_fe_square': 'secp_jet_local_spec f_simplicity_fe_square (Word 8) (Word 8) '
                          '(@literal_fe_square Alg.CoreFunSem).',
+ 'simplicity_gej_rescale': 'secp_jet_local_spec f_simplicity_gej_rescale '
+                            '(Ty.Prod (Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) (Word 8)) '
+                            '(Ty.Prod (Ty.Prod (Word 8) (Word 8)) (Word 8)) '
+                            '(@literal_gej_rescale Alg.CoreFunSem).',
  'simplicity_nonce_hash': 'memcpy_model -> nonce_elements_partial_local_spec '
                           'f_simplicity_nonce_hash nonce_hash_input_type sha256_ctx8_type (fun a '
                           '=> @nonce_hash_spec optalg a).',

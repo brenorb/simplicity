@@ -2,8 +2,9 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The accepted local-contract registry contains 430/533 jets (319 without an extra libc
-premise; 111 conditional on `memcpy_model`). Full acceptance passed.
+The accepted local-contract registry contains 431/533 jets (320 without an extra libc
+premise; 111 conditional on `memcpy_model`). The earlier 430-entry baseline passed
+full acceptance; the additional `gej_rescale` endpoint passed scoped acceptance.
 
 Reproduce acceptance from the repository root:
 
@@ -71,7 +72,7 @@ ten are newly accepted registrations.
   do not identify the ordinary SHA translation unit with the Elements program.
 - Shared frame/evaluator admissibility and exhaustive inherited canonical
   fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
-- The remaining 103 header declarations have no registered final contract.
+- The remaining 102 header declarations have no registered final contract.
   Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
   and operational boundaries meet the public coverage requirements.
 
@@ -135,5 +136,29 @@ closure. Cleanup does not change closure selection or any selected proof.
 Git preserves the original candidates and recovery history; see
 `../../proof-work/README.md`. Current acceptance uses the commit and reproducible
 commands, with run output outside the repository. Acceptance establishes the
-local contracts and conditions above; the remaining 103 declarations and shared
+local contracts and conditions above; the remaining 102 declarations and shared
 evaluator/startup and inherited-fidelity obligations remain open.
+
+## Subsequent completion: `gej_rescale`
+
+`C.jet_secp_rescale_local.gej_rescale_literal_local_spec` proves the original
+public C jet against the literal Haskell rescale/cube/zinv program for all four
+Word256 inputs, including zero scale and arbitrary coordinates. It derives
+the actual allocation, source-frame copy, readers, helper, writer, return and
+frees under the existing `secp_jet_local_spec`; no curve/nonzero, startup or
+libc-model premise is added. Its six assumptions are inherited Coq/CompCert
+assumptions, with no new axioms. The selected multiply/square registrations
+are unchanged.
+
+Reproduce its acceptance with the declared Coq 8.17.1 toolchain:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_gej_rescale
+```
+
+This checks the 291-module dependency closure, reviewed assumptions/contracts,
+global source/mutation checks (including the new literal correspondence check)
+and all five regenerated C ASTs. It passed without updating expectations or
+changing production C, the frozen specifications, API contracts or generation
+settings. This scoped result does not close the repository-wide obligations
+listed above.
