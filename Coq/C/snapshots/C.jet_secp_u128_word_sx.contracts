@@ -1,0 +1,958 @@
+### C.jet_secp_u128_word_sx.bop_beq_true
+bop_beq_true
+     : forall (a b : jet_sx_expr.bop) (_ : @eq bool (bop_beq a b) true), @eq jet_sx_expr.bop a b
+### C.jet_secp_u128_word_sx.shop_beq_true
+shop_beq_true
+     : forall (a b : jet_sx_expr.shop) (_ : @eq bool (shop_beq a b) true), @eq jet_sx_expr.shop a b
+### C.jet_secp_u128_word_sx.cmp_beq_true
+cmp_beq_true
+     : forall (a b : Integers.comparison) (_ : @eq bool (cmp_beq a b) true), @eq Integers.comparison a b
+### C.jet_secp_u128_word_sx.sg_beq_true
+sg_beq_true
+     : forall (a b : Ctypes.signedness) (_ : @eq bool (sg_beq a b) true), @eq Ctypes.signedness a b
+### C.jet_secp_u128_word_sx.isz_beq_true
+isz_beq_true
+     : forall (a b : Ctypes.intsize) (_ : @eq bool (isz_beq a b) true), @eq Ctypes.intsize a b
+### C.jet_secp_u128_word_sx.sx_beq_true
+sx_beq_true
+     : forall (x y : jet_sx_expr.sx) (_ : @eq bool (sx_beq x y) true), @eq jet_sx_expr.sx x y
+### C.jet_secp_u128_word_sx.den_sx_subst
+den_sx_subst
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (sigma : forall _ : nat, jet_sx_expr.sx) (x : jet_sx_expr.sx) (_ : long_subst sigma),
+       @eq Values.val (jet_sx_expr.den rho beta (jet_secp_symbolic_substitution.sx_subst sigma x))
+         (jet_sx_expr.den (fun n : nat => jet_sx_exec.lv rho (sigma n)) beta x)
+### C.jet_secp_u128_word_sx.lv_sx_subst
+lv_sx_subst
+     : forall (rho : forall _ : nat, Integers.Int64.int) (sigma : forall _ : nat, jet_sx_expr.sx)
+         (x : jet_sx_expr.sx) (_ : long_subst sigma),
+       @eq Integers.Int64.int (jet_sx_exec.lv rho (jet_secp_symbolic_substitution.sx_subst sigma x))
+         (jet_sx_exec.lv (fun n : nat => jet_sx_exec.lv rho (sigma n)) x)
+### C.jet_secp_u128_word_sx.xreplace_shape
+xreplace_shape
+     : forall (regs : list jet_sx_state.region) (r : nat) (d : BinNums.Z) (ch : AST.memory_chunk)
+         (x : jet_sx_expr.sx) (regs' : list jet_sx_state.region)
+         (_ : @eq (option (list jet_sx_state.region)) (xreplace regs r d ch x) (@Some (list jet_sx_state.region) regs')),
+       @eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape regs')
+         (@List.map jet_sx_state.region (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+            jet_sx_state.rshape regs)
+### C.jet_secp_u128_word_sx.rep_replace
+rep_replace
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout) (regs : list jet_sx_state.region)
+         (m : Memory.Mem.mem) (r : nat) (d : BinNums.Z) (x y : jet_sx_expr.sx) (regs' : list jet_sx_state.region)
+         (_ : jet_sx_state.rep rho beta regs m)
+         (_ : @eq (option jet_sx_expr.sx) (jet_sx_state.xload regs r d Ctypesdefs.tulong) (@Some jet_sx_expr.sx x))
+         (_ : @eq Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta) y)
+                (jet_sx_expr.den rho (jet_sx_state.lay beta) x)) (_ : @eq bool (jet_sx_state.xp_le r y) true)
+         (_ : @eq (option (list jet_sx_state.region)) (xreplace regs r d AST.Mint64 y)
+                (@Some (list jet_sx_state.region) regs')), jet_sx_state.rep rho beta regs' m
+### C.jet_secp_u128_word_sx.bop_beq
+bop_beq =
+fun a b : jet_sx_expr.bop =>
+match a return bool with
+| jet_sx_expr.Badd =>
+    match b return bool with
+    | jet_sx_expr.Badd => true
+    | jet_sx_expr.Bsub => false
+    | jet_sx_expr.Bmul => false
+    | jet_sx_expr.Band => false
+    | jet_sx_expr.Bor => false
+    | jet_sx_expr.Bxor => false
+    end
+| jet_sx_expr.Bsub =>
+    match b return bool with
+    | jet_sx_expr.Badd => false
+    | jet_sx_expr.Bsub => true
+    | jet_sx_expr.Bmul => false
+    | jet_sx_expr.Band => false
+    | jet_sx_expr.Bor => false
+    | jet_sx_expr.Bxor => false
+    end
+| jet_sx_expr.Bmul =>
+    match b return bool with
+    | jet_sx_expr.Badd => false
+    | jet_sx_expr.Bsub => false
+    | jet_sx_expr.Bmul => true
+    | jet_sx_expr.Band => false
+    | jet_sx_expr.Bor => false
+    | jet_sx_expr.Bxor => false
+    end
+| jet_sx_expr.Band =>
+    match b return bool with
+    | jet_sx_expr.Badd => false
+    | jet_sx_expr.Bsub => false
+    | jet_sx_expr.Bmul => false
+    | jet_sx_expr.Band => true
+    | jet_sx_expr.Bor => false
+    | jet_sx_expr.Bxor => false
+    end
+| jet_sx_expr.Bor =>
+    match b return bool with
+    | jet_sx_expr.Badd => false
+    | jet_sx_expr.Bsub => false
+    | jet_sx_expr.Bmul => false
+    | jet_sx_expr.Band => false
+    | jet_sx_expr.Bor => true
+    | jet_sx_expr.Bxor => false
+    end
+| jet_sx_expr.Bxor =>
+    match b return bool with
+    | jet_sx_expr.Badd => false
+    | jet_sx_expr.Bsub => false
+    | jet_sx_expr.Bmul => false
+    | jet_sx_expr.Band => false
+    | jet_sx_expr.Bor => false
+    | jet_sx_expr.Bxor => true
+    end
+end
+     : forall (_ : jet_sx_expr.bop) (_ : jet_sx_expr.bop), bool
+
+Arguments bop_beq a b
+### C.jet_secp_u128_word_sx.shop_beq
+shop_beq =
+fun a b : jet_sx_expr.shop =>
+match a return bool with
+| jet_sx_expr.Hshl =>
+    match b return bool with
+    | jet_sx_expr.Hshl => true
+    | jet_sx_expr.Hshr => false
+    | jet_sx_expr.Hshru => false
+    end
+| jet_sx_expr.Hshr =>
+    match b return bool with
+    | jet_sx_expr.Hshl => false
+    | jet_sx_expr.Hshr => true
+    | jet_sx_expr.Hshru => false
+    end
+| jet_sx_expr.Hshru =>
+    match b return bool with
+    | jet_sx_expr.Hshl => false
+    | jet_sx_expr.Hshr => false
+    | jet_sx_expr.Hshru => true
+    end
+end
+     : forall (_ : jet_sx_expr.shop) (_ : jet_sx_expr.shop), bool
+
+Arguments shop_beq a b
+### C.jet_secp_u128_word_sx.cmp_beq
+cmp_beq =
+fun a b : Integers.comparison =>
+match a return bool with
+| Integers.Ceq =>
+    match b return bool with
+    | Integers.Ceq => true
+    | Integers.Cne => false
+    | Integers.Clt => false
+    | Integers.Cle => false
+    | Integers.Cgt => false
+    | Integers.Cge => false
+    end
+| Integers.Cne =>
+    match b return bool with
+    | Integers.Ceq => false
+    | Integers.Cne => true
+    | Integers.Clt => false
+    | Integers.Cle => false
+    | Integers.Cgt => false
+    | Integers.Cge => false
+    end
+| Integers.Clt =>
+    match b return bool with
+    | Integers.Ceq => false
+    | Integers.Cne => false
+    | Integers.Clt => true
+    | Integers.Cle => false
+    | Integers.Cgt => false
+    | Integers.Cge => false
+    end
+| Integers.Cle =>
+    match b return bool with
+    | Integers.Ceq => false
+    | Integers.Cne => false
+    | Integers.Clt => false
+    | Integers.Cle => true
+    | Integers.Cgt => false
+    | Integers.Cge => false
+    end
+| Integers.Cgt =>
+    match b return bool with
+    | Integers.Ceq => false
+    | Integers.Cne => false
+    | Integers.Clt => false
+    | Integers.Cle => false
+    | Integers.Cgt => true
+    | Integers.Cge => false
+    end
+| Integers.Cge =>
+    match b return bool with
+    | Integers.Ceq => false
+    | Integers.Cne => false
+    | Integers.Clt => false
+    | Integers.Cle => false
+    | Integers.Cgt => false
+    | Integers.Cge => true
+    end
+end
+     : forall (_ : Integers.comparison) (_ : Integers.comparison), bool
+
+Arguments cmp_beq a b
+### C.jet_secp_u128_word_sx.sg_beq
+sg_beq =
+fun a b : Ctypes.signedness =>
+match a return bool with
+| Ctypes.Signed => match b return bool with
+                   | Ctypes.Signed => true
+                   | Ctypes.Unsigned => false
+                   end
+| Ctypes.Unsigned => match b return bool with
+                     | Ctypes.Signed => false
+                     | Ctypes.Unsigned => true
+                     end
+end
+     : forall (_ : Ctypes.signedness) (_ : Ctypes.signedness), bool
+
+Arguments sg_beq a b
+### C.jet_secp_u128_word_sx.isz_beq
+isz_beq =
+fun a b : Ctypes.intsize =>
+match a return bool with
+| Ctypes.I8 =>
+    match b return bool with
+    | Ctypes.I8 => true
+    | Ctypes.I16 => false
+    | Ctypes.I32 => false
+    | Ctypes.IBool => false
+    end
+| Ctypes.I16 =>
+    match b return bool with
+    | Ctypes.I8 => false
+    | Ctypes.I16 => true
+    | Ctypes.I32 => false
+    | Ctypes.IBool => false
+    end
+| Ctypes.I32 =>
+    match b return bool with
+    | Ctypes.I8 => false
+    | Ctypes.I16 => false
+    | Ctypes.I32 => true
+    | Ctypes.IBool => false
+    end
+| Ctypes.IBool =>
+    match b return bool with
+    | Ctypes.I8 => false
+    | Ctypes.I16 => false
+    | Ctypes.I32 => false
+    | Ctypes.IBool => true
+    end
+end
+     : forall (_ : Ctypes.intsize) (_ : Ctypes.intsize), bool
+
+Arguments isz_beq a b
+### C.jet_secp_u128_word_sx.sx_beq
+sx_beq =
+fix sx_beq (x y : jet_sx_expr.sx) {struct x} : bool :=
+  match x return bool with
+  | jet_sx_expr.XI i =>
+      match y return bool with
+      | jet_sx_expr.XI j => Integers.Int.eq i j
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XIc i =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc j => Integers.Int.eq i j
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XL i =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL j => Integers.Int64.eq i j
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XLc i =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc j => Integers.Int64.eq i j
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XLv n =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv k => PeanoNat.Nat.eqb n k
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XV _ => false
+  | jet_sx_expr.XA b o =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA c p => andb (BinPos.Pos.eqb b c) (Integers.Ptrofs.eq o p)
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XP r d =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP s e => andb (PeanoNat.Nat.eqb r s) (BinInt.Z.eqb d e)
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XIb o a b =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb p c d => andb (andb (bop_beq o p) (sx_beq a c)) (sx_beq b d)
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XLb o a b =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb p c d => andb (andb (bop_beq o p) (sx_beq a c)) (sx_beq b d)
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XIsh o a k =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh p c l => andb (andb (shop_beq o p) (sx_beq a c)) (BinInt.Z.eqb k l)
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XLsh o a k =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh p c l => andb (andb (shop_beq o p) (sx_beq a c)) (BinInt.Z.eqb k l)
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XIcmp o s a b =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp p t c d => andb (andb (andb (cmp_beq o p) (sg_beq s t)) (sx_beq a c)) (sx_beq b d)
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XLcmp o s a b =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp p t c d => andb (andb (andb (cmp_beq o p) (sg_beq s t)) (sx_beq a c)) (sx_beq b d)
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XI2L s a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L t c => andb (sg_beq s t) (sx_beq a c)
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XL2I a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I c => sx_beq a c
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XIcast z s a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast w t c => andb (andb (isz_beq z w) (sg_beq s t)) (sx_beq a c)
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XInz a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz c => sx_beq a c
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XLnz a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz c => sx_beq a c
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XIz a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz c => sx_beq a c
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XLz a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz c => sx_beq a c
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XIneg a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg c => sx_beq a c
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XLneg a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg c => sx_beq a c
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XInot a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot c => sx_beq a c
+      | jet_sx_expr.XLnot _ => false
+      end
+  | jet_sx_expr.XLnot a =>
+      match y return bool with
+      | jet_sx_expr.XI _ => false
+      | jet_sx_expr.XIc _ => false
+      | jet_sx_expr.XL _ => false
+      | jet_sx_expr.XLc _ => false
+      | jet_sx_expr.XLv _ => false
+      | jet_sx_expr.XV _ => false
+      | jet_sx_expr.XA _ _ => false
+      | jet_sx_expr.XP _ _ => false
+      | jet_sx_expr.XIb _ _ _ => false
+      | jet_sx_expr.XLb _ _ _ => false
+      | jet_sx_expr.XIsh _ _ _ => false
+      | jet_sx_expr.XLsh _ _ _ => false
+      | jet_sx_expr.XIcmp _ _ _ _ => false
+      | jet_sx_expr.XLcmp _ _ _ _ => false
+      | jet_sx_expr.XI2L _ _ => false
+      | jet_sx_expr.XL2I _ => false
+      | jet_sx_expr.XIcast _ _ _ => false
+      | jet_sx_expr.XInz _ => false
+      | jet_sx_expr.XLnz _ => false
+      | jet_sx_expr.XIz _ => false
+      | jet_sx_expr.XLz _ => false
+      | jet_sx_expr.XIneg _ => false
+      | jet_sx_expr.XLneg _ => false
+      | jet_sx_expr.XInot _ => false
+      | jet_sx_expr.XLnot c => sx_beq a c
+      end
+  end
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx), bool
+
+Arguments sx_beq x y
+### C.jet_secp_u128_word_sx.long_subst
+long_subst =
+fun sigma : forall _ : nat, jet_sx_expr.sx => forall n : nat, @eq bool (jet_sx_expr.isk jet_sx_expr.KL (sigma n)) true
+     : forall _ : forall _ : nat, jet_sx_expr.sx, Prop
+
+Arguments long_subst sigma%function_scope
+### C.jet_secp_u128_word_sx.xreplace
+xreplace =
+fun (regs : list jet_sx_state.region) (r : nat) (d : BinNums.Z) (ch : AST.memory_chunk) (x : jet_sx_expr.sx) =>
+match @List.nth_error jet_sx_state.region regs r return (option (list jet_sx_state.region)) with
+| Some reg =>
+    match jet_sx_state.find_cell (jet_sx_state.rcells reg) d ch return (option (list jet_sx_state.region)) with
+    | Some _ =>
+        @Some (list jet_sx_state.region)
+          (@jet_sx_state.upd jet_sx_state.region regs r
+             (jet_sx_state.mkreg (jet_sx_state.set_cell (jet_sx_state.rcells reg) d ch (@Some jet_sx_expr.sx x))
+                (jet_sx_state.rw reg) (jet_sx_state.rfree reg)))
+    | None => @None (list jet_sx_state.region)
+    end
+| None => @None (list jet_sx_state.region)
+end
+     : forall (_ : list jet_sx_state.region) (_ : nat) (_ : BinNums.Z) (_ : AST.memory_chunk) (_ : jet_sx_expr.sx),
+       option (list jet_sx_state.region)
+
+Arguments xreplace regs%list_scope r%nat_scope d%Z_scope ch x

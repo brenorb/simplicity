@@ -49,20 +49,32 @@ preserved scalar and allocation permissions, all loads/permissions in the
 original point block, and framing outside the caller's point/scalar blocks.
 No initialized square destination or intermediate execution is assumed.
 
+The `jet_secp_point_mul_{run,storage,numeric}.v` modules now execute actual
+`fe_mul` calls at every point-coordinate offset while retaining ownership
+of the whole 128-byte point. `eval_point_mul_numeric` derives execution,
+the modular product, reusable bounds, source-field preservation and framing
+from concrete caller storage. Its u128 event witnesses are discharged,
+not caller premises. The shared `jet_secp_u128_word_*` and
+`jet_secp_field_mul_word_*` modules adapt the archived independent helper
+proofs, without registering alternative field jets. Their numeric model
+uses the C routine's 56-/52-bit operand bounds: normalized-only 52-/48-bit
+bounds would not follow from the square contract's 49-bit top-limb bound.
+
 With the documented Coq 8.17.1 toolchain and matching pinned dependencies,
 reproduce the focused build and recursive kernel check with:
 
 ```sh
-JET_TARGETS=C/jet_secp_rescale_start.vo bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_rescale_start
+JET_TARGETS='C/jet_secp_rescale_start.vo C/jet_secp_point_mul_numeric.vo' bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_rescale_start C.jet_secp_point_mul_numeric
 ```
 
 The kernel command enables the checker's supported VM conversion; it still
 recursively checks every imported module, without admitting dependencies or
 disabling kernel checks. The ordinary acceptance command remains unchanged.
 
-Next discharge the four multiplications and their preservation facts and
-the final local free, then compose the public reader/writer lifecycle with the
+Next compose the four actual multiply statements using these caller contracts,
+carry the other coordinate/flag data through their frames, and discharge
+the final local free. Then compose the public reader/writer lifecycle with the
 literal `gej_rescale` program. Coordinates live at offsets 0, 40 and 80 inside
 one owned 128-byte point allocation. The existing owned multiply contract
 requires each owned region's base to be zero; it cannot directly represent

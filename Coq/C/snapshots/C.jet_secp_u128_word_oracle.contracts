@@ -1,0 +1,1066 @@
+### C.jet_secp_u128_word_oracle.find_set_cell_other
+find_set_cell_other
+     : forall (cs : list jet_sx_state.cell) (d d' : BinNums.Z) (ch ch' : AST.memory_chunk)
+         (v : option jet_sx_expr.sx) (_ : not (@eq BinNums.Z d d')),
+       @eq (option jet_sx_state.cell) (jet_sx_state.find_cell (jet_sx_state.set_cell cs d ch v) d' ch')
+         (jet_sx_state.find_cell cs d' ch')
+### C.jet_secp_u128_word_oracle.xload_xreplace_other
+xload_xreplace_other
+     : forall (regs : list jet_sx_state.region) (r : nat) (d d' : BinNums.Z) (x : jet_sx_expr.sx)
+         (regs' : list jet_sx_state.region)
+         (_ : @eq (option (list jet_sx_state.region)) (jet_secp_u128_word_sx.xreplace regs r d AST.Mint64 x)
+                (@Some (list jet_sx_state.region) regs')) (_ : not (@eq BinNums.Z d d')),
+       @eq (option jet_sx_expr.sx) (jet_sx_state.xload regs' r d' Ctypesdefs.tulong)
+         (jet_sx_state.xload regs r d' Ctypesdefs.tulong)
+### C.jet_secp_u128_word_oracle.int64_eq_unsigned
+int64_eq_unsigned
+     : forall (a b : Integers.Int64.int) (_ : @eq BinNums.Z (Integers.Int64.unsigned a) (Integers.Int64.unsigned b)),
+       @eq Integers.Int64.int a b
+### C.jet_secp_u128_word_oracle.den_fresh_long
+den_fresh_long
+     : forall (rho : forall _ : nat, Integers.Int64.int) (beta : forall _ : nat, prod Values.block BinNums.Z)
+         (n : nat) (x : jet_sx_expr.sx) (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL x) true)
+         (_ : @eq Integers.Int64.int (rho n) (jet_sx_exec.lv rho x)),
+       @eq Values.val (jet_sx_expr.den rho beta (jet_sx_expr.XLv n)) (jet_sx_expr.den rho beta x)
+### C.jet_secp_u128_word_oracle.u128_inner_pure
+u128_inner_pure
+     : forall (fd : Clight.function) (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region)
+         (st : jet_sx_eval.sstate) (rho : forall _ : nat, Integers.Int64.int) (beta : jet_sx_state.layout)
+         (m : Memory.Mem.mem)
+         (_ : @eq (option jet_sx_exec.res) (u128_inner fd xs regs)
+                (@Some jet_sx_exec.res (jet_sx_exec.RDone st jet_sx_exec.ONormal)))
+         (_ : @eq (list jet_sx_eval.event) (jet_sx_eval.slog st) (@nil jet_sx_eval.event))
+         (_ : jet_sx_state.rep rho beta regs m),
+       @ex Memory.Mem.mem
+         (fun m' : Memory.Mem.mem =>
+          @ex Values.val
+            (fun vres : Values.val =>
+             and
+               (ClightBigstep.eval_funcall Clight.function_entry2 jet_secp_linkage.secp_ge m
+                  (@Ctypes.Internal Clight.function fd)
+                  (@List.map jet_sx_expr.sx Values.val (jet_sx_expr.den rho (jet_sx_state.lay beta)) xs) Events.E0 m'
+                  vres)
+               (and (jet_sx_state.rep rho beta (jet_sx_eval.sregs st) m')
+                  (and
+                     match @Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps st) return Prop with
+                     | Some x => @eq Values.val vres (jet_sx_expr.den rho (jet_sx_state.lay beta) x)
+                     | None => @eq Values.val vres Values.Vundef
+                     end
+                     (and
+                        (@eq (list (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z)))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape (jet_sx_eval.sregs st))
+                           (@List.map jet_sx_state.region
+                              (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                              jet_sx_state.rshape regs))
+                        (jet_sx_mem.lframe
+                           (fun (b : Values.block) (o : BinNums.Z) =>
+                            not
+                              (jet_sx_state.foot beta
+                                 (@List.map jet_sx_state.region
+                                    (prod (prod (list (prod BinNums.Z AST.memory_chunk)) bool) (option BinNums.Z))
+                                    jet_sx_state.rshape regs) b o)) m m'))))))
+### C.jet_secp_u128_word_oracle.orc_inner_ok
+orc_inner_ok
+     : forall (tag : nat) (fd : Clight.function) (lo_c hi_c : jet_sx_expr.sx)
+         (mk : forall (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region),
+               option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+         (_ : inner_sem_ok tag lo_c hi_c mk),
+       jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge u128_evok u128_inv u128_ext fd (orc_inner tag fd lo_c hi_c mk)
+### C.jet_secp_u128_word_oracle.sigma4_long
+sigma4_long
+     : forall (X Y L H : jet_sx_expr.sx) (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL X) true)
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL Y) true) (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL L) true)
+         (_ : @eq bool (jet_sx_expr.isk jet_sx_expr.KL H) true), jet_secp_u128_word_sx.long_subst (sigma4 X Y L H)
+### C.jet_secp_u128_word_oracle.uns_range
+uns_range
+     : forall x : Integers.Int64.int,
+       and (BinInt.Z.le BinNums.Z0 (Integers.Int64.unsigned x))
+         (BinInt.Z.lt (Integers.Int64.unsigned x)
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+### C.jet_secp_u128_word_oracle.two_word_split
+two_word_split
+     : forall (v : BinNums.Z)
+         (_ : and (BinInt.Z.le BinNums.Z0 v)
+                (BinInt.Z.lt v
+                   (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                      (BinNums.Zpos
+                         (BinNums.xO
+                            (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))),
+       and
+         (and
+            (BinInt.Z.le BinNums.Z0
+               (BinInt.Z.modulo v
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+            (BinInt.Z.lt
+               (BinInt.Z.modulo v
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+         (and
+            (BinInt.Z.le BinNums.Z0
+               (BinInt.Z.div v
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+            (BinInt.Z.lt
+               (BinInt.Z.div v
+                  (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                     (BinNums.Zpos
+                        (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_u128_word_oracle.mk_mul_inv
+mk_mul_inv
+     : forall (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) (r : nat)
+         (sigma : forall _ : nat, jet_sx_expr.sx) (eargs : list jet_sx_expr.sx)
+         (_ : @eq (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                (mk_mul xs regs)
+                (@Some (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                   (@pair (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)
+                      (@pair nat (forall _ : nat, jet_sx_expr.sx) r sigma) eargs))),
+       @ex jet_sx_expr.sx
+         (fun X : jet_sx_expr.sx =>
+          @ex jet_sx_expr.sx
+            (fun Y : jet_sx_expr.sx =>
+             and
+               (@eq (list jet_sx_expr.sx) eargs (@cons jet_sx_expr.sx X (@cons jet_sx_expr.sx Y (@nil jet_sx_expr.sx))))
+               (and
+                  (@eq (forall _ : nat, jet_sx_expr.sx) sigma
+                     (sigma4 X Y (jet_sx_expr.XLc Integers.Int64.zero) (jet_sx_expr.XLc Integers.Int64.zero)))
+                  (and (@eq bool (jet_sx_expr.isk jet_sx_expr.KL X) true)
+                     (@eq bool (jet_sx_expr.isk jet_sx_expr.KL Y) true)))))
+### C.jet_secp_u128_word_oracle.mk_acc_inv
+mk_acc_inv
+     : forall (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) (r : nat)
+         (sigma : forall _ : nat, jet_sx_expr.sx) (eargs : list jet_sx_expr.sx)
+         (_ : @eq (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                (mk_acc xs regs)
+                (@Some (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                   (@pair (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)
+                      (@pair nat (forall _ : nat, jet_sx_expr.sx) r sigma) eargs))),
+       @ex jet_sx_expr.sx
+         (fun X : jet_sx_expr.sx =>
+          @ex jet_sx_expr.sx
+            (fun Y : jet_sx_expr.sx =>
+             @ex jet_sx_expr.sx
+               (fun L : jet_sx_expr.sx =>
+                @ex jet_sx_expr.sx
+                  (fun H : jet_sx_expr.sx =>
+                   and
+                     (@eq (list jet_sx_expr.sx) eargs
+                        (@cons jet_sx_expr.sx L
+                           (@cons jet_sx_expr.sx H
+                              (@cons jet_sx_expr.sx X (@cons jet_sx_expr.sx Y (@nil jet_sx_expr.sx))))))
+                     (and (@eq (forall _ : nat, jet_sx_expr.sx) sigma (sigma4 X Y L H))
+                        (and (@eq bool (jet_sx_expr.isk jet_sx_expr.KL X) true)
+                           (and (@eq bool (jet_sx_expr.isk jet_sx_expr.KL Y) true)
+                              (and (@eq bool (jet_sx_expr.isk jet_sx_expr.KL L) true)
+                                 (@eq bool (jet_sx_expr.isk jet_sx_expr.KL H) true)))))))))
+### C.jet_secp_u128_word_oracle.mk_add64_inv
+mk_add64_inv
+     : forall (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) (r : nat)
+         (sigma : forall _ : nat, jet_sx_expr.sx) (eargs : list jet_sx_expr.sx)
+         (_ : @eq (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                (mk_add64 xs regs)
+                (@Some (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                   (@pair (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)
+                      (@pair nat (forall _ : nat, jet_sx_expr.sx) r sigma) eargs))),
+       @ex jet_sx_expr.sx
+         (fun X : jet_sx_expr.sx =>
+          @ex jet_sx_expr.sx
+            (fun L : jet_sx_expr.sx =>
+             @ex jet_sx_expr.sx
+               (fun H : jet_sx_expr.sx =>
+                and
+                  (@eq (list jet_sx_expr.sx) eargs
+                     (@cons jet_sx_expr.sx L (@cons jet_sx_expr.sx H (@cons jet_sx_expr.sx X (@nil jet_sx_expr.sx)))))
+                  (and
+                     (@eq (forall _ : nat, jet_sx_expr.sx) sigma (sigma4 X (jet_sx_expr.XLc Integers.Int64.zero) L H))
+                     (and (@eq bool (jet_sx_expr.isk jet_sx_expr.KL X) true)
+                        (and (@eq bool (jet_sx_expr.isk jet_sx_expr.KL L) true)
+                           (@eq bool (jet_sx_expr.isk jet_sx_expr.KL H) true)))))))
+### C.jet_secp_u128_word_oracle.lv_umul_lo
+lv_umul_lo
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq Integers.Int64.int (jet_sx_exec.lv rho jet_secp_umul128_exec.umul128_lo)
+         (jet_secp_umul128_numeric.umul128_lo_machine (rho O) (rho (S O)))
+### C.jet_secp_u128_word_oracle.lv_umul_hi
+lv_umul_hi
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq Integers.Int64.int (jet_sx_exec.lv rho jet_secp_umul128_exec.umul128_hi)
+         (jet_secp_umul128_numeric.umul128_hi_machine (rho O) (rho (S O)))
+### C.jet_secp_u128_word_oracle.lv_acc_lo
+lv_acc_lo
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq Integers.Int64.int (jet_sx_exec.lv rho jet_secp_u128_accum_mul_exec.accum_mul_lo)
+         (jet_secp_u128_accum_mul_numeric.accum_mul_lo_machine rho)
+### C.jet_secp_u128_word_oracle.lv_acc_hi
+lv_acc_hi
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq Integers.Int64.int (jet_sx_exec.lv rho jet_secp_u128_accum_mul_exec.accum_mul_hi)
+         (jet_secp_u128_accum_mul_numeric.accum_mul_hi_machine rho)
+### C.jet_secp_u128_word_oracle.mul_sem_ok
+mul_sem_ok
+     : inner_sem_ok tMUL jet_secp_umul128_exec.umul128_lo jet_secp_umul128_exec.umul128_hi mk_mul
+### C.jet_secp_u128_word_oracle.acc_sem_ok
+acc_sem_ok
+     : inner_sem_ok tACC jet_secp_u128_accum_mul_exec.accum_mul_lo jet_secp_u128_accum_mul_exec.accum_mul_hi mk_acc
+### C.jet_secp_u128_word_oracle.add64_carry_value
+add64_carry_value
+     : forall L H X : Integers.Int64.int,
+       let lo : Integers.Int64.int := Integers.Int64.add L X in
+       let hi : Integers.Int64.int :=
+         Integers.Int64.add H
+           (Integers.Int64.repr
+              (Integers.Int.signed
+                 match Integers.Int64.ltu lo X return Integers.Int.int with
+                 | true => Integers.Int.one
+                 | false => Integers.Int.zero
+                 end)) in
+       @eq BinNums.Z
+         (BinInt.Z.add
+            (BinInt.Z.mul (Integers.Int64.unsigned hi)
+               (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                  (BinNums.Zpos
+                     (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+            (Integers.Int64.unsigned lo))
+         (BinInt.Z.modulo
+            (BinInt.Z.add
+               (BinInt.Z.add
+                  (BinInt.Z.mul (Integers.Int64.unsigned H)
+                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                        (BinNums.Zpos
+                           (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                  (Integers.Int64.unsigned L)) (Integers.Int64.unsigned X))
+            (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+               (BinNums.Zpos
+                  (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+### C.jet_secp_u128_word_oracle.lv_add64_lo
+lv_add64_lo
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq Integers.Int64.int (jet_sx_exec.lv rho add64_lo) (Integers.Int64.add (rho (S (S O))) (rho O))
+### C.jet_secp_u128_word_oracle.lv_add64_hi
+lv_add64_hi
+     : forall rho : forall _ : nat, Integers.Int64.int,
+       @eq Integers.Int64.int (jet_sx_exec.lv rho add64_hi)
+         (Integers.Int64.add (rho (S (S (S O))))
+            (Integers.Int64.repr
+               (Integers.Int.signed
+                  match
+                    Integers.Int64.ltu (Integers.Int64.add (rho (S (S O))) (rho O)) (rho O) return Integers.Int.int
+                  with
+                  | true => Integers.Int.one
+                  | false => Integers.Int.zero
+                  end)))
+### C.jet_secp_u128_word_oracle.add64_sem_ok
+add64_sem_ok
+     : inner_sem_ok tADD add64_lo add64_hi mk_add64
+### C.jet_secp_u128_word_oracle.orc_mul_ok
+orc_mul_ok
+     : jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge u128_evok u128_inv u128_ext jets_secp.f_secp256k1_u128_mul
+         orc_mul
+### C.jet_secp_u128_word_oracle.orc_acc_ok
+orc_acc_ok
+     : jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge u128_evok u128_inv u128_ext jets_secp.f_secp256k1_u128_accum_mul
+         orc_acc
+### C.jet_secp_u128_word_oracle.orc_add64_ok
+orc_add64_ok
+     : jet_sx_exec.oracle_ok jet_secp_linkage.secp_ge u128_evok u128_inv u128_ext jets_secp.f_secp256k1_u128_accum_u64
+         orc_add64
+### C.jet_secp_u128_word_oracle.tMUL
+tMUL = S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+     : nat
+### C.jet_secp_u128_word_oracle.tACC
+tACC = S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+     : nat
+### C.jet_secp_u128_word_oracle.tADD
+tADD = S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+     : nat
+### C.jet_secp_u128_word_oracle.tSHR52
+tSHR52 = S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+     : nat
+### C.jet_secp_u128_word_oracle.tSHR64
+tSHR64 = S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (...)))))))))))))))))))))))
+     : nat
+### C.jet_secp_u128_word_oracle.u128_sem
+u128_sem =
+fun (tag : nat) (vs : list BinNums.Z) =>
+match PeanoNat.Nat.eqb tag tMUL return (option BinNums.Z) with
+| true =>
+    match vs return (option BinNums.Z) with
+    | nil => @None BinNums.Z
+    | cons x l =>
+        match l return (option BinNums.Z) with
+        | nil => @None BinNums.Z
+        | cons y l0 =>
+            match l0 return (option BinNums.Z) with
+            | nil => @Some BinNums.Z (BinInt.Z.mul x y)
+            | cons _ _ => @None BinNums.Z
+            end
+        end
+    end
+| false =>
+    match PeanoNat.Nat.eqb tag tACC return (option BinNums.Z) with
+    | true =>
+        match vs return (option BinNums.Z) with
+        | nil => @None BinNums.Z
+        | cons l l0 =>
+            match l0 return (option BinNums.Z) with
+            | nil => @None BinNums.Z
+            | cons h l1 =>
+                match l1 return (option BinNums.Z) with
+                | nil => @None BinNums.Z
+                | cons x l2 =>
+                    match l2 return (option BinNums.Z) with
+                    | nil => @None BinNums.Z
+                    | cons y l3 =>
+                        match l3 return (option BinNums.Z) with
+                        | nil =>
+                            @Some BinNums.Z
+                              (BinInt.Z.modulo
+                                 (BinInt.Z.add
+                                    (BinInt.Z.add
+                                       (BinInt.Z.mul h
+                                          (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                       l) (BinInt.Z.mul x y))
+                                 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                        | cons _ _ => @None BinNums.Z
+                        end
+                    end
+                end
+            end
+        end
+    | false =>
+        match PeanoNat.Nat.eqb tag tADD return (option BinNums.Z) with
+        | true =>
+            match vs return (option BinNums.Z) with
+            | nil => @None BinNums.Z
+            | cons l l0 =>
+                match l0 return (option BinNums.Z) with
+                | nil => @None BinNums.Z
+                | cons h l1 =>
+                    match l1 return (option BinNums.Z) with
+                    | nil => @None BinNums.Z
+                    | cons x l2 =>
+                        match l2 return (option BinNums.Z) with
+                        | nil =>
+                            @Some BinNums.Z
+                              (BinInt.Z.modulo
+                                 (BinInt.Z.add
+                                    (BinInt.Z.add
+                                       (BinInt.Z.mul h
+                                          (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                             (BinNums.Zpos
+                                                (BinNums.xO
+                                                   (BinNums.xO
+                                                      (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                       l) x)
+                                 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                    (BinNums.Zpos
+                                       (BinNums.xO
+                                          (BinNums.xO
+                                             (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+                        | cons _ _ => @None BinNums.Z
+                        end
+                    end
+                end
+            end
+        | false =>
+            match PeanoNat.Nat.eqb tag tSHR52 return (option BinNums.Z) with
+            | true =>
+                match vs return (option BinNums.Z) with
+                | nil => @None BinNums.Z
+                | cons l l0 =>
+                    match l0 return (option BinNums.Z) with
+                    | nil => @None BinNums.Z
+                    | cons h l1 =>
+                        match l1 return (option BinNums.Z) with
+                        | nil =>
+                            @Some BinNums.Z
+                              (BinInt.Z.div
+                                 (BinInt.Z.add
+                                    (BinInt.Z.mul h
+                                       (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                          (BinNums.Zpos
+                                             (BinNums.xO
+                                                (BinNums.xO
+                                                   (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                    l)
+                                 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                    (BinNums.Zpos
+                                       (BinNums.xO (BinNums.xO (BinNums.xI (BinNums.xO (BinNums.xI BinNums.xH))))))))
+                        | cons _ _ => @None BinNums.Z
+                        end
+                    end
+                end
+            | false =>
+                match PeanoNat.Nat.eqb tag tSHR64 return (option BinNums.Z) with
+                | true =>
+                    match vs return (option BinNums.Z) with
+                    | nil => @None BinNums.Z
+                    | cons l l0 =>
+                        match l0 return (option BinNums.Z) with
+                        | nil => @None BinNums.Z
+                        | cons h l1 =>
+                            match l1 return (option BinNums.Z) with
+                            | nil =>
+                                @Some BinNums.Z
+                                  (BinInt.Z.div
+                                     (BinInt.Z.add
+                                        (BinInt.Z.mul h
+                                           (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                              (BinNums.Zpos
+                                                 (BinNums.xO
+                                                    (BinNums.xO
+                                                       (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                                        l)
+                                     (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                                        (BinNums.Zpos
+                                           (BinNums.xO
+                                              (BinNums.xO
+                                                 (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))
+                            | cons _ _ => @None BinNums.Z
+                            end
+                        end
+                    end
+                | false => @None BinNums.Z
+                end
+            end
+        end
+    end
+end
+     : forall (_ : nat) (_ : list BinNums.Z), option BinNums.Z
+
+Arguments u128_sem tag%nat_scope vs%list_scope
+### C.jet_secp_u128_word_oracle.uv
+uv =
+fun (rho : forall _ : nat, Integers.Int64.int) (x : jet_sx_expr.sx) => Integers.Int64.unsigned (jet_sx_exec.lv rho x)
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_expr.sx), BinNums.Z
+
+Arguments uv rho%function_scope x
+### C.jet_secp_u128_word_oracle.u128_evok
+u128_evok =
+fun (rho : forall _ : nat, Integers.Int64.int) (ev : jet_sx_eval.event) =>
+and (@eq nat (jet_sx_eval.ecnt ev) (S (S O)))
+  (@ex BinNums.Z
+     (fun v : BinNums.Z =>
+      and
+        (@eq (option BinNums.Z)
+           (u128_sem (jet_sx_eval.etag ev) (@List.map jet_sx_expr.sx BinNums.Z (uv rho) (jet_sx_eval.eargs ev)))
+           (@Some BinNums.Z v))
+        (and
+           (and (BinInt.Z.le BinNums.Z0 v)
+              (BinInt.Z.lt v
+                 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                    (BinNums.Zpos
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+           (and
+              (@eq BinNums.Z (Integers.Int64.unsigned (rho (jet_sx_eval.ebase ev)))
+                 (BinInt.Z.modulo v
+                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+              (@eq BinNums.Z (Integers.Int64.unsigned (rho (S (jet_sx_eval.ebase ev))))
+                 (BinInt.Z.div v
+                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : jet_sx_eval.event), Prop
+
+Arguments u128_evok rho%function_scope ev
+### C.jet_secp_u128_word_oracle.u128_inv
+u128_inv =
+fun (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem) => True
+     : forall (_ : forall _ : nat, Integers.Int64.int) (_ : list jet_sx_eval.event) (_ : Memory.Mem.mem), Prop
+
+Arguments u128_inv _%function_scope _%list_scope _
+### C.jet_secp_u128_word_oracle.u128_ext
+u128_ext = fun _ : Values.block => False
+     : forall _ : Values.block, Prop
+### C.jet_secp_u128_word_oracle.u128_inner
+u128_inner =
+fun (fd : Clight.function) (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) =>
+jet_sx_exec.xfun (Clight.genv_cenv jet_secp_linkage.secp_ge) (@nil (prod AST.ident (prod nat Ctypes.type)))
+  (jet_sx_pure.int_table jet_secp_u128_mul_exec.u128_mul_functions)
+  (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S (S ...)))))))))))))))))))))) fd xs regs
+  (@nil jet_sx_eval.event) O
+     : forall (_ : Clight.function) (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region), option jet_sx_exec.res
+
+Arguments u128_inner fd (xs regs)%list_scope
+### C.jet_secp_u128_word_oracle.sigma4
+sigma4 =
+fun (X Y L H : jet_sx_expr.sx) (n : nat) =>
+match n return jet_sx_expr.sx with
+| O => X
+| S n0 =>
+    match n0 return jet_sx_expr.sx with
+    | O => Y
+    | S n1 =>
+        match n1 return jet_sx_expr.sx with
+        | O => L
+        | S n2 => match n2 return jet_sx_expr.sx with
+                  | O => H
+                  | S _ => jet_sx_expr.XLc Integers.Int64.zero
+                  end
+        end
+    end
+end
+     : forall (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx) (_ : nat),
+       jet_sx_expr.sx
+
+Arguments sigma4 X Y L H n%nat_scope
+### C.jet_secp_u128_word_oracle.orc_inner
+orc_inner =
+fun (tag : nat) (fd : Clight.function) (lo_c hi_c : jet_sx_expr.sx)
+  (mk : forall (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region),
+        option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) (base : nat)
+  (_ : list jet_sx_eval.event) (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) =>
+match
+  mk xs regs
+  return
+    (option
+       (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx)))
+with
+| Some p =>
+    match
+      p
+      return
+        (option
+           (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx)))
+    with
+    | pair p0 eargs =>
+        match
+          p0
+          return
+            (option
+               (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                  (list jet_sx_expr.sx)))
+        with
+        | pair r sigma =>
+            match
+              u128_inner fd xs regs
+              return
+                (option
+                   (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                      (list jet_sx_expr.sx)))
+            with
+            | Some r0 =>
+                match
+                  r0
+                  return
+                    (option
+                       (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                          (list jet_sx_expr.sx)))
+                with
+                | jet_sx_exec.RDone st o =>
+                    match
+                      o
+                      return
+                        (option
+                           (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                              (list jet_sx_expr.sx)))
+                    with
+                    | jet_sx_exec.ONormal =>
+                        match
+                          jet_sx_eval.slog st
+                          return
+                            (option
+                               (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                                  (list jet_sx_expr.sx)))
+                        with
+                        | nil =>
+                            match
+                              @Maps.PTree.get jet_sx_expr.sx BinNums.xH (jet_sx_eval.stemps st)
+                              return
+                                (option
+                                   (prod
+                                      (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                                      (list jet_sx_expr.sx)))
+                            with
+                            | Some _ =>
+                                @None
+                                  (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                                     (list jet_sx_expr.sx))
+                            | None =>
+                                match
+                                  jet_sx_state.xload (jet_sx_eval.sregs st) r BinNums.Z0 Ctypesdefs.tulong
+                                  return
+                                    (option
+                                       (prod
+                                          (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat)
+                                             nat) (list jet_sx_expr.sx)))
+                                with
+                                | Some lo =>
+                                    match
+                                      jet_sx_state.xload (jet_sx_eval.sregs st) r
+                                        (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                        Ctypesdefs.tulong
+                                      return
+                                        (option
+                                           (prod
+                                              (prod
+                                                 (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat)
+                                                 nat) (list jet_sx_expr.sx)))
+                                    with
+                                    | Some hi =>
+                                        match
+                                          andb
+                                            (andb
+                                               (andb
+                                                  (jet_secp_u128_word_sx.sx_beq lo
+                                                     (jet_secp_symbolic_substitution.sx_subst sigma lo_c))
+                                                  (jet_secp_u128_word_sx.sx_beq hi
+                                                     (jet_secp_symbolic_substitution.sx_subst sigma hi_c)))
+                                               (jet_sx_expr.isk jet_sx_expr.KL lo)) (jet_sx_expr.isk jet_sx_expr.KL hi)
+                                          return
+                                            (option
+                                               (prod
+                                                  (prod
+                                                     (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx))
+                                                        nat) nat) (list jet_sx_expr.sx)))
+                                        with
+                                        | true =>
+                                            match
+                                              jet_secp_u128_word_sx.xreplace (jet_sx_eval.sregs st) r BinNums.Z0
+                                                AST.Mint64 (jet_sx_expr.XLv base)
+                                              return
+                                                (option
+                                                   (prod
+                                                      (prod
+                                                         (prod
+                                                            (prod (list jet_sx_state.region) (option jet_sx_expr.sx))
+                                                            nat) nat) (list jet_sx_expr.sx)))
+                                            with
+                                            | Some r1 =>
+                                                match
+                                                  jet_secp_u128_word_sx.xreplace r1 r
+                                                    (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                                                    AST.Mint64 (jet_sx_expr.XLv (S base))
+                                                  return
+                                                    (option
+                                                       (prod
+                                                          (prod
+                                                             (prod
+                                                                (prod (list jet_sx_state.region)
+                                                                   (option jet_sx_expr.sx)) nat) nat)
+                                                          (list jet_sx_expr.sx)))
+                                                with
+                                                | Some r2 =>
+                                                    @Some
+                                                      (prod
+                                                         (prod
+                                                            (prod
+                                                               (prod (list jet_sx_state.region) (option jet_sx_expr.sx))
+                                                               nat) nat) (list jet_sx_expr.sx))
+                                                      (@pair
+                                                         (prod
+                                                            (prod
+                                                               (prod (list jet_sx_state.region) (option jet_sx_expr.sx))
+                                                               nat) nat) (list jet_sx_expr.sx)
+                                                         (@pair
+                                                            (prod
+                                                               (prod (list jet_sx_state.region) (option jet_sx_expr.sx))
+                                                               nat) nat
+                                                            (@pair
+                                                               (prod (list jet_sx_state.region) (option jet_sx_expr.sx))
+                                                               nat
+                                                               (@pair (list jet_sx_state.region)
+                                                                  (option jet_sx_expr.sx) r2
+                                                                  (@None jet_sx_expr.sx)) tag)
+                                                            (S (S O))) eargs)
+                                                | None =>
+                                                    @None
+                                                      (prod
+                                                         (prod
+                                                            (prod
+                                                               (prod (list jet_sx_state.region) (option jet_sx_expr.sx))
+                                                               nat) nat) (list jet_sx_expr.sx))
+                                                end
+                                            | None =>
+                                                @None
+                                                  (prod
+                                                     (prod
+                                                        (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx))
+                                                           nat) nat) (list jet_sx_expr.sx))
+                                            end
+                                        | false =>
+                                            @None
+                                              (prod
+                                                 (prod
+                                                    (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat)
+                                                    nat) (list jet_sx_expr.sx))
+                                        end
+                                    | None =>
+                                        @None
+                                          (prod
+                                             (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat)
+                                                nat) (list jet_sx_expr.sx))
+                                    end
+                                | None =>
+                                    @None
+                                      (prod
+                                         (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                                         (list jet_sx_expr.sx))
+                                end
+                            end
+                        | cons _ _ =>
+                            @None
+                              (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                                 (list jet_sx_expr.sx))
+                        end
+                    | jet_sx_exec.OBreak =>
+                        @None
+                          (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                             (list jet_sx_expr.sx))
+                    | jet_sx_exec.OContinue =>
+                        @None
+                          (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                             (list jet_sx_expr.sx))
+                    | jet_sx_exec.OReturn _ =>
+                        @None
+                          (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                             (list jet_sx_expr.sx))
+                    end
+                | jet_sx_exec.RIf _ _ _ =>
+                    @None
+                      (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                         (list jet_sx_expr.sx))
+                end
+            | None =>
+                @None
+                  (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat)
+                     (list jet_sx_expr.sx))
+            end
+        end
+    end
+| None =>
+    @None (prod (prod (prod (prod (list jet_sx_state.region) (option jet_sx_expr.sx)) nat) nat) (list jet_sx_expr.sx))
+end
+     : forall (_ : nat) (_ : Clight.function) (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx)
+         (_ : forall (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region),
+              option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))), jet_sx_exec.oracle
+
+Arguments orc_inner tag%nat_scope fd lo_c hi_c mk%function_scope _ _ _ _
+### C.jet_secp_u128_word_oracle.inner_sem_ok
+inner_sem_ok =
+fun (tag : nat) (lo_c hi_c : jet_sx_expr.sx)
+  (mk : forall (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region),
+        option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) =>
+forall (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) (r : nat) (sigma : forall _ : nat, jet_sx_expr.sx)
+  (eargs : list jet_sx_expr.sx)
+  (_ : @eq (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+         (mk xs regs)
+         (@Some (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+            (@pair (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)
+               (@pair nat (forall _ : nat, jet_sx_expr.sx) r sigma) eargs))),
+and (jet_secp_u128_word_sx.long_subst sigma)
+  (forall rho : forall _ : nat, Integers.Int64.int,
+   @ex BinNums.Z
+     (fun v : BinNums.Z =>
+      and
+        (@eq (option BinNums.Z) (u128_sem tag (@List.map jet_sx_expr.sx BinNums.Z (uv rho) eargs)) (@Some BinNums.Z v))
+        (and
+           (and (BinInt.Z.le BinNums.Z0 v)
+              (BinInt.Z.lt v
+                 (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                    (BinNums.Zpos
+                       (BinNums.xO
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))))))))))
+           (and
+              (@eq BinNums.Z
+                 (Integers.Int64.unsigned (jet_sx_exec.lv (fun n : nat => jet_sx_exec.lv rho (sigma n)) lo_c))
+                 (BinInt.Z.modulo v
+                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))
+              (@eq BinNums.Z
+                 (Integers.Int64.unsigned (jet_sx_exec.lv (fun n : nat => jet_sx_exec.lv rho (sigma n)) hi_c))
+                 (BinInt.Z.div v
+                    (BinInt.Z.pow (BinNums.Zpos (BinNums.xO BinNums.xH))
+                       (BinNums.Zpos
+                          (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))))))))))))
+     : forall (_ : nat) (_ : jet_sx_expr.sx) (_ : jet_sx_expr.sx)
+         (_ : forall (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region),
+              option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))), Prop
+
+Arguments inner_sem_ok tag%nat_scope lo_c hi_c mk%function_scope
+### C.jet_secp_u128_word_oracle.add64_lo
+add64_lo = jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv (S (S O))) (jet_sx_expr.XLv O)
+     : jet_sx_expr.sx
+### C.jet_secp_u128_word_oracle.add64_hi
+add64_hi =
+jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv (S (S (S O))))
+  (jet_sx_expr.XI2L Ctypes.Signed
+     (jet_sx_expr.XLcmp Integers.Clt Ctypes.Unsigned
+        (jet_sx_expr.XLb jet_sx_expr.Badd (jet_sx_expr.XLv (S (S O))) (jet_sx_expr.XLv O))
+        (jet_sx_expr.XLv O)))
+     : jet_sx_expr.sx
+### C.jet_secp_u128_word_oracle.mk_mul
+mk_mul =
+fun (xs : list jet_sx_expr.sx) (_ : list jet_sx_state.region) =>
+match xs return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+| nil => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+| cons s l =>
+    match s return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+    | jet_sx_expr.XI _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIc _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XL _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLc _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLv _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XV _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XA _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XP r d =>
+        match d return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+        | BinNums.Z0 =>
+            match l return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+            | nil => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+            | cons X l0 =>
+                match l0 return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+                | nil => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                | cons Y l1 =>
+                    match
+                      l1 return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                    with
+                    | nil =>
+                        match
+                          andb (jet_sx_expr.isk jet_sx_expr.KL X) (jet_sx_expr.isk jet_sx_expr.KL Y)
+                          return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                        with
+                        | true =>
+                            @Some (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                              (@pair (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)
+                                 (@pair nat (forall _ : nat, jet_sx_expr.sx) r
+                                    (sigma4 X Y (jet_sx_expr.XLc Integers.Int64.zero)
+                                       (jet_sx_expr.XLc Integers.Int64.zero)))
+                                 (@cons jet_sx_expr.sx X (@cons jet_sx_expr.sx Y (@nil jet_sx_expr.sx))))
+                        | false => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                        end
+                    | cons _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                    end
+                end
+            end
+        | BinNums.Zpos _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+        | BinNums.Zneg _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+        end
+    | jet_sx_expr.XIb _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLb _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIsh _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLsh _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIcmp _ _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLcmp _ _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XI2L _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XL2I _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIcast _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XInz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLnz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIneg _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLneg _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XInot _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLnot _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    end
+end
+     : forall (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region),
+       option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+
+Arguments mk_mul (xs regs)%list_scope
+### C.jet_secp_u128_word_oracle.mk_acc
+mk_acc =
+fun (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) =>
+match xs return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+| nil => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+| cons s l =>
+    match s return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+    | jet_sx_expr.XI _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIc _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XL _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLc _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLv _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XV _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XA _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XP r d =>
+        match d return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+        | BinNums.Z0 =>
+            match l return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+            | nil => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+            | cons X l0 =>
+                match l0 return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+                | nil => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                | cons Y l1 =>
+                    match
+                      l1 return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                    with
+                    | nil =>
+                        match
+                          jet_sx_state.xload regs r BinNums.Z0 Ctypesdefs.tulong
+                          return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                        with
+                        | Some L =>
+                            match
+                              jet_sx_state.xload regs r
+                                (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH)))) Ctypesdefs.tulong
+                              return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                            with
+                            | Some H =>
+                                match
+                                  andb
+                                    (andb (andb (jet_sx_expr.isk jet_sx_expr.KL X) (jet_sx_expr.isk jet_sx_expr.KL Y))
+                                       (jet_sx_expr.isk jet_sx_expr.KL L)) (jet_sx_expr.isk jet_sx_expr.KL H)
+                                  return
+                                    (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                                with
+                                | true =>
+                                    @Some (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                                      (@pair (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)
+                                         (@pair nat (forall _ : nat, jet_sx_expr.sx) r (sigma4 X Y L H))
+                                         (@cons jet_sx_expr.sx L
+                                            (@cons jet_sx_expr.sx H
+                                               (@cons jet_sx_expr.sx X (@cons jet_sx_expr.sx Y (@nil jet_sx_expr.sx))))))
+                                | false =>
+                                    @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                                end
+                            | None => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                            end
+                        | None => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                        end
+                    | cons _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                    end
+                end
+            end
+        | BinNums.Zpos _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+        | BinNums.Zneg _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+        end
+    | jet_sx_expr.XIb _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLb _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIsh _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLsh _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIcmp _ _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLcmp _ _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XI2L _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XL2I _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIcast _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XInz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLnz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIneg _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLneg _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XInot _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLnot _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    end
+end
+     : forall (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region),
+       option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+
+Arguments mk_acc (xs regs)%list_scope
+### C.jet_secp_u128_word_oracle.mk_add64
+mk_add64 =
+fun (xs : list jet_sx_expr.sx) (regs : list jet_sx_state.region) =>
+match xs return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+| nil => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+| cons s l =>
+    match s return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+    | jet_sx_expr.XI _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIc _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XL _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLc _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLv _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XV _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XA _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XP r d =>
+        match d return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+        | BinNums.Z0 =>
+            match l return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+            | nil => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+            | cons X l0 =>
+                match l0 return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))) with
+                | nil =>
+                    match
+                      jet_sx_state.xload regs r BinNums.Z0 Ctypesdefs.tulong
+                      return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                    with
+                    | Some L =>
+                        match
+                          jet_sx_state.xload regs r (BinNums.Zpos (BinNums.xO (BinNums.xO (BinNums.xO BinNums.xH))))
+                            Ctypesdefs.tulong
+                          return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                        with
+                        | Some H =>
+                            match
+                              andb (andb (jet_sx_expr.isk jet_sx_expr.KL X) (jet_sx_expr.isk jet_sx_expr.KL L))
+                                (jet_sx_expr.isk jet_sx_expr.KL H)
+                              return (option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)))
+                            with
+                            | true =>
+                                @Some (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                                  (@pair (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx)
+                                     (@pair nat (forall _ : nat, jet_sx_expr.sx) r
+                                        (sigma4 X (jet_sx_expr.XLc Integers.Int64.zero) L H))
+                                     (@cons jet_sx_expr.sx L
+                                        (@cons jet_sx_expr.sx H (@cons jet_sx_expr.sx X (@nil jet_sx_expr.sx)))))
+                            | false => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                            end
+                        | None => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                        end
+                    | None => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                    end
+                | cons _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+                end
+            end
+        | BinNums.Zpos _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+        | BinNums.Zneg _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+        end
+    | jet_sx_expr.XIb _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLb _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIsh _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLsh _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIcmp _ _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLcmp _ _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XI2L _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XL2I _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIcast _ _ _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XInz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLnz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLz _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XIneg _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLneg _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XInot _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    | jet_sx_expr.XLnot _ => @None (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+    end
+end
+     : forall (_ : list jet_sx_expr.sx) (_ : list jet_sx_state.region),
+       option (prod (prod nat (forall _ : nat, jet_sx_expr.sx)) (list jet_sx_expr.sx))
+
+Arguments mk_add64 (xs regs)%list_scope
+### C.jet_secp_u128_word_oracle.orc_mul
+orc_mul =
+orc_inner tMUL jets_secp.f_secp256k1_u128_mul jet_secp_umul128_exec.umul128_lo jet_secp_umul128_exec.umul128_hi mk_mul
+     : jet_sx_exec.oracle
+### C.jet_secp_u128_word_oracle.orc_acc
+orc_acc =
+orc_inner tACC jets_secp.f_secp256k1_u128_accum_mul jet_secp_u128_accum_mul_exec.accum_mul_lo
+  jet_secp_u128_accum_mul_exec.accum_mul_hi mk_acc
+     : jet_sx_exec.oracle
+### C.jet_secp_u128_word_oracle.orc_add64
+orc_add64 = orc_inner tADD jets_secp.f_secp256k1_u128_accum_u64 add64_lo add64_hi mk_add64
+     : jet_sx_exec.oracle
