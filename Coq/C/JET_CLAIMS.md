@@ -9,3 +9,5 @@ instead of starting a parallel proof.
 | --- | --- | --- | --- |
 | `simplicity_bitcoin_build_tapleaf_simplicity` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
 | `simplicity_bitcoin_build_tapbranch` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_bitcoin_outpoint_hash` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_bitcoin_annex_hash` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
