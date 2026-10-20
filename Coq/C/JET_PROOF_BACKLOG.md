@@ -41,16 +41,28 @@ and supplies the square value and reusable limb bounds. There is no nonzero
 scale premise. These are prefix/helper results, not a completed jet contract;
 coverage remains 430/533.
 
+`jet_secp_rescale_entry.v` constructs the input representation from concrete
+caller storage and proves actual function entry, parameter binding and fresh
+`zz` allocation. `jet_secp_rescale_start.v` composes this with the prefix:
+`rescale_start_from_storage` supplies the square result, reusable bounds,
+preserved scalar and allocation permissions, all loads/permissions in the
+original point block, and framing outside the caller's point/scalar blocks.
+No initialized square destination or intermediate execution is assumed.
+
 With the documented Coq 8.17.1 toolchain and matching pinned dependencies,
 reproduce the focused build and recursive kernel check with:
 
 ```sh
-JET_TARGETS=C/jet_secp_rescale_prefix.vo bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -silent -o C.jet_secp_rescale_prefix
+JET_TARGETS=C/jet_secp_rescale_start.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_rescale_start
 ```
 
-Next discharge actual entry/allocation, the four multiplications and their
-preservation facts, then compose the public reader/writer lifecycle with the
+The kernel command enables the checker's supported VM conversion; it still
+recursively checks every imported module, without admitting dependencies or
+disabling kernel checks. The ordinary acceptance command remains unchanged.
+
+Next discharge the four multiplications and their preservation facts and
+the final local free, then compose the public reader/writer lifecycle with the
 literal `gej_rescale` program. Coordinates live at offsets 0, 40 and 80 inside
 one owned 128-byte point allocation. The existing owned multiply contract
 requires each owned region's base to be zero; it cannot directly represent
