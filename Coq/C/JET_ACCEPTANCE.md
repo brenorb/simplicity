@@ -10,6 +10,8 @@ and finalization. TapData then passed the fourteen-jet scoped acceptance below.
 The four Bitcoin SHA registrations then passed the scoped acceptance below.
 Tappath hash then passed the expanded consumer acceptance below.
 The four array-hash registrations then passed ordinary scoped acceptance below.
+The five array/tappath rows now select accepted raw-interpretation variants,
+without a change to the coverage count; their scoped acceptance is recorded below.
 
 Reproduce acceptance from the repository root:
 
@@ -420,3 +422,45 @@ The audited inputs stayed unchanged and no expectations were updated.
 
 This does not assert a fresh full 454-entry audit or discharge of the shared
 evaluator, libc, startup/caller, domain and inherited-fidelity obligations.
+
+## Raw interpretation of five composed Bitcoin hash programs
+
+`jet_bitcoin_raw_program.v` restores the preserved generic raw-program bridge
+unchanged. Its algebra keeps the same primitive signature, uses the frozen
+Bitcoin interpretation for base primitives, and computes extended script and
+scriptSig hashes from raw bytes. A relation covering all Core combinators,
+assertions and failure transports every parametric program through the existing
+`project_raw_environment` projection.
+
+`jet_bitcoin_hash_raw_literal.v` composes this result with the accepted literal
+output-scripts, input-scripts, input-sequences, input-scriptSigs and tappath
+programs and complete C contracts. The generic helper's parametricity and C
+execution premises are discharged by the concrete final proofs. The registry
+now selects these five raw variants; this is a semantic-boundary strengthening,
+not additional declared-jet coverage.
+
+The underlying cache/frame relation is retained through `raw_env_rep`, with
+its existing path bound. No actual C caller cache construction is proved by
+this batch. The frozen base domain and reported Bitcoin mismatches are
+unchanged. This is not a general Haskell interpreter correctness theorem.
+
+Both modules compile and reviewed snapshots match. The direct primitive
+projection and literal-parametricity lemmas are closed; the general relation
+and program-projection lemmas inherit functional extensionality. All five C
+endpoints retain the same six inherited library assumptions, without an added
+libc or execution/output premise. Source checks reject 22 further mutations of
+raw semantics, representation boundaries and complete C contracts.
+
+Ordinary scoped acceptance passed:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_output_scripts_hash,simplicity_bitcoin_input_scripts_hash,simplicity_bitcoin_input_sequences_hash,simplicity_bitcoin_input_script_sigs_hash,simplicity_bitcoin_tappath_hash
+```
+
+This passed the default recursive kernel check on 272 modules, assumption
+comparisons for 143 modules, contract comparisons for 166 modules, global
+source/mutation checks, gate negative tests and all five AST regenerations.
+Audited inputs stayed unchanged and no expectations were updated.
+
+This does not assert a fresh full 454-entry audit or discharge of the remaining
+shared evaluator, libc, caller/cache, domain and inherited-fidelity obligations.

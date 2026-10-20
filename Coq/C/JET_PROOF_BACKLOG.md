@@ -344,7 +344,7 @@ comparisons, 143 contract comparisons, global source/mutation checks, negative
 tests and all five AST regenerations. Audited inputs stayed unchanged and no
 expectations were updated. Reproduce with the command in `JET_ACCEPTANCE.md`.
 
-## Raw interpretation of the composed Bitcoin programs
+## Completed: raw interpretation of five composed Bitcoin programs
 
 `jet_bitcoin_raw_program.v` restores the generic bridge from the preserved
 `proof-work/bitcoin-raw-program` source, unchanged. It relates every parametric
@@ -362,10 +362,42 @@ program-relation/projection lemmas inherit functional extensionality, and the
 C endpoints retain the same six inherited library assumptions. No additional
 libc, execution or desired-output premise is added. The existing source checker
 protects the raw interpretation, representation boundary and five full C
-contracts, rejecting 22 further mutations. Ordinary acceptance and endpoint
-selection have not yet been completed for these raw variants.
+contracts, rejecting 22 further mutations. The registry selects these five raw
+variants with no coverage-count change. Ordinary scoped acceptance passed:
+272 kernel-checked modules, 143 assumption comparisons, 166 contract comparisons,
+global source/mutation checks, gate negative tests and all five AST regenerations.
+Audited inputs stayed unchanged and no expectations were updated. Its
+reproducible command is in `JET_ACCEPTANCE.md`.
 
 This does not prove cache construction by the C environment builders, remove
 the existing path bound in `raw_env_rep`, or repair the reported Bitcoin-domain
 mismatches. The archived concrete endpoints and their old README remain
 historical, not current acceptance evidence.
+
+## Next: canonical tapleaf/tap-environment programs
+
+Reuse the accepted fixed-tag host recipe and algebra-general SHA bridges to
+adapt the preserved `bitcoin-tapleaf-literal` program and the existing
+`bitcoin_tapleaf_hash_local_spec` / `bitcoin_tap_env_hash_local_spec` C proofs.
+Compose the raw-program bridge at the final endpoints. Review the old candidate
+against the current literal SHA interfaces; do not restore an obsolete helper
+tree or assume that old compiled objects match the fixed toolchain.
+
+## Source-review question: Elements fee predicates
+
+Before attempting `output_is_fee` or `total_fee`, investigate this boundary:
+
+- `Haskell/Simplicity/Elements/Programs/Transaction.hs` defines `outputIsFee`
+  using equality of `OutputScriptHash` with `bsHash mempty`, together with the
+  explicit asset/amount tests.
+- `C/elements/elementsJets.c` uses `output->emptyScript` in `isFee`.
+  `copyOutput` in `C/elements/env.c` sets this flag from script length zero.
+
+For actual builder-produced environments, the missing converse is that a script
+with the empty-script digest is empty, within the supported script domain.
+No such property has been proved here, and no nonempty script with that digest
+has been exhibited. This is a source-level proof obligation, **not a formal
+counterexample or a demonstrated wrong result**. Do not assume digest-preimage
+uniqueness or redefine the flag's representation to hide the obligation. Keep
+these unregistered targets unresolved while investigating or reporting closed
+evidence, and continue independent jets.
