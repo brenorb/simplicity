@@ -93,6 +93,22 @@ RECOVERED_CONTRACTS.update({
     "simplicity_tapdata_init": (
         "memcpy_model -> sha_jet_local_spec_pre (fun m => sha_globals_ok m /\\ sha_tag_ok m) "
         "f_simplicity_tapdata_init Ty.Unit sha256_ctx8_type (@literal_tapdata_init Alg.CoreFunSem)."),
+    "simplicity_bitcoin_build_tapleaf_simplicity": (
+        "memcpy_model -> sha_jet_local_spec_pre sha_tapleaf_pre "
+        "f_simplicity_bitcoin_build_tapleaf_simplicity (Word 8) (Word 8) "
+        "(@literal_build_tapleaf Alg.CoreFunSem)."),
+    "simplicity_bitcoin_build_tapbranch": (
+        "memcpy_model -> sha_jet_local_spec_pre sha_tapbranch_pre "
+        "f_simplicity_bitcoin_build_tapbranch (Word 9) (Word 8) "
+        "(@literal_build_tapbranch Alg.CoreFunSem)."),
+    "simplicity_bitcoin_outpoint_hash": (
+        "memcpy_model -> sha_jet_partial_local_spec f_simplicity_bitcoin_outpoint_hash "
+        "(Ty.Prod sha256_ctx8_type (Ty.Prod (Word 8) (Word 5))) sha256_ctx8_type "
+        "(@literal_bitcoin_outpoint_hash optalg)."),
+    "simplicity_bitcoin_annex_hash": (
+        "memcpy_model -> sha_jet_partial_local_spec f_simplicity_bitcoin_annex_hash "
+        "(Ty.Prod sha256_ctx8_type (Ty.Sum Ty.Unit (Word 8))) sha256_ctx8_type "
+        "(@literal_bitcoin_annex_hash optalg)."),
 })
 
 

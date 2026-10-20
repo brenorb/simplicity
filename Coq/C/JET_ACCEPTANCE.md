@@ -2,11 +2,12 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 445/533 jets (321 without an extra libc
-premise; 124 conditional on `memcpy_model`). The earlier 430-entry baseline passed
+The local-contract registry contains 449/533 jets (321 without an extra libc
+premise; 128 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
+The four Bitcoin SHA registrations then passed the scoped acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -298,3 +299,43 @@ No audited inputs changed during the run and no expectations were updated.
 
 This does not assert a fresh full 445-entry audit or closure of the remaining
 shared evaluator, libc and fidelity obligations.
+
+## Bitcoin pure builders and context hashes
+
+The registry selects the complete original-C local contracts in
+`jet_bitcoin_taproot_literal_local.v` for `build_tapleaf_simplicity` and
+`build_tapbranch`, and `jet_bitcoin_ctx_hash_literal_local.v` for
+`outpoint_hash` and `annex_hash`. All four retain `memcpy_model` and initialized
+SHA state; the builders also require their original static tag state. Startup
+variants reuse the actual initialized portable-dispatch lifecycle and preserve
+its invariant. Arbitrarily installed compression callbacks are not covered.
+These four contracts add no logical transaction-environment or cached-hash
+premise. They are not proofs of the linked libc or general evaluator/caller.
+
+The tag prefixes reuse the fixed host SHA port and the general formal
+`haskell_hash_word256` decoding bridge. Closed computations establish block
+lengths, serialization and both fixed prefixes. Closed Core-algebra equalities
+connect the builders to their earlier C-proof targets; closed option-semantic
+equalities connect the context hashes, covering every counter and optional
+input, including assertion failure. This does not claim a general Haskell
+binary-decoder/cryptographic-library correctness theorem.
+
+The shared source gate follows actual library projections and compares the
+complete canonical shift/order/padding and context-assertion trees. It rejects
+27 new builder mutations and 14 context-hash mutations. All twelve new bridge
+lemmas are closed; each local C theorem inherits six library assumptions and
+each startup theorem eight, with no new project axioms.
+
+Ordinary scoped acceptance passed:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_bitcoin_build_tapleaf_simplicity,simplicity_bitcoin_build_tapbranch,simplicity_bitcoin_outpoint_hash,simplicity_bitcoin_annex_hash
+```
+
+This passed the default recursive kernel check on 292 modules, assumption
+comparisons for 186 modules, contract comparisons for 200 modules, global
+source/mutation checks, gate negative tests and all five AST regenerations.
+The audited inputs stayed unchanged and no expectations were updated.
+
+This does not assert a fresh full 449-entry audit or discharge of the remaining
+shared evaluator, libc, startup/caller and inherited fidelity obligations.

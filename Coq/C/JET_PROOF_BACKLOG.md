@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 445 of the 533 header declarations.
+The current local-contract registry contains 449 of the 533 header declarations.
 The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 88 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 84 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -248,20 +248,21 @@ scoped acceptance passed for it and all thirteen affected SHA endpoints:
 negative tests and all five AST regenerations, with unchanged audited inputs.
 The command and exact scope are recorded in `JET_ACCEPTANCE.md`.
 
+## Completed: Bitcoin pure builders and context hashes
+
 `jet_bitcoin_taproot_literal{,_local}.v` now reuses the existing original C
 proofs for `bitcoin_build_tapleaf_simplicity` and `bitcoin_build_tapbranch`.
 Both complete local and startup-preserving contracts compile, retaining
 `memcpy_model` and the existing SHA/tag-state premises. The ten canonical
-program/constant bridge lemmas are closed; recursive kernel checking with
-supported VM conversion and reviewed snapshot comparisons passed. Registration
-and ordinary scoped acceptance are still pending.
+program/constant bridge lemmas are closed. These compose the actual C execution
+and full framing conclusions, without a transaction-environment/cache premise.
 
 These modules reuse the fixed host SHA structure for the two tag prefixes and
 `haskell_hash_word256` for byte/hash-to-word conversion. The source gate compares
 the complete canonical trees, relative vector-size dispatch, shift/order/padding
 wiring and final C boundaries, including actual library-instance projections,
-rejecting 27 additional mutations. The host
-recipe review concerns these two fixed tags, not arbitrary Haskell decoders.
+rejecting 27 additional mutations. The host recipe review concerns these two
+fixed tags, not arbitrary Haskell decoders.
 
 `jet_bitcoin_ctx_hash_literal{,_local}.v` similarly composes the original
 outpoint/annex C proofs with the checked literal context-add programs. The
@@ -271,6 +272,23 @@ Local and startup variants compile and passed recursive kernel checking with
 supported VM conversion; both bridge lemmas are closed. Width-specific rewrites
 avoid unfolding symbolic SHA computations. The source checker follows the
 actual Bitcoin library bindings and complete assertion trees, rejecting 14
-further mutations. Reviewed snapshot comparisons passed for all four new
-modules; registration and ordinary scoped acceptance of these four jets remain
-pending.
+further mutations. The registry selects all four endpoints. Ordinary scoped
+acceptance passed: 292 recursive kernel modules, 186 assumption modules,
+200 contract modules, negative tests and all five AST regenerations, with
+unchanged audited inputs and no expectation updates. The reproducible command
+and remaining scope limits are recorded in `JET_ACCEPTANCE.md`.
+
+## Next shared bridge: arbitrary assertion algebras
+
+The current context-add, buffer-add and finalizer equality interfaces specialize
+to `optalg`. Add algebra-parametric variants before the next primitive-bearing
+hash-program composition. Preserve the existing public C theorem types and
+programs. For context-add1 the existing proof works with
+`literal_sha_256_block_core_matches` in place of the option-only block bridge;
+context-addn and buffer-add then follow by their existing structural inductions.
+The finalizer-padding proof uses the addn result at depth 3, and the finalizer
+uses that result plus the universal Core block equality. These are program
+bridges, not additional C-jet coverage. They should allow the cached-hash
+programs to reuse the same structure in a primitive-bearing algebra without
+re-proving C execution. Their environment/cache and reported Bitcoin-domain
+obligations must remain explicit.
