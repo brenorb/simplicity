@@ -37,26 +37,6 @@ is inherited from the earlier original-C execution packets.
 
 ## Verification
 
-Six sources, 48 results and 29 definitions. The expected exact dependency
-profile is 42 closed results, two representation/load lemmas with four
-inherited classical dependencies, and four execution results with the six
-inherited Coq/CompCert dependencies. `RUN.json` records fresh compilation,
-full contracts and assumption reports. `CHECKED.json` additionally records
-completed recursive kernel verification; a launch file is not success.
-
-Audit tree: `/private/tmp/jet-field-checkpoint-audit.Zeze9g`, new sources in
-`finish/` under `FieldFinish`. The parent binds 95 previously forcibly rebuilt
-local imports and 34 checked extension modules. The separately checked
-`FieldCheckpoint.Columns` source/object is also required and inventoried.
-Every non-standard loaded module must have exact source/object provenance.
-
-```sh
-python3 -B proof-work/secp-field-finish/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-finish/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 The product bridge keeps intermediate algebraic models named and uses
 explicit rewrite instances. Unfolding all stages at once caused a bounded
 conversion timeout; factoring `fifth_d_model`/`first_t3_model` and rewriting

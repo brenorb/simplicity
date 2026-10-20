@@ -17,11 +17,6 @@ read as this theorem's premise/result: these jets copy an existing digest.
 
 ## Checked evidence
 
-Private tree: `/private/tmp/jet-elements-pegin.IIkzRv`.
-It is an unchanged private copy of the checked five-jet final-name tree.
-The new proof is in `Proof/`, narrowly mapped to `PeginLiteral`, outside
-normal registration. No live audit-tree compiler output is copied.
-
 Twenty-one C dependencies plus the new literal module were freshly compiled.
 Complete reports cover 231 helper/final result types and 168 definitions.
 The declaration scanner preserves Coq identifiers ending in apostrophes;
@@ -51,18 +46,6 @@ same initial physical/logical relation, separated footprint, output, prefix,
 cursor and memory guarantees are preserved. No new zero-initialized-output
 or exact-padding assumption is added. Absent payloads retain unspecified
 padding cells, as prescribed by the existing sum encoding.
-
-`PREPARATION.json` binds sources/objects, base, original index, successful
-commands, terminal statuses, reports and tools. All 22 source archives and
-full type/definition/assumption/kernel/AST reports are retained here. The
-literal source is outside the inherited Coq fingerprint and separately pinned.
-Receipts describe the actual dirty/staged source base, not clean-HEAD
-reproducibility.
-
-```sh
-python3 -B proof-work/elements-pegin/review.py
-python3 -B proof-work/elements-pegin/test-review.py
-```
 
 ## Continuation and boundaries
 

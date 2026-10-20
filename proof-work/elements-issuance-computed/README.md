@@ -37,24 +37,4 @@ No monetary, issuance-kind or nonempty-array restriction was introduced.
 
 ## Verification and continuation
 
-`PREPARATION.json` names the distinct private candidate. `verify.py compile`
-passed with exit 0: it forced every local dependency with `make -B`, freshly
-compiled the four new modules and checked their full type/definition/assumption
-inventory. `SOURCE-CLOSURE.json` matches all **211** loaded local modules to
-that forced build and hashes every source and object. The source-bound recursive
-kernel check completed with exit 0; `SOURCE-CHECKED.json` binds all 211 local
-sources and objects unchanged before and after checking. The once-only receipts
-must not be overwritten or reused for different inputs.
-
 After a successful compilation, run:
-
-```sh
-python3 -B proof-work/verify-forced-closure.py snapshot proof-work/elements-issuance-computed C.jet_elements_issuance_computed_local
-python3 -B proof-work/verify-forced-closure.py kernel proof-work/elements-issuance-computed
-```
-
-Only a successful `SOURCE-CHECKED.json` binds the full loaded local source/object
-closure before and after recursive checking. Pinned external Coq/CompCert/VST
-libraries remain a separate trust boundary. Normal registration, exhaustive
-source-fidelity review, caller-cache establishment and full repository acceptance
-remain separate; no accepted coverage is added by these candidates.

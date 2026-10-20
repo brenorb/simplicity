@@ -8,29 +8,12 @@ and index/digest-conversion models. The selected canonical source ports and
 formal evidence are now independently reviewed as recorded below. This is
 not normal coverage or verification of the host lens/cryptography libraries.
 
-Private tree: `/private/tmp/jet-elements-issuance-proof.slDTfv`.
-The immutable base is the checked script-hash tree, not a running acceptance
-tree. Exactly one proof source is added; all inherited sources, metadata and
-registries remain byte-identical. The new module is freshly compiled. The
-18 previously checked dependency modules are reused with exact source/object
-hash matches; they are not falsely described as freshly compiled in this run.
-Recursive kernel checking covers both C-execution roots and the new endpoint
-module, including all transitive dependencies.
-
 The module contains two closed proof-view lemmas, four semantic bridges and
 four actual-C endpoints, plus six definitions. The semantic bridges retain
 functional extensionality; each endpoint retains precisely its original
 theorem's six inherited assumptions. No new library-model premise, axiom or
 unchecked cast is used. The full type/definition report has sixteen records;
 the assumption report also includes the four original endpoint references.
-
-`check.py` verifies the preserved base and index, archive/source identity,
-fresh compilation, complete reports, assumption equality, exact Elements AST
-regeneration, recursive kernel context and final source identity. It writes
-`CHECKED.json` and archives logs only after every stage terminates successfully.
-The receipt intentionally retains `source_fidelity_review_complete: false`,
-`normal_registration: false`, `coverage_added: 0` and `full_acceptance: false`.
-Do not rerun the completed checker or mistake those flags for acceptance.
 
 The checker has now **passed** with exit 0: the module compiled, both view
 lemmas were confirmed closed, every endpoint matched its original assumption
@@ -88,22 +71,6 @@ confidential branches, swapped asset/token fields, current assertions and
 impossible added premises in all eight whole-C contracts. The two closed
 proof-view lemma types and both literal selectors are pinned separately.
 Invalid proof text is never compiled.
-
-`review.py` independently verifies preserved source inventories, new/reused
-source and object hashes, complete types/definitions, closed view lemmas,
-unchanged endpoint assumptions, exact compiler commands and terminal logs,
-the kernel context, AST evidence and current source guard. It passed and
-rejected **25** in-memory evidence corruptions. All **1,584** inherited
-source/metadata files remain byte-identical. The three source/negative/
-evidence commands exited 0; `PREPARATION.json` binds those checks, the
-unchanged `CHECKED.json`, reviewer/guard tools and explicit interpretation
-boundaries. The original formal receipt's incomplete-review flag is retained
-as historical evidence, not rewritten to manufacture an earlier approval.
-
-```sh
-python3 -B proof-work/elements-issuance-proof/review.py
-python3 -B proof-work/elements-issuance-proof/test-review.py
-```
 
 ## Next: normal eight-jet admission
 

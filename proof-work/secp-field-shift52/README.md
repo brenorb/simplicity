@@ -28,39 +28,6 @@ are derived, not hypotheses substituted for the required call.
 
 ## Verification and continuation
 
-Candidate: `/private/tmp/jet-secp-shifts.SfCvHG`; narrow extension namespace
-`SecpShift` in its `ext/` subdirectory. Pinned Coq 8.17.1 / CompCert 3.14.
-
-All four modules compiled in the first forced-source run. The report gate
-then rejected its anticipated axiom profile: the actual dependency set was
-**smaller**, not larger. `FIRST-PROFILE-FAILURE.json`, the original driver,
-launch and build log preserve that terminal failure. No proof was changed.
-The corrected gate demands exactly 18 results: eight closed, five with the
-four inherited classical/extensionality dependencies, five with those plus
-the two inherited CompCert external-semantics dependencies. All 11
-definitions and every theorem type are printed in full.
-
-The corrected run **force-rebuilds all 15 loaded local dependencies again**,
-then recompiles all four extensions and rechecks all reports. Use `RUN.json`
-for a completed compile; `CHECKED.json` additionally requires a successful
-recursive kernel check. Do not treat a launch record or copied `.vo` as
-successful verification. Poll the original live handle; do not restart a
-running build or kernel check.
-
-```sh
-python3 -B proof-work/secp-field-shift52/kernel-reviewed.py \
-  /private/tmp/jet-secp-shifts.SfCvHG
-```
-
-The first recursive `coqchk` itself returned zero with all unsafe categories
-empty. Its post-check gate expected the whole-library 15-axiom context, but
-this smaller closure uses 12: the three omitted entries are VST/set/proposition
-extensionality dependencies. `FIRST-KERNEL-GATE-FAILURE.json` and the first
-kernel log preserve that distinction. The original compile driver stays
-byte-identical to its receipt; `kernel-reviewed.py` reruns `coqchk` under the
-explicit, exact 12-entry `kernel-axioms.expected`, still rejecting additions,
-unsafe categories, source/object changes or per-theorem assumption drift.
-
 Next: compose the proven 52/64-bit shift summaries and execute the actual
 `fe_mul_inner`, including the intended output/input alias. Then prove its
 five-limb value/range bridge from the actual machine expressions, discharge

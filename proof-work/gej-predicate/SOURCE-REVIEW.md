@@ -32,17 +32,6 @@ new registered coverage or full acceptance is claimed here.
 
 Reproduce after materializing the exact archived sources (Python 3):
 
-```sh
-python3 /tmp/jet-gej-predicate.W2FtCz/check-gej-predicate-wiring.py \
-  --repo /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity \
-  --candidates /tmp/jet-gej-predicate.W2FtCz \
-  --dependencies /tmp/jet-gej-infinity.YrUC7w
-python3 /tmp/jet-gej-predicate.W2FtCz/test-gej-predicate-wiring.py \
-  --repo /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity \
-  --candidates /tmp/jet-gej-predicate.W2FtCz \
-  --dependencies /tmp/jet-gej-infinity.YrUC7w
-```
-
 For a future isolated integration, candidates and dependencies can both be
 its Coq/C directory. Wire this gate/test into that isolated acceptance target;
 do not edit the currently live checkout audit inputs to add them.

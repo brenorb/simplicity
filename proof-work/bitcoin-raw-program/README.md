@@ -1,22 +1,5 @@
 # Raw interpretation of complete Bitcoin Simplicity programs
 
-Private tree: `/private/tmp/jet-bitcoin-raw-program.9b5hGOH3`.
-Immutable base: the completed, independently reviewed tapleaf tree
-`/private/tmp/jet-bitcoin-tapleaf-literal.7kPleO0v`.
-Only two new proof sources are added; both exact sources are archived here.
-No inherited source, public registry, main proof input or original stage is
-changed. No live audit object cache is copied.
-
-The compile/report phase completed with exit zero (handle13549): all four
-reused C execution modules and both new modules compiled freshly, and all
-23 results / four definitions were reported completely. All16 concrete
-whole-C endpoints retain exactly the six inherited execution assumptions.
-`RUN.json` records compilation, not recursive kernel success or admission.
-Two results are closed; the four pure algebra/program-relation results use
-the inherited dependent functional-extensionality principle through the
-Reader algebra. They are not claimed axiom-free. No new assumed declaration
-or allowlist change is introduced.
-
 ## Shared proof, then complete C endpoints
 
 `raw_fullalg` interprets the existing Bitcoin primitive signature over raw
@@ -54,39 +37,3 @@ caches or eliminate the caller's representation obligation.
 ## Verification phases and continuation
 
 The completed compile command was:
-
-```sh
-python3 -B proof-work/bitcoin-raw-program/check.py compile /private/tmp/jet-bitcoin-raw-program.9b5hGOH3
-```
-
-The once-only recursive kernel phase was launched **after** guarded main420
-integration and completed with exit zero (handle58669). The separate
-actual-main420 audit (handle27494) remains running:
-
-```sh
-python3 -B proof-work/bitcoin-raw-program/check.py kernel /private/tmp/jet-bitcoin-raw-program.9b5hGOH3
-```
-
-The phases separately bind unchanged main inputs and the original stage;
-authorized guarded main integration may occur **between** them. The exact
-private sources and all fresh object hashes must remain identical across the
-phases. Kernel mode records its launch before running the Bitcoin AST check
-and recursive kernel check. The completed `CHECKED.json`, `ast.log` and
-`kernel.log` record actual terminal success, not just a launch or a stale
-object cache. All sixteen whole-C endpoints were recursively kernel-checked.
-
-The independent proof/source/evidence review now also completed with exit
-zero (handle78001). `EVIDENCE-REVIEW.json` binds the exact sources, fresh
-objects, complete reporting drivers/types/definitions, per-result assumptions,
-original-C AST regeneration, recursive kernel outcome and review tools. The
-canonical source check and 328 read-only source-corruption tests passed,
-together with the separate proof-evidence corruption tests. The selected
-stream/composite programs, primitive encodings and edge cases are documented
-in `../bitcoin-raw-program-source/README.md`; they reuse the prior reviewed
-TapLeaf/SHA/word/hash dependencies without claiming host-library equivalence.
-
-Next: isolated normal registration of this three-module closure (these two
-modules and `C.jet_bitcoin_tapleaf_literal`) over the checked420 candidate,
-independent delta review, then real full acceptance. Do not change main proof
-inputs while actual-main420 handle27494 is running. No new coverage, full
-acceptance or all-caller result is claimed by this development checkpoint.

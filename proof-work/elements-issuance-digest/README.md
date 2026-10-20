@@ -9,12 +9,6 @@ axiom, unchecked cast, or new external-library premise is introduced.
 
 ## Checked evidence
 
-Private tree: `/private/tmp/jet-elements-issuance-digest.Ld3YuU`.
-Input fingerprint:
-`602a392e217636cd26ae8f6c3603ac3285be79c5c9ff347ca295d2a170df0c27`.
-All 1,584 inherited source/metadata/registry files match the immutable completed
-annex tree byte-for-byte. Only `C.jet_elements_issuance_digest_literal` is new.
-
 All 25 unregistered dependency/root modules were freshly compiled. The full
 reports contain 257 result types and 193 definitions, including all apostrophe
 identifiers, without ellipses or unresolved evars. The new module contributes
@@ -31,17 +25,6 @@ original/final whole C contracts. It rejected 75 in-memory corruptions. The
 independent evidence reviewer rejected 23 source/scope/inventory/command/report/
 kernel/AST corruptions. Invalid proof fixtures are never compiled.
 
-`PREPARATION.json` binds exact source/object hashes, complete declaration and
-dependency inventories, commands, successful terminal statuses, logs, and the
-preserved original index. `EVIDENCE-REVIEW.json` separately binds the successful
-independent review and its negative tests. These receipts describe the actual
-dirty/staged base, not clean-HEAD reproducibility.
-
-```sh
-python3 -B proof-work/elements-issuance-digest/review.py
-python3 -B proof-work/elements-issuance-digest/test-review.py
-```
-
 ## Cases and remaining admission work
 
 Invalid input index, valid input with no issuance, valid input of the wrong
@@ -53,12 +36,6 @@ whose issuance begins at 256. Existing output-prefix, cursor, frame separation,
 environment footprint, and memory-preservation contracts are retained, along
 with the LP64/RECKLESS configuration. Caller construction of the environment
 relation is not established here.
-
-Normal registration/coverage added here is **zero**. Main currently has 378/533
-registered jets. The actual-main 378 acceptance (session 3224) and isolated
-386 eight-getter acceptance (session 87596) were both confirmed live during
-this checkpoint; do not edit their inputs or restart them because logs are
-quiet. Check their existing handles and terminal receipts.
 
 After both succeed, guard and install the reviewed 386 candidate source-only,
 preserve the entire preexisting index, and run its separate actual-main audit.

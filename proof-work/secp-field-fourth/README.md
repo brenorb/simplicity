@@ -26,34 +26,6 @@ not 85. Production C and the proof target were not changed.
 
 ## Evidence and scope
 
-Four sources, 40 results and 36 definitions. The exact expected profile is
-35 closed results, two representation/load lemmas with four inherited classical
-dependencies, and three execution results with the six inherited
-Coq/CompCert dependencies. `RUN.json` records fresh compilation and full
-type/definition/assumption reports; `CHECKED.json` additionally records
-successful recursive kernel verification. A launch file is not success.
-
-The first audit rejected the predicted assumption profile: the output-load
-lemma is not closed, because the existing `C.jet_sx_rep.region_load` and
-`rep_region` already carry the same four inherited dependencies. Direct
-`Print Assumptions` confirmed this origin. No axiom or proof was changed.
-`verify-initial-profile.py.source`, `initial-profile-assumptions.log`, and
-the original launch files preserve that failed audit. `RECHECK-LAUNCH.json`
-starts the corrected exact-profile check; only its completed `RUN.json` and
-subsequent kernel receipt are successful evidence.
-
-Audit tree: `/private/tmp/jet-field-checkpoint-audit.Zeze9g`, sources in
-`fourth/` under namespace `FieldFourth`. The parent binds 95 previously
-forcibly rebuilt local imports and 26 checked extension modules. All loaded
-source/object provenance is checked before and after verification.
-
-```sh
-python3 -B proof-work/secp-field-fourth/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-fourth/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 This is partial helper execution, not full jet equivalence; coverage added
 is zero. Remaining multiplication stages, final field-product bridge,
 function entry and jet reader/writer/lifecycle composition remain open.

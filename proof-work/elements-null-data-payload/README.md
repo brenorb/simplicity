@@ -1,12 +1,5 @@
 # Actual push-data selector and hash payload
 
-Private tree: `/private/tmp/jet-null-data-payload.ln1s88vi`.
-Semantic fingerprint:
-`49daa6c61eee71a987f4e559fd8d28cf4de861f63d6b9019d9dc8877422135c2`.
-The new `C.jet_elements_null_data_payload` source is archived under `source/`.
-Every inherited source equals the completed `../elements-null-data-reserved/`
-tree. No main/staged semantic input changed; no live audit objects were copied.
-
 ## Formal progress
 
 `exec_elements_null_data_push_arm` executes the entire push-data arm of
@@ -47,16 +40,6 @@ recursive `coqchk` accepted the module and dependencies. Three results are
 closed; five execution results use exactly the six inherited Coq/CompCert
 assumptions named in the reports. No new assumed declaration, admission or
 unchecked kernel operation was introduced.
-
-Independent evidence review82823 exited0 and is recorded in
-`EVIDENCE-REVIEW.json`. It rechecks source/object/report/command/log identities
-and rejects35 corruptions, including changed assumptions, kernel scope and
-false whole-jet claims.
-`CHECKED.json` binds the fresh compilation and kernel evidence. Recheck with:
-
-```sh
-python3 -B proof-work/elements-null-data-payload/review.py /private/tmp/jet-null-data-payload.ln1s88vi
-```
 
 Two development corrections were using the existing `encode_length` lemma
 (instead of an unavailable name) and specifying the preservation lemma's cursor

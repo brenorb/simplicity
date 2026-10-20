@@ -49,33 +49,3 @@ function entry/return/local freeing, public multiply/square lifecycle and
 literal canonical Simplicity equivalence remain unfinished. No coverage
 entry or full acceptance is added. Main remains 351/533; isolated scalar-add
 359/533 still awaits exact main integration and verification.
-
-## Verification and reproduction
-
-`REVIEW.json` pins the fresh six-module build, full contract and assumption
-drivers and an independent kernel check after the build completed. 28 results
-are closed; two execution results have precisely the six existing execution
-dependencies. Types and definitions are printed at depth 100000 without
-truncation; stderr is empty. The kernel context remains the inherited 15
-axioms and all unsafe categories are empty. The read-only reviewer validates
-the frozen prerequisites, exact source/driver/evidence hashes and dependency
-fingerprint. Nine negative in-memory mutations are rejected.
-
-```sh
-python3 -B proof-work/scalar-reduce512-three-stages/review.py
-python3 -B proof-work/scalar-reduce512-three-stages/test-review.py
-```
-
-Scratch: `/tmp/jet-scalar-mul.lkomWj`, namespace MulC.
-Immutable dependency Coq tree: `/tmp/jet-scalar-integration.XAMDsw/Coq`.
-From that Coq directory, Coq 8.17.1 on PATH and stack 65520 KiB:
-
-```sh
-bash build-jets.sh --coqc -R /tmp/jet-scalar-mul.lkomWj MulC \
-  /tmp/jet-scalar-mul.lkomWj/jet_secp_reduce512_three_stages.v
-bash build-jets.sh --coqchk -silent -o -R /tmp/jet-scalar-mul.lkomWj MulC \
-  MulC.jet_secp_reduce512_three_stages
-```
-
-Keep the checked sources and receipts frozen; continue in new files.
-See `CONTINUATION.md`. Local signed atomic commits only; no pushes.

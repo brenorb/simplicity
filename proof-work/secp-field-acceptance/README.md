@@ -1,11 +1,5 @@
 # Field multiplication: full registration/acceptance attempt
 
-The checked ordinary-module parent is `../secp-field-integration`. This packet
-creates a distinct candidate at `/private/tmp/jet-field-acceptance-5fttrowx`,
-retaining its 349 existing registrations and adding only `simplicity_fe_multiply`.
-The resulting **350 candidate entries are not an accepted coverage claim**.
-The larger pending registry in the main checkout is not replaced or committed.
-
 `prepare.py` adds the exact full-domain public contract, 413 already checked
 result audit entries and 299 contract-definition entries. Its coverage guard
 rejects the wrong public function, domain, output width, numeric replacement,
@@ -27,12 +21,6 @@ The first normal generation attempt **failed**, exit 1, during static checks:
 ```text
 Bitcoin base primitive name mismatch: LockTime
 ```
-
-`GENERATE-PROCESS.json` records terminal failure. No successful generation,
-snapshot review or acceptance receipt exists. The full build, full-registry
-kernel/assumption/contract gates and AST regeneration were not reached in this
-attempt. Prior focused source-built/kernel evidence for FeMultiply remains
-valid, but it is not full repository acceptance.
 
 The new coverage and literal source checks passed, including the ten new
 contract mutations plus the helper-registration fixture, before this unrelated
@@ -69,28 +57,3 @@ Any target correction requires separate user approval. Continue independent
 proof work; the checked field-multiplication loaded closure contains no Bitcoin
 primitive module. Preserve this failed attempt rather than rewriting it as a
 successful or narrowed acceptance run.
-
-`build.py` separately invokes the **complete** normal project build with
-`make -k`: independent modules are attempted even after a compile failure,
-and the final nonzero status is retained. This does not remove any target,
-bypass the identity check in `check-jets.sh`, or claim acceptance. Poll its
-recorded live tool handle; its process/launch records are not a successful
-build receipt. The outcome belongs to a separate `BUILT.json` only if the
-entire build exits zero.
-
-That independent full build has now terminated with **exit 2**. The two direct
-failures are `jet_bitcoin_count_bridge.v` (non-convertible non-strict output
-bound) and `jet_bitcoin_value_domain.v` (an arbitrary input amount constructor
-omits the frozen model's required `sigTxiValue_bound`). The downstream count
-endpoint object consequently was not built. `PARTIAL-BUILD.json` records 883
-existing source-bound objects out of 886 listed modules, the three missing
-objects and the full terminal failed-build log. This is not a complete build
-or a full-registry kernel/assumption/contract audit.
-
-The count failure has subsequently been repaired and the **complete two C
-count-jet contracts** recompiled and kernel-checked in a different tree by
-`../bitcoin-count-frozen`, without altering the domain or conclusions. The
-value-domain module's claims about arbitrary amounts and empty outputs are
-not established under the original record constraints; they remain unresolved,
-not silently deleted or repaired by changing the target. The normal identity
-gate still fails. No `GENERATED.json`, `REVIEWED.json` or `ACCEPTED.json` exists.

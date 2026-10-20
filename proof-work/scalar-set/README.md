@@ -31,31 +31,6 @@ The decomposition is reusable:
    the proven original-C shift64 oracle and caller ownership. It does not
    replace the C function or assume its execution or local free.
 
-The four final module compilation runs exited 0: bind (immediate), shape
-62596, bytes 70079, owned 3000. Earlier owned compilations stopped at an import
-or final conjunction mismatch; they are not counted as completed modules.
-Per-result Print Assumptions 17783 exited 0: 30 results, 27 closed. Two actual
-call results use the same six inherited execution assumptions, and the
-load adapter uses the same four inherited classical/extensionality assumptions.
-Contract run 60528 exited 0: 30 actual types and 18 non-tree definitions printed
-without truncation and reviewed against the sources. The two computed trees
-are separately printed by 29777 (exit 0): their run equations, output shapes,
-NULL pointer and retained regions are kernel-checkable formal results, while
-the deep tree text is diagnostic data, not an omitted-term equality certificate.
-Independent kernel run **54545 exited 0**, with 15 imported context axioms and
-all three unsafe categories empty. The manifest pins the exact proof sources
-and output hashes. The imported-context list is not a per-result assumption set.
-
-Sources and review drivers are archived as `.source`, outside accepted load
-paths. Materialized files/logs are in `/tmp/jet-scalar-reverify.8hswEF`. Use the
-Coq 8.17.1 toolchain and the normal candidate's Coq directory as in scalar-reduce.
-No source or registry in the frozen affine acceptance candidate is changed.
-Run `review.py --work /tmp/jet-scalar-reverify.8hswEF` to recheck the pinned
-30-result evidence. This is not an acceptance shortcut or public-coverage gate.
-The in-memory negative fixtures in `test-review.py` pass: nine source, driver,
-contract, tree, dependency and kernel mutations are rejected without changing
-any real proof or audit input.
-
 The subsequent `../scalar-reader` milestone now composes actual read8s and
 the original NULL scalar_set_b32 call into the original reader body, with
 derived loads/value, cursor representation, framing and retained buffer

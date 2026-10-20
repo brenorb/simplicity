@@ -1,13 +1,5 @@
 # Actual outer output-count/isNullData short circuit
 
-Private tree: `/private/tmp/jet-null-data-output-guard.gnzvh6__`.
-Semantic fingerprint:
-`91b1eff79486be9c792a742ab34a241319e5f7a83f04057d122ba13a7d47c501`.
-The new `C.jet_elements_null_data_output_guard` source is archived under
-`source/`. All inherited source bytes equal the completed
-`../elements-null-data-index/` tree. No main/staged semantic input changed;
-no live audit objects were copied.
-
 ## Formal result
 
 `exec_elements_null_data_output_guard` executes the actual outer condition
@@ -38,24 +30,6 @@ need composition. No whole-jet endpoint, normal registration, canonical source
 gate or coverage entry is added.
 
 ## Verification checkpoint
-
-Fresh checker1558 exited0: the new module explicitly recompiled, all8 results
-and7 definitions were reported without elision, Elements AST regeneration
-matched and recursive `coqchk` accepted the module and its dependency chain.
-`CHECKED.json` binds source/object, tools and terminal command/log hashes.
-Reports identify five closed results, one
-representation result with four inherited assumptions and two execution
-results with the six inherited Coq/CompCert assumptions. No new assumption,
-admission or unchecked kernel operation was introduced.
-
-Independent evidence review22017 exited0:35 source/object/assumption/report/log/
-kernel-scope corruptions were rejected, including false whole-jet claims.
-`EVIDENCE-REVIEW.json` binds the tools, successful independent review and refusal
-suite. Recheck:
-
-```sh
-python3 -B proof-work/elements-null-data-output-guard/review.py /private/tmp/jet-null-data-output-guard.gnzvh6__
-```
 
 The main prefix/guard execution compiled directly. The out-of-range constructor
 was repaired after inspecting coqtop: unrestricted `repeat split` had introduced

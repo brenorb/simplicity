@@ -8,14 +8,6 @@ their exact compiled inputs, not a completed restored-source rebuild. See
 `../elements-hashes-clean/`. This qualification governs the older statements
 below; no historical receipt is overwritten.
 
-The complete original-C endpoints are
-`elements_outputs_hash_program_local_spec` and
-`elements_input_utxos_hash_program_local_spec` in the archived
-`source/jet_elements_composite_amounts_hash.v.source`. `CHECKED.json` records
-successful recursive kernel checking against the exact compiled objects, not
-a fully source-bound rebuild of the restored Bitcoin specification. These are not new
-normal-registry/coverage entries or a full acceptance of the repository.
-
 The targets are the primitive-based canonical outputsHash/inputUtxosHash
 programs, reusing the checked amounts, nonces, script and range-proof hash
 programs. A shared fixed-vector hash skeleton handles four hashes (128 bytes)

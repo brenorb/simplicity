@@ -23,18 +23,6 @@ context reader/writer and return. It proves the actual four-local function
 entry and free-list layout. It does not yet derive the execution of the
 nonce branches or compose the complete function call.
 
-`SOURCE-REVIEW.json` preserves the manually compared Haskell program, catalog
-binding/type, sum/confidential/point type aliases, selectors and C function,
-alongside the exact reviewed Coq source digests. Its drift check supplements
-kernel checking; it is not a formal translation of Haskell.
-
-There are seventeen closed results and twenty definitions. `verify.py`
-freshly compiles both modules, prints complete contracts/definitions and
-assumptions, and binds all 111 loaded project imports to the forced-source
-entropy basis. Recursive checking has its own receipt; only `CHECKED.json`
-records success. No production target, normal registration or accepted
-coverage changes.
-
 Next: derive the actual prefix reads/skip and SHA byte updates from initial
 represented input and live context, preserving locals and global loads.
 Reuse the existing context reader/writer and invalid-context/overflow cases;

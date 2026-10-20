@@ -1,61 +1,49 @@
-# Consolidated proof candidates
+# Preserved proof alternatives
 
-All useful work identified during the 2026-10-06 consolidation is now versioned
-on `feat/jet-equivalence`. Accepted Coq sources remain in `Coq/`; pending changes
-and complete helper/review sources are preserved here, outside its build and
-load paths. This archive does not increase the accepted inventory or complete
-the inherited fidelity review.
+Accepted proofs live in `Coq/`. This directory retains distinct earlier proof
+sources, diagnostic witnesses, historical patches and alternative approaches.
+Nothing here is in the active proof build or adds a registered jet. Older notes
+explain those candidates; their development-time counts and pending statuses
+are historical. Current status is in `Coq/C/JET_ACCEPTANCE.md` and
+`Coq/C/JET_INHERITED_REVIEW.md`.
 
-| Work | Preserved form | Status |
-| --- | --- | --- |
-| Frame range correction | 20 original commit patches; twenty-six continuation repair patches, separate from the original archive | Whole candidate build and all 44 repaired-module kernel checks pass; exact replay passes; all 18 current odd/zero modules compile unchanged and public chains pass kernel checking; formal old-domain inclusion and concrete writer/one_8 witnesses checked; full reconciled assumption audit passes with all 3,577 prior records unchanged and six inherited-only additions; assembly and final acceptance remain open |
-| Field odd/zero predicates | Exact candidate patch retained for provenance; 18 modules integrated as cafb9b31 | Independent full acceptance passed; inherited frame/domain and exhaustive review remain open |
-| Scalar/uint128 | 22 complete helper sources and one historical literal-source checker | Public canonical and lifecycle chains incomplete; four sources need fresh verification |
-| Field negation | Original in-place magnitude-one Clight helper and hash/receipt manifest | Compiles and whole-chain kernel check passes; exact limb/canonical 512-bit reduction bridge and full public lifecycle remain open; no coverage added |
-| SHA initialization/preservation | Original startup source plus 75 new results, including 12 ready and 12 composable invariant-based adapters and block execution with all storage/metadata constructed; six checking scripts and a reviewed-port reference | Ten sources compile freshly and their whole dependency chains are kernel-checked; gates reject 87 mutations; underlying dependency/domain review, snapshots, acceptance and evaluator/remaining-consumer links remain open |
-| Review witnesses | 19 exact sources | Scoped diagnostic/review evidence; some require earlier contract revisions |
+The `.source` suffix prevents accidental compilation. To work on a candidate,
+copy its sources into a fresh external tree, remove that suffix, and use the
+namespace in its imports. Some candidates need an older interface or a derived
+program tree; do not overwrite the accepted proofs to accommodate them.
 
-Each group has a manifest with source hashes, revision dependencies and remaining
-obligations. The `.source` extension prevents accidental compilation or coverage
-registration. The manifests distinguish historical checks from fresh acceptance.
-The old candidate histories are also retained in the fork as
-`codex/frame-range-contract` and `codex/secp-field-predicates`.
+The cleanup keeps every distinct Coq source and historical patch. Archived
+sources identical to active files were removed; use the active files for those
+dependencies. Receipts, source-hash manifests, session inventories and archive
+integrity drivers are unnecessary: Git versions the sources, and acceptance is
+reproduced with `bash Coq/check-jets.sh --accept`.
 
-Run the archive integrity and exact patch replay check from the repository root:
-
-```sh
-python3 proof-work/manage.py
-```
-
-It checks preserved source hashes and the original scratch inventory. Duplicate
-source records point to the byte-identical kept file. Historical exact patch
-replay is optional (`--replay`) and requires the original backup history. It does not compile or accept those proofs, change the
-active sources, or apply candidate snapshot changes to the active build.
-
-To recover exact helper sources for further work outside the repository:
+For the exact complete archive before cleanup, including original filenames,
+namespace/dependency metadata and old patch replay bases, extract the original
+revision outside the repository:
 
 ```sh
-python3 proof-work/manage.py --extract scalar-u128 --output /tmp/simplicity-scalar-candidate
+mkdir /tmp/simplicity-original-candidates
+git archive c4115d31430537d67724ebbe65d62ce4c2ce1a37 proof-work | \
+  tar -x -C /tmp/simplicity-original-candidates
 ```
 
-The output must be new and outside this repository. Resolve the manifest's
-namespace and revision dependencies before compilation. Range and field patches
-can be applied, in recorded order, to an external checkout of their respective
-`base_commit`; all bases remain reachable from the fork's main topic branch.
+This restores historical candidate material, not current acceptance evidence.
+The old branches and recovery backups also remain untouched.
 
-`scratch-inventory.json` accounts for all 84 former scratch sources: 16 are
-already integrated, 18 are in the field predicate patch, 42 are exact archived
-helper/review sources, and eight are superseded incomplete goal diagnostics
-retained locally. The latter have no new closed-prefix declaration names beyond
-the integrated/archived sources. Generated artifacts, caches and raw logs remain
-local. The inherited fidelity review remains **partial**; consult
-`Coq/C/JET_INHERITED_REVIEW.md` for its separate obligations.
+Useful groups include:
 
-## Promoted candidates
-
-See `Coq/C/JET_ACCEPTANCE.md` for the current registrations and their conditional
-scopes. The main field multiplication/square and recovered Elements calculation
-proofs are ordinary `Coq/C` modules; old candidate status prose is historical.
-The independent parallel multiplication/square archive remains an alternative.
-No source receipt or log is needed to accept a proof: rerun `check-jets.sh` on
-the commit. Original source archives retain their provenance and unique work.
+- `fe-multiply-parallel`: the independent multiplication/square proof, retained
+  alongside the selected main proofs; its README gives a reproducible check.
+- `range`: the original frame-range patches and subsequent repairs. The original
+  series starts at `8f186eef4b513d2e3640a9ba70dabb649ebaeb7e`; apply numbered
+  patches in order. This is a historical candidate, not the current accepted tree.
+- `secp-field-predicates`: the original predicate candidate patch, based on
+  `93542abcf17db8d5b45bdfd7c1e897df39bd3b96`; its reviewed proofs are integrated.
+- `review-witnesses`: diagnostics for contract and domain review, some against
+  earlier interfaces. These are not additional jet equivalence theorems.
+- `derived-trees`: linked-libc and alternate translation-unit or namespace proofs.
+- `unbuilt-support`: five known failing support experiments, preserved for repair.
+- Scalar, SHA and Elements groups: distinct earlier helper and lifecycle sources;
+  many have since been transported into active modules, while others remain
+  unaccepted. Consult the active registry before starting duplicate work.

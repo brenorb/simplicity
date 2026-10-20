@@ -5,15 +5,6 @@ recursive kernel checking. It reuses the existing actual-C execution theorem
 through a proved specification transport; it is not merely a statement that
 two specifications coincide. No normal coverage has been added yet.
 
-Private tree: `/private/tmp/jet-elements-output-nonce.9j5cutym`.
-Input SHA-256:
-`690a50ce02f1f19e24c7579de9034111ab3ecd078f599039b4408fbd432f8484`.
-One new module: `C.jet_elements_output_nonce_literal`, with six results and
-five definitions. Its seed is the completed legacy-assertion proof tree, not
-compiler outputs from any live normal audit. All inherited sources and
-metadata remain byte-identical. Main stays401 and its entire original index is
-preserved.
-
 ## Exact scope and reuse
 
 The literal specification follows `primitive OutputNonce`, optional output
@@ -43,30 +34,11 @@ and host-library/fidelity boundaries are unchanged.
 
 ## Verification
 
-The intended complete proof initially failed only when Coq could not infer a
-word depth through non-injective `tySem`. Supplying the explicit depth, payload
-type and encoder arguments fixed the mismatch without altering the statement.
-The corrected module compiled; the scoped checker8959 then freshly compiled
-it, printed all eleven untruncated type/definition records and all six actual
-assumption sets, regenerated the Elements AST and recursively ran `coqchk`.
-The checker terminated with exit0. No admissions, assumed declarations or
-unchecked casts were used. `CHECKED.json` binds all source/object/command/log
-evidence; the larger imported kernel context is distinguished from each
-theorem's printed dependency set.
-
 The selected canonical guard checks the Haskell catalog/primitive/field
 carriers and raw-word/bit encoding, the corresponding Coq definitions, both
 full C contracts and initial nonce representation, actual C helper/jet bodies,
 prefix enums and absent-case padding. It reuses the completed indexed and
 native-word guards; it is not a formal proof of host-library behavior.
-
-Independent source/evidence finish82795 terminated with exit0: source
-correspondence,33 source corruptions and32 independent evidence corruptions
-passed. `EVIDENCE-REVIEW.json` binds the checked receipt, source fingerprint,
-all five tools and all three command/log results. These bindings were then
-independently rechecked. Do not rerun the completed compiler/kernel checker or
-finish. Normal registration and full acceptance remain separate subsequent
-steps, after the reviewed406 source predecessor.
 
 Main401 audit92989 and isolated402 audit26900 remain live on immutable semantic
 inputs. The reviewed404 and406 candidates are not installed. The every-jet

@@ -29,19 +29,6 @@ output conversion.
 
 ## Verification and scope
 
-Source: `source/jet_elements_sequence_literal.v.source`.
-External namespace/tree: `SequenceReview`,
-`/private/tmp/jet-elements-sequence-decoder.1QZk3y`.
-Read-only dependencies: the built count candidate
-`/private/tmp/jet-count-admission.ww8e4z3b/Coq`.
-
-Fresh compilation, complete types and four definition prints, per-result
-assumptions, recursive `coqchk -silent -o`, and exact production Elements AST
-regeneration all passed. The fifteen-axiom library context is unchanged and
-all three unsafe categories are empty. `REVIEW.json` binds the source, objects,
-reports, commands and actual exit statuses. Durable full reports are
-`contracts.log` and `assumptions.log`.
-
 The selected source guard checks the catalog dispatch, primitive identity,
 unsigned record field, lookup/presence embedding, both literal Haskell word
 algorithms, their Coq ports, and the exact original-C endpoint/representation.
@@ -62,13 +49,6 @@ The current-sequence getter was inspected but is **not** claimed proved by this
 batch. The complete Elements environment builder and evaluator composition
 also remain separate obligations. All work stayed outside the ongoing count
 audit's frozen inputs.
-
-```sh
-python3 -B proof-work/elements-sequence-review/review.py
-python3 -B proof-work/elements-sequence-review/test-review.py
-ulimit -s 65520
-python3 -B proof-work/elements-sequence-review/finish.py /absolute/sequence-tree /absolute/dependency-tree
-```
 
 `finish.py` is the compiler/checker driver, not a coverage generator. A later
 normal integration must compile the module under its final C namespace,

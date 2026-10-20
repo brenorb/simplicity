@@ -37,40 +37,12 @@ converter. The source archive is
 
 ## Checked evidence
 
-External tree: `/private/tmp/jet-elements-current-sequence.B6EfNC`.
-Namespace: `CurrentSequenceReview` in its separate `Proof/` directory.
-Dependencies: an independent copy of the frozen count candidate's `Coq/`
-tree, plus the sealed `SequenceReview` input-sequence module. The original
-current spec, execution helper and C theorem were freshly compiled unchanged
-inside the independent copy. Nothing was built in the running count audit.
-
-Fresh compilation, four completely quantified type prints (three new results
-and the original C theorem), six full definition prints, per-result assumption
-checks, recursive `coqchk -silent -o`, and exact production Elements AST
-regeneration passed. The fifteen inherited library-context axioms are
-unchanged; all three unsafe kernel categories are empty. The report driver
-uses `Check @...` and rejects unresolved print placeholders or elided output.
-Durable complete reports are `contracts.log` and `assumptions.log`.
-
 The source guard reuses the InputSequence review and adds 22 in-memory
 corruptions covering dispatch, primitive, current index, assertion direction,
 literal word width, C function, logical environment, representation offsets
 and vacuous whole-contract premises. Invalid proof text is never compiled.
 Fifteen separate scope/source/object/assumption/terminal-evidence corruption
 fixtures check the sealed receipt.
-
-`REVIEW.json` binds source, object, report, command, terminal exit, tool and
-dependency fingerprints. It describes the actual copied working checkout,
-including the preexisting shared word-conversion source; it is not a
-clean-HEAD reproducibility claim. The original staged patch and main proof
-sources were unchanged during verification.
-
-```sh
-python3 -B proof-work/elements-current-sequence/review.py
-python3 -B proof-work/elements-current-sequence/test-review.py
-ulimit -s 65520
-python3 -B proof-work/elements-current-sequence/finish.py /absolute/current-tree /absolute/count-tree /absolute/sequence-tree
-```
 
 ## Remaining integration
 

@@ -25,11 +25,3 @@ the three calculation jets and adds the actual maximum-counter initializer.
 `Ready.v.source` composes the unchanged shared frame-constructibility theorem
 with the entropy local specification. The Coq proof-engineering skill guided
 these explicit, separately discharged interfaces.
-
-`verify.py compile|kernel EXTERNAL_DIRECTORY` checks the complete thirteen-result
-profile: nine closed, two four-dependency, two six-dependency results and four
-definitions. It binds all 279 loaded project sources/objects, fourteen parent
-extensions and two new extensions. Compilation is recorded separately from
-the recursive kernel audit, which waits for the full-jet parent audit and is
-successful only when `CHECKED.json` is written. No production C/specification/API
-change, normal registration or additional accepted coverage.

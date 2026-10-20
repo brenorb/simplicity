@@ -68,18 +68,6 @@ not the native C execution. Do not label them a formal Clight counterexample.
 
 ## Reproduce and inspect
 
-Native private tree: `/private/tmp/jet-overlap-validation.glob2m5c`.
-Exact committed fixture: `probe.c.source`.
-
-```sh
-python3 -B proof-work/null-data-overlap-validation/check.py /private/tmp/jet-overlap-validation.glob2m5c
-```
-
-The once-only run completed under handle45553. `VALIDATION.json` and exact
-compiler/build/run logs record source identities, all command/exit statuses and
-outcomes. Exit zero means the discrepancy reproduced with passing controls,
-not successful equivalence. The driver refuses to overwrite the receipt.
-
 Main semantic fingerprint stayed
 `c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`;
 the original staged patch stayed
@@ -96,15 +84,6 @@ observed absent value; and setting bit4 of a zero64-bit word yields16.
 The environment-parametric facts require the selected output's actual script
 to be those bytes. They do not assume any C execution or assert the complete
 C-builder/logical-environment correspondence.
-
-`REFERENCE-RUN.json`, `REFERENCE-CHECKED.json` and exact reports/logs bind the
-checks. The first kernel process succeeded, but its parent used the overly
-broad full-Clight library-context comparison and therefore failed its postcheck.
-That receipt/driver is preserved. `finish-reference.py` reran only the kernel
-phase after inspecting the pure root's exact ten-axiom library context (a
-strict subset of the unchanged normal15-axiom context), and completed with
-exit zero under handle72556. All five individual results are closed under
-the global context. No normal allowance, proof or source was weakened.
 
 The formal facts corroborate the expected result and overwritten-index
 mechanism. A full CompCert execution counterexample for overlapping memory

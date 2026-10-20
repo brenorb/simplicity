@@ -33,18 +33,3 @@ or full acceptance. The actual writer and original public three-local
 entry/copy/return/free remain. Scope is original local-frame / LP64 / RECKLESS,
 not all evaluator frames or assertion-enabled execution. Main coverage stays
 351/533 and all other authors' dirty work/registries remain untouched.
-
-The archive pins sources, outputs and terminal checks in `manifest.json`.
-Scratch namespace is `AddC` in `/tmp/jet-scalar-add.u1U2Ti`; dependencies are
-the frozen normal `C` candidate `/tmp/jet-scalar-integration.XAMDsw/Coq`.
-Use pinned Coq 8.17.1 and `ulimit -S -s 65520` with `build-jets.sh` and narrow
-load paths. Its ongoing full acceptance is separate from this independently
-completed checkpoint audit.
-
-```sh
-python3 -B proof-work/scalar-add-readers/review.py --work /tmp/jet-scalar-add.u1U2Ti
-python3 -B proof-work/scalar-add-readers/test-review.py /tmp/jet-scalar-add.u1U2Ti
-```
-
-Read `CONTINUATION.md` for the next composition. Signed local commits only;
-no pushes. Claude's Elements/shared-obligation work remains separate.

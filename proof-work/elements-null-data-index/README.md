@@ -1,12 +1,5 @@
 # Actual opcode-index check: present, absent and empty
 
-Private tree: `/private/tmp/jet-null-data-index.qh4eih59`.
-Semantic fingerprint:
-`050021c2298928580c5ca57fc30f79729d4b6dd4fe36965a72c608dddb3f08fc`.
-The new `C.jet_elements_null_data_index` source is archived under `source/`.
-All inherited source bytes equal the completed `../elements-null-data-opcode/`
-tree. No main/staged semantic input changed; no live audit objects were copied.
-
 ## Formal result
 
 `exec_elements_null_data_index_block` executes the actual260-bit sub-block of
@@ -52,26 +45,6 @@ explicit, not proved constructible here. This is not a whole-function endpoint,
 normal registration, Haskell/port source gate or coverage addition.
 
 ## Verification checkpoint
-
-Fresh checker7801 exited0: the new module explicitly recompiled, all8 result
-types and10 definitions were reported without elision, Elements AST regeneration
-matched and recursive `coqchk` accepted the module and its dependency chain.
-`CHECKED.json` binds source/object, tools and terminal command/log hashes.
-Reports identify three closed results, three
-expression/representation results with four inherited assumptions and two
-execution results with the six inherited Coq/CompCert assumptions. The
-missing-selection lemma inherits four through the proposition it states; it
-is not claimed closed. No new assumption, admission or unchecked kernel
-operation was introduced.
-
-Independent evidence review6133 exited0:35 source/object/assumption/report/log/
-kernel-scope corruptions were rejected, including false whole-jet claims.
-`EVIDENCE-REVIEW.json` binds the tools, successful independent review and refusal
-suite. Recheck:
-
-```sh
-python3 -B proof-work/elements-null-data-index/review.py /private/tmp/jet-null-data-index.qh4eih59
-```
 
 Development compiled directly without proof repair. The assumption review
 corrected the expected closedness of the missing-selection lemma to match

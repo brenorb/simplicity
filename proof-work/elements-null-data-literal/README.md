@@ -1,12 +1,5 @@
 # Null-data parser fuel, literal encodings and complete C endpoint
 
-Private tree: `/private/tmp/jet-null-data-literal.lh3EDxlD`.
-Fingerprint:
-`160573a4b78648fd210f7948e2e381505057b1810601e72ba2bfa9cc72b6c1ab`.
-All inherited source bytes equal the checked contextual-contract tree. The
-three new modules are archived under `source/`; main418 semantic inputs and
-the original staged patch are unchanged.
-
 ## Formal progress required by source fidelity
 
 The canonical Haskell parser loops until empty; the Coq port has termination
@@ -66,10 +59,6 @@ corruptions. Revalidate its receipt/log/tool hashes and actual source/object
 identities before committing. No axiom, admission or unchecked operation was
 added. `canonical_source_gate_complete=false` correctly remains in this formal
 batch: the separate source-review receipt supplies that later evidence.
-
-```sh
-python3 -B proof-work/elements-null-data-literal/review.py /private/tmp/jet-null-data-literal.lh3EDxlD
-```
 
 Development corrections: bind source-list variables in Ltac patterns, qualify
 `Datatypes.option_map` against an imported name, import the actual byte type,

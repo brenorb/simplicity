@@ -18,17 +18,6 @@ assume 128-byte ownership or invent extra storage for the 88-byte object.
 
 Reproduce after materializing the archived .source checkers to their .py names:
 
-```sh
-python3 /tmp/jet-ge-negate.aFl8mr/check-ge-negate-wiring.py \
-  --repo /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity \
-  --candidates /tmp/jet-ge-negate.aFl8mr \
-  --dependencies /tmp/jet-gej-negate.IMImaX
-python3 /tmp/jet-ge-negate.aFl8mr/test-ge-negate-wiring.py \
-  --repo /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity \
-  --candidates /tmp/jet-ge-negate.aFl8mr \
-  --dependencies /tmp/jet-gej-negate.IMImaX
-```
-
 No production C/Haskell change, public registration or full acceptance is
 claimed by these checks. The public theorem has independent kernel evidence;
 the narrower inherited local-frame scope and general-domain work remain clear.

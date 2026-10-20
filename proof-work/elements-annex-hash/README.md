@@ -12,12 +12,6 @@ assumptions exactly match their originals' six inherited assumptions.
 
 ## Verified evidence
 
-Private tree: `/private/tmp/jet-elements-annex-hash.LCaBky`.
-The seed is the completed immutable final-name pegin tree, not either live
-acceptance tree. All **1,583** inherited source/metadata/registry/guard files
-are byte-identical, with one proof source added. The existing indexed-annex
-execution source compiles unchanged; no repair or weaker premise was needed.
-
 All **24** unregistered dependency/root modules were freshly compiled, with
 complete deep reports for **244** result types and **187** definitions.
 Apostrophe-ending identifiers are preserved. Assumption sets of all inherited
@@ -34,17 +28,6 @@ flag/hash fields, literal definitions and all four original/final C contracts.
 It passed and rejected **26** in-memory corruptions. The independent evidence
 review passed and rejected **23** scope, apostrophe-inventory, source, command,
 report, kernel and AST corruptions. Invalid proof text is never compiled.
-
-`PREPARATION.json` binds the checked base, source and object hashes, complete
-inventories, exact commands and successful terminal exits, archived reports,
-tools and preserved staging. Six complete assumption/type/source/AST/kernel
-logs and the proof are archived here. These receipts describe the actual
-dirty/staged source base, not clean-HEAD reproducibility.
-
-```sh
-python3 -B proof-work/elements-annex-hash/review.py
-python3 -B proof-work/elements-annex-hash/test-review.py
-```
 
 ## Exact behavior and unchanged scope
 

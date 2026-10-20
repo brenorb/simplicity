@@ -1,12 +1,5 @@
 # Null-data jet: checked opcode output helpers
 
-Private tree: `/private/tmp/jet-null-data-output.i88ifjb_`.
-Fingerprint:
-`c44ae8df8501560f8342756eafc6582d6bc7702ae020379a054ce19ac64a9240`.
-Two new sources are archived under `source/`; all inherited source bytes and
-the main/staged trees are unchanged. Objects were cloned only from the
-completed transaction-ID proof tree, never from a live full audit.
-
 ## Formal results
 
 `jet_elements_const_bits` proves execution of arbitrary nonempty constant
@@ -41,11 +34,6 @@ and7 definitions were printed without elision, the generated Elements AST
 check passed and both complete dependency chains passed recursive `coqchk`.
 Six structural/encoding results are closed; all four execution helpers retain
 exactly the six inherited Coq/CompCert assumptions. No new assumption was added.
-
-Independent proof/evidence review35743 completed with exit0, including38
-source/object/type/assumption/log/kernel-scope corruptions. `CHECKED.json`
-binds the fresh sources/objects and terminal compiler/AST/kernel commands;
-`EVIDENCE-REVIEW.json` binds the three tools and rejection-test terminal log.
 
 The initial checker also passed compilation/kernel checking, but had copied
 progress labels from an older batch. Those labels were corrected and the

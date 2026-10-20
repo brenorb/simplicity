@@ -32,15 +32,6 @@ inline-assembly semantics interfaces. No new axioms, libc model or public
 execution premises were introduced. The computed tree is diagnostic storage;
 exact run and shape equalities are formal kernel-checked results.
 
-Fresh checks used Coq 8.17.1, CompCert 3.14 and VST 2.14. Exact sources, drivers,
-output hashes and terminal statuses are recorded in `manifest.json`. From the
-repository root:
-
-```sh
-python3 proof-work/scalar-writer/review.py --work /tmp/jet-scalar-writer.khT8eN
-python3 proof-work/scalar-writer/test-review.py /tmp/jet-scalar-writer.khT8eN
-```
-
 The negative fixtures modify reads in memory only, never the audit inputs.
 Next: compose both actual calls, establish the original public call nodes,
 then reuse the source-copy/entry/return/free structure for the public canonical

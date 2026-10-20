@@ -11,8 +11,7 @@ from pathlib import Path
 
 
 def helpers(directory):
-    path = Path(directory)/'check-recursive-ports.py.source'
-    if not path.exists(): path = path.with_suffix('')
+    path = Path(directory).parent/'source-review.py'
     loader = importlib.machinery.SourceFileLoader('foundation_parser', str(path))
     spec = importlib.util.spec_from_loader(loader.name, loader)
     module = importlib.util.module_from_spec(spec)

@@ -25,19 +25,3 @@ and actual public source-copy/entry/return/free. The normalized-input bound
 belongs to this helper; the eventual public theorem must cover every Word256.
 The unchanged scope is LP64, RECKLESS/assertion-disabled, inherited local
 frame domain. Main shared registries and other authors' changes are untouched.
-
-Materialized sources, exact commands, output hashes and terminal statuses
-are in `manifest.json`. Verification from the repository root:
-
-```sh
-python3 proof-work/scalar-negate/review.py --work /tmp/jet-scalar-negate.f4CRAT
-python3 proof-work/scalar-negate/test-review.py /tmp/jet-scalar-negate.f4CRAT
-```
-
-Scratch compiler load paths: accepted `C` baseline in
-`/tmp/jet-ge-negate-accept.5mtyZa/Coq`, original scalar dependencies in
-`/tmp/jet-scalar-reverify.8hswEF` (`OriginalC`), serializer dependencies in
-`/tmp/jet-scalar-writer.khT8eN` (`WriterC`), and this checkpoint in
-`/tmp/jet-scalar-negate.f4CRAT` (`NegC`). Compile with the pinned Coq 8.17.1
-path and `ulimit -S -s 65520`, using `build-jets.sh --coqc/--coqtop/--coqchk`
-and explicit narrow `-R` paths as recorded in the manifest.

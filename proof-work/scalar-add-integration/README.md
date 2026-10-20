@@ -5,24 +5,7 @@ freshly compiles in the normal logical namespace `C`:
 
 `C.jet_secp_scalar_add_local.scalar_add_literal_local_spec`.
 
-Full isolated acceptance passed; this is **not main-checkout registration**.
-Candidate: `/tmp/jet-scalar-add-integration.RxsuOy/Coq`.
-Parent: accepted immutable `/tmp/jet-scalar-integration.XAMDsw`; full
-acceptance retry **10545** terminated with **exit 0**. Its pinned receipt is
-`../scalar-integration/ACCEPTANCE.json`. The earlier failed run remains failed
-evidence. No parent input is modified.
-
 ## Exact namespace transport and reviews
-
-`ASSEMBLY.json` pins the public root's exact closure: **24 modules, 79 results,
-41 definitions** from `scalar-add`, `scalar-add-bridge`, `scalar-add-readers`
-and `scalar-add-public`. There are no omitted new dependency modules.
-Transport changes only `AddC.` to `C.`; all 1,049 inherited .v sources are
-byte-identical. Real original functions, literal specifications, predicates,
-premises and postconditions are unchanged. Normal build **29824** ended
-with exit **0**, compiling all 24 modules.
-
-`PRELIMINARY-REVIEW.json` records:
 
 - All 4,329 inherited dependency records unchanged, all 79 new records
   exactly matching the independently checked AddC reports (51 closed);
@@ -44,34 +27,7 @@ with exit **0**, compiling all 24 modules.
   requires explicit verified sibling C/Haskell source links, avoiding the
   parent's missing-source-layout failure.
 
-The normal review defaults to requiring a terminal successful parent receipt;
-it formerly **rejected** the missing receipt (90504, exit 1). Its explicit
-`--preliminary` mode permits independent review/preparation while the parent
-audit runs, not acceptance or registration. The existing parent reviewer and
-the checked public archive are revalidated on every closure plan. After the
-parent passed, default review **6372** exited 0 without preparation flags;
-`NORMAL-REVIEW.json` is byte-identical to the earlier preliminary report.
-
 ## Completed verification and status
-
-Full scalar-add acceptance **38737** terminated with **exit 0**, using
-`JOBS=1 bash check-jets.sh --accept` without update/no-build flags.
-Log `/tmp/jet-scalar-add-integration.RxsuOy/scalar-add-full-acceptance.log`.
-`AUDIT-RUN.json` preserves the historical launch and pre-audit fingerprint.
-`ACCEPTANCE.json` records terminal success: 853 kernel modules, 4,408
-assumption records (2,343 closed), all contract/negative/identity gates and
-all four regenerated ASTs. Post-run fingerprint, normal/kernel reviews and
-their mutation tests passed (**54660**, exit 0). Do not restart this completed
-run or modify its accepted inputs. Main integration remains separate.
-
-Independent normal kernel check **86561** terminated with **exit 0**, log
-`/tmp/jet-scalar-add-integration.RxsuOy/normal-kernel.log`.
-Its exact inherited 15-axiom context matches and all unsafe categories are
-empty. `review-kernel.py` rechecks that output against the unchanged source,
-contract, dependency and input-fingerprint evidence. This kernel success
-is not full normal acceptance by itself. Preserve candidate inputs.
-Seven in-memory status/hash/fingerprint/unsafe/context mutations are rejected
-by `test-kernel.py`; none changes the candidate or its audit inputs.
 
 Prepared input fingerprint:
 `951402aa40e88c34b42d24b9bd95725285670df885531ff555b8e290127d5ffc`.
@@ -80,9 +36,3 @@ Candidate 359/533 is **accepted isolated** coverage (255 without an extra
 library premise, 104 conditional on memcpy_model). Main remains **351/533**.
 These local-frame / LP64 / RECKLESS contracts do not establish evaluator-wide
 or assertion-enabled execution. No every-jet completion is claimed.
-
-Preparation receipts/commands are in `PREPARATION.json`, exact reviewed
-source/evidence hashes in the assembly/preliminary receipts.
-Read `CONTINUATION.md` before proceeding. Preserve mixed staged/unstaged
-main work; Claude owns Elements/shared obligations. Signed local commits
-only, no production C/Haskell edits or remote pushes.

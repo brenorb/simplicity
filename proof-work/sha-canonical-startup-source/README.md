@@ -61,19 +61,6 @@ bit, order, padding and type dependencies. No old comparison was replaced
 or weakened and no C/Haskell/Coq input was changed to pass this gate. The
 committed model is authoritative; do not regenerate it from changed sources.
 
-`check-source.py` performs the actual read-only comparison. `test-source.py`
-mutates its in-memory view only: it never edits a source tree or compiles a
-corrupted theorem. The initial298-fixture suite passed. The extended suite
-needed one test-harness correction to handle an exact import-line pattern
-without a capture group; this was an `IndexError`, not a C/Coq discrepancy.
-The extended327-fixture suite and the once-only source controller both
-completed with exit zero under handle78280. `SOURCE-REVIEW.json` and exact
-positive/negative logs bind the terminal result. The completed command was:
-
-```sh
-python3 -B proof-work/sha-canonical-startup-source/finish-source.py /private/tmp/jet-sha-canonical-startup.8SBgLe7u
-```
-
 It requires the actual successful kernel/AST launch, receipts, exact sources,
 fresh objects and logs before running positive/negative source checks, and
 checks that main inputs, the staged patch and the private source fingerprint

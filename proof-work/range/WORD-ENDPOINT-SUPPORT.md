@@ -11,15 +11,6 @@ state. Thus the wider predicate's additional case is inhabited in the formal
 memory model, not merely arithmetic or a conditional execution theorem.
 This still does not assert reachability by the Linux allocator/evaluator.
 
-Fresh whole compilation and independent whole-chain kernel checking pass with
-exit 0 (35265), with exactly the same 15 inherited library axiom names and no
-unsafe flags. The public diagnostic has the six inherited execution assumptions.
-The exact source is archived with SHA-256
-`cf88d8f768a8df6762eb2cca8a9b5f340cf475c288159d4e320636c331d52fa8`; logs are `witness-compile.log` and `witness-kernel.log`
-under `/tmp/jet-word-endpoint.08PCY3`. Its logical module is
-`EndpointReview.jet_writeBit_endpoint_witness`, depending on the support module
-below. No accepted proof predicate or jet registration is changed.
-
 The current `write_frame_at` requires every accessed word's exclusive end to be
 at most `Ptrofs.max_unsigned`. The separate `endpoint_write_frame_at` changes
 only that bound to `max_unsigned + 1`. All cursor, metadata, range-separation,
@@ -48,21 +39,7 @@ type-in-type, unsafe fixpoints and assumed positivity are all absent. The
 arithmetic witness is closed; the execution theorem retains six inherited
 assumptions. This does not certify a reachable Linux allocation at that address.
 
-Verified source SHA-256:
-`2e3a245e95c72d4146467973391d0c6f5525018810b8bdf4454ae5525418874d`.
-Scratch namespace: `EndpointReview`; directory `/tmp/jet-word-endpoint.08PCY3`.
-Dependencies: independently accepted reconciled range tree at
-`/tmp/jet-range-consumer.RbIhbg/Coq`.
-
 Reproducible checks from that dependency directory, with the project Coq PATH:
-
-```sh
-ulimit -S -s 65520
-bash build-jets.sh --coqc -R /tmp/jet-word-endpoint.08PCY3 EndpointReview \
-  -q /tmp/jet-word-endpoint.08PCY3/jet_writeBit_endpoint.v
-bash build-jets.sh --coqchk -R /tmp/jet-word-endpoint.08PCY3 EndpointReview \
-  -silent -o EndpointReview.jet_writeBit_endpoint
-```
 
 The two running checkout/negation audits are not modified by this work. No
 accepted predicate or coverage changes. Generalizing the accepted shared

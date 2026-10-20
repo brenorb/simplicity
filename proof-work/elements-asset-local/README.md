@@ -48,11 +48,6 @@ order are retained in the full function proof.
 
 ## Verification
 
-```sh
-python3 -B proof-work/elements-asset-local/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-asset-local/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Place the eight archives in a fresh external directory as `Buffer.v`,
 `ContextHashes.v`, `TaggedWord.v`, `Spec.v`, `Counter.v`, `Bridges.v`, `Local.v`,
 `Actual.v`. The driver freshly compiles all eight files, reports full
@@ -63,13 +58,6 @@ closed; the global-state equivalence has four inherited dependencies; the two
 full C-call theorems have the six inherited CompCert/VST dependencies. The
 explicit `memcpy_model` premise remains conditional, not discharged by this
 assumption report.
-
-`RUN.json` records compilation, `KERNEL-RUN.json` records a launch only. Only
-`CHECKED.json` with kernel exit status zero confirms completed recursive kernel
-checking for those exact bound inputs. The independent full audit recursively
-checks its entire dependency chain even if the separate middle-phase audit is
-still running. Do not edit bound sources, objects, drivers or the source review
-during a live audit; poll the existing process rather than restarting silence.
 
 Unregistered proof work: accepted coverage added is zero. Full-repository jet
 coverage, normal admission and the existing external-library obligations remain

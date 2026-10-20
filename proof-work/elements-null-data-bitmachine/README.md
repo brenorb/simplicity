@@ -1,12 +1,5 @@
 # Actual null-data call in a represented Bit Machine
 
-Private tree: `/private/tmp/jet-null-data-bitmachine.GPJBlwNP`.
-Fingerprint:
-`4dc6ef131b2744a1b333c8950e23206637fd2cc51b1a03d56d4f0346f593b490`.
-The new source is archived under `source/`; inherited sources equal the checked
-`../elements-null-data-layout/` tree byte for byte. Main418 semantic inputs and
-the original staged patch are unchanged.
-
 ## Stronger checked endpoint
 
 `elements_output_null_datum_bitmachine` combines the complete actual C call
@@ -77,10 +70,6 @@ classical/extensionality assumptions; the complete-call/state theorem uses the
 six inherited Coq/CompCert assumptions. No new axiom, admission or unchecked
 operation was added. `whole_c_endpoints=1` records this explicit contextual
 endpoint, not normal registration or added coverage.
-
-```sh
-python3 -B proof-work/elements-null-data-bitmachine/review.py /private/tmp/jet-null-data-bitmachine.GPJBlwNP
-```
 
 Development corrections: remove an unused layout binder from the cursor
 definition, explicitly instantiate the dependent input type when passing a

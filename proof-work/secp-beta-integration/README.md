@@ -26,34 +26,7 @@ tactics, C code, specification values and generation settings are unchanged.
 The reusable borrowed-region and internal-Clight preservation modules receive
 generic `C.*` names; beta-specific adapters receive `C.jet_secp_beta_*` names.
 
-The candidate is `/private/tmp/jet-beta-integration-qctc10_1`. Its existing normal
-project contents are retained, with missing source membership appended. A new
-`coq_makefile`/`make` dependency build compiles the ordinary endpoint and all
-249 modules in its actual closure from source, using the pinned Coq 8.17.1,
-CompCert and VST paths. There are no private namespace flags or copied `.vo`s.
-This focused target is not a build of every unrelated registered jet.
-
-The driver logs include expected unsuccessful Git lookups for archive-only
-ordinary source paths. Those sources are then recovered from committed proof
-archives and checked against the original source hash. These lookup diagnostics
-are not failed Coq proofs; `beta-normal-build.log` and the terminal command
-status record the actual successful compiler run separately.
-
 ## Verification phases
-
-```sh
-python3 -B proof-work/secp-beta-integration/assemble.py prepare
-python3 -B proof-work/secp-beta-integration/assemble.py build
-python3 -B proof-work/secp-beta-integration/verify.py reports
-python3 -B proof-work/secp-beta-integration/verify.py kernel
-python3 -B proof-work/secp-beta-integration/verify.py check
-```
-
-Mutating phases are one-shot: poll their original process handles. Launch files
-are not completion receipts. `PREPARATION.json`, `BUILT.json`, `REPORTED.json`
-and `CHECKED.json` distinguish exact reconstruction, completed fresh normal
-build, completed reports/review, and completed recursive kernel verification.
-The final command is read-only and validates the exact checked identities.
 
 The full reports cover all 107 extension result types and 32 definitions.
 Every type and definition is compared to the original full report after resolving

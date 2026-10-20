@@ -2,7 +2,7 @@
 
 These sources belong to isolated derived Coq programs, **not** the main
 `C` namespace. Use the copied-tree driver in
-[`proof-work/linked-repair`](../../proof-work/linked-repair/README.md).
+[`proof-work/linked-repair`](../../linked-repair/README.md).
 Do not add these files directly to the ordinary `_CoqProject.jets`.
 
 In the core tree, `C.jets_unlinked` names the unchanged original core AST

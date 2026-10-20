@@ -14,14 +14,6 @@ of the existing bytestring proof; no environment-only `hashBuffer` execution
 is imported. `Registers` is an unchanged, freshly compiled copy of the four
 canonical entropy register lemmas.
 
-The private sources are `/private/tmp/jet-elements-entropy-stream.TTe2wB`.
-`verify.py compile|kernel EXTERNAL_DIRECTORY` binds the 276 forced-source parent
-dependencies plus two freshly compiled unchanged canonical-program/register
-modules to all four fresh extension modules. Full reports check 38 results
-(37 closed, one with the six inherited execution dependencies) and eleven
-definitions. Only
-`CHECKED.json` records a successful recursive kernel check.
-
 The first inventory check found that the canonical specification module also
 needed fresh-source provenance, in addition to its register module. It refused
 to issue a receipt; its exact driver/reports are preserved in `first-attempt/`.

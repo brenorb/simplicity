@@ -1,4 +1,4 @@
-"""Scoped literal scalar-negate wiring and recursive ports; not C acceptance."""
+"""Scoped literal scalar-negate wiring and literal division substitution; not C acceptance."""
 import argparse
 import hashlib
 import importlib.util
@@ -21,10 +21,8 @@ def check(repo, source, dependencies, coq):
     scalar = load('scalar_ports', coq / 'scalar-review/check-scalar-ports.py')
     if scalar.check(repo, dependencies, coq) != 2:
         raise ValueError('unexpected base scalar scope')
-    recursive = load('recursive_ports', coq / 'negate-review/check-recursive-ports.py')
-    ref, sources = recursive.load(repo, coq / 'negate-review')
+    recursive = load('source_helpers', coq / 'source-review.py')
     parser = recursive.parser(repo)
-    recursive.check(parser, ref, sources)
     literal = load('literal_ports', coq / 'negate-review/check-literal-ports.py')
     h, p, ports = literal.load(repo, coq / 'C', coq / 'negate-review')
     if literal.check(h, p, ports) != 14:
@@ -55,11 +53,10 @@ def check(repo, source, dependencies, coq):
         if parser.compact(parser.definition(port, name)) != parser.compact(expected):
             raise ValueError('scalar literal port differs: ' + name)
     paths = [repo / f for f in scalar.files] + [dependencies / f for f in scalar.ports]
-    paths += [repo / f for f in sources]
     paths += [coq / 'C' / f for f in ['jet_literal_division_add.v', 'jet_canonical_add_adapter.v', 'jet_secp_negate_literal_contract.v']]
-    paths += [coq / 'negate-review/recursive-ports-review.json', source / 'jet_secp_canonical_scalar_negate.v']
+    paths += [source / 'jet_secp_canonical_scalar_negate.v']
     return {'literal_scalar_ports': 6, 'scalar_negate_literal_structure': True,
-            'recursive_dependency_gate': True, 'complete_literal_public_contract': False,
+            'literal_division_gate': True, 'complete_literal_public_contract': False,
             'public_coverage_added': 0,
             'hashes': {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}}
 

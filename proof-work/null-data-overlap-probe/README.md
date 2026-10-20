@@ -27,12 +27,6 @@ tags1,1. An overlapping layout produces1,0 instead, while returning success and
 advancing the destination to its end. The first output tag is aligned with an
 unread part of the second input index.
 
-Four configurations reproduced the difference: the native16-bit UWORD and an
-explicitly selected64-bit UWORD, each in PRODUCTION and debug mode. Exit0 from
-this diagnostic means **the discrepancy reproduced**, not that the jet passed
-an equivalence test. Commands, source/compiler identities, output logs and
-scope flags are in `DIAGNOSTIC.json`.
-
 The mechanism matches the actual source order: read i; write the outer tag;
 then read j. Overlap allows that tag write to alter j before the jet reads it.
 The mathematical/primitive case being represented is a null-data script
@@ -69,9 +63,3 @@ The valid-layout Coq work continues independently: the reader/preservation
 lemmas derive unread-input preservation from actual formal word-range
 separation, with input/output data in the same allocation. Those checked
 results do not claim arbitrary overlapping-buffer correctness.
-
-Private native fixture/binaries: `/private/tmp/jet-overlap-probe.trluB4`.
-The committed source is archived, not added to the production C source tree.
-All native runs checked that main semantic inputs and original staging stayed
-unchanged. No acceptance snapshot, coverage registry or C implementation was
-modified by this diagnostic.

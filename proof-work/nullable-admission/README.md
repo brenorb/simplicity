@@ -23,13 +23,6 @@ coverage, inventories, inherited types, dependency sets and deep records.
 No production C, canonical specification, generated program, existing proof
 or external-library condition is changed. Coverage remains 361/533.
 
-The isolated candidate is `/tmp/jet-nullable-admission.k3nw6pma`; preparation
-is not acceptance. An initially redundant whole-registry snapshot-preparation
-run (35931) was stopped, with its exact three owned processes identified.
-`prepare.py` prints only the additions in the full gate's import context and
-merges them with unchanged inherited records. Full acceptance still checks
-the entire registry; this avoids doing that expensive traversal twice.
-
 ## Installation and acceptance
 
 `review.py --apply` installs only the seven reviewed metadata/snapshot deltas
@@ -37,27 +30,6 @@ into the actual main worktree. It checks original file hashes, preserves every
 existing proof and leaves the index unchanged. This is intentionally a
 worktree-only change: committing these whole dirty metadata files would also
 commit unrelated preexisting staged/unstaged work.
-
-Full actual-main acceptance is run once, without update/no-build flags. Its
-frozen input fingerprint is
-`7223f862a6ae78fd2763b0cca414fb494e6cf3c8b22a213c2a533f0648ee09fd`.
-`AUDIT-RUN.json` identifies the process and log; a running process is not
-acceptance. `ACCEPTANCE.json`, when present, records terminal success, log
-hash and unchanged inputs. Keep main Coq sources, registries, C and Haskell
-inputs frozen until that process completes.
-
-Terminal run 52224 completed with exit 0 (chunk `2865e9`). All 939 kernel
-modules passed; 4,823 assumption records (2,665 closed) and all public
-snapshots matched. Negative tests and all four original AST regenerations
-passed. The post-run fingerprint and exact preexisting staged patch remain
-unchanged. `ACCEPTANCE.json` supersedes the historical launch-only status in
-`AUDIT-RUN.json`: this is accepted actual-main worktree admission, not a
-claim about a clean HEAD checkout. The scoped seven-file delta remains
-unstaged among the deliberately preserved preexisting registry changes.
-
-```sh
-python3 -B proof-work/nullable-admission/post-check.py
-```
 
 `post-check.py` verifies installed metadata, exact preexisting index hashes,
 the staged patch and frozen source fingerprint. It reports acceptance only

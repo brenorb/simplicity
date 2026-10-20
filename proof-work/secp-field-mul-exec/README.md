@@ -18,30 +18,11 @@ The 52/64-bit shift dispatch composes separately proved original C helper
 summaries. It introduces no assumed execution or libc premise. The other
 internal helpers are executed by the existing verified executor.
 
-Proof namespace: `/private/tmp/jet-secp-field-run.ZmrNBs` (`FieldRun`). It uses
-the frozen source-bound tree `/private/tmp/jet-secp-shifts.SfCvHG`, including
-the kernel-checked `SecpShift` extension (its pure numeric module is not loaded
-by this execution-only root). The verifier rebuilds four additional unchanged
-local imports explicitly, then recompiles both
-new modules, inspects all 15 theorem types and 10 definitions, and checks
-eleven closed results plus four with exactly the six inherited dependencies.
-Every loaded local module must be one of the 15 previously forced imports or
-one of the four freshly compiled imports. Main sources and staging are pinned.
-
 The first strict loaded-closure gate stopped before acceptance: composing
 the old 64-bit summary imports its oracle module, not only its already-bound
 call/storage proof. That extra module is now freshly compiled explicitly;
 the checked local closure is exactly 19 modules. The initial launch/failure
 are preserved; no proof was changed to resolve this inventory issue.
-
-`RUN.json` means compilation/reports succeeded; only `CHECKED.json` additionally
-means recursive kernel verification succeeded. Launch files alone are not
-success receipts. Preserve and poll a running handle instead of restarting it.
-
-```sh
-python3 -B proof-work/secp-field-mul-exec/verify.py kernel \
-  /private/tmp/jet-secp-field-run.ZmrNBs
-```
 
 The initial output-reconstruction equality timed out at ten seconds with
 both eager computation and direct conversion. The fix retains the same

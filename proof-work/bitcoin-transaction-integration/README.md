@@ -6,14 +6,6 @@ its copied records and calculated cached hashes, and their connection to
 `project_raw_environment`. Review the execution and specification bridge,
 not only the pure hash equalities.
 
-Run `python3 -B proof-work/bitcoin-transaction-integration/run.py prepare`,
-then `check --candidate DIR`, then `install --candidate DIR`. Use Coq 8.17.1
-and `ulimit -s 65520`. Preparation reuses only source-matched, hash-pinned
-objects from the previously checked taproot environment unit. Newly added
-modules compile; the final kernel check checks the root and its dependencies.
-The production AST is regenerated and compared byte-for-byte. Exact theorem
-assumptions, untruncated types/definitions, and object/log hashes are retained.
-
 Proofs live under `Coq/bitcoin-env/C`, outside the normal C load path. The
 isolated `C.jets_sha` is the environment program, **not** main's original SHA
 program. Main's accepted source files and registry/staging remain unchanged.

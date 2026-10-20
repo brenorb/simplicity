@@ -46,24 +46,5 @@ after the first payload bit is preserved by its derived write effect.
 This is not a theorem for arbitrary overlapping API buffers, nor a proof that
 the production environment builder establishes the relation.
 
-`RUN.json` binds the exact current inputs, source/object hashes, full 16-result
-and 17-definition inventory, and assumption reports. Six results are closed;
-the reader-semantic result uses functional extensionality. CompCert expression
-helpers use four inherited dependencies, and the seven execution/endpoint
-results use the same six inherited dependencies as the existing Clight chain.
-No new axiom, admitted proof or unchecked cast is introduced.
-
 Reproduction commands (use a distinct private clone containing the five exact
 archives as `.v` files in `Coq/C/`):
-
-```sh
-python3 -B proof-work/elements-issuance-status/verify.py compile PRIVATE_TREE
-python3 -B proof-work/elements-issuance-status/verify.py kernel PRIVATE_TREE
-```
-
-These drivers preserve the existing manifests and add proof roots on the
-makefile command line with the project's unchanged load paths/configuration.
-Receipts are once-only: inspect an existing launch/process instead of
-overwriting it or starting a duplicate kernel run. `CHECKED.json`, when present,
-records successful recursive kernel checking and postchecks for those exact
-inputs only. Historical receipts are not transferred to changed sources.

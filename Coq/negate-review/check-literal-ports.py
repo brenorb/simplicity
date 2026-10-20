@@ -14,9 +14,7 @@ NAMES = ['div3n2n_approx_spec', 'div3n2n_loop2_spec', 'div3n2n_loop1_spec',
 
 
 def helper(directory):
-    path = Path(directory)/'check-recursive-ports.py.source'
-    if not path.exists():
-        path = path.with_suffix('')
+    path = Path(directory).parent/'source-review.py'
     loader = importlib.machinery.SourceFileLoader('recursive_ports', str(path))
     spec = importlib.util.spec_from_loader(loader.name, loader)
     module = importlib.util.module_from_spec(spec)

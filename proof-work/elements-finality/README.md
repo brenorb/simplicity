@@ -10,12 +10,6 @@ mathematical predicate or assume the C execution.
 
 ## Evidence
 
-Private tree: `/private/tmp/jet-elements-finality.OcoS6I`.
-Base: the immutable final-name direct-getter preparation, not either running
-acceptance tree's compiler objects. Sources are unchanged copies; no new Coq
-definition, theorem or axiom was needed. Existing verified recursive-loop,
-predicate and C-wrapper infrastructure is reused.
-
 Seven modules were explicitly freshly compiled in dependency order, including
 the finality specification, C field helper and actual-C endpoint. All 43
 helper/final result types and 22 definitions were printed without elision or
@@ -44,20 +38,7 @@ This batch does not prove that an actual environment builder establishes that
 cache relation, does not prove evaluator integration, and does not broaden the
 LP64/RECKLESS configuration covered by the existing C model.
 
-`PREPARATION.json` binds sources, objects, commands, successful exits, reports,
-tools, the source base and the preserved original index. `AST.json` binds exact
-regeneration separately. Source archives and complete result/assumption/kernel
-reports are retained here. `review.py` revalidates this evidence and the source
-correspondence; twenty in-memory evidence corruptions are also rejected.
-Receipts describe the actual dirty/staged source base, not clean-HEAD
-reproducibility.
-
 ## Continuation
-
-```sh
-python3 -B proof-work/elements-finality/review.py
-python3 -B proof-work/elements-finality/test-review.py
-```
 
 Both commands should pass before any admission candidate is assembled.
 Normal manifests, public-result/definition registries, snapshots and coverage

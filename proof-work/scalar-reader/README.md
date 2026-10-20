@@ -57,22 +57,6 @@ inherited classical/extensionality assumptions, and eight with the same six
 inherited execution assumptions. The five numeric/substitution results are
 closed. The imported context list is not a per-result assumption set.
 
-Diagnostic tree printing (81933 exited 0) contains two trees, 62479 lines,
-without truncation. Their actual run/region equations and original body
-decomposition are formal checked results; diagnostic text is not an omitted
-equality certificate. The manifest pins sources and exact output hashes.
-`review.py --work /tmp/jet-scalar-reverify.8hswEF` rechecks this internal
-evidence, not public coverage or full acceptance.
-Nine in-memory negative fixtures reject source, driver, diagnostic, contract,
-tree, dependency and unsafe-kernel mutations without changing any proof or
-running audit input. The earlier scalar-set evidence still passes its guard.
-
-Sources and drivers are `.source` archives outside accepted load paths.
-Materialized modules and logs are in `/tmp/jet-scalar-reverify.8hswEF`; invoke
-`build-jets.sh` from `/tmp/jet-ge-negate-accept.5mtyZa/Coq` with the narrow
-`-R /tmp/jet-scalar-reverify.8hswEF OriginalC` mapping. The frozen affine
-acceptance candidate has not been edited by this work.
-
 The next boundary is now public scalar_is_zero (reader lifecycle is checked
 in its separate archive). Prove public scalar_is_zero
 against its literal canonical term (including raw zero OR group-order input),

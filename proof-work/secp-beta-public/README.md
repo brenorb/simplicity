@@ -47,31 +47,6 @@ No generic external-call-properties theorem is used.
 
 ## Verification and scope
 
-```sh
-python3 -B proof-work/secp-beta-public/verify.py compile
-python3 -B proof-work/secp-beta-public/verify.py kernel
-python3 -B proof-work/secp-beta-public/verify.py check
-```
-
-Compilation and kernel phases are one-shot; poll their original processes.
-Launch files alone do not prove completion. `RUN.json` binds fresh compilation,
-all 28 result types and five definitions, exact assumptions, a six-mutation
-public-contract/source-correspondence review and the loaded source/object
-closure. The new results comprise eighteen closed results, two with the four
-inherited classical/extensionality assumptions, and eight with the same six
-inherited Coq/CompCert assumptions. The public endpoint is among the latter;
-neither external-functions-properties nor inline-assembly-properties is added.
-`CHECKED.json` records only a completed successful recursive kernel run.
-
-Sources compile in `/private/tmp/jet-beta-public.xYJKvR` under `BetaPublic`,
-against the pinned, source-built original field basis and exact checked helper
-extensions. One additional unchanged shared module,
-`C.jet_secp_initialized_contract`, is freshly compiled and source/object-bound.
-The full loaded closure contains 230 local modules plus the identified checked
-extensions. The read-only verifier checks source/object/log identity, main input
-preservation, staged-patch identity and the 240-file original-target guard.
-Missing private build trees require reconstruction, not rewriting receipts.
-
 The authority remains the original frozen Haskell specification and generated C
 program. The reviewed literal beta port and multiplication foundation are reused
 unchanged. These checks do not establish Haskell compiler correctness, another

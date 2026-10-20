@@ -22,33 +22,6 @@ derived, not extra execution premises.
 
 ## Evidence and scope
 
-Four sources, 41 results and 37 definitions. The expected exact dependency
-profile is 36 closed results, two representation/load lemmas with four
-inherited classical dependencies, and three execution results with the six
-inherited Coq/CompCert dependencies. `RUN.json` records fresh compilation and
-full type/definition/assumption reports. `CHECKED.json` additionally records
-completed recursive kernel verification; a launch file is not success.
-
-The first audit compiled the proofs and checked their exact assumption
-profile, but rejected the loaded closure: its copied namespace filter had
-omitted `FieldFourth`. `verify-initial-closure.py.source`, the original
-`LAUNCH.json`, and `initial-closure-assumptions.log` retain that failed audit.
-The corrected checker inventories **every** non-standard module and rejects
-any module lacking exact source/object provenance. `RECHECK-LAUNCH.json`
-starts the corrected run. No proof or dependency was changed for this repair.
-
-Audit tree: `/private/tmp/jet-field-checkpoint-audit.Zeze9g`, new sources in
-`fifth/` under `FieldFifth`. The parent binds the 95 previously forcibly
-rebuilt local imports and 30 checked extension modules. Every loaded module's
-source/object provenance is checked before and after verification.
-
-```sh
-python3 -B proof-work/secp-field-fifth/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-fifth/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 This remains partial helper execution, not complete jet equivalence; coverage
 added is zero. Remaining final reduction/output stores, field-product bridge,
 function entry and public reader/writer/lifecycle composition remain open.

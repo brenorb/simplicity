@@ -37,19 +37,7 @@ all unsafe categories empty. Untruncated reports cover all 28 type/definition
 records (global 52,195 bytes, literal 4,467 bytes). Manifest and review receipt
 pin exact sources, objects, drivers, reports and logs. No main registration.
 
-Run `python3 -B proof-work/scalar-lambda/review.py` and `test-review.py` from the
-repo for provenance, exact dependencies/contracts, source identity and negative
-fixtures. Inputs remain frozen in the two manifest scratch directories.
-
 ## Reproduce / continue
-
-Use Coq 8.17.1, a 65520 KiB stack, and the immutable accepted multiplication
-base `/tmp/jet-scalar-multiply-integration.yIS07H/Coq`'s `build-jets.sh`.
-Add narrow `-Q` mappings for BorrowC, BorrowFC, LambdaC and LamSpecC using the
-paths in the borrowed-function and this manifest. Rebuild global then region
-then literal; rebuild both pairs of drivers. Kernel roots are
-`LambdaC.jet_secp_scalar_lambda_region` and
-`LamSpecC.jet_secp_canonical_scalar_lambda`. Do not copy objects into main.
 
 Next compose the real jet reader, borrowed scalar_mul call, writer and private
 local cleanup. Discharge disjointness from actual fresh allocation and retain

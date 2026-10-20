@@ -36,29 +36,6 @@ deriving the current source cursor from the returned representation.
 fields' storage. `Compose` supplies the checked multiplier/writer theorem's
 entire entry contract and retains source-frame storage through it.
 
-The extra `C.jet_secp_local_call` dependency was freshly compiled, with its
-source, object, command and log identities in `DEPENDENCIES.json`; it is
-identical to the checkout source. The checked writer parent binds the other
-148 local sources and 48 extension modules. This root loads 149 local sources
-and 52 extensions, including these four new modules.
-
-22 new results, four definitions. Exact assumption profile: 13 closed,
-six memory results with four inherited classical dependencies, and three
-execution results with the six inherited Coq/CompCert dependencies. No
-new axiom or external model is added. `RUN.json` binds fresh compilation
-and full contracts/assumptions; `CHECKED.json` additionally binds a successful
-recursive kernel check. A launch record alone does not establish success.
-Negative checks reject an extra assumption and detect an unfamiliar module.
-
-```sh
-python3 -B proof-work/secp-field-input/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-input/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-input/verify.py check \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 The first composition experiment completed its tactics and had no remaining
 goals/evars, but closing the proof hit the ten-second budget. Keeping the
 named arithmetic/program models opaque made the complete file compile in

@@ -1,12 +1,5 @@
 # Actual second read plus opcode-index branch
 
-Private tree: `/private/tmp/jet-null-data-read-index.jkbo196s`.
-Semantic fingerprint:
-`1f78837df43dc5c00d103485873d981bd1e765f99fcbba9379d1230c4d63d69f`.
-The new source is archived under `source/`. All inherited source bytes equal
-the completed `../elements-current-reader/` tree. No main418 semantic input
-or original staging changed; no live audit objects were copied.
-
 ## Formal progress
 
 `exec_elements_null_data_read_index_block` executes the complete actual true
@@ -46,25 +39,6 @@ normal registration, canonical source gate or coverage entry.
 
 ## Verification
 
-Fresh checker45303 exited0: the new module explicitly recompiled, all8 result
-types and4 definitions were printed without elision, Elements AST regeneration
-matched and recursive `coqchk` accepted the module and its dependency chain.
-One source equality is closed; six preservation/freshness/effect results use
-the four inherited classical/extensionality assumptions; one execution result
-uses the six inherited Coq/CompCert assumptions. No new assumption, admission
-or unchecked kernel operation was introduced. `CHECKED.json` binds the fresh
-source/object, tools and terminal commands/logs.
-
-Independent evidence review76275 exited0 and rejected35 deliberate proof,
-assumption, type, log, source and kernel-scope corruptions. Its terminal evidence
-is `EVIDENCE-REVIEW.json`; a separate postcheck revalidates the receipt, tool and
-log identities against the current private tree and unchanged main inputs.
-Recheck:
-
-```sh
-python3 -B proof-work/elements-null-data-read-index/review.py /private/tmp/jet-null-data-read-index.jkbo196s
-```
-
 Development corrections were importing the actual cell predicate definition
 and exposing the writable frame's cursor bound before arithmetic in the
 interleaving lemma. No theorem domain or implementation changed.
@@ -96,7 +70,3 @@ not a failure demonstrated on valid evaluator layouts. Nevertheless, keep the
 broader documented-API aliasing question open rather than claim an unrestricted
 header-domain theorem from only the separated-layout result. No C, primitive
 or header was changed to resolve that question in this batch.
-
-Actual-main418 acceptance remains the live handle6155. Preserve its semantic
-inputs. The every-jet goal remains active/incomplete; this batch adds0 whole-
-jet coverage and claims no clean-HEAD reproduction.

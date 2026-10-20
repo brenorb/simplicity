@@ -11,10 +11,6 @@ renamed or applied to this function.
 
 ## Completed helper
 
-Private tree: `/private/tmp/jet-elements-token-amount.unLYUV`, cloned only from
-the completed issuance asset-amount proof tree. Its only new source is
-`C/jet_elements_token_zero_init.v`, archived under `source/`.
-
 Five results and four definitions establish the actual AST fragment, local
 object/union/prefix addresses, both typed stores and their composition.
 `exec_token_zero_init` derives a memory satisfying `amount_rep ... (Explicit
@@ -23,15 +19,6 @@ object, permissions and valid blocks. It does not assume either store executes
 or the desired resulting representation. Only the two fields actually read
 by the explicit-amount helper are initialized; unrelated bytes/padding are
 not assumed zero.
-
-Checker1117 and independent evidence review both terminated with exit0:
-fresh compilation, full type/definition and assumption reports, the generated
-Elements AST check, and recursive kernel checking passed. The AST-fragment
-equality is closed. The final store-sequence execution result retains the six
-inherited Coq/CompCert assumptions; address lemmas retain the four inherited
-standard-library assumptions. `ZERO-INIT-CHECKED.json` binds the completed
-commands, source, fresh object and logs; `ZERO-INIT-REVIEW.json` verifies them.
-No normal registry or main source was changed; coverage added is zero.
 
 ## Remaining implementation-to-specification chain
 

@@ -27,12 +27,6 @@ no new library model or assumed execution/output fact.
 
 ## Verified evidence
 
-Private tree: `/private/tmp/jet-elements-check-lock.aYcKrW`.
-Its inherited Coq source tree is an unchanged copy of the checked final-name
-timelock tree (`../elements-timelock-normal/README.md`). The two new sources
-are in `Proof/`, mapped narrowly to `CheckLockReview`, outside normal Coq
-registration. No live acceptance-tree compiler outputs were copied.
-
 Ten inherited C modules and the two new proof modules were freshly compiled.
 All 77 helper/final result types and 40 definitions have complete reports,
 without elision or unresolved placeholders. Assumption reports cover these
@@ -59,18 +53,6 @@ assertion branches, changed failure returns, weakened memory framing, wrong
 functions/environments/widths and vacuous premises. Invalid proof text is
 never compiled. The evidence review has additional scope/source/transport/
 context/command/kernel/AST rejection tests.
-
-`PREPARATION.json` binds the source base, original index, successful compiler/
-checker commands, exits, source/object hashes, reports and tools. Both new
-sources are outside the inherited Coq fingerprint and separately pinned by
-source/object hashes and exact source guards. All source archives and full
-contract/assumption/kernel/AST logs are retained here. This records the actual
-dirty/staged source base, not clean-HEAD reproducibility.
-
-```sh
-python3 -B proof-work/elements-check-lock/review.py
-python3 -B proof-work/elements-check-lock/test-review.py
-```
 
 ## Next steps and scope
 

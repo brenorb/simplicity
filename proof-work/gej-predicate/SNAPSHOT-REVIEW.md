@@ -12,16 +12,6 @@ program, temporary environments, statement trees, storage predicates and
 computed reader/zero-test witnesses. Inventories were checked against the
 actual declarations, not inferred from a manually maintained count.
 
-Preliminary deep contract printing **5474 passed, exit 0**. Driver:
-`/tmp/jet-gej-predicate.W2FtCz/predicate_contracts_review.v`, SHA-256
-`dcd1d8ae9b6dce69b14eda8bf4df0c8c5c9f43e0be21462444ef36b9dec5ae56`.
-Output `contracts-review.out` in that directory is 68,924 lines / 6,505,926
-bytes, SHA-256
-`cd1068b27cd679284995fb4f7c84a570e9b4a75217d8c3f355ed1fd94a041b32`;
-stderr is empty and no `(...)` printing truncation occurs. This used
-Printing All, Width 120 and Depth 10000 and printed every inventoried type
-and transparent definition. It did not update any standard expected snapshot.
-
 Review so far inspected the actual public remainder/setup/entry/call/final
 types, literal/parametric bindings and the concrete point/source ownership,
 statement and temporary definitions. They retain the intended canonical bit,
@@ -30,19 +20,6 @@ This does not claim manual review of every node of the 65,000-line computed
 reader tree or completion of an old-record/standard-snapshot diff. The closed
 execution witnesses have exact archived source hashes and kernel-proved run
 equalities; deep prints supplement their later standard-depth truncation.
-
-Actual per-result assumption generation **97828 passed, terminal exit 0**.
-Driver `/tmp/jet-gej-predicate.W2FtCz/predicate_assumptions_review.v` SHA-256
-`11ec6c61393533c042262558e256c3f36f40856d037042c675d3d2ede9522fd7`.
-Output `assumptions-review.out`: 446 lines / 20,732 bytes, SHA-256
-`9d17523874623cae0a39d1f4e4ff101ea189fd99b5b87ab7c4782d5aa2388c10`;
-stderr empty. Actual reports cover all 62 unique inventoried results, 34
-closed, and only six inherited axiom names. The final public theorem retains
-the six inherited execution assumptions; no external-library model/new axiom
-appears. The rows in `assumptions-provisional.expected.source` are derived
-from actual output, not guessed theorem categories. The read-only parser
-rejects missing/duplicate/unfinished sections and unexpected axioms; two
-positive and seven negative report fixtures were checked.
 
 Preliminary ordinary-depth contract printing **79041 passed, exit 0**.
 Driver `predicate_contracts_standard.v` SHA-256
@@ -58,14 +35,6 @@ numerals or generated states. All their retained fragments match the deep
 report in order. This textual ellipsis diagnostic is not structural equality
 of omitted terms: exact archived/materialized source hashes and independent
 kernel evidence remain required. Deep supplements contain no ellipses.
-
-The receipt `PRELIMINARY-REVIEW.json` contains actual per-result axiom sets
-and print-comparison evidence. Reproduce the read-only preliminary review:
-
-```sh
-python3 proof-work/gej-predicate/review-preliminary.py \
-  --work /tmp/jet-gej-predicate.W2FtCz --assumptions
-```
 
 Supplemental scoped source/lifecycle correspondence now passes and all 37
 meaningful negative fixtures are rejected, terminal exit 0. The exact scope

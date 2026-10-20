@@ -29,14 +29,3 @@ return and freeing all locals still need final composition. The existing
 explicit `memcpy_model` is retained. No field/curve or nonce-value restriction,
 new axiom, production-target change, normal registration or accepted coverage
 is introduced.
-
-`verify.py compile|kernel EXTERNAL_DIRECTORY` recompiles all five modules and
-checks all 28 statements and six definitions. Its exact profile is eight
-closed results, eleven with four inherited expression dependencies and nine
-with the six inherited execution dependencies. Every one of the 251 imported
-project sources/objects belongs to the forced-source original-program basis;
-both parent extensions and all five new extensions are checked unchanged.
-`RUN.json` records compilation; only `CHECKED.json` records a successful
-recursive kernel audit. The Coq proof-engineering skill guided this split and
-the reuse of the closed reader-linkage lemma instead of a large-context
-automation search.

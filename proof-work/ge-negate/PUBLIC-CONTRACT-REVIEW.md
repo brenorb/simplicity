@@ -48,14 +48,6 @@ the per-result axiom sets.
 
 Reproduce read-only reviews:
 
-```sh
-python3 proof-work/ge-negate/review-preliminary.py \
-  --archive /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity/proof-work/ge-negate \
-  --work /tmp/jet-ge-negate.aFl8mr
-python3 proof-work/ge-negate/test-review-preliminary.py
-python3 proof-work/ge-negate/review-assumptions.py --work /tmp/jet-ge-negate.aFl8mr
-```
-
 Next assemble the exact sources, inventories and scoped gates into separate
 normal project load paths. Build, generate/review full snapshots preserving
 every inherited contract/dependency, and run full isolated acceptance without

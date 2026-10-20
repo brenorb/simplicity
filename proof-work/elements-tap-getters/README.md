@@ -4,12 +4,6 @@ These are **unregistered** implementation-to-specification proofs for two
 Elements jets. They do not change main coverage (386/533 at preparation) or
 stand in for either running whole-registry acceptance.
 
-Private tree: `/private/tmp/jet-elements-tap-getters.jq5mpvwy`, copied from the
-completed `elements-output-proof` tree, never from a running audit's objects.
-All inherited source/metadata files are byte-identical except the one explicitly
-reviewed, unregistered nullable-tappath module. Main Coq/C/Haskell and the original
-staged patch are untouched.
-
 ## Actual C endpoints
 
 - `elements_internal_key_literal_local_spec` transports the original
@@ -56,40 +50,6 @@ OCaml ABI. The source guard passed 50 in-memory corruption tests; no invalid
 proof fixture was compiled. Four shared word/key/list conversion lemmas are
 closed. C endpoints retain their original inherited assumptions, not an
 axiom-free claim.
-
-The full private checker **4458 terminated with exit 0**, including its fresh
-eleven-module closure, independent old nullable baseline, complete type/definition/
-assumption reports, source tests, Elements AST regeneration and recursive
-`coqchk`. `PREPARATION.json` and the complete logs bind this result to input
-`2a6bde9f69ca75da50c5a150959ebf4abb2914ae2a353d1e1060c7ef087bd08a`.
-The proof closure contains 65 results and 35 definitions. The literal module adds
-nine results (including three whole endpoints) and four definitions. Exactly
-1,585 inherited source/metadata files retain their bytes; the nullable module's
-generalization is the sole reviewed inherited-source change.
-
-```sh
-# Historical completed command; do not overwrite these recorded objects or
-# receipts. For reproduction, copy the proof folder/tree and use new paths.
-ulimit -s 65520
-python3 -B proof-work/elements-tap-getters/check.py /private/tmp/jet-elements-tap-getters.jq5mpvwy
-
-# Independent review of the successful recorded check:
-python3 -B proof-work/elements-tap-getters/review.py
-python3 -B proof-work/elements-tap-getters/test-review.py
-```
-
-`review.py` separately compares the exact old nullable theorem types and
-assumptions against the fresh original baseline, checks source/object/log hashes,
-complete inventories and commands, and replays the source guard. Its review
-passed, as did 38 independent evidence-corruption fixtures, including a forged
-legacy-type report whose log hashes were made internally consistent. The
-durable `EVIDENCE-REVIEW.json` binds the independent review/negative commands,
-successful exits, their logs, the preparation receipt, and the reviewer tools.
-A normal candidate must
-explicitly review the inherited nullable-source generalization, register all
-needed modules/results/definitions, preserve the old 128 contract, review the
-snapshot delta, pass full acceptance and then install source-only. Do not count
-three theorem versions as three jets.
 
 The source correspondence guard is not a formal compiler for Haskell or a proof
 of its host serialization/list libraries. These theorems do not establish real

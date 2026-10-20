@@ -6,14 +6,6 @@ kernel-checked chain. No accepted snapshot or registry is changed.
 
 ## Standard isolated snapshot extension (2026-10-09)
 
-Exact-source candidate build **9386 passes with exit 0**, log
-`/tmp/jet-infinity-accept.xBQOUj/build-exact.log`. Standard contract generation
-**48412 passes with exit 0**, log `contracts-update.log` in that root.
-The actual standard snapshot adds 1322 type lines and 4159 definition lines,
-with no deletion or replacement: all 140783 baseline lines remain verbatim
-and in order. Candidate snapshot SHA-256:
-`814446b2c4a231982e419859005ad79719d648e079ca1a437e8487a3bb8d454b`.
-
 All 71 new standard theorem records match the reviewed deep preliminary
 prints modulo qualification and whitespace. All 22 definitions are accounted
 for; 20 likewise match. The ordinary printer truncates fuel and generated
@@ -24,21 +16,6 @@ This is not a claim to have manually reviewed every trace node. Do not change
 the ordinary snapshot printer or silently equate its truncated output with
 the full terms. The supplementary normal-print interfaces are 1005 lines,
 SHA-256 `50d2754a9105029c0164ac2194b31c5588397304f640ea6c1bf27f2670f1c13c`.
-
-Standard assumptions **70735** are still running; log
-`assumptions-update.log`. The read-only `review-snapshots.py` compares exact
-baseline preservation, all added interfaces/definitions, proof source guards
-and every assumption record. Run it only after 70735 finishes with exit 0.
-Full acceptance and guarded checkout integration remain open.
-
-Actual contract-print session **75319 passes with exit 0** using Coq 8.17.1,
-the checked negation baseline and narrow `-R` overlay. Its script is
-`/tmp/jet-gej-infinity.YrUC7w/infinity_contracts_review.v`; output is
-`contracts-review.out` in that directory. It prints all 71 result types and
-22 definitions with `Printing All`, width 120 and depth 10000. Output SHA-256:
-`7645df1db9ac01165b66fc4b73a291d54e89cdd15ab79652472bb4cdb257dca4`.
-No `(...)` truncation occurs. These deep-print settings do not replace the
-project's standard snapshot printer or an actual snapshot diff review.
 
 The final public type names the exact original `f_simplicity_gej_infinity`,
 Unit input, left-associated triple Word256 output, and literal polymorphic
@@ -73,15 +50,6 @@ lines, compiler exit 0). This completes preliminary interface review, including
 from-stores/from-calls adapters versus owned constructors, bounds, separation,
 representation, field preservation, source copy and public cleanup. Standard
 project snapshot extension comparison remains to be done before acceptance.
-
-Actual assumption enumeration **18820 passes with exit 0**, log
-`/tmp/jet-gej-infinity.YrUC7w/assumptions-review.out`. All 71 named records
-were parsed and each set is a subset of the project's inherited allowlist.
-The final public set is the six inherited assumptions: Classical choice and
-excluded middle, dependent functional extensionality, and CompCert's two
-parameterized external/inline-assembly semantics. No new name, assumed helper
-execution/output/freeing fact or extra libc model is introduced. Exact parsed
-records are preserved in `assumptions-provisional.expected.source`.
 
 The archived inventories list 71 results and 22 definitions. They are assembly
 inputs, not coverage: add only the complete public jet after correspondence,

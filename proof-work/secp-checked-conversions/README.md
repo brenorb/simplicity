@@ -17,14 +17,6 @@ strings are never sent to Coq or compiled as candidate proofs.
 
 ## Completed checks
 
-The external candidate `/private/tmp/jet-secp-checked.rxj2k4b8` contains 138
-C/support modules. Sixty-nine unaffected objects were reused only after exact
-source/object comparison with the completed count audit; all repaired/new
-modules and the remaining dependencies were freshly built. Independent
-recursive `coqchk -o` checks the entire selected closure, including the actual
-normalization, odd and zero public local contracts. It does not certify every
-other secp consumer or replace whole-registry acceptance.
-
 Twenty exported results have complete, untruncated type/assumption reports;
 fourteen are closed and the other six stay within the six inherited execution
 assumptions. The fifteen-axiom library context is unchanged; type-in-type,
@@ -33,11 +25,6 @@ production secp AST regenerates byte-for-byte. Eighteen proof/evidence
 corruptions and twelve proof-escape examples are rejected. Checked computation,
 comments and strings remain accepted. Eleven further corruption fixtures
 check the explicit existing-source preservation overlay.
-
-`ASSEMBLY.json`, `REVIEW.json` and `EXTRA_REVIEW.json` bind source and object
-hashes, exact commands, terminal logs, original C generation and full printing.
-`source/` preserves the checked new/repaired sources. No compiled objects are
-installed into main and no public proposition is weakened.
 
 ## Imported caller result
 
@@ -57,16 +44,6 @@ prove dispatch/evaluator composition.
 
 ## Installation and preservation
 
-`INSTALLATION.json` records five intentional existing-source changes (three
-proof files plus the scanner and its normal regression-test file), one new
-module and the exact original index hash. The old integration baselines remain
-immutable. Their preservation checks now compose the precise before/after
-repair overlay in `preservation.py`, in addition to their existing additive
-source ledgers. This overlay reconstructs only the four proof replacements and
-the exact scanner/fixture strengthening from commit `87e9ad7b`; it rejects
-other source edits or mismatched baseline hashes. It is not an allowlist for
-arbitrary changes or axioms.
-
 The linked audit also pins its own historical driver. Its old receipt remains
 unchanged: provenance validation accepts that recorded hash only when Git's
 original driver is reconstructed with the **exact** preservation-hook and
@@ -83,15 +60,6 @@ non-vacuity result, not new admitted jet coverage or full-checkout acceptance.
 The existing staged and unrelated unstaged/untracked work is preserved.
 
 Post-installation checks:
-
-```sh
-python3 -B proof-work/secp-checked-conversions/review.py validate /private/tmp/jet-secp-checked.rxj2k4b8
-python3 -B proof-work/secp-checked-conversions/test-review.py /private/tmp/jet-secp-checked.rxj2k4b8
-python3 -B proof-work/secp-checked-conversions/test-preservation.py
-python3 -B proof-work/linked-repair/run.py post-check
-python3 -B proof-work/claude-remainder-integration/run.py post-check
-(cd Coq && python3 -B scan-jet-proofs.py)
-```
 
 The `prepare/check/finish/install` commands are the recorded pre-installation
 workflow, not a way to overwrite the now-repaired main sources. `install.py`

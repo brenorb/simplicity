@@ -21,31 +21,6 @@ No canonical-input restriction is added: scalar reduction covers arbitrary
 256-bit input, including the group order. Registered checkout coverage stays
 351/533; public coverage added by this archive is zero.
 
-## Checked evidence
-
-Compiler session 70023, contract driver 87231, assumptions driver 98674 and
-independent kernel session 44880 all exited 0. Nine exact types and seven
-definitions printed without truncation and were reviewed. Three results are
-closed; four use the same inherited four classical/extensionality assumptions;
-the two complete execution results use those plus CompCert's two execution
-semantics parameters. The kernel imported context lists 15 inherited axioms;
-all three unsafe categories are empty. That context is not a per-result set.
-
-The manifest pins the compiled current source, all three output hashes and
-each result's exact dependency set. Run `python3 review.py --work
-/tmp/jet-scalar-reverify.8hswEF` and the adjacent negative-fixture script.
-These are evidence guards, not a fresh proof run or public full acceptance.
-The `.source` archive stays outside accepted Coq load paths. Scratch sources
-and logs are in that narrow directory, logical namespace `OriginalC`.
-
-Reproduce using pinned Coq 8.17.1 on PATH, `ulimit -S -s 65520`, and cwd
-`/tmp/jet-ge-negate-accept.5mtyZa/Coq`:
-
-```sh
-bash build-jets.sh --coqc -R /tmp/jet-scalar-reverify.8hswEF OriginalC /tmp/jet-scalar-reverify.8hswEF/jet_secp_scalar_reader_lifecycle.v
-bash build-jets.sh --coqchk -silent -o -R /tmp/jet-scalar-reverify.8hswEF OriginalC OriginalC.jet_secp_scalar_reader_lifecycle
-```
-
 ## Next boundary
 
 Use the reduced-limb representation to invoke the already checked actual

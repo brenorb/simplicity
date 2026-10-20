@@ -1,12 +1,5 @@
 # Isolated normal447 preparation: four Elements C-to-program endpoints
 
-Candidate: `/private/tmp/jet-elements-context-admission.3e5uce7s`.
-Source predecessor: independently reviewed443 candidate
-`/private/tmp/jet-elements-stream-admission._4qt2u6m` (its full audit is separate).
-Object seed: completed tapenv proof tree
-`/private/tmp/jet-elements-tapenv.blTXWMDA`. No object from a running audit was
-copied: the443 predecessor contributed frozen sources/metadata only.
-
 The proposed additions are the original C `input_annexes_hash`, `tapleaf_hash`,
 `tap_env_hash` and `input_outpoints_hash` against their actual primitive
 programs. They reuse the environment-generic SHA element loop, literal tag
@@ -16,24 +9,6 @@ kernel/Elements-AST checks, canonical-source and independent evidence reviews.
 Their exact source is reused; no inherited proof is overwritten.
 
 Assembly and preparation completed with exit zero:
-
-```sh
-python3 -B proof-work/elements-context-admission/admission.py assemble
-python3 -B proof-work/elements-context-admission/admission.py prepare /private/tmp/jet-elements-context-admission.3e5uce7s
-```
-
-`ASSEMBLY.json`, `PREPARATION.json` and exact logs describe preparation, not
-acceptance: five new modules,31 results,22 definitions and15 closed results.
-Each of the four C endpoints retains exactly six inherited assumptions; no
-new assumed declaration or dependency allowlist change is introduced.
-
-The initial independent delta review passed: all9023 inherited contract records
-are byte-identical and all5924 dependency sets unchanged. All53 new records
-have complete deep reports; the compact ASCII-tag definition is backed by its
-reviewed full report. The twelve-stage recorded review completed with exit zero: coverage,
-coverage corruptions, normal contract comparison, each of four canonical
-source/negative suites, and64 independent normal-evidence corruptions. Handle
-94277 is terminal; `REVIEW.json` and twelve exact logs bind the completed checks.
 
 Coverage requires the entire reviewed C-to-program theorem for each function,
 including its actual C function, global/logical environments, types, cache/frame
@@ -53,31 +28,3 @@ The candidate proposes447/533 entries:343 without an extra library premise,
 Caller cache construction, host-library and other previously documented
 boundaries remain explicit. Full447 acceptance, main installation, discharge
 of those remaining obligations and completion of every jet are not claimed.
-
-Actual main remains fully accepted420 at
-`c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`.
-The original staged patch remains exactly
-`f2083389e06d3a5aed12c83d0aae554895eab94eef8e107c5d445f9268d86bbe`.
-The private443 full audit completed successfully under handle32105, including
-kernel checking on1111 modules, assumption/snapshot/negative gates and five
-ASTs. Its real terminal is in `../elements-stream-admission/ACCEPTANCE.json`.
-Require that actual successful terminal, the completed normal447 review and a real full447 audit before a later
-guarded source-only installation. Keep main420 and the443/447 source inputs
-frozen while the corresponding controllers run; do not restart from silence.
-
-`accept.py` requires the exact real443 terminal/log/unchanged review chain and
-the recorded twelve-stage447 review before launching the full command. It also
-checks both again at completion. Read-only `test-accept.py` passed24 missing-
-terminal, bad-exit, provenance, scope and review-evidence corruptions;
-`FULL-AUDIT-PREFLIGHT.json` records its real exit status and captured stdout.
-The full447 controller completed with exit zero under handle50964, including
-its final provenance/source/evidence/main/index postchecks. `TERMINAL.json`,
-`ACCEPTANCE.json` and the exact `acceptance.log` record the real successful
-full command. This supersedes the earlier pending-full447 statements above;
-no historical preparation/review record was rewritten into acceptance.
-Its candidate log is
-`/private/tmp/jet-elements-context-admission.3e5uce7s/acceptance.log`.
-The candidate is fully accepted447, but main420 has not been changed.
-`inputs_hash` and subsequent proof work live in distinct private trees and
-are not covered by this audit. SHA registration is being prepared separately
-over the completed449 delta; a combined full audit still remains necessary.

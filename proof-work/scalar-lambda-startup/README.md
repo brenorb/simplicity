@@ -1,14 +1,5 @@
 # Actual secp startup exists
 
-Main audit 22185 is now terminal exit 0: the integrated current worktree passed
-all acceptance gates at 361/533. See
-`../scalar-square-integration/MAIN-ACCEPTANCE.json`; this supersedes historical
-running-audit notes below. Later milestone `../scalar-lambda-frames` proves
-fresh frames and an initialized-memory public contract; signed commit
-`62d0976d` records those checks. Normal integration is being reviewed in
-`../scalar-lambda-integration`; full acceptance remains open.
-Do not poll/restart the completed main audit.
-
 `LamInitC.jet_secp_scalar_lambda_init_exists.scalar_lambda_initialized_memory_exists`
 constructs a witness for **actual** `Genv.init_mem jets_secp.prog = Some m`
 whose memory satisfies the initialized readonly lambda representation used
@@ -29,12 +20,6 @@ all exited 0. The ten full type/definition records total 3,913 bytes without
 ellipses. Kernel context matches the inherited 15-name allowlist; unsafe
 categories are empty. Manifest and receipt pin sources, objects, drivers,
 reports and log. Nothing is registered in normal/main coverage yet.
-
-Run `python3 -B proof-work/scalar-lambda-startup/review.py` and `test-review.py`
-from the repo. Reproduce with Coq 8.17.1, 65520 KiB stack, the immutable
-multiplication base's `build-jets.sh`, the parent caller's six narrow mappings,
-and `-Q /tmp/jet-scalar-lambda-init.iS3aC3 LamInitC`. Rebuild generic then
-concrete module, then the two drivers; kernel root is the concrete module.
 
 ## Diagnosed performance pitfall
 

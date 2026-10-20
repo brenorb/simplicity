@@ -41,24 +41,6 @@ execution results additionally using the inherited two CompCert semantic
 parameters. No new axiom. The kernel context is the inherited 15-axiom context
 and all three unsafe categories are empty.
 
-```sh
-python3 proof-work/scalar-mul-caller/review.py
-python3 proof-work/scalar-mul-caller/test-review.py
-```
 The read-only reviewer also checks frozen prerequisite milestones and the
 compiled dependency fingerprint. Ten in-memory negative fixtures reject
 status/source/contract/dependency/kernel/classification drift and false coverage.
-
-Toolchain and scratch namespace are unchanged from
-`../scalar-reduce512-final/README.md`. Rebuild modules in manifest order with
-`build-jets.sh --coqc -R /tmp/jet-scalar-mul.lkomWj MulC`; each speculative
-process has a 150-second deadline and tactics a ten-second bound. Kernel root:
-`MulC.jet_secp_scalar_mul_caller_body`, 300-second process bound.
-
-## Remaining
-
-Actual scalar_mul caller function entry, local array allocation and freeing;
-square's actual shared-operand `a=b` case; public readers/normalization/writers/
-cleanup and literal canonical Simplicity roots/evaluator frames. See
-`CONTINUATION.md`. Main coverage is unchanged (351/533); isolated scalar-add
-359/533 remains a separate, pending main integration. Local only; no pushes.

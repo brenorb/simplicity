@@ -1,11 +1,5 @@
 # Affine normal-load-path contract review
 
-Normal serial build 96488 exited 0. The generated standard contract snapshot
-matches the reviewed deep report for all 109 new types and 37 new definitions,
-subject only to whitespace and explicitly listed printing qualifications.
-Every inherited contract is preserved byte-for-byte. NORMAL-CONTRACT-REVIEW.json
-records the actual snapshot hash and nine deep-supplement diagnostics.
-
 Those supplements are the same one reader type/eight computed run/tree
 definitions reviewed earlier. Matching retained fragments is not a certificate
 for omitted terms; actual source and independent kernel evidence still apply.
@@ -30,13 +24,6 @@ Read-only source guards cover all 948 inherited Coq source files, the 38 new
 proofs, two checkers, eight metadata hashes and absence of extra modules.
 
 Reproduce:
-
-```sh
-python3 proof-work/ge-negate/review-full-snapshots.py \
-  --work /tmp/jet-ge-negate.aFl8mr --contracts-only
-python3 proof-work/ge-negate/test-review-full-snapshots.py \
-  --work /tmp/jet-ge-negate.aFl8mr
-```
 
 This is a partial contract receipt, not full snapshot review or acceptance.
 Full axiom generation 90113 remains live; after terminal success, run the

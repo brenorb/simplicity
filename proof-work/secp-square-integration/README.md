@@ -21,14 +21,6 @@ ordinary build. Existing pinned external Coq/CompCert/VST dependencies are reuse
 
 Run from the repository root:
 
-```sh
-python3 -B proof-work/secp-square-integration/assemble.py prepare
-python3 -B proof-work/secp-square-integration/assemble.py build
-python3 -B proof-work/secp-square-integration/verify.py reports
-python3 -B proof-work/secp-square-integration/verify.py kernel
-python3 -B proof-work/secp-square-integration/verify.py check
-```
-
 Preparation and audit launches are one-shot. Poll their original processes;
 an observation timeout is not a failed build or permission to restart it.
 Do not edit audit inputs while a command is running.
@@ -50,12 +42,6 @@ The recursive kernel audit retains the exact inherited library-axiom baseline
 and requires empty unsafe-kernel categories.
 
 ## Receipt and acceptance boundaries
-
-`PREPARATION.json` establishes assembly only. `BUILT.json` requires an observed
-successful fresh source build; `REPORTED.json` requires the complete successful
-comparison and source/AST checks. Only `CHECKED.json` and its matching successful
-recursive kernel log establish the final kernel stage. A launch record does
-not establish completion. `check` revalidates all completed identities.
 
 Receipts are bound to their exact candidate sources, objects, project files,
 scripts, committed originals, reports and main/staged inputs. The assembler is

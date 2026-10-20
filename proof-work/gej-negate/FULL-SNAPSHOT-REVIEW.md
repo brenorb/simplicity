@@ -1,9 +1,5 @@
 # Point-negate full candidate snapshot review
 
-Sequential generation 20895 exited 0, including both contract and assumption
-generation. Candidate /tmp/jet-gej-negate-accept.5ZRUlU extends accepted baseline
-/tmp/jet-predicate-accept.EX7adj, not the concurrently dirty main checkout.
-
 The read-only review-full-snapshots.py verifies that removing precisely the
 80 added type records and 26 definition records recovers the inherited full
 contract snapshot byte-for-byte. All 3866 inherited axiom sets are unchanged;
@@ -19,13 +15,6 @@ A bare function-name line inside a printed expression is not a Check header:
 the type-header alternative requires its following indented colon. This avoids
 mistaking the nv_pass application inside point_weak_math for an inherited result.
 This correction does not change any proof, canonical target or expected file.
-
-All 889 inherited Coq sources remain byte-identical to baseline, all 34 new
-proofs match their archived hashes, and all eight assembly metadata hashes
-still match NORMAL-BUILD-REVIEW.json/ASSEMBLY.json. The candidate fingerprint and
-exact snapshot hashes are in FULL-SNAPSHOT-REVIEW.json. Existing scoped source
-gate, 41 mutations, coverage rejection fixtures and fresh normal build are
-separate recorded checks. Neither generation nor this review is full acceptance.
 
 Next run JOBS=1 bash check-jets.sh --accept without update or no-build flags
 on the frozen candidate; retain its terminal status, log and fingerprint.

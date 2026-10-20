@@ -1,10 +1,5 @@
 # Both reads, complete null-data output and actual return
 
-Private tree: `/private/tmp/jet-null-data-first-read.Z3fuaZN8`.
-The new `C.jet_elements_null_data_rest` source is archived under `source/`.
-Inherited sources equal the checked `../elements-null-data-guard-compose/`
-tree byte for byte. Main418 semantic inputs and original staging are unchanged.
-
 ## Proof progress
 
 `exec_elements_null_data_rest` executes the actual first read32(&src), assigns
@@ -82,10 +77,6 @@ The expected scope is one closed source equality, three shared preservation/
 effect results using the four inherited classical/extensionality assumptions,
 and one execution theorem using the six inherited Coq/CompCert assumptions.
 No new assumption, admission or unchecked operation is used.
-
-```sh
-python3 -B proof-work/elements-null-data-rest/review.py /private/tmp/jet-null-data-first-read.Z3fuaZN8
-```
 
 The new completed module compiled on its first development run. Checker89762
 then stopped before recording a launch because a mechanical rename produced an

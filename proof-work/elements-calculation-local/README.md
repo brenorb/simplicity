@@ -20,23 +20,6 @@ their original successful compile/reports and uncompleted kernel launch remain
 intact in `../elements-calculation-lifecycle/`. The enclosing source here was
 reconstructed and must be freshly rechecked, not certified by vanished objects.
 
-`recovery.py build PRIVATE_TREE` rebuilds the exact 196-source calculation
-basis in a source-only copy prepared from the repository with the seven archived
-support modules and byte-identical Elements/SHA proof-loading alias. It records
-new object hashes and proves the forced compile trace equals the loaded-source
-inventory. Earlier receipts are not rewritten. `check.py PRIVATE_TREE` then
-restores and freshly compiles all seven extension modules, checks the complete
-47-result/23-definition inventory and exact per-result dependencies, and runs
-recursive kernel checking bound to the new basis and extension hashes.
-`CHECKED.json` is written only after success. Neither a launch nor compilation
-alone proves that recursive checking passed.
-
-The recovered run has now passed recursive kernel checking with exit 0.
-`CHECKED.json` binds all 196 forced-source project dependencies and seven
-extension modules unchanged before and after that check. All three concrete
-jet theorems retain exactly the six inherited execution dependencies; the full
-15-entry library context is unchanged and unsafe-kernel flags are absent.
-
 This is an isolated, unregistered proof-support package. It changes no C,
 canonical specification, API, generation settings, registry or normal gate and
 adds zero accepted coverage. Full repository-wide jet equivalence remains open.

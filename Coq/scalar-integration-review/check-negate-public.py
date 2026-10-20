@@ -1,4 +1,4 @@
-"""Exact public scalar-negate theorem and pinned literal/recursive programs."""
+"""Exact public scalar-negate theorem and checked literal programs."""
 import argparse
 import hashlib
 import importlib.util
@@ -21,7 +21,7 @@ def check(repo, source, dependencies, coq):
     archive = Path(__file__).resolve().parent
     ports = load('scalar_negate_ports', archive / 'check-negate-ports.py')
     receipt = ports.check(repo, source, dependencies, coq)
-    if receipt['literal_scalar_ports'] != 6 or not receipt['recursive_dependency_gate']:
+    if receipt['literal_scalar_ports'] != 6 or not receipt['literal_division_gate']:
         raise ValueError('unexpected literal scope')
     parser = load('public_parser', coq / 'check-secp-predicates-specification.py')
     target = source / 'jet_secp_scalar_negate_local.v'

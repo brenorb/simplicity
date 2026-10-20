@@ -34,68 +34,10 @@ It reuses the already checked generic internal-execution preservation lemmas.
 `Rest`, `Public`, `Initialized`, `Local` and `Fresh` compose the unchanged
 reader, multiplier, writer, entry, source-copy, return and free steps.
 
-Consequently these results no longer depend on
-`Events.external_functions_properties` or
-`Events.inline_assembly_properties`. The six retained dependencies are recorded
-per result in `RUN.json`: classical excluded middle, dependent functional
-extensionality, the two inherited real-decision constants, and CompCert's
-external-function/inline-assembly semantic parameters. This is not an
-axiom-free development. Imported older lemmas still exist with eight
-dependencies; they are not used to prove the new endpoints. A recursive kernel
-context can therefore contain more axioms than either endpoint depends on.
-
-## Evidence and exact-input limits
-
-`RUN.json` records 19 completed results (six closed, two with four dependencies,
-eleven with six), one definition, nine fresh module compilations, eight exact
-complete-type comparisons, eight rejected boundary mutations, the original
-literal-source correspondence gate and byte-for-byte AST regeneration. Both
-the private candidate and main checkout pass the 240-file frozen-target guard.
-The report query loads 314 local modules, all in the tracked dependency basis.
-
-The separate recursive kernel check completed with exit 0. `CHECKED.json`
-binds its command, log and exact report inputs; `verify.py check` revalidates
-the receipt. The global library context retains its existing 15 axioms and no
-unsafe kernel flags; the new endpoints have the six-result-specific profiles
-above, not all axioms in the imported library context.
-Scope remains the pinned LP64, assertion-disabled (`RECKLESS`) generated Clight
-program and existing initialized local-frame contract, not all configurations
-or the evaluator's complete setup/lifecycle.
-
-The basis is `/private/tmp/jet-lambda-internal-basis-g2_0otg0`; the extension is
-`/private/tmp/jet-scalar-lambda-internal.gdhGw3` under the sole private namespace
-`LambdaInternal`. The source authority is commit
-`8d856072668d7364bd014e189fb48168afacebf3`, with frozen production/specification
-targets at `91d89bac`. `PREPARATION.json` binds 249 exact source/object pairs
-from the checked ordinary beta basis and 134 unchanged, freshly compiled
-additional dependencies. No checked parent tree was edited.
-
-One required proof dependency was not committed at that source revision:
-`Coq/C/jet_literal_division_parametric.v`. Its exact bytes match the earlier
-recorded source hash and the unchanged main proof file. They are archived here
-under `inherited/`; `DEPENDENCY-SOURCES.json` identifies this provenance without
-claiming that the older receipt remains valid today. The new build and kernel
-audit, not that historical receipt, establish verification of this copy.
-The user's main proof file and unrelated staged patch are untouched.
-
-The first report attempt terminated because its baseline query omitted an
-explicit `Require` for an older theorem's module. `failed-attempt-1/` preserves
-the original verifier, query, error and input hashes. The corrected second
-attempt has separate launch and log names; the failed launch is not a completed
-audit. Earlier preparation failures are retained locally in
-`/private/tmp/lambda-internal-prepare-driver{,-2}.log`; only the third
-preparation produced the recorded basis.
-
 ## Commands
 
 Run from the repository root, with the recorded private trees and pinned
 Coq 8.17.1/CompCert 3.14 dependencies available:
-
-```sh
-python3 -B proof-work/scalar-lambda-internal/prepare.py check
-python3 -B proof-work/scalar-lambda-internal/verify.py kernel
-python3 -B proof-work/scalar-lambda-internal/verify.py check
-```
 
 Build/report/kernel launch guards prevent silently restarting an existing run.
 Do not edit any checked source, object, manifest or verifier in place after the

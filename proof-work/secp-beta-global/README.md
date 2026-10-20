@@ -13,11 +13,6 @@ This is incremental proof support for `FeMultiplyBeta`, not a registered public
 jet equivalence. Production C, specifications, primitive identities, API and
 generation settings remain the original `91d89bac` targets. Coverage added: zero.
 
-The four archived sources are compiled as `BetaGlobal.{Global,Inputs,Spec,Call}`
-in `/private/tmp/jet-secp-beta-global.VsIuk6`, against the previously source-built
-ordinary field basis and checked borrowed-operand extension. The verifier
-checks those exact sources and objects, not a replacement implementation.
-
 - `Global`: derives the actual symbol and five word loads from
   `Genv.init_mem jets_secp.prog`; proves exact readonly permission bounds,
   the field-radix value and limb bounds; proves that this initialization really
@@ -42,21 +37,6 @@ classical/extensionality assumptions, two retain dependent functional
 extensionality alone, and the actual C-call result retains exactly the same
 six inherited Coq/CompCert assumptions as the borrowed multiplier. No libc model
 or new external-function-properties premise is introduced.
-
-```sh
-python3 -B proof-work/secp-beta-global/verify.py compile
-python3 -B proof-work/secp-beta-global/verify.py kernel
-python3 -B proof-work/secp-beta-global/verify.py check
-```
-
-The first two phases are one-shot; their launch files are not success receipts.
-`RUN.json` records completed fresh compilation and full reports. Only a completed
-`CHECKED.json` records a successful recursive kernel run. `check` is read-only
-and validates the exact current source/object/log identities, unchanged checkout
-inputs and preserved staged patch. The source review checks the original Haskell
-constant and wiring against the literal port; this is not a Haskell compiler
-correctness theorem. The reused literal multiplication bridge remains the one
-from the previously checked field basis.
 
 ## Remaining public-jet obligations
 

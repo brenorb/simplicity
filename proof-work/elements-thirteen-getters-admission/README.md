@@ -11,10 +11,6 @@ output-proof getters. The old checkpoint is preserved at
 do not launch it separately. This combined candidate requires its own review
 and full acceptance; neither preparation nor supersession adds main coverage.
 
-Candidate: `/private/tmp/jet-thirteen-getters-admission.9r1oz8pi`.
-Prepared input fingerprint:
-`50f56ff96a40e1af0abf3ad80a45d03e826848a2460d59fce93ba16899bc2ace`.
-
 ## Source provenance and preparation
 
 Compiler objects came only from a completed immutable proof tree. The reviewed
@@ -46,19 +42,6 @@ guards checking the formal literal transports and exact representations.
 
 ## Finish and full-acceptance boundaries
 
-The finish workflow **passed all twelve stages**: coverage and 91 new
-statement-confined corruption fixtures, the ordinary contract comparison,
-all four deployed source/negative pairs (184 source corruptions: 26/75/48/35),
-and 32 independent admission/evidence corruptions. Invalid proof fixtures are
-never compiled. `REVIEW.json` binds successful terminal statuses and 1,257
-report/object evidence hashes. Full added type/assumption reports and all
-twelve stage logs are archived here. Snapshot generation/preparation is not
-full acceptance.
-
-```sh
-python3 -B proof-work/elements-thirteen-getters-admission/review.py review /private/tmp/jet-thirteen-getters-admission.9r1oz8pi
-```
-
 The 378 actual-main audit (3224) and isolated 386 audit (87596) both finished
 with exit 0. Their complete terminal receipts/logs are archived in the preceding
 admission folders. The one-time 386 source-only installation and composed
@@ -77,82 +60,16 @@ Only after the completed review, launch the following **once** and retain the
 returned handle and complete log. It may run alongside actual-main 386, but
 both must finish successfully before installing this successor.
 
-```sh
-ulimit -s 65520
-python3 -B proof-work/elements-thirteen-getters-admission/accept.py /private/tmp/jet-thirteen-getters-admission.9r1oz8pi
-```
-
-That launch happened **once**, as session **61966**, after the signed
-reviewed-candidate commit, and **terminated with exit 0**. `ACCEPTANCE.json`,
-`TERMINAL.json` and the complete `acceptance.log` now establish full isolated
-399 acceptance: all source/negative gates, the whole normal build, recursive
-`coqchk` on 1,031 modules, assumptions, reviewed contracts and five directly
-regenerated ASTs passed. The audited input is `50f56ff9...`; log SHA-256:
-`6a75ce6904b09f8aff21bf2305b8f950fb78f0bebfe8cface88756a464e9caf4`.
-Original log:
-`/private/tmp/jet-thirteen-getters-admission.9r1oz8pi/acceptance.log`.
-Keep this completed candidate immutable. Do not repeat the command above. Its
-full isolated acceptance and actual-main 386 (**92335, also exit 0**) have both
-been independently validated, satisfying the installer prerequisites. The older
-eleven-getter audit was not launched and must remain unlaunched.
-
 ## Guarded installation completed
-
-`integration.py` now implements read-only planning, one-time source-only
-installation, and the successor postcheck. The exact **23-file** delta is seven
-metadata/snapshot files, four gate/printer scripts, eight new source/negative
-guards and four new proof sources; both existing execution sources remain
-byte-identical. Planning passed against the real reviewed candidate and current
-386 main. Sixteen refusal tests passed without modifying main, the candidate,
-or the original index; no synthetic positive acceptance or installation was
-used. `INTEGRATION-REVIEW.json` binds the tools, read-only plan and complete
-test log. This is installation-readiness evidence, not terminal acceptance.
-
-The installer requires the real successful actual-main 386 and isolated 399
-receipts/logs, exact reviewed candidate/source/object evidence and the unchanged
-main/index baseline. It rejects duplicate installs, preexisting new targets,
-escaping paths, compiler-object targets and unreviewed source changes. It writes
-only the planned sources, `DELTA.patch` and `INSTALLATION.json`; it copies no
-compiler objects. The postcheck verifies current source equals the accepted
-fingerprint and independently validates historical acceptance/installation
-bindings without applying an obsolete predecessor postcheck to successor main.
 
 Both existing handles were confirmed successfully terminal. The following
 one-time installation and composed postcheck **have now passed** (79109, exit
 0); do not repeat installation:
 
-```sh
-python3 -B proof-work/elements-thirteen-getters-admission/integration.py install /private/tmp/jet-thirteen-getters-admission.9r1oz8pi
-python3 -B proof-work/elements-thirteen-getters-admission/integration.py check
-```
-
-Main now matches the fully accepted `50f56ff9...` source exactly. Its coverage is
-399/533, the original staged-patch hash is unchanged, and no compiler objects
-were copied. `INSTALLATION.json` records the exact 23-target source-only delta;
-`DELTA.patch` preserves the owned metadata/script edits without committing
-unrelated dirty registries. Historical receipts/logs are already archived.
-
 Commit
 the owned new sources/guards and exact delta/ledger (not unrelated dirty
 registries), verify the original staged-patch hash is unchanged, and launch the
 separate actual-main 399 audit **once**:
-
-```sh
-ulimit -s 65520
-python3 -B proof-work/elements-thirteen-getters-admission/main-accept.py
-```
-
-That driver was launched **once as 90475** and **terminated with exit 0**.
-`MAIN-ACCEPTANCE.json` and `MAIN-TERMINAL.json` bind input `50f56ff9...`, the
-real installation, driver and complete log. All normal acceptance gates passed,
-including recursive kernel checking, assumption/contract checks, negative tests
-and all five regenerated ASTs. The full log is archived as `main-acceptance.log`;
-its SHA-256 is
-`6d7719b6a1028c3cc394b43c7003191e580c3c7c183fadfd22362215ef519bd1`.
-The composed postcheck confirms actual-main acceptance and preservation of the
-original index. This satisfies the predecessor requirement for guarded 401
-installation. Do not rerun either completed audit. After a successor installs,
-use its composed postcheck rather than this historical exact-399-main check.
 
 ## Scope remains explicit
 

@@ -1,12 +1,5 @@
 # Normal initialized-lambda delta / combined420 candidate
 
-Private candidate: `/private/tmp/jet-scalar-lambda-admission.ebjcqzyk`.
-Source predecessor: reviewed null-data419
-`/private/tmp/jet-null-data-admission.i6xxdcrl`.
-Main now has the exact **420/533** candidate sources installed. The last
-completed independent actual-main acceptance is418; a fresh main420 audit
-is still required.
-
 The full normal build and all **28 explicit fresh lambda-module compiles** have
 passed. New assumption/type/definition reports are complete and archived.
 Independent normal review has completed successfully: all six stages exited
@@ -16,18 +9,6 @@ All 148 new records have full deep reports; seven compact printer ellipses
 have exact checked supplements. Source and normal reviews also pass the
 existing25 public-boundary mutations. The complete review chain and its
 source/object/tool/command/log identities have been independently postchecked.
-
-The full combined420 audit passed with controller exit zero after4211 seconds,
-with fingerprint
-`c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`.
-`AUDIT-RUN.json` alone is only a launch record. `TERMINAL.json`,
-`ACCEPTANCE.json` and archived `acceptance.log` bind the real terminal success:
-1106 kernel-checked modules, 5861 assumption-audited theorems (3174 closed),
-reviewed snapshots, negative tests and all five regenerated ASTs. Its log
-SHA-256 is `68d25ea3fea4e1a4301de96451b7728577167637e69fcc90193efe927f7bed4b`.
-Guarded source-only installation subsequently passed with exit zero under
-handle74534. Actual-main acceptance remains separate; the last completed
-actual-main checkpoint is418.
 
 ## Exact scope
 
@@ -87,10 +68,6 @@ silence differences; new compact records have full deep supplements.
 
 Read-only review after preparation:
 
-```sh
-python3 -B proof-work/scalar-lambda-admission/review.py review /private/tmp/jet-scalar-lambda-admission.ebjcqzyk
-```
-
 After independent review has actually completed, the once-only `accept.py`
 runs `bash check-jets.sh --accept` on the entire combined420 tree, with no
 update/skip flags. Its baseline is actual accepted418 plus the two completed
@@ -112,12 +89,6 @@ to the user's fork.
 
 ## Read-only source integration plan
 
-`INSTALLATION-PLAN.json` records the exact combined delta: 11 shared metadata/
-gate files, 50 new proof source files and five source-guard files, totaling
-66 source-only targets. The two reused proof sources are checked byte-identical
-and are not overwritten. No compiler object is copied. The semantic source
-maps differ only by this reviewed delta, starting at actual accepted418.
-
 `prepare-integration.py` records or rechecks that plan without installation.
 `test-integration-plan.py` rejects 12 unsafe target or missing-review cases
 without writing candidate/main sources. A later installer must require actual
@@ -127,15 +98,6 @@ installation. Keep the live audit inputs frozen.
 
 ## Guarded source-only installation (complete)
 
-`INSTALLATION.json` and `DELTA.patch` record the completed exact66-target
-installation. Its independent precheck validated real combined420 acceptance,
-both reviewed deltas, actual418 history, the exact unchanged plan and stopped
-controllers. The installer/postchecker then verified source identity with the
-accepted candidate and preservation of the original staged patch. Fifty proof
-sources and five guard files are new; the two reused proof sources stay
-byte-identical. No compiler object or inherited proof source was copied over.
-The remaining eleven targets are the reviewed shared metadata/gate delta.
-
 `integration.py` implements the once-only source-only installation of those
 66 targets. It requires the real combined420 acceptance, exact reviewed plan,
 actual418 acceptance, unchanged review/source/object/log/tool identities, and
@@ -144,33 +106,7 @@ is checked from the process table, not inferred from a receipt or lock file.
 The419 audit need not succeed for420 to be valid, but its controller must no
 longer be validating main418 when integration begins.
 
-`test-integration.py` passed 20 premature/live-controller/unsafe-plan cases,
-then successfully reconstructed the real historical418 acceptance and both
-reviewed deltas. This was read-only: no positive acceptance was synthesized,
-no installation was attempted, and main/index remained unchanged. Its output
-is archived in `integration-tests.log`.
-
 The once-only completed installation command was:
-
-```sh
-python3 -B proof-work/scalar-lambda-admission/integration.py install /private/tmp/jet-scalar-lambda-admission.ebjcqzyk
-```
-
-The fresh actual-main audit completed with exit zero (handle27494), taking
-4349.42 seconds. Its exact command was `bash check-jets.sh --accept`, without
-skip/update flags, on main with fingerprint
-`c30bd6ac82c17410b9315a9e06d8b026294434a96180612bd717e7e4c8a64f21`.
-`MAIN-ACCEPTANCE.json` and `MAIN-TERMINAL.json` bind the real terminal result,
-unchanged source identity, completed installation, original stage and driver.
-The full log is archived here as `main-acceptance.log`, SHA-256
-`da990917c01ae9147110c7d10ab8b2763f1eb555ac37a31690095ec7e82ecacf`.
-The acceptance receipt SHA-256 is
-`9a27b787e50c0f2b2ca267b4941ae2f86dc353dccbc04b418fec4d91260e4b0b`.
-The recursive kernel check covered1106 modules; build, assumption/contract
-snapshots, negative/source gates and all five AST checks passed. The final
-controller postcheck confirmed actual-main420 acceptance, source identity to
-the accepted candidate and byte-identical preservation of the staged patch.
-Do not repeat installation or restart this completed audit.
 
 The installer archives the exact `DELTA.patch`, full isolated acceptance log
 and installation ledger. Its postcheck reconstructs immutable predecessor

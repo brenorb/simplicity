@@ -1,17 +1,5 @@
 # Normal lambda integration: reviewed preparation
 
-The original `simplicity_scalar_multiply_lambda` proof and its complete selected
-closure compile in the normal `C` namespace at
-`/tmp/jet-scalar-lambda-integration.mmEs14/Coq`.
-The baseline is immutable accepted square (361/533).
-Main's proof files, staged edits and coverage registries remain untouched.
-
-`ASSEMBLY.json` records **28 new modules / 116 results / 32 definitions**,
-transported only by namespace replacement from six checked archives.
-No module is excluded. Reused frame construction is byte-identical to Claude's
-finished shared theorem. Old sources and infrastructure remain unchanged except
-exact registry/gate extensions and separately reviewed snapshots.
-
 The selected public result is
 `C.jet_secp_scalar_lambda_local.scalar_lambda_initialized_local_spec`.
 Its initialized-memory contract adds a proved constructible global-state entry
@@ -22,9 +10,6 @@ executes the original jet for every 256-bit input, starting at actual
 `Genv.init_mem jets_secp.prog`. This is not the C evaluator's setup routine.
 
 ## Terminal preparation evidence
-
-All checks below exited 0; `PREPARATION.json` pins sources, objects, drivers,
-reports and logs.
 
 - Fresh normal compilation: 2229, all 28 modules.
 - New assumptions/full contracts: 5388, 116 results / 148 records, 201,971
@@ -46,12 +31,6 @@ combination; separate source guards pin its whole contract, literal lambda
 constant/combinator tree, original dispatch and actual-init/fresh-call witness.
 
 Run read-only checks from the repository:
-
-```sh
-python3 -B proof-work/scalar-lambda-integration/review-normal.py --assembly proof-work/scalar-lambda-integration/ASSEMBLY.json
-python3 -B proof-work/scalar-lambda-integration/test-review.py
-python3 -B proof-work/scalar-lambda-integration/test-lambda-public.py /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity /tmp/jet-scalar-lambda-integration.mmEs14/Coq
-```
 
 The `--prepare-assumptions` mode already completed; do not repeat it.
 Reproduce with Coq 8.17.1, CompCert 3.14, VST 2.14, 65520 KiB stack and
@@ -75,4 +54,3 @@ existing staged/unstaged main edit and verified old contract.
 Old main audit 22185 is terminal exit 0; never poll/restart it. Claude's
 Elements/environment reservations remain separate. All-533 goal unfinished;
 signed atomic local commits only, never push.
-

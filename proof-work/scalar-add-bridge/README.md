@@ -28,25 +28,6 @@ result with those plus CompCert external/inline-assembly semantics. The
 15-axiom kernel context matches the inherited allowlist exactly; unsafe
 categories are empty. No new axiom, admission or unchecked tactic is used.
 
-`LITERAL-REVIEW.json` pins scoped source correspondence to Haskell dispatch,
-type and exact scalar-add structure, the actual shared carry/padding terms,
-and recursively reviewed arithmetic/modulo ports. This supplements Coq
-checking; it is not a verified Haskell-to-Coq compiler or a complete domain
-audit. Ten wiring mutations and ten evidence mutations are rejected in
-memory without changing running audit inputs.
-
-Scratch: `/tmp/jet-scalar-add.u1U2Ti` (`AddC`). Dependencies:
-`/tmp/jet-scalar-integration.XAMDsw/Coq` (`C`), whose public normalize/negate
-full acceptance is separate and still running. These eight results have
-their own completed independent kernel/type/dependency checks. Use pinned
-Coq 8.17.1, `ulimit -S -s 65520` and narrow load paths from that Coq directory.
-
-```sh
-python3 -B proof-work/scalar-add-bridge/review.py --work /tmp/jet-scalar-add.u1U2Ti
-python3 -B proof-work/scalar-add-bridge/test-review.py /tmp/jet-scalar-add.u1U2Ti
-python3 -B proof-work/scalar-add-bridge/test-literal.py /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity /tmp/jet-scalar-add.u1U2Ti /tmp/jet-scalar-integration.XAMDsw/Coq
-```
-
 Scope remains original local-frame / LP64 / RECKLESS, not all evaluator
 frames or assertion-enabled execution. Shared registries and production
 C/Haskell remain unchanged; Claude's Elements foundation work is separate.

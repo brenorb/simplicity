@@ -1,10 +1,5 @@
 # Field addition: scoped public and canonical source review
 
-This supplements the formal proofs. It is neither a formal Haskell compiler
-translation nor completion of the inherited repository/domain/evaluator review.
-The current candidate is `/tmp/jet-fe-add-next.3vEywc`, with checked but not yet
-accepted negation dependencies under `/tmp/jet-negate-accept.ftWsqQ/Coq`.
-
 ## Full public boundary
 
 `fe_add_literal_local_spec` has precisely the existing `secp_jet_local_spec`
@@ -67,14 +62,3 @@ The new gate passes and rejects 52 in-memory mutations. Reused gates pass:
 foundations; their 86+15+32 mutations also reject. One initial recursive-gate
 invocation used the wrong reference directory and failed; the corrected call
 uses the existing negate-review directory and passes without input changes.
-
-## Acceptance still pending
-
-The public candidate is not registered in the accepted checkout. Isolated
-assembly now exists at `/tmp/jet-add-accept.qwqWy1`, with provisional metadata
-only. Its actual coverage tests and scoped source gates pass; whole fresh build
-24847 passes with exit 0. Standard snapshot generation 71393/57349 is live.
-Actual snapshot review and separate full acceptance remain required,
-followed by guarded integration and actual-checkout acceptance. Negation
-dependency audit 57174 remains independently live and its proof inputs unchanged.
-No production C/Haskell or accepted proof input was changed by this review.

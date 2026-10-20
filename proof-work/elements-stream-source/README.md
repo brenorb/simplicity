@@ -4,13 +4,6 @@ This source review supplements the actual compiled C-to-program proofs in
 `../elements-stream/`. It is not a substitute for those proofs, recursive
 kernel checking, normal registration or full acceptance.
 
-The positive source check and all203 read-only corruption tests completed
-with exit zero, recorded by `SOURCE-REVIEW.json`:
-
-```sh
-python3 -B proof-work/elements-stream-source/finish-source.py /private/tmp/jet-elements-stream.1zVQb2CU
-```
-
 The receipt binds the checked private source fingerprint, completed compile
 receipt, exact review/model/tools, source hashes, command exits and logs, and
 preserved main/index state. Its source-only field explicitly does not claim

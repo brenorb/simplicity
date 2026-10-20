@@ -32,35 +32,6 @@ construction chooses convenient witnesses; it does not change their domain.
 
 ## Verification and build access
 
-`manifest.json` pins all 11 source modules, 91 results and 33 definitions.
-`check.py --build` recompiles the modules in normal `C` namespaces, prints
-every result's assumptions and full types/definitions, then independently
-kernel-checks the entire dependency chains. Its isolated base is the completed
-scalar-lambda acceptance tree (session 21530, terminal exit 0), fingerprint
-`0272f0370fbe4a3b6dd73aa21688bc52e0bfd494cbf1c292bf3f12ae85d68616`.
-All inherited proof sources also present in this checkout must agree with
-that base. The checker refuses imported source drift and proof escape commands.
-
-```sh
-ulimit -s 65520
-python3 -B proof-work/shared-foundations-integration/check.py --build
-python3 -B proof-work/shared-foundations-integration/check.py
-python3 -B proof-work/shared-foundations-integration/test-check.py
-```
-
-The build prints a receipt; persist it as `REVIEW.json` only after checking
-terminal success. The read-only default checks the pinned sources, objects,
-driver and logs against that receipt. Scratch evidence remains local in the
-recorded temporary directory. The inherited compiler is Coq 8.17.1,
-CompCert 3.14 and VST 2.14; an available pinned compiler is used explicitly.
-
-Recorded run `/tmp/jet-shared-foundations.nvgogeyq`: all 11 fresh module
-compilations, the full audit driver and the independent kernel exited 0.
-All 91 results and 33 definitions were printed without truncation; 27 results
-are closed, the others retain exactly four or six inherited dependencies.
-The 15-name library kernel context is unchanged and all three unsafe
-categories are empty. Thirteen read-only negative evidence fixtures pass.
-
 This is a separately checked support batch, not normal registry admission or
 whole-jet acceptance. The default jet build does not yet select these modules;
 the command above is their explicit verification target. No jet is added to

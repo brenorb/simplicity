@@ -1,10 +1,5 @@
 # Canonical source review: both amounts-hash jets
 
-`SOURCE-REVIEW.json` records the actual successful positive comparison and
-139 active, read-only source-corruption tests for the private amounts-hash
-tree. All tests completed with exit zero. This phase does not register jets,
-replace kernel checking, establish the real caller's caches or add coverage.
-
 The fixed model pins66 complete Coq definitions/theorem statements and seven
 canonical Haskell program blocks. It includes both complete public C-to-spec
 contracts, their exact generated functions/global environment, result type,
@@ -37,8 +32,3 @@ Neither change altered the proofs, canonical sources or assumption allowance.
 The model was created once after inspecting the sources; no checker regenerates
 it from a candidate. The inherited nonce source-review tools and receipt remain
 unchanged. Run the read-only checks with:
-
-```sh
-python3 -B proof-work/elements-amounts-hash-source/check-source.py /private/tmp/jet-elements-amounts-hash.66_lhzdf
-python3 -B proof-work/elements-amounts-hash-source/test-source.py /private/tmp/jet-elements-amounts-hash.66_lhzdf
-```

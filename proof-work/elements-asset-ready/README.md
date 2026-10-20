@@ -19,23 +19,12 @@ the kernel-checked entropy initialization packet, which concerns the same
 original Elements program. Production code, original specifications, API,
 generation settings and accepted registries are unchanged.
 
-```sh
-python3 -B proof-work/elements-asset-ready/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-asset-ready/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Place `Ready.v.source` in a fresh external directory as `Ready.v`. The driver
 freshly compiles both results and their contract definition, reports full
 types/definitions/assumptions, checks exactly the six inherited CompCert/VST
 dependencies, verifies twenty-five inherited external modules, and binds 261
 local imports to their checked source/object provenance. The explicit external
 model remains a premise, not a discharged libc implementation fact.
-
-`RUN.json` records compilation, `KERNEL-RUN.json` records only a launch; only
-`CHECKED.json` with kernel exit status zero confirms completed recursive kernel
-checking for its exact bound inputs. This independent audit checks the full
-dependency chain even if the parent full-call audit is still live. Preserve
-all bound sources/objects/drivers and poll the original process handle.
 
 Unregistered proof work: accepted coverage added is zero. Normal admission,
 remaining external-library obligations and the full all-jets goal are unfinished.

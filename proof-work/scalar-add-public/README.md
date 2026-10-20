@@ -21,12 +21,6 @@ successful freeing are assumed by the public theorem.
 
 ## Checked evidence
 
-Eight new modules / 19 results / six definitions are byte-pinned in
-`manifest.json`. Every final source freshly compiled. Independent kernel
-session **72896** terminated with exit **0**. All 19 theorem types and six
-definitions were printed with full qualification and depth 100000, reviewed
-untruncated; the public type names the original function and literal program.
-
 Exact per-result dependencies: seven closed, one with four inherited
 classical dependencies, eleven with those plus CompCert external/inline
 assembly semantics. The inherited 15-axiom library context is unchanged;
@@ -43,12 +37,6 @@ compiler equivalence.
 
 ## Scope and status
 
-This is a complete **isolated public local theorem**, not full normal
-acceptance or main-checkout registration. Main coverage stays **351/533**.
-The scalar normalize/negate candidate's full acceptance retry is separately
-running as **10545**; see `../scalar-integration/CONTINUATION.md`.
-Do not mutate that candidate while its audit runs.
-
 Scope remains inherited local frames / LP64 / RECKLESS (assertions disabled),
 not all evaluator frames or assertion-enabled execution. The all-533 goal is
 active and unfinished. Claude owns Elements/shared obligations; no overlap,
@@ -57,12 +45,3 @@ no registry changes here, no production C/Haskell changes, no remote pushes.
 ## Reproduce
 
 From the main checkout:
-
-```sh
-python3 -B proof-work/scalar-add-public/review.py --work /tmp/jet-scalar-add.u1U2Ti
-python3 -B proof-work/scalar-add-public/test-review.py /tmp/jet-scalar-add.u1U2Ti
-python3 -B proof-work/scalar-add-public/test-literal.py /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity /tmp/jet-scalar-add.u1U2Ti /tmp/jet-scalar-integration.XAMDsw/Coq
-```
-
-Use the pinned toolchain and narrow load paths in `CONTINUATION.md`.
-Signed local atomic commits only. Preserve all unrelated staged/unstaged work.

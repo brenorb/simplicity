@@ -18,7 +18,7 @@ def load(name, path):
 
 def check(repo, source, coq):
     archive = Path(__file__).resolve().parent
-    # Recheck the literal modulo/group constant and recursive dependency ports.
+    # Recheck the literal modulo/group constant and division substitution.
     scalar = load('scalar_add_scalar_dependencies', coq / 'scalar-integration-review/check-negate-ports.py')
     inherited = scalar.check(repo, coq / 'C', coq / 'C', coq)
     # Carry expansion is identical for field and scalar addition. This gate
@@ -26,7 +26,7 @@ def check(repo, source, coq):
     add = load('scalar_add_common_carry', coq / 'add-review/check-add-wiring.py')
     if add.check(add.load(repo, coq / 'C', coq / 'C')) != 10:
         raise ValueError('unexpected common carry port scope')
-    recursive = load('scalar_add_active_parser', coq / 'negate-review/check-recursive-ports.py')
+    recursive = load('scalar_add_active_parser', coq / 'source-review.py')
     parser = recursive.parser(repo)
     catalog = parser.read_code(repo / 'Haskell/Core/Simplicity/CoreJets.hs')
     parser.require(catalog,
@@ -49,7 +49,7 @@ def check(repo, source, coq):
              coq / 'add-review/check-add-wiring.py',
              repo / 'Haskell/Core/Simplicity/Programs/Arith.hs',
              repo / 'Haskell/Core/Simplicity/Programs/Word.hs', repo / 'Coq/C/jet_spec.v']
-    return {'literal_scalar_add_structure': True, 'recursive_dependency_gate': True,
+    return {'literal_scalar_add_structure': True, 'literal_division_gate': True,
             'common_carry_padding_gate': True, 'complete_public_C_contract': False,
             'public_coverage_added': 0,
             'hashes': {**inherited['hashes'],

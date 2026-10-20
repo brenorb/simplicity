@@ -35,11 +35,6 @@ an internal C call argument, not a new restriction on logical jet inputs.
 
 ## Verification
 
-```sh
-python3 -B proof-work/elements-outpoint-calls/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-outpoint-calls/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Copy the five `.v.source` archives to a fresh external directory as `Shape.v`,
 `Read.v`, `Absorb.v`, `Payload.v`, `FrameOps.v`. The driver freshly compiles all
 five, reports types/definitions/assumptions, checks exactly eleven results and
@@ -48,12 +43,6 @@ provenance, and verifies six inherited external modules. Five results are
 closed; the array-preservation fact uses four inherited dependencies; the five
 C call theorems use the existing six CompCert/VST dependencies. No new axiom or
 unsafe kernel feature is introduced.
-
-`RUN.json` records compilation. `KERNEL-RUN.json` records only a launch. Only
-`CHECKED.json` with kernel exit status zero establishes completed recursive
-kernel checking for those exact bound inputs. Both roots (`Payload`, `FrameOps`)
-are checked so no fresh module is omitted. Preserve bound files during a live
-audit and poll the existing handle rather than restarting a silent check.
 
 This is unregistered proof work with zero accepted coverage added. Production
 code, original specifications, API and generation settings are unchanged.

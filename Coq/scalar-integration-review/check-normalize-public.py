@@ -32,7 +32,7 @@ def check(repo, source, dependencies, coq):
     if len(re.findall(r'\bTheorem\s+scalar_normalize_local_spec\b', local)) != 1:
         raise ValueError('duplicate public theorem')
     return {'literal_scalar_ports': 2, 'complete_literal_public_contract': True,
-            'recursive_dependency_gate': True, 'public_coverage_added': 0,
+            'literal_scalar_programs': True, 'public_coverage_added': 0,
             'hashes': {str(path): hashlib.sha256(path.read_bytes()).hexdigest()
                        for path in [repo / f for f in scalar.files]
                        + [dependencies / f for f in scalar.ports]

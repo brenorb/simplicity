@@ -5,15 +5,6 @@ not yet normally registered: `broken_check_lock_distance` and
 `broken_check_lock_duration`. These are assertions: C's false return corresponds
 to specification failure, not an assumed successful comparison.
 
-Private tree: `/private/tmp/jet-elements-legacy-check.9hQr9l`.
-Input SHA-256:
-`ef21d973d3eb6b828497afda77ac20aa27ac0891e74a48510dc800e2b916b57b`.
-Its predecessor is the completed legacy-getter proof tree, not a live audit's
-object cache. All inherited source bytes remain unchanged. The single new
-module, `C.jet_elements_legacy_check`, has eight results and five definitions.
-Three results are closed; both whole-C endpoints have exactly the six inherited
-project assumptions, with no added library model or assumed helper execution.
-
 ## What is proved
 
 The literal specification is the canonical Elements assertion over the input
@@ -38,22 +29,6 @@ readable fields. This batch does not prove construction of those caches by
 remain explicit.
 
 ## Completed checks
-
-Fresh compilation, full type/definition and assumption reports, direct Elements
-AST regeneration and recursive `coqchk` passed (41260, exit 0). `CHECKED.json`
-binds source, object, commands and logs. No admissions, assumed declarations or
-unchecked casts are used.
-
-Independent review finished as 44828, exit 0: canonical/source correspondence,
-32 assertion/failure/cache/whole-C source corruptions and 32 independent
-proof/evidence corruptions passed. `EVIDENCE-REVIEW.json` binds the completed
-checker and all review tools/logs. Review covers the full partial contracts,
-not just a successful tactic prefix or a mathematical relationship between
-specifications.
-
-```sh
-python3 -B proof-work/elements-legacy-check/review.py review /private/tmp/jet-elements-legacy-check.9hQr9l
-```
 
 That read-only command additionally pins the historical main-399/index state
 used during checking. Once main advances, preserve these receipts as historical

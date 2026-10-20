@@ -32,30 +32,6 @@ new variables or assumed equations; values are existing machine denotations.
 
 ## Verification boundary
 
-All six sources compile in `/private/tmp/jet-secp-field-checkpoint.edBKwo`
-under the narrow `FieldCheckpoint` namespace against the previously checked
-`/private/tmp/jet-secp-shifts.SfCvHG` basis and `FieldRun`/`SecpShift` extensions.
-`RUN.json`, when present, records fresh source-bound compilation, full type/
-definition reports and exact per-result assumptions. `CHECKED.json`, when
-present, additionally records successful recursive kernel verification.
-A source file, copied `.vo`, launch record or exploratory report is not a
-successful audit receipt. No production/specification/API/generation target,
-main proof source, registry or user staging is changed by this packet.
-
-The independent audit now uses `/private/tmp/jet-field-checkpoint-audit.Zeze9g`:
-all 95 loaded local sources and the six inherited extension modules were
-rebuilt before these six modules. The exact new-result profile is 41 results:
-35 closed, three with the four inherited classical/extensionality dependencies,
-and three with those plus the two inherited CompCert semantic dependencies.
-All 66 new definitions and theorem types are printed in full. `CHECKED.json`
-records successful recursive kernel verification with the unchanged inherited
-library context and no unsafe categories.
-
-```sh
-python3 -B proof-work/secp-field-checkpoint/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 The first slice's exact integer observations and derived carry bounds are
 extended in `../secp-field-first-values`; caller reader bounds and the
 remaining original slices are still open.

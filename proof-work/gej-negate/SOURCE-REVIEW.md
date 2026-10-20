@@ -15,17 +15,6 @@ function-entry declaration equality, not by similarity of C source.
 Reproduce after materializing the archived checker/test `.source` files to
 their `.py` names in the candidate directory:
 
-```sh
-python3 /tmp/jet-gej-negate.IMImaX/check-gej-negate-wiring.py \
-  --repo /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity \
-  --candidates /tmp/jet-gej-negate.IMImaX \
-  --dependencies /tmp/jet-gej-infinity.YrUC7w
-python3 /tmp/jet-gej-negate.IMImaX/test-gej-negate-wiring.py \
-  --repo /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity \
-  --candidates /tmp/jet-gej-negate.IMImaX \
-  --dependencies /tmp/jet-gej-infinity.YrUC7w
-```
-
 No production C/Haskell changes, snapshot update, or public coverage entry
 is authorized by passing these supplemental checks. Full contract review
 and isolated acceptance remain open.

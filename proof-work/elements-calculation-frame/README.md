@@ -8,18 +8,6 @@ global environment. It does not assume an entire jet call or final output.
 Its allocation equalities are intermediate entry premises; the enclosing public
 proof still must derive the four allocations itself.
 
-`RUN.json` and `CHECKED.json` bind the exact extension source/object, complete
-six-result/five-definition reports and the source-bound original-program
-dependencies from `../elements-issuance-computed/`. Every theorem has an empty
-assumption set. This small prefix loads a subset of the existing approved
-library axiom context, recorded exactly in `CHECKED.json`; no normal gate or
-allowlist was modified. Unsafe-kernel and positivity flags remain absent.
-
-The current external source is
-`/private/tmp/jet-elements-calculation-frame.b2dBAy/CalculationFrame.v`.
-`verify.py EXTERNAL_DIRECTORY` performs the once-only compile/report/source-
-binding/kernel audit. Existing receipts must not be overwritten.
-
 This is **not** complete equivalence for the three public frame jets and adds
 zero accepted coverage. Compose the actual body next: source-frame copy,
 read32s of eight entropy words, canonical helper call into `__res`, struct copy

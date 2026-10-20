@@ -32,40 +32,12 @@ branch, normalized limbs, get-b32 substitution and machine-byte interpretation;
 the execution proof invokes the real `eval_local_write_fe`, preserving its
 frame and Freeable-region representation.
 
-49 additional local modules were force-built, not inferred from old `.vo`
-files. `DEPENDENCIES.json` binds their source, object, command and log
-identities and the checked normalization parent. The shared regex scanner
-flags the original Bit Machine datatype constructor named `Abort`. No scanner
-was changed: the dependency verifier permits that one inherited file only
-when its bytes equal `91d89bac:Coq/Simplicity/BitMachine.v`, with exactly its
-three constructor-name occurrences and no vernacular `Abort.` command.
-All other added source files pass the ordinary proof-safety scanner.
-
 ## Verification
-
-The report covers 16 reused writer results and 10 new adapter/composition
-results, seven definitions. Exact dependency profile: 19 closed, five memory
-results with four inherited classical dependencies, two execution results
-with the six inherited Coq/CompCert dependencies. No new axioms or external
-models are added. `RUN.json` binds fresh compilation and full printed
-contracts/assumptions; `CHECKED.json` additionally binds a successful recursive
-kernel check. A launch file alone is not success.
 
 The exact loaded closure is 148 source-built local modules and 48 extension
 modules, including the two new modules. The separately checked
 `FieldNormalize.Call` endpoint is not imported here. Negative checks reject
 an extra assumption and detect an unfamiliar module namespace.
-
-```sh
-python3 -B proof-work/secp-field-writer/dependencies.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-writer/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-writer/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-writer/verify.py check \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
 
 These are separate launch/check phases. Poll live process handles; do not
 restart a launched phase merely because its observation yielded. The sources

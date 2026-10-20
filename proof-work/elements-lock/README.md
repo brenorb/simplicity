@@ -17,12 +17,6 @@ proof, and no admission or unchecked cast is used.
 
 ## Checked evidence
 
-Private tree: `/private/tmp/jet-elements-lock.cTGZa3`.
-The inherited Coq tree is an unchanged private copy of the checked finality
-tree (`../elements-finality/README.md`), not either live acceptance tree's
-compiler outputs. The new source is outside Coq's normal load paths, in its
-own `Proof/` directory mapped only to `LockLiteral`.
-
 Ten C proof/dependency modules were explicitly freshly compiled, followed by
 the new literal module. The first experimental compile exposed an explicit
 algebra argument mismatch; it was fixed using the installed
@@ -55,18 +49,6 @@ separation and function-boundary obligations are retained. This result does
 not by itself prove that actual environment builders establish that relation,
 evaluator composition, or assertion-enabled/non-LP64 configurations; the
 existing LP64/RECKLESS model scope is unchanged.
-
-`PREPARATION.json` binds the successful commands, exits, report hashes, fresh
-source/object hashes, tools, source base and preserved original index. The
-new literal source is outside the inherited Coq fingerprint and is separately
-bound by source/object hashes and exact source guards. Source archives and
-complete contract/assumption/kernel/AST logs are retained here. These receipts
-describe the actual dirty/staged source base, not a clean-HEAD build.
-
-```sh
-python3 -B proof-work/elements-lock/review.py
-python3 -B proof-work/elements-lock/test-review.py
-```
 
 ## Continuation: no normal registration yet
 

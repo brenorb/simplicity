@@ -6,14 +6,6 @@ recursively kernel-checked and independently source/evidence-reviewed:
 - `elements_issuance_token_amount_literal_local_spec`.
 - `elements_current_issuance_token_amount_literal_local_spec`.
 
-Private tree: `/private/tmp/jet-token-local-effects.ykOxUN`.
-Input SHA-256:
-`2de2c3326e6cbf4d6c59b1834e00604e205181bd588f18904352ed36b65e24d8`.
-Four new modules are archived under `source/`: shared allocation/framing
-composition, the complete static C helper, both jet wrappers, and literal
-canonical bridges. The seed is the completed token-selection tree; no objects
-were copied from either running full audit.
-
 ## The actual C-to-Simplicity chain
 
 `eval_elements_issuanceTokenAmt` establishes the complete actual static helper
@@ -45,23 +37,6 @@ unsigned Word64 encoding. The current program is `CurrentIndex >>> assert
 (primitive IssuanceTokenAmount)`. The source guard checks these exact Haskell
 clauses, Coq port and literal definitions, four whole-C statements and all three
 relevant C bodies, reusing the prior amount/issuance encoder guards.
-
-## Completed checks
-
-Checker12698 terminated with exit0: all four new modules freshly compiled,
-24 full result types and16 definitions reported, the Elements AST compared,
-and the four modules recursively kernel-checked. Nine results are closed.
-Both canonical-Coq endpoints and both literal endpoints retain exactly the six
-inherited Coq/CompCert assumptions, without a new libc, execution, success or
-desired-output premise. Full reports, source/object hashes and exact command
-exits/logs are bound by `CHECKED.json`.
-
-Independent finish45508 terminated with exit0. All49 source corruptions and40
-proof/evidence/object/kernel-scope corruptions were rejected.
-`EVIDENCE-REVIEW.json` binds the completed checker, source, all five tools and
-three successful review commands/logs. The main407 source, live415 audit tree
-and user's original index were unchanged. This is not normal registration or
-full normal acceptance; coverage added by this proof receipt is zero.
 
 ## Next normal-registration boundary
 

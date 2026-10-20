@@ -23,14 +23,6 @@ corollary; this packet alone does not claim those premises are inhabited.
 
 ## Original target and reuse
 
-`Spec` retains the literal original Elements routing: annexHash on the optional
-pegin, then ctx8Add32 on the hash, then ctx8Add4 on the index. It uses the existing
-kernel-checked `AssetLocal.Buffer` and `AssetLocal.ContextHashes` pure modules,
-including the literal annexHash definition. `SOURCE-REVIEW.json` binds the
-original Haskell type, routing, annex dependency, width helpers, selectors,
-catalog binding, C body and all five new proof sources. This explicit literal
-source review is not a formal Haskell translation theorem.
-
 The existing outpoint call and middle proofs supply actual C execution in its
 original order: present pegin data is read before its prefix-byte absorption.
 `Bridges` adapts the checked frame copy to `op_env`, checks the actual entry and
@@ -45,11 +37,6 @@ generation setting is changed.
 
 ## Verification
 
-```sh
-python3 -B proof-work/elements-outpoint-local/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-outpoint-local/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Place the five archives in a fresh external directory as `Spec.v`, `Counter.v`,
 `Bridges.v`, `Local.v`, `Actual.v`. The driver freshly compiles them, reports full
 types/definitions/assumptions, checks exactly twelve results and three
@@ -58,12 +45,6 @@ checks eighteen inherited external modules. Eight new results are closed;
 the global-state equivalence has four inherited dependencies; the source-copy
 and two full-call theorems have the existing six CompCert/VST dependencies.
 The external memcpy model remains a premise, not a discharged libc fact.
-
-`RUN.json` records compilation, `KERNEL-RUN.json` only a launch. Only successful
-`CHECKED.json` with kernel exit status zero records completed recursive kernel
-checking for the exact bound inputs. The full audit checks its entire dependency
-chain even if a separate middle audit is still running. Preserve bound sources,
-objects, review and driver while an audit is live; poll the existing process.
 
 Unregistered proof work: accepted coverage added is zero. Normal admission,
 external-library obligations and the full all-jets goal remain unfinished.

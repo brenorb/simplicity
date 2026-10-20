@@ -6,14 +6,6 @@ over the independently reviewed417 token candidate. Main is now the guarded
 both passed before installation. The subsequent separate actual-main418 audit
 6155 has also passed; its terminal result is independently verified below.
 
-Private tree: `/private/tmp/jet-txid-admission.gvp5bmft`.
-Source fingerprint:
-`43f31b3e6ffae819c1afc89531d3f8eb13f955e556ed6a9eef87221ad9504297`.
-Only completed proof objects were cloned. The417 predecessor supplied source,
-not objects from a live audit. Full C/specification boundaries and selected
-serialization review are in `../elements-txid-literal/`: the cached transaction
-ID relation is retained, not assumed to be established by the constructor.
-
 Preparation13791 and independent six-stage review55806 terminated with exit0.
 The normal build and explicit fresh compilation passed. All8,542 inherited
 contract records retain bytes/order and all5,599 inherited dependency sets are
@@ -21,13 +13,6 @@ unchanged. The two new results and one definition have complete deep reports
 with no compact elision. The pointwise bridge uses inherited functional
 extensionality; the C endpoint retains exactly the six inherited Coq/CompCert
 assumptions. No result in this batch is claimed closed.
-
-Coverage/ordinary contract checks, seven new statement-confined coverage
-fixtures,63 source corruptions and31 independent normal evidence corruptions
-passed. `FINISH-CHECKPOINT.json` independently verifies1,266 evidence hashes,
-tool/engine identities, source and terminal commands. All build, fresh-compile,
-full type/assumption and six-stage logs are archived. The shared normal engines
-are unchanged.
 
 ## Combined418 over the installed415 base
 
@@ -37,79 +22,6 @@ the entire exact418 candidate with the normal full acceptance command. No
 accepted intermediate417 installation is invented. Start guards reject a
 second launch and require the real baseline acceptance/installation; all
 review sources, objects, reports, commands, tools and terminal logs are bound.
-
-The logged start-guard test completed with exit0: eight invalid/missing-review
-or duplicate-launch conditions were rejected, with no writes or acceptance
-subprocess. `START-GUARD.json` binds those exact tools and the terminal log;
-this is not positive full acceptance.
-
-Read-only aggregate planning37749 completed with exit0.
-`INSTALLATION-PLAN.json` binds exact415/418 source maps, original staging, both
-review hashes, tools and22 source-only targets: eleven metadata/scripts,
-four guards and seven new proofs. No inherited proof is overwritten, no
-compiler object copied and no unrelated source changed. A future guarded418
-installer must wait for real successful actual-main415 AND isolated418
-results, then run separate actual-main418 acceptance. This plan is not an
-installation.
-
-The source-only418 installer and separate once-only actual-main418 driver are
-now implemented. Logged test58125 terminated with exit0: all27 premature or
-unsafe integration/launch conditions were rejected, including missing full
-receipts, duplicate operations, altered provenance/index, compiler objects,
-escaping targets and inherited proof overwrites. No writes or acceptance
-subprocess were attempted. `INTEGRATION-REVIEW.json` binds the exact tools,
-frozen22-source plan and terminal log. Historical415 provenance is checked
-without requiring a successor main to remain415. No positive418 installation
-or actual-main418 acceptance was exercised or claimed by those tests.
-
-After the completed review, real415 acceptance/installation and successful
-launch guards, the once-only combined418 audit has launched as **91871**.
-`AUDIT-RUN.json` binds the exact418 fingerprint, both review hashes, the real415
-acceptance/installation, committed driver and full `check-jets.sh --accept`
-command. Its log is
-`/private/tmp/jet-txid-admission.gvp5bmft/acceptance.log`.
-Audit91871 has now terminated with exit0 after4081.428seconds, ending in the
-complete final acceptance marker. Build, recursive kernel check on1056 modules,
-reviewed assumptions/contracts, negative tests and all five regenerated ASTs
-passed. `ACCEPTANCE.json`, `TERMINAL.json` and the complete `acceptance.log`
-are archived here. `ACCEPTANCE-CHECKPOINT.json` independently binds the source,
-terminal receipt/log/driver, both completed review chains, exact22-source plan
-and the real successful actual-main415 receipt. The log SHA-256 is
-`80fab176fae475c93e69eb2e656b57d27ec2843037661e1e0131d0311f1ffc9b`.
-Both full prerequisites for guarded418 integration are satisfied. This
-checkpoint does not itself install418 or claim actual-main418 acceptance.
-
-Guarded installation83232 has subsequently terminated with exit0.
-`INSTALLATION.json` and `DELTA.patch` bind the exact22-source delta from the
-accepted415 tree to the accepted418 tree. The postcheck confirms exact source
-identity and preservation of all unrelated semantic inputs and the original
-staged patch. No inherited proof was overwritten and no compiled object copied.
-`INSTALLATION-CHECKPOINT.json` independently binds the installation/delta,
-reviewed driver, source fingerprint and preserved staging. Only the seven new
-proofs, four guards and integration evidence are committed here; existing dirty
-registries are preserved and their owned delta is archived in `DELTA.patch`.
-That installation alone did not establish actual-main418 acceptance; the
-separate completed run below supplies that evidence.
-
-The once-only actual-main418 audit has now launched as **6155** after the
-completed installation and independent postcheck. `MAIN-AUDIT-RUN.json` binds
-the exact418 source fingerprint, installation SHA-256
-`e0b0c58d26fa6f3d97a6d0f5f68b9a7c545d3a2488f405e0a6c928dcf836f73c`,
-the full `check-jets.sh --accept` command and the reviewed driver. Its log is
-`/private/tmp/jet-txid-admission.gvp5bmft/main-acceptance.log`.
-Audit6155 has now terminated with exit0 after4017.752seconds. The full build,
-recursive kernel check on1056 modules, assumption audit of5601 theorems
-(3053 closed), reviewed public contracts, gate/source negative tests and all
-five regenerated ASTs passed. `MAIN-ACCEPTANCE.json`, `MAIN-TERMINAL.json` and
-the complete `main-acceptance.log` are archived here.
-
-`MAIN-CHECKPOINT.json` independently rechecks the full historical review/
-installation chain, the terminal command/log/driver identities, exact current
-main source identity and the original staged patch. The terminal log SHA-256
-is `c7d8d271c85d59145976fd09e213dc6a37f7f5982845f41949b74334a0ceb3ff`.
-The accepted actual main418 fingerprint remains exactly the source fingerprint
-above. No audit is left running and no second audit was launched to obtain this
-result.
 
 The accepted registry has115 missing declarations and104 entries with an
 explicit `memcpy_model` condition. Caller/domain, evaluator/library/fidelity

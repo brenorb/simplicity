@@ -4,13 +4,6 @@ Proposed successor: **401/533**, over the reviewed 399-jet source predecessor.
 Only `internal_key` and `tappath` gain entries. The three checked endpoint
 versions in `../elements-tap-getters/` represent two jets, not three.
 
-Candidate: `/private/tmp/jet-tap-getters-admission.ouwiobpu`.
-Reviewed candidate input:
-`c86dfb5924df9474a3168b5923c508f236576737c3fbb18b9d59a40afaa3752d`.
-Main was **386/533** at preparation and has since advanced through the guarded
-399 installation. This 401 candidate has passed full isolated acceptance and
-has now been installed through the guarded source-only installer.
-
 ## Source provenance and the explicit inherited-source change
 
 Objects were APFS-copied exclusively from the completed, independently checked
@@ -24,17 +17,6 @@ Six previously unregistered modules are added to the normal public manifests:
 the generic hash getter, its writeHash implementation, the hash-field jets,
 the original tappath execution module, its nullable variant, and the literal
 adapters. There is one new proof source and two deployed source/negative guards.
-
-Unlike the earlier purely additive getter batches, this candidate explicitly
-generalizes one inherited **unregistered** source:
-`C/jet_elements_tappath_nullable.v`. `ASSEMBLY.json` binds its exact old/new
-hashes; no other inherited implementation source may change. Its old nullable
-predicate remains definitionally the original <=128 relation. The original
-theorem is retained at 128, with the added byte-length endpoint at 255. A formal
-compatibility theorem contains the complete old predicate, and the source guard
-also pins it. The C proof body changes only its local numeric bound; no new
-execution/output premise is introduced. Main's old source is not changed by
-preparing this candidate.
 
 The three memory-representation compatibility lemmas retain four inherited
 assumptions; they are not axiom-free. Only the four word/key/list conversion
@@ -61,28 +43,6 @@ negative fixtures; existing fixtures and allowances are preserved.
 
 The read-only snapshot review passed:
 
-```sh
-python3 -B proof-work/elements-tap-getters-admission/review.py review /private/tmp/jet-tap-getters-admission.ouwiobpu
-```
-
-The **finish workflow 27354 terminated with exit 0**, passing all six stages:
-coverage, coverage tests (including 14 new statement-confined fixtures), ordinary
-contract comparison, source correspondence, 50 source corruptions and 29
-admission/evidence corruptions. `REVIEW.json` binds the successful commands/logs,
-source input, tools and 1,252 report/object hashes. `FINISH-CHECKPOINT.json` records
-an additional independent check of every bound evidence hash. Its historical
-launch (already completed; do not repeat it):
-
-```sh
-python3 -B proof-work/elements-tap-getters-admission/review.py finish /private/tmp/jet-tap-getters-admission.ouwiobpu
-```
-
-The complete new type/assumption reports, all six stage logs and review receipts
-are archived here. The earlier `PREPARATION-CHECKPOINT.json` preserves the
-historical pre-finish state, not a second or conflicting acceptance. Snapshot
-generation, a completed finish review and the scoped proof-folder kernel checks
-still do not constitute full normal acceptance.
-
 ## Predecessor, start guards and remaining acceptance
 
 The actual-main 386 audit **92335** and isolated 399 audit **61966 both passed**
@@ -99,50 +59,8 @@ full audit may run alongside actual-main 399, but installation of 401 must also
 wait for actual-main 399 to pass. The two-stage predecessor rule does not allow
 calling preparation or scoped kernel checks normal acceptance.
 
-Three negative-only start checks passed without launching a subprocess or
-attempting writes. `START-GUARD.json` binds their driver, test and log. These
-are refusal tests, not an invented positive acceptance.
-
 All start prerequisites and the completed finish review were verified before
 the following historical launch; do not repeat it:
-
-```sh
-ulimit -s 65520
-python3 -B proof-work/elements-tap-getters-admission/accept.py /private/tmp/jet-tap-getters-admission.ouwiobpu
-```
-
-The isolated audit **55506 terminated with exit 0**, as did the distinct
-actual-main 399 audit **90475**. `ACCEPTANCE.json` and `TERMINAL.json` bind the
-real isolated result at `c86dfb59...`, reviewed evidence, driver, predecessor
-receipts and full log. All acceptance gates passed, including recursive
-kernel checking of 1,037 modules and five regenerated ASTs. The complete log is
-archived as `acceptance.log`, SHA-256
-`634f954807f68035ed7ee058838ba4f5c5f0c4d4845fd157bdb04633f3e284e9`.
-Both prerequisites for guarded 401 installation are now satisfied. Keep the
-completed private candidate immutable; do not restart either completed audit.
-
-The guarded source-only `integration.py` and once-only `main-accept.py` are now
-prepared. The read-only plan and 14 refusal tests passed (harness **21893**,
-exit 0); `INTEGRATION-REVIEW.json` binds their tools, log and planned delta.
-Exactly 15 source/metadata/gate targets are permitted, including only the
-explicitly reviewed nullable-tappath overwrite. Object copying and other
-inherited-source overwrites are rejected. These checks did not install anything
-or manufacture positive acceptance evidence. Both real terminal acceptances
-have now been independently verified. Read-only planning against exact main399
-also passed again. The once-only installer and composed postcheck passed as
-67607, exit 0. Main now matches accepted input `c86dfb59...` exactly, at 401/533;
-the entire original staged patch is preserved. `INSTALLATION.json` and
-`DELTA.patch` bind the exact fifteen-target source-only change. No compiler
-objects were copied. Do not repeat installation or apply an obsolete
-exact-main399 postcheck to main401.
-
-The separate actual-main401 audit was launched once as **92989**, through
-`main-accept.py`. `MAIN-AUDIT-RUN.json` binds its input, installation and driver;
-that launch is not terminal acceptance. Log:
-`/private/tmp/jet-tap-getters-admission.ouwiobpu/main-acceptance.log`.
-The isolated402 audit runs alongside it as **26900**. Installing402 must wait
-for both real audits to pass. Keep main and each audited candidate's semantic
-inputs frozen, poll these existing handles, and do not restart on quiet output.
 
 Successor batching now supersedes the earlier serial-install plan: the fully
 reviewed407 candidate includes the402/404/406/407 deltas, and its combined audit
@@ -150,16 +68,6 @@ checks all six added jets over this exact401 baseline. Keep main at401 until
 actual-main401 and combined407 both pass; do not install402/404/406 in between.
 See `../elements-output-nonce-admission/README.md`. Existing audits continue
 unchanged, and their exact-source results will be preserved.
-
-The actual-main401 audit92989 has now terminated with exit0. All acceptance
-gates passed, including recursive kernel checking, assumptions/contracts,
-negative tests and five ASTs. `MAIN-ACCEPTANCE.json` and `MAIN-TERMINAL.json`
-bind the exact accepted `c86dfb59...` input, installation, driver and complete
-log, archived as `main-acceptance.log` (SHA-256
-`51dc41fa375337c139e4a7d74e9fd20ff9aa5c56a342a169a1c2e1ae66b2c8b5`).
-The composed postcheck reports actual-main acceptance with the original index
-preserved. Do not repeat the completed audit. Main remains401 until the
-combined407 successor also passes and guarded integration is ready.
 
 This proposed registry retains the 104 explicit `memcpy_model` conditions;
 132 public declarations would still be missing. LP64/RECKLESS, represented

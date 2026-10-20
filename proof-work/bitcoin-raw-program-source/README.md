@@ -6,11 +6,6 @@ Haskell host runtime, register coverage, or prove the C environment builders.
 
 Run against the immutable proof tree:
 
-```sh
-python3 -B proof-work/bitcoin-raw-program-source/check-source.py /private/tmp/jet-bitcoin-raw-program.9b5hGOH3
-python3 -B proof-work/bitcoin-raw-program-source/test-source.py /private/tmp/jet-bitcoin-raw-program.9b5hGOH3
-```
-
 Both commands passed; the second rejected 328 read-only source corruptions.
 The fixed model is a `.py` file so that deploying these guards under `Coq`
 includes the model in the normal source fingerprint. It is not regenerated

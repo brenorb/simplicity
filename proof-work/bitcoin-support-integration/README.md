@@ -26,26 +26,6 @@ the original 36-instance generated module or its theorem types.
 
 ## Verification
 
-The batch reuses the first integration's audit implementation, now supporting
-`--batch`. Its manifest selects the eleven prerequisite modules plus these
-six, all freshly compiled in normal `C` namespaces. Recorded scratch:
-`/tmp/jet-shared-foundations.2_446d_9`.
-
-Fresh compilation of all 17 modules and the full type/definition/assumption
-driver, followed by whole-dependency independent kernel checking, exited 0.
-There are 251 results (160 new) and 37 definitions (four new); 36 results are
-closed. Remaining result assumptions are the existing four/six-name sets.
-The inherited 15-name kernel context is unchanged, with all three unsafe
-categories empty. The manifests pin sources; `REVIEW.json` pins every new
-object, driver, log and result assumption set.
-
-```sh
-ulimit -s 65520
-python3 -B proof-work/shared-foundations-integration/check.py --batch proof-work/bitcoin-support-integration --build
-python3 -B proof-work/shared-foundations-integration/check.py --batch proof-work/bitcoin-support-integration
-python3 -B proof-work/shared-foundations-integration/test-check.py
-```
-
 This is an explicit, separately checked support target, not normal public
 registry admission or whole-jet acceptance. The ordinary jet build does not
 select these six modules yet. The main registries and unrelated staged edits

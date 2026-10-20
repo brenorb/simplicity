@@ -33,27 +33,6 @@ six closed results, two memory-framing results with four inherited classical
 dependencies, eight execution results with the six inherited Coq/CompCert
 dependencies. No new axioms or external model is added.
 
-`C.jet_frame_copy` and `C.jet_frame_copy_layout` were freshly compiled from
-sources identical to the checkout. Their exact source/object/command/log
-identities are in `DEPENDENCIES.json`. Together with the checked full-input
-parent, the loaded provenance covers 151 local sources and 57 extensions,
-including these five new modules. Every loaded non-standard module must
-match its exact source-built record.
-
-`RUN.json` records fresh compilation, full printed types/definitions and
-assumptions, and negative checks for an extra assumption/unfamiliar module.
-`CHECKED.json` additionally records a successful recursive kernel check;
-launch records alone do not establish success.
-
-```sh
-python3 -B proof-work/secp-field-public/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-public/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-public/verify.py check \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 Next reuse the existing `literal_fe_multiply` term and its canonical
 multiply/normalize512 semantic bridges, after source-bound verification and
 the existing literal/recursive/foundation correspondence gates. Prove that

@@ -1,11 +1,5 @@
 # Checked source-bound first fold of scalar_reduce_512
 
-Six fresh modules, **49 closed results / 71 definitions**, including record
-constructors and projections, build against the immutable accepted dependency
-tree `/tmp/jet-scalar-integration.XAMDsw/Coq`. Scratch namespace `MulC` lives
-at `/tmp/jet-scalar-mul.lkomWj`. The last verified declaration is
-`MulC.jet_secp_reduce512_first_value.reduce512_first_source_value`.
-
 This proves that the seven emitted first-fold limbs have exact value
 `low256(input) + high256(input) * (C0 + 2^64*C1 + 2^128)` for arbitrary
 eight-limb machine inputs. The real narrowing into uint32 `m6` is included:
@@ -43,30 +37,4 @@ remain open. There is **no public coverage increase or full acceptance**.
 
 ## Verification
 
-Fresh fail-fast build **93994**, independent kernel check **67918**, and full
-type/definition/assumption drivers **22400** all exited zero. All 49 results
-are closed under the global context. The kernel closure has the same 15
-inherited context axioms; unsafe categories are empty. Full-depth drivers
-print every type and definition without truncation and have empty stderr.
-`manifest.json` and `REVIEW.json` pin exact source/driver/output/kernel hashes.
-Read-only review also checks the frozen product/execution prerequisites and
-their dependency fingerprint. Nine in-memory negative fixtures pass.
-
-```sh
-python3 -B proof-work/scalar-reduce512-first/review.py
-python3 -B proof-work/scalar-reduce512-first/test-review.py
-```
-
 From the dependency Coq directory, pinned Coq 8.17.1 on PATH, stack 65520 KiB:
-
-```sh
-bash build-jets.sh --coqc -R /tmp/jet-scalar-mul.lkomWj MulC \
-  /tmp/jet-scalar-mul.lkomWj/jet_secp_reduce512_first_value.v
-bash build-jets.sh --coqchk -silent -o -R /tmp/jet-scalar-mul.lkomWj MulC \
-  MulC.jet_secp_reduce512_first_value
-```
-
-All checks are terminal. No failing goal remains in the six archived modules.
-Keep their exact sources/evidence frozen; continue in new modules. See
-`CONTINUATION.md`. Preserve the main checkout's unrelated dirty work and
-Claude's Elements/shared-obligation reservation. Signed local commits only.

@@ -1,10 +1,5 @@
 # Outer tag, conditional input read and complete null-data payload
 
-Private tree: `/private/tmp/jet-null-data-guard-compose.6O6qSTg0`.
-The new module is archived under `source/`. Inherited sources equal the checked
-`../elements-null-data-read-index/` tree byte for byte; main418 semantic inputs
-and the original staged patch are unchanged.
-
 ## What is proved
 
 `exec_elements_null_data_guard_block` executes the complete actual generated
@@ -74,10 +69,6 @@ admission or unchecked operation was introduced.
 Independent evidence review78938 exited0, including35 rejected read-only
 proof/evidence corruptions. The separate terminal postcheck revalidates its
 receipt/log/tool hashes and actual source/object identities. Recheck:
-
-```sh
-python3 -B proof-work/elements-null-data-guard-compose/review.py /private/tmp/jet-null-data-guard-compose.6O6qSTg0
-```
 
 Development corrections were missing explicit imports, specifying the actual
 write cursor/effect before solving existential side conditions, using the

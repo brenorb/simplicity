@@ -19,10 +19,3 @@ existing entropy helper-to-canonical-program theorem still needs composing
 with these reads, result copying, output writing, return and all local frees.
 No C, specification, API, generation setting or normal registry is changed;
 accepted coverage added is zero.
-
-`verify.py compile|kernel EXTERNAL_DIRECTORY` checks source archives against
-the isolated sources, recompiles all five modules, audits full contracts and
-the exact per-result assumption profile (seven closed, one four-dependency,
-three six-dependency results), and binds all 164 imported project modules to
-the forced-source entropy basis. `RUN.json` records compilation only;
-`CHECKED.json` alone records a successful recursive kernel audit.

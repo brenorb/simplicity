@@ -4,17 +4,7 @@ The two complete original-public-C-to-literal-Simplicity local contracts are
 now freshly compiled in the repository's normal logical namespace `C`.
 Full isolated acceptance has passed; this is **not main-checkout registration**.
 
-Candidate: `/tmp/jet-scalar-integration.XAMDsw/Coq`.
-Parent: `/tmp/jet-scalar-zero-accept.smyVL2`, whose complete normal acceptance
-session 45608 terminated with exit 0; receipt `../scalar-zero/ACCEPTANCE.json`.
-
 ## Exact checked transport
-
-`ASSEMBLY.json` records 25 modules, 96 results, 43 definitions and two
-provisional coverage entries. Every new source is byte-exact namespace
-transport (`OriginalC.`, `WriterC.`, `NegC.` to `C.`) of a pinned, already
-compiled/kernel-checked archive. All 1,024 inherited `.v` files are unchanged.
-No production C/Haskell, specification, premise or postcondition was changed.
 
 The former estimate of 22 modules / 80 results was incomplete: the whole
 serializer also requires three original scalar-get-b32 modules, adding 16
@@ -36,8 +26,6 @@ The negation public target remains the literal Simplicity multiply/modulo
 program, not a numerical modular-negation substitute.
 
 ## Normal snapshot review
-
-`NORMAL-REVIEW.json` pins the reviewed drivers, outputs and snapshots:
 
 - All 4,233 inherited per-result dependencies are unchanged. All 96 new
   dependency sets exactly match their checked OriginalC/WriterC/NegC reports;
@@ -73,21 +61,6 @@ contract comparison and negative gates passed. AST regeneration failed
 because the copied candidate lacked its sibling `C` directory, not because
 an AST or proof differed. This run is **not full acceptance**.
 
-Read-only source links `C` and `Haskell` now point to the main repository,
-matching the accepted parent's layout. The pinned normal reviewer completed
-again with exit 0 (session **40956**), and core AST regeneration then passed.
-No proof, inventory, snapshot, gate or production input was changed.
-The full acceptance retry **10545** terminated with **exit 0**. Build,
-kernel (829 modules), assumptions (4,329 results / 2,292 closed), exact
-contracts, negative gates and all four AST comparisons passed. Post-run
-normal review passed unchanged and the fingerprint is identical.
-`ACCEPTANCE.json` pins the terminal result and full log hash. Preserve the
-accepted candidate as an immutable reference. Its separate log is
-`/tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance-retry.log`.
-Pre-acceptance fingerprint:
-`aa652e53f690b80bcdc03a263f11114d04b1e9743f3dac471a41b00e9dac42ec`.
-Log: `/tmp/jet-scalar-integration.XAMDsw/scalar-integration-full-acceptance.log`.
-
 358/533 is **accepted isolated candidate** coverage (254 entries without an
 extra library premise, 104 conditional on the original memcpy model), not
 main-checkout coverage. Main registration remains 351/533. These theorems
@@ -98,5 +71,3 @@ No every-jet completion is claimed.
 Claude's shared memcpy linkage, SHA startup, frame/Bit-Machine constructibility
 and Elements translation-unit/getter work do not overlap these files. Their
 integration and exact proof boundaries remain separate obligations.
-
-See `CONTINUATION.md` before proceeding. Signed local commits only; no pushes.

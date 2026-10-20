@@ -43,15 +43,6 @@ theorem="eval_frame_edge_ofs_early")`, followed by `rocq_check` and `rocq_query`
 with the returned `from_state`. Omit `workspace` to use the server's isolated
 default. Relative `Coq/C/jet_read8.v` also exists in that copy.
 
-Each server launch creates its own `/private/tmp/simplicity-rocq-mcp.*` workspace
-from the durable seed and reports its path on stderr. Source edits and compiler
-outputs stay there, outside the accepted source tree. The seed is the trial's
-snapshot, **not an automatically synchronized view of current proofs**. Copy
-the intended current source/dependencies into the external workspace and rebuild
-changed dependencies before debugging newer work. Do not mix cached objects
-compiled with OCaml 4.14.4 with this backend's 4.14.1 objects. The seed includes
-CompCert 3.14 objects rebuilt with the matching compiler.
-
 For a reproducible harness, `SIMPLICITY_ROCQ_WORKSPACE` can designate an existing
 empty external directory. The launcher refuses repository-local or nonempty
 destinations. Session directories are retained for inspection, not auto-deleted;
@@ -70,19 +61,6 @@ verification. `rocq_compile_file` cleans artifacts by default; use
 after rebuilding dependencies.
 
 ## Installation check
-
-```sh
-.rocq-mcp-local/venv/bin/python proof-work/rocq-mcp/smoke.py
-```
-
-This uses a real MCP stdio client, checks the pinned binary versions/paths,
-replays the exact `eval_frame_edge_ofs_early` statement/proof from the current
-`Coq/C/jet_read8.v`, deliberately tests a wrong tactic and recovery from its
-last valid state, queries a CompCert constructor, completes `Qed`, fully
-compiles, and independently runs recursive `coqchk`. It adds no axioms or proof
-shortcuts. Inherited assumptions are reported, not silently reclassified as
-axiom-free. Raw results and source hashes are stored locally in
-`.rocq-mcp-local/smoke.json`; stderr is in `smoke-stderr.log`.
 
 Only this launcher, harness and documentation are versioned. Runtime binaries,
 machine-specific Codex configuration, copied proofs and build outputs are not.

@@ -42,13 +42,6 @@ four classical parameters, and three inherit all eight existing Coq/CompCert
 parameters. Kernel context matches the inherited 15-name allowlist; unsafe
 categories are empty. There is no new axiom or explicit libc-model premise.
 
-Run `python3 -B proof-work/scalar-lambda-frames/review.py` and `test-review.py`.
-Reproduce with Coq 8.17.1, 65520 KiB stack and the immutable multiplication base's
-`build-jets.sh`; reuse the parent's seven narrow scratch mappings and add
-`-Q /tmp/jet-scalar-lambda-frames.v7rTNY LamFrameC`.
-Compile the five modules in manifest order, then both drivers. Both the fresh
-and local modules must be kernel roots: neither imports the other.
-
 These archived sources are **unregistered scratch evidence**. Accepted main
 coverage stays **361/533**, including 104 explicit memcpy-model entries.
 Main audit 22185 is terminal exit 0; do not poll/restart it. Next promote the
@@ -57,4 +50,3 @@ public contract with source wiring and corruption tests, inspect snapshots,
 then run full isolated acceptance before claiming new coverage.
 
 Signed atomic local commits only; never push. All-533 goal remains unfinished.
-

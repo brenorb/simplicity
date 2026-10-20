@@ -43,17 +43,3 @@ translation. General evaluator frames and assertion-enabled builds are not
 established. This is a complete checked public local theorem, but **not yet
 registered coverage or isolated full acceptance**. Main registry and other
 authors' changes remain untouched.
-
-Exact source/output hashes, commands and terminal statuses: `manifest.json`.
-Reproduce from the repository root:
-
-```sh
-python3 proof-work/scalar-negate-public/review.py --work /tmp/jet-scalar-negate.f4CRAT
-python3 proof-work/scalar-negate-public/test-review.py /tmp/jet-scalar-negate.f4CRAT
-python3 proof-work/scalar-negate-public/test-literal.py /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity /tmp/jet-scalar-negate.f4CRAT /tmp/jet-scalar-reverify.8hswEF /tmp/jet-ge-negate-accept.5mtyZa/Coq
-```
-
-Next: a separate normal namespace-C candidate containing the exact dependency
-closure for scalar-normalize and scalar-negate, reviewed normal snapshots and
-full acceptance without shortcuts, then careful main-checkout integration.
-See `CONTINUATION.md`; do not repeat the already completed public caller.

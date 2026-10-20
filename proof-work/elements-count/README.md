@@ -23,24 +23,7 @@ hash. This is a formal C execution/output/prefix/cursor/memory theorem, not
 merely a list-length identity. It preserves the original count contracts and
 does not assume the execution or output that it concludes.
 
-Both new sources and four count specification/bridge/local/executable modules
-were freshly compiled in a 207-module C/support closure. All twelve reported
-results have full types and reviewed assumption sets; the Elements AST
-regenerated exactly, and recursive kernel checking passed. Assumptions stay
-within the six inherited assumptions; no admission, extra axiom, disabled
-check, unsafe fixpoint or assumed positivity was introduced. The original
-constructible-only receipts remain in `ASSEMBLY.json` / `REVIEW.json`; the
-stronger replay is recorded in `payload/{ASSEMBLY,REVIEW,EXTRA_REVIEW}.json`.
-These bind the objects, sources, commands, logs and actual exit statuses.
-
 Replay with the pinned Coq 8.17.1 / CompCert 3.14 environment:
-
-```
-python3 -B proof-work/elements-count/run.py prepare-payload
-ulimit -s 65520
-python3 -B proof-work/elements-count/run.py check /absolute/candidate
-python3 -B proof-work/elements-count/review.py finish /absolute/candidate
-```
 
 The helper reuses only source-identical objects bound to the earlier checked
 normal integration receipt, and recursively checks them again. Missing cache
@@ -57,12 +40,6 @@ justified by the any-payload theorem. Sixteen separate evidence-corruption tests
 reject invalid inventories, commands, flags, objects, logs and exit statuses.
 Full predicate/spec definitions are printed without truncation. This does not
 claim hash-payload fidelity or review of unrelated Elements primitives.
-
-`INSTALLATION.json` and the corresponding old integration ledgers record the
-additive source-only installation. Both earlier preservation checks pass and
-the preexisting staged patch is unchanged. `review.py install` is a one-time
-operation and intentionally refuses to overwrite existing modules; use `finish`
-for subsequent revalidation.
 
 Coverage remains 364/533. The count local contracts existed as unregistered
 candidates; the new results discharge their non-vacuity/environment premise and

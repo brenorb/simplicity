@@ -23,22 +23,11 @@ proof is the unchanged source-bound dependency already checked with that
 packet. No production C, AST-generation settings, original specification,
 API or accepted registry is changed.
 
-```sh
-python3 -B proof-work/elements-nonce-ready/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-nonce-ready/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Place `Ready.v.source` in a fresh external directory as `Ready.v`. The driver
 uses the recorded parent load paths, verifies its twelve inherited external
 modules and binds 261 local imports to checked source/object provenance. It
 freshly compiles the corollaries and reports both types, their one shared
 contract definition and exactly the six inherited CompCert/VST dependencies.
-
-`RUN.json` proves compilation; `KERNEL-RUN.json` records only a launch.
-Only `CHECKED.json` with kernel exit status zero records completed recursive
-`coqchk` for the exact bound inputs. A parent audit may still be running when
-this independent recursive audit starts; this audit checks its entire own
-dependency chain. Do not change bound files or restart a confirmed live run.
 
 Unregistered proof work: accepted coverage added is zero. Normal admission
 and the full repository-wide goal remain unfinished.

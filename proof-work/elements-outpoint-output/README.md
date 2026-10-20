@@ -22,36 +22,7 @@ indexed helper, supply its payload type explicitly: Coq cannot infer `B` from
 outpoint proof uses `@elements_indexed_literal_matches Elements.env sigTxInput
 (Ty.Prod Word256 Word32) ...`.
 
-## Evidence and reproducible checkpoint review
-
-Private tree: `/private/tmp/jet-elements-outpoint-output.q4tx08d7`.
-Fingerprint:
-`f5724eb56b628fb01fb7b9ccc5fe24bc868a3feb7adfcfeddfb6d90177bc4f50`.
-All 1,584 inherited sources/metadata/registries match the completed immutable
-annex tree. The checker verifies all 24 inherited module objects against that
-tree's receipt; it does **not** claim they were freshly compiled in this run.
-Only the new module and the assumption/type report drivers are freshly
-compiled. Full reports cover all eight result types and five definitions,
-without ellipses/evars. Recursive checking includes both original execution
-roots and the new module, with the unchanged kernel context.
-
-`CHECKED.json` binds the base, preserved main inputs/index, source/object hashes,
-exact commands, successful terminal statuses, reports, and driver. The later
-independent evidence review rejects promotion of this checkpoint to canonical
-review/coverage, incomplete inventories and modified source/log evidence.
-
-```sh
-python3 -B proof-work/elements-outpoint-output/review.py
-python3 -B proof-work/elements-outpoint-output/test-review.py
-```
-
 ## Supplementary canonical-source review
-
-The earlier `CHECKED.json` and `EVIDENCE-REVIEW.json` deliberately retain their
-historical `canonical_source_review_complete: false` status. The subsequent
-`PREPARATION.json` and `SOURCE-REVIEW.json` establish the selected source review
-without rewriting that history. Normal registration/full acceptance remain
-**false**, coverage added remains zero, and no proof is installed in main.
 
 The supplementary guard checks:
 
@@ -76,11 +47,6 @@ carrier check accepted `int64` for `int`; the guard now compares the entire Coq
 outpoint record, and that fixture passes. The proof and compiled objects were
 unchanged. This is selected source correspondence, not a formal proof about the
 host Haskell compiler, cryptographic library, or caller construction of caches.
-
-```sh
-python3 -B proof-work/elements-outpoint-output/review-source.py
-python3 -B proof-work/elements-outpoint-output/test-source-review.py
-```
 
 These three jets are now ready to consider for a normal batch, alongside the
 separately reviewed annex/optional-issuance work (possible combined successor

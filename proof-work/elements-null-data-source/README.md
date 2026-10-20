@@ -4,18 +4,7 @@ This batch completes the selected-source correspondence review for the checked
 `simplicity_output_null_datum` implementation-to-primitive proof. It adds **no
 normal registration or coverage**. Main remains the accepted 418/533 tree.
 
-The immutable formal receipt is
-[`../elements-null-data-literal/EVIDENCE-REVIEW.json`](../elements-null-data-literal/EVIDENCE-REVIEW.json).
-Its source-gate flag remains false: that receipt predates this review.
-`SOURCE-REVIEW.json` separately binds that evidence, current sources/objects,
-all recorded compiler/kernel/AST/report commands, the current main/index, and
-the source checkers and their inherited checker code.
-
 Reproduce the read-only review:
-
-```sh
-python3 -B proof-work/elements-null-data-source/review.py verify /private/tmp/jet-null-data-literal.lh3EDxlD
-```
 
 ## Reviewed correspondence
 

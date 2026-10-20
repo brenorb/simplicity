@@ -5,11 +5,6 @@ recursive kernel checking for `input_amount`, `output_amount` and
 `current_amount`. They reuse the checked actual C executions and preserve each
 original representation/frame contract. They are not yet normally registered.
 
-Private tree: `/private/tmp/jet-elements-amount-literal.kiuq6ous`.
-The completed asset proof tree supplied its seed; no objects were copied from
-a live acceptance audit. All inherited sources and metadata are unchanged.
-`CHECKED.json` records the exact source fingerprint and source/object hashes.
-
 ## Specification distinction and shared lemmas
 
 The **primitive** InputAmount/OutputAmount returns only a confidential Word64.
@@ -53,16 +48,6 @@ modules before `C.jet_elements_amount_literal`, printed all thirteen full new
 type/definition records and actual assumptions, regenerated the Elements AST
 and recursively kernel-checked the full dependency closure. Exit status: 0.
 No admissions, assumed declarations or unchecked casts are used.
-
-Independent review 78925 terminated with exit 0: canonical/source correspondence,
-71 amount/pair-routing/width/padding/representation/whole-C source corruptions
-and 38 independent evidence/object corruptions passed. `EVIDENCE-REVIEW.json`
-binds the checked receipt, source, five tools and all review commands/logs.
-The guard distinguishes primitive/jet codomains, pins the amount/asset routing
-and current assertion, the explicit Word64 and packed-field encoders, full
-initial representation/footprints, both versions of all three C contracts and
-actual C helper/jet bodies. This is not field arithmetic, a host lens/compiler
-proof, or environment-builder verification.
 
 Normal registration and full acceptance remain separate. Prepare an isolated
 successor over the reviewed asset410 source candidate; do not edit the live

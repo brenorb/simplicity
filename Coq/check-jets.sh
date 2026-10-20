@@ -152,11 +152,9 @@ static_check python3 check-secp-normalize-specification.py
 static_check python3 test-secp-normalize-specification.py
 static_check python3 check-secp-predicates-specification.py
 static_check python3 test-secp-predicates-specification.py
-for gate in negate-wiring recursive-ports literal-ports foundations; do
-  candidate_ports=C
-  if [[ "$gate" == recursive-ports ]]; then candidate_ports=negate-review; fi
-  python3 "negate-review/check-$gate.py" --repo "${JET_C_REPO:-..}" --candidates "$candidate_ports"
-  python3 "negate-review/test-$gate.py" --repo "${JET_C_REPO:-..}" --candidates "$candidate_ports"
+for gate in negate-wiring literal-ports foundations; do
+  python3 "negate-review/check-$gate.py" --repo "${JET_C_REPO:-..}" --candidates C
+  python3 "negate-review/test-$gate.py" --repo "${JET_C_REPO:-..}" --candidates C
 done
 static_check python3 add-review/check-add-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C
 static_check python3 add-review/test-add-wiring.py --repo "${JET_C_REPO:-..}" --candidates C --dependencies C

@@ -1,9 +1,7 @@
 # Archived support modules that do not compile
 
-Five modules that sat in `Coq/C` outside the jet build were tried against the
-merged tree on 2026-10-19. They fail, so they are archived here (original paths
-and hashes in `manifest.json`) rather than kept as unchecked files. The other 49
-such modules compile and are now in `_CoqProject.jets`.
+These five preserved experiments fail against the accepted tree and are outside
+the proof build. Their presence makes no coverage or acceptance claim.
 
 | Module | Why it fails |
 | --- | --- |

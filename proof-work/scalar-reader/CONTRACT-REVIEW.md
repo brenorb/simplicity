@@ -31,13 +31,6 @@ The composed actual body derives external stability/framing and preserves
 the real buffer's Freeable range; none of these is an added call/output/free
 premise. The buffer is not yet freed by this theorem.
 
-Independent kernel session 17676 exited 0: 15 inherited context axioms, no
-type-in-type, unsafe fixpoint or assumed-positivity categories. Exact per-result
-reports (50338 exited 0): 19 closed, four with the inherited four
-classical/extensionality dependencies, eight with the inherited six execution
-dependencies. Do not confuse the imported context list with each result's
-dependency set.
-
 The two deep computed-tree prints (81933 exited 0), 62479 lines, are diagnostic
 text. Their untruncated inventory was checked. Formal run/region equalities
 and body decomposition supply the correspondence, not an informal reading

@@ -37,15 +37,6 @@ evaluator domain or assertion-enabled builds. It is a complete checked public
 local theorem, but **not registered coverage or isolated full acceptance**.
 Main registries and other authors' changes were left untouched.
 
-Exact materialized sources, drivers, output hashes and terminal statuses are
-in `manifest.json`. Verification from the repository root:
-
-```sh
-python3 proof-work/scalar-normalize/review.py --work /tmp/jet-scalar-writer.khT8eN
-python3 proof-work/scalar-normalize/test-review.py /tmp/jet-scalar-writer.khT8eN
-python3 proof-work/scalar-normalize/test-literal.py /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity /tmp/jet-scalar-writer.khT8eN /tmp/jet-scalar-reverify.8hswEF /tmp/jet-ge-negate-accept.5mtyZa/Coq
-```
-
 Next: after the frozen scalar-zero candidate finishes full acceptance,
 assemble a separate namespace-C candidate containing this dependency closure
 and the serializer checkpoint. Extend the literal/public contract gate to

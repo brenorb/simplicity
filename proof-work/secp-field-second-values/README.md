@@ -23,27 +23,6 @@ changed. Coverage added: zero.
 
 ## Evidence
 
-The two sources have 25 results and 10 definitions. The exact intended
-assumption profile is 24 closed results and one execution theorem with
-the six inherited Coq/CompCert dependencies. `RUN.json` records fresh
-compilation and full type/definition/assumption reports; `CHECKED.json`
-additionally records completed recursive kernel verification. A launch
-file alone is not a successful check.
-
-The audit tree is `/private/tmp/jet-field-checkpoint-audit.Zeze9g`, with
-the new sources in `second-values/` under namespace `FieldSecondValues`.
-The two checked parents bind the same 95 forcibly rebuilt local imports,
-11 shared execution-support modules, five second-slice execution modules
-and the first-checkpoint integer module. All loaded modules are inventoried
-and their exact source/object hashes checked before and after verification.
-
-```sh
-python3 -B proof-work/secp-field-second-values/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-second-values/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 Next: execute the original heads 50 through 67, through the first `r[0]`
 store and following 52-bit shift. Keep the original cached input limbs
 while updating the aliased output/input region; do not assume its old

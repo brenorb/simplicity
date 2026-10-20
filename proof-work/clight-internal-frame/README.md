@@ -46,29 +46,6 @@ unchanged existing readonly-support modules are freshly compiled and bound in
 the loaded source/object inventory. Some other exported theorems in those
 modules do depend on the two properties; these new proofs do not use them.
 
-The first audit terminated with exit 1 after compilation/reports: the checker
-incorrectly expected only four assumptions for generic execution statements,
-whose Clight relation itself retains the two original semantic parameters.
-`FIRST-PROFILE-FAILURE.json`, the first driver, launch and full reports preserve
-that failure. The retry changes the checker to the exact 17 observed profiles;
-all proof sources are byte-identical to the failed-checker run. This is not
-permission to add external-properties axioms or rewrite failed evidence.
-
-```sh
-python3 -B proof-work/clight-internal-frame/verify.py compile
-python3 -B proof-work/clight-internal-frame/verify.py kernel
-python3 -B proof-work/clight-internal-frame/verify.py check
-```
-
-The first command is the one-shot, failure-bound retry; the second is a one-shot
-recursive kernel audit. Launch files do not establish success. Only `RUN.json`
-binds completed compilation/full reports, and only completed `CHECKED.json`
-binds kernel success. The readonly `check` revalidates exact checked inputs,
-unchanged main checkout inputs, preserved staging and the frozen-target guard.
-Private sources live in `/private/tmp/jet-internal-frame.O4axwR`, with namespace
-`InternalFrame`, against the existing pinned field/beta bases. Historical
-receipts are not retargeted.
-
 ## Next: complete the public beta jet
 
 Use `eval_beta_with_precise_frame` to preserve `invA` through multiplication

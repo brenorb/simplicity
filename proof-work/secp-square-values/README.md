@@ -35,26 +35,6 @@ It does not execute the public jet's reader, writer, or allocation/free lifecycl
 The specification bridge is intermediate infrastructure, not a replacement for
 the requested public C-to-specification theorem.
 
-## Checks and exact-input scope
-
-The private extension is `/private/tmp/jet-square-values.JhhZ8P`, with namespace
-`SquareValue`, on the checked ordinary basis
-`/private/tmp/jet-beta-integration-qctc10_1` and the checked `SquareRun.Run`
-extension. Ten modules are freshly compiled in dependency order. The full report
-covers 64 results and 47 definitions, and binds 223 loaded local dependencies.
-The observed result profiles are 59 closed, one with four inherited assumptions,
-two with dependent functional extensionality alone, and two C-call endpoints
-with the same six inherited assumptions as the execution foundation.
-
-Run `python3 -B proof-work/secp-square-values/verify.py` with `compile`, `kernel`,
-or `check` from the repository root. Compilation and kernel runs are one-shot;
-poll their original process handles. `RUN.json` records compilation and full
-type/definition/assumption reports. Only a terminal successful `CHECKED.json`
-with its matching recursive kernel log establishes the kernel stage. A launch
-record alone does not. The receipts apply only to their recorded exact source,
-object, dependency, driver, and main-input identities; this is not a portable
-clean-checkout build or normal registry acceptance claim.
-
 ## Next public-jet obligations
 
 1. Build the one-owned-region input representation from the real reader's

@@ -5,12 +5,6 @@ C-to-literal-specification contracts. They reuse the existing C execution
 proofs without adding an execution, success, output or field-canonicality
 premise. They are not yet normally registered.
 
-Private tree: `/private/tmp/jet-elements-asset-literal.sz6ggpg1`.
-Input SHA-256:
-`551425ad587081088a7547e1f81cbf84b22c216cad6d5f415fb9656a0a760f2b`.
-The completed nonce proof tree supplied the seed; no objects were copied from
-a live audit. All inherited proof sources and metadata remain byte-identical.
-
 ## Specification and reusable structure
 
 The input/output targets are the actual InputAsset/OutputAsset primitives.
@@ -51,17 +45,6 @@ full new type/definition records and actual assumption sets, regenerated the
 Elements AST and recursively kernel-checked the new module's full closure.
 Source/object hashes and exact commands/logs bind all three fresh modules.
 No admissions, assumed declarations or unchecked casts are used.
-
-Independent review 81359 terminated with exit 0: selected canonical/source
-correspondence, 64 packed-field/asset/current/representation/whole-C source
-corruptions and 38 independent proof/evidence/object corruptions passed.
-`EVIDENCE-REVIEW.json` binds the checked receipt, all tools and all three review
-command/log results. The guard pins the actual Haskell packed-field projection,
-proof-clearing views, literal programs, Coq port/representation definitions,
-both versions of all three complete C contracts and actual C bodies. This is
-not a proof of host lens/compiler behavior, field arithmetic, or environment
-construction. LP64/RECKLESS and the larger imported kernel context remain
-explicit and distinct from the six assumptions of each endpoint.
 
 Normal registration and full acceptance are separate next steps. Do not
 repeat completed checker/review runs. Main remains 401/533; main401 audit 92989,

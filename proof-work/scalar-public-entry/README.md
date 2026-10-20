@@ -20,27 +20,6 @@ No call, desired output, write or free premise may remain in that public result.
 The entry/copy/storage/free contracts are conditional building blocks to be
 discharged by that composition, not new public assumptions.
 
-Compiler session 23053, seven-type/two-definition untruncated contract driver,
-assumptions session 99934 and independent kernel session 30315 all exited 0.
-Three results are closed; three use four inherited classical/extensionality
-assumptions; actual statement copy execution additionally uses CompCert's two
-execution-semantic parameters. Kernel context: 15 inherited axioms, all three
-unsafe categories empty. The manifest and reviewer pin current sources,
-drivers and output hashes and check each exact per-result dependency set.
-Eight in-memory negative fixtures reject evidence drift without touching inputs.
-
-```sh
-python3 proof-work/scalar-public-entry/review.py --work /tmp/jet-scalar-reverify.8hswEF
-python3 proof-work/scalar-public-entry/test-review.py /tmp/jet-scalar-reverify.8hswEF
-```
-
-Sources are `.source` archives outside accepted load paths. Reproduce with
-pinned Coq 8.17.1, stack 65520 KiB, cwd
-`/tmp/jet-ge-negate-accept.5mtyZa/Coq`, and narrow
-`-R /tmp/jet-scalar-reverify.8hswEF OriginalC`. The exact kernel command is
-in the manifest. Read lifecycle and literal-zero bridges are independently
-checked in `../scalar-reader-lifecycle` and `../scalar-reader-zero`.
-
 Next: assemble the public original call nodes with those two checked helpers;
 preserve the copied source and frame invariant during the zero helper; write
 the canonical bit, return true and free both locals. Then perform normal full

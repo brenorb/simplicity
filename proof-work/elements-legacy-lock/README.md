@@ -6,12 +6,6 @@ Two **unregistered** whole original-C equivalence theorems now compile:
 `broken_do_not_use` behavior; they do not repair consensus behavior or reuse
 Bitcoin's different current-input specification.
 
-Private tree: `/private/tmp/jet-elements-legacy-lock.0mJMjD`.
-It was APFS-copied from the completed 402 normal candidate, never from a live
-audit's objects. All inherited source/metadata are byte-identical. Four new
-modules are archived in `source/` and excluded from main's active build.
-Main remains 399/533; none of this work changes a registry or existing audit.
-
 ## End-to-end statements and boundary
 
 The canonical core/primitive programs retain the Haskell `forWhile word32`
@@ -42,26 +36,6 @@ closed, and both whole-C endpoints retain precisely the six inherited
 Coq/CompCert assumptions, without an extra libc premise. Elements AST
 regeneration also passed. Source input:
 `72b6728a0d20b01799638071bbc39936e4bc71e8ede50d22626db0c77a98239a`.
-
-Recursive kernel checking **42973 terminated with exit 0**. `CHECKED.json`
-and the complete kernel/AST logs record that terminal result; `RUN.json` is
-the earlier pre-kernel checkpoint. Both bind the fresh compilation, reports,
-source/object hashes, preserved main inputs and original staging. There are
-no unsafe fixpoints, disabled positivity checks, or new kernel assumptions.
-
-```sh
-ulimit -s 65520
-python3 -B proof-work/elements-legacy-lock/check.py /private/tmp/jet-elements-legacy-lock.0mJMjD
-```
-
-Do not repeat this completed checker. The separate canonical source/evidence
-review now passes: the positive source guard, **61 source-corruption fixtures**,
-and **35 evidence-corruption fixtures** all pass (finish harness **36154**,
-exit 0). `EVIDENCE-REVIEW.json` binds these commands/logs, all five review tools,
-the historical `RUN.json`, the terminal `CHECKED.json` and the private source
-fingerprint. Its complete logs are archived here. The earlier checker receipts'
-`canonical_source_gate_complete=false` describes their historical scope;
-the later evidence review completes that separate selected source guard.
 
 The guard reuses the accepted Version/InputSequence, state traversal and
 forWhile/subtraction/routing correspondences, then pins the exact legacy

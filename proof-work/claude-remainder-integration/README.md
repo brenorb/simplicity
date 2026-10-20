@@ -9,28 +9,11 @@ and Elements environment helpers/callers. Each substituted translation unit
 gets its own `C` namespace. Original broad build scripts are not used to
 overwrite the main tree. Registries and coverage are deliberately unchanged.
 
-`BASELINE.json` pins all existing Coq/C/Haskell audit inputs and the unrelated
-staged patch. Each installed batch has `ASSEMBLY.json`, `REVIEW.json` and
-`INSTALLATION.json`. Review requires frozen source provenance, a fresh build
-of new modules, exact regenerated ASTs, complete type/definition/assumption
-reports, and recursive `coqchk` with no unchecked kernel flags. Installation
-adds files only. `post-check` checks preserved inputs and all saved artifacts.
-
 The `seal` step only binds already completed audit evidence to its assembly
 and revalidates it; it does not perform or claim a new compiler/kernel run.
 Review corruption tests mutate reads in memory, never compiler inputs.
 
 Run with the pinned Coq 8.17.1/CompCert 3.14 environment:
-
-```sh
-ulimit -s 65520
-python3 -B proof-work/claude-remainder-integration/run.py prepare --group GROUP
-python3 -B proof-work/claude-remainder-integration/run.py check --candidate /absolute/candidate
-python3 -B proof-work/claude-remainder-integration/run.py seal --candidate /absolute/candidate
-python3 -B proof-work/claude-remainder-integration/test-review.py /absolute/candidate
-python3 -B proof-work/claude-remainder-integration/run.py install --candidate /absolute/candidate
-python3 -B proof-work/claude-remainder-integration/run.py post-check
-```
 
 ## Review boundaries
 

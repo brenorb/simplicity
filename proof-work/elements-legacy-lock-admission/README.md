@@ -6,10 +6,6 @@ Proposed successor: **404/533**, adding only the historical
 The two whole-C endpoints, not their 32 supporting results, count as two jets.
 This candidate is not installed or fully accepted.
 
-Candidate: `/private/tmp/jet-legacy-lock-admission.yzxj2nkf`.
-Prepared source fingerprint:
-`0b2caccf690ed0ed8ac83703441c9f440a2ef65d1abc57971c5cdbf772775b2d`.
-
 ## Proof and source provenance
 
 `../elements-legacy-lock/` contains the completed four-module proof chain,
@@ -44,36 +40,6 @@ byte-for-byte/in order and all **5,495 inherited dependency sets** unchanged.
 The delta adds 32 theorem types and 19 definitions, with complete deep reports
 for all 51. One compact record (the cache relation) contains elisions; every
 fragment is checked against its retained complete deep record.
-
-`PREPARATION-CHECKPOINT.json` binds this read-only review to the assembly,
-preparation, source fingerprint and both shared engines. The complete new
-contract/assumption and build/fresh-compile logs are archived here. The
-preparation engine is reused unchanged from 402; `normal-delta-review.py` is
-an independent read-only reviewer with explicit batch configuration. It does
-not mutate predecessor module globals or accept/install anything. Older
-completed reviewers and their tool hashes remain unchanged.
-
-The six-stage finish workflow **76002 terminated with exit 0**: coverage, coverage tests,
-ordinary contract comparison, canonical source, 61 source corruptions and
-30 normal-admission/evidence corruptions all pass. `REVIEW.json` binds the six
-commands/logs, candidate input, tools, both shared engines and object/report
-hashes. `FINISH-CHECKPOINT.json` independently verifies every recorded evidence
-hash; all six stage logs are archived here. The earlier preparation checkpoint
-is historical, not a second acceptance. Historical launch (completed; do not repeat):
-
-```sh
-python3 -B proof-work/elements-legacy-lock-admission/review.py finish /private/tmp/jet-legacy-lock-admission.yzxj2nkf
-```
-
-The once-only full404 driver `accept.py` is prepared but **not launched**.
-Three refusal tests passed: missing isolated402 acceptance, missing guarded402
-installation and duplicate launch are rejected without writes/subprocesses.
-`START-GUARD.json` binds the driver/test/log; these are not positive acceptance.
-The driver requires the real successful isolated402 receipt, guarded402
-installation/postcheck and exact source, plus this completed review and all
-bound tools, shared engines and object/report evidence. Its audit may run
-alongside actual-main402; later404 installation must additionally wait for
-that actual-main result. No404 installer is prepared yet.
 
 Main399 **90475** and isolated401 **55506** have passed, and401 is installed.
 Actual-main401 **92989** and isolated402 **26900** are now live. Do not restart

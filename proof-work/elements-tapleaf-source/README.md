@@ -1,11 +1,5 @@
 # Canonical Elements tapleaf source correspondence
 
-The recorded positive check and all61 read-only source-corruption fixtures
-passed. `SOURCE-REVIEW.json` and the two exact logs bind the candidate, sources,
-commands, zero exits and checker versions. The fixed `.py` model is not
-regenerated while checking:22 whole Coq definitions/statements and three
-complete tag-construction/helper blocks are reviewed.
-
 The inherited Elements stream guard covers the actual SigHash library body,
 native word/four-limb hash decoding, primitive port and SHA/getter contracts.
 This extension follows `TapleafHash` through its catalog/wrapper and the

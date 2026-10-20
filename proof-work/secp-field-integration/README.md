@@ -5,45 +5,12 @@ candidate using ordinary `C.*` module names and the regular `_CoqProject.jets`
 make dependency graph. It does not edit the checkout's pending shared sources,
 registries or staged patch, and does not rewrite historical verification.
 
-`assemble.py prepare` reads only committed proof blobs at `727caf16` and the
-exact source closure of `secp-field-literal/CHECKED.json`: 176 existing modules
-and 59 extension modules. The latter receive distinct
-`C.jet_secp_multiply_<group>_<module>` names. Only qualified module tokens are
-renamed, with an exact reverse-transformation check. The C program, literal
-specification, theorem statements, tactics and unqualified definitions are not
-substituted. Missing shared sources are restored from committed archives into
-the isolated candidate, never over the checkout's uncommitted originals.
-
-`PREPARATION.json` records all source origins, hashes, module mappings, normal
-project additions and checkout preservation inputs. `assemble.py build` invokes
-`coq_makefile` on the regular project and makes the final theorem's `.vo`
-target, with the same pinned dependency paths as `build-jets.sh`. It does not
-claim to rebuild unrelated registered jets. No private namespace flags or
-old compiled objects are used.
-
-```sh
-python3 -B proof-work/secp-field-integration/assemble.py prepare
-python3 -B proof-work/secp-field-integration/assemble.py build
-python3 -B proof-work/secp-field-integration/verify.py reports
-python3 -B proof-work/secp-field-integration/verify.py kernel
-python3 -B proof-work/secp-field-integration/verify.py check
-```
-
 Each mutating phase is one-shot: poll its live process rather than restarting
 on a tool observation timeout. A launch file is not a successful result.
 Fresh full types/definitions, all 413 inherited theorem assumption profiles,
 the exact loaded source-built closure, original-target guard and recursive
 kernel check are required. The public endpoint must retain exactly the six
 inherited Coq/CompCert assumptions; no external-library model is introduced.
-
-The first combined assumption report reached 338 declaration markers before
-its inherited 180-second per-packet subprocess deadline expired. The terminal
-failure, original launch identity and partial log are preserved separately in
-`REPORT-TIMEOUT.json` and `report-timeout-assumptions.log`; they are not a
-successful report. The complete queries are unchanged in the bounded
-600-second retry. This is an audit-workload adjustment, not an increase to any
-proof tactic timeout or a skipped declaration. An existing launch alone never
-authorizes a retry; the verifier checks the recorded terminal failure first.
 
 The ordinary-module endpoint is
 `C.jet_secp_multiply_literal_jet.fe_multiply_literal_local_spec`, with the same
@@ -58,24 +25,6 @@ accepted-coverage delta is zero until that is done; neither metadata nor a
 focused successful build establishes coverage of every jet.
 
 ## Completed candidate checks
-
-The candidate at `/private/tmp/jet-field-integration-en95autk` has now passed
-the focused ordinary build (235 freshly source-built modules), full reports
-(413 result types and 297 definitions), all exact inherited assumption profiles,
-the source-correspondence gates with 173 targeted negative fixtures, the
-240-file original-target guard, and a fresh recursive kernel check of the
-regular-name public endpoint. Of the 413 results, 326 are closed, 34 retain the
-four inherited classical/extensionality assumptions, 51 retain the same four
-plus the two CompCert semantic assumptions, and two retain only inherited
-dependent functional extensionality. The endpoint is among the 51 six-assumption
-results. The kernel's inherited library axiom context is unchanged and all
-unsafe-check categories are empty.
-
-`BUILT.json`, `REPORTED.json` and `CHECKED.json` distinguish the three completed
-phases; their launch records alone do not. Full reports, source-review logs,
-loaded-library inventory, build logs and kernel log are archived alongside
-them. The earlier literal proof receipt still validates independently; its
-checked tree, sources, objects and review references were not changed.
 
 Next, prepare and review an isolated registration/acceptance patch: materialized
 ordinary modules and project membership, the exact public endpoint, the strict

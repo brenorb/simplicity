@@ -27,12 +27,3 @@ calculation-jet writer. The Coq proof-engineering skill guided the separation
 of statement execution, representation, memory preservation and public
 composition. One over-broad cleanup simplification was narrowed to the local
 block list; no theorem, C code or specification was changed to make it pass.
-
-`verify.py compile|kernel EXTERNAL_DIRECTORY` freshly compiles all five
-modules, checks full statements/definitions and the exact 27-result profile
-(12 closed, four four-dependency, eleven six-dependency results; the public
-endpoint has the six inherited assumptions), and binds every loaded project
-module to the 278-source helper basis. All nine inherited and five new
-extension source/object pairs are checked as well. Compilation and recursive
-kernel checking have separate receipts; only `CHECKED.json` establishes the
-latter. Nothing is normally registered and accepted coverage added is zero.

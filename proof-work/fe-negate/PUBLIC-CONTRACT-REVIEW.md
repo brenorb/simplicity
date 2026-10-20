@@ -1,9 +1,5 @@
 # Literal negation public boundary: scoped source review
 
-This review supplements the formal proofs; it neither replaces kernel checking
-nor completes the remaining shared-domain/evaluator or inherited fidelity review.
-The exact candidate lives at `/tmp/jet-negate-accept.ftWsqQ/Coq`.
-
 ## Final statement and input domain
 
 The registered candidate theorem is

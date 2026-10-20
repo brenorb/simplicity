@@ -37,6 +37,6 @@ if __name__ == '__main__':
  if check(a.repo,a.source,a.coq)!=2: raise ValueError('unexpected scope')
  hashes={str(path):hashlib.sha256(path.read_bytes()).hexdigest() for path in
    [a.repo/f for f in files]+[a.source/f for f in ports]}
- print(json.dumps({'literal_scalar_ports':2,'recursive_dependency_gate':True,
+ print(json.dumps({'literal_scalar_ports':2,'literal_scalar_programs':True,
    'formal_parametricity':'OriginalC.jet_secp_scalar_canonical_parametric',
    'public_coverage_added':0,'hashes':hashes},indent=2))

@@ -43,7 +43,8 @@ i.e. Coq `Word 8` (2^8 bits), so the Coq types are
 
 `literal_fe_multiply` and `literal_fe_normalize512` are the field-negation
 candidate's ports (its own review: main checkout `proof-work/fe-negate/CANONICAL-REVIEW.md`,
-`check-literal-ports`/`check-recursive-ports`); this branch reuses them unchanged.
+`check-literal-ports` and the former recursive source reference). The fixed
+recursive reference has since been removed; see `Coq/JET_BUILD.md`.
 `literal_fe_square` is new; its only content is the pairing `iden &&& iden`
 composed with `literal_fe_multiply`, exactly the Haskell record, and
 `literal_fe_square_parametric` proves it parametric like the other literal ports.

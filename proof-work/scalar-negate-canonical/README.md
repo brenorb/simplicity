@@ -40,12 +40,3 @@ Actual reader/negate/writer composition and the public entry/source-copy/
 return/free boundary remain. The execution scope stays inherited local
 frames, LP64, RECKLESS/assertion-disabled. Other authors' work and the main
 shared registries are unchanged.
-
-Sources, drivers, exact output hashes and terminal check statuses are in
-`manifest.json`. Reproduce from the repository root:
-
-```sh
-python3 proof-work/scalar-negate-canonical/review.py --work /tmp/jet-scalar-negate.f4CRAT
-python3 proof-work/scalar-negate-canonical/test-review.py /tmp/jet-scalar-negate.f4CRAT
-python3 proof-work/scalar-negate-canonical/test-literal.py /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity /tmp/jet-scalar-negate.f4CRAT /tmp/jet-scalar-reverify.8hswEF /tmp/jet-ge-negate-accept.5mtyZa/Coq
-```

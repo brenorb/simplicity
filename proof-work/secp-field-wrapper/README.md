@@ -22,27 +22,6 @@ the public reader establishes them for every legitimate input.
 
 ## Verification
 
-Two sources, 12 results and three definitions. The expected exact profile is
-seven closed results, one expression lemma with four inherited classical
-dependencies, and four execution results with the six inherited Coq/CompCert
-dependencies. `RUN.json` records fresh compilation and full contracts and
-assumption reports; `CHECKED.json` additionally records completed recursive
-kernel verification. A launch file alone is not success.
-
-Audit tree `/private/tmp/jet-field-checkpoint-audit.Zeze9g`; sources in
-`wrapper/` under namespace `FieldWrapper`. The checked parent binds 95
-previously forcibly rebuilt local sources and 44 checked extension modules.
-The wrapper loads 43 of those extensions: `FieldCall.Product`'s separate
-endpoint is not imported here. All loaded non-standard modules require exact
-source/object provenance.
-
-```sh
-python3 -B proof-work/secp-field-wrapper/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-wrapper/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 Next: compose the real public readers, this wrapper, and the original
 normalization/serialization writer. `read_fe` reduces an out-of-range
 256-bit input by calling `secp256k1_fe_normalize_var`; it does not reject that

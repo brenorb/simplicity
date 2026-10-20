@@ -26,25 +26,6 @@ regions, then derives the five current-memory output loads.
 
 ## Verification and remaining scope
 
-Three sources, 10 results and one definition. The expected exact dependency
-profile is five closed model equalities, one load lemma with four inherited
-classical dependencies, and four lifecycle/execution results with the six
-inherited Coq/CompCert dependencies. `RUN.json` records fresh compilation and
-full type/definition/assumption reports. `CHECKED.json` additionally records
-completed recursive kernel verification; a launch file is not success.
-
-Audit tree: `/private/tmp/jet-field-checkpoint-audit.Zeze9g`, sources in `call/`
-under `FieldCall`. The checked parent binds the 95 previously forcibly rebuilt
-local imports and 41 checked extension modules, including integer conservation.
-Every non-standard loaded module requires exact source/object provenance.
-
-```sh
-python3 -B proof-work/secp-field-call/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-call/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 This completes the internal in-place **function-call** product theorem, not a
 public jet's literal Simplicity equivalence. Public reader/input-bound
 establishment, field wrapper/normalization, writer and jet lifecycle/specification

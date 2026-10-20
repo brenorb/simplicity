@@ -46,19 +46,6 @@ Bitcoin acceptance remains unresolved; independent core proofs may continue.
 
 ## Evidence and reproduction
 
-The isolated source is
-`/private/tmp/jet-field-acceptance-5fttrowx/identity-diagnostic/Frozen.v`, under
-the narrow `FrozenBitcoin` namespace. `RUN.json` binds the exact source,
-object, freshly compiled commands/reports and loaded project dependencies;
-`CHECKED.json` binds the successful recursive kernel check. All three theorem
-assumption sets are empty, and no new library axiom or unsafe-check category
-is allowed. Full types, assumptions, loaded-library inventory and kernel
-output are archived alongside the receipts.
-
-```sh
-python3 -B proof-work/bitcoin-frozen-identity/check.py
-```
-
 `verify.py compile` and `verify.py kernel` are one-shot audit phases already
 completed for this exact tree. Do not overwrite their historical receipts or
 rerun a live job on an observation timeout. The full normal build running in

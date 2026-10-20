@@ -1,7 +1,7 @@
 # Internally linked Bitcoin environment callers
 
 Build these sources only in the isolated `bitcoin` tree prepared by
-[`proof-work/linked-repair`](../../proof-work/linked-repair/README.md).
+[`proof-work/linked-repair`](../../linked-repair/README.md).
 `C.jets_bitcoin_env` names the original environment AST; `C.jets_sha` names
 the same translation unit with the proved reference memcpy linked internally.
 The original core AST is linked separately as `C.jets` for shared helpers.

@@ -8,15 +8,7 @@ No mathematical predicate replaces the public specifications. The literal
 lock program retains the Haskell word-conversion threshold and reuses the
 two axiom-free generic program-matching bridges.
 
-Private tree: `/private/tmp/jet-elements-timelock-normal.Jp0yB0`.
-This is **preparation, not normal registration or full acceptance**.
-
 ## Isolation and verification
-
-The source baseline is the reviewed direct-getter admission candidate at
-`/private/tmp/jet-direct-getters-admission.yc45qogt`, whose full acceptance is
-separate and was still running during this preparation. It is not described
-as accepted merely because its source fingerprint matches.
 
 Compiler objects and source copies came from the immutable, checked lock
 tree—not from a running audit. Fifteen fixed source/metadata/guard inputs were
@@ -54,18 +46,6 @@ and gate inputs remain exactly those of the reviewed baseline. Twenty-two
 in-memory evidence mutations reject altered namespace, registration scope,
 source inventory, closed-bridge evidence, compiler/checker commands, kernel
 and AST logs. Invalid proofs are never compiled.
-
-`PREPARATION.json` binds source and object bases separately, source-overlay
-inventory, the original staged patch, exact compiler/checker commands, terminal
-statuses, object/source hashes, reports and tools. Complete type/assumption/
-kernel/AST reports and the literal source archive are retained here. These
-receipts describe the actual dirty/staged source base, not clean-HEAD
-reproducibility.
-
-```sh
-python3 -B proof-work/elements-timelock-normal/review.py
-python3 -B proof-work/elements-timelock-normal/test-review.py
-```
 
 ## Next admission
 

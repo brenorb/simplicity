@@ -14,18 +14,6 @@ computed. There is no symbolic whole-program evaluation or new assumption.
 These are representation bridges for implementation composition, not new
 claims about mathematical correctness, helper linkage or complete C jet calls.
 
-`verify.py compile|kernel EXTERNAL_DIRECTORY` checks the one-file extension in
-the narrow `IssuanceRegisters` namespace. Every loaded local dependency must
-belong to the exact forced-source/object map in
-`../elements-issuance-computed/SOURCE-CLOSURE.json`; all those base objects are
-checked unchanged before and after. The extension is compiled freshly, and full
-reports require exactly nine closed results and no new definitions.
-
-`RUN.json` records successful compilation. `CHECKED.json` now records successful
-recursive kernel checking with exit 0, with the exact source-bound imports and
-extension source/object unchanged before and after. The normal registry and
-accepted coverage are unchanged.
-
 Next composition obligations remain explicit: transport/link the existing
 derived-unit `eval_calculateAsset`/`eval_calculateToken` results to the original
 Elements jet program, establish their initial owned-memory requirements and

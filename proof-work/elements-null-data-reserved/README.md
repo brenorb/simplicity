@@ -1,12 +1,5 @@
 # Actual OP_1NEGATE / OP_RESERVED output arm
 
-Private tree: `/private/tmp/jet-null-data-reserved.3nrby9o2`.
-Semantic fingerprint:
-`0c065dc85ee6b799dd76b81e339a96f27d16be1771f9a0e271ae937b132ea413`.
-The new `C.jet_elements_null_data_reserved` source is archived under `source/`.
-All inherited source bytes equal the completed `../elements-null-data-loads/`
-tree. No main/staged semantic input changed and no live audit objects were copied.
-
 ## Formal result
 
 `exec_elements_null_data_reserved_arm` executes the entire actual inner else
@@ -46,16 +39,6 @@ Four source equalities are closed. The six execution results use exactly the
 six inherited Coq/CompCert assumptions in the reports; even the call-free debug
 loop lemma inherits them through the big-step relation. No new assumed
 declaration, admission or unchecked kernel operation was introduced.
-
-Independent evidence review3132 exited0. Its negative tests reject changes to
-source/object bytes, full reports, assumptions, scope, command/log receipts,
-kernel recursion and false whole-jet claims. `CHECKED.json` binds the fresh
-source/object, tool, terminal commands and logs; `EVIDENCE-REVIEW.json` binds
-the independent recheck and refusal suite. Recheck with:
-
-```sh
-python3 -B proof-work/elements-null-data-reserved/review.py /private/tmp/jet-null-data-reserved.3nrby9o2
-```
 
 Development failures were an uninstantiated expression-list value before its
 boolean cast, a closed machine-bound normalization, a missing separation import,

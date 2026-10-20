@@ -41,23 +41,12 @@ exclude inputs that fail the canonical context-count check.
 
 ## Verification
 
-```sh
-python3 -B proof-work/elements-amount-phase/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-amount-phase/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Copy the five `.v.source` archives to a fresh external directory as `Common.v`,
 `Payload8.v`, `Phase.v`, `Seq.v`, `Compose.v`. The driver freshly compiles them,
 reports all types/definitions/assumptions, checks exactly thirteen results
 (five closed, eight with the six inherited CompCert/VST dependencies) and eight
 definitions, binds 251 local imports to their forced source/object provenance,
 and checks ten inherited external modules.
-
-`RUN.json` records compilation, `KERNEL-RUN.json` only a launch; only a successful
-`CHECKED.json` records completed recursive kernel checking for the exact bound
-inputs. The parent asset-phase audit need not finish before this independent
-recursive audit, which checks that dependency itself. Do not edit bound sources,
-objects or drivers while their audit is live.
 
 Production C, original specifications, generation settings, API and shared
 registries are unchanged. This proves actual C execution against its byte-stream

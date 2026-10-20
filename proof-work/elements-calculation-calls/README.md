@@ -1,9 +1,5 @@
 # Calculation helpers in the original Elements program
 
-This is an isolated proof-support port, not a change to C or generation
-settings and not yet complete public-jet equivalence. The private tree is
-`/private/tmp/jet-elements-calculation-calls.zahGaG`.
-
 In that tree only, `Coq/C/jets_sha.v` is a byte-identical proof-loading copy
 of the original `Coq/C/jets_elements.v`. The existing closed
 `elements_sha_program` and `elements_sha_genv` proofs are verification roots.
@@ -19,39 +15,6 @@ The Boolean `b2i` definition is copied exactly, and the midstate-array lemma
 is renamed. `check-port.py` validates these precise transformations against
 the existing sources and rejects eight in-memory mutations. This source guard
 does not replace compilation, assumption review or kernel checking.
-
-The first forced build (94519) terminated with exit 1 at the extracted
-field lemma's missing `MID` notation. Its original driver/source/logs are
-preserved in `first-attempt/`. Only after all make children finished was the
-missing proof-support import added. The full forced retry **99090 passed**.
-`RUN.json` records all 55 results and 20 definitions: 38 closed, ten with the
-four inherited expression dependencies and seven with the six inherited
-execution dependencies. The exact per-result inventory is independently
-reviewed by `calls.py`. `SOURCE-CLOSURE.json` binds all **196** loaded local
-sources/objects to that successful forced build, including the explicit AST
-proof-loading alias. Compilation is not recursive acceptance or a public jet
-lifecycle.
-
-The helper-call extension is external to this frozen tree at
-`/private/tmp/jet-elements-calculation-word.6TxiYD/CalculationCalls.v`.
-It **compiled successfully**, with complete reports for seven results and
-three definitions in `CALLS-RUN.json`. The actual `elements_ge` asset/explicit-
-token/confidential-token helper calls return the canonical word-program values
-and preserve the stated memory framing/permissions. Libc/dispatch premises
-remain explicit; no desired cache/hash or execution is assumed. The three
-dispatch/array lemmas have the four inherited CompCert dependencies, and the
-four concrete/generic execution results retain exactly the six inherited ones.
-
-The initial strict metadata check wrongly expected the three memory/dispatch
-lemmas to be closed. It refused the run; the exact driver/reports and terminal
-result are preserved in `first-calls-attempt/`. After inspecting the full
-reports, only that classification was corrected and the full extension compile/
-reports rerun; no Coq proof or target changed. The source-bound recursive check
-**76211 passed with exit 0**, covering the extension and all 196 base modules.
-`CALLS-CHECKED.json` binds that successful run to the exact sources, objects,
-driver and full kernel log. The kernel's dependency context is unchanged and
-contains no unsafe checks. These helper results are not three complete public
-jets; the enclosing frame-jet composition remains open.
 
 The original enclosing asset/explicit-token/confidential-token jets have four
 locals: src (16 bytes), entropy (32), result (32), and the normalized struct

@@ -1,12 +1,5 @@
 # Null-data opcode reloads and real selector arms
 
-Private tree: `/private/tmp/jet-null-data-loads.1eg08p86`.
-Fingerprint:
-`a0b40d152b9468b0393b524848de574f3772086d3783d13e37935e4850bdfca5`.
-The two new modules are archived under `source/`. All inherited source bytes
-equal the completed `../elements-null-data-output/` tree. No main/staged input
-changed and no objects were copied from a live audit.
-
 ## Formal progress
 
 `jet_elements_null_data_loads` adds reusable scalar and nested indexed-field
@@ -47,13 +40,6 @@ Ten results are closed. Five load/preservation results use the four inherited
 classical/extensionality assumptions; four execution/composition results use
 the six inherited Coq/CompCert assumptions. The reports name the exact sets.
 No new axiom, admission, unchecked cast or skipped kernel check was introduced.
-
-Independent review21342 terminated with exit0: all38 source/object/type/log/
-assumption/kernel-scope corruptions were rejected, including a false whole-jet
-claim. `CHECKED.json` binds fresh objects, sources, commands and terminal logs;
-`EVIDENCE-REVIEW.json` binds the three tools and rejection-test command/log.
-`review.py PRIVATE_TREE` independently rechecks these facts. This is proof
-evidence, not normal/canonical whole-jet admission.
 
 Development corrections were declaration order, an absent constructor-helper
 import, explicit index/base arguments before arithmetic, an induction binder

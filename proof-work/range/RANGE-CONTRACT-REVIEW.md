@@ -4,16 +4,6 @@ Local integration: signed commit `805cb19e` is now merged into
 `feat/jet-equivalence`; integration-branch references below are historical.
 Newer proof work is preserved separately in the checkout.
 
-Status: reconciled candidate fully accepted (54683, exit 0); all 149 guarded
-changes integrated exactly on `codex/range-integration`, with a matching full
-proof-input fingerprint. The subsequent original checkout acceptance (24458)
-also passed; it covered additional unrelated checkout inputs.
-Coverage remains 349/533.
-The complete original range candidate plus 26 repairs compiles; the current
-18 accepted odd/zero sources compile unchanged against its dependencies and
-their full public chains pass independent kernel checking. Exact receipts and
-source hashes are in `CONTINUATION.md`.
-
 ## Semantic change and old inputs
 
 The only changed frozen semantic definition in the complete printed comparison

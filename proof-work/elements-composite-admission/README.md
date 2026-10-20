@@ -17,37 +17,6 @@ contract and assumption set. A future full449 controller must require the
 actual successful447 terminal and the completed independent449 review.
 No main installation or coverage beyond the accepted checkpoint is claimed.
 
-Assembly completed with exit zero under handle2297. `ASSEMBLY.json` identifies
-`/private/tmp/jet-elements-composite-admission.vr1_ywx1`: two new modules,
-14 results, nine definitions and six closed results. The original proof source
-bytes are reused, with complete exact-contract coverage gates and six new
-fingerprinted source-guard/model inputs.
-
-The earlier attempt under handle9505 failed before applying source overlays:
-the old multi-generation `parent.parent.once` lookup did not export that
-helper at the new depth. The independent exact-one-anchor helper now lives
-in this batch; all complete generated Python scripts parse. The failed seed
-`/private/tmp/jet-elements-composite-admission.cgnu513l` is preserved and has
-no assembly/preparation/acceptance receipt. This was a tool lookup failure,
-not a rejected Coq theorem or a C/specification mismatch.
-
-Fresh normal preparation completed with exit zero under handle77708:
-
-```sh
-python3 -B proof-work/elements-composite-admission/admission.py prepare /private/tmp/jet-elements-composite-admission.vr1_ywx1
-```
-
-`PREPARATION.json` and the five exact build/fresh-compile/report logs record
-success. Independent review completed with exit zero under handle40716:
-all9076 inherited contract records remain byte-identical, all5955 inherited
-dependency sets unchanged, and all23 new type/definition records are full
-and untruncated. All eight checks passed, including48 independent evidence
-corruptions and the two canonical-source negative suites. `REVIEW.json` and
-eight exact logs bind the result. Snapshot/delta review is not acceptance.
-Keep its source, metadata, proof evidence and tools immutable. The separate447 full controller
-remains live under handle50964; its log records `coqchk passed on 1116 modules`
-and entry into the assumption gate, not terminal acceptance.
-
 The new full449 controller and its tests parse but have not run a positive
 preflight or full audit. Its real predecessor check has rejected the currently
 missing447 acceptance receipt. This is expected: never synthesize a receipt,

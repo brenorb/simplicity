@@ -1,11 +1,5 @@
 # Checked actual first and second scalar reduction stages
 
-Eight new modules / **42 results, 34 definitions** freshly compile in `MulC`
-against the immutable accepted dependency Coq tree
-`/tmp/jet-scalar-integration.XAMDsw/Coq`. Scratch lives at
-`/tmp/jet-scalar-mul.lkomWj`. Last verified declaration:
-`MulC.jet_secp_reduce512_two_stages.exec_reduce512_first_two_stages`.
-
 The root proves execution of the **unchanged original generated body prefix
 through p4**, not a handwritten substitute function or assumed phase call.
 It produces all four actual Vlong digit temps and the actual Vint p4 temp,
@@ -57,32 +51,4 @@ public coverage or full acceptance is claimed.
 
 ## Verification
 
-`REVIEW.json` pins fresh terminal build, driver and independent kernel checks.
-36 results are closed. Three representation lemmas inherit exactly the framework's
-four classical/extensionality dependencies (no external semantics). The generic
-statement soundness theorem, typed-stage
-execution and composed execution have exactly the same six inherited execution
-dependencies as earlier helper results. Full types/definitions are printed at
-depth 100000 without truncation; stderr is empty. Kernel context matches the
-same 15 inherited axioms and unsafe categories are empty. The read-only reviewer
-also validates the frozen bounds/first-fold/product/execution prerequisites and
-their dependency fingerprint. Nine in-memory negative fixtures pass.
-
-```sh
-python3 -B proof-work/scalar-reduce512-two-stages/review.py
-python3 -B proof-work/scalar-reduce512-two-stages/test-review.py
-```
-
 From the dependency Coq directory, pinned Coq 8.17.1 on PATH, stack 65520 KiB:
-
-```sh
-bash build-jets.sh --coqc -R /tmp/jet-scalar-mul.lkomWj MulC \
-  /tmp/jet-scalar-mul.lkomWj/jet_secp_reduce512_two_stages.v
-bash build-jets.sh --coqchk -silent -o -R /tmp/jet-scalar-mul.lkomWj MulC \
-  MulC.jet_secp_reduce512_two_stages
-```
-
-Keep verified sources/evidence frozen and continue in fresh modules. See
-`CONTINUATION.md`. This factoring incorporates Astra Medium's read-only advice
-to use typed checkpoints, one-way temp agreement and the exact spine bridge.
-No agent code or assumption was imported. Signed atomic local commits only.

@@ -1,11 +1,5 @@
 # Scalar support contract review
 
-Compiler generation 26431 exited 0 for standard then depth-10000 reports.
-All 86 actual helper types and 64 actual definitions are accounted for; both
-diagnostic streams are empty. The deep report is 94938 lines and contains no
-ellipsis. Every helper source matches its freshly compiled/kernel-checked hash.
-CONTRACT-REVIEW.json records both actual output hashes and all supplement names.
-
 81 types and 46 definitions match exactly modulo whitespace. Five types and
 18 definitions require the deep supplement. These include unary length 32,
 64/256-bit numeral constructors and computed execution trees. Retained fragment
@@ -40,12 +34,6 @@ The actual code-support chain preserves its original contracts:
   zero or a new input-domain restriction in the eventual public result.
 
 Reproduce read-only checks:
-
-```sh
-python3 proof-work/scalar-next/review-assumptions.py --work /tmp/jet-scalar-reverify.8hswEF
-python3 proof-work/scalar-next/review-contracts.py --work /tmp/jet-scalar-reverify.8hswEF
-python3 proof-work/scalar-next/test-review-contracts.py
-```
 
 Independent kernel 44992 exited 0; per-result generation 8576 exited 0 and
 reviews all 86 sets (57 closed, six inherited execution assumptions only).

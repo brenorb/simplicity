@@ -1,12 +1,5 @@
 # Complete output_null_datum C call against the primitive
 
-Private tree: `/private/tmp/jet-null-data-wrapper.wudp6ve6`.
-Fingerprint:
-`0f004fc67ff120fd27fe850bd1f6e0e3cb9e3d315c4dbdcd0094ded7cf314f49`.
-The new source is archived under `source/`; inherited sources equal the checked
-`../elements-null-data-rest/` tree byte for byte. Main418 semantic inputs and
-the original staged patch remain unchanged.
-
 ## Completed implementation-to-specification statement
 
 `elements_output_null_datum_initial_equivalence` proves the actual
@@ -86,10 +79,6 @@ axiom, admission or unchecked kernel operation is introduced. The receipt's
 `whole_c_endpoints=1` describes the explicit-layout endpoint above;
 `normal_registration=false`, `coverage_added=0` and `full_acceptance=false` remain
 mandatory until the outstanding contract/source/admission work is done.
-
-```sh
-python3 -B proof-work/elements-null-data-layout/review.py /private/tmp/jet-null-data-wrapper.wudp6ve6
-```
 
 Development corrections: derive source-block validity from its actual edge load
 before allocation/loadbytes transport; retain the count-test expression when

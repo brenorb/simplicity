@@ -26,19 +26,7 @@ whose two branches have identical states. `scalar_add_selected` formally
 covers both branches; do not replace the original control flow or assume its
 condition. The tree itself is diagnostic, backed by exact run/shape proofs.
 
-`manifest.json` pins exact sources, reviewed outputs, commands and terminal
-evidence. The immutable accepted dependency baseline is
-`/tmp/jet-scalar-zero-accept.smyVL2/Coq` (`C`); helper sources are materialized
-in `/tmp/jet-scalar-add.u1U2Ti` (`AddC`). Compilation/auditing uses Coq 8.17.1,
-`ulimit -S -s 65520`, `build-jets.sh --coqc/--coqtop/--coqchk` and narrow
-`-R /tmp/jet-scalar-add.u1U2Ti AddC` from that baseline.
-
 Read-only review from the repository root:
-
-```sh
-python3 -B proof-work/scalar-add/review.py --work /tmp/jet-scalar-add.u1U2Ti
-python3 -B proof-work/scalar-add/test-review.py /tmp/jet-scalar-add.u1U2Ti
-```
 
 The negative fixtures mutate evidence only in memory. Main shared registries,
 other authors' changes, production C/Haskell and Claude's Elements reservation

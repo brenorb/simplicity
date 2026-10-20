@@ -32,20 +32,6 @@ port retains its canonical-add calls. `Spec.v.source` proves that the already
 established numeric C result equals this term's result. The numeric bridge
 is not registered or presented as a substitute specification.
 
-25 additional original proof modules, including the word-conversion
-foundation, were freshly rebuilt from sources identical to the checkout.
-`DEPENDENCIES.json` binds every source, object, compiler command and log.
-The reused pending negation sources were not edited or staged.
-
-`ARCHIVED-INPUTS.json` binds byte-identical copies of all 25 newly loaded
-proof sources and the reused gate/reference files under `inherited/` to the
-checked receipts. This preserves the required shared inputs on the proof
-branch without staging their pre-existing uncommitted originals. Restore
-these files only into an isolated candidate at their recorded original
-paths, never overwrite the checkout's pending work. These copies provide
-the source closure; they do not make the historical receipt match a different
-registry/build snapshot. Such integration still needs fresh evidence.
-
 The source-review layer checks the original FeMultiply catalog/type/record
 binding, the existing literal term and complete final public statement; it
 also reruns the existing recursive-port, literal-add, foundation and
@@ -55,14 +41,6 @@ scoped source-correspondence checks supplementing the formal Coq proof,
 not a theorem translating arbitrary Haskell. No reference JSON or gate pin
 was updated to obtain success.
 
-The gates expect proof sources and their reviewed JSON in one candidate
-directory. The isolated view `/private/tmp/jet-multiply-literal-ports.BsO6pV`
-contains links to the unchanged checkout proof sources and a byte-identical
-copy of `recursive-ports-review.json`. The verifier binds all accessed
-candidate files and gate/reference inputs. An earlier preflight pointed at
-`Coq/C` alone and failed to locate that JSON; correcting the invocation/view
-resolved it without changing a specification, proof or review reference.
-
 ## Verification receipt
 
 Two new sources, four results, no new program definitions. The two semantic
@@ -70,23 +48,6 @@ bridges inherit only the existing dependent functional-extensionality axiom;
 the two public execution/contract endpoints retain the same six inherited
 Coq/CompCert dependencies as the checked C parent. No new axiom declaration,
 admission, unsafe cast, disabled kernel check or external model is introduced.
-
-The exact loaded provenance covers **176 source-built local modules and 59
-extension modules**, including these two. The full type/assumption reports
-are `literal-contracts.log` and `literal-assumptions.log`. `RUN.json` binds
-fresh compilation, all twelve source-review commands/logs and exact inputs;
-`CHECKED.json` additionally binds the completed successful recursive kernel
-check. The kernel context must retain the existing allowlist and empty
-type-in-type, unsafe-fixpoint and assumed-positivity categories.
-
-```sh
-python3 -B proof-work/secp-field-literal/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-literal/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-literal/verify.py check \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
 
 These are guarded, separate phases; launch records alone do not prove
 completion. Poll a live process instead of restarting it on an observation

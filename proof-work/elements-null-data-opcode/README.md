@@ -1,12 +1,5 @@
 # Entire actual259-bit null-datum opcode block
 
-Private tree: `/private/tmp/jet-null-data-opcode.vqvisr84`.
-Semantic fingerprint:
-`c3c180baf248688185185968a788601e4c5fb6b99a86bbb468d4026e12a929a9`.
-The new `C.jet_elements_null_data_opcode` source is archived under `source/`.
-Every inherited source equals the completed `../elements-null-data-nonpush/`
-tree. No main/staged semantic input changed; no live audit objects were copied.
-
 ## Formal result
 
 `exec_elements_null_data_opcode_block` executes the entire actual opcode block
@@ -46,24 +39,6 @@ Haskell/port source-correspondence gate is not completed by this batch.
 No whole-jet endpoint, coverage entry or normal registration is added.
 
 ## Verification checkpoint
-
-Fresh checker46905 exited0: the new module explicitly recompiled, all9 result
-types and13 definitions were printed without elision, Elements AST regeneration
-matched and recursive `coqchk` accepted the module and its dependency chain.
-`CHECKED.json` binds the source/object, tools and terminal command/log hashes.
-The reports identify five closed results, one expression-evaluation result with
-four inherited assumptions and three execution results with the six inherited
-Coq/CompCert assumptions. No new assumed declaration, admission or unchecked
-kernel operation was introduced.
-
-Independent review79166 exited0;35 source/object/assumption/report/log/kernel-
-scope corruptions were rejected, including false whole-jet claims.
-`EVIDENCE-REVIEW.json` binds the tools, successful independent review and refusal
-suite. Recheck:
-
-```sh
-python3 -B proof-work/elements-null-data-opcode/review.py /private/tmp/jet-null-data-opcode.vqvisr84
-```
 
 Development corrections were explicit boolean binder types before a conditional
 range, explicit singleton cells/counts for effect composition, and reducing

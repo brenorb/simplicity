@@ -1,11 +1,5 @@
 # Original multiply-accumulate: checked helper extension
 
-Two modules / **11 completed results and eight definitions** compile in
-`/tmp/jet-scalar-mul.lkomWj` (`MulC`). The dependency base is the immutable
-accepted normal C candidate `/tmp/jet-scalar-integration.XAMDsw/Coq`.
-The prior 17-result unsigned multiplication closure remains byte-identical
-and is revalidated by this archive's reviewer.
-
 Last verified declaration:
 `MulC.jet_secp_u128_accum_mul_numeric.eval_u128_accum_mul_owned_product`.
 There is no remaining failing Coq goal in these two files.
@@ -47,20 +41,8 @@ prefixes or stale compiled files.
 
 ## Reproduce / next
 
-```sh
-python3 -B proof-work/scalar-mul-accum/review.py
-python3 -B proof-work/scalar-mul-accum/test-review.py
-```
-
 From the dependency Coq directory, pinned Coq 8.17.1 / CompCert 3.14 / VST
 2.14, compiler PATH and `ulimit -S -s 65520`:
-
-```sh
-bash build-jets.sh --coqc -R /tmp/jet-scalar-mul.lkomWj MulC \
-  /tmp/jet-scalar-mul.lkomWj/jet_secp_u128_accum_mul_numeric.v
-bash build-jets.sh --coqchk -silent -o -R /tmp/jet-scalar-mul.lkomWj MulC \
-  MulC.jet_secp_u128_accum_mul_exec MulC.jet_secp_u128_accum_mul_numeric
-```
 
 Next is original `scalar_mul_512` column/carry execution and product value,
 then `scalar_reduce_512`, then the original public scalar multiply/square

@@ -1,13 +1,12 @@
 # Archived derived proof trees
 
-These seven trees used to live under `Coq/`. They are **not** built by
-`Coq/check-jets.sh` and are not counted in `jet_coverage.tsv`. Each file has its
-original path and SHA-256 in `manifest.json`. Coq sources and scripts carry a
-`.source` suffix, so nothing here is compiled or run by accident.
+These alternate program and namespace trees are outside the active build.
+Their `.source` suffix prevents accidental compilation. Exact pre-cleanup
+paths and dependency metadata can be recovered using `../README.md`.
 
 | Tree | Modules | What it proves |
 | ---: | ---: | --- |
-| `linked` | 16 | Core and SHA programs with the reference `memcpy` linked internally, plus CompCert linking theorems. Discharges `memcpy_model` for a *linked* program; the unchanged program's 104 conditional entries stay conditional |
+| `linked` | 16 | Core and SHA programs with the reference `memcpy` linked internally, plus CompCert linking theorems. Discharges `memcpy_model` for a *linked* program; the unchanged program's libc-conditional entries stay conditional |
 | `bitcoin-env-linked` | 2 | The same, for the Bitcoin environment unit |
 | `bitcoin-env` | 55 | SHA-unit proofs recompiled against the Bitcoin environment translation unit (`C.jets_sha` := `C.jets_bitcoin_env`), environment readiness and startup |
 | `elements-env` | 56 | Elements environment helpers and callers (taproot setup, copyOutput, confidential/issuance hashing, fees) |

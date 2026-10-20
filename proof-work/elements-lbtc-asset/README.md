@@ -5,13 +5,6 @@ only lemma. Main was 386/533 at preparation and has since advanced to 399/533
 through guarded installation. The separately reviewed 401 candidate is
 unchanged; this proof is not silently folded into either existing candidate.
 
-Private tree: `/private/tmp/jet-elements-lbtc-asset.dAZaZ0`. Its compiler objects
-were copied only from the completed normal tap-getter tree (`c86dfb59...`), not
-from a running audit. All inherited Coq/C/Haskell source/metadata files retain
-their bytes; three new modules are archived under `source/`.
-Checked input:
-`9fc56dff734e3aec3b79111fcf521054abb2f35451ed0bda7ca6644c327af644`.
-
 ## The actual implementation and target
 
 `elements_lbtc_asset_local_spec` proves the generated
@@ -57,27 +50,6 @@ and `Byte.repr_unsigned`; it does not assume proof-field convertibility after
 computation or add proof-irrelevance axioms.
 
 ## Verification state
-
-All three modules compile with the pinned normal Coq 8.17.1 / OCaml 4.14.4
-compiler. The full private checker **75436 terminated with exit 0**: fresh
-compilation, complete reports for 13 results and 12 definitions, assumptions,
-source guard, 22 source corruptions, direct Elements AST regeneration and
-recursive `coqchk` all passed. `PREPARATION.json` and full logs bind those
-checks. Four constant/byte/parametricity results are closed; the C endpoint
-retains the six inherited Coq/CompCert assumptions, with no libc premise.
-
-The independent review and all **23 evidence-corruption fixtures passed**;
-harness **62819 terminated with exit 0**. `EVIDENCE-REVIEW.json` binds those
-terminal commands, tools, complete logs and the original preparation/review
-receipts. Historical commands:
-
-```sh
-# Checker already completed; do not overwrite its recorded objects/receipts.
-ulimit -s 65520
-python3 -B proof-work/elements-lbtc-asset/check.py /private/tmp/jet-elements-lbtc-asset.dAZaZ0
-python3 -B proof-work/elements-lbtc-asset/review.py
-python3 -B proof-work/elements-lbtc-asset/test-review.py
-```
 
 The terminal evidence and all full type/definition/assumption/AST/kernel/source/
 negative logs are archived here. Normal registration,

@@ -10,14 +10,6 @@ output-proof digest conversion for every proof-byte projection.
 
 ## Evidence
 
-Private tree: `/private/tmp/jet-elements-output-proof.saa7t23p`.
-Fingerprint:
-`2f544e32cc9734f30eaef5bb73f0bc36576f2572360b722c60909a59b5acd9cb`.
-All 1,585 inherited source/metadata/registry files match the completed immutable
-outpoint/output tree byte-for-byte. Only
-`C.jet_elements_output_proof_literal` is a new source; the original execution
-module compiles unchanged.
-
 All 20 unregistered modules in the actual dependency closure were freshly
 compiled. Full reports cover 219 result types and 142 definitions, preserving
 apostrophe identifiers, without ellipses/evars. Every inherited dependency set
@@ -33,17 +25,6 @@ reuses the checked indexed-result, outpoint/output, digest, and current-program
 guards. It rejected 35 in-memory corruptions. Independent evidence review
 rejected 23 source/scope/inventory/command/report/kernel/AST corruptions. Invalid
 proof fixtures are never compiled.
-
-`PREPARATION.json` binds complete inventories, source/object hashes, checked
-ancestor receipts, exact commands and successful terminal statuses, logs,
-unchanged main inputs and original index. `EVIDENCE-REVIEW.json` separately
-binds the independent review and its negative tests. Reports and all eight
-source/type/assumption/AST/kernel/review logs are archived here.
-
-```sh
-python3 -B proof-work/elements-output-proof/review.py
-python3 -B proof-work/elements-output-proof/test-review.py
-```
 
 ## Exact behavior and remaining admission
 

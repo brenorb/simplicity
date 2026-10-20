@@ -1,12 +1,5 @@
 # Fresh normal467 candidate with the audited printer context
 
-Candidate: `/private/tmp/jet-sha-startup-admission-v2.j1g8pyb0`.
-Assembly completed under handle83866 with terminal exit zero. This is a fresh
-clone of the completed normal449 preparation, not an edit of the failed467
-candidate. No inherited proof source, normal main input or original staging
-is changed. The old preparation engine, failed candidate, receipts and logs
-are retained in `../sha-startup-admission/` and its private tree.
-
 The proof/registration scope is unchanged: nine inherited-but-newly-registered
 SHA support modules plus one adapter, 123 results, 15 definitions, eighteen
 whole-C endpoints. Nine support sources stay byte-identical; one new `.v` and
@@ -26,12 +19,6 @@ for that module, causing five new theorem types to print its `mem_forward`
 constant differently. Both versions name the same Coq constant; the
 diagnostics remain in the first candidate's proof-work folder.
 
-`PRINTER-PREFLIGHT.json` binds ten passing negative header tests to this
-assembled candidate, the v3 engine and exact test driver. Ambiguous/missing
-boundaries, changed printer settings, reordered/incomplete imports and
-malformed inventories are rejected. The historical v2 engine and failed
-candidate's preparation receipt remain byte-identical.
-
 The new batch's reviewer additionally binds the actual header/script hashes
 and exact full report-driver bytes. It still invokes the unchanged v6
 reviewer for every inherited contract/dependency byte, all138 new compact/deep
@@ -41,34 +28,6 @@ reintroduced `Require Import`. Nothing in the normal contract comparison is
 weakened. All historical preparation/review engines remain unchanged.
 
 ## Remaining phases
-
-Preparation completed under handle37168 with terminal exit zero. Its
-`PREPARATION.json` and thirteen exact logs record all ten fresh compiles and
-all123 checked assumption records, with the actual audited printer header
-bound by hash. A separate real invocation of `audit-jet-contracts.sh` then
-passed under handle75735: `CONTRACT-PREFLIGHT.json` and
-`printer-contract-preflight.log` record a match for the complete normal
-contract snapshot. Thus the original printer mismatch is repaired in this
-fresh candidate, without normalizing away identifiers or changing proofs.
-
-The six-stage independent review then completed under handle10965 with
-terminal exit zero. `REVIEW.json` and its six exact logs bind coverage,
-coverage fixtures, complete contract comparison, canonical-source positive/
-negative checks and evidence tests. All72 evidence corruptions are rejected,
-including the four added audited-header/report-driver checks. All9099
-inherited contracts remain byte-identical and all5969 inherited dependency
-sets remain unchanged. All138 added type/definition records have complete
-deep reports; one compact startup contract needs its reviewed deep supplement.
-The12 closed results remain closed and all eighteen C endpoints retain their
-eight inherited assumptions. This is a reviewed delta, not full acceptance.
-
-The combined-audit preflight was launched under handle32523. Inspect its
-actual terminal outcome before using the still-unaccepted full-audit driver.
-
-```sh
-python3 -B proof-work/sha-startup-admission-v2/admission.py prepare /private/tmp/jet-sha-startup-admission-v2.j1g8pyb0
-python3 -B proof-work/sha-startup-admission-v2/review.py finish /private/tmp/jet-sha-startup-admission-v2.j1g8pyb0
-```
 
 Do not duplicate a live invocation. Inspect actual process handles and
 terminal evidence; a receipt or launch file alone is not a liveness check.

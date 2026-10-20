@@ -15,14 +15,5 @@ and prove its initial memory exists, so the initial-memory premises are
 inhabited. This does not replace the more general local contracts, constrain
 their arbitrary cursors/output contents, or prove correctness of any evaluator.
 
-The private extension is `/private/tmp/jet-elements-calculation-ready.fqe50o`.
-`verify.py compile EXTERNAL_DIRECTORY` freshly checks its 14 results and four
-definitions with an exact dependency profile. Its 197 project dependencies are
-the forced-source 196-module calculation basis plus one freshly compiled,
-unchanged `C.jet_frame_constructible`. All inherited external modules are pinned
-to the enclosing jet receipt. `verify.py kernel EXTERNAL_DIRECTORY` requires
-the enclosing jet audit to finish first and binds every source/object before
-and after recursive checking. Only `CHECKED.json` records kernel success.
-
 These are unregistered proof-support results, with zero added accepted coverage.
 No production C, original specification, API or generation setting is changed.

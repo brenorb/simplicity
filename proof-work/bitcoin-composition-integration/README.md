@@ -13,15 +13,6 @@ the size headers/freeable permissions used by `free_environment`. The free
 wrappers call CompCert's defined `EF_free`: no external free model is added.
 The wrapper theorems cover returned non-null allocations, not `free(NULL)`.
 
-Run `python3 -B proof-work/bitcoin-composition-integration/run.py prepare`,
-then `check --candidate DIR`, then `install --candidate DIR`.
-Use `ulimit -s 65520`; the checker selects Coq 8.17.1 and CompCert 3.14.
-Only source-matched, hash-pinned objects from the checked transaction unit
-are reused. New modules compile, the production AST is regenerated, all
-derived-builder theorem assumptions/types/definitions are reported, and both
-roots are kernel-checked with their dependencies. Existing assumption records
-must remain identical. The normal registry and the user's staging are untouched.
-
 Program boundary: the isolated `C.jets_sha` is the environment program, not
 main's original SHA/jet program. Sources remain outside the normal C load path.
 This batch adds no jet coverage and is not evaluator/`exec.c` verification.

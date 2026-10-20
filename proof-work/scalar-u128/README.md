@@ -1,18 +1,13 @@
-# Scalar and uint128 helper sources
+# Earlier scalar and uint128 helpers
 
-These 22 complete source files and one literal-source checker are preserved
-verbatim. The `.source` suffix keeps them outside all accepted Coq load paths.
-Materialize them into an external scratch directory for further proof work.
-They use the `OriginalC` namespace; their accepted dependencies are pinned by
-`dependency_base_commit`. Preserve that namespace and resolve its dependencies
-before compilation. The historical checker contains local paths requiring
-adaptation; it is retained as source, not installed as an acceptance gate.
+These distinct earlier sources use the `OriginalC` namespace and remain outside
+the active build. Their historical dependency base is
+`93542abcf17db8d5b45bdfd7c1e897df39bd3b96`; inspect their imports before
+materializing them in an external tree. Some interfaces have since changed.
+The literal-source checker has old local paths and needs adaptation before use.
 
-Eighteen helper modules have matching historical compiled/kernel receipts.
-That evidence concerns the helper statements, not full public scalar jets or
-acceptance on the current branch. Four further complete source files need fresh
-verification; `jet_secp_scalar_overflow_flags` has a known previous compilation
-failure. A final `Qed` alone is not compilation or fidelity evidence.
-
-The manifest distinguishes these groups and lists the remaining canonical,
-helper-call and public lifecycle obligations. Nothing here increases coverage.
+`jet_secp_scalar_overflow_flags` has a known previous compilation failure.
+None of these archived files claims fresh compilation or acceptance on the
+current branch. The active scalar jet registrations are separate; see
+`Coq/C/JET_ACCEPTANCE.md`. Original candidate metadata is recoverable as described
+in `../README.md`.

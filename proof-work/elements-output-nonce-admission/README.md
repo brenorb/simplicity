@@ -1,19 +1,7 @@
 # Literal output_nonce registration and combined407 acceptance
 
-Current state: main is **407/533**, source-identical to the fully accepted
-isolated407 candidate. Guarded source-only installation80198 terminated with
-exit0; `INSTALLATION.json` and `DELTA.patch` bind its28 targets and preservation
-of the original staged patch. Distinct actual-main407 acceptance is still
-required. The following preparation/launch notes record the earlier history.
-
 The successor adds `simplicity_output_nonce` to the reviewed406 source
 candidate. Snapshot preparation and review alone were not normal acceptance.
-
-Private candidate: `/private/tmp/jet-output-nonce-admission.vy_b4hzc`.
-Input SHA-256:
-`b5d5d74af3bcaf1282bedb838c0185eea431fc8fc0fb0a2df576624244a11c74`.
-Only completed nonce-proof objects were cloned. The reviewed406 predecessor
-supplied source text; no objects were taken from a live audit.
 
 ## New proof and normal delta
 
@@ -31,23 +19,6 @@ mandatory source guards, one exact framed whole-C coverage case and seven new
 statement-confined coverage corruptions. Existing sources and all inherited
 fixtures remain unchanged. Shared preparation and checkpoint-aware review
 engines are reused without changes.
-
-The normal build and explicit fresh module compilation passed as81318, exit0.
-All **8,428 inherited contract records** preserve bytes/order; all **5,535
-inherited dependency sets** are unchanged. All eleven added records have full
-deep reports. The compact index-range type contains an elision; its complete
-report is retained and every compact fragment is checked against it.
-`PREPARATION-CHECKPOINT.json` binds this read-only review, source, assembly,
-preparation and both engines. The build/fresh-compile and full new
-contract/assumption logs are archived here.
-
-The six-stage finish review **69468 terminated with exit0**: coverage tests
-(including all seven new fixtures), ordinary contract comparison,
-canonical/source correspondence,33 source corruptions and31 independent
-evidence corruptions passed. `REVIEW.json` binds all commands, terminal results,
-source, tools, both engines and1,257 object/report hashes. An independent
-`FINISH-CHECKPOINT.json` verifies those bindings, and all six logs are archived.
-Do not restart the completed finish or promote its review to full acceptance.
 
 ## Combined acceptance over the real401 baseline
 
@@ -77,45 +48,6 @@ both pass.** Do not launch the older404 audit or install402/404/406 while
 following this plan. Completed historical results remain valid evidence for
 their exact source trees.
 
-The combined407 driver was launched once as **23810**, after the signed
-completed-review/preflight commit. `AUDIT-RUN.json` binds exact input
-`b5d5d74a...`, the401 baseline receipts, all four completed review hashes and
-the driver. Its log is
-`/private/tmp/jet-output-nonce-admission.vy_b4hzc/acceptance.log`.
-This is a real launch, not successful terminal acceptance. Poll23810 and never
-restart on quiet output. Keep this candidate and main401 semantic inputs
-frozen. Six refusal tests passed as
-54539 without launching acceptance or attempting writes. `START-GUARD.json`
-binds the driver/test/log. After the six-stage407 review, the real read-only
-preflight also passed; `COMBINED-PREFLIGHT.json` binds all four completed review
-hashes, both candidate/baseline source fingerprints and the driver. This is
-readiness evidence, not positive acceptance. Future guarded
-source-only407 installation must additionally require actual-main401 success,
-exact reviewed combined source identity and original-index preservation;
-distinct actual-main407 acceptance follows installation. No installer or
-actual-main407 audit has been executed.
-
-`prepare-integration.py` has now completed read-only aggregate planning during
-the existing audit (94631, exit0). `INSTALLATION-PLAN.json` binds exact401/407
-source identities, original staging, all four review hashes, before/after
-hashes and the28 additive targets: seven metadata files, four scripts, eight
-guards and nine new proof sources. The candidate's entire semantic input map
-equals baseline401 plus exactly that delta. No inherited proof is overwritten,
-no compiler object copied, and no main input changed. This is a plan, not an
-installer or positive acceptance; actual-main401 and combined407 success remain
-mandatory before any future source integration.
-
-The guarded `integration.py` and separate once-only `main-accept.py` are now
-implemented. Read-only tests86836 terminated with exit0: the real aggregate
-plan and historical actual-main401 receipt were checked, and27 refusal cases
-passed (missing successful receipts, duplicate installation/launch, unsafe or
-object targets, inherited overwrite, index drift, and altered review/plan
-provenance). `INTEGRATION-REVIEW.json` binds the exact tools, plan and captured
-terminal stdout. These tests neither install anything nor invent successful
-407 acceptance. The postchecker composes immutable historical evidence without
-running an obsolete exact-main401 check against a successor tree. Installation
-still requires real combined407 success, and actual-main407 follows separately.
-
 Actual-main401 audit92989 and isolated402 audit26900 have now both terminated
 with exit0 and complete acceptance markers. Their receipts/log hashes and
 driver/source/installation bindings were independently verified, and full logs
@@ -123,31 +55,6 @@ are archived in their respective folders. This establishes actual-main401
 acceptance, not an intermediate402 installation. Combined407 audit23810 remains
 the required successor audit. Do not restart either completed audit or install
 intermediate402/404/406 trees under the combined plan.
-
-Combined407 audit23810 has now terminated with exit0 after3868 seconds and
-the complete final acceptance marker. `ACCEPTANCE.json`, `TERMINAL.json` and
-the full `acceptance.log` are archived here. The accepted source fingerprint is
-`b5d5d74a...`; the log SHA-256 is
-`f3d1f24798220babdaf9e91c24bd6c70c8ed3a612d144a719097e0d025dc446d`.
-The integration checker independently validated its exact command, source,
-driver, review-chain and baseline bindings, plus real actual-main401 success.
-This is successful isolated full acceptance, not yet actual-main407 acceptance.
-
-The once-only actual-main407 driver ran as **37961**.
-`MAIN-AUDIT-RUN.json` binds the407 source fingerprint, installation SHA-256
-`adeffcd7ab60d565c33d1343b81c8d813eb8c91cab368b2414c58a8cf7a0461e`,
-the exact acceptance command and committed driver. Its log is
-`/private/tmp/jet-output-nonce-admission.vy_b4hzc/main-acceptance.log`.
-It has now terminated with exit0 after3826 seconds and the complete acceptance
-marker. Build, recursive kernel checking (1,046 modules), assumptions/contracts,
-negative tests and all five AST-regeneration gates passed. `MAIN-ACCEPTANCE.json`
-and `MAIN-TERMINAL.json` bind the terminal result, and the full
-`main-acceptance.log` is archived. `MAIN-CHECKPOINT.json` independently checks
-the exact command, source, driver, installation, launch, terminal receipt and
-log SHA-256 `fc0e7f5986224ed9ec0b0af457c02780ec50bf266e8f7f98d388cd93c79778c4`.
-This is real actual-main407 acceptance. It does not imply successful415
-acceptance: the distinct63601 candidate audit must also pass before guarded415
-installation. Neither completed407 audit should be restarted.
 
 The proposed407 registry retains104 explicit `memcpy_model` conditions and126
 missing public declarations. The full every-jet goal, caller/domain/evaluator,

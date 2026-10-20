@@ -1,10 +1,5 @@
 # Shared application-contract → Bit Machine lifting
 
-Private tree: `/private/tmp/jet-application-bm-lift.MZbPSjKu`.
-Base: the immutable completed parser/literal proof tree
-`/private/tmp/jet-null-data-literal.lh3EDxlD`; no live candidate objects were
-copied. Main and the isolated normal419 candidate are unchanged.
-
 Three new complete results have been freshly compiled and recursively
 kernel-checked, with full type and assumption reports. All three have only
 the six inherited execution assumptions. Independent evidence review passed,
@@ -55,17 +50,3 @@ refactor, not an edit to the frozen419 candidate here.
 All physical environment premises and their output-footprint separation remain
 explicit. Actual C environment-builder establishment, broader aliasing APIs,
 assertion-enabled builds and full acceptance/registration are not added.
-
-## Check the recorded result
-
-```sh
-python3 -B proof-work/application-context-lift/review.py /private/tmp/jet-application-bm-lift.MZbPSjKu
-```
-
-The once-only checker explicitly recompiles both new modules, prints all
-three untruncated types and assumption sets, and recursively runs `coqchk` with
-a 65520-KiB stack and no unsafe checking flags. Source/object/log hashes,
-commands and exits are in `CHECKED.json`. The review checks these independently,
-and tests altered sources, scope flags, assumptions, types, commands and
-inherited contracts. Original staged patch identity stays
-`f2083389e06d3a5aed12c83d0aae554895eab94eef8e107c5d445f9268d86bbe`.

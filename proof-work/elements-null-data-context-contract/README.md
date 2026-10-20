@@ -1,10 +1,5 @@
 # Shared application-jet contextual contract
 
-Private tree: `/private/tmp/jet-null-data-context-contract.oxOG8kkO`.
-The two new modules are archived under `source/`; inherited sources equal the
-checked `../elements-null-data-environment/` tree byte for byte. Main418
-semantic inputs and the original staged patch remain unchanged.
-
 ## Exact contract and jet theorem
 
 `C.jet_application_context_contract.application_jet_bitmachine_spec` is shared
@@ -70,10 +65,6 @@ commit.
 The endpoint has the six inherited Coq/CompCert assumptions and no new axiom,
 admission or unchecked operation. The isolated `whole_c_endpoints=1` is not
 normal registration, added coverage or full acceptance.
-
-```sh
-python3 -B proof-work/elements-null-data-context-contract/review.py /private/tmp/jet-null-data-context-contract.oxOG8kkO
-```
 
 The only development correction was using the installed word representation's
 explicit four-bit type `(Word 2)` instead of a nonexistent `Word4` alias. The

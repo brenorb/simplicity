@@ -1,13 +1,8 @@
-# Original-C field predicate candidate
+# Historical field-predicate candidate
 
-This patch preserves the 18 original-C `fe_is_odd`/`fe_is_zero` proof modules,
-two source checker scripts and the candidate build/coverage/snapshot changes.
-Its reviewed proof modules, checkers and registration were integrated in
-`cafb9b31`, with separate full acceptance passing. The active registry is
-349/533. This archive reproduces the historical candidate, not the current
-accepted tree; its retained snapshots are not an acceptance receipt.
-
-The manifest pins the original base, candidate head and every changed file.
-The original candidate is preserved on `codex/secp-field-predicates` in the
-fork. Apply `candidate.patch` to an external checkout of `base_commit` to
-reproduce that historical tree. Inherited domain/fidelity review remains open.
+`candidate.patch` preserves the original 18-module `fe_is_odd`/`fe_is_zero`
+candidate and its source checks and registration changes. Apply it to
+`93542abcf17db8d5b45bdfd7c1e897df39bd3b96` in a fresh external checkout.
+Its reviewed proof modules were integrated as `cafb9b31`; the active registry
+and acceptance command determine their current status. This patch is a
+historical alternative, not an acceptance record or a pending registration.

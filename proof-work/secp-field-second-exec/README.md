@@ -27,23 +27,6 @@ configuration, main proof source or registry is changed. Coverage added: zero.
 
 ## Evidence
 
-The five sources have 30 results and 27 definitions. The intended exact
-profile is 28 closed results and two execution results with only the six
-inherited Coq/CompCert dependencies. `RUN.json` records completed fresh
-compilation/full contracts/assumptions; `CHECKED.json` additionally records
-completed recursive kernel verification. A launch file is not success.
-
-Audit tree: `/private/tmp/jet-field-checkpoint-audit.Zeze9g`, narrow namespace
-`FieldSecond` in its separate `second/` directory. Its 95 local imports are
-bound to the successful forced-source build and kernel check of
-`../secp-field-checkpoint`. The pure parent `Columns` module is not loaded
-by this execution-only root. All actually loaded modules are inventoried.
-
-```sh
-python3 -B proof-work/secp-field-second-exec/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 Next: derive exact second-fold integer values and carry bounds from the
 first checkpoint and implementation limb bounds, then instantiate that
 result on this composed C execution. The next slice is heads 50 through 67,

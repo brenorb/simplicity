@@ -38,23 +38,12 @@ are internal sequencing interfaces, not public equivalence preconditions.
 
 ## Verification
 
-```sh
-python3 -B proof-work/elements-outpoint-middle/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-outpoint-middle/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Place `Common.v.source`, `Pegin.v.source`, `Middle.v.source` in a fresh external
 directory as `.v` files. The driver freshly compiles all three, reports full
 types/definitions/assumptions, checks exactly eleven results (seven closed,
 four with the existing six inherited CompCert/VST dependencies) and nine
 definitions, binds 251 local imports to their forced source/object provenance,
 and checks eleven inherited external modules.
-
-`RUN.json` records compilation; `KERNEL-RUN.json` records only a launch. Only
-`CHECKED.json` with kernel exit status zero confirms completed recursive kernel
-checking for the exact bound inputs. This independent recursive audit checks its
-call-foundation dependencies even if the separate parent audit is still running.
-Do not edit bound sources, objects or drivers during a live audit.
 
 Unregistered proof work, zero accepted coverage added. Production C, original
 specifications, API, generation settings and shared registries are unchanged.

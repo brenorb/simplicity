@@ -1,12 +1,5 @@
 # Isolated normal467 proposal: the full SHA startup closure
 
-Candidate: `/private/tmp/jet-sha-startup-admission.yiddvkw8`.
-Assembly completed with exit zero under handle18685. The object seed is the
-completed normal449 preparation, not the formerly running447 audit. Nine
-inherited support source files remain byte-identical; one adapter source and
-three canonical source-guard/model files are added. Main420 and the original
-staged patch are unchanged.
-
 The proposed registration adds all ten modules: nine startup support modules
 plus the explicit adapter,123 result records,15 definition records and18
 whole-C endpoints. The support sources' existence did not previously put them
@@ -32,15 +25,6 @@ Bitcoin helpers in this SHA batch may now carry a memcpy premise; the gate
 does not broadly permit conditional Bitcoin statements. Compression must
 remain without that additional premise; the other17 must retain it.
 
-The first coverage fixture preflight failed on its old hardcoded total104,
-not a C/proof discrepancy. Its exact failure log is preserved as
-`coverage-fixtures-preflight-v1.log`. The repaired candidate requires104
-unchanged inherited conditions plus precisely the17 named SHA conditions,
-including all four Bitcoin helpers. The v2 coverage and full fixture suite
-both passed under handle99663; `COVERAGE-PREFLIGHT.json` and exact v2 logs
-record successful exits. None of the corrupted fixture statements is compiled
-or installed in the real source tree.
-
 The proposal lists467/533 public C declarations:346 entries without an extra
 libc premise and121 conditional, leaving66 without registered jet proofs.
 Those counters are bookkeeping, not full acceptance or every-jet completion.
@@ -57,33 +41,6 @@ separate guarded source-only integration remain. `review.py` and
 type/definition records, all inherited contract/dependency bytes, exact
 fresh objects, guards, commands and dependency sets.
 
-Normal preparation completed with exit zero under handle61853:
-
-```sh
-python3 -B proof-work/sha-startup-admission/admission.py prepare /private/tmp/jet-sha-startup-admission.yiddvkw8
-```
-
-`PREPARATION.json` and thirteen exact successful build/module/report logs
-bind the completed phase. All ten fresh compiles succeeded and all123 new
-assumption records match the checked proofs. The independent review under
-handle27849 subsequently terminated with exit one at the normal contract
-comparison, after its coverage and coverage-fixture stages passed. It is no
-longer running. The candidate and completed preparation evidence have not
-been rewritten. Preparation is not full acceptance.
-
-The failing comparison changes only the printed qualification/line wrapping
-of `mem_forward` in five newly registered theorem types. In the preparation
-header it is imported by `Require Import C.jet_clight_forward.`; the real
-audit deliberately uses `Require C.jet_clight_forward.`. The two read-only
-Coqtop diagnostics in `printer-preparation-context.log` and
-`printer-audit-context.log` load the actual preparation header, differing only
-in that single import command. `Locate mem_forward` resolves to
-`C.jet_clight_forward.mem_forward` in both cases; reprinting all five affected
-types reproduces the qualification difference. This is a diagnosed printer
-context mismatch, not evidence of a changed proof or C/specification bug.
-The exact failed diff remains in the private candidate's
-`normal-contract-comparison.log`.
-
 Next: use a new, explicitly versioned preparation phase/candidate whose
 printing header agrees with the real audit, retaining the failed candidate,
 historical preparation and v2 engine. Check every inherited record remains
@@ -91,13 +48,6 @@ byte-identical and review every newly printed record. Do not normalize away
 the qualification difference, weaken contract comparison, overwrite the
 historical receipt or launch a full audit before a new independent review
 succeeds.
-
-The isolated447 full audit has now actually passed under handle50964,
-including its terminal postchecks. Its real input fingerprint is
-`791cc1727e2866d55ad6a61b2c80943253490bbd1c37e3a439c6e80dbb09ba05`;
-the real receipt/log are in `../elements-context-admission/`.
-The449 two-jet delta has its completed eight-stage independent review.
-No full449 audit has been launched or claimed.
 
 The new `accept.py` explicitly requires that real447 terminal, the unchanged
 reviewed449 delta, and the completed six-stage467 delta before running the

@@ -19,23 +19,12 @@ The unchanged generic frame constructor and kernel-checked Elements startup
 module are reused. Production code, original specifications, API, generation
 settings and accepted registries are unchanged.
 
-```sh
-python3 -B proof-work/elements-outpoint-ready/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-outpoint-ready/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Place `Ready.v.source` in a fresh external directory as `Ready.v`. The driver
 freshly compiles both results and their contract definition, reports full
 types/definitions/assumptions, checks exactly the existing six inherited
 CompCert/VST dependencies, verifies twenty-four inherited external modules,
 and binds 261 local imports to checked source/object provenance. The explicit
 external model remains conditional, not a discharged libc implementation fact.
-
-`RUN.json` records compilation, `KERNEL-RUN.json` only a launch. Only successful
-`CHECKED.json` with kernel exit status zero establishes completed recursive
-kernel checking for the exact bound inputs. The independent audit checks its
-entire dependency chain even if the parent audit is still running. Preserve
-bound sources, objects and drivers; poll the original live handle.
 
 Unregistered proof work: zero accepted coverage added. Normal admission,
 external-library obligations and the broader all-jets goal remain unfinished.

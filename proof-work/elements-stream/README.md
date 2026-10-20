@@ -1,24 +1,9 @@
 # Shared hash-word semantics and Elements stream getters
 
-Private tree: `/private/tmp/jet-elements-stream.1zVQb2CU`.
-Its source/object seed is the completed fully accepted combined420 candidate,
-not either currently running audit's mutable object cache. Main proof inputs
-and the original staged patch remain untouched.
-
 ## First completed checkpoint
 
 `C.jet_sha_hash_words_reader` freshly compiled and its15 results / one
 definition were reported completely by:
-
-```sh
-python3 -B proof-work/elements-stream/check-reader.py /private/tmp/jet-elements-stream.1zVQb2CU
-```
-
-`READER-CHECKED.json` binds the exact archived source, fresh object, commands,
-full reports, assumption sets and preserved main/index state. Two results are
-closed; the other13 have only the existing dependent-functional-extensionality
-principle through the Reader dictionaries. This is a development checkpoint,
-**not** recursive kernel success or C-jet coverage.
 
 The helper generalizes only the environment-dependent evaluation layer of
 the existing literal `hashLoop` / `hash_words_spec` programs. It reuses the
@@ -47,53 +32,7 @@ sequences or path. This does **not** prove the actual C environment builders
 populate those fields. Confidential proofs retain the existing raw-byte
 primitive interpretation; no arbitrary independent digest input replaces it.
 
-Fresh compilation/reporting completed with exit zero (handle12829):
-
-```sh
-python3 -B proof-work/elements-stream/check.py compile /private/tmp/jet-elements-stream.1zVQb2CU
-```
-
-Both new modules and both reused C getter-helper modules compiled freshly.
-`RUN.json` binds all36 results /10 definitions, including13 closed results and
-exactly six inherited assumptions for each of the seven whole-C endpoints.
-No assumption allowlist changes or admissions are introduced. Source archives
-are exact, including raw printer whitespace in the evidence logs.
-
-The separate once-only recursive kernel phase completed with exit zero
-(handle47464), including Elements AST regeneration:
-
-```sh
-python3 -B proof-work/elements-stream/check.py kernel /private/tmp/jet-elements-stream.1zVQb2CU
-```
-
-It checked Elements AST regeneration and the recursive two-module closure.
-Its private input fingerprint is
-`1ea5fc98311d57d465913a6ddf9c7587dce5875193f0dcd161d148219da354cd`.
-`CHECKED.json`, `ast.log` and `kernel.log` record the actual terminal result.
-The kernel context reports no type-in-type, unsafe fixpoints or assumed
-positivity. The endpoint-specific assumption reports remain exactly six
-inherited assumptions each; the wider imported kernel context is separate.
-Do not restart this completed kernel phase or alter its bound source/tools.
-
 The separate selected canonical source review also completed, with203
 read-only corruptions rejected; its exact scope and receipt are in
 `../elements-stream-source/`. It establishes selected source correspondence,
 not formal host-runtime equivalence or C cache-builder correctness.
-
-The independent combined evidence review now also completed with exit zero
-(handle9780). `EVIDENCE-REVIEW.json` binds both proof phases, all fresh sources
-and objects, exact reporting drivers and full reports, the36 per-result
-dependency sets, AST regeneration/kernel terminal and selected canonical
-source-review receipt. It rejected73 read-only evidence corruptions and
-reconstructed the original Reader-only phase's fingerprint from actual
-immutable bytes; adding the endpoint module did not rewrite that checkpoint.
-
-Next: normal registration/review/full acceptance over the reviewed436
-successor. The private436 audit (handle65786) is still running, and main
-remains frozen at its now fully accepted420 source state. A later combined
-443 candidate can use completed420 objects plus source-only436 metadata/
-proof additions, never copying the live436 audit's mutable objects. Require
-the relevant real full-audit terminals and an exact reviewed source-only
-installation boundary before integration. No normal coverage, full
-acceptance or all-caller construction result is claimed for these seven jets
-by this development checkpoint.

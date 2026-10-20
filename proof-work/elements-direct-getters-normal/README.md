@@ -9,21 +9,6 @@ representations and framing guarantees, with exactly the original six
 inherited assumptions and no new libc premise. The 27 shared digest lemmas
 remain closed under the global context.
 
-Candidate: `/private/tmp/jet-elements-direct-normal.4Ooumo`.
-Base: the read-only sequence admission candidate
-`/private/tmp/jet-sequence-admission.xtajlnf7`, while its full audit is running.
-Using that base is preparation, not a claim that its terminal acceptance has
-already occurred. The existing base build/kernel checks are complete; neither
-its sources nor compiler outputs were changed by this work.
-
-Three literal modules are added only in the independent tree. The byte and
-numeric helper archives are unchanged. The hash endpoint archive changes only
-its helper import from `HashLiteral` to `C`. All eleven missing normal-build
-modules were explicitly freshly compiled in topological order: write32s
-execution/layout, hash-write/getters, write8-step, the three original C getter
-modules, and the three literal modules. `PREPARATION.json` binds their exact
-sources, objects, commands, successful exits and complete reports.
-
 Verification includes 33 new result types, the three original C types, all new
 definitions, per-result assumptions, recursive `coqchk -silent -o`, and both
 selected source guards plus their 13 byte and 19 digest corruptions. Reports
@@ -31,12 +16,6 @@ reject elision or unresolved print placeholders. The inherited fifteen-axiom
 library context and all three empty unsafe categories are unchanged. Original
 C AST fidelity is established by the hash/tapleaf source receipts on these
 unchanged program sources, and is still required in later normal acceptance.
-
-```sh
-python3 -B proof-work/elements-direct-getters-normal/review.py
-ulimit -s 65520
-python3 -B proof-work/elements-direct-getters-normal/prepare.py /absolute/fresh-empty-tree
-```
 
 No main Coq source, manifest, registry, snapshot or compiler object was
 installed. This adds **zero registered coverage** and is not full normal

@@ -20,13 +20,6 @@ numeric predicate for a required C execution proof.
 
 ## Preparation evidence
 
-Private tree: `/private/tmp/jet-elements-check-lock-normal.hoKRuj`.
-The inherited Coq tree is an unchanged copy of the immutable checked
-check-lock tree. No live audit-tree compiler outputs are copied. Two files
-are added: `C/jet_application_partial_transport.v` and
-`C/jet_elements_check_lock_literal.v`. The only textual edit to their checked
-sources is the latter's helper import from `CheckLockReview` to `C`.
-
 All twelve unregistered dependency/root modules were freshly compiled in
 dependency order. Complete reports cover 77 helper/final result types and
 40 definitions, without elision or unresolved placeholders. Assumption
@@ -44,20 +37,6 @@ guard passed under final names, as did 25 assertion/failure tests, 31 finality
 tests and 32 lock/constant tests (88 source mutations). The evidence reviewer
 also rejects 23 in-memory scope/source/bridge/context/command/kernel/AST
 corruptions. Invalid proof text is never compiled.
-
-The review verifies all 1,580 inherited source/metadata/registry/guard files
-are byte-identical, with exactly the two new proof sources added. Normal
-manifests, coverage and snapshots retain the source baseline's content.
-`PREPARATION.json` binds source and object identities, base receipts, command
-lines, terminal statuses, reports, tools and the preserved original staging.
-The two source archives and full contract/assumption/kernel/AST logs are
-retained here. This is evidence for the actual dirty/staged source base, not
-clean-HEAD reproducibility.
-
-```sh
-python3 -B proof-work/elements-check-lock-normal/review.py
-python3 -B proof-work/elements-check-lock-normal/test-review.py
-```
 
 ## Normal admission still required
 

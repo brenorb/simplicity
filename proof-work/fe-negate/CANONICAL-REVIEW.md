@@ -39,11 +39,6 @@ to its explicit `O O H`, `I O H`, `O I H`, `I I H` Coq projection. Recursive
 arguments and high/low result ordering agree. The public multiplication
 wrapper pairs the operands with a doubled zero word before this recursion.
 
-This comparison covers the multiplier's literal structure, not every
-transitive bit/full-adder/notation/encoding dependency. The exact recursive
-declarations are now frozen in `recursive-ports-review.json`, with typed-port
-and implementation negative fixtures.
-
 ## Division core inspected
 
 Compared `Programs/Arith.hs:246-280,315-320` with the definitions in
@@ -86,8 +81,6 @@ Its 43 negative fixtures reject inactive commented declarations/implementations
 and targeted changes to recursion, zero-divisor result ordering, pre/post
 shift dimensions, cast indices, projection and direction. These tests freeze
 the documented source review; they do not replace formal proofs.
-
-## Still required before canonical review is complete
 
 ### Latest foundation receipt
 
@@ -139,35 +132,6 @@ is closed. Kernel checking passes with exit 0 (1799), with no unsafe flags.
 Pin the inspected Haskell conversion,
 word/type specialization, scribe and core notation sources with corresponding
 negative fixtures before considering that remaining source boundary closed.
-
-An explicit nonliteral adapter was found during arithmetic review: Haskell
-`add w` always prepends `false` and invokes `full_add w`, whereas Coq
-`Word.adder` has an optimized `adderBit` base. The division core uses the latter.
-`jet_canonical_add_adapter.v.source` defines the literal canonical addition
-term, proves it parametric, and proves its CoreFunSem denotation equals
-`Word.adder` for every depth/input. The equality is closed under the global
-context; compilation and whole-chain kernel checking pass (5720, exit 0).
-This resolves the individual addition adapter semantically, not syntactically.
-This bridge is now lifted by `jet_literal_division_add.v.source`: literal-add
-approximation/correction loops, builder, recursive div2n1n/div3n2n, div_mod and
-modulo all formally denote the existing optimized executor ports. Whole
-compilation passes; the modulo equality uses only existing functional
-extensionality. `jet_secp_negate_literal_contract.v.source` then connects this
-literal modulo to normalize512/multiply/negate and proves
-`fe_negate_literal_local_spec`, the same full public C contract against that
-literal-add specification. Whole compilation passes and its final assumptions
-are the six inherited execution assumptions. Independent whole-chain checking
-of this final consumer **passes with exit 0** (32921), log
-`/tmp/jet-fe-negate-next.GYJw0C/literal-contract-kernel.log`.
-The exact literal-port gate now compares all ten typed division ports against
-the reviewed definitions with precisely the literal-add substitution, plus
-the canonical-add body, three field ports and full final contract. Its 15
-mutations reject optimized-adder reintroduction and wrong recursion, widths,
-projections, factors or public premises/bindings. The separate parametricity
-module compiles; `literal_fe_negate_parametric` is closed under the global
-context. Whole-chain checking runs as 90456. Finish remaining transitive
-dependency review and full acceptance before integration/registration. The earlier
-optimized-port public kernel receipt does not substitute for this new check.
 
 - Finish transitive zero-test/vector type/equality/notation dependencies; the
   normalization and shift adapters themselves have the scoped review above.

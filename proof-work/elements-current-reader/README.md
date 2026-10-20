@@ -1,13 +1,5 @@
 # Current-frame readers and unread-input preservation
 
-Private tree: `/private/tmp/jet-elements-current-reader.6l8lj0zo`.
-Semantic fingerprint:
-`4815948d725e4d67d536f4c58ab56346533c313853199817cd369a0a09d7651d`.
-The two new sources are archived under `source/`; all inherited source bytes
-equal the completed `../elements-null-data-output-guard/` tree. No live audit
-objects were copied. Main418 semantic inputs and the original staging were
-frozen throughout the fresh checker.
-
 ## Formal progress
 
 `C.jet_elements_current_reader` reuses the existing verified core readers and
@@ -49,24 +41,6 @@ No whole-jet endpoint, coverage entry or normal registration is added.
 
 ## Verification checkpoint
 
-Fresh checker64914 exited0: both new modules explicitly recompiled, all11 result
-types and2 definitions were printed without elision, Elements AST regeneration
-matched and recursive `coqchk` accepted both dependency chains. Four results
-are closed; five preservation/representation results use the four inherited
-classical/extensionality assumptions; two execution results use the six
-inherited Coq/CompCert assumptions. No new assumption, admission or unchecked
-kernel operation was introduced. `CHECKED.json` binds source/object, tools and
-terminal commands/logs.
-
-Independent evidence review41523 exited0:38 source/object/assumption/report/log/
-kernel-scope corruptions were rejected, including false whole-jet claims.
-`EVIDENCE-REVIEW.json` binds the tools, successful independent review and refusal
-suite. Recheck:
-
-```sh
-python3 -B proof-work/elements-current-reader/review.py /private/tmp/jet-elements-current-reader.6l8lj0zo
-```
-
 Development corrections were explicit conjunction construction (instead of
 over-splitting a frame predicate) and specifying cursor/count before arithmetic
 in the suffix-preservation application. No theorem domain or implementation
@@ -84,12 +58,3 @@ to the initial memory. Then compose the outer guard, conditional second read,
 entry/free into the complete261-bit result. Keep canonical parsed-script/hash
 caller relations, empty arrays, assertion configuration and canonical source
 review explicit.
-
-Combined isolated418 acceptance91871 and guarded installation83232 completed
-successfully during this turn. They are independently archived in
-`../elements-txid-admission/`; source identity is checked but actual-main418
-acceptance is not yet complete. That once-only audit is the live handle6155,
-not the old completed91871 handle. Main now contains418/533 registrations,
-including104 explicit `memcpy_model` conditions. Preserve main's semantic
-inputs while6155 runs. The every-jet goal remains active/incomplete; this
-batch adds0 whole-jet coverage and claims no clean-HEAD reproduction.

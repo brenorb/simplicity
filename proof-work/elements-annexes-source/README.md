@@ -1,9 +1,5 @@
 # Canonical Elements annex-loop source review
 
-The recorded positive check and all63 read-only corruption fixtures passed.
-`SOURCE-REVIEW.json`, `annexes-source.log` and `annexes-negative.log` bind
-the exact candidate, checked sources, commands, exits and tool versions.
-
 The fixed model checks26 whole Coq declarations/statements plus four
 Reader/context/annex-helper blocks. It is not regenerated during checking.
 The inherited seven-stream-getter guard covers the actual Elements SigHash

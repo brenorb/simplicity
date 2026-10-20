@@ -5,10 +5,6 @@ Proposed successor: **406/533**, adding only the two original-C
 candidate. Main is **401/533**, not406. This candidate is not installed and has
 not passed full normal acceptance.
 
-Private candidate: `/private/tmp/jet-legacy-check-admission.7fdc0wok`.
-Prepared input SHA-256:
-`9793dcb9faf3a1a73df4ca52e7054f1fdfc087ef1eb6bbfa266b06cdda79ec6f`.
-
 Only completed private proof objects were cloned from the independently
 kernel-checked assertion tree. The reviewed404 predecessor supplied source
 text, never objects from a live acceptance audit. Main and its original staged
@@ -39,15 +35,6 @@ fixture blocks required unique long patch context to preserve the old block.
 
 ## Completed preparation and independent finish review
 
-The normal build and explicit fresh compilation passed (83361, exit0).
-All **8,415 inherited contract records** retain bytes/order, and all **5,527
-inherited dependency sets** are unchanged. All thirteen new records have
-untruncated reports; none requires an elision supplement.
-`PREPARATION-CHECKPOINT.json` binds the read-only review, source, assembly,
-preparation receipt and shared engine hashes. Full new contract/assumption
-reports and build/fresh-compile logs are archived here. Generation is not
-acceptance.
-
 This batch reuses `normal-delta-prepare.py` unchanged. The immutable v1 review
 engine remains byte-identical for earlier pending audits. Its new version,
 `normal-delta-review-v2.py`, retains the same substantive delta/evidence checks
@@ -60,18 +47,6 @@ corruption.
 
 The six-stage finish review was launched once as **31051** and terminated with
 exit0:
-
-```sh
-python3 -B proof-work/elements-legacy-check-admission/review.py finish /private/tmp/jet-legacy-check-admission.7fdc0wok
-```
-
-Do not repeat the completed finish. Coverage and all fourteen new coverage
-fixtures, ordinary contract comparison, canonical source correspondence,
-32 source corruptions and31 independent evidence corruptions passed.
-`REVIEW.json` binds all six terminal stages, candidate input, tools, both
-shared engines and the object/report hashes. `FINISH-CHECKPOINT.json`
-independently verifies the recorded evidence. All six stage logs are archived
-here. The preparation checkpoint remains historical, not a second acceptance.
 
 No full406 audit or installation has been launched. They must follow the real
 predecessor acceptance/installation chain, not a prepared snapshot or launch

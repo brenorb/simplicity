@@ -27,24 +27,6 @@ source or registry is changed. Coverage added: zero.
 
 ## Evidence
 
-The six sources have 49 results and 39 definitions. The exact expected profile
-is 46 closed results and three execution theorems with only the six inherited
-Coq/CompCert dependencies. `RUN.json` records fresh compilation and full
-type/definition/assumption reports. `CHECKED.json` additionally records
-completed recursive kernel verification. A launch file is not success.
-
-Audit tree: `/private/tmp/jet-field-checkpoint-audit.Zeze9g`, with these six
-sources in `third/` under `FieldThird`. The parent receipt binds the 95 local
-imports, all previously forcibly rebuilt and checked, plus 19 checked extension
-modules. Every loaded module's source/object provenance is checked.
-
-```sh
-python3 -B proof-work/secp-field-third/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-third/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 Next: carry the updated region 0 and original cached inputs into the slice
 ending with `r[1]`. Do not reconstruct an initial input array or assume that
 its old `a[0]` load still holds after this first store. The returned atomic

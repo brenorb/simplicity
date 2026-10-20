@@ -17,12 +17,6 @@ contract to the literal index/digest specification.
 
 ## Verified evidence
 
-Private tree: `/private/tmp/jet-elements-script-hash.w59YE4`.
-It is copied from the immutable final-name pegin tree, not either live
-acceptance tree. All 1,583 inherited source/metadata/registry/guard files are
-byte-identical, with exactly one new proof source. No main Coq/C/Haskell
-source, manifest, registry, guard or snapshot was edited.
-
 All 18 unregistered dependency/root modules freshly compiled. Complete deep
 reports cover 206 result types and 130 definitions, with apostrophe-ending
 identifiers preserved. The new module contributes nine results and five
@@ -38,18 +32,6 @@ guard passed and rejected 30 in-memory script-selection, digest, tag,
 representation and whole-contract mutations. The evidence review passed
 and rejected 22 scope, apostrophe-inventory, source, command, report, kernel
 and AST corruptions. Invalid proof text was never compiled.
-
-`PREPARATION.json` binds source/object identities, the checked base, complete
-inventories, exact command lines, terminal exits, logs, tools and the original
-staged patch. The full contract/assumption/source/kernel/AST evidence and the
-proof source are archived here. These receipts describe the actual dirty/
-staged source base, including preexisting untracked dependencies, not a
-clean-HEAD build.
-
-```sh
-python3 -B proof-work/elements-script-hash/review.py
-python3 -B proof-work/elements-script-hash/test-review.py
-```
 
 ## Exact specification and memory boundary
 
@@ -74,12 +56,6 @@ environment footprint and permitted-memory-change contracts are unchanged,
 as is the LP64/RECKLESS build scope.
 
 ## Normal admission remains open
-
-Coverage added here is **zero**. Main remains installed at 371/533, with its
-actual-main audit running as session 74479 when this checkpoint was written.
-The seven-jet timelock/pegin candidate separately proposes 378/533; its full
-acceptance is running as session 96260. Both handles were confirmed live.
-Do not change either audit's inputs or restart it because output is quiet.
 
 After that predecessor is accepted and installed, prepare the next normal
 four-jet batch from its immutable checked source state. The seventeen shared

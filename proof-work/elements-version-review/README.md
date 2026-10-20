@@ -60,20 +60,7 @@ four-AST gate alone imply this unit was checked.
 
 ## Reproduce and continue
 
-`SOURCING.json` records the immutable source commit, dependency hashes and
-topological module order. Scratch:
-`/tmp/jet-elements-version-review.XA4X0z/Coq`.
-Use Coq 8.17.1, CompCert 3.14, VST 2.14 and 65520 KiB stack. Explicitly rebuild
-the modules in recorded order with `build-jets.sh --coqc`, then the two drivers;
-the independent kernel root is the public module above.
-
 From the repository:
-
-```sh
-python3 -B proof-work/elements-version-review/review.py
-python3 -B proof-work/elements-version-review/test-review.py
-python3 -B proof-work/elements-version-review/test-version-source.py /Users/brenorb/code/PROJECTS/BLOCKSTREAM/simplicity /tmp/jet-elements-version-review.XA4X0z/Coq
-```
 
 `stage-version.py --candidate ... --verify` is read-only.
 Without --verify it only stages a fresh dedicated scratch copy of the immutable
@@ -85,4 +72,3 @@ Next finish lambda acceptance/integration, then admit Version through normal
 Elements gates and extend semantic correspondence review/getter families.
 Respect Claude's builder reservation, reuse its verified execution structure,
 keep all-533 goal active; signed atomic local commits, never push.
-

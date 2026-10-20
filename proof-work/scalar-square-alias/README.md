@@ -34,12 +34,6 @@ identity here is an internal bridge, not the public target specification.
 
 ## Verification
 
-All five modules were explicitly rebuilt in order (session **63195**, exit 0).
-Both complete audit drivers terminated with exit 0 (**32921** for assumptions,
-terminal chunk **7207bc** for contracts). Independent whole-dependency kernel
-check **21157** terminated with exit 0. Sources were frozen during that check.
-`REVIEW.json` pins all sources, compiled objects, drivers, reports and kernel log.
-
 There are **22 results** and **nine definitions**. Sixteen results are closed;
 one representation theorem retains four inherited classical/extensionality
 dependencies, and five execution results retain those plus CompCert's two
@@ -47,27 +41,6 @@ semantic parameters. The dependency-wide kernel context is the inherited
 15-axiom allowlist; all three unsafe categories are empty. No new axiom was
 added. The complete type/definition report is untruncated (18,186 bytes).
 Nineteen in-memory corruption fixtures passed.
-
-The narrow scratch namespace is `SqrC` at `/tmp/jet-scalar-square.xWr06l`.
-Dependencies are the frozen normal multiply candidate, whose fingerprint is
-`1b159005caeac45684fe3b38d56f46bd78a166845fa62fc365137cafe82c3669`.
-Its full public acceptance is a separate ongoing run **38093**; this helper
-receipt neither claims that acceptance nor main integration. No new AST
-regeneration is claimed by this helper verification.
-
-```sh
-python3 -B proof-work/scalar-square-alias/review.py
-python3 -B proof-work/scalar-square-alias/test-review.py
-```
-
-For a fresh rebuild, use the pinned Coq 8.17.1 compiler and `ulimit -S -s 65520`.
-From `/tmp/jet-scalar-multiply-integration.yIS07H/Coq`, run
-`bash build-jets.sh --coqc -Q /tmp/jet-scalar-square.xWr06l SqrC` with each
-absolute scratch `.v` path in manifest order, then both audit drivers. Capture
-their fresh exits and reports. Run `--coqchk -silent -o` with the same narrow
-mapping and the two roots in `REVIEW.json`; use measured process bounds
-(120 seconds per compile, 900 for the independent kernel). Do not reuse stale
-compiled objects as evidence for edited sources.
 
 Signed atomic local commits only; never push. Claude's shared/Elements builder
 reservation is untouched. The all-533 goal remains active and incomplete.

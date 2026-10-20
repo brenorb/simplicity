@@ -14,24 +14,6 @@ with original C execution through 68 statement heads, retaining current
 observations and framing outside the original footprint. It assumes no
 fresh memory, previous input load, or intermediate correctness result.
 
-Seven results, six definitions: the exact expected dependency profile is
-six closed results and one execution theorem with only the six inherited
-Coq/CompCert dependencies. `RUN.json` records fresh compilation and full
-reports. `CHECKED.json` additionally records completed recursive kernel
-verification; a launch file is not successful verification.
-
-Audit tree `/private/tmp/jet-field-checkpoint-audit.Zeze9g`; module
-`FieldNext.Checkpoint` in `next/`. The checked parent binds the exact 95
-previously rebuilt local imports and 25 extension modules. Loaded closure
-and source/object provenance are checked before and after the audit.
-
-```sh
-python3 -B proof-work/secp-field-checkpoint-handover/verify.py compile \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-python3 -B proof-work/secp-field-checkpoint-handover/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 This is reusable support, not a complete new jet equivalence; coverage
 added is zero. Production C, original specifications, API, generation
 configuration, main proof sources and registries are unchanged. Remaining

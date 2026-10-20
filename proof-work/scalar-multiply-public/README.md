@@ -51,14 +51,6 @@ blocks. Do not confuse equal input values with that pointer-alias case.
 
 ## Verification
 
-Terminal build/kernel records and hashes are in `REVIEW.json`. All 14 modules
-and both drivers were freshly rebuilt after correcting inherited comment
-labels, then frozen for independent kernel checking. The initial and final
-contract/assumption reports agree byte-for-byte. There are 29 result types,
-six new definitions and three additionally printed critical definitions:
-the public frame contract and the two literal specification terms. The full
-contract report has 94,535 bytes and no truncation.
-
 Six results are closed. Six representation results retain four inherited
 classical/extensionality dependencies; 17 execution results retain the
 inherited six dependencies including CompCert's two semantic parameters.
@@ -69,23 +61,3 @@ Production/canonical source identity passed for 240 files, and the immutable
 dependency fingerprint is unchanged. Full AST regeneration and integrated
 acceptance were **not** run. Sources/drivers are durable here; compiled
 objects, reports and terminal-run logs remain local in the recorded scratch.
-
-```sh
-PYTHONDONTWRITEBYTECODE=1 python3 proof-work/scalar-multiply-public/review.py
-PYTHONDONTWRITEBYTECODE=1 python3 proof-work/scalar-multiply-public/test-review.py
-```
-
-Rebuild using the Coq 8.17.1 / OCaml 4.14.4, CompCert 3.14, VST 2.14 setup
-from `../scalar-mul-function/README.md`, with the additional narrow mappings
-`/tmp/jet-scalar-mul-public.nzHcef` to `PubC` and
-`/tmp/jet-scalar-mul-ownership.Ste5AV` to `OwnC`. Run the 14 modules in manifest
-order with `build-jets.sh --coqc`, then the two drivers. Proof compiler
-processes have 150-second bounds; the 29-record assumption driver has a
-600-second bound based on measured prior traversals. The full kernel root is
-`OwnC.jet_secp_scalar_multiply_local`, using `--coqchk -silent -o` with a
-600-second process bound and 65,520 KiB stack. New source edits require fresh
-rebuilds/reports/kernel evidence, not a prior `.vo` or this receipt.
-
-See `CONTINUATION.md` for registry integration and square. Preserve unrelated
-dirty registry/range/SHA/field-negate work and Claude's reserved modules.
-Signed atomic local commits only; never push.

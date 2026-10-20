@@ -1,10 +1,5 @@
 # Input-independent null-data environment and complete call
 
-Private tree: `/private/tmp/jet-null-data-environment.I2q0bWMc`.
-The new source is archived under `source/`; inherited sources equal the checked
-`../elements-null-data-bitmachine/` tree byte for byte. Main418 semantic inputs
-and the original staged patch remain unchanged.
-
 ## Environment relation and endpoint
 
 `elements_null_data_environment_rep m env environment fp` describes the entire
@@ -75,10 +70,6 @@ result using the four inherited classical/extensionality assumptions, and one
 complete-call/state result using the six inherited Coq/CompCert assumptions.
 No new assumption, admission or unchecked operation is used. The isolated
 `whole_c_endpoints=1` is not normal registration, coverage or full acceptance.
-
-```sh
-python3 -B proof-work/elements-null-data-environment/review.py /private/tmp/jet-null-data-environment.I2q0bWMc
-```
 
 Development corrections were rewriting the existing `Zlength_correct` bridge,
 using only list constructors instead of recursively constructing the contained

@@ -16,14 +16,6 @@ cell revaluation. In particular, `square_output_owned` obtains concrete output
 storage from the actual symbolic output representation and its proved values;
 it does not assume that the output memory contains the desired square.
 
-The private extension is `/private/tmp/jet-square-caller.xnOv1u`, on the exact
-checked `SquareValue` and `SquareRun` extensions and ordinary beta dependency
-basis. Use `python3 -B proof-work/secp-square-caller/verify.py run` once, then
-poll that process. `check` revalidates a completed `CHECKED.json`, archived
-types/definitions/assumptions, source/object identities, parent receipts and
-recursive kernel log. A launch record is not evidence of completion. The
-receipts are exact-tree evidence, not a portable clean-checkout build claim.
-
 ## Next composition
 
 Port the structure of `C.jet_secp_beta_chain.eval_beta_read_mul_write`, replacing

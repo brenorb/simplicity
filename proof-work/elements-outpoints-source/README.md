@@ -1,11 +1,5 @@
 # Canonical Elements two-primitive outpoint-loop source review
 
-The recorded positive check and all54 read-only corruption fixtures passed.
-`SOURCE-REVIEW.json` and exact logs bind the candidate, checked sources,
-commands, zero exits and checker versions. The fixed model pins21 complete
-Coq definitions/statements and the Elements outpoint absorber block; it is
-not regenerated while checking.
-
 The inherited annexes/stream guards cover the canonical SigHash library body,
 marker/SHA program, generic element loop, primitive port and word/hash/getter
 contracts. This extension follows `InputOutpointsHash` through its selector,

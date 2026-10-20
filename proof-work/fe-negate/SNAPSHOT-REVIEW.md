@@ -1,9 +1,5 @@
 # Negation candidate snapshot review
 
-Snapshot generation completed with exit 0 (27347). This is review evidence,
-not a full acceptance receipt. Candidate: `/tmp/jet-negate-accept.ftWsqQ/Coq`;
-base: independently accepted `/tmp/jet-range-consumer.RbIhbg/Coq`.
-
 - All 3583 old assumption records are unchanged. There are 87 added results:
   57 closed, 14 with functional extensionality alone, four with inherited
   logical assumptions, and twelve with the six inherited execution assumptions.

@@ -31,23 +31,6 @@ every architecture or alternate C build configuration.
 - `Local` exposes the established public frame/memory contract against the
   literal Simplicity square program.
 
-The private extension is `/private/tmp/jet-square-public.rLmhCR`, namespace
-`SquarePublic`. It uses the checked `SquareCaller`, `SquareValue` and `SquareRun`
-extensions on `/private/tmp/jet-beta-integration-qctc10_1`. The source-port
-authority is the frozen original Haskell wiring already checked by the parent
-packet; Coq proves the execution-to-literal-term result. No Haskell compiler
-verification or target correction is claimed.
-
-`verify.py compile` freshly compiles all four modules and prints all nine
-result types, two definitions and complete assumption profiles. It also checks
-the frozen-target guard, the exact endpoint/statement/callee wiring, twelve
-negative source mutations, and the loaded dependency closure. `kernel` is a
-separate one-shot recursive check; poll its original process. Only a terminal
-successful `CHECKED.json` with the matching log establishes that stage.
-`check` revalidates completed exact-input evidence. Run these commands as
-`python3 -B proof-work/secp-square-public/verify.py <action>` from the repo root.
-Launch records alone are not completion evidence.
-
 All receipts are bound to their exact sources, compiled objects, parent
 receipts, audit driver and main/staged inputs. They are not portable
 clean-checkout build receipts. No proof skips, unchecked kernel conversions or

@@ -1,11 +1,5 @@
 # Normal-C contract snapshot and deep supplements
 
-The fresh C-namespace normal build succeeded before snapshot generation.
-Generation session 51658 and the independent deep driver session 9078 exited
-0. The normal report adds exactly 178 types and 120 definitions, preserving
-every inherited contract record **byte-for-byte** after extracting the exact
-new records. Inventories remain append-only.
-
 The high-depth driver uses the same full import context and `Set Printing All`
 as the normal contract gate. It yields all 178 types and 113 non-tree
 definitions without ellipses. Normal-depth retained fragments match the deep
@@ -34,20 +28,3 @@ execution or desired output/free. It concludes the actual original C call,
 encoded literal output, and the external frame. Both literal scalar programs
 also have compiled Core.Parametric results. Canonical source and recursive
 dependency gates pass independently.
-
-`NORMAL-CONTRACT-REVIEW.json` pins the complete driver, deep output and candidate
-snapshot. Eight in-memory negative fixtures reject driver drift, nonempty
-diagnostics, truncated/removed/duplicate deep records, changed inherited
-records, wrong printing identity and extra inventory rows; fixtures updating
-output digests still exercise the structural checks.
-
-```sh
-python3 proof-work/scalar-zero/review-normal-contracts.py
-python3 proof-work/scalar-zero/test-normal-contracts.py
-```
-
-Assumption generation session 29261 is still running at this review's creation.
-The prepared `review-normal-assumptions.py` must run after terminal success,
-reconcile all 178 exact new dependency sets and preserve the 4055 baseline
-sets. Then run normal full acceptance without update/no-build flags. This
-contract receipt is **not acceptance** and adds no checkout coverage.

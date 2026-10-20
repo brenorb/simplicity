@@ -1,10 +1,5 @@
 # Canonical Elements tapEnvHash and native key source correspondence
 
-The recorded positive check and all38 read-only corruption fixtures passed.
-`SOURCE-REVIEW.json` and the exact logs bind the candidate, sources, commands,
-zero exits and checker versions. The fixed model pins eight whole Coq
-definitions/statements; it is not regenerated while checking.
-
 The inherited tapleaf/stream guards cover the actual Elements SigHash library
 body, literal tag construction, 8-bit tappath loop, word/hash representation,
 primitive port, SHA helpers and separated C getter contracts. This extension

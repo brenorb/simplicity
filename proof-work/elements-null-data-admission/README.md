@@ -8,10 +8,6 @@ main acceptance. The two old audit controllers have completed. Do not install
 intermediate419 or invoke an old exact-main418 checker on installed main420;
 use the combined successor's historical postchecker and fresh main audit.
 
-Candidate: `/private/tmp/jet-null-data-admission.i6xxdcrl`.
-Baseline: the actually accepted main **418/533** tree, identical in semantic
-inputs to `/private/tmp/jet-txid-admission.gvp5bmft`.
-
 Preparation has completed successfully. The full build and all 24 explicit
 fresh compiles exited zero. The new audit inventory has 144 theorem results
 (61 closed) and 103 definitions, including the constructors of the inductive
@@ -28,28 +24,11 @@ corruptions. All 247 new type/definition records have untruncated deep reports;
 nine compact printer ellipses have checked exact supplements. All review
 commands, logs, source/object/tool identities were independently postchecked.
 
-The full isolated audit completed as the recorded
-`bash check-jets.sh --accept`, without update/skip flags. Its fingerprint is
-`166ee74d09d2221332e56f36255fc3631afc4e96d0bedf65c7f8037cfba48eb6`.
-`AUDIT-RUN.json` binds the completed review, selected-source review, predecessor
-actual-main acceptance, exact command and original stage identity. It is a
-launch record; `TERMINAL.json`, `ACCEPTANCE.json` and the archived
-`acceptance.log` now record and bind the real successful terminal. Its log
-SHA-256 is `38eb4c251c29dff4c697757d98ca590ef6ce5c977162adf99d86855c74a28e36`.
-Keep candidate/main C/Haskell inputs frozen while the combined420 controller
-still validates its baseline; do not restart either audit.
-
 Neither installation nor a 419th accepted main jet is claimed. Continue with
 the guarded combined420 installation only after its own terminal acceptance,
 then independent actual-main acceptance. Main remains accepted at 418/533.
 
 ## Proof and source boundaries
-
-The candidate imports the exact sources from 17 individually checked proof
-batches. Their receipts remain separate and immutable. The later source review
-is separately bound through
-[`../elements-null-data-source/SOURCE-REVIEW.json`](../elements-null-data-source/SOURCE-REVIEW.json),
-not retroactively asserted in older formal receipts.
 
 The coverage endpoint is
 `C.jet_elements_null_data_literal.elements_output_null_datum_literal_bitmachine_spec`.
@@ -97,15 +76,7 @@ they do not assert clean-HEAD reproducibility of unrelated staged work.
 Do not assemble or prepare another copy while the recorded run is live.
 Read-only review (after preparation):
 
-```sh
-python3 -B proof-work/elements-null-data-admission/review.py review /private/tmp/jet-null-data-admission.i6xxdcrl
-```
-
 After successful independent review, launch the full acceptance once:
-
-```sh
-python3 -B proof-work/elements-null-data-admission/accept.py /private/tmp/jet-null-data-admission.i6xxdcrl
-```
 
 That runs `bash check-jets.sh --accept` with no update/skip flags, records the
 terminal exit/log, checks the full acceptance marker and revalidates the exact

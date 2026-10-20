@@ -19,27 +19,6 @@ This packet does not discharge that caller obligation, the remaining original
 statement slices, the final modular product, or public jet equivalence.
 Nothing is registered and coverage does not increase.
 
-The fifteen results comprise fourteen closed arithmetic observations and one
-execution theorem with exactly the six inherited Coq/CompCert dependencies.
-The source is freshly compiled against the independent 95-source audit tree
-`/private/tmp/jet-field-checkpoint-audit.Zeze9g`, with namespace `FieldFirst`
-in its separate `arith/` directory. The parent `RUN.json` binds its successful
-forced-source build; no stale main object is counted as evidence. The pure
-parent `Columns` module is not a dependency of this first-slice result.
-
-`RUN.json` records successful compilation, full contracts and assumptions;
-only `CHECKED.json` additionally records a completed recursive kernel check.
-Poll a running original handle rather than restarting it.
-
-The recursive kernel check has now passed. `CHECKED.json` binds all fifteen
-results to the fresh parent source/object closure and the archived kernel
-log, with the unchanged inherited library context and no unsafe categories.
-
-```sh
-python3 -B proof-work/secp-field-first-values/verify.py kernel \
-  /private/tmp/jet-field-checkpoint-audit.Zeze9g
-```
-
 Next slice: original statement heads 32 through 49, starting from these
 proved machine values and atomic memory/temp representations. Derive the
 next entry facts, do not assume a fresh layout or the next desired output.

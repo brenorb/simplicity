@@ -38,24 +38,11 @@ types are recorded in the reports. No new axiom, production implementation,
 original specification, API change or generation-setting change is introduced.
 No canonical option equivalence is claimed by this packet.
 
-```sh
-python3 -B proof-work/elements-asset-phase/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-asset-phase/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Place the three `.v.source` archives in a fresh external directory as `Prefix.v`,
 `Shape.v`, `Asset.v`. The driver freshly compiles them, checks the exact
 result/definition/assumption profile, binds 251 local imports to their forced
 source/object provenance, and verifies the seven inherited external modules.
 It requires the completed nonce-phase kernel receipt.
-
-`RUN.json` records compilation only; `KERNEL-RUN.json` records a launch only.
-Only `CHECKED.json` with kernel exit status zero establishes completed recursive
-kernel checking for its exact bound inputs. The initial pre-checkpoint compile
-record and driver are preserved privately as `first-RUN.json` and
-`first-verify.py.source`; a driver docstring was clarified to say phase rather
-than whole jet, followed by a fresh complete compile/report run. The Coq proofs
-were unchanged by that clarification.
 
 This work is unregistered. Accepted coverage added is zero; the broad all-jets
 goal remains unfinished.

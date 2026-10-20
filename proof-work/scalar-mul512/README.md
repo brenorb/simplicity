@@ -1,11 +1,5 @@
 # Checked compact execution and original scalar product helper
 
-Three modules / **19 completed results and 11 definitions** compile in
-`/tmp/jet-scalar-mul.lkomWj` (`MulC`) against the immutable accepted normal C
-candidate `/tmp/jet-scalar-integration.XAMDsw/Coq`.
-Last verified declaration: `eval_scalar_mul512_owned` in
-`MulC.jet_secp_scalar_mul512_run`.
-
 This theorem proves actual `jets_secp.f_secp256k1_scalar_mul_512` execution,
 including allocation/free of its 16 product structs and the real internal
 `u128_mul`, `umul128`, high-limb and low-limb calls. It returns `Vundef`,
@@ -57,37 +51,10 @@ No computed giant tree is an axiom or proof substitute.
 
 ## Verification
 
-- Final executor build direct **0733e0**, scalar run build **73252**, checks
-  direct **d00823**: all terminal exit 0. Each speculative tactic bounded
-  at ten seconds, compilations with process deadlines.
-- Independent kernel **82108** checks executor/product roots and closure;
-  **92056** checks regression root. Both terminal exit 0. Main closure matches
-  the inherited 15-axiom context; the regression-only closure is its pinned
-  12-axiom subset. All three unsafe categories are empty.
-- Fail-fast drivers **2774**, terminal exit 0: all 19 exact dependencies
-  (16 closed, three with the same six inherited execution dependencies), all
-  19 types / 11 definitions printed untruncated at depth 100000; no diagnostics.
-- `manifest.json` and `REVIEW.json` pin exact source/driver/output/kernel
-  evidence. `review.py` revalidates the dependency fingerprint and prior
-  checked product archive; `test-review.py` rejects eleven in-memory
-  contract/status/dependency mutations. No live audit input was changed.
-
 Reproduce read-only evidence checks:
-
-```sh
-python3 -B proof-work/scalar-mul512/review.py
-python3 -B proof-work/scalar-mul512/test-review.py
-```
 
 From the dependency Coq directory, pinned Coq 8.17.1, CompCert 3.14, VST 2.14,
 compiler PATH and `ulimit -S -s 65520`:
-
-```sh
-bash build-jets.sh --coqc -R /tmp/jet-scalar-mul.lkomWj MulC \
-  /tmp/jet-scalar-mul.lkomWj/jet_secp_scalar_mul512_run.v
-bash build-jets.sh --coqchk -silent -o -R /tmp/jet-scalar-mul.lkomWj MulC \
-  MulC.jet_sx_compact MulC.jet_secp_scalar_mul512_run
-```
 
 Continue with small column/carry value bridges, reusing the checked
 `umul128_machine_observation` and wrapped-add carry lemmas rather than
@@ -95,13 +62,6 @@ unfolding the whole run into an open arithmetic goal. Prove exact C carrier
 observations and bounds, compose the column invariants, then reduce modulo
 the scalar order and connect the actual public caller to its literal program.
 No source in these three completed files has a failing Coq goal.
-
-Main coverage remains 351/533; isolated scalar-add 359/533 has passed full
-acceptance (**38737**, exit 0; signed receipt **eecd0139**). Exact main
-reconciliation and verification remain. Follow
-`../scalar-add-integration/CONTINUATION.md`; do not restart/mutate it.
-Claude owns Elements and shared obligations; no overlap, registries untouched.
-All-533 goal active and unfinished; local signed atomic commits, no pushes.
 
 ## Checked first-column value extension
 
@@ -121,17 +81,6 @@ This first-column checkpoint alone did not prove the remaining seven limbs
 or full product. The extension below does; scalar reduction, public caller
 lifecycle and literal canonical-program equivalences remain open.
 Neither helper extension is a completed public jet equivalence.
-
-Verification: final build direct **71d1db**, independent kernel **50870**,
-fail-fast assumption/contract drivers **33364**, all terminal exit 0. Five
-results are closed; the execution root has exactly the same six inherited
-dependencies. Complete six types/two definitions print without ellipses or
-diagnostics; the inherited 15-axiom kernel context matches, unsafe categories
-are empty. Exact evidence is in `LOW-REVIEW.json`; replay the read-only check:
-
-```sh
-python3 -B proof-work/scalar-mul512/review-low.py
-```
 
 For the next columns, retain `scalar_mul512_low_den` as a template: identify
 the observed C machine expression by bounded conversion, then apply the
@@ -172,20 +121,6 @@ Proof layering, reusable for reduction:
    fits two words, proving final fast-column exactness without a new premise.
 6. `owned_product`: composes execution, exact expression representation,
    current-region loads and full product reconstruction.
-
-Fresh fail-fast six-module build **39075**, kernel **98027**, full-depth
-assumption/type/definition drivers **68641**: all terminal exit 0. Kernel
-context matches the inherited 15-axiom allowlist; unsafe categories are
-empty. Complete prints have no ellipses or diagnostics. `PRODUCT-REVIEW.json`
-pins sources, drivers, outputs and kernel log. Read-only reviewer also
-revalidates the low/execution/product/multiply-accumulate prerequisites;
-nine in-memory status/source/contract/dependency/kernel mutations are
-rejected. No new public result or coverage entry is registered.
-
-```sh
-python3 -B proof-work/scalar-mul512/review-product.py
-python3 -B proof-work/scalar-mul512/test-product.py
-```
 
 Next: prove original `scalar_reduce_512` execution and its three fold stages
 modulo the scalar order, reusing the column value lemmas and the checked

@@ -23,34 +23,6 @@ no symbolic-memory `vm_compute`, admissions, or new assumed declarations.
 
 Verification on Coq 8.17.1 / CompCert 3.14 / VST 2.14:
 
-- Final module compilation session 7519 exited 0.
-- Independent kernel session 56508 exited 0, with 15 imported context axioms
-  and all three unsafe categories empty.
-- Per-result assumption session 51416 exited 0: 18 closed results; the memory
-  load adapter uses four inherited classical/extensionality assumptions, and
-  the actual-call theorem uses the same six inherited execution assumptions
-  as the existing scalar helpers.
-- Type/definition session 60930 exited 0: all 20 actual types and 17 definitions
-  reviewed in the untruncated deep print, with empty diagnostics. Those prints
-  document the internal flag/region boundary, not public equivalence.
-- Both previous 86-result scalar-next dependency/contract reviews still pass.
-
-The source and review drivers use `.source` to stay outside accepted load
-paths. Their exact materialized files and logs are in
-`/tmp/jet-scalar-reverify.8hswEF`; run `review.py --work` with that directory
-to recheck the pinned evidence. To rebuild, use the unchanged normal candidate
-Coq directory `/tmp/jet-ge-negate-accept.5mtyZa/Coq`:
-
-```sh
-export PATH=/nix/store/57myhb98wx8k9dr21cf51bsmvxjs67h6-coq-8.17.1/bin:$PATH
-ulimit -S -s 65520
-bash build-jets.sh --coqc -R /tmp/jet-scalar-reverify.8hswEF OriginalC \
-  /tmp/jet-scalar-reverify.8hswEF/jet_secp_scalar_reduce_numeric.v
-bash build-jets.sh --coqchk -silent -o \
-  -R /tmp/jet-scalar-reverify.8hswEF OriginalC \
-  OriginalC.jet_secp_scalar_reduce_numeric
-```
-
 The next milestone is now compiled in `../scalar-set`: actual scalar_set_b32
 byte assembly, derived overflow flag, reduced output loads and the owned NULL
 call preserving both allocated regions' Freeable permissions. Its independent

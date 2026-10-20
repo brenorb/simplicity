@@ -45,11 +45,6 @@ not yet part of this packet.
 
 ## Reproduction and verification scope
 
-```sh
-python3 -B proof-work/elements-nonce-local/verify.py compile EXTERNAL_DIRECTORY
-python3 -B proof-work/elements-nonce-local/verify.py kernel EXTERNAL_DIRECTORY
-```
-
 Copy the four archived `.v.source` files to an otherwise empty external
 directory as `Common.v`, `Values.v`, `Local.v` and `Actual.v`. The driver uses
 the recorded parent trees, compiler and load paths. It freshly compiles all
@@ -59,13 +54,6 @@ external modules. Eleven results have exactly six closed proofs, two using
 four inherited dependencies and three using the six inherited CompCert/VST
 dependencies. `memcpy_model` remains an explicit premise, not a discharged
 libc implementation fact.
-
-`RUN.json` records compilation, not a completed recursive kernel audit.
-`KERNEL-RUN.json`, when present, records a launch only. Only `CHECKED.json`
-with successful `kernel` exit status establishes that recursive `coqchk`
-finished for those exact inputs. Reuse the live process handle rather than
-restarting a silent audit. The complete audit does not require the separate
-phase audit to finish first: it recursively checks that dependency itself.
 
 This packet is unregistered; accepted coverage added is zero. Normal
 registration, inherited boundary review and remaining repository-wide jet

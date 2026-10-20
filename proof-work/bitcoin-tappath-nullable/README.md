@@ -51,28 +51,6 @@ Full AST regeneration and the integrated acceptance gate were **not** run.
 Registry promotion and independent builder-chain verification remain pending.
 The unrelated dirty registry/range/SHA/field-negate work is untouched.
 
-```sh
-python3 proof-work/bitcoin-tappath-nullable/review.py
-python3 proof-work/bitcoin-tappath-nullable/test-review.py
-```
-
-The read-only review requires the hash-pinned local evidence in
-`/tmp/jet-tappath-nullable.UcGQpt`. Source/driver copies are durable here; logs
-and compiled objects remain local. The ten corruption fixtures operate only
-in memory; they do not edit a Coq proof or acceptance snapshot.
-
-Rebuild using Coq 8.17.1, CompCert 3.14 and VST 2.14, as in the immutable
-dependency base `/tmp/jet-scalar-integration.XAMDsw/Coq`:
-
-```sh
-export PATH=/nix/store/57myhb98wx8k9dr21cf51bsmvxjs67h6-coq-8.17.1/bin:$PATH
-ulimit -S -s 65520
-cd /tmp/jet-scalar-integration.XAMDsw/Coq
-bash build-jets.sh --coqc -R /tmp/jet-tappath-nullable.UcGQpt NullableC /tmp/jet-tappath-nullable.UcGQpt/jet_bitcoin_tappath_nullable.v
-bash build-jets.sh --coqc -R /tmp/jet-tappath-nullable.UcGQpt NullableC /tmp/jet-tappath-nullable.UcGQpt/jet_bitcoin_tappath_nullable_raw.v
-bash build-jets.sh --coqchk -silent -o -R /tmp/jet-tappath-nullable.UcGQpt NullableC NullableC.jet_bitcoin_tappath_nullable_raw
-```
-
 The recorded runs used a 150-second process bound for each compiler and a
 300-second kernel bound. Rebuilding requires fresh evidence receipts; do not
 mistake a prior `.vo` or this receipt for verification of changed sources.
@@ -103,7 +81,3 @@ mistake a prior `.vo` or this receipt for verification of changed sources.
    program linkage/transport before claiming a single end-to-end caller-to-jet
    execution. This archive alone does not prove malloc success, cached hashes,
    builder lifecycle or evaluator dispatch.
-
-The scalar multiplication continuation is unchanged at
-`../scalar-mul-caller/CONTINUATION.md`. Local signed atomic commits only;
-no remote push.

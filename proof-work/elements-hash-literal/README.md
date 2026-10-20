@@ -44,27 +44,6 @@ field/public-key carriers in other primitive clauses with valid curve values.
 
 ## Verification evidence
 
-Candidate: `/private/tmp/jet-elements-hash-literal.MumnoF`.
-Namespace: `HashLiteral` in its separate `Proof/` directory.
-Source/object base: the sealed tapleaf-version tree
-`/private/tmp/jet-elements-tapleaf-literal.VNAVqR`. The inherited six tapleaf
-dependency objects and eighteen sequence dependency objects are checked
-against their existing source/object receipts. Both original C getter modules
-and both new modules were explicitly freshly compiled; no source was changed
-in the inherited Coq tree or either live acceptance run.
-
-The driver printed all 31 new result types, the two original C types, and the
-definitions giving their meaning, with explicit implicit parameters and no
-ellipsis/unresolved placeholder. It checked every result's assumptions,
-recursively kernel-checked the actual-C closure, regenerated and byte-compared
-the production Elements AST, checked source correspondence and ran nineteen
-in-memory source corruptions. Ten independent scope/source/object/assumption/
-terminal receipt corruptions are also rejected. Invalid proofs are never
-compiled. The fifteen inherited library-context axioms and empty unsafe
-categories remain unchanged. Complete durable reports are `contracts.log`
-and `assumptions.log`; `REVIEW.json` binds sources, objects, commands, exits,
-tool hashes and full terminal evidence.
-
 The source guard follows the actual selected jet/primitive identities, digest
 fields, hidden hash carrier/32-byte serialization convention, big-endian
 adapter, four-limb `Simplicity.Word` implementation, balanced `toWord256`, Coq
@@ -73,21 +52,7 @@ reuses the already reviewed generic word traversal/transport dependency.
 This is a checked Coq model with source-correspondence guards, not a verified
 translation of the Haskell compiler or its standard libraries.
 
-```sh
-python3 -B proof-work/elements-hash-literal/review.py
-python3 -B proof-work/elements-hash-literal/test-review.py
-ulimit -s 65520
-python3 -B proof-work/elements-hash-literal/finish.py /absolute/hash-tree
-```
-
 ## Normal integration remains pending
-
-No main proof source, registry, manifest, snapshot or compiled object was
-installed; this batch adds **zero registered coverage**. Main's count audit
-(session 49451) and the isolated sequence admission (53695) remain distinct
-live runs: do not modify their inputs or restart them on an observation
-timeout. Both have passed their kernel stage and reached assumption auditing
-at this milestone; poll their actual handles for later state.
 
 After those admissions complete, recompile these modules under final `C`
 names, include both original-C getter modules and the checked literal bridge

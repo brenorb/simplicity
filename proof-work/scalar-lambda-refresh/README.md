@@ -1,21 +1,10 @@
 # Initialized scalar-lambda proof refreshed over accepted418
 
-Private tree: `/private/tmp/jet-scalar-lambda-refresh.UDPixkZ7`.
-Base: immutable accepted418 `/private/tmp/jet-txid-admission.gvp5bmft`.
-This batch does not edit main or the live null-data419 candidate.
-
 The complete original `simplicity_scalar_multiply_lambda` proof has been
 freshly recompiled and recursively kernel-checked on this newer baseline.
 There is **no new coverage or normal registration** yet.
 
 ## Historical status corrected
-
-The older normal candidate in `../scalar-lambda-integration` was prepared over
-361/533. Its old audit handle21530 is now missing and no matching process is
-live. Its preserved log ends with the four-AST success marker and fingerprint,
-but there is no saved terminal exit/acceptance receipt. We do not certify that
-old run or count lambda from the success-looking log alone. Old launch and
-proof receipts are unchanged; the old audit has not been restarted.
 
 All 67 explicitly recorded inherited proof dependencies are still byte-identical
 in418. Two of the old candidate's modules, `jet_clight_forward.v` and
@@ -65,10 +54,6 @@ that larger integration claim is not added.
 ## Continue toward normal acceptance
 
 Run the completed read-only review with:
-
-```sh
-python3 -B proof-work/scalar-lambda-refresh/review.py /private/tmp/jet-scalar-lambda-refresh.UDPixkZ7
-```
 
 Do not replay `assemble`/`check` on this recorded tree, mutate the original
 archives, or copy objects from the live null-data419 audit. Main remains
