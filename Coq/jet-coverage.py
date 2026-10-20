@@ -11,6 +11,7 @@ import os
 import re
 import sys
 from collections import Counter
+from functools import lru_cache
 from pathlib import Path
 
 from importlib.util import module_from_spec, spec_from_file_location
@@ -72,6 +73,15 @@ def top_level_connectives(statement):
     return arrows
 
 
+@lru_cache(maxsize=256)
+def checked_source_code(source):
+    # Cache by exact source contents: changed fixtures always get parsed again.
+    scanner_spec = spec_from_file_location("jet_scanner", Path(__file__).resolve().parent / "scan-jet-proofs.py")
+    scanner = module_from_spec(scanner_spec)
+    scanner_spec.loader.exec_module(scanner)
+    return scanner.code_only(source)
+
+
 def inventory():
     jets = {}
     for family, header in HEADERS.items():
@@ -98,9 +108,6 @@ def inventory():
         if Counter(parsed_functions) != Counter(re.findall(r"\.jet\s*=\s*(simplicity_\w+)", source)):
             raise ValueError(f"registry parser missed entries: {registry}")
     audited = {tuple(row) for row in records(COQ / "C/jet_public_theorems.txt", 2)}
-    scanner_spec = spec_from_file_location("jet_scanner", COQ / "scan-jet-proofs.py")
-    scanner = module_from_spec(scanner_spec)
-    scanner_spec.loader.exec_module(scanner)
     for name, module, theorem in records(COQ / "C/jet_coverage.tsv", 3):
         if name not in jets:
             raise ValueError(f"proof entry for unknown jet: {name}")
@@ -108,7 +115,7 @@ def inventory():
             raise ValueError(f"duplicate coverage entry: {name}")
         if (module, theorem) not in audited:
             raise ValueError(f"coverage theorem not publicly audited: {module}.{theorem}")
-        code = scanner.code_only((COQ / (module.replace(".", "/") + ".v")).read_text())
+        code = checked_source_code((COQ / (module.replace(".", "/") + ".v")).read_text())
         statement = re.search(rf"\b(?:Theorem|Lemma|Corollary)\s+{re.escape(theorem)}\s*:(.*?)\bProof\.", code, re.S)
         # Application functions execute in their own linked global environment,
         # not the core ge0. Counting a core contract for them would lose the
