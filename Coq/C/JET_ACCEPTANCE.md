@@ -2,10 +2,10 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 432/533 jets (321 without an extra libc
-premise; 111 conditional on `memcpy_model`). The earlier 430-entry baseline passed
+The local-contract registry contains 442/533 jets (321 without an extra libc
+premise; 121 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
-passed scoped acceptance.
+and ten context-add endpoints passed scoped acceptance.
 
 Reproduce acceptance from the repository root:
 
@@ -73,7 +73,7 @@ ten are newly accepted registrations.
   do not identify the ordinary SHA translation unit with the Elements program.
 - Shared frame/evaluator admissibility and exhaustive inherited canonical
   fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
-- The remaining 101 header declarations have no registered final contract.
+- The remaining 91 header declarations have no registered final contract.
   Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
   and operational boundaries meet the public coverage requirements.
 
@@ -137,7 +137,7 @@ closure. Cleanup does not change closure selection or any selected proof.
 Git preserves the original candidates and recovery history; see
 `../../proof-work/README.md`. Current acceptance uses the commit and reproducible
 commands, with run output outside the repository. Acceptance establishes the
-local contracts and conditions above; the remaining 101 declarations and shared
+local contracts and conditions above; the remaining 91 declarations and shared
 evaluator/startup and inherited-fidelity obligations remain open.
 
 ## Subsequent completion: `gej_rescale`
@@ -193,3 +193,38 @@ regenerations, with unchanged audited inputs and no expectation updates.
 The six local and eight startup/lifecycle assumptions are inherited; there
 are no new project axioms. The selected field multiply/square endpoints remain
 unchanged. This new registration does not assert a fresh full 432-entry audit.
+
+## SHA context-add family
+
+The ten `sha_256_ctx_8_add_{1,2,4,8,16,32,64,128,256,512}` entries select the
+complete `sha_jet_partial_local_spec` theorems in `jet_sha_ctx8_literal_local.v`.
+They prove execution of the actual SHA-unit public C functions against the
+literal canonical assertion programs: successful results, false returns for
+assertion failures, and the declared memory/frame properties. No input counter,
+buffer length or failure case is excluded. All retain `memcpy_model` and
+`sha_globals_ok`; they do not prove the linked libc implementation.
+
+One shared program equality handles every byte-vector depth. The block
+bridge is lifted to option semantics rather than repeating compression
+proofs. The existing startup adapter gives ten stronger state-preserving
+contracts, starting from the actual initialized program through the covered
+caller lifecycle; arbitrary external dispatch replacements remain unproved.
+The local theorems inherit six assumptions, startup variants eight, with no
+new axioms. The source gate checks the canonical trees, buffer/increment/count
+and assertion dependencies, recursion, all ten catalog/type/contract mappings,
+and twenty context mutations (in addition to the block tests).
+
+Reproduce family-scoped acceptance under the declared Coq 8.17.1 baseline:
+
+```sh
+sha_ctx_jets=$(printf 'simplicity_sha_256_ctx_8_add_%s,' 1 2 4 8 16 32 64 128 256 512)
+bash Coq/check-jets.sh --accept --jets="${sha_ctx_jets%,}"
+```
+
+This passed the 265-module recursive kernel check, reviewed assumption and
+contract comparisons, global source/mutation checks, negative tests and all
+five AST regenerations. Audited inputs stayed unchanged and no expectations
+were updated during acceptance.
+
+These are ten conditional local-contract registrations, not a fresh full
+442-entry acceptance audit or completion of the shared obligations above.

@@ -34,7 +34,7 @@ SPECIFICATIONS = {
 }
 
 
-# Exact reviewed public boundaries of the recovered candidate batch.
+# Exact reviewed public boundaries outside the default translation unit/contracts.
 RECOVERED_CONTRACTS = {'simplicity_asset_amount_hash': 'memcpy_model -> asset_elements_partial_local_spec '
                                  'f_simplicity_asset_amount_hash asset_amount_input_type '
                                  'sha256_ctx8_type (fun a => @elements_asset_amount_hash_spec '
@@ -71,6 +71,16 @@ RECOVERED_CONTRACTS = {'simplicity_asset_amount_hash': 'memcpy_model -> asset_el
  'simplicity_outpoint_hash': 'memcpy_model -> outpoint_elements_partial_local_spec '
                              'f_simplicity_outpoint_hash op_input_type sha256_ctx8_type (fun a => '
                              '@elements_outpoint_hash_spec optalg a).'}
+
+# Literal context-add specializations; retain the whole assertion contract,
+# exact input width, SHA-unit execution and explicit external memcpy premise.
+for depth in range(10):
+    size = 2 ** depth
+    source_type = "(Word 3)" if depth == 0 else f"(Vector (Word 3) {depth})"
+    program = "@literal_ctx8_add1 optalg" if depth == 0 else f"@literal_ctx8_addn {depth} optalg"
+    RECOVERED_CONTRACTS[f"simplicity_sha_256_ctx_8_add_{size}"] = (
+        f"memcpy_model -> sha_jet_partial_local_spec f_simplicity_sha_256_ctx_8_add_{size} "
+        f"(Ty.Prod sha256_ctx8_type {source_type}) sha256_ctx8_type ({program}).")
 
 
 def records(path, fields):

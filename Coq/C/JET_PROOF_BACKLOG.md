@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 432 of the 533 header declarations.
+The current local-contract registry contains 442 of the 533 header declarations.
 The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 101 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 91 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -171,7 +171,7 @@ The local endpoint inherits six assumptions and the stronger startup/lifecycle
 endpoints eight, all within the existing Coq/CompCert allowlist. The two
 startup/lifecycle variants are supporting results, not additional entries.
 
-## Current target: SHA context-add family
+## Completed proofs: SHA context-add family
 
 `jet_sha_ctx8_literal.v` connects the canonical block term under assertion/
 option semantics, then the one-byte context-add program and the shared
@@ -185,7 +185,20 @@ buffer-snoc/empty, count comparison and assertion-root dependencies, plus the
 vector recursion and all ten catalog/type/contract specializations. Twenty
 context mutations are rejected in addition to the block tests. All ten
 complete local and startup contracts compile, reusing the shared bridge and
-the existing C execution proofs. They remain unregistered pending ordinary
-scoped acceptance of the family; all retain `memcpy_model` explicitly.
+the existing C execution proofs. The ten registered local contracts all retain
+`memcpy_model` explicitly; startup variants are not additional entries.
+The family passed ordinary scoped acceptance: all 265 kernel-checked modules,
+reviewed snapshots, negative tests and five AST regenerations, with unchanged
+audited inputs and no expectation updates. The reproducible command is in
+`JET_ACCEPTANCE.md`.
 Focused builds use
 `JET_TARGETS=C/jet_sha_ctx8_literal_local.vo bash Coq/build-jets.sh -j2`.
+
+## Next independent target
+
+Review `sha_256_ctx_8_add_buffer_511` before the finalizer. Its complete C
+execution theorem already exists in `jet_sha_ctx8_add_buffer_jet.v`; port the
+canonical buffer recursion and reuse `literal_ctx8_add1_matches`,
+`literal_ctx8_addn_matches` and the count-verification bridge. Preserve the
+empty-buffer count assertion and explicit libc/global-state requirements.
+Do not redo compression or the existing C entry/read/write/free proof.
