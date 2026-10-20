@@ -2,7 +2,7 @@
     Reuse the existing buffer/counter/increment ports, whose source
     correspondence is checked separately; do not replace the program by
     a numerical byte-list model. *)
-From Coq Require Import FunctionalExtensionality ZArith.
+From Coq Require Import ZArith.
 Require Import Simplicity.Ty Simplicity.Alg Simplicity.Word Simplicity.Bit.
 Require Import C.jet_sha_ctx8_spec C.jet_sha_block_literal.
 Require Import C.jet_canonical_add_adapter.
@@ -22,20 +22,12 @@ Qed.
 Lemma literal_sha_add32_option_matches :
   @literal_sha_add32 (Alg.Assertion.toCore optalg) =
   @Simplicity.SHA256.add32 (Alg.Assertion.toCore optalg).
-Proof.
-  apply functional_extensionality; intro a.
-  rewrite (opt_core _ literal_sha_add32_parametric a).
-  rewrite (opt_core _ (fun alg1 alg2 R => @Simplicity.SHA256.add32_Parametric alg1 alg2 R) a).
-  rewrite literal_sha_add32_matches. reflexivity.
-Qed.
+Proof. apply literal_sha_add32_core_matches. Qed.
 
 Lemma literal_sha_block_option_matches :
   @literal_sha_256_block (Alg.Assertion.toCore optalg) =
   @Simplicity.SHA256.hashBlock (Alg.Assertion.toCore optalg).
-Proof.
-  unfold literal_sha_256_block. rewrite literal_sha_add32_option_matches.
-  apply sha_block_tree_existing.
-Qed.
+Proof. apply literal_sha_256_block_core_matches. Qed.
 
 Definition literal_ctx8_no_carry {term : Alg.Assertion.Algebra} :
     term (Ty.Prod Bit (Word 6)) (Word 6) :=

@@ -227,11 +227,21 @@ one-word padding against its canonical program. Reuse `tag_hash_eval`,
 `tapdata_prefix_eval` and `tag_block_bytes` from `jet_sha_tapdata_spec.v`;
 do not treat an unexplained prefix numeral as canonical correspondence.
 
-A read-only Coq session also checked a closed improvement for the next batch:
+The shared bridges now use a closed improvement:
 `@canonical_add_word (S n) term = @Word.adder (S n) term` is reflexive in every
 Core algebra. In particular `@literal_sha_add32 term = @SHA256.add32 term`
 is reflexive, and rewriting it in `literal_sha_256_block` followed by
 `sha_block_tree_existing` gives a closed equality in every Core algebra.
-These stronger bridges have not yet been added to ordinary sources; they can
-remove unnecessary functional-extensionality dependencies from the option
-bridges without changing any target or public C contract.
+These stronger bridges are now in ordinary sources and remove unnecessary
+functional-extensionality dependencies from the option bridges, without
+changing any target or public C theorem type.
+
+`jet_tapdata_host_recipe.v` ports the fixed two-block recipe from the actual
+vendored `Digest/Pure/SHA.hs`, using unsigned Word32 operations. Closed Coq
+computations establish the tag bytes, padding, complete block lengths, tag
+digest and prefix. This is not a claimed arbitrary Haskell decoder interpreter.
+`jet_tapdata_literal{,_local}.v` composes the canonical initializer with the
+existing complete C and startup contracts; both compile with their original
+explicit libc/global/tag requirements. The existing SHA gate compares the
+recipe, all 64 rounds and 48 schedule steps, encoding and exact C contracts;
+131 mutations are rejected. TapData remains unregistered pending acceptance.

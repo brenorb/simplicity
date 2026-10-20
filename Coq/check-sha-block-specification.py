@@ -561,6 +561,132 @@ def buffer_finalize(s):
                 raise ValueError("buffer/finalizer public contract differs: " + name)
 
 
+def tapdata(s):
+    """Fixed host recipe and canonical initializer, not an arbitrary decoder proof."""
+    def need(key, text):
+        p.require(s[key], text, "TapData " + key)
+
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError("TapData port differs: " + name)
+
+    need("catalog", "TapdataInit :: BitcoinJet () Sha256.Ctx8")
+    need("catalog", "specificationBitcoin TapdataInit = Sha256.tapdataInit")
+    need("hs", 'tapdataPrefix = scribe . toWord256 . integerHash256 . ivHash . tagIv $ fromString "TapData"')
+    need("digest", "noTagIv = IV sha256Incremental")
+    need("digest", "tagIv tag = compress noTagIv (tagDigest, tagDigest)")
+    need("digest", "tagDigest = bsHash . BSC.pack $ tag")
+    need("digest", "bsHash = bslHash . BSL.fromStrict")
+    need("digest", "bslHash = ivHash . IV . pushChunks sha256Incremental . padSHA1")
+    need("digest", '''ivHash (IV state) = case pushEndOfInput state of
+      Done _ _ x -> Hash256 . BSS.toShort . BSL.toStrict . Binary.encode $ x
+      _ -> error "getHash256 unexpected decoder state"''')
+    need("digest", "compress (IV state) (h1, h2) = IV $ state `pushChunk` BSS.fromShort (hash256 h1) `pushChunk` BSS.fromShort (hash256 h2)")
+    need("digest", "integerHash256 h = toInteger $ h^.be256_")
+    need("digest", "be256_ = under be256")
+    need("digest", '''be256 = adapter to fro where
+      fro w = Hash256 $ BSS.toShort (encode w)
+      to h = foldl' go 0 . BSS.unpack $ hash256 h where
+        go n w = (n `shiftL` 8) .|. fromIntegral w''')
+    # The vendored module uses Data.Binary's Word32 get/put interface.
+    need("pure", "import Data.Binary")
+    need("pure", "data SHA256State = SHA256S !Word32 !Word32 !Word32 !Word32 !Word32 !Word32 !Word32 !Word32")
+    need("pure", "sha256Incremental = runSHAIncremental initialSHA256State processSHA256Block")
+    need("pure", '''runSHAIncremental s nextChunk = runGetIncremental (getAll s) where
+      getAll s_in = do done <- isEmpty
+                      if done then return s_in else nextChunk s_in >>= getAll''')
+    need("pure", "instance Binary SHA256State where put = synthesizeSHA256 get = getSHA256")
+    need("pure", "synthesizeSHA256 (SHA256S a b c d e f g h) = do " + " ".join("putWord32be " + x for x in "abcdefgh"))
+    for name, body in {
+        "ch x y z": "(x .&. y) `xor` (complement x .&. z)",
+        "maj x y z": "(x .&. (y .|. z)) .|. (y .&. z)",
+        "bsig256_0 x": "rotateR x 2 `xor` rotateR x 13 `xor` rotateR x 22",
+        "bsig256_1 x": "rotateR x 6 `xor` rotateR x 11 `xor` rotateR x 25",
+        "lsig256_0 x": "rotateR x 7 `xor` rotateR x 18 `xor` shiftR x 3",
+        "lsig256_1 x": "rotateR x 17 `xor` rotateR x 19 `xor` shiftR x 10",
+    }.items():
+        if p.compact(hbody(s["pure"], name)) != p.compact(body):
+            raise ValueError("host SHA word function differs: " + name)
+    schedule = s["pure"].split("getSHA256Sched = do", 1)[1].split("data SHA512Sched", 1)[0]
+    expected = " ".join(f"w{j:02} <- getWord32be" for j in range(16)) + " let "
+    expected += " ".join(f"w{j:02} = lsig256_1 w{j-2:02} + w{j-7:02} + lsig256_0 w{j-15:02} + w{j-16:02}" for j in range(16, 64))
+    expected += " return $! SHA256Sched " + " ".join(f"w{j:02}" for j in range(64))
+    if p.compact(schedule) != p.compact(expected):
+        raise ValueError("host schedule/read order differs")
+    process = s["pure"].split("processSHA256Block !s00@", 1)[1].split("step256 ::", 1)[0]
+    rounds = re.findall(r"s(\d\d)\s*=\s*step256\s+s(\d\d)\s+(0x[0-9a-f]+)\s+w(\d\d)", process)
+    constants = [int(k, 16) for k in re.search(r"k0:ks\s*=\s*\[(.*?)\]", s["hs"], re.S)[1].split(",")]
+    if len(rounds) != 64 or [(int(a), int(b), int(k, 16), int(w)) for a,b,k,w in rounds] != [(j+1,j,k,j) for j,k in enumerate(constants)]:
+        raise ValueError("host round constants/order differ")
+    expected = "(SHA256S " + " ".join(x+"00" for x in "abcdefgh") + ") = do (SHA256Sched "
+    expected += " ".join(f"w{j:02}" for j in range(64)) + ") <- getSHA256Sched let "
+    expected += " ".join(f"s{j+1:02} = step256 s{j:02} {k} w{j:02}" for j, (_,_,k,_) in enumerate(rounds))
+    expected += " SHA256S " + " ".join(x+"64" for x in "abcdefgh") + " = s64 return $! SHA256S "
+    expected += " ".join(f"({x}00 + {x}64)" for x in "abcdefgh")
+    if p.compact(process) != p.compact(expected):
+        raise ValueError("host compression/feedforward differs")
+    step = s["pure"].split("step256 !(SHA256S", 1)[1].split("processSHA512Block ::", 1)[0]
+    expected = '''a b c d e f g h) k w = SHA256S a' b' c' d' e' f' g' h' where
+      t1 = h + bsig256_1 e + ch e f g + k + w t2 = bsig256_0 a + maj a b c
+      h' = g g' = f f' = e e' = d + t1 d' = c c' = b b' = a a' = t1 + t2'''
+    if p.compact(step) != p.compact(expected):
+        raise ValueError("host SHA step differs")
+    iv = [int(x, 16) for x in re.findall(r"0x[0-9a-f]+", hbody(s["pure"], "initialSHA256State"))]
+    if iv != [int(x, 16) for x in re.findall(r"0x[0-9a-f]+", p.definition(s["host"], "tap_host_iv"))] or len(iv) != 8:
+        raise ValueError("host SHA initial state differs")
+    ws = [f"Int.repr {hex(x)}" for x in iv]
+    definition("host", "tap_host_iv", f"((({ws[0]}, {ws[1]}), ({ws[2]}, {ws[3]})), (({ws[4]}, {ws[5]}), ({ws[6]}, {ws[7]})))")
+    statement = re.search(r"Lemma tap_host_round_constants\s*:\s*map Int.unsigned SHA256.K256\s*=\s*\[(.*?)\]", s["host"], re.S)
+    if not statement or [int(x, 16) for x in statement[1].split(";")] != constants:
+        raise ValueError("checked host constant bridge differs")
+    for fragment in [
+        "padSHA1 = generic_pad 448 512 64",
+        "generic_pad a b lSize bs = BS.fromChunks $! go 0 chunks where chunks = BS.toChunks bs go !len [] = generic_pad_chunks a b lSize len go !len (c:cs) = c : go (len + SBS.length c) cs",
+        "generic_pad_chunks a b lSize len = let lenBits = fromIntegral $ len * 8 k = calc_k a b lenBits kBytes = (k + 1) `div` 8 nZeroBytes = fromIntegral $! kBytes - 1 padLength = toBigEndianSBS lSize lenBits in [SBS.singleton 0x80, SBS.replicate nZeroBytes 0, padLength]",
+        "calc_k a b l = if r <= -1 then fromIntegral r + b else fromIntegral r where r = toInteger a - toInteger l `mod` toInteger b - 1",
+        "toBigEndianSBS s val = SBS.pack $ map getBits [s - 8, s - 16 .. 0] where getBits x = fromIntegral $ (val `shiftR` x) .&. 0xFF",
+    ]:
+        need("pure", fragment)
+    ports = {
+        "tap_host_state": "(((Int.int * Int.int) * (Int.int * Int.int)) * ((Int.int * Int.int) * (Int.int * Int.int)))%type",
+        "tap_host_ror": "Int.ror x (Int.repr n)",
+        "tap_host_bsig0": "Int.xor (Int.xor (tap_host_ror x 2) (tap_host_ror x 13)) (tap_host_ror x 22)",
+        "tap_host_bsig1": "Int.xor (Int.xor (tap_host_ror x 6) (tap_host_ror x 11)) (tap_host_ror x 25)",
+        "tap_host_lsig0": "Int.xor (Int.xor (tap_host_ror x 7) (tap_host_ror x 18)) (Int.shru x (Int.repr 3))",
+        "tap_host_lsig1": "Int.xor (Int.xor (tap_host_ror x 17) (tap_host_ror x 19)) (Int.shru x (Int.repr 10))",
+        "tap_host_ch": "Int.xor (Int.and x y) (Int.and (Int.not x) z)",
+        "tap_host_maj": "Int.or (Int.and x (Int.or y z)) (Int.and y z)",
+        "tap_host_step": "let '(((a,b),(c,d)),((e,f),(g,h))) := s in let '(k,w) := kw in let t1 := Int.add (Int.add (Int.add (Int.add h (tap_host_bsig1 e)) (tap_host_ch e f g)) k) w in let t2 := Int.add (tap_host_bsig0 a) (tap_host_maj a b c) in (((Int.add t1 t2,a),(b,c)),((Int.add d t1,e),(f,g)))",
+        "tap_host_schedule_word": "Int.add (Int.add (Int.add (tap_host_lsig1 (nth (j-2) ws Int.zero)) (nth (j-7) ws Int.zero)) (tap_host_lsig0 (nth (j-15) ws Int.zero))) (nth (j-16) ws Int.zero)",
+        "tap_host_be32": "fold_left (fun a b => Int.add (Int.shl a (Int.repr 8)) b) (firstn 4 (skipn (4*j) bs)) Int.zero",
+        "tap_host_compress": "let first16 := map (tap_host_be32 bs) (seq 0 16) in let ws := fold_left (fun ws j => ws ++ [tap_host_schedule_word ws j]) (seq 16 48) first16 in tap_host_feedforward s (fold_left tap_host_step (combine SHA256.K256 ws) s)",
+        "tap_host_feedforward": "let '(((a,b),(c,d)),((e,f),(g,h))) := s in let '(((a',b'),(c',d')),((e',f'),(g',h'))) := t in (((Int.add a a',Int.add b b'),(Int.add c c',Int.add d d')), ((Int.add e e',Int.add f f'),(Int.add g g',Int.add h h')))",
+        "tap_host_state_words": "let '(((a,b),(c,d)),((e,f),(g,h))) := s in [a;b;c;d;e;f;g;h]",
+        "tap_host_hash": "let '(((a,b),(c,d)),((e,f),(g,h))) := s in Digest.Hash256 [a;b;c;d;e;f;g;h] eq_refl",
+        "tap_host_put32": "map (fun k => Int.and (Int.shru x (Int.repr k)) (Int.repr 255)) [24;16;8;0]",
+        "tap_host_tag_bytes": 'map (fun b => Int.repr (Byte.unsigned b)) (SHA256.str_to_bytes "TapData"%string)',
+        "tap_host_pad": "let bits := 8 * len in let r := 448 - bits mod 512 - 1 in let k := if Z.leb r (-1) then r + 512 else r in [Int.repr 128] ++ repeat Int.zero (Z.to_nat ((k+1)/8-1)) ++ map (fun s => Int.repr (Z.land (Z.shiftr bits s) 255)) [56;48;40;32;24;16;8;0]",
+        "tap_host_tag_state": "tap_host_compress tap_host_iv (tap_host_tag_bytes ++ tap_host_pad 7)",
+        "tap_host_tag_digest": "flat_map tap_host_put32 (tap_host_state_words tap_host_tag_state)",
+        "tap_host_prefix_state": "tap_host_compress tap_host_iv (tap_host_tag_digest ++ tap_host_tag_digest)",
+        "tap_host_prefix": "from_hash256 (tap_host_hash tap_host_prefix_state)",
+    }
+    for name, body in ports.items():
+        definition("host", name, body)
+    definition("tap_port", "literal_tapdata_one64", "Bit.true >>> @left_pad_low_spec term 0 6")
+    need("hs_types", "type Word1 = Vector1 Bit")
+    need("hs_types", "word1 = vector1")
+    definition("tap_port", "literal_tapdata_init", "@buffer_empty_spec (Word 3) 5 Ty.Unit term &&& (@literal_tapdata_one64 term &&& Alg.scribe tap_host_prefix)")
+    same(hbody(s["hs_arith"], "one w"), "true >>> left_pad_low word1 w", "TapData one word")
+    need("hs", "tapdataInit = buffer63Empty &&& (one word64 &&& tapdataPrefix)")
+    for suffix in ["local", "startup"]:
+        contract = "sha_jet_local_spec_pre (fun m => sha_globals_ok m /\\ sha_tag_ok m)" if suffix == "local" else "sha_startup_total_spec"
+        statement = re.search(r"Theorem tapdata_init_literal_" + suffix + r"_spec\s*:(.*?)\bProof\.", s["tap_jet"], re.S)
+        expected = f"memcpy_model -> {contract} f_simplicity_tapdata_init Ty.Unit sha256_ctx8_type (@literal_tapdata_init Alg.CoreFunSem)."
+        if not statement or p.compact(statement[1]) != p.compact(expected):
+            raise ValueError("TapData complete public contract differs")
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -597,6 +723,10 @@ def sources():
         "final_old": COQ / "C/jet_sha_finalize_spec.v",
         "pad": COQ / "C/jet_core_pad_spec.v",
         "coq_alg": COQ / "Simplicity/Alg.v",
+        "pure": REPO / "Haskell/Core/Simplicity/Digest/Pure/SHA.hs",
+        "host": COQ / "C/jet_tapdata_host_recipe.v",
+        "tap_port": COQ / "C/jet_tapdata_literal.v",
+        "tap_jet": COQ / "C/jet_tapdata_literal_local.v",
     }.items()}
 
 
@@ -605,6 +735,7 @@ def test():
     check(s)
     context_add(s)
     buffer_finalize(s)
+    tapdata(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -714,6 +845,41 @@ def test():
             continue
         raise ValueError("buffer/finalizer source mutation escaped: " + old)
     print("SHA buffer-add/finalizer Core trees, padding and word dependencies match;", len(tail_mutations), "mutations rejected")
+    tag_mutations = [
+        ("hs", 'tagIv $ fromString "TapData"', 'tagIv $ fromString "TapLeaf"'),
+        ("digest", "compress noTagIv (tagDigest, tagDigest)", "compress noTagIv (tagDigest, hash0)"),
+        ("digest", "tagDigest = bsHash . BSC.pack $ tag", "tagDigest = bsHash . BSC.pack $ reverse tag"),
+        ("digest", "bslHash = ivHash . IV . pushChunks sha256Incremental . padSHA1", "bslHash = ivHash . IV . pushChunks sha256Incremental"),
+        ("pure", "maj x y z = (x .&. (y .|. z)) .|. (y .&. z)", "maj x y z = (x .&. (y .|. z)) `xor` (y .&. z)"),
+        ("pure", "bsig256_0 x = rotateR x 2", "bsig256_0 x = rotateR x 3"),
+        ("pure", "h' = g", "h' = f"),
+        ("pure", "(a00 + a64)", "(a00 + b64)"),
+        ("pure", "putWord32be h", "putWord32be g"),
+        ("pure", "padSHA1 = generic_pad 448 512 64", "padSHA1 = generic_pad 448 512 32"),
+        ("pure", "len * 8", "len * 7"),
+        ("host", "tap_host_tag_digest ++ tap_host_tag_digest", "tap_host_tag_bytes ++ tap_host_tag_digest"),
+        ("host", "(seq 16 48)", "(seq 16 47)"),
+        ("host", "[24;16;8;0]", "[0;8;16;24]"),
+        ("host", 'str_to_bytes "TapData"', 'str_to_bytes "tapdata"'),
+        ("tap_port", "@left_pad_low_spec term 0 6", "@left_pad_low_spec term 0 5"),
+        ("tap_port", "Alg.scribe tap_host_prefix", "Alg.scribe tapdata_prefix"),
+        ("tap_jet", "sha_globals_ok m /\\ sha_tag_ok m", "sha_globals_ok m"),
+        ("tap_jet", "memcpy_model ->", "False -> memcpy_model ->"),
+    ]
+    pure_rounds = re.findall(r"step256 s\d\d (0x[0-9a-f]+) w\d\d", s["pure"])
+    tag_mutations += [("pure", k, hex(int(k, 16) ^ 1)) for k in pure_rounds]
+    tag_mutations += [("pure", f"w{j:02} = lsig256_1 w{j-2:02}", f"w{j:02} = lsig256_1 w{j-1:02}") for j in range(16,64)]
+    for key, old, new in tag_mutations:
+        if old not in s[key]:
+            raise ValueError("inactive TapData mutation: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            tapdata(changed)
+        except ValueError:
+            continue
+        raise ValueError("TapData source mutation escaped: " + old)
+    print("TapData fixed host recipe and complete canonical/C boundary match;", len(tag_mutations), "mutations rejected")
 
 
 if __name__ == "__main__":

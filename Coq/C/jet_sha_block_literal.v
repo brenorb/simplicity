@@ -2,7 +2,7 @@
     Its semantic equality with the existing C-to-Coq-SHA target is proved
     here. Canonical source correspondence and the public/startup composition
     are separate obligations; this module alone registers no jet. *)
-From Coq Require Import ZArith List FunctionalExtensionality.
+From Coq Require Import ZArith List.
 Require Import Simplicity.Ty Simplicity.Alg Simplicity.Word.
 Require Simplicity.SHA256.
 Require Import C.jet_canonical_add_adapter.
@@ -16,14 +16,15 @@ Set Default Timeout 10.
 Definition literal_sha_add32 {term : Alg.Core.Algebra} :
   term (Ty.Prod Word32 Word32) Word32 := @canonical_add_word 5 term >>> I H.
 
+Lemma literal_sha_add32_core_matches term : @literal_sha_add32 term = @SHA256.add32 term.
+Proof.
+  unfold literal_sha_add32, SHA256.add32.
+  rewrite (canonical_add_word_wide_core_matches 4 term). reflexivity.
+Qed.
+
 Lemma literal_sha_add32_matches :
   @literal_sha_add32 Alg.CoreFunSem = @SHA256.add32 Alg.CoreFunSem.
-Proof.
-  apply functional_extensionality; intro a.
-  unfold literal_sha_add32, SHA256.add32.
-  change (snd (@canonical_add_word 5 Alg.CoreFunSem a) = snd (@Word.adder 5 Alg.CoreFunSem a)).
-  rewrite canonical_add_word_matches_adder; reflexivity.
-Qed.
+Proof. exact (literal_sha_add32_core_matches Alg.CoreFunSem). Qed.
 
 Definition sha_block_tree {term : Alg.Core.Algebra}
     (a32 : term (Ty.Prod Word32 Word32) Word32) : term (Ty.Prod Word256 Word512) Word256 :=
@@ -89,9 +90,13 @@ Qed.
 Definition literal_sha_256_block {term : Alg.Core.Algebra} : term (Ty.Prod Word256 Word512) Word256 :=
   @sha_block_tree term (@literal_sha_add32 term).
 
-Lemma literal_sha_256_block_matches :
-  @literal_sha_256_block Alg.CoreFunSem = @SHA256.hashBlock Alg.CoreFunSem.
+Lemma literal_sha_256_block_core_matches term :
+  @literal_sha_256_block term = @SHA256.hashBlock term.
 Proof.
-  unfold literal_sha_256_block; rewrite literal_sha_add32_matches.
+  unfold literal_sha_256_block; rewrite literal_sha_add32_core_matches.
   apply sha_block_tree_existing.
 Qed.
+
+Lemma literal_sha_256_block_matches :
+  @literal_sha_256_block Alg.CoreFunSem = @SHA256.hashBlock Alg.CoreFunSem.
+Proof. exact (literal_sha_256_block_core_matches Alg.CoreFunSem). Qed.

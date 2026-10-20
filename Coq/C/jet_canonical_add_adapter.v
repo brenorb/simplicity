@@ -1,5 +1,6 @@
 (** Literal Programs.Arith.add and the optimized Word.adder adapter.
-    Equality is semantic, not a claim that the bit-base programs are identical. *)
+    The bit base is only semantically equal; positive vector depths have
+    identical Core programs. *)
 Require Import Simplicity.Ty Simplicity.Alg Simplicity.Word Simplicity.Bit.
 Local Open Scope term_scope.
 Set Default Timeout 10.
@@ -7,6 +8,10 @@ Set Default Timeout 10.
 Definition canonical_add_word n {term : Alg.Core.Algebra} :
     term (Ty.Prod (Word n) (Word n)) (Ty.Prod Bit (Word n)) :=
   Bit.false &&& iden >>> @Word.fullAdder n term.
+
+Lemma canonical_add_word_wide_core_matches n term :
+  @canonical_add_word (S n) term = @Word.adder (S n) term.
+Proof. reflexivity. Qed.
 
 Lemma canonical_add_word_parametric n :
   Alg.Core.Parametric (@canonical_add_word n).
