@@ -8,3 +8,12 @@ instead of starting a parallel proof.
 | Jet (`jet_coverage.tsv` name) | Owner (agent/session) | Branch | Since |
 | --- | --- | --- | --- |
 | `simplicity_sha_256_ctx_8_add_1` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sha_256_ctx_8_add_2` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sha_256_ctx_8_add_4` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sha_256_ctx_8_add_8` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sha_256_ctx_8_add_16` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sha_256_ctx_8_add_32` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sha_256_ctx_8_add_64` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sha_256_ctx_8_add_128` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sha_256_ctx_8_add_256` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |
+| `simplicity_sha_256_ctx_8_add_512` | Codex / current goal | `feat/jet-equivalence` | 2026-10-20 |

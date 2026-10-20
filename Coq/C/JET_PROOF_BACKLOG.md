@@ -180,10 +180,12 @@ contracts compile in `jet_sha_ctx8_literal_local.v`; both retain `memcpy_model`
 and their explicit SHA global-state requirements. No input counter, buffer
 length or assertion-failure case is excluded.
 
-The existing SHA source gate also compares the one-byte Core tree, increment,
-buffer-snoc/empty, count comparison and assertion-root dependencies; sixteen
-context mutations are rejected in addition to the block tests. This remains
-unregistered: review the recursive width specializations and compose the
-existing larger C contracts before ordinary scoped acceptance of the family.
+The existing SHA source gate compares the one-byte Core tree, increment,
+buffer-snoc/empty, count comparison and assertion-root dependencies, plus the
+vector recursion and all ten catalog/type/contract specializations. Twenty
+context mutations are rejected in addition to the block tests. All ten
+complete local and startup contracts compile, reusing the shared bridge and
+the existing C execution proofs. They remain unregistered pending ordinary
+scoped acceptance of the family; all retain `memcpy_model` explicitly.
 Focused builds use
 `JET_TARGETS=C/jet_sha_ctx8_literal_local.vo bash Coq/build-jets.sh -j2`.

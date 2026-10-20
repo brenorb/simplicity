@@ -402,14 +402,38 @@ def context_add(s):
     p.require(s["hs"], "libAssert = mkLibAssert lib", "canonical assertion library")
     p.require(s["catalog"], "Sha256Ctx8Add1 :: HashJet (Sha256.Ctx8, Word8) Sha256.Ctx8", "context-add type")
     p.require(s["catalog"], "specificationHash Sha256Ctx8Add1 = Sha256.ctx8Add1", "context-add dispatch")
-    for suffix in ["local", "startup"]:
-        contract = "sha_jet_partial_local_spec" if suffix == "local" else "sha_startup_partial_spec"
-        name = "sha_256_ctx_8_add_1_literal_" + suffix + "_spec"
-        statement = re.search(r"Theorem " + name + r"\s*:(.*?)\bProof\.", s["ctx_jet"], re.S)
-        expected = "memcpy_model -> " + contract + ''' f_simplicity_sha_256_ctx_8_add_1
-          (Ty.Prod sha256_ctx8_type (Word 3)) sha256_ctx8_type (@literal_ctx8_add1 optalg).'''
-        if not statement or p.compact(statement[1]) != p.compact(expected):
-            raise ValueError("context-add public contract differs: " + name)
+    addn = re.search(r"\bctx8Addn\s*=(.*?)\n\s*,\s*ctx8AddBuffer", hs, re.S)[1]
+    expected_addn = r'''\v -> case v of SingleV -> ctx8Add1
+      (DoubleV v) -> let rec = ctx8Addn v in (oh &&& ioh >>> rec) &&& iih >>> rec'''
+    if p.compact(addn) != p.compact(expected_addn):
+        raise ValueError("Haskell context vector recursion differs")
+    definition("ctx", "literal_ctx8_addn", '''match n with
+      | Datatypes.O => @literal_ctx8_add1 term
+      | Datatypes.S k => (O H &&& I O H >>> @literal_ctx8_addn k term) &&& I I H >>> @literal_ctx8_addn k term end''')
+    same(addn.rsplit(" in", 1)[1], "(O H &&& I O H >>> rec) &&& I I H >>> rec", "vector sequencing tree")
+    p.require(s["hs_types"], "type Vector1 x = x", "vector base type")
+    p.require(s["hs_types"], "type Vector2 x = (x,x)", "vector pair type")
+    p.require(s["hs_types"], "vector1 = SingleV", "vector base witness")
+    for level in range(2, 13):
+        size, half = 2**level, 2**(level-1)
+        p.require(s["hs_types"], f"type Vector{size} x = Vector2 (Vector{half} x)", "vector carrier recursion")
+    for k in range(10):
+        size, bits = 2**k, 8 * 2**k
+        p.require(s["catalog"], f"Sha256Ctx8Add{size} :: HashJet (Sha256.Ctx8, Word{bits}) Sha256.Ctx8", "context width type")
+        target = "Sha256.ctx8Add1" if k == 0 else f"Sha256.ctx8Addn vector{size}"
+        p.require(s["catalog"], f"specificationHash Sha256Ctx8Add{size} = " + target, "context width dispatch")
+        p.require(s["hs_types"], f"type Word{bits} = Vector{bits} Bit", "context width carrier")
+        p.require(s["hs_types"], f"vector{2*size} = DoubleV vector{size}", "context width witness")
+        port_arg = "(Word 3)" if k == 0 else f"(Vector (Word 3) {k})"
+        port_program = "@literal_ctx8_add1 optalg" if k == 0 else f"@literal_ctx8_addn {k} optalg"
+        for suffix in ["local", "startup"]:
+            contract = "sha_jet_partial_local_spec" if suffix == "local" else "sha_startup_partial_spec"
+            name = f"sha_256_ctx_8_add_{size}_literal_{suffix}_spec"
+            statement = re.search(r"Theorem " + name + r"\s*:(.*?)\bProof\.", s["ctx_jet"], re.S)
+            expected = (f"memcpy_model -> {contract} f_simplicity_sha_256_ctx_8_add_{size} "
+                        f"(Ty.Prod sha256_ctx8_type {port_arg}) sha256_ctx8_type ({port_program}).")
+            if not statement or p.compact(statement[1]) != p.compact(expected):
+                raise ValueError("context-add public contract differs: " + name)
 
 
 def sources():
@@ -503,6 +527,10 @@ def test():
         ("order", "AC.comp (@subtract_word_spec term n) (AC.take AC.iden)", "AC.comp (@subtract_word_spec term n) (AC.drop AC.iden)"),
         ("ctx_jet", "memcpy_model ->", "False -> memcpy_model ->"),
         ("ctx_jet", "f_simplicity_sha_256_ctx_8_add_1", "f_simplicity_sha_256_ctx_8_add_2"),
+        ("hs", "(oh &&& ioh >>> rec) &&& iih >>> rec", "(oh &&& iih >>> rec) &&& ioh >>> rec"),
+        ("ctx", "@literal_ctx8_addn k term) &&& I I H", "@literal_ctx8_addn k term) &&& O I H"),
+        ("catalog", "specificationHash Sha256Ctx8Add512 = Sha256.ctx8Addn vector512", "specificationHash Sha256Ctx8Add512 = Sha256.ctx8Addn vector256"),
+        ("ctx_jet", "(@literal_ctx8_addn 9 optalg)", "(@literal_ctx8_addn 8 optalg)"),
     ]
     for key, old, new in context_mutations:
         if old not in s[key]:
