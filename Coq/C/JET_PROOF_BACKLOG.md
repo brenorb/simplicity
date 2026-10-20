@@ -194,11 +194,22 @@ audited inputs and no expectation updates. The reproducible command is in
 Focused builds use
 `JET_TARGETS=C/jet_sha_ctx8_literal_local.vo bash Coq/build-jets.sh -j2`.
 
-## Next independent target
+## Current target: SHA buffer-add and finalization
 
-Review `sha_256_ctx_8_add_buffer_511` before the finalizer. Its complete C
-execution theorem already exists in `jet_sha_ctx8_add_buffer_jet.v`; port the
-canonical buffer recursion and reuse `literal_ctx8_add1_matches`,
-`literal_ctx8_addn_matches` and the count-verification bridge. Preserve the
-empty-buffer count assertion and explicit libc/global-state requirements.
-Do not redo compression or the existing C entry/read/write/free proof.
+The canonical buffer recursion is now in `jet_sha_buffer_literal.v`, reusing
+the one-byte/vector/count bridges and retaining the empty-buffer assertion.
+`jet_sha_finalize_literal{,_word}.v` ports the finalizer, all six padding
+stages, buffer-size flags, count assertion/clearing, bit-length construction
+and final block call. The constant left shifts and addition match the older
+word programs in every Core algebra. Expose the old finalizer/padding wrapper
+before conversion; do not normalize the large option program unnecessarily.
+
+Both complete C execution and startup contracts compile in
+`jet_sha_{buffer,finalize}_literal_local.v`, reusing the original execution
+proofs without additional input restrictions. They retain `memcpy_model` and
+their explicit global-state scope. The existing SHA source gate checks their
+actual canonical trees and dependencies, with 24 additional rejected mutations.
+These two jets remain unregistered until ordinary scoped acceptance.
+
+Focused builds use
+`JET_TARGETS='C/jet_sha_buffer_literal_local.vo C/jet_sha_finalize_literal_local.vo' bash Coq/build-jets.sh -j2`.

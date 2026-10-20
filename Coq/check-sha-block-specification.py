@@ -436,6 +436,131 @@ def context_add(s):
                 raise ValueError("context-add public contract differs: " + name)
 
 
+def buffer_finalize(s):
+    """The remaining context programs, including empty input and padding."""
+    def definition(key, name, expected):
+        if p.compact(p.definition(s[key], name)) != p.compact(expected):
+            raise ValueError("buffer/finalizer dependency differs: " + name)
+
+    def replace(text, old, new):
+        return re.sub(r"\s*".join(re.escape(c) for c in p.compact(old)), new, text)
+
+    hs = s["hs"].split("mkLibAssert Lib{..}  = l", 1)[1]
+    buf = re.search(r"\bctx8AddBuffer\s*=(.*?)\n\s*,\s*ctx8Finalize", hs, re.S)[1]
+    p.require(s["hs_types"], "toWord64 = toWord word64", "64-bit constant conversion")
+    same(hbody(s["core"], "elimS r s t"), "r &&& unit >>> match (take s) (take t)", "sum elimination tree")
+    same(hbody(s["core"], "copair"), "elimS iden", "copair wrapper")
+    definition("coq_alg", "elimS", "comp (pair r unit) (case (take s) (take t))")
+    definition("coq_alg", "copair", "elimS iden")
+    cases = re.fullmatch(r"\s*\\b\s*->\s*case\s+b\s+of\s+SingleB\s*->(.*?)\(DoubleB b\)\s*->(.*)", buf, re.S)
+    if not cases:
+        raise ValueError("canonical buffer recursion shape differs")
+    definition("buf_port", "literal_ctx8_add_buffer", '''match d with
+      | Datatypes.O => I H &&& O H >>>
+          case (I (iden &&& @literal_ctx8_verify_count term >>> O H))
+               (I H &&& O H >>> @literal_ctx8_add1 term)
+      | Datatypes.S k =>
+          (I O H &&& O H >>> case (I H) (I H &&& O H >>> @literal_ctx8_addn (S k) term))
+            &&& I I H >>> @literal_ctx8_add_buffer k term end''')
+    same(cases[1], "I H &&& O H >>> case (I (iden &&& verifyNumCompression >>> O H)) (I H &&& O H >>> ctx8Add1)", "empty/single buffer tree")
+    same(cases[2], "(I O H &&& O H >>> case (I H) (I H &&& O H >>> ctx8Addn (bufferVector b))) &&& I I H >>> ctx8AddBuffer b", "buffer sequence tree")
+    p.require(s["hs_types"], "bufferVector SingleB = vector2", "buffer vector base")
+    p.require(s["hs_types"], "bufferVector (DoubleB buf) = DoubleV (bufferVector buf)", "buffer vector recursion")
+    for size, half in [(127, 63), (255, 127), (511, 255)]:
+        p.require(s["hs_types"], f"buffer{size} = DoubleB buffer{half}", "extended buffer depth")
+        p.require(s["hs_types"], f"type Buffer{size} x = (S (Vector{(size+1)//2} x), Buffer{half} x)", "extended buffer carrier")
+
+    def names(text):
+        leaves = [
+            ("@literal_ctx8_verify_count term", "verifyNumCompression"),
+            ("@Word.zero 6 (Alg.Assertion.toCore term)", "zero word64"),
+            ("@literal_ctx8_addn 3 term", "ctx8Add8"),
+            ("@literal_sha_pad063 (Alg.Assertion.toCore term)", "pad063"),
+            ("@literal_sha_buffer63_size term", "buffer63Size"),
+            ("@left_pad_low_spec term 3 3", "left_pad_low word8 vector8"),
+            ("@literal_sha_left_shift64 6 term", "shift_const_by false word64 6"),
+            ("@literal_sha_left_shift64 3 term", "shift_const_by false word64 3"),
+            ("@literal_sha_add64 term", "add64"),
+            ("@literal_sha_256_block (Alg.Assertion.toCore term)", "hashBlock"),
+            ("Alg.scribe pad_word64", "scribe pad64"),
+        ]
+        for old, new in leaves:
+            text = replace(text, old, new)
+        return text
+
+    port = p.definition(s["final_port"], "literal_ctx8_finalize")
+    for name, arg in [("literal_ctx8_finalize_pad", "term"), ("literal_ctx8_clear_count", "term"),
+                      ("literal_ctx8_bitlen", "(Alg.Assertion.toCore term)"),
+                      ("literal_ctx8_finalize_block", "(Alg.Assertion.toCore term)")]:
+        port = replace(port, "@" + name + " " + arg, "(" + p.definition(s["final_port"], name) + ")")
+    entry = re.search(r"\bctx8Finalize\s*=(.*?)\n\s*\}", hs, re.S)[1]
+    entry = replace(entry, "scribe (toWord64 (2^63))", "scribe pad64")
+    same(entry, names(port), "finalizer complete tree")
+    same(hbody(hs, "buffer63Size"), p.definition(s["final_port"], "literal_sha_buffer63_size").replace("Bit.", ""), "six buffer flags")
+    for suffix, prev, zero in [("03", "01", 4), ("07", "03", 5), ("015", "07", 6), ("031", "015", 7), ("063", "031", 8)]:
+        body = p.definition(s["final_port"], "literal_sha_pad" + suffix)
+        body = replace(body, "@literal_sha_pad" + prev + " term", "pad" + prev)
+        body = replace(body, f"@Word.zero {zero} term", f"zero word{2**zero}")
+        same(hbody(hs, "pad" + suffix), body, "padding stage " + suffix)
+    body = p.definition(s["final_port"], "literal_sha_pad01")
+    body = replace(replace(body, "@Word.zero 4 term", "zero word16"), "@Word.zero 3 term", "zero word8")
+    same(hbody(hs, "pad01"), body, "padding base")
+    same(hbody(hs, "ctx8Add8"), "ctx8Addn vector8", "padding append width")
+    body = replace(p.definition(s["final_word"], "literal_sha_add64"), "@canonical_add_word 6 term", "add word64")
+    same(hbody(hs, "add64"), body, "literal finalizer addition")
+    definition("final_old", "pad_word64", "@fromZ (WordToZ 6) 9223372036854775808")
+    p.require(s["final_port"], "pad_word64 = @fromZ (WordToZ 6) (2^63)%Z", "checked padding constant bridge")
+    definition("pad", "left_pad_low_spec", "left_pad_pad (AC.comp AC.unit (low_word w)) k")
+    definition("pad", "low_word", "fill (n := w) (@Bit.false Ty.Unit term)")
+    definition("pad", "left_pad_pad", "match k with | O => AC.iden | S k => AC.pair (fill (n := k) t) (left_pad_pad t k) end")
+    same(hbody(s["hs_word"], "left_pad_low w v"), "left_pad_pad (unit >>> low w) v", "left padding wrapper")
+    same(hbody(s["hs_word"], "left_pad_pad _ SingleV"), "iden", "left padding base")
+    same(hbody(s["hs_word"], "left_pad_pad t (DoubleV v)"), "fill t v &&& left_pad_pad t v", "left padding recursion")
+    definition("word", "build_fill", "rec &&& rec")
+    definition("word", "fill", "match n with | 0 => t | (S n) => build_fill (fill t) end")
+    same("iden &&& (unit >>> t) >>> full_left_shift1 >>> ih", p.definition(s["word"], "left_shift1"), "left shift wire")
+    shift = s["hs_word"].split("shift_const_by t v n |", 1)[1].split("--", 1)[0]
+    # Active-source reader removes comments, so end at the next declaration.
+    shift = shift.split("right_shift_const_by ::", 1)[0]
+    expected_shift = '''vectorSize v <= n = unit >>> fill t v
+      | n < 0 = right_shift_const_by t v (-n) | otherwise = compose (go t v n)
+      where compose [] = iden compose l = foldr1 (>>>) l
+      go :: (Core term, TyC a, TyC b) => term () a -> Vector a b -> Int -> [term b b]
+      go t SingleV 0 = []
+      go t v@(DoubleV v') n | even n = rec (n `div` 2)
+                          | otherwise = left_shift1 : rec ((n-1) `div` 2)
+       where left_shift1 = iden &&& (unit >>> t) >>> full_left_shift1 v >>> ih
+             rec = go (t &&& t) (vectorPromote v')'''
+    if p.compact(shift) != p.compact(expected_shift):
+        raise ValueError("Haskell left-shift generator differs")
+    definition("final_word", "sha_haskell_left_shift_list", '''match n with
+      | Datatypes.O => [] | Datatypes.S k =>
+        if Z.even amount then eq_rect _ (fun T => list (term T T))
+          (sha_haskell_left_shift_list (t &&& t) (amount / 2)) _ (eq_sym VectorPromote)
+        else left_shift1 t :: eq_rect _ (fun T => list (term T T))
+          (sha_haskell_left_shift_list (t &&& t) ((amount-1) / 2)) _ (eq_sym VectorPromote) end''')
+    definition("final_word", "literal_sha_left_shift64", '''
+      if Z.leb 64 amount then unit >>> @fill Ty.Unit Bit 6 term Bit.false
+      else foldr_comp (@sha_haskell_left_shift_list Bit 6 term Bit.false amount)''')
+    for tag, key, stem, args, program in [
+        ("Sha256Ctx8AddBuffer511", "buf_jet", "sha_256_ctx_8_add_buffer_511",
+         "(Ty.Prod sha256_ctx8_type (buffer_type (Word 3) 8)) sha256_ctx8_type", "@literal_ctx8_add_buffer 8 optalg"),
+        ("Sha256Ctx8Finalize", "final_jet", "sha_256_ctx_8_finalize",
+         "sha256_ctx8_type (Word 8)", "@literal_ctx8_finalize optalg"),
+    ]:
+        canonical = "Sha256.ctx8AddBuffer buffer511" if key == "buf_jet" else "Sha256.ctx8Finalize"
+        source_type = "(Sha256.Ctx8, Buffer511 Word8) Sha256.Ctx8" if key == "buf_jet" else "Sha256.Ctx8 Sha256.Hash"
+        p.require(s["catalog"], f"{tag} :: HashJet {source_type}", "tail jet type")
+        p.require(s["catalog"], f"specificationHash {tag} = {canonical}", "tail jet dispatch")
+        for suffix in ["local", "startup"]:
+            contract = "sha_jet_partial_local_spec" if suffix == "local" else "sha_startup_partial_spec"
+            name = f"{stem}_literal_{suffix}_spec"
+            statement = re.search(r"Theorem " + name + r"\s*:(.*?)\bProof\.", s[key], re.S)
+            expected = f"memcpy_model -> {contract} f_simplicity_{stem} {args} ({program})."
+            if not statement or p.compact(statement[1]) != p.compact(expected):
+                raise ValueError("buffer/finalizer public contract differs: " + name)
+
+
 def sources():
     return {key: p.read_code(path) for key, path in {
         "catalog": REPO / "Haskell/Core/Simplicity/CoreJets.hs",
@@ -464,6 +589,14 @@ def sources():
         "order": COQ / "C/jet_order_spec.v",
         "subtract": COQ / "C/jet_subtract_spec.v",
         "complement": COQ / "C/jet_complement_spec.v",
+        "buf_port": COQ / "C/jet_sha_buffer_literal.v",
+        "buf_jet": COQ / "C/jet_sha_buffer_literal_local.v",
+        "final_word": COQ / "C/jet_sha_finalize_literal_word.v",
+        "final_port": COQ / "C/jet_sha_finalize_literal.v",
+        "final_jet": COQ / "C/jet_sha_finalize_literal_local.v",
+        "final_old": COQ / "C/jet_sha_finalize_spec.v",
+        "pad": COQ / "C/jet_core_pad_spec.v",
+        "coq_alg": COQ / "Simplicity/Alg.v",
     }.items()}
 
 
@@ -471,6 +604,7 @@ def test():
     s = sources()
     check(s)
     context_add(s)
+    buffer_finalize(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -543,6 +677,43 @@ def test():
             continue
         raise ValueError("context source mutation escaped: " + old)
     print("SHA context-add canonical tree, buffer, counter and assertion dependencies match;", len(context_mutations), "mutations rejected")
+    tail_mutations = [
+        ("hs", "drop (iden &&& verifyNumCompression >>> oh)", "drop (iden &&& iden >>> oh)"),
+        ("hs", "ctx8Addn (bufferVector b)", "ctx8Add1"),
+        ("hs_types", "bufferVector SingleB = vector2", "bufferVector SingleB = vector1"),
+        ("catalog", "specificationHash Sha256Ctx8AddBuffer511 = Sha256.ctx8AddBuffer buffer511", "specificationHash Sha256Ctx8AddBuffer511 = Sha256.ctx8AddBuffer buffer255"),
+        ("buf_port", "@literal_ctx8_verify_count term", "iden"),
+        ("buf_port", "@literal_ctx8_addn (S k) term", "@literal_ctx8_addn k term"),
+        ("buf_jet", "memcpy_model ->", "False -> memcpy_model ->"),
+        ("hs", "verifyNumCompression >>> zero word64", "zero word64 >>> verifyNumCompression"),
+        ("hs", "take (take iioh) &&& ih", "take (take ioih) &&& ih"),
+        ("hs", "pad063 = oh &&& drop pad031 >>> match (ih &&& take (zero word256))", "pad063 = oh &&& drop pad031 >>> match (ih &&& take (zero word128))"),
+        ("hs", "scribe (toWord64 (2^63))", "scribe (toWord64 (2^62))"),
+        ("final_port", "@literal_sha_left_shift64 6 term", "@literal_sha_left_shift64 3 term"),
+        ("final_port", "Bit.false &&& Bit.false", "Bit.true &&& Bit.false"),
+        ("final_port", "(2^63)%Z", "(2^62)%Z"),
+        ("final_old", "9223372036854775808", "9223372036854775807"),
+        ("final_word", "@canonical_add_word 6 term", "@Word.adder 6 term"),
+        ("final_word", "(amount-1) / 2", "(amount+1) / 2"),
+        ("pad", "AC.pair (fill (n := k) t) (left_pad_pad t k)", "AC.pair (left_pad_pad t k) (fill (n := k) t)"),
+        ("word", "full_left_shift1 >>> I H", "full_left_shift1 >>> O H"),
+        ("final_jet", "memcpy_model ->", "False -> memcpy_model ->"),
+        ("final_jet", "f_simplicity_sha_256_ctx_8_finalize", "f_simplicity_sha_256_ctx_8_add_buffer_511"),
+        ("hs_types", "toWord64 = toWord word64", "toWord64 = toWord word32"),
+        ("core", "copair = elimS iden", "copair = elimS unit"),
+        ("core", "elimS r s t = r &&& unit", "elimS r s t = unit &&& r"),
+    ]
+    for key, old, new in tail_mutations:
+        if old not in s[key]:
+            raise ValueError("inactive buffer/finalizer mutation: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            buffer_finalize(changed)
+        except ValueError:
+            continue
+        raise ValueError("buffer/finalizer source mutation escaped: " + old)
+    print("SHA buffer-add/finalizer Core trees, padding and word dependencies match;", len(tail_mutations), "mutations rejected")
 
 
 if __name__ == "__main__":
