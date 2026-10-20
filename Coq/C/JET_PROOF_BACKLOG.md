@@ -26,6 +26,15 @@ continuation journals are not required.
 
 ## Current target: `simplicity_gej_rescale`
 
+`C.jet_secp_rescale_local.gej_rescale_literal_local_spec` now proves the
+complete original public jet against the literal canonical Simplicity tree.
+It covers unrestricted Word256 coordinates and scale (including zero), the
+standard local-frame contract, actual reads and writes, return value and
+local frees. No curve, nonzero, initialized-global or libc-model premise is
+added. Compilation, recursive kernel checking, and reviewed assumption and
+contract comparisons passed; registration/scoped acceptance is next. The
+unregistered registry count above has not yet changed.
+
 The separate-output square support is now in the ordinary
 `jet_secp_square_separate_{layout,exec,numeric,caller}.v` modules. It executes
 the original helper into an uninitialized, distinct destination, preserves
@@ -75,8 +84,8 @@ With the documented Coq 8.17.1 toolchain and matching pinned dependencies,
 reproduce the focused build and recursive kernel check with:
 
 ```sh
-JET_TARGETS='C/jet_secp_rescale_owned.vo C/jet_secp_rescale_literal.vo' bash Coq/build-jets.sh -j2
-bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_rescale_owned C.jet_secp_rescale_literal
+JET_TARGETS=C/jet_secp_rescale_local.vo bash Coq/build-jets.sh -j2
+bash Coq/build-jets.sh --coqchk -bytecode-compiler yes -silent -o C.jet_secp_rescale_local
 ```
 
 The kernel command enables the checker's supported VM conversion; it still
@@ -89,18 +98,25 @@ outputs through the existing wide field writer's value function to that
 literal program for unrestricted Word256 inputs. It discharges the residue
 premises from the normalized reader representation, including the difference
 between C's two Y multiplications and the specification's cube expression.
-This is a value bridge, not yet public reader/writer execution.
+This value bridge is composed with actual serialization by
+`jet_secp_rescale_writer.v`, reusing `eval_write_gej_general`. The
+`jet_secp_rescale_public_{entry,body,prepare,reads,call}.v` modules derive the
+original three-local entry, source-frame copy, four reads, helper call,
+writer call and frees. The final local endpoint uses the existing
+`secp_jet_local_spec`, not a rescale-specific weakened contract.
 
 The checked rescale closure uses the declared Coq 8.17.1 baseline (the Nix
-compiler built with OCaml 4.14.4). An attempted import of the old
-`jet_secp_point_write_field.vo` found an OCaml 4.14.1 cache; the literal bridge
-does not need that module. Before using it for public writer composition,
-rebuild its affected source closure in a clean output tree under the declared
-baseline, rather than switching compilers to match the stale object.
+compiler built with OCaml 4.14.4). The older reader/writer dependency closure
+was rebuilt from source in a clean temporary tree under that baseline, then
+the complete endpoint was rebuilt through the normal project target. No
+compiler or dependency pin was changed to match older OCaml 4.14.1 caches.
 
-Next compose the public reader/writer lifecycle with this literal bridge. Preserve all
-Word256 inputs, including zero scale and arbitrary coordinates; no on-curve
-or nonzero premise is needed by the helper. Coordinates live at offsets 0, 40 and 80 inside
+`secp-field-integration/check-rescale.py` compares the actual catalog, GEJ/FE
+types, Haskell rescale/cube/zinv trees, literal port and exact final contract;
+12 targeted mutations are rejected. It supplements rather than replaces the
+formal execution proof and is included in the ordinary acceptance command.
+
+Next register the final endpoint and run scoped acceptance. Coordinates live at offsets 0, 40 and 80 inside
 one owned 128-byte point allocation. The existing owned multiply contract
 requires each owned region's base to be zero; it cannot directly represent
 a fictitious 40-byte allocation at offset 40 or 80. Reuse the whole-point

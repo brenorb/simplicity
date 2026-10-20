@@ -188,6 +188,7 @@ static_check python3 scalar-lambda-integration/test-lambda-public.py "${JET_C_RE
 static_check python3 secp-field-integration/check-multiply.py
 static_check python3 secp-field-integration/check-square.py
 static_check python3 secp-field-integration/check-beta.py
+static_check python3 secp-field-integration/check-rescale.py
 static_check python3 check-bitcoin-primitive-identity.py
 static_check python3 test-bitcoin-primitive-identity.py
 static_check python3 test-jet-audit-inputs.py
