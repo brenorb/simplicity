@@ -2,8 +2,8 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The current candidate registry contains 430/533 jets (319 without an extra libc
-premise; 111 conditional on `memcpy_model`). Final acceptance is pending.
+The accepted local-contract registry contains 430/533 jets (319 without an extra libc
+premise; 111 conditional on `memcpy_model`). Full acceptance passed.
 
 Reproduce acceptance from the repository root:
 
@@ -18,35 +18,35 @@ The commit and this command are the evidence. Logs stay outside the repository.
 Claude’s approximate pending list contained three partial-name search hits.
 The 33 actual jets plus the overlooked entropy and beta endpoints are accounted
 for below. Twenty-five were already in the separately verified 420-jet integration;
-ten are new registrations awaiting final acceptance.
+ten are newly accepted registrations.
 
 | Jet | Registration |
 | --- | --- |
-| `asset_amount_hash` | New candidate registration |
+| `asset_amount_hash` | New accepted local contract |
 | `broken_do_not_use_check_lock_distance` | Existing verified integration |
 | `broken_do_not_use_check_lock_duration` | Existing verified integration |
-| `calculate_asset` | New candidate registration |
-| `calculate_confidential_token` | New candidate registration |
-| `calculate_explicit_token` | New candidate registration |
+| `calculate_asset` | New accepted local contract |
+| `calculate_confidential_token` | New accepted local contract |
+| `calculate_explicit_token` | New accepted local contract |
 | `check_lock_height` | Existing verified integration |
 | `check_lock_time` | Existing verified integration |
 | `current_sequence` | Existing verified integration |
 | `fe_add` | Existing verified integration |
 | `fe_is_odd` | Existing verified integration |
 | `fe_is_zero` | Existing verified integration |
-| `fe_multiply` | New candidate registration |
+| `fe_multiply` | New accepted local contract |
 | `fe_negate` | Existing verified integration |
 | `fe_normalize` | Existing verified integration |
-| `fe_square` | New candidate registration |
+| `fe_square` | New accepted local contract |
 | `ge_negate` | Existing verified integration |
 | `gej_infinity` | Existing verified integration |
 | `gej_is_infinity` | Existing verified integration |
 | `gej_negate` | Existing verified integration |
 | `input_sequence` | Existing verified integration |
-| `nonce_hash` | New candidate registration |
+| `nonce_hash` | New accepted local contract |
 | `num_inputs` | Existing verified integration |
 | `num_outputs` | Existing verified integration |
-| `outpoint_hash` | New candidate registration |
+| `outpoint_hash` | New accepted local contract |
 | `scalar_add` | Existing verified integration |
 | `scalar_is_zero` | Existing verified integration |
 | `scalar_multiply` | Existing verified integration |
@@ -55,8 +55,8 @@ ten are new registrations awaiting final acceptance.
 | `scalar_square` | Existing verified integration |
 | `tx_is_final` | Existing verified integration |
 | `version` | Existing verified integration |
-| `calculate_issuance_entropy` | New candidate registration |
-| `fe_multiply_beta` | New candidate registration |
+| `calculate_issuance_entropy` | New accepted local contract |
+| `fe_multiply_beta` | New accepted local contract |
 
 ## Scope and remaining obligations
 
@@ -105,3 +105,24 @@ The rewritten integration history removes 2,028 log/receipt/duplicate files
 and 1,116,250 lines. Original branch and WIP histories remain under backup refs.
 Pushing, upstream filing, and deleting branches/worktrees/backups require user
 approval and are not part of local acceptance.
+
+## Completed verification
+
+Full `bash Coq/check-jets.sh --accept` passed on proof-source commit
+`d866ef20cc668c91251ad8b1f77a030f4a46c338` with frozen inputs: 1550 built C modules recursively kernel-checked,
+1,305 module assumption snapshots and 1,367 module contract/definition snapshots
+matched, all source/mutation and negative gate checks passed, and all five pinned
+ASTs regenerated identically. The 7,223 public result profiles retain the inherited
+library assumptions; the 5,850 original profiles are unchanged. No kernel axiom
+was added to the fifteen-entry allowlist.
+
+Focused `--accept --jets=simplicity_verify` also passed in a separate checkout
+of `23adcc78`, with the same checker and byte-identical selected closure,
+containing an additional listed proof module whose unknown tactic independently
+fails compilation. This verifies that an unrelated broken proof does not block
+the selected dependency closure; it makes no additional jet coverage claim.
+
+Source archives, alternate proofs and original WIP histories are preserved.
+Acceptance establishes the stated local contracts with the trust and fidelity
+limits above; it does not close the remaining 103 declarations or shared
+evaluator/startup obligations.

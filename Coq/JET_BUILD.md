@@ -43,8 +43,8 @@ current registered contracts as pending that review.
 Final acceptance runs `bash Coq/check-jets.sh --accept` on frozen inputs, without
 update/no-build flags. It builds modules, checks the kernel, compares reviewed
 axiom and type/definition snapshots, exercises negative fixtures and source/config
-pins, and checks all four ASTs. Snapshot generation does not establish acceptance
-or canonical fidelity. The every-jet objective remains active.
+pins, and checks all five ASTs. Snapshot generation does not establish acceptance
+or canonical fidelity. The broader every-jet proof roadmap remains open.
 
 ## Target versus host
 
@@ -100,7 +100,7 @@ bash Coq/build-jets.sh --regression -j"$(nproc)"  # optional earlier proofs
 bash Coq/check-jets.sh                  # static checks, build, coqchk, assumption gate
 bash Coq/jet-sysroot.sh                 # once: pinned glibc headers for the AST check
 bash Coq/check-jets.sh --ast            # additionally regenerate and compare the AST
-bash Coq/check-jets.sh --accept         # final build, reviewed snapshots and both ASTs
+bash Coq/check-jets.sh --accept         # final build, reviewed snapshots and all five ASTs
 ```
 
 `check-jets.sh` fails when
