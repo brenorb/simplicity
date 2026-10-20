@@ -696,6 +696,19 @@ def bitcoin_taproot(s):
     def replace(text, old, new):
         return re.sub(r"\s*".join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
 
+    def binding(key, lhs, expected):
+        if p.compact(hbody(s[key], lhs)) != p.compact(expected):
+            raise ValueError("Bitcoin library binding differs: " + lhs)
+
+    p.require(s["bitcoin_catalog"], "import qualified Simplicity.Programs.Bitcoin.Lib as Prog", "actual Bitcoin library import")
+    p.require(s["bitcoin_catalog"], "import Simplicity.Programs.Sha256.Lib (Ctx8)", "actual Bitcoin context import")
+    p.require(s["bitcoin_lib"], "import qualified Simplicity.Programs.Bitcoin as Bitcoin", "Bitcoin library wrapper import")
+    for name, instance in [("buildTapleafSimplicity", "lib"), ("buildTapbranch", "lib"),
+                           ("outpointHash", "libAssert"), ("annexHash", "libAssert")]:
+        binding("bitcoin_lib", name, f"Bitcoin.{name} Bitcoin.{instance}")
+    binding("bitcoin_prog", "lib", "mkLib Sha256.lib")
+    binding("bitcoin_prog", "libAssert", "mkLibAssert Sha256.lib Sha256.libAssert LibSecp256k1.lib")
+    p.require(s["hs"], "type Hash = Word256", "Bitcoin hash carrier")
     # The SHA word operations, all rounds, padding and binary serialization
     # are checked by tapdata(s). The hash/word converter also has its existing
     # shared source gate and general Coq haskell_hash_word256 theorem.
@@ -709,8 +722,8 @@ def bitcoin_taproot(s):
         definition("bt_port", name, expected)
     for label in ["TapLeaf", "TapBranch"]:
         prefix = "tapleafPrefix" if label == "TapLeaf" else "tapbranchPrefix"
-        p.require(s["bitcoin_prog"], prefix + ' = scribe . toWord256 . integerHash256 . ivHash . tagIv $ fromString "' + label + '"', "Bitcoin host tag recipe")
-    p.require(s["bitcoin_prog"], "simplicityVersion = scribe . toWord8 $ 0xbe", "Bitcoin leaf version")
+        binding("bitcoin_prog", prefix, 'scribe . toWord256 . integerHash256 . ivHash . tagIv $ fromString "' + label + '"')
+    binding("bitcoin_prog", "simplicityVersion", "scribe . toWord8 $ 0xbe")
     for size in [8, 16, 32, 64, 128, 256, 512]:
         p.require(s["hs_types"], f"toWord{size} = toWord word{size}", "Bitcoin constant converter")
         p.require(s["hs_types"], f"word{size} = vector{size}", "Bitcoin word witness")
@@ -777,7 +790,7 @@ def bitcoin_taproot(s):
     ]:
         target = "buildTapleafSimplicity" if stem == "tapleaf" else "buildTapbranch"
         p.require(s["bitcoin_catalog"], f"{tag} :: SigHashJet {input_type} Word256", "Bitcoin builder type")
-        p.require(s["bitcoin_catalog"], f"specificationSigHash {tag} = Prog.{target}", "Bitcoin builder catalog")
+        binding("bitcoin_catalog", f"specificationSigHash {tag}", f"Prog.{target}")
         definition(stem + "_c", "sha_" + stem + "_pre", "sha_globals_ok m /\\ sha_" + stem + "_tag_ok m")
         in_depth = 8 if stem == "tapleaf" else 9
         for suffix in ["local", "startup"]:
@@ -786,6 +799,45 @@ def bitcoin_taproot(s):
             expected = f"memcpy_model -> {contract} f_simplicity_bitcoin_{f_name} (Word {in_depth}) (Word 8) (@{program} Alg.CoreFunSem)."
             if not statement or p.compact(statement[1]) != p.compact(expected):
                 raise ValueError("Bitcoin builder complete public contract differs")
+
+
+def bitcoin_context_hash(s):
+    def replace(text, old, new):
+        return re.sub(r"\s*".join(re.escape(c) for c in p.compact(old)), lambda _: new, text)
+
+    body = s["bitcoin_prog"].split("mkLibAssert Sha256.Lib{..}", 1)[1]
+    outpoint = re.search(r"\boutpointHash\s*=(.*?)\n\s*,\s*annexHash", body, re.S)
+    annex = re.search(r"\bannexHash\s*=(.*?)\n\s*,\s*buildTaptweak", body, re.S)
+    if not outpoint or not annex:
+        raise ValueError("missing Bitcoin context hash tree")
+    p.require(s["hs_ty"], "type S a = Either () a", "Bitcoin annex sum carrier")
+    for size in [4, 32]:
+        p.require(body, f"ctx8Add{size} = ctx8Addn vector{size}", "Bitcoin context-add width binding")
+    for tag, stem, hs_body, input_type, coq_type in [
+        ("OutpointHash", "outpoint", outpoint[1], "(Ctx8, (Word256, Word32))", "(Ty.Prod sha256_ctx8_type (Ty.Prod (Word 8) (Word 5)))"),
+        ("AnnexHash", "annex", annex[1], "(Ctx8, S Word256)", "(Ty.Prod sha256_ctx8_type (Ty.Sum Ty.Unit (Word 8)))"),
+    ]:
+        program = "literal_bitcoin_" + stem + "_hash"
+        p.require(s["bitcoin_catalog"], f"{tag} :: SigHashJet {input_type} Ctx8", "Bitcoin context hash type")
+        p.require(s["bitcoin_catalog"], f"specificationSigHash {tag} = Prog.{stem}Hash", "Bitcoin context hash catalog")
+        port = p.definition(s["bctx_port"], program)
+        for old, new in [
+            ("@literal_ctx8_addn 5 term", "ctx8Add32"),
+            ("@literal_ctx8_addn 2 term", "ctx8Add4"),
+            ("@literal_ctx8_add1 term", "ctx8Add1"),
+            ("@Word.zero 3 (Alg.Assertion.toCore term)", "zero word8"),
+            ("Alg.scribe (haskell_to_word 3 0x01)", "scribe (toWord8 1)"),
+        ]:
+            port = replace(port, old, new)
+        hs_body = replace(hs_body, "scribe (toWord8 0x01)", "scribe (toWord8 1)")
+        same(hs_body, port, "Bitcoin " + stem + " context hash")
+        for suffix in ["local", "startup"]:
+            contract = "sha_jet_partial_local_spec" if suffix == "local" else "sha_startup_partial_spec"
+            theorem = f"bitcoin_{stem}_hash_literal_{suffix}_spec"
+            statement = re.search(r"Theorem " + theorem + r"\s*:(.*?)\bProof\.", s["bctx_jet"], re.S)
+            expected = f"memcpy_model -> {contract} f_simplicity_bitcoin_{stem}_hash {coq_type} sha256_ctx8_type (@{program} optalg)."
+            if not statement or p.compact(statement[1]) != p.compact(expected):
+                raise ValueError("Bitcoin context hash complete public contract differs")
 
 
 def sources():
@@ -830,10 +882,14 @@ def sources():
         "tap_jet": COQ / "C/jet_tapdata_literal_local.v",
         "bitcoin_prog": REPO / "Haskell/Core/Simplicity/Programs/Bitcoin.hs",
         "bitcoin_catalog": REPO / "Haskell/Simplicity/Bitcoin/Jets.hs",
+        "bitcoin_lib": REPO / "Haskell/Core/Simplicity/Programs/Bitcoin/Lib.hs",
         "bt_port": COQ / "C/jet_bitcoin_taproot_literal.v",
         "bt_jet": COQ / "C/jet_bitcoin_taproot_literal_local.v",
         "tapleaf_c": COQ / "C/jet_bitcoin_build_tapleaf_jet.v",
         "tapbranch_c": COQ / "C/jet_bitcoin_build_tapbranch_jet.v",
+        "hs_ty": REPO / "Haskell/Core/Simplicity/Ty.hs",
+        "bctx_port": COQ / "C/jet_bitcoin_ctx_hash_literal.v",
+        "bctx_jet": COQ / "C/jet_bitcoin_ctx_hash_literal_local.v",
     }.items()}
 
 
@@ -844,6 +900,7 @@ def test():
     buffer_finalize(s)
     tapdata(s)
     bitcoin_taproot(s)
+    bitcoin_context_hash(s)
     # Fixity, routing, every round constant, reused primitives, literal wiring
     # and exact final contracts are independent correspondence obligations.
     mutations = [
@@ -990,6 +1047,9 @@ def test():
     print("TapData fixed host recipe and complete canonical/C boundary match;", len(tag_mutations), "mutations rejected")
     builder_mutations = [
         ("bitcoin_catalog", "BuildTapbranch = Prog.buildTapbranch", "BuildTapbranch = Prog.buildTapleafSimplicity"),
+        ("bitcoin_lib", "buildTapleafSimplicity = Bitcoin.buildTapleafSimplicity Bitcoin.lib", "buildTapleafSimplicity = Bitcoin.buildTapbranch Bitcoin.lib"),
+        ("bitcoin_lib", "annexHash = Bitcoin.annexHash Bitcoin.libAssert", "annexHash = Bitcoin.outpointHash Bitcoin.libAssert"),
+        ("bitcoin_prog", "lib = mkLib Sha256.lib", "lib = mkLib Sha256.libChanged"),
         ("bitcoin_prog", 'tagIv $ fromString "TapLeaf"', 'tagIv $ fromString "Tapleaf"'),
         ("bitcoin_prog", 'tagIv $ fromString "TapBranch"', 'tagIv $ fromString "TapLeaf"'),
         ("bitcoin_prog", "simplicityVersion = scribe . toWord8 $ 0xbe", "simplicityVersion = scribe . toWord8 $ 0xc0"),
@@ -1025,6 +1085,33 @@ def test():
             continue
         raise ValueError("Bitcoin builder source mutation escaped: " + old)
     print("Bitcoin TapLeaf/TapBranch complete canonical trees, tags and C boundaries match;", len(builder_mutations), "mutations rejected")
+    context_hash_mutations = [
+        ("bitcoin_catalog", "OutpointHash = Prog.outpointHash", "OutpointHash = Prog.annexHash"),
+        ("bitcoin_prog", "outpointHash = (oh &&& ioh", "outpointHash = (oh &&& iih"),
+        ("bitcoin_prog", "ctx8Add32) &&& iih >>> ctx8Add4", "ctx8Add32) &&& iih >>> ctx8Add32"),
+        ("bitcoin_prog", "annexHash = ih &&& oh", "annexHash = oh &&& ih"),
+        ("bitcoin_prog", "take (zero word8)", "take (zero word16)"),
+        ("bitcoin_prog", "scribe (toWord8 0x01)", "scribe (toWord8 0x00)"),
+        ("bitcoin_prog", "ctx8Add4 = ctx8Addn vector4", "ctx8Add4 = ctx8Addn vector8"),
+        ("hs_ty", "type S a = Either () a", "type S a = Either a ()"),
+        ("bctx_port", "@literal_ctx8_addn 5 term", "@literal_ctx8_addn 4 term"),
+        ("bctx_port", "I H &&& O H >>> case", "O H &&& I H >>> case"),
+        ("bctx_port", "haskell_to_word 3 0x01", "haskell_to_word 3 0x00"),
+        ("bctx_jet", "memcpy_model ->", "False -> memcpy_model ->"),
+        ("bctx_jet", "sha_jet_partial_local_spec", "sha_jet_local_spec"),
+        ("bctx_jet", "f_simplicity_bitcoin_outpoint_hash", "f_simplicity_bitcoin_annex_hash"),
+    ]
+    for key, old, new in context_hash_mutations:
+        if old not in s[key]:
+            raise ValueError("inactive Bitcoin context hash mutation: " + old)
+        changed = dict(s)
+        changed[key] = s[key].replace(old, new, 1)
+        try:
+            bitcoin_context_hash(changed)
+        except ValueError:
+            continue
+        raise ValueError("Bitcoin context hash source mutation escaped: " + old)
+    print("Bitcoin outpoint/annex canonical assertion trees and whole C boundaries match;", len(context_hash_mutations), "mutations rejected")
 
 
 if __name__ == "__main__":

@@ -259,5 +259,18 @@ and ordinary scoped acceptance are still pending.
 These modules reuse the fixed host SHA structure for the two tag prefixes and
 `haskell_hash_word256` for byte/hash-to-word conversion. The source gate compares
 the complete canonical trees, relative vector-size dispatch, shift/order/padding
-wiring and final C boundaries, rejecting 24 additional mutations. The host
+wiring and final C boundaries, including actual library-instance projections,
+rejecting 27 additional mutations. The host
 recipe review concerns these two fixed tags, not arbitrary Haskell decoders.
+
+`jet_bitcoin_ctx_hash_literal{,_local}.v` similarly composes the original
+outpoint/annex C proofs with the checked literal context-add programs. The
+option bridges cover every counter and both optional-input branches, retaining
+the complete success/failure contract, `memcpy_model` and SHA readiness.
+Local and startup variants compile and passed recursive kernel checking with
+supported VM conversion; both bridge lemmas are closed. Width-specific rewrites
+avoid unfolding symbolic SHA computations. The source checker follows the
+actual Bitcoin library bindings and complete assertion trees, rejecting 14
+further mutations. Reviewed snapshot comparisons passed for all four new
+modules; registration and ordinary scoped acceptance of these four jets remain
+pending.
