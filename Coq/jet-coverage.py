@@ -82,6 +82,16 @@ for depth in range(10):
         f"memcpy_model -> sha_jet_partial_local_spec f_simplicity_sha_256_ctx_8_add_{size} "
         f"(Ty.Prod sha256_ctx8_type {source_type}) sha256_ctx8_type ({program}).")
 
+RECOVERED_CONTRACTS.update({
+    "simplicity_sha_256_ctx_8_add_buffer_511": (
+        "memcpy_model -> sha_jet_partial_local_spec f_simplicity_sha_256_ctx_8_add_buffer_511 "
+        "(Ty.Prod sha256_ctx8_type (buffer_type (Word 3) 8)) sha256_ctx8_type "
+        "(@literal_ctx8_add_buffer 8 optalg)."),
+    "simplicity_sha_256_ctx_8_finalize": (
+        "memcpy_model -> sha_jet_partial_local_spec f_simplicity_sha_256_ctx_8_finalize "
+        "sha256_ctx8_type (Word 8) (@literal_ctx8_finalize optalg)."),
+})
+
 
 def records(path, fields):
     result = []

@@ -2,10 +2,11 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 442/533 jets (321 without an extra libc
-premise; 121 conditional on `memcpy_model`). The earlier 430-entry baseline passed
+The local-contract registry contains 444/533 jets (321 without an extra libc
+premise; 123 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
-and ten context-add endpoints passed scoped acceptance.
+and ten context-add endpoints passed scoped acceptance, followed by buffer-add
+and finalization.
 
 Reproduce acceptance from the repository root:
 
@@ -73,7 +74,7 @@ ten are newly accepted registrations.
   do not identify the ordinary SHA translation unit with the Elements program.
 - Shared frame/evaluator admissibility and exhaustive inherited canonical
   fidelity review remain open; see `JET_INHERITED_REVIEW.md`.
-- The remaining 91 header declarations have no registered final contract.
+- The remaining 89 header declarations have no registered final contract.
   Cached Bitcoin hashes and SHA startup helpers are support until their raw-data
   and operational boundaries meet the public coverage requirements.
 
@@ -137,7 +138,7 @@ closure. Cleanup does not change closure selection or any selected proof.
 Git preserves the original candidates and recovery history; see
 `../../proof-work/README.md`. Current acceptance uses the commit and reproducible
 commands, with run output outside the repository. Acceptance establishes the
-local contracts and conditions above; the remaining 91 declarations and shared
+local contracts and conditions above; the remaining 89 declarations and shared
 evaluator/startup and inherited-fidelity obligations remain open.
 
 ## Subsequent completion: `gej_rescale`
@@ -228,3 +229,36 @@ were updated during acceptance.
 
 These are ten conditional local-contract registrations, not a fresh full
 442-entry acceptance audit or completion of the shared obligations above.
+
+## SHA buffer-add and finalization
+
+The selected complete local contracts are in `jet_sha_buffer_literal_local.v`
+and `jet_sha_finalize_literal_local.v`. They execute the original public C
+functions against the literal canonical assertion programs, including every
+counter, buffer length, and assertion-failure case. They retain `memcpy_model`
+and `sha_globals_ok`; they do not prove the linked libc implementation or
+arbitrary externally installed dispatch callbacks. Startup variants reuse the
+existing invariant and its preservation through the covered caller lifecycle.
+
+The buffer bridge retains the empty-buffer count assertion and reuses the
+one-byte/vector bridges. Finalization checks then clears the counter for
+padding, assembles the padded block and original bit length, and calls the
+literal block program. Constant shift/add wiring, padding stages and buffer
+flags have closed program-equality proofs; option-semantic bridges reuse the
+existing block bridge. The source gate compares the actual canonical trees
+and their dependencies, with 24 additional rejected mutations.
+
+The two local theorems inherit six assumptions and startup variants eight,
+with no new project axioms. Reproduce acceptance under Coq 8.17.1:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_sha_256_ctx_8_add_buffer_511,simplicity_sha_256_ctx_8_finalize
+```
+
+This passed the 276-module recursive kernel check, reviewed assumptions and
+contracts, global source/mutation checks, negative tests and all five AST
+regenerations. Audited inputs stayed unchanged and no expectations were
+updated during acceptance.
+
+These are conditional local-contract registrations, not a fresh full
+444-entry audit or closure of the shared evaluator/libc/fidelity obligations.

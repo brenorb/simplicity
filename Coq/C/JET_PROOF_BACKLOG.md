@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 442 of the 533 header declarations.
+The current local-contract registry contains 444 of the 533 header declarations.
 The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 91 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 89 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -194,7 +194,7 @@ audited inputs and no expectation updates. The reproducible command is in
 Focused builds use
 `JET_TARGETS=C/jet_sha_ctx8_literal_local.vo bash Coq/build-jets.sh -j2`.
 
-## Current target: SHA buffer-add and finalization
+## Completed proofs: SHA buffer-add and finalization
 
 The canonical buffer recursion is now in `jet_sha_buffer_literal.v`, reusing
 the one-byte/vector/count bridges and retaining the empty-buffer assertion.
@@ -209,7 +209,29 @@ Both complete C execution and startup contracts compile in
 proofs without additional input restrictions. They retain `memcpy_model` and
 their explicit global-state scope. The existing SHA source gate checks their
 actual canonical trees and dependencies, with 24 additional rejected mutations.
-These two jets remain unregistered until ordinary scoped acceptance.
+The registry selects the two complete local contracts, with `memcpy_model`
+explicit. Startup variants remain supporting results rather than additional
+entries. The reproducible scoped acceptance command is in `JET_ACCEPTANCE.md`.
+It passed all 276 kernel-checked dependency modules, reviewed snapshots,
+negative tests and five AST regenerations, with unchanged audited inputs and
+no expectation updates.
 
 Focused builds use
 `JET_TARGETS='C/jet_sha_buffer_literal_local.vo C/jet_sha_finalize_literal_local.vo' bash Coq/build-jets.sh -j2`.
+
+## Next candidate and reusable simplification
+
+`tapdata_init` already has a complete C theorem in `jet_sha_tapdata_jet.v`.
+Before registration review the actual `Digest.tagIv`/`ivHash` recipe and
+one-word padding against its canonical program. Reuse `tag_hash_eval`,
+`tapdata_prefix_eval` and `tag_block_bytes` from `jet_sha_tapdata_spec.v`;
+do not treat an unexplained prefix numeral as canonical correspondence.
+
+A read-only Coq session also checked a closed improvement for the next batch:
+`@canonical_add_word (S n) term = @Word.adder (S n) term` is reflexive in every
+Core algebra. In particular `@literal_sha_add32 term = @SHA256.add32 term`
+is reflexive, and rewriting it in `literal_sha_256_block` followed by
+`sha_block_tree_existing` gives a closed equality in every Core algebra.
+These stronger bridges have not yet been added to ordinary sources; they can
+remove unnecessary functional-extensionality dependencies from the option
+bridges without changing any target or public C contract.
