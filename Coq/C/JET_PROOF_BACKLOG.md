@@ -248,10 +248,16 @@ scoped acceptance passed for it and all thirteen affected SHA endpoints:
 negative tests and all five AST regenerations, with unchanged audited inputs.
 The command and exact scope are recorded in `JET_ACCEPTANCE.md`.
 
-The next reuse opportunity is `bitcoin_build_tapleaf_simplicity` and
-`bitcoin_build_tapbranch`: their original C proofs already exist in ordinary
-modules, and the startup invariant covers both static tag arrays. Reuse the
-fixed host SHA structure for the two prefixes and `haskell_hash_word256` for
-byte/hash-to-word conversion. Review the canonical shift/order/padding trees
-before registering; do not duplicate the C execution proofs or treat their
-unexplained prefix numerals as canonical correspondence.
+`jet_bitcoin_taproot_literal{,_local}.v` now reuses the existing original C
+proofs for `bitcoin_build_tapleaf_simplicity` and `bitcoin_build_tapbranch`.
+Both complete local and startup-preserving contracts compile, retaining
+`memcpy_model` and the existing SHA/tag-state premises. The ten canonical
+program/constant bridge lemmas are closed; recursive kernel checking with
+supported VM conversion and reviewed snapshot comparisons passed. Registration
+and ordinary scoped acceptance are still pending.
+
+These modules reuse the fixed host SHA structure for the two tag prefixes and
+`haskell_hash_word256` for byte/hash-to-word conversion. The source gate compares
+the complete canonical trees, relative vector-size dispatch, shift/order/padding
+wiring and final C boundaries, rejecting 24 additional mutations. The host
+recipe review concerns these two fixed tags, not arbitrary Haskell decoders.
