@@ -2,12 +2,13 @@
 
 The history cleanup preserves the implementation and canonical specification.
 Mismatches belong in `JET_*_MISMATCHES.md` for the Simplicity developers.
-The local-contract registry contains 449/533 jets (321 without an extra libc
+The local-contract registry contains 450/533 jets (322 without an extra libc
 premise; 128 conditional on `memcpy_model`). The earlier 430-entry baseline passed
 full acceptance; the additional `gej_rescale` and `sha_256_block` endpoints
 and ten context-add endpoints passed scoped acceptance, followed by buffer-add
 and finalization. TapData then passed the fourteen-jet scoped acceptance below.
 The four Bitcoin SHA registrations then passed the scoped acceptance below.
+Tappath hash then passed the expanded consumer acceptance below.
 
 Reproduce acceptance from the repository root:
 
@@ -338,4 +339,45 @@ source/mutation checks, gate negative tests and all five AST regenerations.
 The audited inputs stayed unchanged and no expectations were updated.
 
 This does not assert a fresh full 449-entry audit or discharge of the remaining
+shared evaluator, libc, startup/caller and inherited fidelity obligations.
+
+## Primitive-bearing SHA and Bitcoin tappath hash
+
+The context-add, buffer-add and finalizer bridges now also hold in every
+assertion algebra. Their existing option interfaces, program definitions and
+public C theorem types are unchanged. `jet_sha_hash_words_literal.v` composes
+these closed equalities into the canonical initializer, early-stopping loop
+and array-hash program. `jet_bitcoin_tappath_hash_literal.v` instantiates the
+program with the existing Tappath primitive and composes the original complete
+C getter proof. All ten new program bridges are closed; the C theorem inherits
+six library assumptions and adds no libc-model premise.
+
+The exact environment/cache relation is still
+`hash_getter_rep (fun e => words_hash_of 5 3 (tappath_of e)) 8 40 176`, with
+the existing separation and frame contract. This proves the cached getter,
+not the caller's cache construction. It retains the formal environment and
+its path bound of 128 entries, matching the real C taproot builder's
+well-formedness guard. It does not assert equivalence on arbitrary fabricated
+overlong environments, nor resolve the inherited Bitcoin-domain discrepancies
+in `JET_BITCOIN_MODEL_MISMATCHES.md`.
+
+The existing source checker follows actual library projections, initialization,
+loop termination/counter width, primitive selection and interpretation, and
+the complete final C contract, rejecting 25 additional mutations. Host
+interpreter correspondence is source-reviewed, not a general Haskell
+interpreter correctness theorem.
+
+Ordinary scoped acceptance passed for tappath hash and the fourteen affected
+context-add/buffer/finalizer and Bitcoin context-hash consumers:
+
+```sh
+bash Coq/check-jets.sh --accept --jets=simplicity_sha_256_ctx_8_add_1,simplicity_sha_256_ctx_8_add_2,simplicity_sha_256_ctx_8_add_4,simplicity_sha_256_ctx_8_add_8,simplicity_sha_256_ctx_8_add_16,simplicity_sha_256_ctx_8_add_32,simplicity_sha_256_ctx_8_add_64,simplicity_sha_256_ctx_8_add_128,simplicity_sha_256_ctx_8_add_256,simplicity_sha_256_ctx_8_add_512,simplicity_sha_256_ctx_8_add_buffer_511,simplicity_sha_256_ctx_8_finalize,simplicity_bitcoin_outpoint_hash,simplicity_bitcoin_annex_hash,simplicity_bitcoin_tappath_hash
+```
+
+This passed the default recursive kernel check on 315 modules, assumption
+comparisons for 194 modules, contract comparisons for 211 modules, global
+source/mutation checks, gate negative tests and all five AST regenerations.
+The audited inputs stayed unchanged and no expectations were updated.
+
+This does not assert a fresh full 450-entry audit or discharge of the remaining
 shared evaluator, libc, startup/caller and inherited fidelity obligations.

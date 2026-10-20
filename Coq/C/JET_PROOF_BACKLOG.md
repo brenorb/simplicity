@@ -1,8 +1,8 @@
 # Remaining jet proof work
 
-The current local-contract registry contains 449 of the 533 header declarations.
+The current local-contract registry contains 450 of the 533 header declarations.
 The recently completed registrations and their conditions are listed in
-[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 84 declarations remain unregistered.
+[JET_ACCEPTANCE.md](JET_ACCEPTANCE.md); 83 declarations remain unregistered.
 
 The remaining work includes:
 
@@ -278,7 +278,7 @@ acceptance passed: 292 recursive kernel modules, 186 assumption modules,
 unchanged audited inputs and no expectation updates. The reproducible command
 and remaining scope limits are recorded in `JET_ACCEPTANCE.md`.
 
-## Primitive-bearing SHA bridges and tappath-hash candidate
+## Completed: primitive-bearing SHA bridges and Bitcoin tappath hash
 
 The context-add, buffer-add and finalizer now have closed equality variants
 for every assertion algebra, in addition to their unchanged option interfaces.
@@ -305,5 +305,9 @@ source-reviewed, not a general Haskell interpreter correctness theorem.
 The existing extended environment restricts paths to 128 entries, matching the
 well-formedness guard in the real C taproot builder; no domain is changed here.
 The other inherited Bitcoin-domain discrepancies remain documented in
-`JET_BITCOIN_MODEL_MISMATCHES.md`. Registration and ordinary scoped acceptance
-of the new tappath-hash endpoint remain pending.
+`JET_BITCOIN_MODEL_MISMATCHES.md`. The registry selects the new tappath-hash
+endpoint. Ordinary expanded acceptance passed for it and fourteen affected
+consumers: 315 kernel-checked modules, 194 assumption comparisons, 211 contract
+comparisons, global source/mutation checks, negative tests and all five AST
+regenerations. Audited inputs stayed unchanged; no expectations were updated.
+Reproduce with the scoped command in `JET_ACCEPTANCE.md`.

@@ -109,6 +109,10 @@ RECOVERED_CONTRACTS.update({
         "memcpy_model -> sha_jet_partial_local_spec f_simplicity_bitcoin_annex_hash "
         "(Ty.Prod sha256_ctx8_type (Ty.Sum Ty.Unit (Word 8))) sha256_ctx8_type "
         "(@literal_bitcoin_annex_hash optalg)."),
+    "simplicity_bitcoin_tappath_hash": (
+        "application_jet_local_spec_sep f_simplicity_bitcoin_tappath_hash bitcoin_ge ext_environment "
+        "Ty.Unit Word256 (hash_getter_rep (fun e => words_hash_of 5 3 (tappath_of e)) 8 40 176) "
+        "(fun a environment => @literal_bitcoin_tappath_hash fullalg a environment)."),
 })
 
 
